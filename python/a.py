@@ -27,3 +27,5 @@ print("All libraries installed successfully!")
 # pip install torch torchvision torchaudio
 # pip install tensorflow
 # pip install svm
+# pip install beautifulsoup4 selenium
+# pip install exchangelib
