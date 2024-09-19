@@ -39,7 +39,7 @@ python --version
 ```
 
 ### 3. **Install Backend Dependencies**
-Navigate to the `/backend/` folder and run the provided `install_requirements.bat` file to install the required dependencies for the backend:
+Navigate to the `/backend/` folder and run the provided `install requirements.bat` file to install the required dependencies for the backend:
 
 ```bash
 /backend/install_requirements.bat
