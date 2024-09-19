@@ -23,5 +23,5 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include the auth router
+# Include the routers
 app.include_router(auth.router, tags=["auth"])
