@@ -16,6 +16,9 @@ import nltk
 from nltk.tokenize import word_tokenize
 import re
 
+#pip install pandas matplotlib seaborn scikit-learn imbalanced-learn gensim joblib nltk 
+# use this command to install all
+
 # Downloading NLTK resource
 def download_nltk_resource(resource_name):
     try:
