@@ -1,101 +1,66 @@
-# AI-Driven System for Efficient Scheduling and Performance Assessment of College Research Presentations
+<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-This system is designed for the **Lyceum of the Philippines University of Cavite Department of Computer Studies (LPU-C DCS)** and serves as a decision support tool to streamline scheduling and assessing research presentations.
+<p align="center">
+<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
+</p>
 
-## Prerequisites
+## About Laravel
 
-Before running the system, ensure you have the following tools installed:
+Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
 
-### 1. **Node Version Manager (NVM)**
-- Download and install NVM for Windows [here](https://github.com/coreybutler/nvm-windows/releases/tag/1.1.12).
+- [Simple, fast routing engine](https://laravel.com/docs/routing).
+- [Powerful dependency injection container](https://laravel.com/docs/container).
+- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
+- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
+- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
+- [Robust background job processing](https://laravel.com/docs/queues).
+- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
 
-After installation, verify the NVM, npm, and npx versions:
+Laravel is accessible, powerful, and provides tools required for large, robust applications.
 
-```bash
-nvm -v
-# Expected output: 1.1.12
+## Learning Laravel
 
-npm -v
-# Expected output: 10.8.3
+Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework.
 
-npx -v
-# Expected output: 10.8.3
-```
+You may also try the [Laravel Bootcamp](https://bootcamp.laravel.com), where you will be guided through building a modern Laravel application from scratch.
 
-To install `npx` globally, run:
+If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
 
-```bash
-npm install -g npx
-```
+## Laravel Sponsors
 
-### 2. **Python 3.12.6**
-- Ensure you have Python 3.12.6 installed. You can download it from the [official Python website](https://www.python.org/downloads/).
+We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
 
-After Python is installed, verify the installation:
+### Premium Partners
 
-```bash
-python --version
-# Expected output: Python 3.12.6
-```
+- **[Vehikl](https://vehikl.com/)**
+- **[Tighten Co.](https://tighten.co)**
+- **[WebReinvent](https://webreinvent.com/)**
+- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
+- **[64 Robots](https://64robots.com)**
+- **[Curotec](https://www.curotec.com/services/technologies/laravel/)**
+- **[Cyber-Duck](https://cyber-duck.co.uk)**
+- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
+- **[Jump24](https://jump24.co.uk)**
+- **[Redberry](https://redberry.international/laravel/)**
+- **[Active Logic](https://activelogic.com)**
+- **[byte5](https://byte5.de)**
+- **[OP.GG](https://op.gg)**
 
-### 3. **Install Backend Dependencies**
-Navigate to the `/backend/` folder and run the provided `install_requirements.bat` file to install the required dependencies for the backend:
+## Contributing
 
-```bash
-/backend/install_requirements.bat
-```
+Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
 
-## Running the System
+## Code of Conduct
 
-### 1. **Start the Frontend**
-Navigate to your frontend project directory and start the frontend server:
+In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
 
-```bash
-npm start
-```
+## Security Vulnerabilities
 
-The frontend will be available at [http://localhost:3000](http://localhost:3000).
+If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
 
-### 2. **Start the Backend**
-Navigate to your backend project directory and run the following command to start the backend server:
+## License
 
-```bash
-uvicorn app.main:app --reload
-```
-
-The backend will be available at [http://localhost:8000](http://localhost:8000).
-
-## System Overview
-
-This AI-driven system focuses on making the research presentation process more efficient and helping ensure the quality of student research projects. It leverages **Support Vector Machines (SVM)** and **GPT models** to provide intelligent decision-making features.
-
-### Features
-
-1. **Thesis Topic Decision Tool**
-   - Suggests relevant topics based on current trends to help students choose quality capstone/thesis projects.
-
-2. **Research Title Acceptance Tool**
-   - Analyzes existing studies to assess the uniqueness of a title, helping to avoid plagiarism or low-quality topics.
-
-3. **Scheduling System**
-   - Aligns the defense schedules of both students and panelists based on their availability.
-
-4. **Content Management System**
-   - Allows modular modification of rubrics, team lists, title lists, and panelist assignments, making the system adaptable to different needs.
-
-5. **Requirement Checker Tool**
-   - Helps students and advisers track the completion of necessary documents before the defense.
-
-6. **Pass Recommendation System**
-   - Provides decision support based on panelists' feedback to determine if a student should pass the defense.
-
-## Technologies Used
-- **Support Vector Machine (SVM):** Used for analyzing research titles and making pass recommendations.
-- **GPT (Generative Pre-trained Transformer):** Helps in suggesting thesis topics and analyzing content for plagiarism.
-
-## Additional Notes
-
-- Make sure all necessary dependencies are installed and up to date.
-- For further assistance or troubleshooting, consult me or project documentation.
-
-Enjoy using the system!
+The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
