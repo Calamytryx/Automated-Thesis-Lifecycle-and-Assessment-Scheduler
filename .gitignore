@@ -1,5 +1,8 @@
 
 assets/setup/pw.php
 assets/setup/env.php
+<<<<<<< HEAD
 assets/setup/env.php
 assets/setup/env.php
+=======
+>>>>>>> parent of 0b78fe5 (changed all to pdo)

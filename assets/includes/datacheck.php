@@ -1,55 +1,51 @@
 <?php
 
-function availableUsername($conn, $username) {
-    $sql = "SELECT id FROM users WHERE username = :username";
+function availableUsername($conn, $username){
 
-    try {
-        // Prepare the statement
-        $stmt = $conn->prepare($sql);
-        
-        // Bind parameters
-        $stmt->bindParam(':username', $username);
-        
-        // Execute the statement
-        $stmt->execute();
-        
-        // Check the number of rows returned
-        $resultCheck = $stmt->rowCount();
+    $sql = "select id from users where username=?;";
+    $stmt = mysqli_stmt_init($conn);
+    if (!mysqli_stmt_prepare($stmt, $sql)) {
+
+        return $_SESSION['ERRORS']['scripterror'] = 'SQL error';
+    } 
+    else {
+
+        mysqli_stmt_bind_param($stmt, "s", $username);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+        $resultCheck = mysqli_stmt_num_rows($stmt);
 
         if ($resultCheck > 0) {
-            return false; // Username is taken
+            
+            return false;
         } else {
-            return true; // Username is available
+
+            return true;
         }
-    } catch (PDOException $e) {
-        $_SESSION['ERRORS']['scripterror'] = 'SQL error: ' . $e->getMessage();
-        return false; // Handle error
     }
 }
 
-function availableEmail($conn, $email) {
-    $sql = "SELECT id FROM users WHERE email = :email";
+function availableEmail($conn, $email){
 
-    try {
-        // Prepare the statement
-        $stmt = $conn->prepare($sql);
-        
-        // Bind parameters
-        $stmt->bindParam(':email', $email);
-        
-        // Execute the statement
-        $stmt->execute();
-        
-        // Check the number of rows returned
-        $resultCheck = $stmt->rowCount();
+    $sql = "select id from users where email=?;";
+    $stmt = mysqli_stmt_init($conn);
+    if (!mysqli_stmt_prepare($stmt, $sql)) {
+
+        return $_SESSION['ERRORS']['scripterror'] = 'SQL error';
+    } 
+    else {
+
+        mysqli_stmt_bind_param($stmt, "s", $email);
+        mysqli_stmt_execute($stmt);
+        mysqli_stmt_store_result($stmt);
+        $resultCheck = mysqli_stmt_num_rows($stmt);
 
         if ($resultCheck > 0) {
-            return false; // Email is taken
+            
+            return false;
         } else {
-            return true; // Email is available
+
+            return true;
         }
-    } catch (PDOException $e) {
-        $_SESSION['ERRORS']['scripterror'] = 'SQL error: ' . $e->getMessage();
-        return false; // Handle error
     }
 }

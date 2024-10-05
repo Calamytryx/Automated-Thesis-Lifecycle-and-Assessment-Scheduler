@@ -150,22 +150,26 @@ In each page folder, the `index.php` is the main target page, the `includes` fol
 ### Security
 
 #### SQL Injection Protection
-The system utilizes `PDO prepared statements` for all database interactions, effectively mitigating the risk of SQL injection attacks. There are no raw SQL queries executed, and all user input is rigorously validated and sanitized before being processed. This multi-layered approach further strengthens the security framework of the application.
+
+The system employs `mysqli prepared statements` for all database interactions, which eliminates most risks of SQL injection. There is no raw SQL query used anywhere, and moreover, all data input by user is verified and checked before being used in any application functionality. Hence further hardening the security measures.
 
 ```php
-Copy code
-// Example database query using PDO
+// example database query
 
-$sql = "DELETE FROM auth_tokens WHERE user_email=:email AND auth_type='account_verify';";
-$stmt = $conn->prepare($sql);
-$stmt->bindParam(':email', $email);
+$sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify';";
+$stmt = mysqli_stmt_init($conn);
+if (!mysqli_stmt_prepare($stmt, $sql)) {
 
-if (!$stmt->execute()) {
     $_SESSION['ERRORS']['sqlerror'] = 'SQL ERROR';
     header("Location: ../");
     exit();
-}```
+}
+else {
 
+    mysqli_stmt_bind_param($stmt, "s", $email);
+    mysqli_stmt_execute($stmt);
+}
+```
 
 #### Header & Email Injection Protection
 
