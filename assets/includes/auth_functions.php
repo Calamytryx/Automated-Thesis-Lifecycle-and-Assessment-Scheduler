@@ -67,39 +67,34 @@ function check_verified() {
         exit();
     }
 }
-
 function force_login($email) {
-
     require '../assets/setup/db.inc.php';
     
-    $sql = "SELECT * FROM users WHERE email=?;";
-    $stmt = mysqli_stmt_init($conn);
-
-    if (!mysqli_stmt_prepare($stmt, $sql)) {
+    $sql = "SELECT * FROM users WHERE email = :email";
+    
+    try {
+        // Prepare the statement
+        $stmt = $conn->prepare($sql);
         
-        return false;
-    } 
-    else {
+        // Bind parameters
+        $stmt->bindParam(':email', $email);
         
-        mysqli_stmt_bind_param($stmt, "s", $email);
-        mysqli_stmt_execute($stmt);
+        // Execute the statement
+        $stmt->execute();
+        
+        // Fetch the result
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-        $result = mysqli_stmt_get_result($stmt);
-
-        if (!$row = mysqli_fetch_assoc($result)) {
-            
+        if (!$row) {
             return false;
-        }
-        else {
-
-            if($row['verified_at'] != NULL){
-
+        } else {
+            if ($row['verified_at'] != NULL) {
                 $_SESSION['auth'] = 'verified';
-            } else{
-
+            } else {
                 $_SESSION['auth'] = 'loggedin';
             }
 
+            // Store user data in session
             $_SESSION['id'] = $row['id'];
             $_SESSION['username'] = $row['username'];
             $_SESSION['email'] = $row['email'];
@@ -119,56 +114,53 @@ function force_login($email) {
             
             return true;
         }
+    } catch (PDOException $e) {
+        // Handle SQL error
+        $_SESSION['ERRORS']['scripterror'] = 'SQL error: ' . $e->getMessage();
+        return false;
     }
 }
 
 function check_remember_me() {
-
-    
-
     require '../assets/setup/db.inc.php';
     
     if (empty($_SESSION['auth']) && !empty($_COOKIE['rememberme'])) {
-        
         list($selector, $validator) = explode(':', $_COOKIE['rememberme']);
 
-        $sql = "SELECT * FROM auth_tokens WHERE auth_type='remember_me' AND selector=? AND expires_at >= NOW() LIMIT 1;";
-        $stmt = mysqli_stmt_init($conn);
-
-        if (!mysqli_stmt_prepare($stmt, $sql)) {
-
-            // SQL ERROR
-            return false;
-        }
-        else {
+        $sql = "SELECT * FROM auth_tokens WHERE auth_type = 'remember_me' AND selector = :selector AND expires_at >= NOW() LIMIT 1";
+        
+        try {
+            // Prepare the statement
+            $stmt = $conn->prepare($sql);
             
-            mysqli_stmt_bind_param($stmt, "s", $selector);
-            mysqli_stmt_execute($stmt);
-            $results = mysqli_stmt_get_result($stmt);
+            // Bind parameters
+            $stmt->bindParam(':selector', $selector);
+            
+            // Execute the statement
+            $stmt->execute();
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-            if (!($row = mysqli_fetch_assoc($results))) {
-
+            if (!$row) {
                 // COOKIE VALIDATION FAILURE
                 return false;
-            }
-            else {
-
+            } else {
                 $tokenBin = hex2bin($validator);
                 $tokenCheck = password_verify($tokenBin, $row['token']);
 
                 if ($tokenCheck === false) {
-
                     // COOKIE VALIDATION FAILURE
                     return false;
-                }
-                else if ($tokenCheck === true) {
-
+                } else if ($tokenCheck === true) {
                     $email = $row['user_email'];
                     force_login($email);
                     
                     return true;
                 }
             }
+        } catch (PDOException $e) {
+            // Handle SQL 
+            $_SESSION['ERRORS']['scripterror'] = 'SQL error: ' . $e->getMessage();
+            return false;
         }
     }
 }
