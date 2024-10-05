@@ -1,7 +1,6 @@
 <?php
 
-include 'pw.php';
-$pw_var = pw();
+$pw_var = passkey();
 if (!defined('APP_NAME'))                       define('APP_NAME', 'CoECSA Thesis');
 if (!defined('APP_ORGANIZATION'))               define('APP_ORGANIZATION', 'LPU-C CoECSA');
 if (!defined('APP_OWNER'))                      define('APP_OWNER', '120ms');
