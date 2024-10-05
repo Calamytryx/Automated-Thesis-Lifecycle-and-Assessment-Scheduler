@@ -1,10 +1,10 @@
 
 --
--- Database: `klik_loginsystem`
+-- Database: `coecsa_thesis`
 --
 
-create schema klik_loginsystem;
-use klik_loginsystem;
+create schema coecsa_thesis;
+use coecsa_thesis;
 
 -- --------------------------------------------------------
 
