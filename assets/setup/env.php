@@ -5,7 +5,7 @@ if (!defined('APP_ORGANIZATION'))               define('APP_ORGANIZATION', 'LPU-
 if (!defined('APP_OWNER'))                      define('APP_OWNER', '120ms');
 if (!defined('APP_DESCRIPTION'))                define('APP_DESCRIPTION', 'Thesis management System');
 
-if (!defined('ALLOWED_INACTIVITY_TIME'))        define('ALLOWED_INACTIVITY_TIME', time()+1*60);
+if (!defined('ALLOWED_INACTIVITY_TIME'))        define('ALLOWED_INACTIVITY_TIME', time()+1*60*60);
 
 if (!defined('DB_DATABASE'))                    define('DB_DATABASE', 'coecsa_thesis');
 if (!defined('DB_HOST'))                        define('DB_HOST','127.0.0.1');
