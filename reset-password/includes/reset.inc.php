@@ -62,55 +62,41 @@ if (isset($_POST['resetsubmit'])) {
 
     $sql = "SELECT * FROM auth_tokens WHERE auth_type='password_reset' AND selector=? AND expires_at >= NOW() LIMIT 1";
     $stmt = $pdo->prepare($sql);
+    $stmt->execute([$selector]);
+    $row = $stmt->fetch();
 
-    if (!$row = $stmt->fetch()) {
+    if (!$row) {
 
         $_SESSION['STATUS']['resentsend'] = 'non-existent or expired token, please use new reset email';
         header("Location: ../");
         exit();
     }
-    else {
 
-        $tokenBin = hex2bin($validator);
-        $tokenCheck = password_verify($tokenBin, $row['token']);
+    $tokenBin = hex2bin($validator);
+    $tokenCheck = password_verify($tokenBin, $row['token']);
 
-        if ($tokenCheck === false) {
+    if ($tokenCheck === false) {
 
-            $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
-            header("Location: ../");
-            exit();
-        }
-        else if ($tokenCheck === true) {
-
-            $tokenEmail = $row['user_email'];
-
-            $sql = 'SELECT * FROM users WHERE email=?';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$tokenEmail]);
-            $row = $stmt->fetch();
-
-            if (!$row) {
-                
-                $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
-                header("Location: ../");
-                exit();
-            }
-            else {
-                
-                $sql = 'UPDATE users SET password=? WHERE email=?';
-                $stmt = $pdo->prepare($sql);
-                $newPwdHash = password_hash($password, PASSWORD_DEFAULT);
-                $stmt->execute([$newPwdHash, $tokenEmail]);
-
-                $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset'";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$tokenEmail]);
-
-                $_SESSION['STATUS']['loginstatus'] = 'password updated, please log in';
-                header ("Location: ../../login/");
-            }
-        }
+        $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
+        header("Location: ../");
+        exit();
     }
+
+    // Token is valid, proceed with password reset
+    $tokenEmail = $row['user_email'];
+
+    $sql = 'UPDATE users SET password=? WHERE email=?';
+    $stmt = $pdo->prepare($sql);
+    $newPwdHash = password_hash($password, PASSWORD_DEFAULT);
+    $stmt->execute([$newPwdHash, $tokenEmail]);
+
+    $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset'";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$tokenEmail]);
+
+    $_SESSION['STATUS']['loginstatus'] = 'password updated, please log in';
+    header("Location: ../../login/");
+    exit();
 }
 else {
 

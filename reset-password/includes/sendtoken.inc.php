@@ -46,14 +46,16 @@ if (isset($_POST['resentsend'])) {
 
     $selector = bin2hex(random_bytes(8));
     $token = random_bytes(32);
-    $url = "localhost/coecsathesis/reset-password/?selector=" . $selector . "&validator=" . bin2hex($token);
-    $expires = 'DATE_ADD(NOW(), INTERVAL 1 HOUR)';
+    $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+    $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+
 
     $email = $_POST['email'];
 
-    $sql = "SELECT id FROM users WHERE email=?";
+    $sql = "INSERT INTO auth_tokens (user_email, auth_type, selector, token, expires_at) 
+        VALUES (?, 'password_reset', ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$email]);
+    $stmt->execute([$email, $selector, $hashedToken, $expires]);
 
     if ($stmt->rowCount() == 0){
 
