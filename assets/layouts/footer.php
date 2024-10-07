@@ -61,9 +61,14 @@
 <?php } ?>
 
 
-<script src="../assets/vendor/js/jquery-3.4.1.min.js"></script>
-<script src="../assets/vendor/js/popper.min.js"></script>
-<script src="../assets/vendor/bootstrap-4.3.1/js/bootstrap.min.js"></script>
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+
+<!-- Popper.js -->
+<script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
+
+<!-- Bootstrap JS -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
 <?php if(isset($_SESSION['auth'])) { ?> 
 
