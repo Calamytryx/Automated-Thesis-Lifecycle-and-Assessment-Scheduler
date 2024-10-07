@@ -15,7 +15,7 @@ if (isset($_POST['signupsubmit'])) {
 
     $selector = bin2hex(random_bytes(8));
     $token = random_bytes(32);
-    $url = "localhost/loginsystem/verify/includes/verify.inc.php?selector=" . $selector . "&validator=" . bin2hex($token);
+    $url = "localhost/coecsathesis/verify/includes/verify.inc.php?selector=" . $selector . "&validator=" . bin2hex($token);
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
     $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify'";
