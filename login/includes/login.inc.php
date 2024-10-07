@@ -137,12 +137,12 @@ else {
 
                     setcookie(
                         'rememberme',
-                        $selector.':'.bin2hex($token),
+                        $selector . ':' . bin2hex($token),
                         time() + 864000,
                         '/',
-                        NULL,
-                        false, // TLS-only
-                        true  // http-only
+                        false, // Secure cookie
+                        true,  // HTTP-only
+                        true   // SameSite attribute
                     );
 
                     $hashedToken = password_hash($token, PASSWORD_DEFAULT);
