@@ -16,7 +16,6 @@ require '../../assets/vendor/PHPMailer/src/Exception.php';
 require '../../assets/vendor/PHPMailer/src/PHPMailer.php';
 require '../../assets/vendor/PHPMailer/src/SMTP.php';
 
-
 if (isset($_POST['resentsend'])) {
 
     /*
@@ -26,7 +25,6 @@ if (isset($_POST['resentsend'])) {
     */
 
     foreach($_POST as $key => $value){
-
         $_POST[$key] = _cleaninjections(trim($value));
     }
 
@@ -37,46 +35,29 @@ if (isset($_POST['resentsend'])) {
     */
 
     if (!verify_csrf_token()){
-
         $_SESSION['STATUS']['resentsend'] = 'Request could not be validated';
         header("Location: ../");
         exit();
     }
 
-
     $selector = bin2hex(random_bytes(8));
     $token = random_bytes(32);
-    $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+    $url = "http://localhost/coecsathesis/reset-password/?selector=" . $selector . "&validator=" . bin2hex($token);
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
-
 
     $email = $_POST['email'];
 
-    $sql = "INSERT INTO auth_tokens (user_email, auth_type, selector, token, expires_at) 
-        VALUES (?, 'password_reset', ?, ?, ?)";
-    $stmt = $pdo->prepare($sql);
-    $stmt->execute([$email, $selector, $hashedToken, $expires]);
-
-    if ($stmt->rowCount() == 0){
-
-        $_SESSION['ERRORS']['emailerror'] = 'given email does not exist in our records';
-        header("Location: ../");
-        exit();
-    }
-
-
+    // First, delete any existing tokens for this email
     $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset'";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$email]);
 
-
+    // Now insert the new token
     $sql = "INSERT INTO auth_tokens (user_email, auth_type, selector, token, expires_at) 
             VALUES (?, 'password_reset', ?, ?, ?)";
     $stmt = $pdo->prepare($sql);
     $hashedToken = password_hash($token, PASSWORD_DEFAULT);
-    $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
     $stmt->execute([$email, $selector, $hashedToken, $expires]);
-
 
     $to = $email;
     $subject = 'Reset Your Password';
@@ -120,6 +101,10 @@ if (isset($_POST['resentsend'])) {
         $mail->Body    = $message;
 
         $mail->send();
+        
+        $_SESSION['STATUS']['resentsend'] = 'Password reset email sent';
+        header("Location: ../");
+        exit();
     } 
     catch (Exception $e) {
 
@@ -133,7 +118,12 @@ if (isset($_POST['resentsend'])) {
         exit();
     }
 
-    $_SESSION['STATUS']['resentsend'] = 'verification email sent';
+    /*
+    * ------------------------------------------------------------
+    *   Script Endpoint 
+    * ------------------------------------------------------------
+    */
+    $_SESSION['STATUS']['resentsend'] = 'Password reset email sent';
     header("Location: ../");
     exit();
 }
