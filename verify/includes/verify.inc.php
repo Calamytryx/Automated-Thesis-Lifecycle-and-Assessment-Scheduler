@@ -31,63 +31,56 @@ if (isset($_GET['selector']) && isset($_GET['validator'])) {
         exit();
     }
 
-    $sql = "SELECT * FROM auth_tokens WHERE auth_type='account_verify' AND selector=? AND expires_at >= NOW() LIMIT 1;";
+    $sql = "SELECT * FROM auth_tokens WHERE auth_type='account_verify' AND selector=? LIMIT 1;";
     $stmt = $pdo->prepare($sql);
     $stmt->execute([$selector]);
-    $row = $stmt->fetch();
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if (!$row) {
 
-        $_SESSION['STATUS']['verify'] = 'non-existent or expired token, please use new verification email';
+        error_log("Token not found. Selector: " . $selector);
+        $_SESSION['STATUS']['verify'] = 'Invalid token, please use a new verification email';
         header("Location: ../");
         exit();
     }
-    else {
 
-        $tokenBin = hex2bin($validator);
-        $tokenCheck = password_verify($tokenBin, $row['token']);
+    // Check if the token has expired
+    if (strtotime($row['expires_at']) < time()) {
 
-        if ($tokenCheck === false) {
-
-            $_SESSION['STATUS']['verify'] = 'invalid token, please use new verification email';
-            header("Location: ../");
-            exit();
-        }
-        else if ($tokenCheck === true) {
-
-            $tokenEmail = $row['user_email'];
-
-            $sql = 'SELECT * FROM users WHERE email=? LIMIT 1;';
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([$tokenEmail]);
-            $row = $stmt->fetch();
-
-            if (!$row) {
-                
-                $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new verification email';
-                header("Location: ../");
-                exit();
-            }
-            else {
-
-                $sql = 'UPDATE users SET verified_at=NOW() WHERE email=?;';
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$tokenEmail]);
-
-                $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify';";
-                $stmt = $pdo->prepare($sql);
-                $stmt->execute([$tokenEmail]);
-
-                if (isset($_SESSION['auth'])){
-
-                    $_SESSION['auth'] = 'verified';
-                }
-
-                $_SESSION['STATUS']['loginstatus'] = 'account activated, please login';
-                header ("Location: ../../login/");
-            }
-        }
+        error_log("Token expired. Selector: " . $selector);
+        $_SESSION['STATUS']['verify'] = 'Token expired, please request a new verification email';
+        header("Location: ../");
+        exit();
     }
+
+    $tokenBin = hex2bin($validator);
+    $tokenCheck = password_verify($tokenBin, $row['token']);
+
+    if ($tokenCheck === false) {
+
+        error_log("Invalid token. Selector: " . $selector);
+        $_SESSION['STATUS']['verify'] = 'Invalid token, please use a new verification email';
+        header("Location: ../");
+        exit();
+    }
+
+    // If we get here, the token is valid and not expired
+    // Proceed with account verification
+    $userEmail = $row['user_email'];
+
+    // Update user's verified status
+    $sql = "UPDATE users SET verified_at = NOW() WHERE email = ?";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$userEmail]);
+
+    // Delete the used token
+    $sql = "DELETE FROM auth_tokens WHERE user_email = ? AND auth_type = 'account_verify'";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$userEmail]);
+
+    $_SESSION['STATUS']['verify'] = 'Your account has been verified. You can now log in.';
+    header("Location: ../../login/");
+    exit();
 }
 else {
 

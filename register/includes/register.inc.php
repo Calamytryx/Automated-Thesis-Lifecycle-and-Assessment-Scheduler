@@ -89,14 +89,12 @@ if (isset($_POST['signupsubmit'])) {
         exit();
     } else {
 
-        if (!availableUsername($conn, $username)){
-
+        if (!availableUsername($pdo, $username)){
             $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
             header("Location: ../");
             exit();
         }
-        if (!availableEmail($conn, $email)){
-
+        if (!availableEmail($pdo, $email)){
             $_SESSION['ERRORS']['emailerror'] = 'email already taken';
             header("Location: ../");
             exit();
