@@ -32,102 +32,59 @@ if (isset($_GET['selector']) && isset($_GET['validator'])) {
     }
 
     $sql = "SELECT * FROM auth_tokens WHERE auth_type='account_verify' AND selector=? AND expires_at >= NOW() LIMIT 1;";
-    $stmt = mysqli_stmt_init($conn);
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$selector]);
+    $row = $stmt->fetch();
 
-    if (!mysqli_stmt_prepare($stmt, $sql)) {
+    if (!$row) {
 
-        $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
+        $_SESSION['STATUS']['verify'] = 'non-existent or expired token, please use new verification email';
         header("Location: ../");
         exit();
     }
     else {
 
-        mysqli_stmt_bind_param($stmt, "s", $selector);
-        mysqli_stmt_execute($stmt);
-        $results = mysqli_stmt_get_result($stmt);
+        $tokenBin = hex2bin($validator);
+        $tokenCheck = password_verify($tokenBin, $row['token']);
 
-        if (!($row = mysqli_fetch_assoc($results))) {
+        if ($tokenCheck === false) {
 
-            $_SESSION['STATUS']['verify'] = 'non-existent or expired token, please use new verification email';
+            $_SESSION['STATUS']['verify'] = 'invalid token, please use new verification email';
             header("Location: ../");
             exit();
         }
-        else {
+        else if ($tokenCheck === true) {
 
-            $tokenBin = hex2bin($validator);
-            $tokenCheck = password_verify($tokenBin, $row['token']);
+            $tokenEmail = $row['user_email'];
 
-            if ($tokenCheck === false) {
+            $sql = 'SELECT * FROM users WHERE email=? LIMIT 1;';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$tokenEmail]);
+            $row = $stmt->fetch();
 
-                $_SESSION['STATUS']['verify'] = 'invalid token, please use new verification email';
+            if (!$row) {
+                
+                $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new verification email';
                 header("Location: ../");
                 exit();
             }
-            else if ($tokenCheck === true) {
+            else {
 
-                $tokenEmail = $row['user_email'];
+                $sql = 'UPDATE users SET verified_at=NOW() WHERE email=?;';
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$tokenEmail]);
 
-                $sql = 'SELECT * FROM users WHERE email=? LIMIT 1;';
-                $stmt = mysqli_stmt_init($conn);
+                $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify';";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$tokenEmail]);
 
-                if (!mysqli_stmt_prepare($stmt, $sql)){
+                if (isset($_SESSION['auth'])){
 
-                    $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                    header("Location: ../");
-                    exit();
+                    $_SESSION['auth'] = 'verified';
                 }
-                else {
 
-                    mysqli_stmt_bind_param($stmt, "s", $tokenEmail);
-                    mysqli_stmt_execute($stmt);
-                    $results = mysqli_stmt_get_result($stmt);
-
-                    if (!$row = mysqli_fetch_assoc($results)) {
-                        
-                        $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new verification email';
-                        header("Location: ../");
-                        exit();
-                    }
-                    else {
-
-                        $sql = 'UPDATE users SET verified_at=NOW() WHERE email=?;';
-                        $stmt = mysqli_stmt_init($conn);
-
-                        if (!mysqli_stmt_prepare($stmt, $sql))
-                        {
-                            $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                            header("Location: ../");
-                            exit();
-                        }
-                        else {
-
-                            mysqli_stmt_bind_param($stmt, "s", $tokenEmail);
-                            mysqli_stmt_execute($stmt);
-
-                            $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify';";
-                            $stmt = mysqli_stmt_init($conn);
-                            if (!mysqli_stmt_prepare($stmt, $sql)){
-
-                                $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                                header("Location: ../");
-                                exit();
-                            }
-                            else {
-
-                                mysqli_stmt_bind_param($stmt, "s", $tokenEmail);
-                                mysqli_stmt_execute($stmt);
-                                
-                                if (isset($_SESSION['auth'])){
-
-                                    $_SESSION['auth'] = 'verified';
-                                }
-
-                                $_SESSION['STATUS']['loginstatus'] = 'account activated, please login';
-                                header ("Location: ../../login/");
-                            }
-                        }
-                    }
-                }
+                $_SESSION['STATUS']['loginstatus'] = 'account activated, please login';
+                header ("Location: ../../login/");
             }
         }
     }

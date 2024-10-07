@@ -61,97 +61,53 @@ if (isset($_POST['resetsubmit'])) {
     }
 
     $sql = "SELECT * FROM auth_tokens WHERE auth_type='password_reset' AND selector=? AND expires_at >= NOW() LIMIT 1";
-    $stmt = mysqli_stmt_init($conn);
+    $stmt = $pdo->prepare($sql);
 
-    if (!mysqli_stmt_prepare($stmt, $sql)) {
+    if (!$row = $stmt->fetch()) {
 
-        $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-        header("Location: " . $_SERVER['HTTP_REFERER']);
+        $_SESSION['STATUS']['resentsend'] = 'non-existent or expired token, please use new reset email';
+        header("Location: ../");
         exit();
     }
     else {
 
-        mysqli_stmt_bind_param($stmt, "s", $selector);
-        mysqli_stmt_execute($stmt);
-        $results = mysqli_stmt_get_result($stmt);
+        $tokenBin = hex2bin($validator);
+        $tokenCheck = password_verify($tokenBin, $row['token']);
 
-        if (!($row = mysqli_fetch_assoc($results))) {
+        if ($tokenCheck === false) {
 
-            $_SESSION['STATUS']['resentsend'] = 'non-existent or expired token, please use new reset email';
+            $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
             header("Location: ../");
             exit();
         }
-        else {
+        else if ($tokenCheck === true) {
 
-            $tokenBin = hex2bin($validator);
-            $tokenCheck = password_verify($tokenBin, $row['token']);
+            $tokenEmail = $row['user_email'];
 
-            if ($tokenCheck === false) {
+            $sql = 'SELECT * FROM users WHERE email=?';
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute([$tokenEmail]);
+            $row = $stmt->fetch();
 
+            if (!$row) {
+                
                 $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
                 header("Location: ../");
                 exit();
             }
-            else if ($tokenCheck === true) {
+            else {
+                
+                $sql = 'UPDATE users SET password=? WHERE email=?';
+                $stmt = $pdo->prepare($sql);
+                $newPwdHash = password_hash($password, PASSWORD_DEFAULT);
+                $stmt->execute([$newPwdHash, $tokenEmail]);
 
-                $tokenEmail = $row['user_email'];
+                $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset'";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$tokenEmail]);
 
-                $sql = 'SELECT * FROM users WHERE email=?;';
-                $stmt = mysqli_stmt_init($conn);
-
-                if (!mysqli_stmt_prepare($stmt, $sql)){
-
-                    $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                    header("Location: " . $_SERVER['HTTP_REFERER']);
-                    exit();
-                }
-                else {
-
-                    mysqli_stmt_bind_param($stmt, "s", $tokenEmail);
-                    mysqli_stmt_execute($stmt);
-                    $results = mysqli_stmt_get_result($stmt);
-
-                    if (!$row = mysqli_fetch_assoc($results)) {
-                        
-                        $_SESSION['STATUS']['resentsend'] = 'invalid token, please use new reset email';
-                        header("Location: ../");
-                        exit();
-                    }
-                    else {
-                        
-                        $sql = 'UPDATE users SET password=? WHERE email=?;';
-                        $stmt = mysqli_stmt_init($conn);
-                        if (!mysqli_stmt_prepare($stmt, $sql))
-                        {
-                            $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                            header("Location: " . $_SERVER['HTTP_REFERER']);
-                            exit();
-                        }
-                        else {
-
-                            $newPwdHash = password_hash($password, PASSWORD_DEFAULT);
-                            mysqli_stmt_bind_param($stmt, "ss", $newPwdHash, $tokenEmail);
-                            mysqli_stmt_execute($stmt);
-                            
-                            $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset';";
-                            $stmt = mysqli_stmt_init($conn);
-                            if (!mysqli_stmt_prepare($stmt, $sql)){
-
-                                $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-                                header("Location: " . $_SERVER['HTTP_REFERER']);
-                                exit();
-                            }
-                            else{
-
-                                mysqli_stmt_bind_param($stmt, "s", $tokenEmail);
-                                mysqli_stmt_execute($stmt);
-                                
-                                $_SESSION['STATUS']['loginstatus'] = 'password updated, please log in';
-                                header ("Location: ../../login/");
-                            }
-                        }
-                    }
-                }
+                $_SESSION['STATUS']['loginstatus'] = 'password updated, please log in';
+                header ("Location: ../../login/");
             }
         }
     }

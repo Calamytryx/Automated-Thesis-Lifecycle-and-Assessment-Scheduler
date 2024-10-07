@@ -8,7 +8,6 @@ require '../../assets/includes/security_functions.php';
 
 check_logged_out();
 
-
 if (isset($_POST['signupsubmit'])) {
 
     /*
@@ -164,40 +163,30 @@ if (isset($_POST['signupsubmit'])) {
         * -------------------------------------------------------------------------------
         */
 
-        $sql = "insert into users(username, email, password, first_name, last_name, gender, 
+        $sql = "INSERT INTO users(username, email, password, first_name, last_name, gender, 
                 headline, bio, profile_image, created_at) 
-                values ( ?,?,?,?,?,?,?,?,?, NOW() )";
-        $stmt = mysqli_stmt_init($conn);
-        if (!mysqli_stmt_prepare($stmt, $sql)) {
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+        $stmt = $pdo->prepare($sql);
 
-            $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
-            header("Location: ../");
-            exit();
-        } 
-        else {
+        $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
 
-            $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
+        $stmt->execute([$username, $email, $hashedPwd, $full_name, $last_name, $gender, $headline, $bio, $FileNameNew]);
 
-            mysqli_stmt_bind_param($stmt, "sssssssss", $username, $email, $hashedPwd, $full_name, $last_name, $gender, $headline, $bio, $FileNameNew);
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_store_result($stmt);
+        /*
+        * -------------------------------------------------------------------------------
+        *   Sending Verification Email for Account Activation
+        * -------------------------------------------------------------------------------
+        */
+        
+        require 'sendverificationemail.inc.php';
 
-            /*
-            * -------------------------------------------------------------------------------
-            *   Sending Verification Email for Account Activation
-            * -------------------------------------------------------------------------------
-            */
-            
-            require 'sendverificationemail.inc.php';
-
-            $_SESSION['STATUS']['loginstatus'] = 'Account Created, please Login';
-            header("Location: ../../login/");
-            exit();
-        }
+        $_SESSION['STATUS']['loginstatus'] = 'Account Created, please Login';
+        header("Location: ../../login/");
+        exit();
     }
 
-    mysqli_stmt_close($stmt);
-    mysqli_close($conn);
+    $stmt->closeCursor();
+    $pdo = null;
 } 
 else {
 

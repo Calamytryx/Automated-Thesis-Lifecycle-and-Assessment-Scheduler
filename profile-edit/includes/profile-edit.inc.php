@@ -233,19 +233,16 @@ if (isset($_POST['update-profile'])) {
             profile_image=?";
 
         if ($passwordUpdated){
-
             $sql .= ", password=? 
-                    WHERE id=?;";
+                    WHERE id=?";
         }
         else{
-
-            $sql .= " WHERE id=?;";
+            $sql .= " WHERE id=?";
         }
 
-        $stmt = mysqli_stmt_init($conn);
+        $stmt = $pdo->prepare($sql);
 
-        if (!mysqli_stmt_prepare($stmt, $sql)) {
-
+        if (!$stmt) {
             $_SESSION['ERRORS']['scripterror'] = 'SQL ERROR';
             header("Location: ../");
             exit();
@@ -253,9 +250,8 @@ if (isset($_POST['update-profile'])) {
         else {
 
             if ($passwordUpdated){
-
                 $hashedPwd = password_hash($newpassword, PASSWORD_DEFAULT);
-                mysqli_stmt_bind_param($stmt, "ssssssssss", 
+                $stmt->execute([
                     $username,
                     $email,
                     $first_name,
@@ -266,11 +262,10 @@ if (isset($_POST['update-profile'])) {
                     $FileNameNew,
                     $hashedPwd,
                     $_SESSION['id']
-                );
+                ]);
             }
             else{
-
-                mysqli_stmt_bind_param($stmt, "sssssssss", 
+                $stmt->execute([
                     $username,
                     $email,
                     $first_name,
@@ -280,12 +275,8 @@ if (isset($_POST['update-profile'])) {
                     $bio,
                     $FileNameNew,
                     $_SESSION['id']
-                );
+                ]);
             }
-
-            mysqli_stmt_execute($stmt);
-            mysqli_stmt_store_result($stmt);
-
 
             $_SESSION['username'] = $username;
             $_SESSION['email'] = $email;
@@ -302,8 +293,8 @@ if (isset($_POST['update-profile'])) {
         }
     }
 
-    mysqli_stmt_close($stmt);
-    mysqli_close($conn);
+    $stmt->closeCursor();
+    $pdo = null;
 } 
 else {
 

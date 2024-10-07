@@ -51,41 +51,19 @@ if (isset($_POST['verifysubmit'])) {
     $email = $_SESSION['email'];
 
 
-    $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify';";
-    $stmt = mysqli_stmt_init($conn);
-    if (!mysqli_stmt_prepare($stmt, $sql)) {
-
-        $_SESSION['ERRORS']['sqlerror'] = 'SQL ERROR';
-        header("Location: ../");
-        exit();
-    }
-    else {
-
-        mysqli_stmt_bind_param($stmt, "s", $email);
-        mysqli_stmt_execute($stmt);
-    }
-
+    $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='account_verify'";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$email]);
 
     $sql = "INSERT INTO auth_tokens (user_email, auth_type, selector, token, expires_at) 
-            VALUES (?, 'account_verify', ?, ?, " . $expires . ");";
-    $stmt = mysqli_stmt_init($conn);
-    if (!mysqli_stmt_prepare($stmt, $sql)) {
+            VALUES (?, 'account_verify', ?, ?, ?)";
+    $stmt = $pdo->prepare($sql);
+    $hashedToken = password_hash($token, PASSWORD_DEFAULT);
+    $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
+    $stmt->execute([$email, $selector, $hashedToken, $expires]);
 
-        $_SESSION['ERRORS']['sqlerror'] = 'SQL ERROR';
-        header("Location: ../");
-        exit();
-    }
-    else {
-        
-        $hashedToken = password_hash($token, PASSWORD_DEFAULT);
-        mysqli_stmt_bind_param($stmt, "sss", $email, $selector, $hashedToken);
-        mysqli_stmt_execute($stmt);
-    }
-
-
-    mysqli_stmt_close($stmt);
-    mysqli_close($conn);
-
+    $stmt->closeCursor();
+    $pdo = null;
 
     $to = $email;
     $subject = 'Verify Your Account';
