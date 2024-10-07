@@ -1,3 +1,11 @@
+:root {
+    --primary-color: #8c0001;
+    --secondary-color: #b38b11;
+    --accent-color: #dde0e4;
+    --off-white: #f5f5f5;
+    --off-black: #333333;
+  }
+
 html,
 body {
     overflow-x: hidden;
@@ -5,7 +13,7 @@ body {
 }
 
 .box-shadow {
-    box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
+    box-shadow: 0 .25rem .75rem var(--accent-color);
 }
 
 .form-auth {
@@ -24,10 +32,12 @@ body {
     height: auto;
     padding: 10px;
     font-size: 16px;
+    border-color: var(--accent-color);
 }
 
 .form-auth .form-control:focus {
     z-index: 2;
+    border-color: var(--primary-color);
 }
 
 .form-auth input[type="email"] {
@@ -57,26 +67,26 @@ body {
 }
 
 .avatar-upload .avatar-edit input+label {
+    background: var(--primary-color);
+    border: 1px solid var(--accent-color);
+    box-shadow: 0px 2px 4px 0px var(--accent-color);
     width: 34px;
     height: 34px;
     margin-bottom: 0;
     border-radius: 100%;
     z-index: 1000000;
-    background: blue;
-    border: 1px solid transparent;
-    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.12);
     cursor: pointer;
     font-weight: normal;
     transition: all 0.2s ease-in-out;
 }
 
 .avatar-upload .avatar-edit input+label:hover {
-    background: #757575;
-    border-color: #757575;
+    background: var(--secondary-color);
+    border-color: var(--secondary-color);
 }
 
 .avatar-upload .avatar-edit input+label:after {
-    color: #757575;
+    color: var(--accent-color);
     position: absolute;
     top: 5px;
     left: 1px;
@@ -90,7 +100,7 @@ body {
     height: 162px;
     position: relative;
     border-radius: 100%;
-    box-shadow: 0px 2px 4px 0px rgba(0, 0, 0, 0.3);
+    box-shadow: 0px 2px 4px 0px var(--accent-color);
 }
 
 .avatar-upload .avatar-preview>div {
@@ -117,6 +127,7 @@ body {
     min-height: 330px;
     margin: 50px auto;
     /* background-color: #e6e5e1; */
+    border: 1px solid var(--accent-color);
     border-radius: 0;
     border: 0;
 }
@@ -129,10 +140,10 @@ body {
     width: 110px;
     height: 110px;
     object-fit: cover;
+    border: 2px solid var(--accent-color);
     border-radius: 50%;
     margin-top: -45px;
     margin-bottom: 35px;
-    border: 2px solid #ffffff;
 }
 
 .edit-profile {
@@ -162,11 +173,11 @@ body {
 }
 
 .card-profile .fa {
-    color: grey;
+    color: var(--accent-color);
 }
 
 .card-profile .fa:hover {
-    color: blue;
+    color: var(--secondary-color);
 }
 
 
@@ -177,13 +188,13 @@ footer {
 }
 
 #myFooter {
-    background-color: #3c3d41;
-    color: white;
+    background-color: var(--primary-color);
+    color: var(--off-white);
     padding-top: 30px;
 }
 
 #myFooter .footer-copyright {
-    background-color: #333333;
+    background-color: var(--secondary-color);
     padding-top: 3px;
     padding-bottom: 3px;
     text-align: center;
@@ -200,11 +211,11 @@ footer {
 
 #myFooter .footer-copyright p {
     margin: 10px;
-    color: #ccc;
+    color: var(--accent-color);
 }
 
 #myFooter .footer-copyright a:hover {
-    color: #d84b6b;
+    color: var(--primary-color);
 }
 
 #myFooter ul {
@@ -215,7 +226,7 @@ footer {
 
 #myFooter h5 {
     font-size: 18px;
-    color: white;
+    color: var(--accent-color);
     font-weight: bold;
     margin-top: 30px;
 }
@@ -223,18 +234,18 @@ footer {
 #myFooter h2 a {
     font-size: 50px;
     text-align: center;
-    color: #fff;
+    color: var(--accent-color);
 }
 
 #myFooter a {
-    color: #d2d1d1;
+    color: var(--accent-color);
     text-decoration: none;
 }
 
 #myFooter a:hover,
 #myFooter a:focus {
     text-decoration: none;
-    color: white;
+    color: var(--secondary-color);
 }
 
 #myFooter .social-networks {
@@ -245,19 +256,19 @@ footer {
 
 #myFooter .social-networks a {
     font-size: 32px;
-    color: #f9f9f9;
+    color: var(--accent-color);
     padding: 10px;
     transition: 0.2s;
 }
 
 #myFooter .social-networks a:hover {
     text-decoration: none;
-    color: #d84b6b;
+    color: var(--secondary-color);
 }
 
 #myFooter .btn {
-    color: white;
-    background-color: #d84b6b;
+    color: var(--accent-color);
+    background-color: var(--secondary-color);
     border-radius: 20px;
     border: none;
     width: 150px;
@@ -265,4 +276,9 @@ footer {
     margin: 0 auto;
     margin-top: 10px;
     line-height: 25px;
+}
+
+#myFooter .btn:hover {
+    background-color: var(--accent-color);
+    color: var(--primary-color);
 }

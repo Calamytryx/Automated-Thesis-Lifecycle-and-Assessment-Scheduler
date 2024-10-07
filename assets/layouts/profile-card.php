@@ -1,6 +1,3 @@
-
-
-
 <div class='card card-profile text-center box-shadow bg-white'>
 
     <?php if (isset($_SESSION['auth'])) { ?>
@@ -11,7 +8,7 @@
             <img src='../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>' class='card-img-profile'>
         </a>
         <a href="../profile-edit">
-            <i class="fa fa-pencil-alt fa-1x edit-profile" aria-hidden="true"></i>
+            <i class="fas fa-pencil-alt edit-profile" aria-hidden="true"></i>
             <!-- <i class="fa fa-female"></i> -->
         </a>
         <h4 class='card-title'>
