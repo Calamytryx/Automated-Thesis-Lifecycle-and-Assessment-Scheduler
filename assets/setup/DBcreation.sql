@@ -179,6 +179,6 @@ CREATE TABLE `env_variables` (
   UNIQUE KEY `key` (`key`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- Dumping data for table `users`
-INSERT INTO `users` (`usertype`, `username`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `created_at`) VALUES
-(0, 'supahot', 'supa@hot.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Supahot', 'Soverysupahot', 'm', 'Headline of a supa hot user', 'This is the bio of a supa hot user. Now i will say needless stuff to make this longer so this looks like a bio and not anything other than a bio.', NOW());
+-- -- Dumping data for table `users`
+-- INSERT INTO `users` (`usertype`, `username`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `created_at`) VALUES
+-- (0, 'supahot', 'supa@hot.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Supahot', 'Soverysupahot', 'm', 'Headline of a supa hot user', 'This is the bio of a supa hot user. Now i will say needless stuff to make this longer so this looks like a bio and not anything other than a bio.', NOW());
