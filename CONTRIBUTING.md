@@ -1,38 +1,48 @@
+# Contributing to ATLAS
 
-<p align="center">
-  <img src="assets/images/contribution_cover.png" width="700" align="center"/>
-</p><br>
+> Thank you for your interest in contributing to ATLAS (Advanced Thesis Logistics and AI System)!
 
-# Contributing to the Project
+This guide outlines how you can contribute to ATLAS. These are guidelines, not rules. Use your best judgment, and feel free to propose changes to this document in a pull request.
 
-> First of all, thanks for considering or taking the time to contribute!
+## Project Team
 
-The following is a simple guide on contributing to this Project. These are mostly guidelines, so feel free to use your best judgement and propose changes to this document in a pull request.
+- Research Adviser: Sean Gono (sean.gono@lpu.edu.ph)
+- Research Leader: Winston Agustin (winston.agustin@lpunetwork.edu.ph)
+- Front End Developer: Neil Vicedo (neil.vicedo@lpunetwork.edu.ph)
+- Lead Researcher: Jerald Gerona (jerald.gerona@lpunetwork.edu.ph)
+- Researcher: Ivan Kerwin Ilano (ivankerwin.ilano@lpunetwork.edu.ph)
 
-### Did you fix whitespace, format code, or make a purely cosmetic patch?
+## How to Contribute
 
-- Changes that are cosmetic in nature and do not add anything substantial to the stability, functionality, or testability of the project will generally not be accepted.
+### Reporting Bugs
 
-### Do you intend to add a new feature or change an existing one?
+- Before submitting a bug report, please check the existing issues to see if the problem has already been reported.
+- If you're unable to find an open issue addressing the problem, open a new one. Be sure to include a clear title, detailed description, and as much relevant information as possible.
 
-- Suggest your idea to [my email](mailto:saad01.1999@gmail.com) and start development on your idea.
-- Do not open an issue on GitHub until you have collected positive feedback about the change. GitHub issues are primarily intended for bug reports and fixes.
-- If you want to add to this project, I have a list of features to add in the future [here](README.md#future-improvements). It would be best if you pick a feature from this list to develop on.
-- Once development is complete, make a pull request to this project's master branch. Ensure the Pull Request's description clearly (and in detail) defines the goal, functionality and purpose of the new feature as well as details on the changes in original Project files.
+### Suggesting Enhancements
 
-### Did you find a bug?
+- Open an issue with a clear title and detailed description of your suggestion.
+- Explain why this enhancement would be useful to most ATLAS users.
 
-- Ensure the bug was not already reported by searching on GitHub under Issues.
-- If you're unable to find an open issue addressing the problem, open a [new one](https://github.com/msaad1999/PHP-Login-System/issues/new). Be sure to include a title and clear description, as much relevant information as possible, and a code sample or an executable test case demonstrating the expected behavior that is not occurring.
+### Pull Requests
 
-### Did you write a patch that fixes a bug?
+1. Fork the repo and create your branch from `master`.
+2. If you've added code that should be tested, add tests.
+3. Ensure the test suite passes.
+4. Make sure your code lints.
+5. Issue that pull request!
 
-- Open a new GitHub pull request with the patch.
-- Ensure the Pull Request description clearly describes the problem and solution.
+### Coding Style
 
-### Do you have questions about the source code?
+- Follow the coding style used throughout the project.
+- Write clear, readable, and well-documented code.
 
-- Ask any questions related to the Project to [my email](mailto:saad01.1999@gmail.com).
+## Questions?
 
+If you have any questions about contributing, please reach out to one of the team members listed above.
 
-> Any contribution from you guys would be greatly appreciated and welcomed.
+## License
+
+By contributing to ATLAS, you agree that your contributions will be licensed under its MIT license.
+
+Thank you for contributing to ATLAS!
