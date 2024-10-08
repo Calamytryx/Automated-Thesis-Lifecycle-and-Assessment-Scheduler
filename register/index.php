@@ -127,6 +127,10 @@ check_logged_out();
                         <input type="radio" id="female" name="gender" class="custom-control-input" value="f">
                         <label class="custom-control-label" for="female">Female</label>
                     </div>
+                    <div class="custom-control custom-radio custom-control">
+                        <input type="radio" id="others" name="gender" class="custom-control-input" value="o">
+                        <label class="custom-control-label" for="others">Others</label>
+                    </div>
                 </div>
 
                 <button class="btn btn-lg btn-primary btn-block" type="submit" name='signupsubmit'>Signup</button>

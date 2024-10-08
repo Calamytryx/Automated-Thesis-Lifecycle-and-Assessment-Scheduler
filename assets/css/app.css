@@ -134,6 +134,8 @@ a.visited{
 /* --------------Profile card---------------------- */
 
 .card-profile {
+    position: sticky;
+    top: 100px;
     width: 230px;
     min-height: 330px;
     margin: 50px auto;
