@@ -37,8 +37,8 @@ function xss_filter($data) {
                             </div>
                         </div>
                         <div class="avatar-edit">
-                            <input name='avatar' id="avatar" class="fas fa-pencil" type='file' />
-                            <label for="avatar"></label>
+                            <input name='avatar' id="avatar" type='file' />
+                            <label for="avatar" class="fas fa-image edit"></label>
                         </div>
                     </div>
                 </div>

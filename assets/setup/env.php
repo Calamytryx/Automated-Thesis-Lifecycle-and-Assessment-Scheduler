@@ -1,9 +1,9 @@
 <?php
 
-if (!defined('APP_NAME'))                       define('APP_NAME', 'CoECSA Thesis');
+if (!defined('APP_NAME'))                       define('APP_NAME', 'ATLAS');
 if (!defined('APP_ORGANIZATION'))               define('APP_ORGANIZATION', 'LPU-C CoECSA');
 if (!defined('APP_OWNER'))                      define('APP_OWNER', '120ms');
-if (!defined('APP_DESCRIPTION'))                define('APP_DESCRIPTION', 'Thesis management System');
+if (!defined('APP_DESCRIPTION'))                define('APP_DESCRIPTION', 'Advanced Thesis Logistics and AI System for LPU');
 
 if (!defined('ALLOWED_INACTIVITY_TIME'))        define('ALLOWED_INACTIVITY_TIME', time()+1*60*60);
 
