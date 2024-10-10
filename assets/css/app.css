@@ -4,6 +4,51 @@
     --accent-color: #dde0e4;
     --off-white: #f5f5f5;
     --off-black: #333333;
+
+    /* Primary Colors */
+    --primary-50 : #e6e9fd;
+    --primary-100: #b2baf7;
+    --primary-200: #8d99f4;
+    --primary-300: #596aee;
+    --primary-400: #394deb;
+    --primary-500: #0721e6;
+    --primary-600: #061ed1;
+    --primary-700: #0517a3;
+    --primary-800: #04127f;
+    --primary-900: #030e61;
+
+    /* Secondary Colors */
+    --secondary-50 : #fdf5e6;
+    --secondary-100: #f7dfb2;
+    --secondary-200: #f4d08d;
+    --secondary-300: #eeba59;
+    --secondary-400: #ebad39;
+    --secondary-500: #e69807;
+    --secondary-600: #d18a06;
+    --secondary-700: #a36c05;
+    --secondary-800: #7f5404;
+    --secondary-900: #614003;
+
+    /* Neutral Colors */
+    --neutral-50 : #f6f6f6;
+    --neutral-100: #e4e4e4;
+    --neutral-200: #d7d7d7;
+    --neutral-300: #c5c5c5;
+    --neutral-400: #b9b9b9;
+    --neutral-500: #a8a8a8;
+    --neutral-600: #999999;
+    --neutral-700: #777777;
+    --neutral-800: #5c5c5c;
+    --neutral-900: #474747;
+
+    /* Main Colors */
+    --main-primary : #0721e6; /* Primary */
+    --main-accent  : #e69807; /* Accent */
+    --main-neutral : #e9ebf8; /* Neutral */
+    --main-black   : #121212; /* Black */
+    --main-white   : #fffcf8; /* White */
+    --main-bg-dark : #050819; /* BG-dark */
+    --main-bg-light: #e8e8e8; /* BG-light */
   }
 
 html {
@@ -58,14 +103,15 @@ a.visited{
     position: relative;
     box-sizing: border-box;
     height: auto;
-    padding: 10px;
+    padding: 1.2rem;
     font-size: 16px;
-    border-color: var(--accent-color);
+    border-radius: 1rem;
+    border: solid 0.2rem var(--main-neutral);
 }
 
 .form-auth .form-control:focus {
     z-index: 2;
-    border-color: var(--primary-color);
+    border-color: var(--primary-300);
 }
 
 .form-auth input[type="email"] {

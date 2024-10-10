@@ -7,7 +7,7 @@ check_logged_out();
 <div class="container" id="log-reg-container">
     <div class="row g-0">
         <div class="col-md-6 img-container">
-            <img src="../assets/images/login-bg.png" alt="Building">
+            <img src="../assets/images/register-bg.png" alt="Building">
         </div>
         <div class="col-md-6 form-container">
 

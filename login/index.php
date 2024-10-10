@@ -6,34 +6,30 @@ check_logged_out();
 ?>
 
 
-<div class="container">
-    <div class="row">
-        <div class="col-sm-4">
-
+<div class="container" id="log-reg-container">
+    <div class="row g-0">
+        <div class="col-md-6 img-container">
+            <img src="../assets/images/login-bg.jpg" alt="Building">
         </div>
-        <div class="col-sm-4">
+        <div class="col-md-6 form-container">
+            <div class="logo">
+                <span class="text-dark">A</span><span class="text-primary">AA</span>
+            </div>
             <form class="form-auth" action="includes/login.inc.php" method="post">
 
                 <?php insert_csrf_token(); ?>
-
-                <div class="text-center">
-                    <img class="mb-1" src="../assets/images/logo.png" alt="" width="130" height="130">
-                </div>
-
-                <h6 class="h3 mb-3 font-weight-normal text-muted text-center">Login to your Account</h6>
 
                 <div class="text-center mb-3">
                     <small class="text-success font-weight-bold">
                         <?php
                             if (isset($_SESSION['STATUS']['loginstatus']))
                                 echo $_SESSION['STATUS']['loginstatus'];
-
                         ?>
                     </small>
                 </div>
 
-                <div class="form-group">
-                    <label for="username" class="sr-only">Username</label>
+                <div class="mb-3">
+                    <label for="username" class="form-label">Username or email</label>
                     <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
                     <sub class="text-danger">
                         <?php
@@ -43,8 +39,8 @@ check_logged_out();
                     </sub>
                 </div>
 
-                <div class="form-group">
-                    <label for="password" class="sr-only">Password</label>
+                <div class="mb-3">
+                    <label for="password" class="form-label">Password</label>
                     <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                     <sub class="text-danger">
                         <?php
@@ -54,6 +50,12 @@ check_logged_out();
                     </sub>
                 </div>
 
+                <div class="mb-3 text-end">
+                    <a href="../reset-password/" class="text-decoration-none">Forgot password?</a>
+                </div>
+
+                <button class="btn btn-primary w-100" type="submit" value="loginsubmit" name="loginsubmit">Login</button>
+
                 <div class="col-auto my-1 mb-4">
                     <div class="custom-control custom-checkbox mr-sm-2">
                         <input type="checkbox" class="custom-control-input" id="rememberme" name="rememberme">
@@ -61,23 +63,11 @@ check_logged_out();
                     </div>
                 </div>
 
-                <button class="btn btn-lg btn-primary btn-block" type="submit" value="loginsubmit" name="loginsubmit">Login</button>
-
-                <p class="mt-3 text-muted text-center"><a href="../reset-password/">forgot password?</a></p>
-
                 <p class="mt-4 mb-3 text-muted text-center">
-                    <a href="" target="_blank">
-                    <?php echo APP_NAME; ?>
-                    </a> | 
-                    <a href="" target="_blank">
-                    <?php echo APP_ORGANIZATION; ?>
-                    </a>
+                    <a href="" target="_blank"><?php echo APP_NAME; ?></a> |
+                    <a href="" target="_blank"><?php echo APP_ORGANIZATION; ?></a>
                 </p>
-                
             </form>
-        </div>
-        <div class="col-sm-4">
-
         </div>
     </div>
 </div>
