@@ -141,6 +141,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <li class="nav-item" role="presentation">
                         <button class="nav-link" id="env-variables-tab" data-bs-toggle="tab" data-bs-target="#env-variables" type="button" role="tab" aria-controls="env-variables" aria-selected="false">Environment Variables</button>
                     </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="scheduler-tab" data-bs-toggle="tab" data-bs-target="#scheduler" type="button" role="tab" aria-controls="scheduler" aria-selected="false">Defense Scheduler</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="schedules-tab" data-bs-toggle="tab" data-bs-target="#schedules" type="button" role="tab" aria-controls="schedules" aria-selected="false">User Schedules</button>
+                    </li>
                 </ul>
                 <div class="tab-content" id="myTabContent">
                     <div class="tab-pane fade show active" id="users" role="tabpanel" aria-labelledby="users-tab">
@@ -168,7 +174,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <td><?php echo $user['email']; ?></td>
                                             <td><?php echo $user['first_name']; ?></td>
                                             <td><?php echo $user['last_name']; ?></td>
-                                            <td><?php echo $user['usertype'] == 0 ? 'Admin' : 'User'; ?></td>
+                                            <td>
+                                                <?php
+                                                switch ($user['usertype']) {
+                                                    case 0:
+                                                        echo 'Admin';
+                                                        break;
+                                                    case 1:
+                                                        echo 'Student';
+                                                        break;
+                                                    case 2:
+                                                        echo 'Staff';
+                                                        break;
+                                                    default:
+                                                        echo 'Unknown';
+                                                }
+                                                ?>
+                                            </td>
                                             <td>
                                                 <button class="btn btn-primary btn-sm edit-btn" data-table="users" data-id="<?php echo $user['id']; ?>">Edit</button>
                                             </td>
@@ -213,7 +235,210 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                     </div>
-                    <!-- Add similar structures for other tabs (research-titles, defense-schedules, rubrics, teams, requirements, evaluations) -->
+                    <!-- Research Titles -->
+                    <div class="tab-pane fade" id="research-titles" role="tabpanel" aria-labelledby="research-titles-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Research Titles Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Title</th>
+                                            <th>User ID</th>
+                                            <th>Status</th>
+                                            <th>Uniqueness Score</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($researchTitles as $title): ?>
+                                        <tr>
+                                            <td><?php echo $title['id']; ?></td>
+                                            <td><?php echo $title['title']; ?></td>
+                                            <td><?php echo $title['user_id']; ?></td>
+                                            <td><?php echo $title['status']; ?></td>
+                                            <td><?php echo $title['uniqueness_score']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="research_titles" data-id="<?php echo $title['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Defense Schedules -->
+                    <div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Defense Schedules Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Student ID</th>
+                                            <th>Panelist ID</th>
+                                            <th>Panelist ID 2</th>
+                                            <th>Panelist ID 3</th>
+                                            <th>Date</th>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                            <th>Room</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($defenseSchedules as $schedule): ?>
+                                        <tr>
+                                            <td><?php echo $schedule['id']; ?></td>
+                                            <td><?php echo $schedule['student_id']; ?></td>
+                                            <td><?php echo $schedule['panelist_id']; ?></td>
+                                            <td><?php echo $schedule['panelist_id2']; ?></td>
+                                            <td><?php echo $schedule['panelist_id3']; ?></td>
+                                            <td><?php echo date('M-d-y', strtotime($schedule['schedule_date'])); ?></td>
+                                            <td><?php echo $schedule['start_time']; ?></td>
+                                            <td><?php echo $schedule['end_time']; ?></td>
+                                            <td><?php echo $schedule['room']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Rubrics -->
+                    <div class="tab-pane fade" id="rubrics" role="tabpanel" aria-labelledby="rubrics-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Rubrics Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Created By</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($rubrics as $rubric): ?>
+                                        <tr>
+                                            <td><?php echo $rubric['id']; ?></td>
+                                            <td><?php echo $rubric['name']; ?></td>
+                                            <td><?php echo $rubric['description']; ?></td>
+                                            <td><?php echo $rubric['created_by']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="<?php echo $rubric['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Teams -->
+                    <div class="tab-pane fade" id="teams" role="tabpanel" aria-labelledby="teams-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Teams Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($teams as $team): ?>
+                                        <tr>
+                                            <td><?php echo $team['id']; ?></td>
+                                            <td><?php echo $team['name']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="teams" data-id="<?php echo $team['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Requirements -->
+                    <div class="tab-pane fade" id="requirements" role="tabpanel" aria-labelledby="requirements-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Requirements Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Name</th>
+                                            <th>Description</th>
+                                            <th>Due Date</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($requirements as $requirement): ?>
+                                        <tr>
+                                            <td><?php echo $requirement['id']; ?></td>
+                                            <td><?php echo $requirement['name']; ?></td>
+                                            <td><?php echo $requirement['description']; ?></td>
+                                            <td><?php echo $requirement['due_date']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="requirements" data-id="<?php echo $requirement['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Evaluations -->
+                    <div class="tab-pane fade" id="evaluations" role="tabpanel" aria-labelledby="evaluations-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Evaluations Management</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Defense Schedule ID</th>
+                                            <th>Evaluator ID</th>
+                                            <th>Total Score</th>
+                                            <th>Comments</th>
+                                            <th>Recommendation</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($evaluations as $evaluation): ?>
+                                        <tr>
+                                            <td><?php echo $evaluation['id']; ?></td>
+                                            <td><?php echo $evaluation['defense_schedule_id']; ?></td>
+                                            <td><?php echo $evaluation['evaluator_id']; ?></td>
+                                            <td><?php echo $evaluation['total_score']; ?></td>
+                                            <td><?php echo $evaluation['comments']; ?></td>
+                                            <td><?php echo $evaluation['recommendation']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="evaluations" data-id="<?php echo $evaluation['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                     <div class="tab-pane fade" id="env-variables" role="tabpanel" aria-labelledby="env-variables-tab">
                         <div class="my-3 p-3 bg-white rounded shadow-sm">
                             <h6 class="border-bottom border-gray pb-2 mb-0">Environment Variables Management</h6>
@@ -245,8 +470,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                     </div>
+                    <div class="tab-pane fade" id="scheduler" role="tabpanel" aria-labelledby="scheduler-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Defense Scheduler</h6>
+                            <button id="generateSchedule" class="btn btn-primary mt-3">Generate Defense Schedule</button>
+                            <div id="schedulerProgress" class="progress mt-3" style="display: none;">
+                                <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+                            </div>
+                            <div id="scheduleResult" class="mt-3"></div>
+                        </div>
+                    </div>
+                    <div class="tab-pane fade" id="schedules" role="tabpanel" aria-labelledby="schedules-tab">
+                        <div class="my-3 p-3 bg-white rounded shadow-sm">
+                            <h6 class="border-bottom border-gray pb-2 mb-0">User Schedules</h6>
+                            <div class="table-responsive">
+                                <table class="table table-striped table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th>User ID</th>
+                                            <th>Day</th>
+                                            <th>Start Time</th>
+                                            <th>End Time</th>
+                                            <th>Class Name</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php
+                                        $schedules = $pdo->query("SELECT * FROM user_schedules ORDER BY user_id, day_of_week, start_time")->fetchAll(PDO::FETCH_ASSOC);
+                                        foreach ($schedules as $schedule):
+                                        ?>
+                                        <tr>
+                                            <td><?php echo $schedule['user_id']; ?></td>
+                                            <td><?php echo $schedule['day_of_week']; ?></td>
+                                            <td><?php echo $schedule['start_time']; ?></td>
+                                            <td><?php echo $schedule['end_time']; ?></td>
+                                            <td><?php echo $schedule['class_name']; ?></td>
+                                            <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="user_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
+                                            </td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-            <?php else: ?>
+            <?php elseif($_SESSION['usertype'] == 1): ?>
                 <!-- Regular user dashboard content -->
             <?php endif; ?>
         </div>
@@ -318,7 +589,11 @@ $(document).ready(function() {
                                             '</div>' +
                                             '<div class="form-check form-check-inline">' +
                                             '<input class="form-check-input" type="radio" name="usertype" id="usertype1" value="1"' + (value == 1 ? ' checked' : '') + '>' +
-                                            '<label class="form-check-label" for="usertype1">User</label>' +
+                                            '<label class="form-check-label" for="usertype1">Student</label>' +
+                                            '</div>' +
+                                            '<div class="form-check form-check-inline">' +
+                                            '<input class="form-check-input" type="radio" name="usertype" id="usertype2" value="2"' + (value == 2 ? ' checked' : '') + '>' +
+                                            '<label class="form-check-label" for="usertype2">Staff</label>' +
                                             '</div>' +
                                             '</div>');
                                     } else if(key === 'gender') {
@@ -391,6 +666,32 @@ $(document).ready(function() {
             error: function(xhr, status, error) {
                 console.error(xhr.responseText);
                 alert('Error: Could not update item. Check console for details.');
+            }
+        });
+    });
+
+    $('#generateSchedule').on('click', function() {
+        $.ajax({
+            url: 'includes/run_scheduler.php',
+            method: 'POST',
+            dataType: 'json',
+            beforeSend: function() {
+                $('#generateSchedule').prop('disabled', true).text('Generating...');
+            },
+            success: function(response) {
+                if(response.success) {
+                    alert('Schedule generated successfully!');
+                    location.reload(); // Reload the page to show the new schedule
+                } else {
+                    alert('Error: ' + response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error(xhr.responseText);
+                alert('Error: Could not generate schedule. Check console for details.');
+            },
+            complete: function() {
+                $('#generateSchedule').prop('disabled', false).text('Generate Defense Schedule');
             }
         });
     });

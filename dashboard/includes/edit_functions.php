@@ -67,6 +67,13 @@ function updateEnvVariable($pdo, $id, $key, $value, $description) {
     return $stmt->execute([$key, $value, $description, $id]);
 }
 
+// Function to update user schedule
+function updateUserSchedule($pdo, $id, $user_id, $day_of_week, $start_time, $end_time, $class_name) {
+    $sql = "UPDATE user_schedules SET user_id = ?, day_of_week = ?, start_time = ?, end_time = ?, class_name = ? WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    return $stmt->execute([$user_id, $day_of_week, $start_time, $end_time, $class_name, $id]);
+}
+
 // Function to handle form submissions and route to the appropriate update function
 function handleEditSubmission($pdo) {
     if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -92,6 +99,8 @@ function handleEditSubmission($pdo) {
                 return updateEvaluation($pdo, $id, $_POST['defense_schedule_id'], $_POST['evaluator_id'], $_POST['total_score'], $_POST['comments'], $_POST['recommendation']);
             case 'env_variables':
                 return updateEnvVariable($pdo, $id, $_POST['key'], $_POST['value'], $_POST['description']);
+            case 'user_schedules':
+                return updateUserSchedule($pdo, $id, $_POST['user_id'], $_POST['day_of_week'], $_POST['start_time'], $_POST['end_time'], $_POST['class_name']);
             default:
                 return false;
         }
