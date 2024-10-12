@@ -1,10 +1,11 @@
 <?php
-
 define('TITLE', "Login");
 include '../assets/layouts/header.php';
 check_logged_out();
+$app_name = APP_NAME;
+$first_letter = substr($app_name, 0, 1);
+$rest_of_name = substr($app_name, 1);
 ?>
-
 
 <div class="container" id="log-reg-container">
     <div class="row g-0">
@@ -13,7 +14,7 @@ check_logged_out();
         </div>
         <div class="col-md-6 form-container">
             <div class="logo">
-                <span class="text-dark">A</span><span class="text-primary">AA</span>
+            <span class="text-dark"><?php echo $first_letter; ?></span><span class="text-primary"><?php echo $rest_of_name; ?></span>
             </div>
             <form class="form-auth" action="includes/login.inc.php" method="post">
 
@@ -29,7 +30,7 @@ check_logged_out();
                 </div>
 
                 <div class="mb-3">
-                    <label for="username" class="form-label">Username or email</label>
+                    <label for="username" class="form-label">Username</label>
                     <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
                     <sub class="text-danger">
                         <?php
@@ -64,17 +65,14 @@ check_logged_out();
                 </div>
 
                 <p class="mt-4 mb-3 text-muted text-center">
-                    <a href="" target="_blank"><?php echo APP_NAME; ?></a> |
-                    <a href="" target="_blank"><?php echo APP_ORGANIZATION; ?></a>
+                    <a href="../contact" target="_blank">Contact Us</a> |
+                    <a href="../register/" target="_blank">No account? Sign up</a>
                 </p>
             </form>
         </div>
     </div>
 </div>
 
-
 <?php
-
-include '../assets/layouts/footer.php'
-
+include '../assets/layouts/footer.php';
 ?>

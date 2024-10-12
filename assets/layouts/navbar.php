@@ -1,88 +1,55 @@
-    <?php if (!isset($_SESSION['auth'])) { ?>
+<nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm p-2">
 
-        <nav class="navbar navbar-expand-md navbar-light bg-white shadow-sm p-2">
+    <div class="container">
+        <a class="navbar-brand" href="../home">
 
-        <?php } else { ?>
-
-            <nav class="navbar navbar-expand-md navbar-dark bg-dark shadow-sm p-2">
-
-
-            <?php } ?>
+            <img src="../assets/images/logonotextwhite.png" alt="" width="50" height="50" class="me-3">
 
 
-            <div class="container">
-                <a class="navbar-brand" href="../home">
+            <?php echo APP_NAME; ?>
 
-                    <?php if (!isset($_SESSION['auth'])) { ?>
-                        <img src="../assets/images/logonotext.png" alt="" width="50" height="50" class="me-3">
-                    <?php } else { ?>
-                        <img src="../assets/images/logonotextwhite.png" alt="" width="50" height="50" class="me-3">
-                    <?php } ?>
-
-                    <?php echo APP_NAME; ?>
-
-                </a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
+        </a>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
+            <span class="navbar-toggler-icon"></span>
+        </button>
 
 
-                <div class="collapse navbar-collapse" id="navbarSupportedContent">
+        <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
-                    <!-- All navbar items aligned to the right -->
-                    <ul class="navbar-nav ms-auto">
+            <!-- All navbar items aligned to the right -->
+            <ul class="navbar-nav ms-auto">
 
-                        <li class="nav-item">
-                            <a class="nav-link" href="../welcome">Welcome</a>
+                <li class="nav-item">
+                    <a class="nav-link" href="../welcome">Welcome</a>
+                </li>
+
+
+                <li class="nav-item">
+                    <a class="nav-link" href="../dashboard">Dashboard</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="../home">Home</a>
+                </li>
+
+                <li class="nav-item">
+                    <a class="nav-link" href="../contact">Contact Us</a>
+                </li>
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img class="navbar-img" src="../assets/uploads/users/<?php echo $_SESSION['profile_image'] ?>" alt="Profile">
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                        <li><a class="dropdown-item" href="../profile"><i class="fas fa-user me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-pencil-alt me-2"></i> Edit Profile</a></li>
+                        <li>
+                            <hr class="dropdown-divider">
                         </li>
-
-                        <?php if (!isset($_SESSION['auth'])) { ?>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="../contact">Contact Us</a>
-                            </li>
-                            
-                            <li class="nav-item">
-                                <a class="nav-link" href="../login">Login</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="../register">Signup</a>
-                            </li>
-
-                        <?php } else { ?>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="../dashboard">Dashboard</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="../home">Home</a>
-                            </li>
-
-                            <li class="nav-item">
-                                <a class="nav-link" href="../contact">Contact Us</a>
-                            </li>
-
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <img class="navbar-img" src="../assets/uploads/users/<?php echo $_SESSION['profile_image'] ?>" alt="Profile">
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
-                                    <li><a class="dropdown-item" href="../profile"><i class="fas fa-user me-2"></i> Profile</a></li>
-                                    <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-pencil-alt me-2"></i> Edit Profile</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="../logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
-                                </ul>
-                            </li>
-
-                        <?php } ?>
-
-
-
-
-
+                        <li><a class="dropdown-item" href="../logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
                     </ul>
-                </div>
-            </div>
-            </nav>
+                </li>
+            </ul>
+        </div>
+    </div>
+</nav>

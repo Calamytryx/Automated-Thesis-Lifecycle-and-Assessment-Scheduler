@@ -31,7 +31,29 @@ function fetchAllResearchTitles($pdo) {
 
 // Function to fetch all defense schedules
 function fetchAllDefenseSchedules($pdo) {
-    $stmt = $pdo->prepare("SELECT * FROM defense_schedules");
+    $stmt = $pdo->prepare("
+        SELECT 
+            ds.schedule_date,
+            ds.start_time,
+            ds.end_time,
+            ds.room,
+            t.name AS team_name,
+            t.title AS thesis_title,
+            GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members,
+            GROUP_CONCAT(DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) ORDER BY FIELD(ds.panelist_id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', ') AS panelists,
+            (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
+             FROM team_members tm_adviser 
+             JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
+             WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
+             ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
+        FROM defense_schedules ds
+        JOIN teams t ON ds.team_id = t.id
+        JOIN team_members tm ON t.id = tm.team_id
+        JOIN users u_student ON tm.user_id = u_student.id
+        LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
+        GROUP BY ds.id
+        ORDER BY ds.schedule_date, ds.start_time
+    ");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -272,38 +294,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <!-- Defense Schedules -->
                     <div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
                         <div class="my-3 p-3 bg-white rounded shadow-sm">
-                            <h6 class="border-bottom border-gray pb-2 mb-0">Defense Schedules Management</h6>
+                            <h6 class="border-bottom border-gray pb-2 mb-0">Defense Schedules</h6>
                             <div class="table-responsive">
                                 <table class="table table-striped table-sm">
                                     <thead>
                                         <tr>
-                                            <th>ID</th>
-                                            <th>Student ID</th>
-                                            <th>Panelist ID</th>
-                                            <th>Panelist ID 2</th>
-                                            <th>Panelist ID 3</th>
-                                            <th>Date</th>
-                                            <th>Start Time</th>
-                                            <th>End Time</th>
+                                            <th>Date & Time</th>
+                                            <th>Team</th>
+                                            <th>Members</th>
+                                            <th>Adviser</th>
+                                            <th>Thesis Title</th>
+                                            <th>Panelists</th>
                                             <th>Room</th>
-                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($defenseSchedules as $schedule): ?>
+                                        <?php
+                                        $current_date = null;
+                                        foreach ($defenseSchedules as $schedule):
+                                            $schedule_date = date('M-d-y', strtotime($schedule['schedule_date']));
+                                            $start_time = date('H:i', strtotime($schedule['start_time']));
+                                            $end_time = date('H:i', strtotime($schedule['end_time']));
+                                            
+                                            // Display the date only if it's different from the previous row
+                                            $date_display = ($current_date !== $schedule_date) ? $schedule_date . '<br>' : '';
+                                            $current_date = $schedule_date;
+                                        ?>
                                         <tr>
-                                            <td><?php echo $schedule['id']; ?></td>
-                                            <td><?php echo $schedule['student_id']; ?></td>
-                                            <td><?php echo $schedule['panelist_id']; ?></td>
-                                            <td><?php echo $schedule['panelist_id2']; ?></td>
-                                            <td><?php echo $schedule['panelist_id3']; ?></td>
-                                            <td><?php echo date('M-d-y', strtotime($schedule['schedule_date'])); ?></td>
-                                            <td><?php echo $schedule['start_time']; ?></td>
-                                            <td><?php echo $schedule['end_time']; ?></td>
-                                            <td><?php echo $schedule['room']; ?></td>
-                                            <td>
-                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
-                                            </td>
+                                            <td><?php echo $date_display . $start_time . ' - ' . $end_time; ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['team_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['team_members']); ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['adviser']); ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
+                                            <td><?php echo htmlspecialchars($schedule['room']); ?></td>
                                         </tr>
                                         <?php endforeach; ?>
                                     </tbody>

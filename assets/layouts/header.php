@@ -41,5 +41,6 @@ check_remember_me();
 </head>
 
 <body>
-
+<?php if (isset($_SESSION['auth'])) { ?>
     <?php require 'navbar.php'; ?>
+<?php } ?>

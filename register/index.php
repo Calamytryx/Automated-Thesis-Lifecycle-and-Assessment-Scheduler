@@ -2,6 +2,9 @@
 define('TITLE', "Signup");
 include '../assets/layouts/header.php';
 check_logged_out();
+$app_name = APP_NAME;
+$first_letter = substr($app_name, 0, 1);
+$rest_of_name = substr($app_name, 1);
 ?>
 
 <div class="container" id="log-reg-container">
@@ -133,8 +136,8 @@ check_logged_out();
                 <button class="btn btn-lg btn-primary btn-block" type="submit" name='signupsubmit'>Signup</button>
 
                 <p class="mt-4 mb-3 text-muted text-center">
-                    <a href="https://github.com/msaad1999/PHP-Login-System" target="_blank">Login System</a> | 
-                    <a href="https://github.com/msaad1999/PHP-Login-System/blob/master/LICENSE" target="_blank">MIT License</a>
+                    <a href="../contact" target="_blank">Contact Us</a> |
+                    <a href="../login/" target="_blank">Already have an account? Login</a>
                 </p>
             </form>
         </div>
