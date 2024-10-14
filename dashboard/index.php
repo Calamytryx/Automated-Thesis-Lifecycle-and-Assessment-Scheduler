@@ -552,7 +552,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="modal-body">
                 <form id="editForm">
-                    <!-- Form fields will be dynamically inserted here -->
+                    <input type="hidden" name="id">
+                    <input type="hidden" name="table">
+                    
+                    <!-- Other form fields... -->
+
+                    <div id="teamMembers">
+                        <!-- Team members will be dynamically added here -->
+                    </div>
+                    <button type="button" id="addMember" class="btn btn-secondary mt-2">Add Member</button>
                 </form>
             </div>
             <div class="modal-footer">
@@ -690,12 +698,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     response.data.members.forEach(function(member, index) {
         formHtml += `
-            <div class="mb-3 row team-member">
+            <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-5">
-                    <input type="text" class="form-control" value="${member.name}" readonly>
+                    <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
                 </div>
                 <div class="col-sm-5">
-                    <select class="form-select" name="${member.id}">
+                    <select class="form-select" name="member_role[]">
                         <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
                         <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
                         <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
@@ -707,13 +715,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
         `;
     });
-    
+
     formHtml += `
         </div>
-        <button type="button" class="btn btn-primary btn-sm mt-2" id="addMember">Add Member</button>
+        <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
     `;
-    
     form.html(formHtml);
+
+    // Add team member functionality
+$('#addTeamMember').on('click', function() {
+    console.log('Add Team Member button clicked');
+    addNewTeamMember();
+});
+
 }else if (table === 'research_titles') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
@@ -752,12 +766,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     response.data.members.forEach(function(member, index) {
         formHtml += `
-            <div class="mb-3 row team-member">
+            <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-7">
                     <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
                 </div>
                 <div class="col-sm-5">
-                    <select class="form-select" name="${member.id}">
+                    <select class="form-select" name="member_role[]">
                         <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
                         <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
                         <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
@@ -772,6 +786,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     `;
     
     form.html(formHtml);
+
+    // Add team member functionality
+$('#addTeamMember').on('click', function() {
+    console.log('Add Team Member button clicked');
+    addNewTeamMember();
+});
+
+
+
 } else if (table === 'env_variables') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
@@ -809,7 +832,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             var table = $(this).data('table');
             var form = $('#addForm');
             form.empty();
-
             form.append('<input type="hidden" name="table" value="' + table + '">');
 
             if (table === 'users') {
@@ -871,30 +893,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
                     '<label class="form-check-label" for="approved">Approved</label>' +
                     '</div>');
-            } else if (table === 'teams') {
-                form.append('<div class="mb-3">' +
-                    '<label for="name" class="form-label">Team Name</label>' +
-                    '<input type="text" class="form-control" id="name" name="name" required>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="title" class="form-label">Research Title</label>' +
-                    '<input type="text" class="form-control" id="title" name="title" required>' +
-                    '</div>' +
-                    '<div id="teamMembers"></div>' +
-                    '<div class="mb-3">' +
-                    '<button type="button" class="btn btn-secondary btn-sm" id="addTeamMember">Add Team Member</button>' +
-                    '</div>');
+                } else     if (table === 'teams') {
+        var formHtml = `
+            <div class="mb-3">
+                <label for="name" class="form-label">Team Name</label>
+                <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+                <label for="title" class="form-label">Research Title</label>
+                <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <h5 class="mt-4">Team Members</h5>
+            <div id="teamMembers">
+                <!-- Team members will be added here -->
+            </div>
+            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+        `;
+        form.append(formHtml);
 
-                // Add team member functionality
-                $('#addTeamMember').on('click', function() {
-                    addNewTeamMember();
-                });
+        // Add team member functionality
+        $('#addTeamMember').on('click', function() {
+            console.log('Add Team Member button clicked');
+            addNewTeamMember();
+        });
 
-                // Remove member functionality
-                $(document).on('click', '.remove-member', function() {
-                    $(this).closest('.team-member').remove();
-                });
-            } else if (table === 'rubrics') {
+
+
+    }else if (table === 'rubrics') {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
                     '<input type="text" class="form-control" id="name" name="name" required>' +
@@ -951,57 +976,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $('#addModal').modal('show');
         });
 
-        // Function to add new team member
-        function addNewTeamMember() {
-            $.ajax({
-                url: 'includes/get_users.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(users) {
-                    var newMemberHtml = `
-                        <div class="mb-3 row team-member">
-                            <div class="col-sm-5">
-                                <label class="form-label">Select User</label>
-                                <select class="form-select" name="new_user_id[]">
-                                    <option value="">Select a user</option>
-                                    ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
-                                </select>
-                            </div>
-                            <div class="col-sm-5">
-                                <label class="form-label">Role</label>
-                                <select class="form-select" name="new_role">
-                                    <option value="adviser">Adviser</option>
-                                    <option value="leader">Leader</option>
-                                    <option value="member">Member</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <label class="form-label">&nbsp;</label>
-                                <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
-                            </div>
-                        </div>
-                    `;
-                    $('#teamMembers').append(newMemberHtml);
-                }
-            });
-        }
-
-        $('#saveChanges').on('click', function() {
+$('#saveChanges').on('click', function() {
     var form = $('#editForm');
     var formData = new FormData(form[0]);
 
-    // For teams, we need to handle the members separately
     if (formData.get('table') === 'teams') {
         var members = [];
         $('.team-member').each(function() {
-            members.push({
-                id: $(this).data('member-id'),
-                role: $(this).find('select[name="role"]').val()
-            });
+            var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
+            var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
+            if (userId && role) {
+                members.push({
+                    id: userId,
+                    role: role
+                });
+            }
         });
         formData.set('members', JSON.stringify(members));
-        // Remove individual member fields to avoid confusion
         formData.delete('member_role[]');
+        formData.delete('new_user_id[]');
+        formData.delete('new_role[]');
     }
 
     console.log('Form data before send:', Object.fromEntries(formData));
@@ -1090,4 +1084,45 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             });
         });
     });
+    // Define addNewTeamMember function globally
+    function addNewTeamMember() {
+    console.log('addNewTeamMember function called');
+    $.ajax({
+        url: 'includes/get_users.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(users) {
+            console.log('Users fetched:', users);
+            var newMemberHtml = `
+                <div class="mb-3 row team-member">
+                    <div class="col-sm-5">
+                        <select class="form-select" name="new_user_id[]">
+                            <option value="">Select a user</option>
+                            ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-sm-5">
+                        <select class="form-select" name="new_role[]">
+                            <option value="adviser">Adviser</option>
+                            <option value="leader">Leader</option>
+                            <option value="member">Member</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
+                    </div>
+                </div>
+            `;
+            console.log('New member HTML:', newMemberHtml);
+            $('#teamMembers').append(newMemberHtml);
+            console.log('New member added to DOM');
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error('Error fetching users:', textStatus, errorThrown);
+        }
+    });
+}
+$(document).on('click', '.remove-member', function() {
+    $(this).closest('.team-member').remove();
+});
 </script>

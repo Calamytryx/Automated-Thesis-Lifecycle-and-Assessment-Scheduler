@@ -42,18 +42,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("Research title updated. Affected rows: " . $stmt->rowCount());
             
                 // Update team members
-                $sql = "UPDATE `team_members` SET `role` = ? WHERE `id` = ? AND `team_id` = ?";
-                $stmt = $pdo->prepare($sql);
-            
-                foreach ($members as $index => $member) {
-                    if (isset($member['id']) && isset($member['role'])) {
-                        $stmt->execute([$member['role'], $member['id'], $id]);
-                        error_log("Updated member. ID: {$member['id']}, Role: {$member['role']}, Team ID: $id. Affected rows: " . $stmt->rowCount());
-                    } else {
-                        error_log("Skipped member update. Member data: " . print_r($member, true));
-                    }
+                $currentMembers = $pdo->query("SELECT user_id FROM team_members WHERE team_id = $id")->fetchAll(PDO::FETCH_COLUMN);
+                $newMembers = array_column($members, 'id');
+
+                // Remove members not in the new list
+                $membersToRemove = array_diff($currentMembers, $newMembers);
+                if (!empty($membersToRemove)) {
+                    $sql = "DELETE FROM team_members WHERE team_id = ? AND user_id IN (" . implode(',', array_fill(0, count($membersToRemove), '?')) . ")";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute(array_merge([$id], $membersToRemove));
+                    error_log("Removed members: " . implode(', ', $membersToRemove));
                 }
-            
+
+                // Add new members and update roles
+                $sql = "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE role = VALUES(role)";
+                $stmt = $pdo->prepare($sql);
+
+                foreach ($members as $member) {
+                    $stmt->execute([$id, $member['id'], $member['role']]);
+                    error_log("Updated/Added member. User ID: {$member['id']}, Role: {$member['role']}, Team ID: $id. Affected rows: " . $stmt->rowCount());
+                }
+
                 $result = true; // Assume success if no exception is thrown
             } else {
                 // Handle other tables as before
