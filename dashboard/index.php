@@ -1122,7 +1122,38 @@ $('#saveChanges').on('click', function() {
         }
     });
 }
+// Remove team member functionality
 $(document).on('click', '.remove-member', function() {
-    $(this).closest('.team-member').remove();
+    var teamMember = $(this).closest('.team-member');
+    var userId = teamMember.data('user-id');
+    var teamId = $('input[name="id"]').val();
+
+    if (userId && teamId) {
+        if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+            $.ajax({
+                url: 'includes/remove_team_member.php',
+                method: 'POST',
+                data: {
+                    user_id: userId,
+                    team_id: teamId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        teamMember.remove();
+                        alert('Team member removed successfully');
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error: Unable to remove team member');
+                }
+            });
+        }
+    } else {
+        // If it's a new member (not yet saved to database), just remove from form
+        teamMember.remove();
+    }
 });
 </script>
