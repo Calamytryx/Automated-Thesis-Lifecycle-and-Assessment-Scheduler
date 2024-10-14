@@ -2,7 +2,7 @@
 // dashboard/includes/edit_functions.php
 
 // Include database connection
-require_once '../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/setup/db.inc.php';
 
 // Function to update user information
 function updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype) {
@@ -40,10 +40,48 @@ function updateRubric($pdo, $id, $name, $description, $created_by) {
 }
 
 // Function to update team
-function updateTeam($pdo, $id, $name) {
-    $sql = "UPDATE teams SET name = ? WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$name, $id]);
+function updateTeam($pdo, $id, $name, $title, $members) {
+    try {
+        $pdo->beginTransaction();
+
+        // Update team name
+        $sql = "UPDATE `teams` SET `name` = ? WHERE `id` = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$name, $id]);
+
+        // Update research title
+        $sql = "UPDATE `research_titles` SET `title` = ? WHERE `team_id` = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$title, $id]);
+
+        // Fetch current team members
+        $sql = "SELECT `id`, `user_id`, `role` FROM `team_members` WHERE `team_id` = ?";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([$id]);
+        $currentMembers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+        error_log("Current members: " . print_r($currentMembers, true));
+        error_log("New members data: " . print_r($members, true));
+
+        // Update team members
+        foreach ($members as $index => $member) {
+            if (isset($currentMembers[$index])) {
+                $sql = "UPDATE `team_members` SET `role` = ? WHERE `id` = ?";
+                error_log("Executing SQL: $sql with params: " . $member['role'] . ", " . $currentMembers[$index]['id']);
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$member['role'], $currentMembers[$index]['id']]);
+            }
+        }
+
+        $pdo->commit();
+        return true;
+    } catch (PDOException $e) {
+        $pdo->rollBack();
+        error_log("Error updating team: " . $e->getMessage());
+        error_log("SQL State: " . $e->getCode());
+        error_log("Error Info: " . print_r($e->errorInfo, true));
+        return false;
+    }
 }
 
 // Function to update requirement
@@ -92,7 +130,8 @@ function handleEditSubmission($pdo) {
             case 'rubrics':
                 return updateRubric($pdo, $id, $_POST['name'], $_POST['description'], $_POST['created_by']);
             case 'teams':
-                return updateTeam($pdo, $id, $_POST['name']);
+                $members = json_decode($_POST['members'], true);
+                return updateTeam($pdo, $id, $_POST['name'], $_POST['title'], $members);
             case 'requirements':
                 return updateRequirement($pdo, $id, $_POST['name'], $_POST['description'], $_POST['due_date']);
             case 'evaluations':
@@ -106,4 +145,80 @@ function handleEditSubmission($pdo) {
         }
     }
     return false;
+}
+
+function getUserType($usertype) {
+    switch ($usertype) {
+        case 0:
+            return 'Admin';
+        case 1:
+            return 'Student';
+        case 2:
+            return 'Faculty';
+        default:
+            return 'Unknown';
+    }
+}
+
+function getDefenseScheduleInfo($pdo, $defense_schedule_id) {
+    $stmt = $pdo->prepare("SELECT schedule_date, start_time, room FROM defense_schedules WHERE id = ?");
+    $stmt->execute([$defense_schedule_id]);
+    $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($schedule) {
+        return date('Y-m-d', strtotime($schedule['schedule_date'])) . ' ' . 
+               date('H:i', strtotime($schedule['start_time'])) . ' - ' . 
+               $schedule['room'];
+    }
+    return 'N/A';
+}
+
+function getUserName($pdo, $user_id) {
+    $stmt = $pdo->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
+    $stmt->execute([$user_id]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($user) {
+        return $user['first_name'] . ' ' . $user['last_name'];
+    }
+    return 'N/A';
+}
+
+function getRubricName($pdo, $rubric_id) {
+    $stmt = $pdo->prepare("SELECT name FROM rubrics WHERE id = ?");
+    $stmt->execute([$rubric_id]);
+    $rubric = $stmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($rubric) {
+        return $rubric['name'];
+    }
+    return 'N/A';
+}
+
+function getTeamMembersForEdit($pdo, $team_id, $format = 'html') {
+    $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, tm.role FROM team_members tm JOIN users u ON tm.user_id = u.id WHERE tm.team_id = ? ORDER BY FIELD(tm.role, 'adviser', 'leader', 'member')");
+    $stmt->execute([$team_id]);
+    $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    if ($format === 'html') {
+        $output = '';
+        foreach ($members as $member) {
+            $output .= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) . ' (' . ucfirst($member['role']) . ')<br>';
+        }
+        return $output;
+    } else if ($format === 'array') {
+        return array_map(function ($member) {
+            return [
+                'id' => $member['id'],
+                'name' => $member['first_name'] . ' ' . $member['last_name'],
+                'role' => $member['role']
+            ];
+        }, $members);
+    } else {
+        $output = '';
+        foreach ($members as $member) {
+            $output .= htmlspecialchars($member['first_name'] . ' ' . $member['last_name']) . ' (' . ucfirst($member['role']) . ')<br>';
+        }
+        return $output;
+    }
 }
