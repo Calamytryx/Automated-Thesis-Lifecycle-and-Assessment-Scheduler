@@ -29,20 +29,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Insert into teams table
             $stmt = $pdo->prepare("INSERT INTO teams (name) VALUES (:name)");
             $stmt->execute(['name' => $_POST['name']]);
-            $team_id = $pdo->lastInsertId();
             
-            // Insert into research_titles table
-            $stmt = $pdo->prepare("INSERT INTO research_titles (team_id, title) VALUES (:team_id, :title)");
-            $stmt->execute(['team_id' => $team_id, 'title' => $_POST['title']]);
+            // Get the last inserted ID
+            $teamId = $pdo->lastInsertId();
             
-            // Insert team members
-            $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
-            foreach ($_POST['new_member_id'] as $key => $user_id) {
-                $stmt->execute([
-                    'team_id' => $team_id,
-                    'user_id' => $user_id,
-                    'role' => $_POST['new_member_role'][$key]
-                ]);
+            // Insert team members if any
+            if (isset($_POST['members'])) {
+                foreach ($_POST['members'] as $member) {
+                    $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                    $stmt->execute([
+                        'team_id' => $teamId,
+                        'user_id' => $member['id'],
+                        'role' => $member['role']
+                    ]);
+                }
             }
             
             $pdo->commit();
@@ -51,20 +51,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
+        
         exit;
     }
     
-    $columns = implode(', ', array_keys($_POST));
-    $values = ':' . implode(', :', array_keys($_POST));
+    // General handling for other tables
+    $columns = implode(", ", array_keys($_POST));
+    $values = ":" . implode(", :", array_keys($_POST));
     
-    $sql = "INSERT INTO $table ($columns) VALUES ($values)";
-    $stmt = $pdo->prepare($sql);
+    $stmt = $pdo->prepare("INSERT INTO $table ($columns) VALUES ($values)");
     
-    if ($stmt->execute($_POST)) {
+    try {
+        $stmt->execute($_POST);
         echo json_encode(['success' => true]);
-    } else {
-        echo json_encode(['success' => false, 'message' => 'Insert failed']);
+    } catch (Exception $e) {
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-} else {
-    echo json_encode(['success' => false, 'message' => 'Invalid request method']);
 }
+?>

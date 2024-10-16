@@ -39,19 +39,18 @@ class DefenseSchedule {
             if (is_array($teamMembers)) {
                 foreach ($teamMembers as $member) {
                     if (hasScheduleConflict($member['id'], $defense['day'], $defense['time_slot'], $userSchedules)) {
-                        $this->fitness -= 1;
+                        $this->fitness -= 5; // Heavier penalty for team member conflicts
                     }
                 }
             } else {
                 error_log("Invalid team members data for team ID: " . $defense['team_id']);
-                // You might want to handle this case, perhaps by skipping this iteration or applying a penalty
-                $this->fitness -= 5; // Apply a larger penalty for invalid data
+                $this->fitness -= 10; // Larger penalty for invalid data
             }
             
             // Check for conflicts in panelists' schedules
             foreach ($defense['panelist_ids'] as $panelist_id) {
                 if (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
-                    $this->fitness -= 1;
+                    $this->fitness -= 5; // Heavier penalty for panelist conflicts
                 }
             }
         }
@@ -112,17 +111,29 @@ function selection($population) {
     return array_slice($population, 0, count($population) / 2);
 }
 
-function crossover($parent1, $parent2) {
+function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms) {
     $child = new DefenseSchedule([], [], [], [], [], []);
     $crossoverPoint = rand(0, count($parent1->chromosomes) - 1);
     $child->chromosomes = array_merge(
         array_slice($parent1->chromosomes, 0, $crossoverPoint),
         array_slice($parent2->chromosomes, $crossoverPoint)
     );
+
+    // Resolve conflicts
+    foreach ($child->chromosomes as &$defense) {
+        foreach ($defense['panelist_ids'] as $panelist_id) {
+            while (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
+                $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
+                $defense['day'] = $days[array_rand($days)];
+                $defense['room'] = $rooms[array_rand($rooms)];
+            }
+        }
+    }
+
     return $child;
 }
 
-function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $days) {
+function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules) {
     foreach ($schedule->chromosomes as &$defense) {
         if (rand() / getrandmax() < $mutationRate) {
             $mutationType = rand(0, 3);
@@ -139,6 +150,14 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
                 case 3:
                     $defense['day'] = $days[array_rand($days)];
                     break;
+            }
+        }
+
+        // Resolve conflicts
+        foreach ($defense['panelist_ids'] as $panelist_id) {
+            while (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
+                $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
+                $defense['day'] = $days[array_rand($days)];
             }
         }
     }
@@ -181,19 +200,8 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
         while (count($newPopulation) < $populationSize) {
             $parent1 = $selected[array_rand($selected)];
             $parent2 = $selected[array_rand($selected)];
-            $child = crossover($parent1, $parent2);
-            mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days);
-            
-            // Resolve conflicts
-            foreach ($child->chromosomes as &$defense) {
-                $availableSlot = getAvailableTimeSlot($child, $days, $timeSlots, $rooms);
-                if ($availableSlot) {
-                    $defense['day'] = $availableSlot['day'];
-                    $defense['time_slot'] = $availableSlot['time_slot'];
-                    $defense['room'] = $availableSlot['room'];
-                }
-            }
-            
+            $child = crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms);
+            mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules);
             $newPopulation[] = $child;
         }
         

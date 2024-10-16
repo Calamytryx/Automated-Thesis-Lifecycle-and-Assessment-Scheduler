@@ -38,6 +38,7 @@ function fetchAllDefenseSchedules($pdo)
 {
     $stmt = $pdo->prepare("
         SELECT 
+            ds.id,  -- Include the id field
             ds.schedule_date,
             ds.start_time,
             ds.end_time,
@@ -250,6 +251,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo getUserType($user['usertype']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="users" data-id="<?php echo $user['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="users" data-id="<?php echo $user['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -279,6 +281,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($topic['description']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -315,6 +318,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($status); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="research_titles" data-id="<?php echo $title['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="research_titles" data-id="<?php echo $title['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -340,6 +344,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                             <th>Thesis Title</th>
                                             <th>Panelists</th>
                                             <th>Room</th>
+                                            <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -369,6 +374,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
                                                 <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
                                                 <td><?php echo htmlspecialchars($schedule['room']); ?></td>
+                                                <td>
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Delete</button>
+                                                </td>
                                             </tr>
                                         <?php endforeach; ?>
                                     </tbody>
@@ -397,6 +406,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($rubric['description']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="<?php echo $rubric['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="<?php echo $rubric['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -431,6 +441,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo $teamMembers ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="teams" data-id="<?php echo $team['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="teams" data-id="<?php echo $team['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -462,6 +473,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($requirement['due_date']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="requirements" data-id="<?php echo $requirement['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="requirements" data-id="<?php echo $requirement['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -495,6 +507,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($evaluation['score']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="evaluations" data-id="<?php echo $evaluation['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="evaluations" data-id="<?php echo $evaluation['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -524,6 +537,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                                 <td><?php echo htmlspecialchars($variable['value']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="env_variables" data-id="<?php echo $variable['id']; ?>">Edit</button>
+                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="env_variables" data-id="<?php echo $variable['id']; ?>">Delete</button>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -554,7 +568,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <form id="editForm">
                     <input type="hidden" name="id">
                     <input type="hidden" name="table">
-                    
+
                     <!-- Other form fields... -->
 
                     <div id="teamMembers">
@@ -580,8 +594,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
+                <!-- HTML form structure -->
                 <form id="addForm">
-                    <!-- Form fields will be dynamically inserted here -->
+                    <input type="hidden" name="table" value="your_table_name">
+                    <!-- Add other form fields here -->
+                    <div class="mb-3">
+                        <label for="name" class="form-label">Name</label>
+                        <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <!-- Add more fields as needed -->
+                </form>
+                <!-- Form fields will be dynamically inserted here -->
                 </form>
             </div>
             <div class="modal-footer">
@@ -592,7 +615,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
-<?php include '../assets/layouts/footer.php'; ?><script>
+<?php include '../assets/layouts/footer.php'; ?>
+<script>
     $(document).ready(function() {
         // Edit button functionality
         $(document).on('click', '.edit-btn', function() {
@@ -681,7 +705,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             `;
                             form.html(formHtml);
                         } else if (table === 'teams') {
-    var formHtml = `
+                            var formHtml = `
         <input type="hidden" name="table" value="${table}">
         <input type="hidden" name="id" value="${id}">
         <div class="mb-3">
@@ -695,9 +719,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <h5 class="mt-4">Team Members</h5>
         <div id="teamMembers">
     `;
-    
-    response.data.members.forEach(function(member, index) {
-        formHtml += `
+
+                            response.data.members.forEach(function(member, index) {
+                                formHtml += `
             <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-5">
                     <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
@@ -714,21 +738,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </div>
             </div>
         `;
-    });
+                            });
 
-    formHtml += `
+                            formHtml += `
         </div>
         <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
     `;
-    form.html(formHtml);
+                            form.html(formHtml);
 
-    // Add team member functionality
-$('#addTeamMember').on('click', function() {
-    console.log('Add Team Member button clicked');
-    addNewTeamMember();
-});
+                            // Add team member functionality
+                            $('#addTeamMember').on('click', function() {
+                                console.log('Add Team Member button clicked');
+                                addNewTeamMember();
+                            });
 
-}else if (table === 'research_titles') {
+                        } else if (table === 'research_titles') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
@@ -749,7 +773,7 @@ $('#addTeamMember').on('click', function() {
                             `;
                             form.html(formHtml);
                         } else if (table === 'teams') {
-    var formHtml = `
+                            var formHtml = `
         <input type="hidden" name="table" value="${table}">
         <input type="hidden" name="id" value="${id}">
         <div class="mb-3">
@@ -763,9 +787,9 @@ $('#addTeamMember').on('click', function() {
         <h5 class="mt-4">Team Members</h5>
         <div id="teamMembers">
     `;
-    
-    response.data.members.forEach(function(member, index) {
-        formHtml += `
+
+                            response.data.members.forEach(function(member, index) {
+                                formHtml += `
             <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-7">
                     <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
@@ -779,23 +803,23 @@ $('#addTeamMember').on('click', function() {
                 </div>
             </div>
         `;
-    });
-    
-    formHtml += `
+                            });
+
+                            formHtml += `
         </div>
     `;
-    
-    form.html(formHtml);
 
-    // Add team member functionality
-$('#addTeamMember').on('click', function() {
-    console.log('Add Team Member button clicked');
-    addNewTeamMember();
-});
+                            form.html(formHtml);
+
+                            // Add team member functionality
+                            $('#addTeamMember').on('click', function() {
+                                console.log('Add Team Member button clicked');
+                                addNewTeamMember();
+                            });
 
 
 
-} else if (table === 'env_variables') {
+                        } else if (table === 'env_variables') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
@@ -813,7 +837,27 @@ $('#addTeamMember').on('click', function() {
                                 </div>
                             `;
                             form.html(formHtml);
-                        }
+                        } else if (table === 'defense_schedules') {
+                    var formHtml = `
+                        <div class="mb-3">
+                            <label for="schedule_date" class="form-label">Schedule Date</label>
+                            <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room" class="form-label">Room</label>
+                            <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
+                        </div>
+                    `;
+                    form.html(formHtml);
+                }
                         // Add more conditions for other tables as needed
 
                         $('#editModal').modal('show');
@@ -893,8 +937,8 @@ $('#addTeamMember').on('click', function() {
                     '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
                     '<label class="form-check-label" for="approved">Approved</label>' +
                     '</div>');
-                } else     if (table === 'teams') {
-        var formHtml = `
+            } else if (table === 'teams') {
+                var formHtml = `
             <div class="mb-3">
                 <label for="name" class="form-label">Team Name</label>
                 <input type="text" class="form-control" id="name" name="name" required>
@@ -909,17 +953,17 @@ $('#addTeamMember').on('click', function() {
             </div>
             <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
         `;
-        form.append(formHtml);
+                form.append(formHtml);
 
-        // Add team member functionality
-        $('#addTeamMember').on('click', function() {
-            console.log('Add Team Member button clicked');
-            addNewTeamMember();
-        });
+                // Add team member functionality
+                $('#addTeamMember').on('click', function() {
+                    console.log('Add Team Member button clicked');
+                    addNewTeamMember();
+                });
 
 
 
-    }else if (table === 'rubrics') {
+            } else if (table === 'rubrics') {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
                     '<input type="text" class="form-control" id="name" name="name" required>' +
@@ -976,80 +1020,110 @@ $('#addTeamMember').on('click', function() {
             $('#addModal').modal('show');
         });
 
-$('#saveChanges').on('click', function() {
-    var form = $('#editForm');
-    var formData = new FormData(form[0]);
+        $('#saveChanges').on('click', function() {
+            var form = $('#editForm');
+            var formData = new FormData(form[0]);
 
-    if (formData.get('table') === 'teams') {
-        var members = [];
-        $('.team-member').each(function() {
-            var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
-            var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
-            if (userId && role) {
-                members.push({
-                    id: userId,
-                    role: role
+            if (formData.get('table') === 'teams') {
+                var members = [];
+                $('.team-member').each(function() {
+                    var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
+                    var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
+                    if (userId && role) {
+                        members.push({
+                            id: userId,
+                            role: role
+                        });
+                    }
                 });
+                formData.set('members', JSON.stringify(members));
+                formData.delete('member_role[]');
+                formData.delete('new_user_id[]');
+                formData.delete('new_role[]');
             }
-        });
-        formData.set('members', JSON.stringify(members));
-        formData.delete('member_role[]');
-        formData.delete('new_user_id[]');
-        formData.delete('new_role[]');
-    }
 
-    console.log('Form data before send:', Object.fromEntries(formData));
-
-    $.ajax({
-        url: 'includes/update_item.php',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function(response) {
-            console.log('Server response:', response);
-            if (response.success) {
-                alert('Item updated successfully');
-                $('#editModal').modal('hide');
-                location.reload();
-            } else {
-                alert('Error: ' + response.message);
-                console.error('Update failed:', response);
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('AJAX error:', textStatus, errorThrown);
-            console.log('Response Text:', jqXHR.responseText);
-            console.log('Status:', jqXHR.status);
-            console.log('Status Text:', jqXHR.statusText);
-            alert('Error: Unable to update item. Check console for details.');
-        }
-    });
-});
-
-        $('#addItem').on('click', function() {
-            var formData = $('#addForm').serialize();
+            console.log('Form data before send:', Object.fromEntries(formData));
 
             $.ajax({
-                url: 'includes/add_item.php',
+                url: 'includes/update_item.php',
                 method: 'POST',
                 data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Server response:', response);
+                    if (response.success) {
+                        alert('Item updated successfully');
+                        $('#editModal').modal('hide');
+                        location.reload();
+                    } else {
+                        alert('Error: ' + response.message);
+                        console.error('Update failed:', response);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX error:', textStatus, errorThrown);
+                    console.log('Response Text:', jqXHR.responseText);
+                    console.log('Status:', jqXHR.status);
+                    console.log('Status Text:', jqXHR.statusText);
+                    alert('Error: Unable to update item. Check console for details.');
+                }
+            });
+        });
+
+        // JavaScript code to handle form submission
+        $('#addItem').on('click', function() {
+            var form = $('#addForm');
+            var formData = new FormData(form[0]);
+
+            $.ajax({
+                url: 'includes/add_items.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        alert('Item added successfully');
+                        alert('Team added successfully');
                         $('#addModal').modal('hide');
-                        location.reload();
+                        // Optionally, refresh the table or page
                     } else {
                         alert('Error: ' + response.message);
                     }
                 },
                 error: function() {
-                    alert('Error: Unable to add item');
+                    alert('Error: Unable to add team');
                 }
             });
         });
+
+        // JavaScript code to handle delete button click
+        $(document).on('click', '.delete-btn', function() {
+    var id = $(this).data('id');
+    var table = $(this).data('table');
+
+    if (confirm('Are you sure you want to delete this item from table ' + table + ' with ID ' + id + '?')) {
+        $.ajax({
+            url: 'includes/delete_item.php',
+            method: 'POST',
+            data: { id: id, table: table },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    alert('Item deleted successfully from table ' + table + ' with ID ' + id);
+                    // Optionally, refresh the table or page
+                } else {
+                    alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
+                }
+            },
+            error: function() {
+                alert('Error: Unable to delete item from table ' + table + ' with ID ' + id);
+            }
+        });
+    }
+});
 
         $('#generateSchedule').on('click', function() {
             var $button = $(this);
@@ -1086,14 +1160,14 @@ $('#saveChanges').on('click', function() {
     });
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
-    console.log('addNewTeamMember function called');
-    $.ajax({
-        url: 'includes/get_users.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(users) {
-            console.log('Users fetched:', users);
-            var newMemberHtml = `
+        console.log('addNewTeamMember function called');
+        $.ajax({
+            url: 'includes/get_users.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(users) {
+                console.log('Users fetched:', users);
+                var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
                         <select class="form-select" name="new_user_id[]">
@@ -1113,47 +1187,47 @@ $('#saveChanges').on('click', function() {
                     </div>
                 </div>
             `;
-            console.log('New member HTML:', newMemberHtml);
-            $('#teamMembers').append(newMemberHtml);
-            console.log('New member added to DOM');
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error('Error fetching users:', textStatus, errorThrown);
+                console.log('New member HTML:', newMemberHtml);
+                $('#teamMembers').append(newMemberHtml);
+                console.log('New member added to DOM');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching users:', textStatus, errorThrown);
+            }
+        });
+    }
+    // Remove team member functionality
+    $(document).on('click', '.remove-member', function() {
+        var teamMember = $(this).closest('.team-member');
+        var userId = teamMember.data('user-id');
+        var teamId = $('input[name="id"]').val();
+
+        if (userId && teamId) {
+            if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+                $.ajax({
+                    url: 'includes/remove_team_member.php',
+                    method: 'POST',
+                    data: {
+                        user_id: userId,
+                        team_id: teamId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            teamMember.remove();
+                            alert('Team member removed successfully');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error: Unable to remove team member');
+                    }
+                });
+            }
+        } else {
+            // If it's a new member (not yet saved to database), just remove from form
+            teamMember.remove();
         }
     });
-}
-// Remove team member functionality
-$(document).on('click', '.remove-member', function() {
-    var teamMember = $(this).closest('.team-member');
-    var userId = teamMember.data('user-id');
-    var teamId = $('input[name="id"]').val();
-
-    if (userId && teamId) {
-        if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
-            $.ajax({
-                url: 'includes/remove_team_member.php',
-                method: 'POST',
-                data: {
-                    user_id: userId,
-                    team_id: teamId
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        teamMember.remove();
-                        alert('Team member removed successfully');
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                },
-                error: function() {
-                    alert('Error: Unable to remove team member');
-                }
-            });
-        }
-    } else {
-        // If it's a new member (not yet saved to database), just remove from form
-        teamMember.remove();
-    }
-});
 </script>
