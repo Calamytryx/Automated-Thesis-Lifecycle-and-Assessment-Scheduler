@@ -5,5 +5,6 @@ if (isset($_SESSION['auth']) && !isset($_COOKIE['rememberme'])){
         session_unset();
         session_destroy();
         echo 'logout_redirect';
+        header('Location: /logout');
     }
 }
