@@ -1,4 +1,3 @@
-
 <?php
 /**
  * 
@@ -276,4 +275,34 @@ function getTeamMembersForEdit($pdo, $team_id, $format = 'html') {
         }
         return $output;
     }
+}
+
+function fetchAllDefenseSchedules($pdo) {
+    $stmt = $pdo->prepare("
+        SELECT 
+            ds.id,
+            ds.schedule_date,
+            ds.start_time,
+            ds.end_time,
+            ds.room,
+            t.name AS team_name,
+            rt.title AS thesis_title,
+            GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members,
+            GROUP_CONCAT(DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) ORDER BY FIELD(ds.panelist_id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', ') AS panelists,
+            (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
+             FROM team_members tm_adviser 
+             JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
+             WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
+             ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
+        FROM defense_schedules ds
+        JOIN teams t ON ds.team_id = t.id
+        JOIN research_titles rt ON t.id = rt.team_id
+        JOIN team_members tm ON t.id = tm.team_id
+        JOIN users u_student ON tm.user_id = u_student.id
+        LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
+        GROUP BY ds.id, t.name, rt.title
+        ORDER BY ds.schedule_date, ds.start_time
+    ");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }

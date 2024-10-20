@@ -86,36 +86,36 @@ function fetchAllResearchTitles($pdo)
 }
 
 // Function to fetch all defense schedules
-function fetchAllDefenseSchedules($pdo)
-{
-    $stmt = $pdo->prepare("
-        SELECT 
-            ds.id,  -- Include the id field
-            ds.schedule_date,
-            ds.start_time,
-            ds.end_time,
-            ds.room,
-            t.name AS team_name,
-            rt.title AS thesis_title,
-            GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members,
-            GROUP_CONCAT(DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) ORDER BY FIELD(ds.panelist_id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', ') AS panelists,
-            (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
-             FROM team_members tm_adviser 
-             JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
-             WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
-             ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
-        FROM defense_schedules ds
-        JOIN teams t ON ds.team_id = t.id
-        JOIN research_titles rt ON t.id = rt.team_id
-        JOIN team_members tm ON t.id = tm.team_id
-        JOIN users u_student ON tm.user_id = u_student.id
-        LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
-        GROUP BY ds.id, t.name, rt.title
-        ORDER BY ds.schedule_date, ds.start_time
-    ");
-    $stmt->execute();
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
-}
+// function fetchAllDefenseSchedules($pdo)
+// {
+//     $stmt = $pdo->prepare("
+//         SELECT 
+//             ds.id,  -- Include the id field
+//             ds.schedule_date,
+//             ds.start_time,
+//             ds.end_time,
+//             ds.room,
+//             t.name AS team_name,
+//             rt.title AS thesis_title,
+//             GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members,
+//             GROUP_CONCAT(DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) ORDER BY FIELD(ds.panelist_id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', ') AS panelists,
+//             (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
+//              FROM team_members tm_adviser 
+//              JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
+//              WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
+//              ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
+//         FROM defense_schedules ds
+//         JOIN teams t ON ds.team_id = t.id
+//         JOIN research_titles rt ON t.id = rt.team_id
+//         JOIN team_members tm ON t.id = tm.team_id
+//         JOIN users u_student ON tm.user_id = u_student.id
+//         LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
+//         GROUP BY ds.id, t.name, rt.title
+//         ORDER BY ds.schedule_date, ds.start_time
+//     ");
+//     $stmt->execute();
+//     return $stmt->fetchAll(PDO::FETCH_ASSOC);
+// }
 
 // Function to fetch all rubrics
 function fetchAllRubrics($pdo)
@@ -160,10 +160,10 @@ function fetchAllEnvVariables($pdo)
 // Function to get team name
 function getTeamName($pdo, $team_id)
 {
-    $stmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
+    $stmt = $pdo->prepare("SELECT name FROM teams WHERE id = ?");
     $stmt->execute([$team_id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result ? $result['title'] : 'Unknown Team';
+    return $result ? $result['name'] : 'Unknown Team';
 }
 
 // Function to get research title
@@ -434,15 +434,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <?php endforeach; ?>
             </tbody>
         </table>
-        <!-- Metrics Section -->
-        <div id="metrics">
-            <h5>Schedule Metrics</h5>
-            <p>Initial Population Size: <span id="initialPopulationSize"></span></p>
-            <p>Crossover Operations: <span id="crossoverCount"></span></p>
-            <p>Mutation Operations: <span id="mutationCount"></span></p>
-            <p>Conflicts per Generation: <span id="conflictCounts"></span></p>
-            <p>Fitness per Generation: <span id="fitnessScores"></span></p>
-        </div>
+        <div id="scheduleGenerationResult" class="mb-3"></div>
     </div>
 </div>
 
@@ -1191,42 +1183,68 @@ $(document).ready(function() {
     $('#generateSchedule').on('click', function() {
         var $button = $(this);
         var $status = $('#scheduleGenerationStatus');
+        var $resultContainer = $('#scheduleGenerationResult');
 
         $button.prop('disabled', true).text('Generating...');
         $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
+        $resultContainer.empty();
 
         $.ajax({
             url: 'includes/run_scheduler.php',
             method: 'POST',
             dataType: 'json',
             success: function(response) {
+                console.log('Success:', response);
                 if (response.success) {
                     $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-                    
-                    // Update metrics
-                    $('#initialPopulationSize').text(response.initialPopulationSize);
-                    $('#crossoverCount').text(response.crossoverCount);
-                    $('#mutationCount').text(response.mutationCount);
-                    $('#conflictCounts').text(response.conflictCounts.join(', '));
-                    $('#fitnessScores').text(response.fitnessScores.join(', '));
-
-                    setTimeout(function() {
-                        //location.reload();
-                    }, 2000);
+                    // $resultContainer.html(`
+                    //     <div class="mt-3">
+                    //         <h5>Generation Statistics:</h5>
+                    //         <ul>
+                    //             <li>Initial Population Size: ${response.initialPopulationSize}</li>
+                    //             <li>Crossover Count: ${response.crossoverCount}</li>
+                    //             <li>Mutation Count: ${response.mutationCount}</li>
+                    //         </ul>
+                    //         <h5>Conflict Counts:</h5>
+                    //         <p>${response.conflictCounts.join(', ')}</p>
+                    //         <h5>Fitness Scores:</h5>
+                    //         <p>${response.fitnessScores.join(', ')}</p>
+                    //     </div>
+                    // `);
+                    // You might want to add a button or link here to view the generated schedule
+                    $resultContainer.append('<button id="viewSchedule" class="btn btn-primary mt-3">View Generated Schedule</button>');
                 } else {
-                    $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
-                    $button.prop('disabled', false).text('Generate Defense Schedule');
+                    $status.text('Failed to generate schedule.').removeClass('text-warning').addClass('text-danger');
+                    //$resultContainer.html(`<p class="text-danger">${response.message}</p>`);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error('AJAX Error:', textStatus, errorThrown);
-                if (jqXHR.responseText) {
-                    console.error('Server Response:', jqXHR.responseText);
+                console.log('Server Response:', jqXHR.responseText);
+                
+                $status.text('Error occurred while generating schedule.').removeClass('text-warning').addClass('text-danger');
+                
+                try {
+                    var jsonResponse = JSON.parse(jqXHR.responseText);
+                    console.log('Parsed JSON Response:', jsonResponse);
+                    $resultContainer.html(`<p class="text-danger">Error: ${jsonResponse.message}</p>`);
+                } catch (e) {
+                    console.log('Response is not valid JSON');
+                    $resultContainer.html(`<p class="text-danger">An unexpected error occurred. Please check the server logs for more information.</p>`);
                 }
-                $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
-                $button.prop('disabled', false).text('Generate Defense Schedule');
+            },
+            complete: function() {
+                $button.prop('disabled', false).text('Generate Schedule');
             }
         });
+    });
+
+    // Event delegation for the "View Generated Schedule" button
+    $(document).on('click', '#viewSchedule', function() {
+        // Add functionality to view the generated schedule
+        // This might involve making another AJAX call to fetch the schedule details
+        // or redirecting to a page that displays the schedule
+        window.location.href = 'view_schedule.php';
     });
 });
     });
