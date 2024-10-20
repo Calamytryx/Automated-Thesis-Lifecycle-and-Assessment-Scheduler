@@ -1,4 +1,24 @@
+/**
+ * Initializes the chat session and sets up event listeners for the document.
+ * 
+ * @function
+ * @name document.addEventListener
+ * @param {string} event - The event type to listen for.
+ * @param {function} listener - The function to execute when the event is triggered.
+ */
+
 import { initializeChatSession, sendMessageToModel, performWebSearch } from './mainModule.js';
+
+/**
+ * Analyzes a research title in a given field and provides feedback on its clarity, specificity, potential impact, uniqueness, and originality.
+ * If improvements are needed, suggests up to three alternative titles.
+ * 
+ * @async
+ * @function analyzeTitle
+ * @param {string} title - The research title to be analyzed.
+ * @param {string} field - The field of research for the title.
+ * @returns {Promise<void>}
+ */
 
 async function analyzeTitle(title, field) {
     try {
@@ -37,6 +57,16 @@ document.addEventListener('DOMContentLoaded', function() {
         analyzeTitle(title, field);
     });
 });
+
+
+/**
+ * Retrieves the top thesis topics for a given field by performing a web search and generating a table of broad research areas.
+ * 
+ * @async
+ * @function getTopThesisTopics
+ * @param {string} field - The field of research for which to generate thesis topics.
+ * @returns {Promise<void>}
+ */
 
 async function getTopThesisTopics(field) {
     try {

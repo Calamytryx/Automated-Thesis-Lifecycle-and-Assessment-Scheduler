@@ -1,4 +1,52 @@
+
 <?php
+
+/**
+ * This script is responsible for generating and scheduling defense schedules using a genetic algorithm.
+ * It includes various functions and a class to handle the scheduling process, fitness calculation, 
+ * conflict detection, and database operations.
+ *
+ * @file /c:/xampp/htdocs/coecsathesis/dashboard/includes/run_scheduler.php
+ *
+ * @requires /../../assets/setup/db.inc.php
+ * @requires /../includes/edit_functions.php
+ *
+ * @class DefenseSchedule
+ * @property PDO $pdo - The PDO instance for database operations.
+ * @property array $chromosomes - The chromosomes representing the schedule.
+ * @property int $fitness - The fitness score of the schedule.
+ * @property static array $initialPopulation - The initial population of schedules.
+ * @property static int $crossoverCount - The count of crossover operations.
+ * @property static int $mutationCount - The count of mutation operations.
+ * @property static array $conflictCounts - The counts of conflicts in schedules.
+ * @property static array $fitnessScores - The fitness scores of schedules.
+ *
+ * @method __construct(PDO $pdo, array $teams, array $panelists, array $rooms, array $timeSlots, array $days) - Initializes the schedule.
+ * @method calculateFitness(array $userSchedules) - Calculates the fitness of the schedule.
+ *
+ * @function getTeamMembers(PDO $pdo, int $team_id, string $return_type = 'array') - Retrieves team members.
+ * @function hasScheduleConflict(int $user_id, string $day, string $time_slot, array $userSchedules) - Checks for schedule conflicts.
+ * @function createInitialPopulation(PDO $pdo, int $populationSize, array $teams, array $panelists, array $rooms, array $timeSlots, array $days) - Creates the initial population of schedules.
+ * @function selection(array $population) - Selects the best schedules from the population.
+ * @function crossover(DefenseSchedule $parent1, DefenseSchedule $parent2, array $userSchedules, array $timeSlots, array $days, array $rooms) - Performs crossover between two schedules.
+ * @function mutation(DefenseSchedule $schedule, float $mutationRate, array $panelists, array $rooms, array $timeSlots, array $days, array $userSchedules) - Mutates a schedule.
+ * @function isTimeSlotAvailable(DefenseSchedule $schedule, string $day, string $timeSlot, string $room) - Checks if a time slot is available.
+ * @function getAvailableTimeSlot(DefenseSchedule $schedule, array $days, array $timeSlots, array $rooms) - Gets an available time slot.
+ * @function geneticAlgorithm(PDO $pdo, array $teams, array $panelists, array $rooms, array $timeSlots, array $days, array $userSchedules, int $populationSize = 50, int $generations = 100, float $mutationRate = 0.01) - Runs the genetic algorithm to generate the best schedule.
+ * @function saveScheduleToDatabase(PDO $pdo, DefenseSchedule $schedule) - Saves the schedule to the database.
+ * @function getTeamMembersForScheduling(PDO $pdo, int $team_id, string $return_type = 'array') - Retrieves team members for scheduling.
+ * @function fetchTeams(PDO $pdo) - Fetches teams from the database.
+ * @function fetchPanelists(PDO $pdo) - Fetches panelists from the database.
+ * @function fetchUserSchedules(PDO $pdo) - Fetches user schedules from the database.
+ *
+ * Main Execution:
+ * - Handles POST requests to generate and save defense schedules.
+ * - Fetches necessary data (teams, panelists, rooms, time slots, days, user schedules).
+ * - Runs the genetic algorithm to generate the best schedule.
+ * - Saves the generated schedule to the database.
+ * - Returns a JSON response indicating success or failure.
+ */
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

@@ -2,14 +2,15 @@
 echo "Script is running!<br>";
 require_once '../../assets/setup/db.inc.php';
 
-function generateRandomSchedule($userId) {
+function generateRandomSchedule($userId)
+{
     global $pdo;
-    
+
     $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
     $classNames = ['Math', 'Science', 'English', 'History', 'Programming', 'Physics', 'Chemistry', 'Literature', 'Economics'];
-    
+
     $scheduleCount = rand(3, 5); // 3 to 5 classes per week
-    
+
     for ($i = 0; $i < $scheduleCount; $i++) {
         $day = $days[array_rand($days)];
         $startHour = rand(7, 19); // 7 AM to 7 PM
@@ -17,7 +18,7 @@ function generateRandomSchedule($userId) {
         $startTime = sprintf("%02d:00:00", $startHour);
         $endTime = sprintf("%02d:00:00", $startHour + $duration);
         $className = $classNames[array_rand($classNames)];
-        
+
         $stmt = $pdo->prepare("INSERT INTO user_schedules (user_id, day_of_week, start_time, end_time, class_name) VALUES (?, ?, ?, ?, ?)");
         if (!$stmt->execute([$userId, $day, $startTime, $endTime, $className])) {
             echo "Error inserting schedule for user $userId: " . implode(", ", $stmt->errorInfo()) . "<br>";

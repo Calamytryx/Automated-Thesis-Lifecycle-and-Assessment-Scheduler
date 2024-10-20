@@ -50,6 +50,14 @@ const safetySettings = [
 // Create a variable to store the chat session
 let chatSession = null;
 
+/**
+ * Initializes the chat session with the AI model.
+ * This function is called only once to set up the chat session.
+ * 
+ * @returns {Promise<void>} A promise that resolves when the chat session is initialized.
+ */
+
+
 // Function to initialize the chat session (only done once)
 export async function initializeChatSession() {
     console.log("Initializing chat session in mainModule.js");
@@ -69,6 +77,14 @@ function logApiCall(functionName, input, output) {
     console.log("Output:", output);
 }
 
+/**
+ * Sends a message to the AI model and logs the API call.
+ * 
+ * @param {string} userMessage - The message to send to the AI model.
+ * @returns {Promise<string>} A promise that resolves to the AI model's response.
+ * @throws Will throw an error if the chat session fails.
+ */
+
 // Modify the sendMessageToModel function in mainModule.js to include logging
 export async function sendMessageToModel(userMessage) {
     try {
@@ -87,6 +103,15 @@ export async function sendMessageToModel(userMessage) {
         throw new Error(`Error in chat session: ${error.message}`);
     }
 }
+
+/**
+ * Performs a web search using the provided query and logs the API call.
+ * 
+ * @param {string} query - The search query.
+ * @returns {Promise<Array<{title: string, snippet: string, url: string}>>} A promise that resolves to an array of search results.
+ * @throws Will throw an error if the web search fails.
+ */
+
 
 // Modify the performWebSearch function in mainModule.js to include logging
 export async function performWebSearch(query) {

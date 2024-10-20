@@ -1,4 +1,29 @@
+
 <script type="module">
+/**
+ * This script initializes a chat session and handles the submission of a research title form.
+ * It uses the Gemini AI model to analyze the research title for clarity, specificity, potential impact,
+ * uniqueness, and originality. If improvements are needed, it suggests up to three alternative titles.
+ *
+ * Features:
+ * - Initializes the chat session when the page loads.
+ * - Listens for the submission of the research title form.
+ * - Prevents the default form submission behavior.
+ * - Sends the research title and field to the Gemini AI model for analysis.
+ * - Displays the AI analysis and suggestions on the webpage.
+ * - Handles errors and displays an error message if the analysis fails.
+ *
+ * Dependencies:
+ * - jQuery library
+ * - mainModule.js (for initializeChatSession and sendMessageToModel functions)
+ *
+ * HTML Elements:
+ * - #titleSubmissionForm: The form element for submitting the research title.
+ * - #researchTitle: Input field for the research title.
+ * - #researchField: Input field for the research field.
+ * - #uniquenessResult: Element to display the AI analysis result.
+ * - #aiSuggestions: Element to display AI suggestions for alternative titles.
+ */
 import { initializeChatSession, sendMessageToModel } from '../assets/js/mainModule.js';
 
 $(document).ready(function() {

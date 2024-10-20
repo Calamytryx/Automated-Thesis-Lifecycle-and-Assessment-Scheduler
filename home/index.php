@@ -1,5 +1,37 @@
-<?php
 
+<?php
+/**
+ * Home Page
+ * 
+ * This file serves as the home page for the COECSAT Thesis Management System.
+ * It includes various sections and tools for users to interact with, such as 
+ * thesis topic decision, research title acceptance, scheduling system, and 
+ * requirement checker.
+ * 
+ * @file /c:/xampp/htdocs/coecsathesis/home/index.php
+ * 
+ * @constant TITLE The title of the page.
+ * 
+ * @include ../assets/layouts/header.php
+ * @include ../assets/layouts/footer.php
+ * 
+ * @function check_verified Verifies if the user is authenticated and verified.
+ * 
+ * @section Main Content
+ * The main content of the page is divided into several tabs:
+ * 
+ * - Thesis Topic Decision: Allows users to select a field and get the latest thesis topics.
+ * - Research Title Acceptance: Provides a form for users to check the uniqueness of their proposed research title.
+ * - Scheduling System: Displays the user's schedule and defense schedule.
+ * - Requirement Checker: Provides a checklist for users to check their document requirements.
+ * 
+ * @section Scripts
+ * The following scripts are included for functionality:
+ * 
+ * - mainModule.js: Main module JavaScript file.
+ * - app.js: Application-specific JavaScript file.
+ * - marked.min.js: Library for parsing Markdown.
+ */
 define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();

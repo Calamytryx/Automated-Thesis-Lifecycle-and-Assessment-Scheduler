@@ -1,4 +1,31 @@
+
 <?php
+/**
+ * This script fetches the user's defense schedules and general schedules from the database.
+ * 
+ * 
+ * It starts a session and enables error reporting. It then connects to the database and retrieves
+ * the schedules based on the user type (student or staff) stored in the session.
+ * 
+ * The script performs the following operations:
+ * 
+ * 1. Starts a session and enables error reporting.
+ * 2. Connects to the database using a required setup file.
+ * 3. Retrieves the user ID and user type from the session.
+ * 4. Initializes empty arrays for defense schedules and user schedules.
+ * 5. Fetches defense schedules:
+ *    - If the user is a student, it fetches their defense schedules including panelist usernames.
+ *    - If the user is a staff member, it fetches defense schedules where they are a panelist.
+ * 6. Fetches user schedules:
+ *    - Retrieves the user's general schedules (e.g., classes) from the database.
+ * 7. Combines the defense schedules and user schedules into a response array.
+ * 8. Returns the response as a JSON object.
+ * 9. Handles any database errors by logging them and returning an error response.
+ * 
+ * @throws PDOException If there is a database error.
+ * 
+ * @return void Outputs a JSON encoded response with the user's schedules or an error message.
+ */
 session_start();
 error_reporting(E_ALL);
 ini_set('display_errors', 1);

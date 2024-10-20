@@ -1,5 +1,57 @@
-<?php
 
+<?php
+/**
+ * 
+ * This file serves as the main dashboard for the COECS Thesis Management System.
+ * It includes various functionalities for both admin and regular users.
+ * 
+ * Constants:
+ * - TITLE: The title of the dashboard.
+ * 
+ * Includes:
+ * - '../assets/layouts/header.php': The header layout.
+ * - '../assets/setup/db.inc.php': Database connection setup.
+ * - 'includes/edit_functions.php': Functions for editing data.
+ * 
+ * Functions:
+ * - fetchAllUsers($pdo): Fetches all users from the database.
+ * - fetchAllThesisTopics($pdo): Fetches all thesis topics from the database.
+ * - fetchAllResearchTitles($pdo): Fetches all research titles from the database.
+ * - fetchAllDefenseSchedules($pdo): Fetches all defense schedules from the database.
+ * - fetchAllRubrics($pdo): Fetches all rubrics from the database.
+ * - fetchAllTeams($pdo): Fetches all teams from the database.
+ * - fetchAllRequirements($pdo): Fetches all requirements from the database.
+ * - fetchAllEvaluations($pdo): Fetches all evaluations from the database.
+ * - fetchAllEnvVariables($pdo): Fetches all environment variables from the database.
+ * - getTeamName($pdo, $team_id): Gets the team name based on the team ID.
+ * - getResearchTitle($pdo, $team_id): Gets the research title based on the team ID.
+ * - getTeamMembersForScheduling($pdo, $team_id, $return_type): Gets team members for scheduling.
+ * 
+ * Variables:
+ * - $users: Stores all users fetched from the database.
+ * - $thesisTopics: Stores all thesis topics fetched from the database.
+ * - $researchTitles: Stores all research titles fetched from the database.
+ * - $defenseSchedules: Stores all defense schedules fetched from the database.
+ * - $rubrics: Stores all rubrics fetched from the database.
+ * - $teams: Stores all teams fetched from the database.
+ * - $requirements: Stores all requirements fetched from the database.
+ * - $evaluations: Stores all evaluations fetched from the database.
+ * - $envVariables: Stores all environment variables fetched from the database.
+ * 
+ * Form Handling:
+ * - Handles form submission for updating user data.
+ * - Handles form submission for general updates.
+ * 
+ * HTML Structure:
+ * - Main container with tabs for different sections (Users, Thesis Topics, Research Titles, etc.).
+ * - Modals for editing and adding items.
+ * 
+ * JavaScript:
+ * - Handles edit, add, and delete functionalities.
+ * - Handles form submissions via AJAX.
+ * - Handles dynamic addition of team members.
+ * - Handles defense schedule generation.
+ */
 define('TITLE', "Dashboard");
 include '../assets/layouts/header.php';
 check_verified();

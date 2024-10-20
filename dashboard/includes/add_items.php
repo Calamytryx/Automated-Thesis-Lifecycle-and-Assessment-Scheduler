@@ -68,4 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+/**
+ * This file is part of the COECSA Thesis Dashboard.
+ * 
+ * 
+ * Description:
+ * This script is responsible for adding items to the dashboard.
+ * 
+ * Usage:
+ * Include this file where item addition functionality is required.
+ * 
+ * Note:
+ * Ensure that the necessary dependencies and configurations are set up before including this file.
+ */
 ?>

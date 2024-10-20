@@ -1,4 +1,59 @@
+
 <?php
+/**
+ * 
+ * This file contains functions to update various entities in the database.
+ * 
+ * Functions:
+ * 
+ * - updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype)
+ *   Updates user information in the database.
+ * 
+ * - updateThesisTopic($pdo, $id, $topic, $description, $category, $suggested_by)
+ *   Updates thesis topic information in the database.
+ * 
+ * - updateResearchTitle($pdo, $id, $title, $user_id, $status, $uniqueness_score, $feedback)
+ *   Updates research title information in the database.
+ * 
+ * - updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status)
+ *   Updates defense schedule information in the database.
+ * 
+ * - updateRubric($pdo, $id, $name, $description, $created_by)
+ *   Updates rubric information in the database.
+ * 
+ * - updateTeam($pdo, $id, $name, $title, $members)
+ *   Updates team information and its members in the database.
+ * 
+ * - updateRequirement($pdo, $id, $name, $description, $due_date)
+ *   Updates requirement information in the database.
+ * 
+ * - updateEvaluation($pdo, $id, $defense_schedule_id, $evaluator_id, $total_score, $comments, $recommendation)
+ *   Updates evaluation information in the database.
+ * 
+ * - updateEnvVariable($pdo, $id, $key, $value, $description)
+ *   Updates environment variable information in the database.
+ * 
+ * - updateUserSchedule($pdo, $id, $user_id, $day_of_week, $start_time, $end_time, $class_name)
+ *   Updates user schedule information in the database.
+ * 
+ * - handleEditSubmission($pdo)
+ *   Handles form submissions and routes to the appropriate update function based on the table specified in the POST request.
+ * 
+ * - getUserType($usertype)
+ *   Returns the user type as a string based on the usertype integer.
+ * 
+ * - getDefenseScheduleInfo($pdo, $defense_schedule_id)
+ *   Retrieves and formats defense schedule information.
+ * 
+ * - getUserName($pdo, $user_id)
+ *   Retrieves the full name of a user based on their user ID.
+ * 
+ * - getRubricName($pdo, $rubric_id)
+ *   Retrieves the name of a rubric based on its ID.
+ * 
+ * - getTeamMembersForEdit($pdo, $team_id, $format = 'html')
+ *   Retrieves team members for editing, formatted as HTML or an array.
+ */
 // dashboard/includes/edit_functions.php
 
 // Include database connection

@@ -1,4 +1,32 @@
 <?php
+/**
+ * This script retrieves item details from a specified table in the database.
+ * 
+ * 
+ * Dependencies:
+ * - Requires the database connection setup file located at '../../assets/setup/db.inc.php'.
+ * 
+ * Input:
+ * - Expects a POST request with the following parameters:
+ *   - 'table': The name of the table from which to retrieve the item details.
+ *   - 'id': The ID of the item to retrieve.
+ * 
+ * Output:
+ * - Returns a JSON response with the following structure:
+ *   - success: A boolean indicating whether the operation was successful.
+ *   - data: An associative array containing the item details (if successful).
+ *   - message: A string containing an error message (if unsuccessful).
+ * 
+ * Functionality:
+ * - Validates the 'table' parameter against a list of allowed tables.
+ * - If the table is 'teams', retrieves additional details such as team members and research title.
+ * - For other tables, retrieves the item details directly.
+ * - Handles errors such as missing parameters, invalid table names, and item not found.
+ * 
+ * Example Usage:
+ * - POST request with 'table' set to 'teams' and 'id' set to a valid team ID will return the team details along with members and research title.
+ * - POST request with 'table' set to 'users' and 'id' set to a valid user ID will return the user details.
+ */
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 
 if(isset($_POST['table']) && isset($_POST['id'])) {

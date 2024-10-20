@@ -1,4 +1,34 @@
+
 <?php
+/**
+ * This script handles updating items in the database based on POST data.
+ * 
+ * 
+ * Dependencies:
+ * - Requires database connection setup from db.inc.php.
+ * - Requires edit functions from edit_functions.php.
+ * 
+ * Functionality:
+ * - Enables error reporting for debugging.
+ * - Logs all received POST data.
+ * - Processes POST requests to update items in specified tables.
+ * - Supports updating 'teams' table with nested updates for team members and research titles.
+ * - Supports updating other tables with dynamic field updates.
+ * - Uses transactions to ensure data integrity.
+ * - Provides JSON response indicating success or failure.
+ * 
+ * POST Parameters:
+ * - table: The name of the table to update.
+ * - id: The ID of the item to update.
+ * - Additional parameters depend on the table being updated.
+ * 
+ * Response:
+ * - JSON object with 'success' (boolean) and 'message' (string) fields.
+ * 
+ * Error Handling:
+ * - Rolls back transaction on failure.
+ * - Logs detailed error messages for debugging.
+ */
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/edit_functions.php';
 
