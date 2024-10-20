@@ -15,3 +15,26 @@ body {
 .border-bottom {
     border-bottom: 1px solid #e5e5e5;
 }
+
+#aiSuggestions {
+    line-height: 1.6;
+}
+#aiSuggestions h1, #aiSuggestions h2, #aiSuggestions h3 {
+    margin-top: 20px;
+    margin-bottom: 10px;
+}
+#aiSuggestions ul, #aiSuggestions ol {
+    margin-left: 20px;
+}
+#aiSuggestions code {
+    background-color: #f0f0f0;
+    padding: 2px 4px;
+    border-radius: 4px;
+}
+.rounded.overflow-hidden {
+    border-radius: 0.5rem !important;
+}
+.table-responsive {
+    border-radius: 0.5rem;
+    overflow: hidden;
+}

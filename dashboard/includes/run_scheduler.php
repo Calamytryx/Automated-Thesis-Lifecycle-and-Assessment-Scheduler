@@ -16,6 +16,11 @@ class DefenseSchedule {
     private $pdo;
     public $chromosomes = [];
     public $fitness = 0;
+    public static $initialPopulation = [];
+    public static $crossoverCount = 0;
+    public static $mutationCount = 0;
+    public static $conflictCounts = [];
+    public static $fitnessScores = [];
 
     public function __construct($pdo, $teams, $panelists, $rooms, $timeSlots, $days) {
         $this->pdo = $pdo;
@@ -29,31 +34,37 @@ class DefenseSchedule {
                 'day' => $days[array_rand($days)]
             ];
         }
+        self::$initialPopulation[] = $this->chromosomes;
     }
 
     public function calculateFitness($userSchedules) {
         $this->fitness = 0;
+        $conflicts = 0;
         foreach ($this->chromosomes as $defense) {
             $teamMembers = getTeamMembers($this->pdo, $defense['team_id'], 'array');
 
             if (is_array($teamMembers)) {
                 foreach ($teamMembers as $member) {
                     if (hasScheduleConflict($member['id'], $defense['day'], $defense['time_slot'], $userSchedules)) {
-                        $this->fitness -= 5; // Heavier penalty for team member conflicts
+                        $this->fitness -= 5;
+                        $conflicts++;
                     }
                 }
             } else {
                 error_log("Invalid team members data for team ID: " . $defense['team_id']);
-                $this->fitness -= 10; // Larger penalty for invalid data
+                $this->fitness -= 10;
+                $conflicts++;
             }
             
-            // Check for conflicts in panelists' schedules
             foreach ($defense['panelist_ids'] as $panelist_id) {
                 if (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
-                    $this->fitness -= 5; // Heavier penalty for panelist conflicts
+                    $this->fitness -= 5;
+                    $conflicts++;
                 }
             }
         }
+        self::$conflictCounts[] = $conflicts;
+        self::$fitnessScores[] = $this->fitness;
     }
 }
 
@@ -119,7 +130,6 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
         array_slice($parent2->chromosomes, $crossoverPoint)
     );
 
-    // Resolve conflicts
     foreach ($child->chromosomes as &$defense) {
         foreach ($defense['panelist_ids'] as $panelist_id) {
             while (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
@@ -130,6 +140,7 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
         }
     }
 
+    DefenseSchedule::$crossoverCount++;
     return $child;
 }
 
@@ -151,9 +162,9 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
                     $defense['day'] = $days[array_rand($days)];
                     break;
             }
+            DefenseSchedule::$mutationCount++;
         }
 
-        // Resolve conflicts
         foreach ($defense['panelist_ids'] as $panelist_id) {
             while (hasScheduleConflict($panelist_id, $defense['day'], $defense['time_slot'], $userSchedules)) {
                 $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
@@ -290,7 +301,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.05);
         
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
-            echo json_encode(['success' => true, 'message' => 'Schedule generated and saved successfully']);
+            echo json_encode([
+                'success' => true,
+                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
+                'crossoverCount' => DefenseSchedule::$crossoverCount,
+                'mutationCount' => DefenseSchedule::$mutationCount,
+                'conflictCounts' => DefenseSchedule::$conflictCounts,
+                'fitnessScores' => DefenseSchedule::$fitnessScores,
+                'message' => 'Schedule generated and saved successfully'
+            ]);
         } else {
             throw new Exception("Failed to save schedule to database");
         }

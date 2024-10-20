@@ -37,7 +37,13 @@ check_remember_me();
     <!-- Custom styles -->
     <link rel="stylesheet" href="../assets/css/app.css">
     <link rel="stylesheet" href="custom.css" >
-
+    <script type="importmap">
+        {
+            "imports": {
+                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+            }
+        }
+    </script>
 </head>
 
 <body>

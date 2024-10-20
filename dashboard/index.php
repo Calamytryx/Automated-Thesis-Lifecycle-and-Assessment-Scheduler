@@ -328,62 +328,72 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
 
                         <!-- Defense Schedules Tab -->
-                        <div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm" id="generateSchedule">Generate Defense Schedule</button>
-                                <span id="scheduleGenerationStatus" class="ml-2"></span>
-                            </div>
-                            <div class="table-responsive">
-                                <table class="table table-striped table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th>Date & Time</th>
-                                            <th>Team</th>
-                                            <th>Members</th>
-                                            <th>Adviser</th>
-                                            <th>Thesis Title</th>
-                                            <th>Panelists</th>
-                                            <th>Room</th>
-                                            <th>Action</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php
-                                        $current_date = null;
-                                        foreach ($defenseSchedules as $schedule):
-                                            $schedule_date = date('M-d-y', strtotime($schedule['schedule_date']));
-                                            $start_time = date('H:i', strtotime($schedule['start_time']));
-                                            $end_time = date('H:i', strtotime($schedule['end_time']));
+<div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+        <button class="btn btn-primary btn-sm" id="generateSchedule">Generate Defense Schedule</button>
+        <span id="scheduleGenerationStatus" class="ml-2"></span>
+    </div>
+    <div class="table-responsive">
+        <table class="table table-striped table-sm">
+            <thead>
+                <tr>
+                    <th>Date & Time</th>
+                    <th>Team</th>
+                    <th>Members</th>
+                    <th>Adviser</th>
+                    <th>Thesis Title</th>
+                    <th>Panelists</th>
+                    <th>Room</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php
+                $current_date = null;
+                foreach ($defenseSchedules as $schedule):
+                    $schedule_date = date('M-d-y', strtotime($schedule['schedule_date']));
+                    $start_time = date('H:i', strtotime($schedule['start_time']));
+                    $end_time = date('H:i', strtotime($schedule['end_time']));
 
-                                            // Display the date only if it's different from the previous row
-                                            $date_display = ($current_date !== $schedule_date) ? $schedule_date . '<br>' : '';
-                                            $current_date = $schedule_date;
+                    // Display the date only if it's different from the previous row
+                    $date_display = ($current_date !== $schedule_date) ? $schedule_date . '<br>' : '';
+                    $current_date = $schedule_date;
 
-                                            // Filter out staff members from team_members
-                                            $team_members = array_filter(explode(', ', $schedule['team_members']), function ($member) {
-                                                // Assuming staff names always start with "Staff"
-                                                return strpos($member, 'Staff') !== 0;
-                                            });
-                                            $team_members = implode(', ', $team_members);
-                                        ?>
-                                            <tr>
-                                                <td><?php echo $date_display . $start_time . ' - ' . $end_time; ?></td>
-                                                <td><?php echo htmlspecialchars($schedule['team_name']); ?></td>
-                                                <td><?php echo htmlspecialchars($team_members); ?></td>
-                                                <td><?php echo htmlspecialchars($schedule['adviser']); ?></td>
-                                                <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
-                                                <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
-                                                <td><?php echo htmlspecialchars($schedule['room']); ?></td>
-                                                <td>
-                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
-                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Delete</button>
-                                                </td>
-                                            </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+                    // Filter out staff members from team_members
+                    $team_members = array_filter(explode(', ', $schedule['team_members']), function ($member) {
+                        // Assuming staff names always start with "Staff"
+                        return strpos($member, 'Staff') !== 0;
+                    });
+                    $team_members = implode(', ', $team_members);
+                ?>
+                    <tr>
+                        <td><?php echo $date_display . $start_time . ' - ' . $end_time; ?></td>
+                        <td><?php echo htmlspecialchars($schedule['team_name']); ?></td>
+                        <td><?php echo htmlspecialchars($team_members); ?></td>
+                        <td><?php echo htmlspecialchars($schedule['adviser']); ?></td>
+                        <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
+                        <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
+                        <td><?php echo htmlspecialchars($schedule['room']); ?></td>
+                        <td>
+                            <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Edit</button>
+                            <button class="btn btn-danger btn-sm delete-btn" data-table="defense_schedules" data-id="<?php echo $schedule['id']; ?>">Delete</button>
+                        </td>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+        <!-- Metrics Section -->
+        <div id="metrics">
+            <h5>Schedule Metrics</h5>
+            <p>Initial Population Size: <span id="initialPopulationSize"></span></p>
+            <p>Crossover Operations: <span id="crossoverCount"></span></p>
+            <p>Mutation Operations: <span id="mutationCount"></span></p>
+            <p>Conflicts per Generation: <span id="conflictCounts"></span></p>
+            <p>Fitness per Generation: <span id="fitnessScores"></span></p>
+        </div>
+    </div>
+</div>
+
 
                         <!-- Rubrics Tab -->
                         <div class="tab-pane fade" id="rubrics" role="tabpanel" aria-labelledby="rubrics-tab">
@@ -1125,38 +1135,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 });
 
-        $('#generateSchedule').on('click', function() {
-            var $button = $(this);
-            var $status = $('#scheduleGenerationStatus');
+$(document).ready(function() {
+    $('#generateSchedule').on('click', function() {
+        var $button = $(this);
+        var $status = $('#scheduleGenerationStatus');
 
-            $button.prop('disabled', true).text('Generating...');
-            $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
+        $button.prop('disabled', true).text('Generating...');
+        $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
 
-            $.ajax({
-                url: 'includes/run_scheduler.php',
-                method: 'POST',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
-                        $button.prop('disabled', false).text('Generate Defense Schedule');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX Error:', textStatus, errorThrown);
-                    if (jqXHR.responseText) {
-                        console.error('Server Response:', jqXHR.responseText);
-                    }
-                    $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+        $.ajax({
+            url: 'includes/run_scheduler.php',
+            method: 'POST',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
+                    
+                    // Update metrics
+                    $('#initialPopulationSize').text(response.initialPopulationSize);
+                    $('#crossoverCount').text(response.crossoverCount);
+                    $('#mutationCount').text(response.mutationCount);
+                    $('#conflictCounts').text(response.conflictCounts.join(', '));
+                    $('#fitnessScores').text(response.fitnessScores.join(', '));
+
+                    setTimeout(function() {
+                        //location.reload();
+                    }, 2000);
+                } else {
+                    $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
                     $button.prop('disabled', false).text('Generate Defense Schedule');
                 }
-            });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('AJAX Error:', textStatus, errorThrown);
+                if (jqXHR.responseText) {
+                    console.error('Server Response:', jqXHR.responseText);
+                }
+                $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+                $button.prop('disabled', false).text('Generate Defense Schedule');
+            }
         });
+    });
+});
     });
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
