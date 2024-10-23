@@ -306,15 +306,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="modal-body">
                 <form id="editForm">
-                    <input type="hidden" name="id">
-                    <input type="hidden" name="table">
+                    <!-- Hidden inputs for table and id -->
+                    <input type="hidden" name="table" id="editTable">
+                    <input type="hidden" name="id" id="editId">
 
-                    <!-- Other form fields... -->
-
-                    <div id="teamMembers">
-                        <!-- Team members will be dynamically added here -->
+                    <!-- Fields for defense schedule -->
+                    <div class="mb-3">
+                        <label for="editTeam" class="form-label">Team</label>
+                        <select class="form-select" id="editTeam" name="team_id" required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
                     </div>
-                    <button type="button" id="addMember" class="btn btn-secondary mt-2">Add Member</button>
+                    <div class="mb-3">
+                        <label for="editPanelists" class="form-label">Panelists</label>
+                        <select class="form-select" id="editPanelists" name="panelist_ids[]" multiple required>
+                            <!-- Options will be populated dynamically -->
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editRoom" class="form-label">Room</label>
+                        <input type="text" class="form-control" id="editRoom" name="room" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editScheduleDate" class="form-label">Schedule Date</label>
+                        <input type="date" class="form-control" id="editScheduleDate" name="schedule_date" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editStartTime" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="editStartTime" name="start_time" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="editEndTime" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="editEndTime" name="end_time" required>
+                    </div>
                 </form>
             </div>
             <div class="modal-footer">
