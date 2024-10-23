@@ -1,0 +1,3 @@
+[20-Oct-2024 14:14:26 Europe/Berlin] PHP Warning:  Undefined variable $result in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 62
+[20-Oct-2024 14:26:00 Europe/Berlin] PHP Warning:  Undefined variable $plotGenerated in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 43
+[20-Oct-2024 14:33:28 Europe/Berlin] PHP Warning:  Undefined variable $plotGenerated in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 43
