@@ -27,11 +27,6 @@ try {
         $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.05);
         
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
-            $plotData = [
-                'conflictCounts' => DefenseSchedule::$conflictCounts,
-                'fitnessScores' => DefenseSchedule::$fitnessScores
-            ];
-            
             $result = [
                 'success' => true,
                 'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
@@ -39,17 +34,20 @@ try {
                 'mutationCount' => DefenseSchedule::$mutationCount,
                 'conflictCounts' => DefenseSchedule::$conflictCounts,
                 'fitnessScores' => DefenseSchedule::$fitnessScores,
-                'message' => 'Schedule generated and saved successfully',
-                'plotGenerated' => $plotGenerated
+                'message' => 'Schedule generated and saved successfully'
             ];
+
+            // Save the response to a JSON file
+            file_put_contents('schedule_data.json', json_encode($result, JSON_PRETTY_PRINT));
+
+            // Ensure the JSON response is properly formatted
+            echo json_encode($result, JSON_PRETTY_PRINT);
         } else {
             throw new Exception("Failed to save schedule to database");
         }
     } else {
         throw new Exception('Invalid request method');
     }
-
-    echo json_encode($result);
 } catch (Exception $e) {
     error_log("Error in run_scheduler.php: " . $e->getMessage());
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
