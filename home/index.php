@@ -181,3 +181,133 @@ check_verified();
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
+<script>
+$(document).ready(function() {
+    // Thesis Topic Decision Tool
+    $('#topicSuggestionForm').on('submit', function(e) {
+        e.preventDefault();
+        var field = $('#field').val();
+        // AJAX call to get topic suggestions
+        $.ajax({
+            url: 'includes/get_topic_suggestions.php',
+            method: 'POST',
+            data: { field: field },
+            dataType: 'json',
+            success: function(response) {
+                var suggestionsHtml = '<ul>';
+                response.suggestions.forEach(function(suggestion) {
+                    suggestionsHtml += '<li>' + suggestion + '</li>';
+                });
+                suggestionsHtml += '</ul>';
+                $('#suggestedTopics').html(suggestionsHtml);
+            },
+            error: function() {
+                $('#suggestedTopics').html('<p>Error fetching suggestions. Please try again.</p>');
+            }
+        });
+    });
+    // Research Title Acceptance Tool
+    $('#titleSubmissionForm').on('submit', function(e) {
+        e.preventDefault();
+        var title = $('#researchTitle').val();
+        // AJAX call to check title uniqueness
+        $.ajax({
+            url: 'includes/check_title_uniqueness.php',
+            method: 'POST',
+            data: { title: title },
+            dataType: 'json',
+            success: function(response) {
+                $('#uniquenessResult').html('<p>Uniqueness Score: ' + response.score + '</p><p>' + response.feedback + '</p>');
+            },
+            error: function() {
+                $('#uniquenessResult').html('<p>Error checking uniqueness. Please try again.</p>');
+            }
+        });
+    });
+    // Scheduling System
+    function loadUserSchedule() {
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log("AJAX response:", response);
+                if(response.success) {
+                    var userScheduleHtml = createScheduleTable(response.user_schedules, "User Schedule");
+                    var defenseScheduleHtml = createScheduleTable(response.defense_schedules, "Defense Schedule");
+                    
+                    $('#userSchedule').html(userScheduleHtml + defenseScheduleHtml);
+                } else {
+                    $('#userSchedule').html('<p>Error loading schedules: ' + response.error + '</p>');
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:", textStatus, errorThrown);
+                $('#userSchedule').html('<p>Error loading schedules. Please try again later.</p>');
+            }
+        });
+    }
+    function createScheduleTable(schedules, title) {
+        if (schedules.length === 0) {
+            return '<h4>' + title + '</h4><p>No scheduled events found.</p>';
+        }
+        var scheduleHtml = '<h4>' + title + '</h4>';
+        scheduleHtml += '<table class="table table-striped">';
+        scheduleHtml += '<thead><tr><th>Date</th><th>Time</th><th>Room</th><th>Description</th></tr></thead><tbody>';
+        schedules.forEach(function(event) {
+            scheduleHtml += '<tr>';
+            scheduleHtml += '<td>' + event.date + '</td>';
+            scheduleHtml += '<td>' + event.start_time + ' - ' + event.end_time + '</td>';
+            scheduleHtml += '<td>' + event.room + '</td>';
+            scheduleHtml += '<td>' + event.description + '</td>';
+            scheduleHtml += '</tr>';
+        });
+        scheduleHtml += '</tbody></table>';
+        return scheduleHtml;
+    }
+    // Requirement Checker Tool
+    function loadRequirements() {
+        $.ajax({
+            url: 'includes/get_requirements.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                var checklistHtml = '<form id="requirementForm">';
+                response.requirements.forEach(function(req) {
+                    checklistHtml += '<div class="form-check">' +
+                        '<input class="form-check-input" type="checkbox" value="' + req.id + '" id="req' + req.id + '" name="requirements[]">' +
+                        '<label class="form-check-label" for="req' + req.id + '">' + req.name + '</label>' +
+                        '</div>';
+                });
+                checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
+                $('#requirementChecklist').html(checklistHtml);
+            },
+            error: function() {
+                $('#requirementChecklist').html('<p>Error loading requirements. Please refresh the page.</p>');
+            }
+        });
+    }
+    loadRequirements();
+    $(document).on('submit', '#requirementForm', function(e) {
+        e.preventDefault();
+        var formData = $(this).serialize();
+        $.ajax({
+            url: 'includes/update_requirements.php',
+            method: 'POST',
+            data: formData,
+            dataType: 'json',
+            success: function(response) {
+                alert(response.message);
+            },
+            error: function() {
+                alert('Error updating requirements. Please try again.');
+            }
+        });
+    });
+    // Call this function when the page loads
+    $(document).ready(function() {
+        loadUserSchedule();
+    });
+});
+</script>
+

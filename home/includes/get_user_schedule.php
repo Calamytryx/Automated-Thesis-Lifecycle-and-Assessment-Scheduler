@@ -38,9 +38,13 @@ $user_type = $_SESSION['usertype']; // Assuming you store user type in session
 try {
     $defense_schedules = [];
     $user_schedules = [];
+    // Fetch the team_id for the user
+    $team_stmt = $pdo->prepare("SELECT team_id FROM team_members WHERE user_id = ?");
+    $team_stmt->execute([$user_id]);
+    $team_id = $team_stmt->fetchColumn();
 
-    // Fetch defense schedules
-    if ($user_type == 1) { // Student
+    // Fetch defense schedules using team_id
+    if ($team_id) {
         $defense_stmt = $pdo->prepare("
             SELECT 
                 schedule_date as date,
@@ -53,26 +57,10 @@ try {
                        (SELECT username FROM users WHERE id = panelist_id3)
                 ) as description
             FROM defense_schedules 
-            WHERE student_id = ?
+            WHERE team_id = ?
             ORDER BY date, start_time
         ");
-        $defense_stmt->execute([$user_id]);
-        $defense_schedules = $defense_stmt->fetchAll(PDO::FETCH_ASSOC);
-    } elseif ($user_type == 2) { // Staff
-        $defense_stmt = $pdo->prepare("
-            SELECT 
-                schedule_date as date,
-                start_time,
-                end_time,
-                room,
-                CONCAT('Defense for student: ', 
-                       (SELECT username FROM users WHERE id = student_id)
-                ) as description
-            FROM defense_schedules 
-            WHERE panelist_id = ? OR panelist_id2 = ? OR panelist_id3 = ?
-            ORDER BY date, start_time
-        ");
-        $defense_stmt->execute([$user_id, $user_id, $user_id]);
+        $defense_stmt->execute([$team_id]);
         $defense_schedules = $defense_stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
