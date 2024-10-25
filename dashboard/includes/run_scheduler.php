@@ -24,24 +24,24 @@ try {
         $days = ['2024-12-09', '2024-12-10', '2024-12-11', '2024-12-12', '2024-12-13', '2024-12-14'];
         $userSchedules = fetchUserSchedules($pdo);
 
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.05);
+        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.01);
         
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
                 'success' => true,
-                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
+                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation), // This should now be correct
                 'crossoverCount' => DefenseSchedule::$crossoverCount,
                 'mutationCount' => DefenseSchedule::$mutationCount,
-                'conflictCounts' => DefenseSchedule::$conflictCounts,
-                'fitnessScores' => DefenseSchedule::$fitnessScores,
+                'conflictCounts' => DefenseSchedule::$averageConflictCounts, // Use averaged conflict counts
+                'fitnessScores' => DefenseSchedule::$averageFitnessScores, // Use averaged fitness scores
+                'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
                 'message' => 'Schedule generated and saved successfully'
             ];
-
+        
             // Save the response to a JSON file
-            file_put_contents('schedule_data.json', json_encode($result, JSON_PRETTY_PRINT));
-
-            // Ensure the JSON response is properly formatted
-            echo json_encode($result, JSON_PRETTY_PRINT);
+            file_put_contents('schedule_data.json', json_encode($result));
+        
+            echo json_encode($result);
         } else {
             throw new Exception("Failed to save schedule to database");
         }
@@ -77,14 +77,39 @@ function fetchUserSchedules($pdo) {
     return $schedules;
 }
 
-function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize = 50, $generations = 100, $mutationRate = 0.01) {
+function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize = 100, $generations = 200, $mutationRate = 0.05) {
     $population = createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days);
-    
+    DefenseSchedule::$initialPopulation = $population; // Store only the initial population
+
+    DefenseSchedule::$populationPerGeneration = [];
+    DefenseSchedule::$conflictCounts = []; // Reset for each run
+    DefenseSchedule::$fitnessScores = []; // Reset for each run
+    DefenseSchedule::$averageConflictCounts = []; // Reset for averages
+    DefenseSchedule::$averageFitnessScores = []; // Reset for averages
+
     for ($i = 0; $i < $generations; $i++) {
         foreach ($population as $schedule) {
             $schedule->calculateFitness($userSchedules);
         }
         
+        // Track population data for the current generation
+        DefenseSchedule::$populationPerGeneration[] = array_map(function($schedule) {
+            return [
+                'fitness' => $schedule->fitness,
+                'chromosomes' => $schedule->chromosomes
+            ];
+        }, $population);
+
+        // Collect total conflict counts and total fitness scores for the generation
+        $totalConflicts = array_sum(array_map(function($schedule) {
+            return $schedule->fitness < 0 ? 1 : 0; // Count conflicts based on fitness
+        }, $population));
+        
+        // Store average conflict count per generation
+        DefenseSchedule::$averageConflictCounts[] = $totalConflicts / $populationSize; // Average per generation
+        // Store average fitness score per generation
+        DefenseSchedule::$averageFitnessScores[] = array_sum(array_column($population, 'fitness')) / $populationSize; // Average per generation
+
         $selected = selection($population);
         
         $newPopulation = $selected;
@@ -271,6 +296,9 @@ class DefenseSchedule {
     public static $mutationCount = 0;
     public static $conflictCounts = [];
     public static $fitnessScores = [];
+    public static $averageConflictCounts = [];
+    public static $averageFitnessScores = [];
+    public static $populationPerGeneration = [];
     public $all_defenses = [];
 
     public function __construct($pdo, $teams, $panelists, $rooms, $timeSlots, $days) {
@@ -287,7 +315,6 @@ class DefenseSchedule {
             $this->chromosomes[] = $defense;
             $this->all_defenses[] = $defense;
         }
-        self::$initialPopulation[] = $this->chromosomes;
     }
 
     public function calculateFitness($userSchedules) {
