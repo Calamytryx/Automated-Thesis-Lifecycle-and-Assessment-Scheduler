@@ -2,7 +2,6 @@
 /**
  * This script retrieves item details from a specified table in the database.
  * 
- * 
  * Dependencies:
  * - Requires the database connection setup file located at '../../assets/setup/db.inc.php'.
  * 
@@ -75,47 +74,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     // Debugging: Log the fetched panelists
                     error_log("Fetched panelists: " . print_r($currentPanelists, true));
-                }
-                else if ($table === 'teams') {
-                    $stmt = $pdo->prepare("SELECT * FROM teams WHERE id = ?");
+                } else if ($table === 'teams') {
+                    // Fetch team members
+                    $stmt = $pdo->prepare("
+                        SELECT tm.user_id as id, CONCAT(u.first_name, ' ', u.last_name) as name, tm.role
+                        FROM team_members tm
+                        JOIN users u ON tm.user_id = u.id
+                        WHERE tm.team_id = ?
+                    ");
                     $stmt->execute([$id]);
-                    $team = $stmt->fetch(PDO::FETCH_ASSOC);
-            
-                    if ($team) {
-                        // Fetch team members
-                        $memberStmt = $pdo->prepare("
-                            SELECT tm.user_id as id, CONCAT(u.first_name, ' ', u.last_name) as name, tm.role
-                            FROM team_members tm
-                            JOIN users u ON tm.user_id = u.id
-                            WHERE tm.team_id = ?
-                        ");
-                        $memberStmt->execute([$id]);
-                        $members = $memberStmt->fetchAll(PDO::FETCH_ASSOC);
-            
-                        // Fetch research title
-                        $titleStmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
-                        $titleStmt->execute([$id]);
-                        $researchTitle = $titleStmt->fetchColumn();
-            
-                        $team['members'] = $members;
-                        $team['title'] = $researchTitle;
-            
-                        echo json_encode(['success' => true, 'data' => $team]);
-                    } else {
-                        echo json_encode(['success' => false, 'message' => 'Team not found']);
-                    }
-                } else {
-                    $stmt = $pdo->prepare("SELECT * FROM $table WHERE id = ?");
+                    $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                    // Fetch research title
+                    $stmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
                     $stmt->execute([$id]);
-                    $item = $stmt->fetch(PDO::FETCH_ASSOC);
-                    
-                    if($item) {
-                        // Add table to the response
-                        $item['table'] = $table;
-                        echo json_encode(['success' => true, 'data' => $item]);
-                    } else {
-                        echo json_encode(['success' => false, 'message' => 'Item not found']);
-                    }
+                    $researchTitle = $stmt->fetchColumn();
+
+                    $response['data']['members'] = $members;
+                    $response['data']['title'] = $researchTitle;
                 }
             } else {
                 $response['message'] = 'Item not found';

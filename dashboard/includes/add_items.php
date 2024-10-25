@@ -55,6 +55,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
     
+    // Special handling for users
+    if ($table === 'users') {
+        // Hash the password
+        if (isset($_POST['password'])) {
+            $_POST['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
+        }
+    }
+    
     // General handling for other tables
     $columns = implode(", ", array_keys($_POST));
     $values = ":" . implode(", :", array_keys($_POST));
