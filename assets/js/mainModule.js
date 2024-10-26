@@ -1,7 +1,10 @@
 import { HarmBlockThreshold, HarmCategory, GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleAIFileManager } from "@google/generative-ai/server";
 
 const API_KEY = "AIzaSyBSE1RdMjnZA7w83hBJW9EwF4fpuRdgp_c";
 const genAI = new GoogleGenerativeAI(API_KEY);
+const fileManager = new GoogleAIFileManager(API_KEY);
+
 // Model configuration
 const model = genAI.getGenerativeModel({
     model: "gemini-1.5-flash-002",
@@ -57,7 +60,6 @@ let chatSession = null;
  * @returns {Promise<void>} A promise that resolves when the chat session is initialized.
  */
 
-
 // Function to initialize the chat session (only done once)
 export async function initializeChatSession() {
     console.log("Initializing chat session in mainModule.js");
@@ -68,7 +70,6 @@ export async function initializeChatSession() {
         });
     }
 }
-
 
 // Add this function to log all API calls
 function logApiCall(functionName, input, output) {
@@ -138,5 +139,53 @@ export async function performWebSearch(query) {
     } catch (error) {
         console.error("Error in web search:", error);
         throw new Error("Failed to perform web search");
+    }
+}
+
+/**
+ * Uploads a PDF file to the Google AI File Manager.
+ * 
+ * @param {string} filePath - The path to the PDF file to upload.
+ * @param {string} displayName - The display name for the uploaded file.
+ * @returns {Promise<void>} A promise that resolves when the file is uploaded.
+ */
+export async function uploadPdfFile(filePath, displayName) {
+    try {
+        const uploadResponse = await fileManager.uploadFile(filePath, {
+            mimeType: "application/pdf",
+            displayName: displayName,
+        });
+
+        console.log(`Uploaded file ${uploadResponse.file.displayName} as: ${uploadResponse.file.uri}`);
+        return uploadResponse.file.uri; // Return the URI of the uploaded file
+    } catch (error) {
+        console.error("Error uploading PDF file:", error);
+        throw new Error("Failed to upload PDF file");
+    }
+}
+
+/**
+ * Generates content based on the uploaded PDF file.
+ * 
+ * @param {string} fileUri - The URI of the uploaded PDF file.
+ * @returns {Promise<string>} A promise that resolves to the generated content.
+ */
+export async function generateContentFromPdf(fileUri) {
+    try {
+        const result = await model.generateContent([
+            {
+                fileData: {
+                    mimeType: "application/pdf",
+                    fileUri: fileUri,
+                },
+            },
+            { text: "Get the following: Chapter I [Background and Rationale of the Study, Objectives of the Study, Significance of the Study, Scope and Limitation]; Chapter II [Literature Review, Conceptual Framework, Definition of Terms]; Chapter III [Research Design, Sampling Technique, Participants of the Study, Research Locale, Research Instrument, Data Gathering Procedure, Multiple Constraints Analysis, System Development Process, System Architecture, Data Analysis, Ethical Considerations]; Chapter IV [Results and Presentation of Data, Presentation of Project Design, Result of Testing, Evaluation and Validation, Discussion, Analysis and Interpretation of Data]; Chapter V [Summary and Conclusion, Recommendations]; Abstract; Literature Cited; Appendices." },
+        ]);
+
+        console.log("Generated content:", result.response.text());
+        return result.response.text();
+    } catch (error) {
+        console.error("Error generating content from PDF:", error);
+        throw new Error("Failed to generate content from PDF");
     }
 }
