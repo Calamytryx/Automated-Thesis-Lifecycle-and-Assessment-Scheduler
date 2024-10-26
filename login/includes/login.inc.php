@@ -118,6 +118,7 @@ else {
                 $_SESSION['deleted_at'] = $row['deleted_at'];
                 $_SESSION['last_login_at'] = $row['last_login_at'];
                 $_SESSION['usertype'] = $row['usertype'];
+                //$_SESSION['expire'] = time() + 1000; // Session expires in 24 hours
 
                 /*
                 * -------------------------------------------------------------------------------
@@ -137,7 +138,7 @@ else {
                     setcookie(
                         'rememberme',
                         $selector . ':' . bin2hex($token),
-                        time() + 864000,
+                        time() + 1000,
                         '/',
                         false, // Secure cookie
                         true,  // HTTP-only
