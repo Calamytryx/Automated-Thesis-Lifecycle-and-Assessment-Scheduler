@@ -43,147 +43,152 @@ include '../assets/layouts/header.php';
                     </div>
                 </div>
             </div>
+<!-- title proposal -->
             <div class="col-md12">
                 <div class="card mb box-shadow">
                     <div class="card-body">
-                        <p class="card-text">RUBRICS HERE</p>
+                        <p class="card-text">Title Proposal Defense Score Sheet</p>
                         <table class="table table-bordered table-striped table-hover">
-            <thead>
-                <tr>
-                    <th colspan="5">CATEGORY</th>
-                    <th colspan="2">RATING</th>
-                    <th>MAXIMUM</th>
-                </tr>
-            </thead>
-            <tbody>
-                <tr>
-                    <td colspan="5">RESEARCH TOPIC</td>
-                    <td colspan="3">Group Grade</td>
-                </tr>
-                <tr>
-                    <td colspan="8">Significance of the Project</td>
-                </tr>
-                <tr>
-                    <td colspan="5">Appealing (generate interests from the end-user)</td>
-                    <td colspan="2"></td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td colspan="5">Usefulness (meet the needs of the end-users)</td>
-                    <td colspan="2"></td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td colspan="8">Innovative</td>
-                </tr>
-                <tr>
-                    <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
-                    <td colspan="2"></td>
-                    <td>20%</td>
-                </tr>
-                <tr>
-                    <td colspan="8">Organization</td>
-                </tr>
-                <tr>
-                    <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
-                    <td colspan="2"></td>
-                    <td>20%</td>
-                </tr>
-                <tr>
-                    <td colspan="5" >Subtotal   Group Grade</td>
-                    <td colspan="2" ></td>
-                    <td>60%</td>
-                </tr>
-                <tr>
-                    <td colspan="8"></td>
-                </tr>
-                <tr>
-                    <td>ORAL DEFENSE</td>
-                    <td colspan="7">Individual Grades</td>
-                </tr>
-                <tr>
-                    <td>Presentation</td>
-                    <td>A</td>
-                    <td>B</td>
-                    <td>C</td>
-                    <td colspan="2">D</td>
-                    <td>E</td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td>Time allotted for presentation are met</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>5%</td>
-                </tr>
-                <tr>
-                    <td>The visual presentation exemplified ideas, <i>concisely</i> and <i>comprehensively</i></td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>5%</td>
-                </tr>
-                <tr>
-                    <td>Delivery</td>
-                    <td>A</td>
-                    <td>B</td>
-                    <td>C</td>
-                    <td colspan="2">D</td>
-                    <td>E</td>
-                    <td>30%</td>
-                </tr>
-                <tr>
-                    <td>Presentor is well prepared, appeared relaxed and confident </td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td>Presentor is able to communicate effectively the ideas</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td>Exemplified mastery and reasoning ability in defending his/her proposal/section</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>10%</td>
-                </tr>
-                <tr>
-                    <td>Subtotal   Individual Grade</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>40%</td>
-                </tr>
-                <tr>
-                    <td>TOTAL (Please add the group grade [60%] to the individual grades [40%])</td>
-                    <td></td>
-                    <td></td>
-                    <td></td>
-                    <td colspan="2"></td>
-                    <td></td>
-                    <td>100%</td>
-                </tr>
-            </tbody>
-        </table>
+                            <thead>
+                                <tr>
+                                    <th colspan="5">CATEGORY</th>
+                                    <th colspan="2">RATING</th>
+                                    <th>MAXIMUM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5">RESEARCH TOPIC</td>
+                                    <td colspan="3">Group Grade</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Significance of the Project</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Appealing (generate interests from the end-user)</td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Usefulness (meet the needs of the end-users)</td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Innovative</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Organization</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Subtotal Group Grade</td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="60"></td>
+                                    <td>60%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8"></td>
+                                </tr>
+                                <tr>
+                                    <td>ORAL DEFENSE</td>
+                                    <td colspan="7">Individual Grades</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentation</td>
+                                    <td>A</td>
+                                    <td>B</td>
+                                    <td>C</td>
+                                    <td colspan="2">D</td>
+                                    <td>E</td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Time allotted for presentation are met</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td>5%</td>
+                                </tr>
+                                <tr>
+                                    <td>The visual presentation exemplified ideas, <i>concisely</i> and <i>comprehensively</i></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                    <td>5%</td>
+                                </tr>
+                                <tr>
+                                    <td>Delivery</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
+                                    <td>30%</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentor is well prepared, appeared relaxed and confident </td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentor is able to communicate effectively the ideas</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Exemplified mastery and reasoning ability in defending his/her proposal/section</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Subtotal Individual Grade</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
+                                    <td>40%</td>
+                                </tr>
+                                <tr>
+                                    <td>TOTAL (Please add the group grade [60%] to the individual grades [40%])</td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
+                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
+                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
+                                    <td>100%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Title Proposal Defense Evaluation Sheet</p>
+                        <textarea class="form-control" rows="3" placeholder="Comments, Evaluation and Recommendations"></textarea>
                         <div class="d-flex justify-content-between align-items-center">
                             <div class="btn-group">
                                 <a href="#" class="btn btn-sm btn-outline-secondary">Submit</a>
@@ -200,6 +205,175 @@ include '../assets/layouts/header.php';
                                 </div>
                             </div>
                         </div>
+                    </div>
+                </div>
+            </div>
+<!-- thesis1 proposal -->
+            <!-- <div class="col-md12">
+                <div class="card mb box-shadow">
+                    <div class="card-body">
+                        <p class="card-text">Thesis Proposal</p>
+                        <table class="table table-bordered table-striped table-hover">
+                            <thead>
+                                <tr>
+                                    <th colspan="5">CATEGORY</th>
+                                    <th colspan="2">RATING</th>
+                                    <th>MAXIMUM</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td colspan="5">RESEARCH TOPIC</td>
+                                    <td colspan="3">Group Grade</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Significance of the Project</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Appealing (generate interests from the end-user)</td>
+                                    <td colspan="2"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Usefulness (meet the needs of the end-users)</td>
+                                    <td colspan="2"></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Innovative</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
+                                    <td colspan="2"></td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8">Organization</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
+                                    <td colspan="2"></td>
+                                    <td>20%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="5">Subtotal Group Grade</td>
+                                    <td colspan="2"></td>
+                                    <td>60%</td>
+                                </tr>
+                                <tr>
+                                    <td colspan="8"></td>
+                                </tr>
+                                <tr>
+                                    <td>ORAL DEFENSE</td>
+                                    <td colspan="7">Individual Grades</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentation</td>
+                                    <td>A</td>
+                                    <td>B</td>
+                                    <td>C</td>
+                                    <td colspan="2">D</td>
+                                    <td>E</td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Time allotted for presentation are met</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>5%</td>
+                                </tr>
+                                <tr>
+                                    <td>The visual presentation exemplified ideas, <i>concisely</i> and <i>comprehensively</i></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>5%</td>
+                                </tr>
+                                <tr>
+                                    <td>Delivery</td>
+                                    <td>A</td>
+                                    <td>B</td>
+                                    <td>C</td>
+                                    <td colspan="2">D</td>
+                                    <td>E</td>
+                                    <td>30%</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentor is well prepared, appeared relaxed and confident </td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Presentor is able to communicate effectively the ideas</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Exemplified mastery and reasoning ability in defending his/her proposal/section</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>10%</td>
+                                </tr>
+                                <tr>
+                                    <td>Subtotal Individual Grade</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>40%</td>
+                                </tr>
+                                <tr>
+                                    <td>TOTAL (Please add the group grade [60%] to the individual grades [40%])</td>
+                                    <td></td>
+                                    <td></td>
+                                    <td></td>
+                                    <td colspan="2"></td>
+                                    <td></td>
+                                    <td>100%</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <div class="card-body">
+                        <p class="card-text">Comments</p>
+                        <textarea class="form-control" rows="3" placeholder="Add your comments here..."></textarea>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="btn-group">
+                                <a href="#" class="btn btn-sm btn-outline-secondary">Submit</a>
+                            </div>
+                            <small class="text-muted">1/3 Panelist Complete</small>
+                        </div>
+                        <div class="col-md12">
+                            <div class="card mb box-shadow">
+                                <div class="card-body">
+                                    <p class="card-text">AI Analysis here</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                        <small class="text-muted">[under development]</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div> -->
+                        
 
 </main>
 
