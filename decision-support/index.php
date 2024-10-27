@@ -48,7 +48,7 @@ include '../assets/layouts/header.php';
                 <div class="card mb box-shadow">
                     <div class="card-body">
                         <p class="card-text">Title Proposal Defense Score Sheet</p>
-                        <table class="table table-bordered table-striped table-hover">
+                        <table class="table table-bordered table-hover">
                             <thead>
                                 <tr>
                                     <th colspan="5">CATEGORY</th>
@@ -58,11 +58,11 @@ include '../assets/layouts/header.php';
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td colspan="5">RESEARCH TOPIC</td>
-                                    <td colspan="3">Group Grade</td>
+                                    <th colspan="5">RESEARCH TOPIC</th>
+                                    <th colspan="3">Group Grade</th>
                                 </tr>
                                 <tr>
-                                    <td colspan="8">Significance of the Project</td>
+                                    <th colspan="8">Significance of the Project</th>
                                 </tr>
                                 <tr>
                                     <td colspan="5">Appealing (generate interests from the end-user)</td>
@@ -75,7 +75,7 @@ include '../assets/layouts/header.php';
                                     <td>10%</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="8">Innovative</td>
+                                    <th colspan="8">Innovative</th>
                                 </tr>
                                 <tr>
                                     <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
@@ -83,7 +83,7 @@ include '../assets/layouts/header.php';
                                     <td>20%</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="8">Organization</td>
+                                    <th colspan="8">Organization</th>
                                 </tr>
                                 <tr>
                                     <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
@@ -91,25 +91,25 @@ include '../assets/layouts/header.php';
                                     <td>20%</td>
                                 </tr>
                                 <tr>
-                                    <td colspan="5">Subtotal Group Grade</td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="60"></td>
-                                    <td>60%</td>
+                                    <th colspan="5">Subtotal Group Grade</th>
+                                    <th colspan="2"></th>
+                                    <th>60%</th>
                                 </tr>
                                 <tr>
                                     <td colspan="8"></td>
                                 </tr>
                                 <tr>
-                                    <td>ORAL DEFENSE</td>
-                                    <td colspan="7">Individual Grades</td>
+                                    <th>ORAL DEFENSE</th>
+                                    <th colspan="7">Individual Grades</th>
                                 </tr>
                                 <tr>
-                                    <td>Presentation</td>
-                                    <td>A</td>
-                                    <td>B</td>
-                                    <td>C</td>
-                                    <td colspan="2">D</td>
-                                    <td>E</td>
-                                    <td>10%</td>
+                                    <th>Presentation</th>
+                                    <th>A</th>
+                                    <th>B</th>
+                                    <th>C</th>
+                                    <th colspan="2">D</th>
+                                    <th>E</th>
+                                    <th>10%</th>
                                 </tr>
                                 <tr>
                                     <td>Time allotted for presentation are met</td>
@@ -130,13 +130,13 @@ include '../assets/layouts/header.php';
                                     <td>5%</td>
                                 </tr>
                                 <tr>
-                                    <td>Delivery</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="30"></td>
-                                    <td>30%</td>
+                                    <th>Delivery</th>
+                                    <th>A</th>
+                                    <th>B</th>
+                                    <th>C</th>
+                                    <th colspan="2">D</th>
+                                    <th>E</th>
+                                    <th>30%</th>
                                 </tr>
                                 <tr>
                                     <td>Presentor is well prepared, appeared relaxed and confident </td>
@@ -166,22 +166,22 @@ include '../assets/layouts/header.php';
                                     <td>10%</td>
                                 </tr>
                                 <tr>
-                                    <td>Subtotal Individual Grade</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="40"></td>
-                                    <td>40%</td>
+                                    <th>Subtotal Individual Grade</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th colspan="2"></th>
+                                    <th></th>
+                                    <th>40%</th>
                                 </tr>
                                 <tr>
-                                    <td>TOTAL (Please add the group grade [60%] to the individual grades [40%])</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="100"></td>
-                                    <td>100%</td>
+                                    <th>TOTAL (Please add the group grade [60%] to the individual grades [40%])</th>
+                                    <th></th>
+                                    <th></th>
+                                    <th></th>
+                                    <th colspan="2"></th>
+                                    <th></th>
+                                    <th>100%</th>
                                 </tr>
                             </tbody>
                         </table>
@@ -201,6 +201,31 @@ include '../assets/layouts/header.php';
                                     <p class="card-text">AI Analysis here</p>
                                     <div class="d-flex justify-content-between align-items-center">
                                         <small class="text-muted">[under development]</small>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        different page admin side
+                        <p class="card-text">Title Proposal</p>
+                        <input type="text" class="form-control" placeholder="Working title 1">
+                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                        <input type="text" class="form-control" placeholder="Working title 2">
+                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                        <input type="text" class="form-control" placeholder="Working title 3">
+                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                        <div class="col-md12">
+                            <div class="card mb box-shadow">
+                                <div class="card-body">
+                                    <p class="card-text">Approved Working Title</p>
+                                    <div class="d-flex justify-content-between align-items-center">
+                                    <select class="form-control">
+                                        <option disabled selected hidden>Select Approved Title</option>
+                                        <option value="Working title 1">Working title 1</option>
+                                        <option value="Working title 2">Working title 2</option>
+                                        <option value="Working title 3">Working title 3</option>
+                                    </select>
                                     </div>
                                 </div>
                             </div>
