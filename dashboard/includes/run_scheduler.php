@@ -24,7 +24,7 @@ try {
         $days = ['2024-12-09', '2024-12-10', '2024-12-11', '2024-12-12', '2024-12-13', '2024-12-14'];
         $userSchedules = fetchUserSchedules($pdo);
 
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.01);
+        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 10, 50, 0.01);
         
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
