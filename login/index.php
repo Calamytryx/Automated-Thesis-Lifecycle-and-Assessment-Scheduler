@@ -15,8 +15,9 @@ $rest_of_name = substr($app_name, 1);
         </div>
         <div class="form-container">
             <div class="logo">
-                <img src="../assets/images/logonotext.png" alt="logo">
-            <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span>
+                <img src="../assets/images/logo_full_lightbg.png" alt="logo" width="250" height="94">
+                <!-- <img src="../assets/images/logonotext.png" alt="logo">
+                <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span> -->
             </div>
             <form class="form-auth form" action="includes/login.inc.php" method="post">
 

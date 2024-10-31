@@ -12,12 +12,13 @@ body {
     border-bottom: 1px solid #e5e5e5;
 }
 #v-pills-tab .nav-link.active, #v-pills-tab .nav-pills .show>.nav-link {
-    color: var(--off-white) !important;
-    background-color: var(--primary-color) !important;
+    color: var(--main-bg-light) !important;
+    background-color: var(--main-primary) !important;
 }
 #v-pills-tab .nav-link:focus, #v-pills-tab .nav-link:hover {
-    color: var(--primary-color);
+    color: var(--main-bg-light);
+    background-color: var(--primary-300) !important;
 }
 #v-pills-tab .nav-link{
-    color: var(--off-black);
+    color: var(--main-bg-dark);
 }

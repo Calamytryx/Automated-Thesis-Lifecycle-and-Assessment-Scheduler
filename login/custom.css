@@ -33,6 +33,7 @@
     display: flex;
     width: 38% !important;
     flex-direction: column;
+    padding:40px;
 }
 .logo {
     text-align: center;
@@ -43,22 +44,22 @@
 }
 .btn-primary {
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 1rem;
     font-size: 1.2rem;
     margin-top: 20px;
-    background-color: var(--primary-color);
+    background-color: var(--main-primary);
 }
 .btn-primary:hover{
-    background-color: var(--secondary-color);
+    background-color: var(--main-accent);
 }
 .text-end a {
     font-size: 1rem;
-    color: #6c757d;
+    color: var(--primary-400);
 }
 .text-1{
-color: var(--primary-color);
+    color: var(--primary-color);
 }
-.text-2{
+.text-2{ 
     color: var(--secondary-color);
 }

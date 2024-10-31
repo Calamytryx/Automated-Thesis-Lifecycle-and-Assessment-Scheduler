@@ -3,10 +3,10 @@
     <div class="container">
         <a class="navbar-brand" href="../home">
 
-            <img src="../assets/images/logonotextwhite.png" alt="" width="50" height="50" class="me-3">
+            <img src="../assets/images/logo_full_lightbg.png" alt="" width="110" height="40" class="me-3">
 
 
-            <?php echo APP_NAME; ?>
+            <!-- <?php echo APP_NAME; ?> -->
 
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
@@ -20,21 +20,20 @@
             <ul class="navbar-nav ms-auto">
 
                 <li class="nav-item">
-                    <a class="nav-link" href="../decision-support">Defense</a>
+                    <a class="nav-link" href="../home">Home</a>
                 </li>
-
 
                 <li class="nav-item">
                     <a class="nav-link" href="../dashboard">Dashboard</a>
                 </li>
 
                 <li class="nav-item">
-                    <a class="nav-link" href="../home">Home</a>
+                    <a class="nav-link" href="../decision-support">Defense</a>
                 </li>
 
-                <li class="nav-item">
+                <!-- <li class="nav-item">
                     <a class="nav-link" href="../contact">Contact Us</a>
-                </li>
+                </li> -->
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">

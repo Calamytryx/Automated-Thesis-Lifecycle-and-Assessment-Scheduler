@@ -47,7 +47,7 @@
     --main-neutral : #e9ebf8; /* Neutral */
     --main-black   : #121212; /* Black */
     --main-white   : #fffcf8; /* White */
-    --main-bg-dark : #050819; /* BG-dark */
+    --main-bg-dark : #242424; /* BG-dark */
     --main-bg-light: #e8e8e8; /* BG-light */
   }
 
@@ -70,6 +70,8 @@ body {
     height: 100vh !important;
     min-height: 100vh !important;
     min-width: 100vw;
+    background-color: var(--main-bg-light);
+    font-family: 'Roboto', sans-serif;
 }
 
 main {
@@ -77,13 +79,13 @@ main {
 }
 
 a{
-    color: var(--primary-color);
+    color: var(--main-primary);
 }
 a:hover{
-    color: var(--secondary-color);
+    color: var(--main-accent);
 }
 a.visited{
-    color: var(--accent-color);
+    color: var(--secondary-400);
 }
 .box-shadow {
     box-shadow: 0 .25rem .75rem var(--accent-color);
@@ -104,7 +106,7 @@ a.visited{
     height: auto;
     padding: 1.2rem;
     font-size: 16px;
-    border-radius: 1rem;
+    border-radius: 10px;
     border: solid 0.2rem var(--main-neutral);
 }
 
@@ -114,10 +116,10 @@ a.visited{
 }
 
 .bg-color{
-    background-color: var(--secondary-color);
+    background-color: var(--primary-200);
 }
 .bg-main{
-    background-color: var(--primary-color);
+    background-color: var(--primary-400);
 }
 /* --------------User Image Upload---------------------- */
 
@@ -189,7 +191,18 @@ a.visited{
     object-fit: cover;
     border-radius: 50%;
 }
+.navbar{
+    background-color: var(--main-bg-light) !important;
+    border-bottom: solid 1px var(--main-bg-dark);
+}
 
+.nav-link{
+    color: var(--main-bg-dark);
+}
+
+.nav-link:hover{
+    color: var(--neutral-700);
+}
 
 /* --------------Profile card---------------------- */
 
@@ -262,13 +275,14 @@ footer {
 
 #myFooter {
     flex-shrink: 0;
-    background-color: var(--primary-color);
-    color: var(--off-white);
+    background-color: var(--main-bg-light);
+    color: var(--main-bg-dark);
     padding-top: 30px;
+    border-top: solid 1px var(--main-bg-dark);
 }
 
 #myFooter .footer-copyright {
-    background-color: var(--secondary-color);
+    background-color: var(--main-bg-dark);
     padding-top: 3px;
     padding-bottom: 3px;
     text-align: center;
@@ -285,15 +299,15 @@ footer {
 
 #myFooter .footer-copyright p {
     margin: 10px;
-    color: var(--off-white);
+    color: var(--main-bg-light);
 }
 
 #myFooter .footer-copyright a {
-    color: var(--off-black);
+    color: var(--main-bg-light);
 }
 
 #myFooter .footer-copyright a:hover {
-    color: var(--primary-color);
+    color: var(--primary-400);
 }
 
 #myFooter ul {
@@ -304,7 +318,7 @@ footer {
 
 #myFooter h5 {
     font-size: 18px;
-    color: var(--accent-color);
+    color: var(--main-bg-dark);
     font-weight: bold;
     margin-top: 30px;
 }
@@ -316,14 +330,14 @@ footer {
 }
 
 #myFooter a {
-    color: var(--accent-color);
+    color: var(--main-black);
     text-decoration: none;
 }
 
 #myFooter a:hover,
 #myFooter a:focus {
     text-decoration: none;
-    color: var(--secondary-color);
+    color: var(--neutral-700);
 }
 
 #myFooter .social-networks {
@@ -334,22 +348,21 @@ footer {
 
 #myFooter .social-networks a {
     font-size: 32px;
-    color: var(--accent-color);
+    color: var(--main-primary);
     padding: 10px;
     transition: 0.2s;
 }
 
 #myFooter .social-networks a:hover {
     text-decoration: none;
-    color: var(--secondary-color);
+    color: var(--main-accent);
 }
 
 #myFooter .btn {
-    color: var(--off-black);
-    background-color: var(--secondary-color);
+    color: var(--main-bg-dark);
+    border: solid 1px var(--main-bg-dark);
     border-radius: 20px;
-    border: none;
-    width: 150px;
+    width: 150px; 
     display: block;
     margin: 0 auto;
     margin-top: 10px;
@@ -357,12 +370,12 @@ footer {
 }
 
 #myFooter .btn:hover {
-    background-color: var(--accent-color);
-    color: var(--primary-color);
+    background-color: var(--main-primary);
+    color: var(--main-bg-light);
 }
 
 .fas {
-    color: var(--primary-color);
+    color: var(--main-bg-dark);
 }
 
 .fas:hover {
