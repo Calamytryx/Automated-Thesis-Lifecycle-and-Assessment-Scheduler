@@ -235,57 +235,44 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ?>
         </div> -->
         <div class="col-sm-12">
-            <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
-                <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
-                <div class="lh-100">
-                    <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
-                    <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
-                </div>
-            </div>
-
             <?php if ($_SESSION['usertype'] == 0): ?>
                 <!-- Admin dashboard content -->
-                <div class="my-3 p-3 bg-white rounded shadow-sm">
-                    <ul class="nav nav-tabs" id="myTab" role="tablist">
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link active" id="users-tab" data-bs-toggle="tab" data-bs-target="#users" type="button" role="tab" aria-controls="users" aria-selected="true">Users</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="thesis-topics-tab" data-bs-toggle="tab" data-bs-target="#thesis-topics" type="button" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="research-titles-tab" data-bs-toggle="tab" data-bs-target="#research-titles" type="button" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="defense-schedules-tab" data-bs-toggle="tab" data-bs-target="#defense-schedules" type="button" role="tab" aria-controls="defense-schedules" aria-selected="false">Defense Schedules</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="rubrics-tab" data-bs-toggle="tab" data-bs-target="#rubrics" type="button" role="tab" aria-controls="rubrics" aria-selected="false">Rubrics</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="teams-tab" data-bs-toggle="tab" data-bs-target="#teams" type="button" role="tab" aria-controls="teams" aria-selected="false">Teams</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="requirements-tab" data-bs-toggle="tab" data-bs-target="#requirements" type="button" role="tab" aria-controls="requirements" aria-selected="false">Requirements</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="evaluations-tab" data-bs-toggle="tab" data-bs-target="#evaluations" type="button" role="tab" aria-controls="evaluations" aria-selected="false">Evaluations</button>
-                        </li>
-                        <li class="nav-item" role="presentation">
-                            <button class="nav-link" id="env-variables-tab" data-bs-toggle="tab" data-bs-target="#env-variables" type="button" role="tab" aria-controls="env-variables" aria-selected="false">Environment Variables</button>
-                        </li>
-                    </ul>
-                    <div class="tab-content" id="myTabContent">
-                    <?php include 'includes/tabs/users_tab.php'; ?>
-                    <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
-                    <?php include 'includes/tabs/research_titles_tab.php'; ?>
-                    <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
-                    <?php include 'includes/tabs/rubrics_tab.php'; ?>
-                    <?php include 'includes/tabs/teams_tab.php'; ?>
-                    <?php include 'includes/tabs/requirements_tab.php'; ?>
-                    <?php include 'includes/tabs/evaluations_tab.php'; ?>
-                    <?php include 'includes/tabs/env_variables_tab.php'; ?>
-                </div>
+                <div class="row">
+                    <div class="col-sm-3">
+                        <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
+                            <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
+                            <div class="lh-100">
+                                <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
+                                <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
+                            </div>
+                        </div>
+                        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <a class="nav-link active" id="overview_tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">overview</a>
+                            <a class="nav-link" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
+                            <a class="nav-link" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
+                            <a class="nav-link" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>
+                            <a class="nav-link" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">Defense Schedules</a>
+                            <a class="nav-link" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">Rubrics</a>
+                            <a class="nav-link" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">Teams</a>
+                            <a class="nav-link" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">Requirements</a>
+                            <a class="nav-link" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">Evaluations</a>
+                            <a class="nav-link" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">Environment Variables</a>
+                        </div>
+                    </div>
+                    <div class="col-sm-9">
+                        <div class="tab-content" id="v-pills-tabContent">
+                            <?php include 'includes/tabs/overview_tab.php'; ?>
+                            <?php include 'includes/tabs/users_tab.php'; ?>
+                            <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
+                            <?php include 'includes/tabs/research_titles_tab.php'; ?>
+                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
+                            <?php include 'includes/tabs/rubrics_tab.php'; ?>
+                            <?php include 'includes/tabs/teams_tab.php'; ?>
+                            <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            <?php include 'includes/tabs/evaluations_tab.php'; ?>
+                            <?php include 'includes/tabs/env_variables_tab.php'; ?>
+                        </div>
+                    </div>
                 </div>
             <?php else: ?>
                 <!-- Regular user dashboard content -->

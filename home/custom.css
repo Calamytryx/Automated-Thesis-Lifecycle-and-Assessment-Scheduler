@@ -8,10 +8,6 @@ body {
     color: rgba(255, 255, 255, .5);
 }
 
-.bg-color {
-    background-color: var(--primary-color);
-}
-
 .border-bottom {
     border-bottom: 1px solid #e5e5e5;
 }

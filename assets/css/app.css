@@ -90,7 +90,6 @@ a.visited{
 }
 
 .form-auth {
-    margin-top: 10%;
     width: 100%;
     padding: 15px;
 }
@@ -114,15 +113,12 @@ a.visited{
     border-color: var(--primary-300);
 }
 
-.form-auth input[type="email"] {
-    margin-bottom: -1px;
+.bg-color{
+    background-color: var(--secondary-color);
 }
-
-.form-auth input[type="password"] {
-    margin-bottom: 10px;
+.bg-main{
+    background-color: var(--primary-color);
 }
-
-
 /* --------------User Image Upload---------------------- */
 
 .avatar-upload {
@@ -289,7 +285,11 @@ footer {
 
 #myFooter .footer-copyright p {
     margin: 10px;
-    color: var(--accent-color);
+    color: var(--off-white);
+}
+
+#myFooter .footer-copyright a {
+    color: var(--off-black);
 }
 
 #myFooter .footer-copyright a:hover {
@@ -345,7 +345,7 @@ footer {
 }
 
 #myFooter .btn {
-    color: var(--accent-color);
+    color: var(--off-black);
     background-color: var(--secondary-color);
     border-radius: 20px;
     border: none;

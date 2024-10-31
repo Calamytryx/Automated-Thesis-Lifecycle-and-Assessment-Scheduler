@@ -15,6 +15,7 @@
                 },
                 dataType: 'json',
                 success: function(response) {
+                    console.log('Response data:', response)
                     if (response.success) {
                         var form = $('#editForm');
                         form.empty();
@@ -23,7 +24,6 @@
                         form.append('<input type="hidden" name="table" value="' + table + '">');
                         form.append('<input type="hidden" name="id" value="' + id + '">');
 
-                        // Rest of your form population code...
                         if (table === 'users') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
@@ -219,74 +219,54 @@
                             `;
                             form.html(formHtml);
                         } else if (table === 'defense_schedules') {
-                            var formHtml = `
-                                <input type="hidden" name="table" value="${table}">
-                                <input type="hidden" name="id" value="${id}">
-                                <div class="mb-3">
-                                    <label for="schedule_date" class="form-label">Schedule Date</label>
-                                    <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="start_time" class="form-label">Start Time</label>
-                                    <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="end_time" class="form-label">End Time</label>
-                                    <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="room" class="form-label">Room</label>
-                                    <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="team_id" class="form-label">Team</label>
-                                    <select class="form-select" id="team_id" name="team_id" required>
-                                        ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
-                                    </select>
-                                </div>
-                                <h5 class="mt-4">Panelists</h5>
-                                <div id="panelists">
-                            `;
-                        
-                            if (response.data.panelists) {
-                                response.data.panelists.forEach(function(panelist, index) {
-                                    formHtml += `
-                                        <div class="mb-3 row panelist" data-user-id="${panelist.id}">
-                                            <div class="col-sm-10">
-                                                <select class="form-select" name="panelist_id[]">
-                                                    ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
-                                                </select>
-                                            </div>
-                                            <div class="col-sm-2">
-                                                <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-                                            </div>
-                                        </div>
-                                    `;
-                                });
-                            } else {
-                                console.error('Panelists data is missing in the response');
-                            }
-                        
-                            formHtml += `
-                                </div>
-                                <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
-                            `;
-                        
-                            form.html(formHtml);
-                        
-                            // Add panelist functionality
-                            $('#addPanelist').on('click', function() {
-                                console.log('Add Panelist button clicked');
-                                addNewPanelist(response.staff);
+                            // Populate the form with the current details
+                            $('#editTeam').val(response.data.team_id);
+                            $('#editRoom').val(response.data.room);
+                            $('#editScheduleDate').val(response.data.schedule_date);
+                            $('#editStartTime').val(response.data.start_time);
+                            $('#editEndTime').val(response.data.end_time);
+    
+                            // Populate panelists
+                            var panelists = response.data.panelist_ids ? response.data.panelist_ids.split(',') : [];
+                            $('#editPanelists').val(panelists);
+    
+                            // Populate team options
+                            $.ajax({
+                                url: 'includes/get_teams.php',
+                                method: 'GET',
+                                dataType: 'json',
+                                success: function(teamResponse) {
+                                    if (teamResponse.success) {
+                                        var teamOptions = teamResponse.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('');
+                                        $('#editTeam').html(teamOptions);
+                                        $('#editTeam').val(response.data.team_id);
+                                    } else {
+                                        alert('Error fetching teams: ' + teamResponse.message);
+                                    }
+                                },
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    console.error('Error fetching teams:', textStatus, errorThrown);
+                                    alert('Error fetching teams. Check console for details.');
+                                }
                             });
-                        
-                            // Remove panelist functionality
-                            $(document).on('click', '.remove-panelist', function() {
-                                $(this).closest('.panelist').remove();
+    
+                            // Populate panelist options
+                            $.ajax({
+                                url: 'includes/get_users.php',
+                                method: 'GET',
+                                dataType: 'json',
+                                success: function(userResponse) {
+                                    var panelistOptions = userResponse.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('');
+                                    $('#editPanelists').html(panelistOptions);
+                                    $('#editPanelists').val(panelists);
+                                },
+                                error: function(jqXHR, textStatus, errorThrown) {
+                                    console.error('Error fetching users:', textStatus, errorThrown);
+                                    alert('Error fetching users. Check console for details.');
+                                }
                             });
                         }
                         // Add more conditions for other tables as needed
-
                         $('#editModal').modal('show');
                     } else {
                         alert('Error: ' + response.message);
@@ -559,90 +539,44 @@
             $('#generateSchedule').on('click', function() {
                 var $button = $(this);
                 var $status = $('#scheduleGenerationStatus');
-                var $resultContainer = $('#scheduleGenerationResult');
-
+        
                 $button.prop('disabled', true).text('Generating...');
                 $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
-                $resultContainer.empty();
-
+        
                 $.ajax({
                     url: 'includes/run_scheduler.php',
                     method: 'POST',
                     dataType: 'json',
                     success: function(response) {
-                        console.log('Success:', response);
                         if (response.success) {
                             $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-                            // $resultContainer.html(`
-                            //     <div class="mt-3">
-                            //         <h5>Generation Statistics:</h5>
-                            //         <ul>
-                            //             <li>Initial Population Size: ${response.initialPopulationSize}</li>
-                            //             <li>Crossover Count: ${response.crossoverCount}</li>
-                            //             <li>Mutation Count: ${response.mutationCount}</li>
-                            //         </ul>
-                            //         <h5>Conflict Counts:</h5>
-                            //         <p>${response.conflictCounts.join(', ')}</p>
-                            //         <h5>Fitness Scores:</h5>
-                            //         <p>${response.fitnessScores.join(', ')}</p>
-                            //     </div>
-                            // `);
-                            // You might want to add a button or link here to view the generated schedule
-                            $resultContainer.append('<button id="viewSchedule" class="btn btn-primary mt-3">View Generated Schedule</button>');
+                            
+                            // Update metrics
+                            $('#initialPopulationSize').text(response.initialPopulationSize);
+                            $('#crossoverCount').text(response.crossoverCount);
+                            $('#mutationCount').text(response.mutationCount);
+                            $('#conflictCounts').text(response.conflictCounts.join(', '));
+        
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
                         } else {
-                            $status.text('Failed to generate schedule.').removeClass('text-warning').addClass('text-danger');
-                            //$resultContainer.html(`<p class="text-danger">${response.message}</p>`);
+                            $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
+                            $button.prop('disabled', false).text('Generate Defense Schedule');
                         }
                     },
                     error: function(jqXHR, textStatus, errorThrown) {
                         console.error('AJAX Error:', textStatus, errorThrown);
-                        console.log('Server Response:', jqXHR.responseText);
-
-                        $status.text('Error occurred while generating schedule.').removeClass('text-warning').addClass('text-danger');
-
-                        try {
-                            var jsonResponse = JSON.parse(jqXHR.responseText);
-                            console.log('Parsed JSON Response:', jsonResponse);
-                            $resultContainer.html(`<p class="text-danger">Error: ${jsonResponse.message}</p>`);
-                        } catch (e) {
-                            console.log('Response is not valid JSON');
-                            $resultContainer.html(`<p class="text-danger">An unexpected error occurred. Please check the server logs for more information.</p>`);
+                        if (jqXHR.responseText) {
+                            console.error('Server Response:', jqXHR.responseText);
                         }
-                    },
-                    complete: function() {
-                        $button.prop('disabled', false).text('Generate Schedule');
+                        $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+                        $button.prop('disabled', false).text('Generate Defense Schedule');
                     }
                 });
             });
-
-            // Event delegation for the "View Generated Schedule" button
-            $(document).on('click', '#viewSchedule', function() {
-                // Add functionality to view the generated schedule
-                // This might involve making another AJAX call to fetch the schedule details
-                // or redirecting to a page that displays the schedule
-                window.location.href = 'view_schedule.php';
-            });
         });
     });
-    function addNewPanelist(staff) {
-        console.log('addNewPanelist function called');
-        var newPanelistHtml = `
-            <div class="mb-3 row panelist">
-                <div class="col-sm-10">
-                    <select class="form-select" name="new_panelist_id[]">
-                        <option value="">Select a panelist</option>
-                        ${staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="col-sm-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-                </div>
-            </div>
-        `;
-        console.log('New panelist HTML:', newPanelistHtml);
-        $('#panelists').append(newPanelistHtml);
-        console.log('New panelist added to DOM');
-    }
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
         console.log('addNewTeamMember function called');

@@ -7,16 +7,18 @@ $first_letter = substr($app_name, 0, 1);
 $rest_of_name = substr($app_name, 1);
 ?>
 
-<div class="container" id="log-reg-container">
+<div id="log-reg-container">
     <div class="row g-0">
-        <div class="col-md-6 img-container">
+        <div class="img-container">
+        <div class="overlay"></div>
             <img src="../assets/images/login-bg.jpg" alt="Building">
         </div>
-        <div class="col-md-6 form-container">
+        <div class="form-container">
             <div class="logo">
-            <span class="text-dark"><?php echo $first_letter; ?></span><span class="text-primary"><?php echo $rest_of_name; ?></span>
+                <img src="../assets/images/logonotext.png" alt="logo">
+            <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span>
             </div>
-            <form class="form-auth" action="includes/login.inc.php" method="post">
+            <form class="form-auth form" action="includes/login.inc.php" method="post">
 
                 <?php insert_csrf_token(); ?>
 
