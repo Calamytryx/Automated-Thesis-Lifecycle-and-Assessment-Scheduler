@@ -11,13 +11,3 @@ body {
 .border-bottom {
     border-bottom: 1px solid #e5e5e5;
 }
-#v-pills-tab .nav-link.active, #v-pills-tab .nav-pills .show>.nav-link {
-    color: var(--off-white) !important;
-    background-color: var(--primary-color) !important;
-}
-#v-pills-tab .nav-link:focus, #v-pills-tab .nav-link:hover {
-    color: var(--primary-color);
-}
-#v-pills-tab .nav-link{
-    color: var(--off-black);
-}

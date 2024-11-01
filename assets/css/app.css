@@ -114,10 +114,10 @@ a.visited{
 }
 
 .bg-color{
-    background-color: var(--secondary-color);
+    background-color: var(--neutral-700);
 }
 .bg-main{
-    background-color: var(--primary-color);
+    background-color: var(--neutral-900);
 }
 /* --------------User Image Upload---------------------- */
 
@@ -262,13 +262,13 @@ footer {
 
 #myFooter {
     flex-shrink: 0;
-    background-color: var(--primary-color);
+    background-color: var(--neutral-900);
     color: var(--off-white);
     padding-top: 30px;
 }
 
 #myFooter .footer-copyright {
-    background-color: var(--secondary-color);
+    background-color: var(--primary-color);
     padding-top: 3px;
     padding-bottom: 3px;
     text-align: center;
@@ -289,11 +289,11 @@ footer {
 }
 
 #myFooter .footer-copyright a {
-    color: var(--off-black);
+    color: var(--off-white);
 }
 
 #myFooter .footer-copyright a:hover {
-    color: var(--primary-color);
+    color: var(--secondary-color);
 }
 
 #myFooter ul {
@@ -358,7 +358,6 @@ footer {
 
 #myFooter .btn:hover {
     background-color: var(--accent-color);
-    color: var(--primary-color);
 }
 
 .fas {
@@ -376,15 +375,25 @@ footer {
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 20px;  /* Increased radius for more roundness */
+    background-color: var(--secondary-300);
 }
 ::-webkit-scrollbar-thumb:hover {
     background-color: var(--secondary-color);
-    border-radius: 20px;  /* Increased radius for more roundness */
 }
 
 ::-webkit-scrollbar-track {
     background-color: var(--off-black);
 }
 
+#v-pills-tab .nav-link.active, #v-pills-tab .nav-pills .show>.nav-link {
+    color: var(--off-white) !important;
+    background-color: var(--primary-color) !important;
+}
+#v-pills-tab .nav-link:focus:not(.active), #v-pills-tab .nav-link:hover:not(.active) {
+    color: var(--primary-color);
+    background-color: var(--secondary-color) !important;
+}
+#v-pills-tab .nav-link{
+    color: var(--off-black);
+    margin-bottom: 0.3em;
+}
