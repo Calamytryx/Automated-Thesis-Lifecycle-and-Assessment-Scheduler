@@ -1,14 +1,13 @@
-
 <?php if (isset($_SESSION['auth'])) { ?>
 
-</body>
+    </body>
 
     <footer id="myFooter">
         <div class="container">
             <div class="row">
                 <div class="col-sm-3">
                     <h2 class="logo">
-                        <a href="../home/" target="_blank"> 
+                        <a href="../home/" target="_blank">
                             <img src="../assets/images/logowhite.png" alt="" width="200" height="200" class="">
                         </a>
                     </h2>
@@ -51,8 +50,8 @@
         </div>
         <div class="footer-copyright">
             <p>
-                <a href="#" target="_blank"><?php echo APP_NAME; ?></a> |  
-                <a href="#" target="_blank"><?php echo APP_ORGANIZATION; ?></a> | 
+                <a href="#" target="_blank"><?php echo APP_NAME; ?></a> |
+                <a href="#" target="_blank"><?php echo APP_ORGANIZATION; ?></a> |
                 <a href="#" target="_blank"><?php echo APP_OWNER; ?></a>
             </p>
         </div>
@@ -70,10 +69,10 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
-<?php if(isset($_SESSION['auth'])) { ?> 
+<?php if (isset($_SESSION['auth'])) { ?>
 
-<script src="../assets/js/check_inactive.js"></script>
-    
+    <script src="../assets/js/check_inactive.js"></script>
+
 <?php } ?>
 
 

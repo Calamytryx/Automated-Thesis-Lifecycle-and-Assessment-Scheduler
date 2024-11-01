@@ -30,17 +30,56 @@ $defensesToday = $defensesTodayStmt->fetchColumn();
 $pastDefensesStmt = $pdo->prepare("SELECT COUNT(*) AS past_defenses FROM defense_schedules WHERE schedule_date < CURDATE()");
 $pastDefensesStmt->execute();
 $pastDefenses = $pastDefensesStmt->fetchColumn();
+
+// Fetch user types
+$adminCountStmt = $pdo->prepare("SELECT COUNT(*) AS total_admins FROM users WHERE usertype = 0");
+$adminCountStmt->execute();
+$totalAdmins = $adminCountStmt->fetchColumn();
+
+$studentCountStmt = $pdo->prepare("SELECT COUNT(*) AS total_students FROM users WHERE usertype = 1");
+$studentCountStmt->execute();
+$totalStudents = $studentCountStmt->fetchColumn();
+
+$staffCountStmt = $pdo->prepare("SELECT COUNT(*) AS total_staff FROM users WHERE usertype = 2");
+$staffCountStmt->execute();
+$totalStaff = $staffCountStmt->fetchColumn();
 ?>
 
 <!-- Overview Tab -->
 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
     <h1>Dashboard Overview</h1>
     <div class="row">
-        <div class="col-md-4 mb-3">
+        <div class="col-md-12 mb-3">
             <div class="card text-center">
                 <div class="card-body">
                     <h5 class="card-title">Total Users</h5>
                     <p class="card-text"><?php echo $totalUsers; ?></p>
+                </div>
+                <div class="row justify-content-center">
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Admins</h5>
+                                <p class="card-text"><?php echo $totalAdmins; ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Students</h5>
+                                <p class="card-text"><?php echo $totalStudents; ?></p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3 mb-3">
+                        <div class="card text-center">
+                            <div class="card-body">
+                                <h5 class="card-title">Staff</h5>
+                                <p class="card-text"><?php echo $totalStaff; ?></p>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>

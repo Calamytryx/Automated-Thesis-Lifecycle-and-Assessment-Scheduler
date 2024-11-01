@@ -1,4 +1,4 @@
-<nav class="navbar navbar-expand-md navbar-dark bg-main shadow-sm p-2">
+<nav class="navbar navbar-expand-md bg-main shadow-sm p-2">
 
     <div class="container">
         <a class="navbar-brand" href="../home">

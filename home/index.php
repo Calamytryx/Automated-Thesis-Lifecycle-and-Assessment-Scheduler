@@ -44,13 +44,13 @@ check_verified();
         <div class="col-sm-3">
             <!-- Sidebar -->
             <div class="sidebar">
-            <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
-                            <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
-                            <div class="lh-100">
-                                <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
-                                <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
-                            </div>
-                        </div>
+                <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
+                    <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
+                    <div class="lh-100">
+                        <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
+                        <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
+                    </div>
+                </div>
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <a class="nav-link active" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
                     <a class="nav-link" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
@@ -102,19 +102,19 @@ check_verified();
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
                                 <strong class="d-block text-gray-dark">Title Uniqueness Check</strong>
-                                <form id="titleSubmissionForm">
-                                    <div class="mb-3">
-                                        <label for="researchTitle" class="form-label">Proposed Research Title</label>
-                                        <input type="text" class="form-control" id="researchTitle" name="researchTitle" required>
-                                    </div>
-                                    <div class="mb-3">
-                                        <label for="researchField" class="form-label">Research Field</label>
-                                        <input type="text" class="form-control" id="researchField" name="researchField" required>
-                                    </div>
-                                    <button type="button" id="submitTitleBtn" class="btn btn-primary">Check Title</button>
-                                </form>
-                                <div id="uniquenessResult" class="mt-3"></div>
-                                <div id="aiSuggestions" class="mt-3"></div>
+                            <form id="titleSubmissionForm">
+                                <div class="mb-3">
+                                    <label for="researchTitle" class="form-label">Proposed Research Title</label>
+                                    <input type="text" class="form-control" id="researchTitle" name="researchTitle" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="researchField" class="form-label">Research Field</label>
+                                    <input type="text" class="form-control" id="researchField" name="researchField" required>
+                                </div>
+                                <button type="button" id="submitTitleBtn" class="btn btn-primary">Check Title</button>
+                            </form>
+                            <div id="uniquenessResult" class="mt-3"></div>
+                            <div id="aiSuggestions" class="mt-3"></div>
                             </p>
                         </div>
                     </div>
@@ -125,12 +125,7 @@ check_verified();
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
                                 <strong class="d-block text-gray-dark">Schedule</strong>
-                                <div id="userSchedule">
-                                    <!-- Calendar will be inserted here -->
-                                </div>
-                                <div id="userDefenseSchedule">
-                                    <!-- User's defense schedule will be displayed here -->
-                                </div>
+                            <div id="calendar"></div> <!-- Calendar div -->
                             </p>
                         </div>
                     </div>
@@ -142,9 +137,9 @@ check_verified();
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
                                 <strong class="d-block text-gray-dark">Document Checklist</strong>
-                                <div id="requirementChecklist">
-                                    <!-- Checklist items will be dynamically added here -->
-                                </div>
+                            <div id="requirementChecklist">
+                                <!-- Checklist items will be dynamically added here -->
+                            </div>
                             </p>
                         </div>
                     </div>
@@ -170,6 +165,7 @@ include '../assets/layouts/footer.php'
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
+    console.log('FullCalendar loaded:', typeof FullCalendar !== 'undefined');
     $(document).ready(function() {
         // Thesis Topic Decision Tool
         $('#topicSuggestionForm').on('submit', function(e) {
@@ -225,10 +221,25 @@ include '../assets/layouts/footer.php'
                 success: function(response) {
                     console.log("AJAX response:", response);
                     if (response.success) {
-                        var userScheduleHtml = createScheduleTable(response.user_schedules, "User Schedule");
-                        var defenseScheduleHtml = createScheduleTable(response.defense_schedules, "Defense Schedule");
-
-                        $('#userSchedule').html(userScheduleHtml + defenseScheduleHtml);
+                        var events = [];
+                        // Add user schedules to events
+                        response.user_schedules.forEach(function(event) {
+                            events.push({
+                                title: event.description,
+                                start: event.date + 'T' + event.start_time,
+                                end: event.date + 'T' + event.end_time,
+                            });
+                        });
+                        // Add defense schedules to events
+                        response.defense_schedules.forEach(function(event) {
+                            events.push({
+                                title: event.description,
+                                start: event.date + 'T' + event.start_time,
+                                end: event.date + 'T' + event.end_time,
+                            });
+                        });
+                        console.log("Events to be rendered:", events);
+                        initializeCalendar(events);
                     } else {
                         $('#userSchedule').html('<p>Error loading schedules: ' + response.error + '</p>');
                     }
@@ -240,24 +251,29 @@ include '../assets/layouts/footer.php'
             });
         }
 
-        function createScheduleTable(schedules, title) {
-            if (schedules.length === 0) {
-                return '<h4>' + title + '</h4><p>No scheduled events found.</p>';
-            }
-            var scheduleHtml = '<h4>' + title + '</h4>';
-            scheduleHtml += '<table class="table table-striped">';
-            scheduleHtml += '<thead><tr><th>Date</th><th>Time</th><th>Room</th><th>Description</th></tr></thead><tbody>';
-            schedules.forEach(function(event) {
-                scheduleHtml += '<tr>';
-                scheduleHtml += '<td>' + event.date + '</td>';
-                scheduleHtml += '<td>' + event.start_time + ' - ' + event.end_time + '</td>';
-                scheduleHtml += '<td>' + event.room + '</td>';
-                scheduleHtml += '<td>' + event.description + '</td>';
-                scheduleHtml += '</tr>';
+        function initializeCalendar(events) {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                height: 'auto', // or set a specific height like '600px'
+                events: events, // Use the dynamically loaded events
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title);
+                }
             });
-            scheduleHtml += '</tbody></table>';
-            return scheduleHtml;
+
+            // Use setTimeout to ensure the calendar renders correctly
+            setTimeout(function() {
+                calendar.render();
+            }, 100); // Adjust the timeout duration if necessary
         }
+
         // Requirement Checker Tool
         function loadRequirements() {
             $.ajax({
@@ -297,9 +313,107 @@ include '../assets/layouts/footer.php'
                 }
             });
         });
-        // Call this function when the page loads
-        $(document).ready(function() {
-            loadUserSchedule();
+    });
+
+    document.addEventListener('DOMContentLoaded', function() {
+        let calendarInitialized = false;
+        const schedulingTab = document.querySelector('a[href="#scheduling"]');
+        const calendarEl = document.getElementById('calendar');
+
+        schedulingTab.addEventListener('shown.bs.tab', function() {
+            if (!calendarInitialized) {
+                // Fetch events via AJAX
+                $.ajax({
+                    url: 'includes/get_user_schedule.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            const events = [];
+
+                            // Process defense schedules
+                            response.defense_schedules.forEach(function(defense) {
+                                events.push({
+                                    title: defense.description,
+                                    start: `${defense.date}T${defense.start_time}`,
+                                    end: `${defense.date}T${defense.end_time}`,
+                                    location: defense.room
+                                });
+                            });
+
+                            // Process user schedules
+                            response.user_schedules.forEach(function(schedule) {
+                                // Assume day_of_week is converted to a date
+                                // You might need to map day_of_week to actual dates
+                                events.push({
+                                    title: schedule.description,
+                                    start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                                    end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                                    location: schedule.room
+                                });
+                            });
+
+                            // Initialize FullCalendar with events
+                            const calendar = new FullCalendar.Calendar(calendarEl, {
+                                initialView: 'dayGridMonth',
+                                headerToolbar: {
+                                    left: 'prev,next today',
+                                    center: 'title',
+                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                },
+                                height: 'auto',
+                                events: events,
+                                eventClick: function(info) {
+                                    const title = info.event.title;
+                                    const room = info.event.extendedProps.location;
+                                    alert('Event: ' + title + '\nRoom: ' + room);
+                                }
+                            });
+
+                            calendar.render();
+                            calendarInitialized = true;
+                        } else {
+                            console.error('Error fetching schedules:', response.error);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX error:", textStatus, errorThrown);
+                    }
+                });
+            } else {
+                calendarEl.getCalendar().updateSize();
+            }
+        });
+
+        // Function to get the next date for a given day of the week
+        function getNextDateForDay(dayOfWeek) {
+            const days = {
+                'Monday': 1,
+                'Tuesday': 2,
+                'Wednesday': 3,
+                'Thursday': 4,
+                'Friday': 5,
+                'Saturday': 6,
+                'Sunday': 0
+            };
+            const today = new Date();
+            const targetDay = days[dayOfWeek];
+            const currentDay = today.getDay();
+            let delta = targetDay - currentDay;
+            if (delta < 0) delta += 7;
+            const nextDate = new Date(today);
+            nextDate.setDate(today.getDate() + delta);
+            return nextDate.toISOString().split('T')[0];
+        }
+
+        // Optional: Handle window resize to adjust calendar size
+        window.addEventListener('resize', function() {
+            if (calendarInitialized) {
+                const calendar = calendarEl.getCalendar();
+                if (calendar) {
+                    calendar.updateSize();
+                }
+            }
         });
     });
 </script>

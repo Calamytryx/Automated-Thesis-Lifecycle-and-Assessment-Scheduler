@@ -33,10 +33,23 @@ check_remember_me();
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+<!-- FullCalendar JS -->
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+    <script>
+
+      document.addEventListener('DOMContentLoaded', function() {
+        var calendarEl = document.getElementById('calendar');
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+          initialView: 'dayGridMonth'
+        });
+        calendar.render();
+      });
+
+    </script>
 
     <!-- Custom styles -->
     <link rel="stylesheet" href="../assets/css/app.css">
-    <link rel="stylesheet" href="custom.css" >
+    <link rel="stylesheet" href="custom.css">
     <script type="importmap">
         {
             "imports": {
