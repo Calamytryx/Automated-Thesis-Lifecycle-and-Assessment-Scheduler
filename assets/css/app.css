@@ -190,6 +190,10 @@ a.visited{
     border-radius: 50%;
 }
 
+.navbar a{
+    color: var(--off-white);
+}
+
 
 /* --------------Profile card---------------------- */
 

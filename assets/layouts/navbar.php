@@ -40,7 +40,7 @@
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         <img class="navbar-img" src="../assets/uploads/users/<?php echo $_SESSION['profile_image'] ?>" alt="Profile">
                     </a>
-                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarDropdown">
+                    <ul class="dropdown-menu dropdown-menu-end bg-color" aria-labelledby="navbarDropdown">
                         <li><a class="dropdown-item" href="../profile"><i class="fas fa-user me-2"></i> Profile</a></li>
                         <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-pencil-alt me-2"></i> Edit Profile</a></li>
                         <li>
