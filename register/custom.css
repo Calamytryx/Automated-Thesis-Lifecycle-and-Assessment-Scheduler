@@ -14,13 +14,13 @@
 }
 .img-container {
     height: 100%;
-    width: 56% !important;
+    width: 61.82% !important;
     overflow: hidden;
 }
 .overlay {
     position: absolute;
     height: 100%;
-    width: 56%;
+    width: 61.82%;
     overflow: hidden;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75));
 }
@@ -34,14 +34,14 @@ form{
 }
 .form-container {
     display: flex;
-    width: 44% !important;
+    width: 38.18% !important;
     flex-direction: column;
 }
 .picCard {
     text-align: center;
     font-size: 3rem;
     font-weight: bold;
-    height: 37.5%;
+    height: 30%;
     display: flex;
     align-items: center;
     justify-content: center;
