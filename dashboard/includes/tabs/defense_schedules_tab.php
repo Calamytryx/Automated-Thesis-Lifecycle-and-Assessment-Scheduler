@@ -1,8 +1,8 @@
                         <!-- Defense Schedules Tab -->
                         <div class="tab-pane fade" id="defense-schedules" role="tabpanel"
                             aria-labelledby="defense-schedules-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm" id="generateSchedule">Generate Defense
+                            <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+                                <button class="btn btn-primary btn-sm feature-btn" id="generateSchedule">Generate Defense
                                     Schedule</button>
                                 <span id="scheduleGenerationStatus" class="ml-2"></span>
                             </div>

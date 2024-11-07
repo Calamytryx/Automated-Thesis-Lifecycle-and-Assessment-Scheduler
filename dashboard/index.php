@@ -239,15 +239,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- Admin dashboard content -->
                 <div class="row">
                     <div class="col-sm-3">
-                        <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
-                            <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
+                        <div class="d-flex align-items-center p-3 my-3 sidebar-header rounded shadow-sm">
+                            <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
                             <div class="lh-100">
-                                <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
+                                <h5 class="mb-0 lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h5>
                                 <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
                             </div>
                         </div>
                         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <a class="nav-link active" id="overview_tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">overview</a>
+                            <a class="nav-link active" id="overview_tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
                             <a class="nav-link" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
                             <a class="nav-link" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
                             <a class="nav-link" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>

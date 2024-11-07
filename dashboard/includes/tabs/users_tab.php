@@ -1,7 +1,7 @@
                         <!-- Users Tab -->
                         <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm add-btn" data-table="users">Add User</button>
+                            <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+                                <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="users">Add User</button>
                             </div>
                             <div class="table-responsive">
                                 <table class="table table-striped table-sm">

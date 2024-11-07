@@ -1,7 +1,7 @@
 #log-reg-container {
     width: 100%;
     height: 100%;
-    background-color: white;
+    background-color: var(--main-bg-light);
     overflow: hidden;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.1);
     display: flex;
@@ -14,13 +14,13 @@
 }
 .img-container {
     height: 100%;
-    width: 61.82% !important;
+    width: 62% !important;
     overflow: hidden;
 }
 .overlay {
     position: absolute;
     height: 100%;
-    width: 61.82%;
+    width: 62%;
     overflow: hidden;
     background: linear-gradient(to bottom, rgba(0, 0, 0, 0), rgba(0, 0, 0, 0.75));
 }
@@ -29,44 +29,42 @@
     height: 100%;
     object-fit: cover;
 }
-form{
-    height: 61.76%;
-}
-form button div p{
-    bottom: 0%;
-}
 .form-container {
     display: flex;
-    width: 38.18% !important;
+    width: 38% !important;
     flex-direction: column;
+    padding:40px;
 }
 .logo {
     text-align: center;
     font-size: 3rem;
     font-weight: bold;
-    height: 38.25%;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    height: 35%;
+    margin-top: 15%;
 }
 .btn-primary {
     border: none;
-    border-radius: 12px;
+    border-radius: 10px;
     padding: 1rem;
     font-size: 1.2rem;
     margin-top: 20px;
-    background-color: var(--primary-color);
+    background-color: var(--main-primary);
 }
 .btn-primary:hover{
-    background-color: var(--secondary-color);
+    background-color: var(--main-accent);
 }
 .text-end a {
     font-size: 1rem;
-    color: #6c757d;
+    color: var(--primary-400);
 }
 .text-1{
-color: var(--primary-color);
+    color: var(--primary-color);
 }
-.text-2{
+.text-2{ 
     color: var(--secondary-color);
+}
+
+#username, #password{
+    background-color: var(--main-bg-light);
+    border: solid 1px var(--main-bg-dark);
 }

@@ -47,7 +47,7 @@
     --main-neutral : #e9ebf8; /* Neutral */
     --main-black   : #121212; /* Black */
     --main-white   : #fffcf8; /* White */
-    --main-bg-dark : #050819; /* BG-dark */
+    --main-bg-dark : #242424; /* BG-dark */
     --main-bg-light: #e8e8e8; /* BG-light */
   }
 
@@ -70,6 +70,8 @@ body {
     height: 100vh !important;
     min-height: 100vh !important;
     min-width: 100vw;
+    background-color: var(--main-bg-light);
+    font-family: 'Roboto', sans-serif;
 }
 
 main {
@@ -77,13 +79,14 @@ main {
 }
 
 a{
-    color: var(--primary-color);
+    color: var(--main-primary);
+    transition: background-color 0.3s ease;
 }
 a:hover{
-    color: var(--secondary-color);
+    color: var(--main-accent);
 }
 a.visited{
-    color: var(--accent-color);
+    color: var(--secondary-400);
 }
 .box-shadow {
     box-shadow: 0 .25rem .75rem var(--accent-color);
@@ -104,7 +107,7 @@ a.visited{
     height: auto;
     padding: 1.2rem;
     font-size: 16px;
-    border-radius: 1rem;
+    border-radius: 10px;
     border: solid 0.2rem var(--main-neutral);
 }
 
@@ -113,12 +116,13 @@ a.visited{
     border-color: var(--primary-300);
 }
 
-.bg-color{
-    background-color: var(--neutral-700);
+/* .bg-color{
+    background-color: var(--primary-200);
 }
 .bg-main{
-    background-color: var(--neutral-900);
-}
+    background-color: var(--primary-400);
+} */
+
 /* --------------User Image Upload---------------------- */
 
 .avatar-upload {
@@ -189,11 +193,48 @@ a.visited{
     object-fit: cover;
     border-radius: 50%;
 }
-
-.navbar a{
-    color: var(--off-white);
+.navbar{
+    background-color: var(--main-bg-light) !important;
+    border-bottom: solid 1px var(--main-bg-dark);
+    transition: background-color 0.3s ease;
 }
 
+.nav-item:hover{
+    background-color: var(--neutral-200);
+    border: none;
+    border-radius: 5px;
+}
+ 
+#nav-ul li :hover{
+    background-color: var(--neutral-100); 
+}
+
+.nav-pills .nav-link {
+    color: var(--main-bg-dark); 
+    transition: background-color 0.3s ease;
+}
+
+.nav-pills .nav-link:hover {
+    background-color: var(--neutral-200); 
+    color: var(--main-bg-dark); 
+}
+ 
+.nav-pills .nav-link.active {
+    background-color: var(--secondary-400); 
+    color: var(--main-bg-dark);  
+    transition: background-color 0.3s ease;
+}
+
+.nav-pills .nav-link.active:hover {
+    background-color: var(--secondary-600);
+    color: var(--main-bg-dark);
+}
+
+.sidebar-header{
+    background-color: var(--neutral-900);
+    border: solid 1px var(--main-bg-dark);
+    color: var(--main-bg-light);
+}
 
 /* --------------Profile card---------------------- */
 
@@ -231,6 +272,7 @@ a.visited{
 
 .card-img-profile {
     transition: transform .2s;
+    transition: background-color 0.3s ease;
 }
 
 .card-img-profile:hover {
@@ -251,6 +293,7 @@ a.visited{
 
 .card-profile .fa {
     color: var(--accent-color);
+    transition: background-color 0.3s ease;
 }
 
 .card-profile .fa:hover {
@@ -266,13 +309,14 @@ footer {
 
 #myFooter {
     flex-shrink: 0;
-    background-color: var(--neutral-900);
-    color: var(--off-white);
+    background-color: var(--main-bg-light);
+    color: var(--main-bg-dark);
     padding-top: 30px;
+    border-top: solid 1px var(--main-bg-dark);
 }
 
 #myFooter .footer-copyright {
-    background-color: var(--primary-color);
+    background-color: var(--main-bg-dark);
     padding-top: 3px;
     padding-bottom: 3px;
     text-align: center;
@@ -289,15 +333,16 @@ footer {
 
 #myFooter .footer-copyright p {
     margin: 10px;
-    color: var(--off-white);
+    color: var(--main-bg-light);
 }
 
 #myFooter .footer-copyright a {
-    color: var(--off-white);
+    color: var(--main-bg-light);
+    transition: background-color 0.3s ease;
 }
 
 #myFooter .footer-copyright a:hover {
-    color: var(--secondary-color);
+    color: var(--primary-400);
 }
 
 #myFooter ul {
@@ -308,7 +353,7 @@ footer {
 
 #myFooter h5 {
     font-size: 18px;
-    color: var(--accent-color);
+    color: var(--main-bg-dark);
     font-weight: bold;
     margin-top: 30px;
 }
@@ -320,14 +365,14 @@ footer {
 }
 
 #myFooter a {
-    color: var(--accent-color);
+    color: var(--main-black);
     text-decoration: none;
 }
 
 #myFooter a:hover,
 #myFooter a:focus {
     text-decoration: none;
-    color: var(--secondary-color);
+    color: var(--neutral-700);
 }
 
 #myFooter .social-networks {
@@ -338,34 +383,36 @@ footer {
 
 #myFooter .social-networks a {
     font-size: 32px;
-    color: var(--accent-color);
+    color: var(--main-primary);
     padding: 10px;
     transition: 0.2s;
 }
 
 #myFooter .social-networks a:hover {
     text-decoration: none;
-    color: var(--secondary-color);
+    color: var(--main-accent);
 }
 
 #myFooter .btn {
-    color: var(--off-black);
-    background-color: var(--secondary-color);
+    color: var(--main-bg-dark);
+    border: solid 1px var(--main-bg-dark);
     border-radius: 20px;
-    border: none;
-    width: 150px;
+    width: 150px; 
     display: block;
     margin: 0 auto;
     margin-top: 10px;
     line-height: 25px;
+    transition: background-color 0.3s ease;
 }
 
 #myFooter .btn:hover {
-    background-color: var(--accent-color);
+    background-color: var(--main-primary);
+    color: var(--main-bg-light);
 }
 
 .fas {
-    color: var(--primary-color);
+    color: var(--main-bg-dark);
+    transition: background-color 0.3s ease;
 }
 
 .fas:hover {
@@ -373,31 +420,77 @@ footer {
 }
 
 
+/* Overview tab */
+.thesis-card {
+    display: flex;
+    align-items: center;
+    background-color: var(--main-white);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 5px;
+}
+
+.image-box {
+    width: 50px; 
+    height: 50px;  
+    border-radius: 5px; 
+    margin-right: 10px; 
+    overflow: hidden;
+}
+
+.text-box {
+    flex-grow: 1;
+    text-align: center; 
+}
+
+.overview-thesis-cards-img{
+    width: 60px; 
+    height: 60px; 
+    object-fit: cover;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.overview-users{
+    font-weight: 500;
+    color: var(--main-bg-dark);
+}
+
+.overview-thesis{ 
+    font-weight: 500; 
+    color: var(--main-bg-dark);
+}
+
+.overview-user-container{
+    background-color: var(--main-bg-light);
+    border: none;
+}
+
+.user-card{
+    background-color: var(--main-white);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 5px;
+}
+
+.overview-users-count{
+    color: var(--main-primary);
+}
+
+.thesis-card
+
 /* Scrollbar styles */
 ::-webkit-scrollbar {
     width: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--secondary-300);
+    background-color: var(--main-primary);
+    border-radius: 20px; 
 }
 ::-webkit-scrollbar-thumb:hover {
-    background-color: var(--secondary-color);
+    background-color: var(--main-accent);
+    border-radius: 20px; 
 }
 
 ::-webkit-scrollbar-track {
     background-color: var(--off-black);
-}
-
-#v-pills-tab .nav-link.active, #v-pills-tab .nav-pills .show>.nav-link {
-    color: var(--off-white) !important;
-    background-color: var(--primary-color) !important;
-}
-#v-pills-tab .nav-link:focus:not(.active), #v-pills-tab .nav-link:hover:not(.active) {
-    color: var(--primary-color);
-    background-color: var(--secondary-color) !important;
-}
-#v-pills-tab .nav-link{
-    color: var(--off-black);
-    margin-bottom: 0.3em;
 }

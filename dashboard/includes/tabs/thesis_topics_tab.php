@@ -1,8 +1,8 @@
                         <!-- Thesis Topics Tab -->
                         <div class="tab-pane fade" id="thesis-topics" role="tabpanel"
                             aria-labelledby="thesis-topics-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm add-btn" data-table="thesis_topics">Add Thesis
+                            <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+                                <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="thesis_topics">Add Thesis
                                     Topic</button>
                             </div>
                             <div class="table-responsive">

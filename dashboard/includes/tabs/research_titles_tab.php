@@ -1,8 +1,8 @@
                         <!-- Research Titles Tab -->
                         <div class="tab-pane fade" id="research-titles" role="tabpanel"
                             aria-labelledby="research-titles-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm add-btn" data-table="research_titles">Add Research
+                            <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+                                <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="research_titles">Add Research
                                     Title</button>
                             </div>
                             <div class="table-responsive">

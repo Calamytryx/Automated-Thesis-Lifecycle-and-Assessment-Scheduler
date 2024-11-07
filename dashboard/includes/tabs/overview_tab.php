@@ -46,88 +46,118 @@ $totalStaff = $staffCountStmt->fetchColumn();
 ?>
 
 <!-- Overview Tab -->
-<div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-    <h1>Dashboard Overview</h1>
+<div class="tab-pane fade show active my-3" id="overview" role="tabpanel" aria-labelledby="overview-tab">
     <div class="row">
+        <!-- Total Users Section -->
         <div class="col-md-12 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Total Users</h5>
-                    <p class="card-text"><?php echo $totalUsers; ?></p>
+            <div class="card text-center overview-user-container">
+                <div class="card-body"> 
+                    <h5 class="card-title">Total Users: <span style="color: var(--main-primary); font-weight: 500;"><?php echo $totalUsers; ?></span></h5>
+                    <p class="card-text"></p>
                 </div>
                 <div class="row justify-content-center">
                     <div class="col-md-3 mb-3">
-                        <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Admins</h5>
-                                <p class="card-text"><?php echo $totalAdmins; ?></p>
+                        <div class="card text-center"> 
+                            <div class="card-body user-card">
+                                <img src="../assets/icons/admin.svg" alt="Admin Icon" class="mb-3 overview-thesis-cards-img" >
+                                <h5 class="card-title overview-users">Admins</h5>
+                                <p class="card-text overview-users-count" ><?php echo $totalAdmins; ?></p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Students</h5>
-                                <p class="card-text"><?php echo $totalStudents; ?></p>
+                            <div class="card-body user-card">
+                                <img src="../assets/icons/student.svg" alt="Student Icon" class="mb-3 overview-thesis-cards-img" >
+                                <h5 class="card-title overview-users">Students</h5>
+                                <p class="card-text overview-users-count"><?php echo $totalStudents; ?></p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-3 mb-3">
                         <div class="card text-center">
-                            <div class="card-body">
-                                <h5 class="card-title">Staff</h5>
-                                <p class="card-text"><?php echo $totalStaff; ?></p>
+                            <div class="card-body user-card">
+                                <img src="../assets/icons/staff.svg" alt="Staff Icon" class="mb-3 overview-thesis-cards-img" >
+                                <h5 class="card-title overview-users">Staff</h5>
+                                <p class="card-text overview-users-count"><?php echo $totalStaff; ?></p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
+
+        <!-- Thesis-related Data Section -->
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Approved Titles</h5>
-                    <p class="card-text"><?php echo $approvedTitles; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <!-- Fixed-size left box for image -->
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/approved.svg" alt="Icon" class="img-fluid">
+                </div>
+                <!-- Flexible right box for text -->
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Approved Titles</h6>
+                    <span>6</span>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Not Approved Titles</h5>
-                    <p class="card-text"><?php echo $notApprovedTitles; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/rejected.svg" alt="Icon" class="img-fluid">
+                </div>
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Rejected Titles</h6>
+                    <span>1</span>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Total Teams</h5>
-                    <p class="card-text"><?php echo $totalTeams; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/group.svg" alt="Icon" class="img-fluid">
+                </div>
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Total Teams</h6>
+                    <span>7</span>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Upcoming Defenses</h5>
-                    <p class="card-text"><?php echo $upcomingDefenses; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/upcoming.svg" alt="Icon" class="img-fluid">
+                </div>
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Upcoming Defenses</h6>
+                    <span>7</span>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Defenses Today</h5>
-                    <p class="card-text"><?php echo $defensesToday; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/today.svg" alt="Icon" class="img-fluid">
+                </div>
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Defenses Today</h6>
+                    <span>0</span>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4 mb-3">
-            <div class="card text-center">
-                <div class="card-body">
-                    <h5 class="card-title">Past Defenses</h5>
-                    <p class="card-text"><?php echo $pastDefenses; ?></p>
+            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
+                <div class="image-box d-flex align-items-center justify-content-center">
+                    <img src="../assets/icons/past.svg" alt="Icon" class="img-fluid">
+                </div>
+                <div class="text-box flex-grow-1 text-center">
+                    <h6 class="mb-0 overview-thesis">Past Defenses</h6>
+                    <span>0</span>
                 </div>
             </div>
         </div>

@@ -34,3 +34,43 @@ body {
     border-radius: 0.5rem;
     overflow: hidden;
 }
+
+.home-sidebar-box{
+    background-color: var(--main-white);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 10px;
+}
+
+.feature-title{
+    font-weight: bold;
+    color: var(--main-bg-dark);
+}
+
+.feature-subtitle{
+    color: var(--primary-700);
+}
+
+.form-select{
+    background-color: var(--main-white);
+    color: var(--main-bg-dark);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 5px;
+}
+
+.form-control{
+    background-color: var(--main-white);
+    color: var(--main-bg-dark);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 5px;
+}
+
+.feature-btn{
+    background-color: var(--main-primary);
+    border: solid 1px;
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+}
+
+.feature-btn:hover{
+    background-color: var(--primary-400);
+}

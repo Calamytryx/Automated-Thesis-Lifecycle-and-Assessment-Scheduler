@@ -12,11 +12,11 @@ $rest_of_name = substr($app_name, 1);
         <div class="img-container">
         <div class="overlay"></div>
             <img src="../assets/images/login-bg.jpg" alt="Building">
-        </div>
+        </div> 
         <div class="form-container">
             <div class="logo">
-                <img src="../assets/images/logowhite.png" alt="logo" style="width:256px; height:256px;">
-            <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span>
+                <img src="../assets/images/logo_full_lightbg.png" alt="logo" style="width:268px; height:100px;">
+            <!-- <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span> -->
             </div>
             <form class="form-auth form" action="includes/login.inc.php" method="post">
 

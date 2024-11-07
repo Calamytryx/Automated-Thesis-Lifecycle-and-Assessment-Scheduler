@@ -1,7 +1,7 @@
                         <!-- Evaluations Tab -->
                         <div class="tab-pane fade" id="evaluations" role="tabpanel" aria-labelledby="evaluations-tab">
-                            <div class="d-flex justify-content-between align-items-center mb-3">
-                                <button class="btn btn-primary btn-sm add-btn" data-table="evaluations">Add
+                            <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+                                <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="evaluations">Add
                                     Evaluation</button>
                             </div>
                             <div class="table-responsive">

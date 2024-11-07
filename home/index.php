@@ -44,10 +44,10 @@ check_verified();
         <div class="col-sm-3">
             <!-- Sidebar -->
             <div class="sidebar">
-                <div class="d-flex align-items-center p-3 my-3 text-white bg-color rounded shadow-sm">
-                    <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
+                <div class="d-flex align-items-center p-3 my-3 sidebar-header rounded shadow-sm">
+                    <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
                     <div class="lh-100">
-                        <h6 class="mb-0 text-white lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h6>
+                        <h5 class="mb-0 lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h5>
                         <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
                     </div>
                 </div>
@@ -63,10 +63,10 @@ check_verified();
         <div class="col-sm-9">
             <div class="tab-content" id="v-pills-tabContent">
                 <div class="tab-pane fade show active" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
-                    <div class="my-3 p-3 bg-white rounded box-shadow">
-                        <h6 class="border-bottom border-gray pb-2 mb-0">Thesis Topic Decision Tool</h6>
-                        <div class="media text-muted pt-3">
-                            <div class="form-group">
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Thesis Topic Decision Tool</h6>
+                        <div class="media text-muted pt-3"> 
+                            <div class="form-group"> 
                                 <label for="thesisField">Select a field:</label>
                                 <select id="thesisField" class="form-select">
                                     <option value="">Select a field</option>
@@ -83,7 +83,7 @@ check_verified();
                                     <option value="Mechanical Engineering">Mechanical Engineering</option>
                                 </select>
                             </div>
-                            <button id="getTopicsBtn" class="btn btn-primary mt-3">Get Latest Thesis Topics</button>
+                            <button id="getTopicsBtn" class="btn btn-primary mt-3 feature-btn">Get Latest Topics</button>
                         </div>
                         <div id="topicAnalysisResult" class="mt-3">
                             <!-- Loading spinner (initially hidden) -->
@@ -97,10 +97,10 @@ check_verified();
                     </div>
                 </div>
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
-                    <div class="my-3 p-3 bg-white rounded box-shadow">
-                        <h6 class="border-bottom border-gray pb-2 mb-0">Research Title Acceptance Tool</h6>
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Research Title Acceptance Tool</h6>
                         <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                            <p class="media-body pb-3 mb-0 small lh-125 feature-subtitle">
                                 <strong class="d-block text-gray-dark">Title Uniqueness Check</strong>
                             <form id="titleSubmissionForm">
                                 <div class="mb-3">
@@ -111,7 +111,7 @@ check_verified();
                                     <label for="researchField" class="form-label">Research Field</label>
                                     <input type="text" class="form-control" id="researchField" name="researchField" required>
                                 </div>
-                                <button type="button" id="submitTitleBtn" class="btn btn-primary">Check Title</button>
+                                <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn">Check Title</button>
                             </form>
                             <div id="uniquenessResult" class="mt-3"></div>
                             <div id="aiSuggestions" class="mt-3"></div>
@@ -121,10 +121,10 @@ check_verified();
                 </div>
 
                 <div class="tab-pane fade" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
-                    <div class="my-3 p-3 bg-white rounded box-shadow">
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
                         <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
-                                <strong class="d-block text-gray-dark">Schedule</strong>
+                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
                             <div id="calendar"></div> <!-- Calendar div -->
                             </p>
                         </div>
@@ -132,10 +132,10 @@ check_verified();
                 </div>
 
                 <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
-                    <div class="my-3 p-3 bg-white rounded box-shadow">
-                        <h6 class="border-bottom border-gray pb-2 mb-0">Requirement Checker Tool</h6>
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirement Checker Tool</h6>
                         <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-gray">
+                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary">
                                 <strong class="d-block text-gray-dark">Document Checklist</strong>
                             <div id="requirementChecklist">
                                 <!-- Checklist items will be dynamically added here -->
