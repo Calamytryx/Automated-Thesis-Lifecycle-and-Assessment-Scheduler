@@ -108,7 +108,7 @@ $totalStaff = $staffCountStmt->fetchColumn();
                     <img src="../assets/icons/rejected.svg" alt="Icon" class="img-fluid">
                 </div>
                 <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Rejected Titles</h6>
+                    <h6 class="mb-0 overview-thesis">Pending Titles</h6>
                     <span>1</span>
                 </div>
             </div>
