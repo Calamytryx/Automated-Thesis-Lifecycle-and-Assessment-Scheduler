@@ -228,7 +228,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 
-<main role="main" class="container">
+<main role="main" class="container-fluid">
     <div class="row">
         <!-- <div class="col-sm-3">
             <?php //include('../assets/layouts/profile-card.php'); 
@@ -367,4 +367,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 </div>
 
 <?php include '../assets/layouts/footer.php'; ?>
+<!-- AI GEMINI MODULE -->
+<!-- Main Module JS -->
+<script type="module" src="../assets/js/mainModule.js"></script>
+<!-- app.js -->
+<script type="module" src="../assets/js/app.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="app.js"></script>

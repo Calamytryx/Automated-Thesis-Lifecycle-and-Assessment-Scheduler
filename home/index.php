@@ -39,7 +39,7 @@ check_verified();
 ?>
 
 
-<main role="main" class="container">
+<main role="main" class="container-fluid col-sm-11">
     <div class="row">
         <div class="col-sm-3">
             <!-- Sidebar -->
@@ -52,9 +52,9 @@ check_verified();
                     </div>
                 </div>
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
+                    <!-- <a class="nav-link active" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a> -->
+                    <a class="nav-link active" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Calendar</a>
                     <a class="nav-link" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
-                    <a class="nav-link" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Scheduling System</a>
                     <a class="nav-link" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">Requirement Checker</a>
                 </div>
             </div>
@@ -62,7 +62,7 @@ check_verified();
 
         <div class="col-sm-9">
             <div class="tab-content" id="v-pills-tabContent">
-                <div class="tab-pane fade show active" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
+                <!--<div class="tab-pane fade show active" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
                     <div class="my-3 p-3 home-sidebar-box">
                         <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Thesis Topic Decision Tool</h6>
                         <div class="media text-muted pt-3"> 
@@ -85,9 +85,9 @@ check_verified();
                             </div>
                             <button id="getTopicsBtn" class="btn btn-primary mt-3 feature-btn">Get Latest Topics</button>
                         </div>
-                        <div id="topicAnalysisResult" class="mt-3">
+                        <div id="topicAnalysisResult" class="mt-3"> -->
                             <!-- Loading spinner (initially hidden) -->
-                            <div id="loadingSpinner" class="text-center d-none">
+                            <!-- <div id="loadingSpinner" class="text-center d-none">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
@@ -95,7 +95,19 @@ check_verified();
                             </div>
                         </div>
                     </div>
+                </div> -->
+
+                <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
+                        <div class="media text-muted pt-3">
+                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
+                            <div id="calendar"></div> <!-- Calendar div -->
+                            </p>
+                        </div>
+                    </div>
                 </div>
+
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
                     <div class="my-3 p-3 home-sidebar-box">
                         <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Research Title Acceptance Tool</h6>
@@ -115,17 +127,6 @@ check_verified();
                             </form>
                             <div id="uniquenessResult" class="mt-3"></div>
                             <div id="aiSuggestions" class="mt-3"></div>
-                            </p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="tab-pane fade" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
-                        <div class="media text-muted pt-3">
-                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
-                            <div id="calendar"></div> <!-- Calendar div -->
                             </p>
                         </div>
                     </div>
@@ -269,9 +270,9 @@ include '../assets/layouts/footer.php'
             });
 
             // Use setTimeout to ensure the calendar renders correctly
-            setTimeout(function() {
+            //setTimeout(function() {
                 calendar.render();
-            }, 100); // Adjust the timeout duration if necessary
+            //}, 100); // Adjust the timeout duration if necessary
         }
 
         // Requirement Checker Tool
@@ -316,72 +317,60 @@ include '../assets/layouts/footer.php'
     });
 
     document.addEventListener('DOMContentLoaded', function() {
-        let calendarInitialized = false;
-        const schedulingTab = document.querySelector('a[href="#scheduling"]');
         const calendarEl = document.getElementById('calendar');
 
-        schedulingTab.addEventListener('shown.bs.tab', function() {
-            if (!calendarInitialized) {
-                // Fetch events via AJAX
-                $.ajax({
-                    url: 'includes/get_user_schedule.php',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            const events = [];
+        // Fetch events via AJAX
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if(response.success) {
+                    const events = [];
 
-                            // Process defense schedules
-                            response.defense_schedules.forEach(function(defense) {
-                                events.push({
-                                    title: defense.description,
-                                    start: `${defense.date}T${defense.start_time}`,
-                                    end: `${defense.date}T${defense.end_time}`,
-                                    location: defense.room
-                                });
-                            });
+                    // Process defense schedules
+                    response.defense_schedules.forEach(function(defense) {
+                        events.push({
+                            title: defense.description,
+                            start: `${defense.date}T${defense.start_time}`,
+                            end: `${defense.date}T${defense.end_time}`,
+                            location: defense.room
+                        });
+                    });
 
-                            // Process user schedules
-                            response.user_schedules.forEach(function(schedule) {
-                                // Assume day_of_week is converted to a date
-                                // You might need to map day_of_week to actual dates
-                                events.push({
-                                    title: schedule.description,
-                                    start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                                    end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                                    location: schedule.room
-                                });
-                            });
+                    // Process user schedules
+                    response.user_schedules.forEach(function(schedule) {
+                        events.push({
+                            title: schedule.description,
+                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                            location: schedule.room
+                        });
+                    });
 
-                            // Initialize FullCalendar with events
-                            const calendar = new FullCalendar.Calendar(calendarEl, {
-                                initialView: 'dayGridMonth',
-                                headerToolbar: {
-                                    left: 'prev,next today',
-                                    center: 'title',
-                                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                                },
-                                height: 'auto',
-                                events: events,
-                                eventClick: function(info) {
-                                    const title = info.event.title;
-                                    const room = info.event.extendedProps.location;
-                                    alert('Event: ' + title + '\nRoom: ' + room);
-                                }
-                            });
-
-                            calendar.render();
-                            calendarInitialized = true;
-                        } else {
-                            console.error('Error fetching schedules:', response.error);
+                    // Initialize FullCalendar with events
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        height: 'auto',
+                        events: events,
+                        eventClick: function(info) {
+                            const title = info.event.title;
+                            const room = info.event.extendedProps.location;
+                            alert('Event: ' + title + '\nRoom: ' + room);
                         }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("AJAX error:", textStatus, errorThrown);
-                    }
-                });
-            } else {
-                calendarEl.getCalendar().updateSize();
+                    });
+                    calendar.render();
+                } else {
+                    console.error('Error fetching schedules:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:", textStatus, errorThrown);
             }
         });
 
@@ -400,7 +389,7 @@ include '../assets/layouts/footer.php'
             const targetDay = days[dayOfWeek];
             const currentDay = today.getDay();
             let delta = targetDay - currentDay;
-            if (delta < 0) delta += 7;
+            if(delta < 0) delta += 7;
             const nextDate = new Date(today);
             nextDate.setDate(today.getDate() + delta);
             return nextDate.toISOString().split('T')[0];
@@ -408,11 +397,8 @@ include '../assets/layouts/footer.php'
 
         // Optional: Handle window resize to adjust calendar size
         window.addEventListener('resize', function() {
-            if (calendarInitialized) {
-                const calendar = calendarEl.getCalendar();
-                if (calendar) {
-                    calendar.updateSize();
-                }
+            if (calendar) {
+                calendar.updateSize();
             }
         });
     });
