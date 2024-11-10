@@ -305,14 +305,15 @@ a.visited{
 
 footer {
     margin-top: 100px;
+margin-top: auto;
 }
 
 #myFooter {
-    flex-shrink: 0;
-    background-color: var(--main-bg-light);
-    color: var(--main-bg-dark);
-    padding-top: 30px;
-    border-top: solid 1px var(--main-bg-dark);
+flex-shrink: 0;
+background-color: var(--main-bg-light);
+color: var(--main-bg-dark);
+padding-top: 30px;
+border-top: solid 1px var(--main-bg-dark);
 }
 
 #myFooter .footer-copyright {
