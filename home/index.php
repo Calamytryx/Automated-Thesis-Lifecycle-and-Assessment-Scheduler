@@ -39,7 +39,7 @@ check_verified();
 ?>
 
 
-<main role="main" class="container-fluid col-sm-11">
+<main role="main" class="container">
     <div class="row">
         <div class="col-sm-3">
             <!-- Sidebar -->
@@ -86,8 +86,8 @@ check_verified();
                             <button id="getTopicsBtn" class="btn btn-primary mt-3 feature-btn">Get Latest Topics</button>
                         </div>
                         <div id="topicAnalysisResult" class="mt-3"> -->
-                            <!-- Loading spinner (initially hidden) -->
-                            <!-- <div id="loadingSpinner" class="text-center d-none">
+                <!-- Loading spinner (initially hidden) -->
+                <!-- <div id="loadingSpinner" class="text-center d-none">
                                 <div class="spinner-border text-primary" role="status">
                                     <span class="visually-hidden">Loading...</span>
                                 </div>
@@ -271,49 +271,136 @@ include '../assets/layouts/footer.php'
 
             // Use setTimeout to ensure the calendar renders correctly
             //setTimeout(function() {
-                calendar.render();
+            calendar.render();
             //}, 100); // Adjust the timeout duration if necessary
         }
 
-        // Requirement Checker Tool
-        function loadRequirements() {
-            $.ajax({
-                url: 'includes/get_requirements.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    var checklistHtml = '<form id="requirementForm">';
-                    response.requirements.forEach(function(req) {
-                        checklistHtml += '<div class="form-check">' +
-                            '<input class="form-check-input" type="checkbox" value="' + req.id + '" id="req' + req.id + '" name="requirements[]">' +
-                            '<label class="form-check-label" for="req' + req.id + '">' + req.name + '</label>' +
-                            '</div>';
-                    });
-                    checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
-                    $('#requirementChecklist').html(checklistHtml);
-                },
-                error: function() {
-                    $('#requirementChecklist').html('<p>Error loading requirements. Please refresh the page.</p>');
-                }
-            });
-        }
+        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { ?>
+            // Requirement Checker Tool
+            function loadRequirements() {
+                $.ajax({
+                    url: 'includes/get_requirements.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            var checklistHtml = '<form id="requirementForm">';
+                            response.requirements.forEach(function(req) {
+                                checklistHtml += `
+                            <div class="form-check mb-3">
+                                <input class="form-check-input" type="checkbox" value="${req.id}" id="req${req.id}" name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
+                                <label class="form-check-label" for="req${req.id}"><strong>${req.name}</strong></label>
+                                <p class="mb-1 text-muted">${req.description}</p>
+                                <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
+                                <div class="mt-2">
+                                    <label for="status${req.id}">Status:</label>
+                                    <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
+                                        <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                        <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                                        <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                        <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                    </select>
+                                </div>
+                                <div class="mt-2">
+                                    <label for="feedback${req.id}">Feedback:</label>
+                                    <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
+                                </div>
+                            </div>
+                        `;
+                            });
+                            checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
+                            $('#requirementChecklist').html(checklistHtml);
+                        } else {
+                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                            console.error('Error fetching requirements:', response.error);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                        console.error("AJAX error:", textStatus, errorThrown);
+                        console.error("Response Text:", jqXHR.responseText);
+                        console.error("Status Code:", jqXHR.status);
+                    }
+                });
+            }
+        <?php } elseif ($_SESSION['usertype'] == 1) { ?>
+        
+            function loadRequirements() {
+                $.ajax({
+                    url: 'includes/get_requirements.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            var checklistHtml = '<form id="requirementForm">';
+                            response.requirements.forEach(function(req) {
+                                checklistHtml += '<div class="form-check mb-3">' +
+                                    '<input class="form-check-input" type="checkbox" value="' + req.id + '" id="req' + req.id + '" name="requirements[]">' +
+                                    '<label class="form-check-label" for="req' + req.id + '"><strong>' + req.name + '</strong></label>' +
+                                    '<p class="mb-1 text-muted">' + req.description + '</p>' +
+                                    '<small class="text-muted">Due Date: ' + new Date(req.due_date).toLocaleDateString() + '</small>' +
+                                    '</div>';
+                            });
+                            checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
+                            $('#requirementChecklist').html(checklistHtml);
+                        } else {
+                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                            console.error('Error fetching requirements:', response.error);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                        console.error("AJAX error:", textStatus, errorThrown, jqXHR.responseText);
+                    }
+                });
+            }
+        <?php } ?>
+
+
+        // // Call loadRequirements() on page load
+        // $(document).ready(function() {
+        //     loadRequirements();
+
+        //     // Handle form submission
+        //     $('#requirementChecklist').on('submit', '#requirementForm', function(e) {
+        //         e.preventDefault();
+        //         var selectedRequirements = $(this).serialize();
+
+        //         $.ajax({
+        //             url: 'includes/update_requirements.php', // Ensure this endpoint exists
+        //             method: 'POST',
+        //             data: selectedRequirements,
+        //             dataType: 'json',
+        //             success: function(response) {
+        //                 if (response.success) {
+        //                     alert('Requirements updated successfully.');
+        //                 } else {
+        //                     alert('Error updating requirements: ' + response.error);
+        //                 }
+        //             },
+        //             error: function() {
+        //                 alert('An error occurred while updating requirements.');
+        //             }
+        //         });
+        //     });
+        // });
         loadRequirements();
-        $(document).on('submit', '#requirementForm', function(e) {
-            e.preventDefault();
-            var formData = $(this).serialize();
-            $.ajax({
-                url: 'includes/update_requirements.php',
-                method: 'POST',
-                data: formData,
-                dataType: 'json',
-                success: function(response) {
-                    alert(response.message);
-                },
-                error: function() {
-                    alert('Error updating requirements. Please try again.');
-                }
-            });
-        });
+        // $(document).on('submit', '#requirementForm', function(e) {
+        //     e.preventDefault();
+        //     var formData = $(this).serialize();
+        //     $.ajax({
+        //         url: 'includes/update_requirements.php',
+        //         method: 'POST',
+        //         data: formData,
+        //         dataType: 'json',
+        //         success: function(response) {
+        //             alert(response.message);
+        //         },
+        //         error: function() {
+        //             alert('Error updating requirements. Please try again.');
+        //         }
+        //     });
+        // });
     });
 
     document.addEventListener('DOMContentLoaded', function() {
@@ -325,7 +412,7 @@ include '../assets/layouts/footer.php'
             method: 'GET',
             dataType: 'json',
             success: function(response) {
-                if(response.success) {
+                if (response.success) {
                     const events = [];
 
                     // Process defense schedules
@@ -389,7 +476,7 @@ include '../assets/layouts/footer.php'
             const targetDay = days[dayOfWeek];
             const currentDay = today.getDay();
             let delta = targetDay - currentDay;
-            if(delta < 0) delta += 7;
+            if (delta < 0) delta += 7;
             const nextDate = new Date(today);
             nextDate.setDate(today.getDate() + delta);
             return nextDate.toISOString().split('T')[0];

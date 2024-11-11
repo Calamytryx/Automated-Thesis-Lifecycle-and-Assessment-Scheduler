@@ -1,43 +1,72 @@
-
-<?
+<?php
 /**
- * 
- * This script handles fetching requirements from the database and returning them as a JSON response.
- * 
- * Functionality:
- * - Starts a session.
- * - Ensures the user is logged in by checking the session.
- * - Connects to the database using a PDO instance.
- * - Fetches requirements from the database and returns them in JSON format.
- * - Handles any database errors and returns an appropriate JSON error message.
+ * This script fetches requirements along with the current user's status, submitted_at, and feedback.
  * 
  * JSON Response:
- * - On success: { "success": true, "requirements": [ { "id": int, "name": string }, ... ] }
- * - On failure: { "success": false, "message": string }
- * 
- * Dependencies:
- * - Requires the database connection setup file located at '../../assets/setup/db.inc.php'.
- * 
- * Error Handling:
- * - If the user is not logged in, returns a JSON response with success set to false and an appropriate message.
- * - If a database error occurs, returns a JSON response with success set to false and the error message.
+ * - On success: { "success": true, "requirements": [ 
+ *     { 
+ *         "id": int, 
+ *         "name": string, 
+ *         "description": string, 
+ *         "due_date": string,
+ *         "status": string,
+ *         "submitted_at": string,
+ *         "feedback": string 
+ *     }, 
+ *     ... 
+ * ] }
+ * - On failure: { "success": false, "error": string }
  */
+header('Content-Type: application/json');
 session_start();
-require_once '../../assets/setup/db.inc.php';
 
-// Ensure the user is logged in
-if (!isset($_SESSION['id'])) {
-    echo json_encode(['success' => false, 'message' => 'User not logged in']);
+// Include database connection
+require '../../assets/setup/db.inc.php';
+
+// Check if user is authenticated
+if (!isset($_SESSION['auth'])) {
+    echo json_encode(['success' => false, 'error' => 'Unauthorized access']);
     exit;
 }
 
+$user_id = $_SESSION['id'];
+
 try {
-    // Fetch requirements from the database
-    $stmt = $pdo->prepare("SELECT id, name FROM requirements ORDER BY id");
+    // Fetch all requirements
+    $stmt = $pdo->prepare("SELECT id, name, description, due_date FROM requirements ORDER BY due_date ASC, name ASC");
     $stmt->execute();
     $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
+    // Fetch user-specific requirement statuses
+    $userReqStmt = $pdo->prepare("SELECT requirement_id, status, submitted_at, feedback FROM user_requirements WHERE user_id = ?");
+    $userReqStmt->execute([$user_id]);
+    $userRequirements = $userReqStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Map user requirements for easy access
+    $userReqMap = [];
+    foreach ($userRequirements as $userReq) {
+        $userReqMap[$userReq['requirement_id']] = [
+            'status' => $userReq['status'],
+            'submitted_at' => $userReq['submitted_at'],
+            'feedback' => $userReq['feedback']
+        ];
+    }
+
+    // Combine requirements with user-specific data
+    foreach ($requirements as &$req) {
+        if (isset($userReqMap[$req['id']])) {
+            $req['status'] = $userReqMap[$req['id']]['status'];
+            $req['submitted_at'] = $userReqMap[$req['id']]['submitted_at'];
+            $req['feedback'] = $userReqMap[$req['id']]['feedback'];
+        } else {
+            $req['status'] = 'pending';
+            $req['submitted_at'] = null;
+            $req['feedback'] = '';
+        }
+    }
+
     echo json_encode(['success' => true, 'requirements' => $requirements]);
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
+?>

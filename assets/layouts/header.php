@@ -33,24 +33,49 @@ check_remember_me();
 
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-<!-- FullCalendar JS -->
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
+
+    <!-- PDF Viewer -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf_viewer.min.css" integrity="sha512-qBj3yMdvzL7dOHWfvs21eTD0LURNR9Jhcy5ZMfR7E5NOKev5i9Iu49Yuijdm/or10JyenuaRuflq6DG/E04fcQ==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+    <script type="module">
+        import { getDocument, GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.min.mjs';
+        GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.8.69/pdf.worker.min.mjs';
+
+    window.loadPDF = function(url) {
+        const canvas = document.getElementById('pdf');
+        const context = canvas.getContext('2d');
+
+        getDocument(url).promise.then(pdf => {
+            pdf.getPage(1).then(page => {
+                const viewport = page.getViewport({ scale: 1.5 });
+                canvas.height = viewport.height;
+                canvas.width = viewport.width;
+
+                const renderContext = {
+                    canvasContext: context,
+                    viewport: viewport
+                };
+                page.render(renderContext);
+            });
+        });
+    }
+    </script>
+    <!-- FullCalendar JS -->
+    <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js'></script>
     <script>
+        //   document.addEventListener('DOMContentLoaded', function() {
+        //     var calendarEl = document.getElementById('calendar');
+        //     var calendar = new FullCalendar.Calendar(calendarEl, {
+        //       initialView: 'dayGridMonth',
+        //       headerToolbar: {
+        //                 left: 'prev,next today',
+        //                 center: 'title',
+        //                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        //             },
+        //             height: 'auto', // or set a specific height like '600px'
 
-    //   document.addEventListener('DOMContentLoaded', function() {
-    //     var calendarEl = document.getElementById('calendar');
-    //     var calendar = new FullCalendar.Calendar(calendarEl, {
-    //       initialView: 'dayGridMonth',
-    //       headerToolbar: {
-    //                 left: 'prev,next today',
-    //                 center: 'title',
-    //                 right: 'dayGridMonth,timeGridWeek,timeGridDay'
-    //             },
-    //             height: 'auto', // or set a specific height like '600px'
-
-    //     });
-    //     calendar.render();
-    //   });
+        //     });
+        //     calendar.render();
+        //   });
     </script>
 
     <!-- Custom styles -->
@@ -66,6 +91,6 @@ check_remember_me();
 </head>
 
 <body>
-<?php if (isset($_SESSION['auth'])) { ?>
-    <?php require 'navbar.php'; ?>
-<?php } ?>
+    <?php if (isset($_SESSION['auth'])) { ?>
+        <?php require 'navbar.php'; ?>
+    <?php } ?>

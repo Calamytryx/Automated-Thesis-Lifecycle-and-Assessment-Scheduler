@@ -31,210 +31,226 @@ include '../assets/layouts/header.php';
             </div>
 
             <div class="row">
-                <div class="col-md12">
+                <div class="container">
                     <div class="card mb box-shadow">
                         <div class="card-body">
                             <p class="card-text">PDF VIEW</p>
+                            <button class="btn btn-primary mt-2" onclick="toggleFullScreen()">Full Screen</button>
                             <div class="d-flex justify-content-between align-items-center">
-                                <embed id="pdf" src="https://www.officialgazette.gov.ph/downloads/1997/06jun/19970606-RA-8293-FVR.pdf" type="application/pdf" style="width: 100%; height: 100%;">
+                                    <iframe id="pdf" src="viewer.html?file=file.pdf" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
+                                <script>
+                                function toggleFullScreen() {
+                                    var iframe = document.getElementById('pdf');
+                                    if (iframe.requestFullscreen) {
+                                        iframe.requestFullscreen();
+                                    } else if (iframe.mozRequestFullScreen) { /* Firefox */
+                                        iframe.mozRequestFullScreen();
+                                    } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
+                                        iframe.webkitRequestFullscreen();
+                                    } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+                                        iframe.msRequestFullscreen();
+                                    }
+                                }
+                                </script>
                             </div>
-                            <small class="text-muted">[under development]</small>
                         </div>
+                        <small class="text-muted">[under development]</small>
                     </div>
                 </div>
             </div>
-<!-- title proposal -->
-            <div class="col-md12">
-                <div class="card mb box-shadow">
-                    <div class="card-body">
-                        <p class="card-text">Title Proposal Defense Score Sheet</p>
-                        <table class="table table-bordered table-hover">
-                            <thead>
-                                <tr>
-                                    <th colspan="5">CATEGORY</th>
-                                    <th colspan="2">RATING</th>
-                                    <th>MAXIMUM</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <th colspan="5">RESEARCH TOPIC</th>
-                                    <th colspan="3">Group Grade</th>
-                                </tr>
-                                <tr>
-                                    <th colspan="8">Significance of the Project</th>
-                                </tr>
-                                <tr>
-                                    <td colspan="5">Appealing (generate interests from the end-user)</td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td>10%</td>
-                                </tr>
-                                <tr>
-                                    <td colspan="5">Usefulness (meet the needs of the end-users)</td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td>10%</td>
-                                </tr>
-                                <tr>
-                                    <th colspan="8">Innovative</th>
-                                </tr>
-                                <tr>
-                                    <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
-                                    <td>20%</td>
-                                </tr>
-                                <tr>
-                                    <th colspan="8">Organization</th>
-                                </tr>
-                                <tr>
-                                    <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
-                                    <td>20%</td>
-                                </tr>
-                                <tr>
-                                    <th colspan="5">Subtotal Group Grade</th>
-                                    <th colspan="2"></th>
-                                    <th>60%</th>
-                                </tr>
-                                <tr>
-                                    <td colspan="8"></td>
-                                </tr>
-                                <tr>
-                                    <th>ORAL DEFENSE</th>
-                                    <th colspan="7">Individual Grades</th>
-                                </tr>
-                                <tr>
-                                    <th>Presentation</th>
-                                    <th>A</th>
-                                    <th>B</th>
-                                    <th>C</th>
-                                    <th colspan="2">D</th>
-                                    <th>E</th>
-                                    <th>10%</th>
-                                </tr>
-                                <tr>
-                                    <td>Time allotted for presentation are met</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td>5%</td>
-                                </tr>
-                                <tr>
-                                    <td>The visual presentation exemplified ideas, <i>concisely</i> and <i>comprehensively</i></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
-                                    <td>5%</td>
-                                </tr>
-                                <tr>
-                                    <th>Delivery</th>
-                                    <th>A</th>
-                                    <th>B</th>
-                                    <th>C</th>
-                                    <th colspan="2">D</th>
-                                    <th>E</th>
-                                    <th>30%</th>
-                                </tr>
-                                <tr>
-                                    <td>Presentor is well prepared, appeared relaxed and confident </td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td>10%</td>
-                                </tr>
-                                <tr>
-                                    <td>Presentor is able to communicate effectively the ideas</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td>10%</td>
-                                </tr>
-                                <tr>
-                                    <td>Exemplified mastery and reasoning ability in defending his/her proposal/section</td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
-                                    <td>10%</td>
-                                </tr>
-                                <tr>
-                                    <th>Subtotal Individual Grade</th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th colspan="2"></th>
-                                    <th></th>
-                                    <th>40%</th>
-                                </tr>
-                                <tr>
-                                    <th>TOTAL (Please add the group grade [60%] to the individual grades [40%])</th>
-                                    <th></th>
-                                    <th></th>
-                                    <th></th>
-                                    <th colspan="2"></th>
-                                    <th></th>
-                                    <th>100%</th>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <div class="card-body">
-                        <p class="card-text">Title Proposal Defense Evaluation Sheet</p>
-                        <textarea class="form-control" rows="3" placeholder="Comments, Evaluation and Recommendations"></textarea>
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="btn-group">
-                                <a href="#" class="btn btn-sm btn-outline-secondary">Submit</a>
-                            </div>
-                            <small class="text-muted">1/3 Panelist Complete</small>
+        </div>
+        <!-- title proposal -->
+        <div class="container">
+            <div class="card mb box-shadow">
+                <div class="card-body">
+                    <p class="card-text">Title Proposal Defense Score Sheet</p>
+                    <table class="table table-bordered table-hover">
+                        <thead>
+                            <tr>
+                                <th colspan="5">CATEGORY</th>
+                                <th colspan="2">RATING</th>
+                                <th>MAXIMUM</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <th colspan="5">RESEARCH TOPIC</th>
+                                <th colspan="3">Group Grade</th>
+                            </tr>
+                            <tr>
+                                <th colspan="8">Significance of the Project</th>
+                            </tr>
+                            <tr>
+                                <td colspan="5">Appealing (generate interests from the end-user)</td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td>10%</td>
+                            </tr>
+                            <tr>
+                                <td colspan="5">Usefulness (meet the needs of the end-users)</td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td>10%</td>
+                            </tr>
+                            <tr>
+                                <th colspan="8">Innovative</th>
+                            </tr>
+                            <tr>
+                                <td colspan="5">Concept of the project shall be original or an enhancement of an existing technology</td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
+                                <td>20%</td>
+                            </tr>
+                            <tr>
+                                <th colspan="8">Organization</th>
+                            </tr>
+                            <tr>
+                                <td colspan="5">Presentation and development of ideas are <i>clear</i> and <i>logical</i></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="20"></td>
+                                <td>20%</td>
+                            </tr>
+                            <tr>
+                                <th colspan="5">Subtotal Group Grade</th>
+                                <th colspan="2"></th>
+                                <th>60%</th>
+                            </tr>
+                            <tr>
+                                <td colspan="8"></td>
+                            </tr>
+                            <tr>
+                                <th>ORAL DEFENSE</th>
+                                <th colspan="7">Individual Grades</th>
+                            </tr>
+                            <tr>
+                                <th>Presentation</th>
+                                <th>A</th>
+                                <th>B</th>
+                                <th>C</th>
+                                <th colspan="2">D</th>
+                                <th>E</th>
+                                <th>10%</th>
+                            </tr>
+                            <tr>
+                                <td>Time allotted for presentation are met</td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td>5%</td>
+                            </tr>
+                            <tr>
+                                <td>The visual presentation exemplified ideas, <i>concisely</i> and <i>comprehensively</i></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="5"></td>
+                                <td>5%</td>
+                            </tr>
+                            <tr>
+                                <th>Delivery</th>
+                                <th>A</th>
+                                <th>B</th>
+                                <th>C</th>
+                                <th colspan="2">D</th>
+                                <th>E</th>
+                                <th>30%</th>
+                            </tr>
+                            <tr>
+                                <td>Presentor is well prepared, appeared relaxed and confident </td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td>10%</td>
+                            </tr>
+                            <tr>
+                                <td>Presentor is able to communicate effectively the ideas</td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td>10%</td>
+                            </tr>
+                            <tr>
+                                <td>Exemplified mastery and reasoning ability in defending his/her proposal/section</td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td colspan="2"><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td><input type="number" class="form-control" placeholder="Rating" min="0" max="10"></td>
+                                <td>10%</td>
+                            </tr>
+                            <tr>
+                                <th>Subtotal Individual Grade</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th colspan="2"></th>
+                                <th></th>
+                                <th>40%</th>
+                            </tr>
+                            <tr>
+                                <th>TOTAL (Please add the group grade [60%] to the individual grades [40%])</th>
+                                <th></th>
+                                <th></th>
+                                <th></th>
+                                <th colspan="2"></th>
+                                <th></th>
+                                <th>100%</th>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="card-body">
+                    <p class="card-text">Title Proposal Defense Evaluation Sheet</p>
+                    <textarea class="form-control" rows="3" placeholder="Comments, Evaluation and Recommendations"></textarea>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="btn-group">
+                            <a href="#" class="btn btn-sm btn-outline-secondary">Submit</a>
                         </div>
-                        <div class="col-md12">
-                            <div class="card mb box-shadow">
-                                <div class="card-body">
-                                    <p class="card-text">AI Analysis here</p>
-                                    <div class="d-flex justify-content-between align-items-center">
-                                        <small class="text-muted">[under development]</small>
-                                    </div>
+                        <small class="text-muted">1/3 Panelist Complete</small>
+                    </div>
+                    <div class="col-md12">
+                        <div class="card mb box-shadow">
+                            <div class="card-body">
+                                <p class="card-text">AI Analysis here</p>
+                                <div class="d-flex justify-content-between align-items-center">
+                                    <small class="text-muted">[under development]</small>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    <div class="card-body">
-                        different page admin side
-                        <p class="card-text">Title Proposal</p>
-                        <input type="text" class="form-control" placeholder="Working title 1">
-                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
-                        <input type="text" class="form-control" placeholder="Working title 2">
-                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
-                        <input type="text" class="form-control" placeholder="Working title 3">
-                        <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
-                        <div class="col-md12">
-                            <div class="card mb box-shadow">
-                                <div class="card-body">
-                                    <p class="card-text">Approved Working Title</p>
-                                    <div class="d-flex justify-content-between align-items-center">
+                </div>
+                <div class="card-body">
+                    different page admin side
+                    <p class="card-text">Title Proposal</p>
+                    <input type="text" class="form-control" placeholder="Working title 1">
+                    <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                    <input type="text" class="form-control" placeholder="Working title 2">
+                    <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                    <input type="text" class="form-control" placeholder="Working title 3">
+                    <textarea class="form-control" rows="3" placeholder="Objectives of the project"></textarea>
+                    <div class="col-md12">
+                        <div class="card mb box-shadow">
+                            <div class="card-body">
+                                <p class="card-text">Approved Working Title</p>
+                                <div class="d-flex justify-content-between align-items-center">
                                     <select class="form-control">
                                         <option disabled selected hidden>Select Approved Title</option>
                                         <option value="Working title 1">Working title 1</option>
                                         <option value="Working title 2">Working title 2</option>
                                         <option value="Working title 3">Working title 3</option>
                                     </select>
-                                    </div>
                                 </div>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-<!-- thesis1 proposal -->
-            <!-- <div class="col-md12">
+        </div>
+        <!-- thesis1 proposal -->
+        <!-- <div class="col-md12">
                 <div class="card mb box-shadow">
                     <div class="card-body">
                         <p class="card-text">Thesis Proposal</p>
@@ -398,7 +414,7 @@ include '../assets/layouts/header.php';
                     </div>
                 </div>
             </div> -->
-                        
+
 
 </main>
 
