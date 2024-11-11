@@ -326,34 +326,45 @@ include '../assets/layouts/footer.php'
         <?php } elseif ($_SESSION['usertype'] == 1) { ?>
         
             function loadRequirements() {
-                $.ajax({
-                    url: 'includes/get_requirements.php',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            var checklistHtml = '<form id="requirementForm">';
-                            response.requirements.forEach(function(req) {
-                                checklistHtml += '<div class="form-check mb-3">' +
-                                    '<input class="form-check-input" type="checkbox" value="' + req.id + '" id="req' + req.id + '" name="requirements[]">' +
-                                    '<label class="form-check-label" for="req' + req.id + '"><strong>' + req.name + '</strong></label>' +
-                                    '<p class="mb-1 text-muted">' + req.description + '</p>' +
-                                    '<small class="text-muted">Due Date: ' + new Date(req.due_date).toLocaleDateString() + '</small>' +
-                                    '</div>';
-                            });
-                            checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
-                            $('#requirementChecklist').html(checklistHtml);
-                        } else {
-                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                            console.error('Error fetching requirements:', response.error);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
-                        console.error("AJAX error:", textStatus, errorThrown, jqXHR.responseText);
+            $.ajax({
+                url: 'includes/get_requirements.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        var displayHtml = '<div class="row">';
+                        response.requirements.forEach(function(req) {
+                            displayHtml += `
+                                <div class="col-md-6 mb-4">
+                                    <div class="card h-100 shadow-sm">
+                                        <div class="card-body">
+                                            <h5 class="card-title">${req.name}</h5>
+                                            <p class="card-text">${req.description}</p>
+                                        </div>
+                                        <ul class="list-group list-group-flush">
+                                            <li class="list-group-item"><strong>Due Date:</strong> ${new Date(req.due_date).toLocaleDateString()}</li>
+                                            <li class="list-group-item"><strong>Status:</strong> ${req.status}</li>
+                                            <li class="list-group-item"><strong>Feedback:</strong> ${req.feedback}</li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                        displayHtml += '</div>';
+                        $('#requirementChecklist').html(displayHtml);
+                    } else {
+                        $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                        console.error('Error fetching requirements:', response.error);
                     }
-                });
-            }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                    console.error("AJAX error:", textStatus, errorThrown);
+                    console.error("Response Text:", jqXHR.responseText);
+                    console.error("Status Code:", jqXHR.status);
+                }
+            });
+        }
         <?php } ?>
 
 
