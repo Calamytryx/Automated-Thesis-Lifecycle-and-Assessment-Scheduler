@@ -47,7 +47,7 @@ include '../assets/layouts/header.php';
                                         iframe.mozRequestFullScreen();
                                     } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
                                         iframe.webkitRequestFullscreen();
-                                    } else if (iframe.msRequestFullscreen) { /* IE/Edge */
+                                    } else if (iframe.msRequestFullscreen) { /* Edge */
                                         iframe.msRequestFullscreen();
                                     }
                                 }
