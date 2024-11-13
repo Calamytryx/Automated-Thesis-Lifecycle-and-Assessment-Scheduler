@@ -22,18 +22,34 @@ import { initializeChatSession, sendMessageToModel, performWebSearch } from './m
 
 async function analyzeTitle(title, field) {
     try {
-        const prompt = `Analyze the following research title in the field of ${field}: "${title}". 
-        Provide feedback on its clarity, specificity, and potential impact. 
-        Also, assess its potential uniqueness and originality.
-        If improvements are needed, suggest up to three alternative titles.
-        Format your response in markdown.`;
-
-        console.log("Sending prompt to AI:", prompt);
-        const aiResponse = await sendMessageToModel(prompt);
-        console.log("Received AI response:", aiResponse);
+        // First prompt to check similarity
+        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${title}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response as "score(number only): 'title'".`;
         
-        document.getElementById('uniquenessResult').innerHTML = '<h5>AI Analysis:</h5>';
-        document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
+        console.log("Sending similarity prompt to AI:", similarityPrompt);
+        const similarityResponse = await sendMessageToModel(similarityPrompt);
+        console.log("Received similarity response:", similarityResponse);
+        
+        const [similarityScore, similarTitleMatch] = similarityResponse.split(':');
+        const similarityScoreFloat = parseFloat(similarityScore.trim());
+        const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
+        
+        if (similarityScoreFloat < 5 || confirm(`The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+            // Proceed to analyze as usual
+            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}". 
+                Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
+                Also, assess its potential uniqueness and originality.
+                If improvements are needed, suggest up to three alternative titles.`;
+        
+            console.log("Sending analysis prompt to AI:", analysisPrompt);
+            const aiResponse = await sendMessageToModel(analysisPrompt);
+            console.log("Received AI response:", aiResponse);
+            
+            document.getElementById('uniquenessResult').innerHTML = '<h5>AI Analysis:</h5>';
+            document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
+        } else {
+            document.getElementById('uniquenessResult').innerHTML = `<p>The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Consider revising it for uniqueness.</p>`;
+            document.getElementById('aiSuggestions').innerHTML = '';
+        }
     } catch (error) {
         console.error('Error in analyzeTitle:', error);
         document.getElementById('uniquenessResult').innerHTML = '<p>Error analyzing title. Please try again.</p>';

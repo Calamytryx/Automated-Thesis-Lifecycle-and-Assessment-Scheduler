@@ -162,6 +162,13 @@ include '../assets/layouts/footer.php'
 <!-- Main Module JS -->
 <script type="module" src="../assets/js/mainModule.js"></script>
 <!-- app.js -->
+<?php
+    $stmt = $pdo->query("SELECT title FROM coecsa_thesis.research_titles;");
+    $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    ?>
+    <script>
+        var existingTitles = "<?php echo implode(', ', $titles); ?>";
+    </script>
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -193,26 +200,7 @@ include '../assets/layouts/footer.php'
                 }
             });
         });
-        // Research Title Acceptance Tool
-        $('#titleSubmissionForm').on('submit', function(e) {
-            e.preventDefault();
-            var title = $('#researchTitle').val();
-            // AJAX call to check title uniqueness
-            $.ajax({
-                url: 'includes/check_title_uniqueness.php',
-                method: 'POST',
-                data: {
-                    title: title
-                },
-                dataType: 'json',
-                success: function(response) {
-                    $('#uniquenessResult').html('<p>Uniqueness Score: ' + response.score + '</p><p>' + response.feedback + '</p>');
-                },
-                error: function() {
-                    $('#uniquenessResult').html('<p>Error checking uniqueness. Please try again.</p>');
-                }
-            });
-        });
+
         // Scheduling System
         function loadUserSchedule() {
             $.ajax({
@@ -324,17 +312,17 @@ include '../assets/layouts/footer.php'
                 });
             }
         <?php } elseif ($_SESSION['usertype'] == 1) { ?>
-        
+
             function loadRequirements() {
-            $.ajax({
-                url: 'includes/get_requirements.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        var displayHtml = '<div class="row">';
-                        response.requirements.forEach(function(req) {
-                            displayHtml += `
+                $.ajax({
+                    url: 'includes/get_requirements.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            var displayHtml = '<div class="row">';
+                            response.requirements.forEach(function(req) {
+                                displayHtml += `
                                 <div class="col-md-6 mb-4">
                                     <div class="card h-100 shadow-sm">
                                         <div class="card-body">
@@ -349,22 +337,22 @@ include '../assets/layouts/footer.php'
                                     </div>
                                 </div>
                             `;
-                        });
-                        displayHtml += '</div>';
-                        $('#requirementChecklist').html(displayHtml);
-                    } else {
-                        $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                        console.error('Error fetching requirements:', response.error);
+                            });
+                            displayHtml += '</div>';
+                            $('#requirementChecklist').html(displayHtml);
+                        } else {
+                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                            console.error('Error fetching requirements:', response.error);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                        console.error("AJAX error:", textStatus, errorThrown);
+                        console.error("Response Text:", jqXHR.responseText);
+                        console.error("Status Code:", jqXHR.status);
                     }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
-                    console.error("AJAX error:", textStatus, errorThrown);
-                    console.error("Response Text:", jqXHR.responseText);
-                    console.error("Status Code:", jqXHR.status);
-                }
-            });
-        }
+                });
+            }
         <?php } ?>
 
 
@@ -432,7 +420,8 @@ include '../assets/layouts/footer.php'
                             title: defense.description,
                             start: `${defense.date}T${defense.start_time}`,
                             end: `${defense.date}T${defense.end_time}`,
-                            location: defense.room
+                            location: defense.room,
+                            eventType: 'defense' // Custom property to identify defense events
                         });
                     });
 
@@ -442,7 +431,8 @@ include '../assets/layouts/footer.php'
                             title: schedule.description,
                             start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
                             end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                            location: schedule.room
+                            location: schedule.room,
+                            eventType: 'user' // Optional: Can be omitted or used for further differentiation
                         });
                     });
 
@@ -457,9 +447,16 @@ include '../assets/layouts/footer.php'
                         height: 'auto',
                         events: events,
                         eventClick: function(info) {
-                            const title = info.event.title;
-                            const room = info.event.extendedProps.location;
-                            alert('Event: ' + title + '\nRoom: ' + room);
+                            const eventType = info.event.extendedProps.eventType;
+
+                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                                redirectToDecisionSupport(teamId);
+                            } else {
+                                // Existing behavior for user schedules
+                                const title = info.event.title;
+                                const room = info.event.extendedProps.location;
+                                alert('Event: ' + title + '\nRoom: ' + room);
+                            }
                         }
                     });
                     calendar.render();
@@ -500,4 +497,279 @@ include '../assets/layouts/footer.php'
             }
         });
     });
+
+    document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    // Fetch events via AJAX
+    $.ajax({
+        url: 'includes/get_user_schedule.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const events = [];
+                const teamId = response.team_id; // Capture team_id from the response
+
+                // Process defense schedules
+                response.defense_schedules.forEach(function(defense) {
+                    events.push({
+                        title: defense.description,
+                        start: `${defense.date}T${defense.start_time}`,
+                        end: `${defense.date}T${defense.end_time}`,
+                        location: defense.room,
+                        eventType: 'defense', // Custom property to identify defense events
+                        team_id: teamId // Attach team_id to each defense event
+                    });
+                });
+
+                // Process user schedules
+                response.user_schedules.forEach(function(schedule) {
+                    events.push({
+                        title: schedule.description,
+                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                        location: schedule.room,
+                        eventType: 'user' // Optional: Can be omitted or used for further differentiation
+                        // team_id can be omitted for user events if not needed
+                    });
+                });
+
+                // Initialize FullCalendar with events
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    height: 'auto',
+                    events: events,
+                    eventClick: function(info) {
+                        const eventType = info.event.extendedProps.eventType;
+
+                        if (eventType === 'defense') {
+                            const teamId = info.event.extendedProps.team_id; // Retrieve team_id
+                            
+                            // Redirect to ../decision-support/ with POST value as team_id
+                            redirectToDecisionSupport(teamId);
+                        } else {
+                            // Existing behavior for user schedules
+                            const title = info.event.title;
+                            const room = info.event.extendedProps.location;
+                            alert('Event: ' + title + '\nRoom: ' + room);
+                        }
+                    }
+                });
+                calendar.render();
+            } else {
+                console.error('Failed to fetch schedules:', response.error);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+        }
+    });
+
+    /**
+     * Function to redirect to decision-support with the team_id as a POST value.
+     * @param {number} teamId - The ID of the team to send via POST.
+     */
+    function redirectToDecisionSupport(teamId) {
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '../decision-support/';
+
+        // Create an input element for the team_id
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'team_id'; // The parameter name expected by decision-support
+        input.value = teamId;
+
+        // Append the input to the form
+        form.appendChild(input);
+
+        // Append the form to the body
+        document.body.appendChild(form);
+
+        // Submit the form
+        form.submit();
+    }
+
+    /**
+     * Existing function to get the next date for a given day.
+     * Ensure this function is defined correctly based on your requirements.
+     * Example implementation:
+     */
+    function getNextDateForDay(day) {
+        // Assuming 'day' is a string representing a day of the week (e.g., "Monday")
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const today = new Date();
+        const targetDayIndex = daysOfWeek.indexOf(day);
+        if (targetDayIndex === -1) {
+            return day; // Return as-is if not a valid day
+        }
+
+        const resultDate = new Date(today);
+        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
+        return resultDate.toISOString().split('T')[0];
+    }
+});
+
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+
+    // Fetch events via AJAX
+    $.ajax({
+        url: 'includes/get_user_schedule.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            console.log('AJAX Response:', response); // Debugging
+
+            if (response.success) {
+                const events = [];
+
+                // Process defense schedules
+                response.defense_schedules.forEach(function(defense) {
+                    const event = {
+                        title: defense.description,
+                        start: `${defense.date}T${defense.start_time}`,
+                        end: `${defense.date}T${defense.end_time}`,
+                        location: defense.room,
+                        eventType: 'defense',
+                        team_id: defense.team_id // Assign team_id to each defense event
+                    };
+                    events.push(event);
+                    console.log('Added Defense Event:', event); // Debugging
+                });
+
+                // Process user schedules
+                response.user_schedules.forEach(function(schedule) {
+                    const event = {
+                        title: schedule.description,
+                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                        location: schedule.room,
+                        eventType: 'user'
+                        // team_id is not needed for user events
+                    };
+                    events.push(event);
+                    console.log('Added User Event:', event); // Debugging
+                });
+
+                // Initialize FullCalendar with events
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                    },
+                    height: 'auto',
+                    events: events,
+                    eventClick: function(info) {
+                        const eventType = info.event.extendedProps.eventType;
+
+                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                            const teamId = info.event.extendedProps.team_id; // Retrieve team_id
+                            console.log('Defense event clicked, team_id:', teamId); // Debugging
+
+                            if (teamId) {
+                                redirectToDecisionSupport(teamId);
+                            } else {
+                                console.error('team_id is undefined for this defense event.');
+                                alert('Unable to retrieve team information for this event.');
+                            }
+                        } else {
+                            // Existing behavior for user schedules
+                            const title = info.event.title;
+                            const room = info.event.extendedProps.location;
+                            alert('Event: ' + title + '\nRoom: ' + room);
+                        }
+                    },
+
+                    /**
+                     * Handle date cell clicks to change views
+                     */
+                    dateClick: function(info) {
+                        const currentView = calendar.view.type;
+                        const clickedDate = info.dateStr;
+
+                        console.log('Date clicked:', clickedDate, 'Current view:', currentView); // Debugging
+
+                        if (currentView === 'dayGridMonth') {
+                            // Switch to Week view focusing on the clicked date
+                            calendar.changeView('timeGridWeek');
+                            calendar.gotoDate(clickedDate);
+                        } else if (currentView === 'timeGridWeek') {
+                            // Switch to Day view focusing on the clicked date
+                            calendar.changeView('timeGridDay');
+                            calendar.gotoDate(clickedDate);
+                        }
+                        // Optional: Add more conditions if you have other views
+                    }
+                });
+                calendar.render();
+            } else {
+                console.error('Error fetching schedules:', response.error);
+            }
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            console.error("AJAX error:", textStatus, errorThrown);
+        }
+    });
+
+    /**
+     * Function to redirect to decision-support with the team_id as a POST value.
+     * @param {number} teamId - The ID of the team to send via POST.
+     */
+    function redirectToDecisionSupport(teamId) {
+        if (!teamId) {
+            console.error('Invalid teamId. Cannot redirect.');
+            alert('Team information is missing. Cannot proceed.');
+            return;
+        }
+
+        console.log('Redirecting to decision-support with team_id:', teamId); // Debugging
+
+        // Create a form element
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '../decision-support/';
+
+        // Create an input element for the team_id
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'team_id'; // The parameter name expected by decision-support
+        input.value = teamId;
+
+        // Append the input to the form
+        form.appendChild(input);
+
+        // Append the form to the body
+        document.body.appendChild(form);
+
+        // Submit the form
+        form.submit();
+    }
+
+    /**
+     * Function to get the next date for a given day of the week.
+     * Example implementation:
+     */
+    function getNextDateForDay(day) {
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const today = new Date();
+        const targetDayIndex = daysOfWeek.indexOf(day);
+        if (targetDayIndex === -1) {
+            return day; // Return original if invalid day
+        }
+
+        const resultDate = new Date(today);
+        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
+        return resultDate.toISOString().split('T')[0];
+    }
+});
 </script>

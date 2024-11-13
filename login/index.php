@@ -67,8 +67,8 @@ $rest_of_name = substr($app_name, 1);
                 </div>
 
                 <p class="mt-4 mb-3 text-muted text-center">
-                    <a href="../contact" target="_blank">Contact Us</a> |
-                    <a href="../register/" target="_blank">No account? Sign up</a>
+                    <a href="../contact" target="_blank">Contact Us</a>
+                    <!-- <a href="../register/" target="_blank">No account? Sign up</a> -->
                 </p>
             </form>
         </div>

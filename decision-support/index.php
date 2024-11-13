@@ -1,21 +1,80 @@
 <?php
+// Include database connection
+require '../assets/setup/db.inc.php';
+
+
+// Retrieve team_id from POST data
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    if (isset($_POST['team_id'])) {
+        $team_id = intval($_POST['team_id']);
+    }
+    
+}
+
+try {
+    // Fetch team details
+    $teamStmt = $pdo->prepare("SELECT name, title, created_at FROM coecsa_thesis.teams WHERE id = ?");
+    if (isset($team_id)) {
+        $teamStmt->execute([$team_id]);
+    } else {
+        echo "<script>window.location.href = '../home\index.php;</script>";
+        exit;
+    }
+    $team = $teamStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$team) {
+        echo "<p class='text-danger'>Team not found.</p>";
+        exit;
+    }
+
+    // Fetch team members excluding the adviser
+    $membersStmt = $pdo->prepare("
+        SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname, team_members.role 
+        FROM coecsa_thesis.team_members 
+        JOIN users ON coecsa_thesis.team_members.user_id = users.id 
+        WHERE coecsa_thesis.team_members.team_id = ? AND coecsa_thesis.team_members.role != 'Adviser'
+    ");
+    $membersStmt->execute([$team_id]);
+    $members = $membersStmt->fetchAll(PDO::FETCH_ASSOC);
+
+    // Fetch adviser information
+    $adviserStmt = $pdo->prepare("
+        SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname
+        FROM coecsa_thesis.team_members 
+        JOIN users ON coecsa_thesis.team_members.user_id = users.id 
+        WHERE coecsa_thesis.team_members.team_id = ? AND coecsa_thesis.team_members.role = 'Adviser'
+        LIMIT 1
+    ");
+    $adviserStmt->execute([$team_id]);
+    $adviser = $adviserStmt->fetch(PDO::FETCH_ASSOC);
+} catch (PDOException $e) {
+    echo "<p class='text-danger'>Error fetching team data: " . htmlspecialchars($e->getMessage()) . "</p>";
+    exit;
+}
 
 define('TITLE', "Defense");
 include '../assets/layouts/header.php';
 
 ?>
 
-
-
 <main role="main">
 
     <section class="jumbotron text-center py-5">
         <div class="container">
-            <h1 class="jumbotron-heading mb-4">Research Title here</h1>
+            <h1 class="jumbotron-heading mb-4"><?php echo htmlspecialchars($team['title']); ?></h1>
             <p class="text-muted">
-                Members here Members here Members here Members here
+                <strong>Members:</strong><br>
+                <?php
+                if (!empty($members)) {
+                    foreach ($members as $member) {
+                        echo htmlspecialchars($member['fullname']) . " - " . htmlspecialchars($member['role']) . "<br>";
+                    }
+                } else {
+                    echo "No members found.<br>";
+                }
+                ?>
                 <hr class="my-3">
-                Advicer here
+                <strong>Adviser:</strong> <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
                 <hr class="my-3">
                 Course here
             </p>
@@ -37,20 +96,23 @@ include '../assets/layouts/header.php';
                             <p class="card-text">PDF VIEW</p>
                             <button class="btn btn-primary mt-2" onclick="toggleFullScreen()">Full Screen</button>
                             <div class="d-flex justify-content-between align-items-center">
-                                    <iframe id="pdf" src="viewer.html?file=file.pdf" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
+                                <iframe id="pdf" src="viewer.html?file=file.pdf" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
                                 <script>
-                                function toggleFullScreen() {
-                                    var iframe = document.getElementById('pdf');
-                                    if (iframe.requestFullscreen) {
-                                        iframe.requestFullscreen();
-                                    } else if (iframe.mozRequestFullScreen) { /* Firefox */
-                                        iframe.mozRequestFullScreen();
-                                    } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
-                                        iframe.webkitRequestFullscreen();
-                                    } else if (iframe.msRequestFullscreen) { /* Edge */
-                                        iframe.msRequestFullscreen();
+                                    function toggleFullScreen() {
+                                        var iframe = document.getElementById('pdf');
+                                        if (iframe.requestFullscreen) {
+                                            iframe.requestFullscreen();
+                                        } else if (iframe.mozRequestFullScreen) {
+                                            /* Firefox */
+                                            iframe.mozRequestFullScreen();
+                                        } else if (iframe.webkitRequestFullscreen) {
+                                            /* Chrome, Safari & Opera */
+                                            iframe.webkitRequestFullscreen();
+                                        } else if (iframe.msRequestFullscreen) {
+                                            /* Edge */
+                                            iframe.msRequestFullscreen();
+                                        }
                                     }
-                                }
                                 </script>
                             </div>
                         </div>
