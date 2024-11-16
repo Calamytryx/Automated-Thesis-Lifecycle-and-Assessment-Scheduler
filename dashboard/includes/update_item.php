@@ -94,6 +94,47 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 }
 
                 $result = true; // Assume success if no exception is thrown
+            } elseif ($table === 'defense_schedules') {
+                // Handle defense schedules update
+                $schedule_date = $_POST['schedule_date'] ?? '';
+                $start_time = $_POST['start_time'] ?? '';
+                $end_time = $_POST['end_time'] ?? '';
+                $room = $_POST['room'] ?? '';
+                $team_id = $_POST['team_id'] ?? '';
+            
+                // Handle panelist IDs as scalars
+                $panelist_id = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][0] : $_POST['panelist_id']) : null;
+                $panelist_id2 = isset($_POST['panelist_id2']) ? (is_array($_POST['panelist_id2']) ? $_POST['panelist_id2'][0] : $_POST['panelist_id2']) : null;
+                $panelist_id3 = isset($_POST['panelist_id3']) ? (is_array($_POST['panelist_id3']) ? $_POST['panelist_id3'][0] : $_POST['panelist_id3']) : null;
+            
+                error_log("Updating defense schedule: Date=$schedule_date, Start=$start_time, End=$end_time, Room=$room, Team ID=$team_id, Panelists=[$panelist_id, $panelist_id2, $panelist_id3]");
+            
+                // Validate panelist IDs
+                $valid_panelists = [];
+                foreach ([$panelist_id, $panelist_id2, $panelist_id3] as $pid) {
+                    if ($pid !== null) {
+                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `id` = ?");
+                        $stmt->execute([$pid]);
+                        if ($stmt->fetchColumn() > 0) {
+                            $valid_panelists[] = $pid;
+                        } else {
+                            $valid_panelists[] = null;
+                            error_log("Invalid panelist ID: $pid");
+                        }
+                    } else {
+                        $valid_panelists[] = null;
+                    }
+                }
+            
+                list($panelist_id, $panelist_id2, $panelist_id3) = $valid_panelists;
+            
+                // Update defense schedule
+                $sql = "UPDATE `defense_schedules` SET `schedule_date` = ?, `start_time` = ?, `end_time` = ?, `room` = ?, `team_id` = ?, `panelist_id` = ?, `panelist_id2` = ?, `panelist_id3` = ? WHERE `id` = ?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$schedule_date, $start_time, $end_time, $room, $team_id, $panelist_id, $panelist_id2, $panelist_id3, $id]);
+                error_log("Defense schedule updated. Affected rows: " . $stmt->rowCount());
+
+                $result = true; // Assume success if no exception is thrown
             } else {
                 // Handle other tables as before
                 $updateData = [];

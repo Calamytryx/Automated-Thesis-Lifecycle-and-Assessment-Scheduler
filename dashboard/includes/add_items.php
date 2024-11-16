@@ -89,4 +89,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
  * Note:
  * Ensure that the necessary dependencies and configurations are set up before including this file.
  */
+require_once __DIR__ . '/../index.php';
+
+fetchAllUsers($pdo);
+fetchAllThesisTopics($pdo);
+fetchAllResearchTitles($pdo);
+fetchAllDefenseSchedules($pdo);
+fetchAllRubrics($pdo);
+fetchAllTeams($pdo);
+fetchAllRequirements($pdo);
+fetchAllEvaluations($pdo);
+fetchAllEnvVariables($pdo);
+
 ?>

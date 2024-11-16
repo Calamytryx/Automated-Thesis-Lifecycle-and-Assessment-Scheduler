@@ -67,4 +67,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
 }
+require_once __DIR__ . '/../index.php';
+
+fetchAllUsers($pdo);
+fetchAllThesisTopics($pdo);
+fetchAllResearchTitles($pdo);
+fetchAllDefenseSchedules($pdo);
+fetchAllRubrics($pdo);
+fetchAllTeams($pdo);
+fetchAllRequirements($pdo);
+fetchAllEvaluations($pdo);
+fetchAllEnvVariables($pdo);
+
 ?>

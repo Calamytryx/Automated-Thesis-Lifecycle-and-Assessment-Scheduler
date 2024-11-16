@@ -60,6 +60,9 @@ check_verified();
 require '../assets/setup/db.inc.php';
 require_once 'includes/edit_functions.php';
 
+// Assume $active_tab is set based on user interaction or the default tab.
+$active_tab = isset($_GET['active_tab']) ? $_GET['active_tab'] : 'overview_tab';  // Default to 'overview_tab'
+
 // Function to fetch all users
 function fetchAllUsers($pdo)
 {
@@ -84,38 +87,6 @@ function fetchAllResearchTitles($pdo)
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
-
-// Function to fetch all defense schedules
-// function fetchAllDefenseSchedules($pdo)
-// {
-//     $stmt = $pdo->prepare("
-//         SELECT 
-//             ds.id,  -- Include the id field
-//             ds.schedule_date,
-//             ds.start_time,
-//             ds.end_time,
-//             ds.room,
-//             t.name AS team_name,
-//             rt.title AS thesis_title,
-//             GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members,
-//             GROUP_CONCAT(DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) ORDER BY FIELD(ds.panelist_id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', ') AS panelists,
-//             (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
-//              FROM team_members tm_adviser 
-//              JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
-//              WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
-//              ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
-//         FROM defense_schedules ds
-//         JOIN teams t ON ds.team_id = t.id
-//         JOIN research_titles rt ON t.id = rt.team_id
-//         JOIN team_members tm ON t.id = tm.team_id
-//         JOIN users u_student ON tm.user_id = u_student.id
-//         LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
-//         GROUP BY ds.id, t.name, rt.title
-//         ORDER BY ds.schedule_date, ds.start_time
-//     ");
-//     $stmt->execute();
-//     return $stmt->fetchAll(PDO::FETCH_ASSOC);
-// }
 
 // Function to fetch all rubrics
 function fetchAllRubrics($pdo)
@@ -200,10 +171,6 @@ function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
     }
 }
 
-// Handle form submission for updating user data
-if ($_SERVER['REQUEST_METHOD'] == 'POST' && isset($_POST['update_user']) && $_SESSION['usertype'] == 0) {
-    // ... (existing user update code)
-}
 
 $users = fetchAllUsers($pdo);
 $thesisTopics = fetchAllThesisTopics($pdo);
@@ -227,6 +194,48 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 ?>
 
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+    // Check if there's a previously selected tab stored in localStorage
+    const activeTab = localStorage.getItem("activeTab");
+
+    // If there is a stored active tab, activate it
+    if (activeTab) {
+        // Deactivate all tab-panes and nav-links
+        const allTabPanes = document.querySelectorAll('.tab-pane');
+        const allNavLinks = document.querySelectorAll('.nav-link');
+
+        allTabPanes.forEach(pane => {
+            pane.classList.remove("show", "active");
+        });
+
+        allNavLinks.forEach(link => {
+            link.classList.remove("active");
+        });
+
+        // Activate the tab and its content
+        const activeTabPane = document.getElementById(activeTab);
+        const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+        
+        if (activeTabPane) {
+            activeTabPane.classList.add("show", "active");
+        }
+        if (activeNavLink) {
+            activeNavLink.classList.add("active");
+        }
+    }
+
+    // Add event listener to tabs to update localStorage when clicked
+    const tabs = document.querySelectorAll('.nav-link');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(event) {
+            // Store the ID of the clicked tab-pane
+            const clickedTabId = event.target.getAttribute('href').substring(1);
+            localStorage.setItem('activeTab', clickedTabId);
+        });
+    });
+});
+</script>
 
 <main role="main" class="container-fluid">
     <div class="row">
@@ -247,7 +256,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <a class="nav-link active" id="overview_tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+                            <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
                             <a class="nav-link" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
                             <a class="nav-link" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
                             <a class="nav-link" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>

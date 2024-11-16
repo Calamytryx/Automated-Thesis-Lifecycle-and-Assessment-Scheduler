@@ -83,6 +83,7 @@ function updateResearchTitle($pdo, $id, $title, $user_id, $status, $uniqueness_s
 function updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status) {
     $sql = "UPDATE defense_schedules SET student_id = ?, panelist_id = ?, schedule_date = ?, start_time = ?, end_time = ?, room = ?, status = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
+    fetchAllDefenseSchedules($pdo);
     return $stmt->execute([$student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status, $id]);
 }
 
