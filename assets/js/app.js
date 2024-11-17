@@ -98,7 +98,7 @@ async function getTopThesisTopics(field) {
         1. "Research Area" (a broad topic or theme)
         2. "Description" (a brief explanation of the research area)
         3. "Potential Impact" (the significance of research in this area)
-        
+        Do not use tilde or code blocks.
         Ensure the topics are general enough to encompass multiple potential specific projects. Format the response as a simple HTML table without any classes or styles.`;
 
         console.log("Sending thesis topic prompt to AI:", prompt);

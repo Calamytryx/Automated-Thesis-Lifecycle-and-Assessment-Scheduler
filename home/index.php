@@ -35,10 +35,60 @@
 define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
+include '..\assets\setup\db.inc.php';
 
+// Check if the category field is selected from the query string (if passed)
+$selectedField = "Computer Science"; // Default to "Computer Science"
+
+// Query to fetch topics based on the selected field
+$stmt = $pdo->prepare("SELECT topic, description FROM thesis_topics WHERE category = :selectedField");
+$stmt->bindParam(':selectedField', $selectedField, PDO::PARAM_STR);
+$stmt->execute();
+$topics = $stmt->fetchAll();
 ?>
 
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        // Check if there's a previously selected tab stored in localStorage
+        const activeTab = localStorage.getItem("activeTab");
 
+        // If there is a stored active tab, activate it
+        if (activeTab) {
+            // Deactivate all tab-panes and nav-links
+            const allTabPanes = document.querySelectorAll('.tab-pane');
+            const allNavLinks = document.querySelectorAll('.nav-link');
+
+            allTabPanes.forEach(pane => {
+                pane.classList.remove("show", "active");
+            });
+
+            allNavLinks.forEach(link => {
+                link.classList.remove("active");
+            });
+
+            // Activate the tab and its content
+            const activeTabPane = document.getElementById(activeTab);
+            const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+
+            if (activeTabPane) {
+                activeTabPane.classList.add("show", "active");
+            }
+            if (activeNavLink) {
+                activeNavLink.classList.add("active");
+            }
+        }
+
+        // Add event listener to tabs to update localStorage when clicked
+        const tabs = document.querySelectorAll('.nav-link');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(event) {
+                // Store the ID of the clicked tab-pane
+                const clickedTabId = event.target.getAttribute('href').substring(1);
+                localStorage.setItem('activeTab', clickedTabId);
+            });
+        });
+    });
+</script>
 <main role="main" class="container">
     <div class="row">
         <div class="col-sm-3">
@@ -52,8 +102,8 @@ check_verified();
                     </div>
                 </div>
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <!-- <a class="nav-link active" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a> -->
                     <a class="nav-link active" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Calendar</a>
+                    <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
                     <a class="nav-link" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
                     <a class="nav-link" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">Requirement Checker</a>
                 </div>
@@ -62,11 +112,24 @@ check_verified();
 
         <div class="col-sm-9">
             <div class="tab-content" id="v-pills-tabContent">
-                <!--<div class="tab-pane fade show active" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
+
+
+                <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
                     <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Thesis Topic Decision Tool</h6>
-                        <div class="media text-muted pt-3"> 
-                            <div class="form-group"> 
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
+                        <div class="media text-muted pt-3">
+                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
+                            <div id="calendar"></div> <!-- Calendar div -->
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
+                    <div class="my-3 p-3 home-sidebar-box">
+                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Latest topic trends</h6>
+                        <div class="media text-muted pt-3">
+                            <div class="form-group">
                                 <label for="thesisField">Select a field:</label>
                                 <select id="thesisField" class="form-select">
                                     <option value="">Select a field</option>
@@ -83,29 +146,26 @@ check_verified();
                                     <option value="Mechanical Engineering">Mechanical Engineering</option>
                                 </select>
                             </div>
-                            <button id="getTopicsBtn" class="btn btn-primary mt-3 feature-btn">Get Latest Topics</button>
                         </div>
-                        <div id="topicAnalysisResult" class="mt-3"> -->
-                <!-- Loading spinner (initially hidden) -->
-                <!-- <div id="loadingSpinner" class="text-center d-none">
-                                <div class="spinner-border text-primary" role="status">
-                                    <span class="visually-hidden">Loading...</span>
-                                </div>
-                                <p class="mt-2">Searching for the latest topics...</p>
-                            </div>
-                        </div>
+                        <?php
+                        // Display results in a table
+                        if ($topics) {
+                            echo "<table class='table table-bordered mt-4'>";
+                            echo "<thead class='thead-dark'><tr><th>Topic</th><th>Description</th></tr></thead>";
+                            echo "<tbody>";
+                            foreach ($topics as $row) {
+                                echo "<tr>";
+                                echo "<td>" . htmlspecialchars($row['topic']) . "</td>";
+                                echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+                                echo "</tr>";
+                            }
+                            echo "</tbody></table>";
+                        } else {
+                            echo "<p class='mt-4 text-warning'>No topics found for the selected field.</p>";
+                        }
+                        ?>
                     </div>
-                </div> -->
 
-                <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
-                        <div class="media text-muted pt-3">
-                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
-                            <div id="calendar"></div> <!-- Calendar div -->
-                            </p>
-                        </div>
-                    </div>
                 </div>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
@@ -163,12 +223,12 @@ include '../assets/layouts/footer.php'
 <script type="module" src="../assets/js/mainModule.js"></script>
 <!-- app.js -->
 <?php
-    $stmt = $pdo->query("SELECT title FROM coecsa_thesis.research_titles;");
-    $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
-    ?>
-    <script>
-        var existingTitles = "<?php echo implode(', ', $titles); ?>";
-    </script>
+$stmt = $pdo->query("SELECT title FROM coecsa_thesis.research_titles;");
+$titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
+?>
+<script>
+    var existingTitles = "<?php echo implode(', ', $titles); ?>";
+</script>
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
@@ -240,28 +300,24 @@ include '../assets/layouts/footer.php'
             });
         }
 
-        function initializeCalendar(events) {
-            var calendarEl = document.getElementById('calendar');
+        // function initializeCalendar(events) {
+        //     var calendarEl = document.getElementById('calendar');
 
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                height: 'auto', // or set a specific height like '600px'
-                events: events, // Use the dynamically loaded events
-                eventClick: function(info) {
-                    alert('Event: ' + info.event.title);
-                }
-            });
-
-            // Use setTimeout to ensure the calendar renders correctly
-            //setTimeout(function() {
-            calendar.render();
-            //}, 100); // Adjust the timeout duration if necessary
-        }
+        //     var calendar = new FullCalendar.Calendar(calendarEl, {
+        //         initialView: 'dayGridMonth',
+        //         headerToolbar: {
+        //             left: 'prev,next today',
+        //             center: 'title',
+        //             right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        //         },
+        //         height: 'auto', // or set a specific height like '600px'
+        //         events: events, // Use the dynamically loaded events
+        //         eventClick: function(info) {
+        //             alert('Event: ' + info.event.title);
+        //         }
+        //     });
+        //     calendar.render();
+        // }
 
         <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { ?>
             // Requirement Checker Tool
@@ -355,311 +411,88 @@ include '../assets/layouts/footer.php'
             }
         <?php } ?>
 
-
-        // // Call loadRequirements() on page load
-        // $(document).ready(function() {
-        //     loadRequirements();
-
-        //     // Handle form submission
-        //     $('#requirementChecklist').on('submit', '#requirementForm', function(e) {
-        //         e.preventDefault();
-        //         var selectedRequirements = $(this).serialize();
-
-        //         $.ajax({
-        //             url: 'includes/update_requirements.php', // Ensure this endpoint exists
-        //             method: 'POST',
-        //             data: selectedRequirements,
-        //             dataType: 'json',
-        //             success: function(response) {
-        //                 if (response.success) {
-        //                     alert('Requirements updated successfully.');
-        //                 } else {
-        //                     alert('Error updating requirements: ' + response.error);
-        //                 }
-        //             },
-        //             error: function() {
-        //                 alert('An error occurred while updating requirements.');
-        //             }
-        //         });
-        //     });
-        // });
         loadRequirements();
-        // $(document).on('submit', '#requirementForm', function(e) {
-        //     e.preventDefault();
-        //     var formData = $(this).serialize();
-        //     $.ajax({
-        //         url: 'includes/update_requirements.php',
-        //         method: 'POST',
-        //         data: formData,
-        //         dataType: 'json',
-        //         success: function(response) {
-        //             alert(response.message);
-        //         },
-        //         error: function() {
-        //             alert('Error updating requirements. Please try again.');
-        //         }
-        //     });
-        // });
+
     });
 
-    document.addEventListener('DOMContentLoaded', function() {
-        const calendarEl = document.getElementById('calendar');
-
-        // Fetch events via AJAX
-        $.ajax({
-            url: 'includes/get_user_schedule.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    const events = [];
-
-                    // Process defense schedules
-                    response.defense_schedules.forEach(function(defense) {
-                        events.push({
-                            title: defense.description,
-                            start: `${defense.date}T${defense.start_time}`,
-                            end: `${defense.date}T${defense.end_time}`,
-                            location: defense.room,
-                            eventType: 'defense' // Custom property to identify defense events
-                        });
-                    });
-
-                    // Process user schedules
-                    response.user_schedules.forEach(function(schedule) {
-                        events.push({
-                            title: schedule.description,
-                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                            location: schedule.room,
-                            eventType: 'user' // Optional: Can be omitted or used for further differentiation
-                        });
-                    });
-
-                    // Initialize FullCalendar with events
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        height: 'auto',
-                        events: events,
-                        eventClick: function(info) {
-                            const eventType = info.event.extendedProps.eventType;
-
-                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                redirectToDecisionSupport(teamId);
-                            } else {
-                                // Existing behavior for user schedules
-                                const title = info.event.title;
-                                const room = info.event.extendedProps.location;
-                                alert('Event: ' + title + '\nRoom: ' + room);
-                            }
-                        }
-                    });
-                    calendar.render();
-                } else {
-                    console.error('Error fetching schedules:', response.error);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX error:", textStatus, errorThrown);
-            }
-        });
-
-        // Function to get the next date for a given day of the week
-        function getNextDateForDay(dayOfWeek) {
-            const days = {
-                'Monday': 1,
-                'Tuesday': 2,
-                'Wednesday': 3,
-                'Thursday': 4,
-                'Friday': 5,
-                'Saturday': 6,
-                'Sunday': 0
-            };
-            const today = new Date();
-            const targetDay = days[dayOfWeek];
-            const currentDay = today.getDay();
-            let delta = targetDay - currentDay;
-            if (delta < 0) delta += 7;
-            const nextDate = new Date(today);
-            nextDate.setDate(today.getDate() + delta);
-            return nextDate.toISOString().split('T')[0];
-        }
-
-        // Optional: Handle window resize to adjust calendar size
-        window.addEventListener('resize', function() {
-            if (calendar) {
-                calendar.updateSize();
-            }
-        });
-    });
-
-    document.addEventListener('DOMContentLoaded', function() {
     const calendarEl = document.getElementById('calendar');
 
-    // Fetch events via AJAX
-    $.ajax({
-        url: 'includes/get_user_schedule.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                const events = [];
-                const teamId = response.team_id; // Capture team_id from the response
-
-                // Process defense schedules
-                response.defense_schedules.forEach(function(defense) {
-                    events.push({
-                        title: defense.description,
-                        start: `${defense.date}T${defense.start_time}`,
-                        end: `${defense.date}T${defense.end_time}`,
-                        location: defense.room,
-                        eventType: 'defense', // Custom property to identify defense events
-                        team_id: teamId // Attach team_id to each defense event
-                    });
-                });
-
-                // Process user schedules
-                response.user_schedules.forEach(function(schedule) {
-                    events.push({
-                        title: schedule.description,
-                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                        location: schedule.room,
-                        eventType: 'user' // Optional: Can be omitted or used for further differentiation
-                        // team_id can be omitted for user events if not needed
-                    });
-                });
-
-                // Initialize FullCalendar with events
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    height: 'auto',
-                    events: events,
-                    eventClick: function(info) {
-                        const eventType = info.event.extendedProps.eventType;
-
-                        if (eventType === 'defense') {
-                            const teamId = info.event.extendedProps.team_id; // Retrieve team_id
-                            
-                            // Redirect to ../decision-support/ with POST value as team_id
-                            redirectToDecisionSupport(teamId);
-                        } else {
-                            // Existing behavior for user schedules
-                            const title = info.event.title;
-                            const room = info.event.extendedProps.location;
-                            alert('Event: ' + title + '\nRoom: ' + room);
-                        }
-                    }
-                });
-                calendar.render();
-            } else {
-                console.error('Failed to fetch schedules:', response.error);
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error("AJAX error:", textStatus, errorThrown);
+    // Function to get the next date for a given day of the week
+    function getNextDateForDay(day) {
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const today = new Date();
+        const targetDayIndex = daysOfWeek.indexOf(day);
+        if (targetDayIndex === -1) {
+            return day; // Return original if invalid day
         }
-    });
+        const resultDate = new Date(today);
+        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
+        return resultDate.toISOString().split('T')[0];
+    }
+
 
     /**
      * Function to redirect to decision-support with the team_id as a POST value.
      * @param {number} teamId - The ID of the team to send via POST.
      */
     function redirectToDecisionSupport(teamId) {
-        // Create a form element
+        if (!teamId) {
+            console.error('Invalid teamId. Cannot redirect.');
+            alert('Team information is missing. Cannot proceed.');
+            return;
+        }
+
         const form = document.createElement('form');
         form.method = 'POST';
         form.action = '../decision-support/';
 
-        // Create an input element for the team_id
         const input = document.createElement('input');
         input.type = 'hidden';
-        input.name = 'team_id'; // The parameter name expected by decision-support
+        input.name = 'team_id';
         input.value = teamId;
 
-        // Append the input to the form
         form.appendChild(input);
-
-        // Append the form to the body
         document.body.appendChild(form);
-
-        // Submit the form
         form.submit();
     }
 
-    /**
-     * Existing function to get the next date for a given day.
-     * Ensure this function is defined correctly based on your requirements.
-     * Example implementation:
-     */
-    function getNextDateForDay(day) {
-        // Assuming 'day' is a string representing a day of the week (e.g., "Monday")
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const today = new Date();
-        const targetDayIndex = daysOfWeek.indexOf(day);
-        if (targetDayIndex === -1) {
-            return day; // Return as-is if not a valid day
-        }
+    const targetNode = document.querySelector('#scheduling');
 
-        const resultDate = new Date(today);
-        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
-        return resultDate.toISOString().split('T')[0];
-    }
-});
-
-document.addEventListener('DOMContentLoaded', function() {
-    const calendarEl = document.getElementById('calendar');
-
-    // Fetch events via AJAX
+    // Create an observer instance
+    const observer = new MutationObserver((mutationsList) => {
+        mutationsList.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                if (targetNode.classList.contains('show')) {
+                    // Fetch events and requirements via AJAX
     $.ajax({
         url: 'includes/get_user_schedule.php',
         method: 'GET',
         dataType: 'json',
         success: function(response) {
-            console.log('AJAX Response:', response); // Debugging
-
             if (response.success) {
                 const events = [];
 
-                // Process defense schedules
-                response.defense_schedules.forEach(function(defense) {
-                    const event = {
+                response.defense_schedules.forEach(defense => {
+                    events.push({
                         title: defense.description,
                         start: `${defense.date}T${defense.start_time}`,
                         end: `${defense.date}T${defense.end_time}`,
                         location: defense.room,
                         eventType: 'defense',
-                        team_id: defense.team_id // Assign team_id to each defense event
-                    };
-                    events.push(event);
-                    console.log('Added Defense Event:', event); // Debugging
+                        team_id: defense.team_id
+                    });
                 });
 
-                // Process user schedules
-                response.user_schedules.forEach(function(schedule) {
-                    const event = {
+                response.user_schedules.forEach(schedule => {
+                    events.push({
                         title: schedule.description,
                         start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
                         end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
                         location: schedule.room,
                         eventType: 'user'
-                        // team_id is not needed for user events
-                    };
-                    events.push(event);
-                    console.log('Added User Event:', event); // Debugging
+                    });
                 });
 
-                // Initialize FullCalendar with events
                 const calendar = new FullCalendar.Calendar(calendarEl, {
                     initialView: 'dayGridMonth',
                     headerToolbar: {
@@ -673,9 +506,7 @@ document.addEventListener('DOMContentLoaded', function() {
                         const eventType = info.event.extendedProps.eventType;
 
                         if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                            const teamId = info.event.extendedProps.team_id; // Retrieve team_id
-                            console.log('Defense event clicked, team_id:', teamId); // Debugging
-
+                            const teamId = info.event.extendedProps.team_id;
                             if (teamId) {
                                 redirectToDecisionSupport(teamId);
                             } else {
@@ -683,34 +514,22 @@ document.addEventListener('DOMContentLoaded', function() {
                                 alert('Unable to retrieve team information for this event.');
                             }
                         } else {
-                            // Existing behavior for user schedules
                             const title = info.event.title;
                             const room = info.event.extendedProps.location;
-                            alert('Event: ' + title + '\nRoom: ' + room);
+                            alert(`Event: ${title}\nRoom: ${room}`);
                         }
                     },
-
-                    /**
-                     * Handle date cell clicks to change views
-                     */
                     dateClick: function(info) {
                         const currentView = calendar.view.type;
-                        const clickedDate = info.dateStr;
-
-                        console.log('Date clicked:', clickedDate, 'Current view:', currentView); // Debugging
-
                         if (currentView === 'dayGridMonth') {
-                            // Switch to Week view focusing on the clicked date
                             calendar.changeView('timeGridWeek');
-                            calendar.gotoDate(clickedDate);
                         } else if (currentView === 'timeGridWeek') {
-                            // Switch to Day view focusing on the clicked date
                             calendar.changeView('timeGridDay');
-                            calendar.gotoDate(clickedDate);
                         }
-                        // Optional: Add more conditions if you have other views
+                        calendar.gotoDate(info.dateStr);
                     }
                 });
+
                 calendar.render();
             } else {
                 console.error('Error fetching schedules:', response.error);
@@ -720,56 +539,20 @@ document.addEventListener('DOMContentLoaded', function() {
             console.error("AJAX error:", textStatus, errorThrown);
         }
     });
+                }
+            }
+        });
+    });
 
-    /**
-     * Function to redirect to decision-support with the team_id as a POST value.
-     * @param {number} teamId - The ID of the team to send via POST.
-     */
-    function redirectToDecisionSupport(teamId) {
-        if (!teamId) {
-            console.error('Invalid teamId. Cannot redirect.');
-            alert('Team information is missing. Cannot proceed.');
-            return;
-        }
+    // Set up the configuration for the observer: watch for attribute changes
+    const config = {
+        attributes: true, // Watch for changes to attributes
+        attributeFilter: ['class'], // Only watch changes to the 'class' attribute
+    };
 
-        console.log('Redirecting to decision-support with team_id:', teamId); // Debugging
-
-        // Create a form element
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '../decision-support/';
-
-        // Create an input element for the team_id
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'team_id'; // The parameter name expected by decision-support
-        input.value = teamId;
-
-        // Append the input to the form
-        form.appendChild(input);
-
-        // Append the form to the body
-        document.body.appendChild(form);
-
-        // Submit the form
-        form.submit();
+    // Start observing the target node
+    if (targetNode) {
+        observer.observe(targetNode, config);
     }
-
-    /**
-     * Function to get the next date for a given day of the week.
-     * Example implementation:
-     */
-    function getNextDateForDay(day) {
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const today = new Date();
-        const targetDayIndex = daysOfWeek.indexOf(day);
-        if (targetDayIndex === -1) {
-            return day; // Return original if invalid day
-        }
-
-        const resultDate = new Date(today);
-        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
-        return resultDate.toISOString().split('T')[0];
-    }
-});
+    
 </script>

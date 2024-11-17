@@ -80,10 +80,6 @@ $(document).ready(function () {
                                     <label for="category" class="form-label">Category</label>
                                     <input type="text" class="form-control" id="category" name="category" value="${response.data.category}">
                                 </div>
-                                <div class="mb-3">
-                                    <label for="suggested_by" class="form-label">Suggested By</label>
-                                    <input type="text" class="form-control" id="suggested_by" name="suggested_by" value="${response.data.suggested_by}">
-                                </div>
                             `;
                         form.html(formHtml);
                     } else if (table === 'teams') {
@@ -299,7 +295,7 @@ $(document).ready(function () {
     });
 
     // Add button functionality
-    $('.add-btn').on('click', function () {
+    $(document).on('click', '.add-btn', function () {
         var table = $(this).data('table');
         var form = $('#addForm');
         form.empty();
@@ -346,11 +342,8 @@ $(document).ready(function () {
                 '<div class="mb-3">' +
                 '<label for="category" class="form-label">Category</label>' +
                 '<input type="text" class="form-control" id="category" name="category" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="suggested_by" class="form-label">Suggested By</label>' +
-                '<input type="text" class="form-control" id="suggested_by" name="suggested_by" required>' +
-                '</div>');
+                '</div>'
+                );
         } else if (table === 'research_titles') {
             form.append('<div class="mb-3">' +
                 '<label for="team_id" class="form-label">Team ID</label>' +
