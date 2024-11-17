@@ -28,10 +28,11 @@
                         <a class="nav-link" href="../dashboard">Dashboard</a>
                     </li>
                 <?php endif; ?>
-
-                <li class="nav-item"> 
+                <!-- <?php //if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
+                    <li class="nav-item"> 
                     <a class="nav-link" href="../decision-support">Defense</a>
                 </li>
+                <?php //endif; ?> -->
             
                 <!-- <li class="nav-item">
                     <a class="nav-link" href="../contact">Contact Us</a>

@@ -69,12 +69,19 @@ $topics = $stmt->fetchAll();
             // Activate the tab and its content
             const activeTabPane = document.getElementById(activeTab);
             const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+            console.log("Active tab:", activeTab);
+            console.log("Active tab pane:", activeTabPane);
+            console.log("Active nav link:", activeNavLink);
 
             if (activeTabPane) {
                 activeTabPane.classList.add("show", "active");
+            } else {
+                document.getElementById('scheduling').classList.add("show", "active");
             }
             if (activeNavLink) {
                 activeNavLink.classList.add("active");
+            } else {
+                document.getElementById('scheduling-link').classList.add("active");
             }
         }
 
@@ -112,8 +119,6 @@ $topics = $stmt->fetchAll();
 
         <div class="col-sm-9">
             <div class="tab-content" id="v-pills-tabContent">
-
-
                 <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
                     <div class="my-3 p-3 home-sidebar-box">
                         <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
@@ -300,24 +305,24 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
             });
         }
 
-        // function initializeCalendar(events) {
-        //     var calendarEl = document.getElementById('calendar');
+        function initializeCalendar(events) {
+            var calendarEl = document.getElementById('calendar');
 
-        //     var calendar = new FullCalendar.Calendar(calendarEl, {
-        //         initialView: 'dayGridMonth',
-        //         headerToolbar: {
-        //             left: 'prev,next today',
-        //             center: 'title',
-        //             right: 'dayGridMonth,timeGridWeek,timeGridDay'
-        //         },
-        //         height: 'auto', // or set a specific height like '600px'
-        //         events: events, // Use the dynamically loaded events
-        //         eventClick: function(info) {
-        //             alert('Event: ' + info.event.title);
-        //         }
-        //     });
-        //     calendar.render();
-        // }
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                height: 'auto', // or set a specific height like '600px'
+                events: events, // Use the dynamically loaded events
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title);
+                }
+            });
+            calendar.render();
+        }
 
         <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { ?>
             // Requirement Checker Tool
@@ -456,89 +461,171 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         form.submit();
     }
 
+    // Select the target element (#scheduling)
     const targetNode = document.querySelector('#scheduling');
+
+    // Initial check: run if the 'show' class is already present on page load
+    if (targetNode && targetNode.classList.contains('show')) {
+        // Fetch events and requirements via AJAX
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    const events = [];
+
+                    response.defense_schedules.forEach(defense => {
+                        events.push({
+                            title: defense.description,
+                            start: `${defense.date}T${defense.start_time}`,
+                            end: `${defense.date}T${defense.end_time}`,
+                            location: defense.room,
+                            eventType: 'defense',
+                            team_id: defense.team_id
+                        });
+                    });
+
+                    response.user_schedules.forEach(schedule => {
+                        events.push({
+                            title: schedule.description,
+                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                            location: schedule.room,
+                            eventType: 'user'
+                        });
+                    });
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        height: 'auto',
+                        events: events,
+                        eventClick: function(info) {
+                            const eventType = info.event.extendedProps.eventType;
+
+                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                                const teamId = info.event.extendedProps.team_id;
+                                if (teamId) {
+                                    redirectToDecisionSupport(teamId);
+                                } else {
+                                    console.error('team_id is undefined for this defense event.');
+                                    alert('Unable to retrieve team information for this event.');
+                                }
+                            } else {
+                                const title = info.event.title;
+                                const room = info.event.extendedProps.location;
+                                alert(`Event: ${title}\nRoom: ${room}`);
+                            }
+                        },
+                        dateClick: function(info) {
+                            const currentView = calendar.view.type;
+                            if (currentView === 'dayGridMonth') {
+                                calendar.changeView('timeGridWeek');
+                            } else if (currentView === 'timeGridWeek') {
+                                calendar.changeView('timeGridDay');
+                            }
+                            calendar.gotoDate(info.dateStr);
+                        }
+                    });
+
+                    calendar.render();
+                } else {
+                    console.error('Error fetching schedules:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:", textStatus, errorThrown);
+            }
+        });
+    }
 
     // Create an observer instance
     const observer = new MutationObserver((mutationsList) => {
         mutationsList.forEach((mutation) => {
             if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                // Trigger only when the 'show' class is added
                 if (targetNode.classList.contains('show')) {
                     // Fetch events and requirements via AJAX
-    $.ajax({
-        url: 'includes/get_user_schedule.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                const events = [];
+                    $.ajax({
+                        url: 'includes/get_user_schedule.php',
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                const events = [];
 
-                response.defense_schedules.forEach(defense => {
-                    events.push({
-                        title: defense.description,
-                        start: `${defense.date}T${defense.start_time}`,
-                        end: `${defense.date}T${defense.end_time}`,
-                        location: defense.room,
-                        eventType: 'defense',
-                        team_id: defense.team_id
-                    });
-                });
+                                response.defense_schedules.forEach(defense => {
+                                    events.push({
+                                        title: defense.description,
+                                        start: `${defense.date}T${defense.start_time}`,
+                                        end: `${defense.date}T${defense.end_time}`,
+                                        location: defense.room,
+                                        eventType: 'defense',
+                                        team_id: defense.team_id
+                                    });
+                                });
 
-                response.user_schedules.forEach(schedule => {
-                    events.push({
-                        title: schedule.description,
-                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                        location: schedule.room,
-                        eventType: 'user'
-                    });
-                });
+                                response.user_schedules.forEach(schedule => {
+                                    events.push({
+                                        title: schedule.description,
+                                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                                        location: schedule.room,
+                                        eventType: 'user'
+                                    });
+                                });
 
-                const calendar = new FullCalendar.Calendar(calendarEl, {
-                    initialView: 'dayGridMonth',
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                    },
-                    height: 'auto',
-                    events: events,
-                    eventClick: function(info) {
-                        const eventType = info.event.extendedProps.eventType;
+                                const calendar = new FullCalendar.Calendar(calendarEl, {
+                                    initialView: 'dayGridMonth',
+                                    headerToolbar: {
+                                        left: 'prev,next today',
+                                        center: 'title',
+                                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                    },
+                                    height: 'auto',
+                                    events: events,
+                                    eventClick: function(info) {
+                                        const eventType = info.event.extendedProps.eventType;
 
-                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                            const teamId = info.event.extendedProps.team_id;
-                            if (teamId) {
-                                redirectToDecisionSupport(teamId);
+                                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                                            const teamId = info.event.extendedProps.team_id;
+                                            if (teamId) {
+                                                redirectToDecisionSupport(teamId);
+                                            } else {
+                                                console.error('team_id is undefined for this defense event.');
+                                                alert('Unable to retrieve team information for this event.');
+                                            }
+                                        } else {
+                                            const title = info.event.title;
+                                            const room = info.event.extendedProps.location;
+                                            alert(`Event: ${title}\nRoom: ${room}`);
+                                        }
+                                    },
+                                    dateClick: function(info) {
+                                        const currentView = calendar.view.type;
+                                        if (currentView === 'dayGridMonth') {
+                                            calendar.changeView('timeGridWeek');
+                                        } else if (currentView === 'timeGridWeek') {
+                                            calendar.changeView('timeGridDay');
+                                        }
+                                        calendar.gotoDate(info.dateStr);
+                                    }
+                                });
+
+                                calendar.render();
                             } else {
-                                console.error('team_id is undefined for this defense event.');
-                                alert('Unable to retrieve team information for this event.');
+                                console.error('Error fetching schedules:', response.error);
                             }
-                        } else {
-                            const title = info.event.title;
-                            const room = info.event.extendedProps.location;
-                            alert(`Event: ${title}\nRoom: ${room}`);
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error("AJAX error:", textStatus, errorThrown);
                         }
-                    },
-                    dateClick: function(info) {
-                        const currentView = calendar.view.type;
-                        if (currentView === 'dayGridMonth') {
-                            calendar.changeView('timeGridWeek');
-                        } else if (currentView === 'timeGridWeek') {
-                            calendar.changeView('timeGridDay');
-                        }
-                        calendar.gotoDate(info.dateStr);
-                    }
-                });
-
-                calendar.render();
-            } else {
-                console.error('Error fetching schedules:', response.error);
-            }
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            console.error("AJAX error:", textStatus, errorThrown);
-        }
-    });
+                    });
                 }
             }
         });
@@ -554,5 +641,4 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if (targetNode) {
         observer.observe(targetNode, config);
     }
-    
 </script>
