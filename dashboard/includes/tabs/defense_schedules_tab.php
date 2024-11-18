@@ -23,7 +23,15 @@
                                     <tbody>
                                         <?php
                                         $current_date = null;
-                                        foreach ($defenseSchedules as $schedule):
+                                        $items_per_page = 10;
+                                        $total_items = count($defenseSchedules);
+                                        $total_pages = ceil($total_items / $items_per_page);
+                                        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                                        $start_index = ($current_page - 1) * $items_per_page;
+                                        $end_index = min($start_index + $items_per_page, $total_items);
+
+                                        for ($i = $start_index; $i < $end_index; $i++):
+                                            $schedule = $defenseSchedules[$i];
                                             $schedule_date = date('M-d-y', strtotime($schedule['schedule_date']));
                                             $start_time = date('H:i', strtotime($schedule['start_time']));
                                             $end_time = date('H:i', strtotime($schedule['end_time']));
@@ -56,9 +64,28 @@
                                                     data-id="<?php echo $schedule['id']; ?>">Delete</button>
                                             </td>
                                         </tr>
-                                        <?php endforeach; ?>
+                                        <?php endfor; ?>
                                     </tbody>
                                 </table>
                                 <div id="scheduleGenerationResult" class="mb-3"></div>
+                                <nav aria-label="Page navigation">
+                                    <ul class="pagination">
+                                    <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                            <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                            <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                                <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                            <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                    </ul>
+                                </nav>
                             </div>
                         </div>

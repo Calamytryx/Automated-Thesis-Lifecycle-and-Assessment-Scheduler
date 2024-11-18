@@ -36,14 +36,24 @@
                                         <tr>
                                             <th>Topic</th>
                                             <th>Description</th>
+                                            <th>Category</th>
                                             <th>Action</th>
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($thesisTopics as $topic): ?>
+                                        <?php
+                                        $limit = 10;
+                                        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                                        $offset = ($page - 1) * $limit;
+                                        $totalTopics = count($thesisTopics);
+                                        $totalPages = ceil($totalTopics / $limit);
+                                        $currentTopics = array_slice($thesisTopics, $offset, $limit);
+
+                                        foreach ($currentTopics as $topic): ?>
                                             <tr>
                                                 <td><?php echo htmlspecialchars($topic['topic']); ?></td>
                                                 <td><?php echo htmlspecialchars($topic['description']); ?></td>
+                                                <td><?php echo htmlspecialchars($topic['category']); ?></td>
                                                 <td>
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Edit</button>
                                                     <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Delete</button>
@@ -53,6 +63,25 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                    <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                        <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
+                                            <span aria-hidden="true">&laquo;</span>
+                                        </a>
+                                    </li>
+                                    <?php for ($i = 1; $i <= $totalPages; $i++): ?>
+                                        <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                            <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                        </li>
+                                    <?php endfor; ?>
+                                    <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
+                                        <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
+                                            <span aria-hidden="true">&raquo;</span>
+                                        </a>
+                                    </li>
+                                </ul>
+                            </nav>
                         </div>
                         <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
                         <script>
@@ -164,7 +193,7 @@
                                 console.log('Category:', category);
 
                                 // Populate the modal form fields
-                                $('#addModal').on('shown.bs.modal', function () {
+                                $('#addModal').on('shown.bs.modal', function() {
                                     const topicInput = document.querySelector('#addForm #topic');
                                     const descriptionInput = document.querySelector('#addForm #description');
                                     const categoryInput = document.querySelector('#addForm #category');

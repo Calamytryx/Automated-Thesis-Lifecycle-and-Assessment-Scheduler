@@ -1,5 +1,5 @@
 $(document).ready(function () {
-    
+
     // Edit button functionality
     $(document).on('click', '.edit-btn', function () {
         var table = $(this).data('table');
@@ -244,10 +244,10 @@ $(document).ready(function () {
                         <h5 class="mt-4">Panelists</h5>
                         <div id="panelists">
                     `;
-                
-                    if (response.data.panelists) {
-                        response.data.panelists.forEach(function(panelist, index) {
-                            formHtml += `
+
+                        if (response.data.panelists) {
+                            response.data.panelists.forEach(function (panelist, index) {
+                                formHtml += `
                                 <div class="mb-3 row panelist" data-user-id="${panelist.id}">
                                     <div class="col-sm-10">
                                         <select class="form-select" name="panelist_id[]">
@@ -259,28 +259,47 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
-                        });
-                    } else {
-                        console.error('Panelists data is missing in the response');
-                    }
-                
-                    formHtml += `
+                            });
+                        } else {
+                            console.error('Panelists data is missing in the response');
+                        }
+
+                        formHtml += `
                         </div>
                         <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                     `;
-                
-                    form.html(formHtml);
+
+                        form.html(formHtml);
 
                         // Add panelist functionality
-                        $('#addPanelist').on('click', function() {
+                        $('#addPanelist').on('click', function () {
                             console.log('Add Panelist button clicked');
                             addNewPanelist(response.staff);
                         });
-                    
+
                         // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function() {
+                        $(document).on('click', '.remove-panelist', function () {
                             $(this).closest('.panelist').remove();
                         });
+                    } else if (table === 'rubrics') {
+                        var fieldsToShow = Object.keys(response.data);
+                        fieldsToShow.forEach(function (key) {
+                            var value = response.data[key] || '';
+                            var inputType = (key === 'email') ? 'email' : 'text';
+                            var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
+
+                            // Check if the key is 'id' or 'created_at' to make them hidden
+                            if (key === 'id' || key === 'created_at') {
+                                form.append('<input type="hidden" id="' + key + '" name="' + key + '" value="' + value + '">');
+                            } else {
+                                form.append('<div class="mb-3">' +
+                                    '<label for="' + key + '" class="form-label">' + label + '</label>' +
+                                    '<input type="' + inputType + '" class="form-control" id="' + key + '" name="' + key + '" value="' + value + '">' +
+                                    '</div>');
+                            }
+                        });
+
+
                     }
                     // Add more conditions for other tables as needed
                     $('#editModal').modal('show');
@@ -288,7 +307,7 @@ $(document).ready(function () {
                     alert('Error: ' + response.message);
                 }
             },
-            error: function() {
+            error: function () {
                 alert('Error: Unable to fetch item details');
             }
         });
@@ -343,7 +362,7 @@ $(document).ready(function () {
                 '<label for="category" class="form-label">Category</label>' +
                 '<input type="text" class="form-control" id="category" name="category" required>' +
                 '</div>'
-                );
+            );
         } else if (table === 'research_titles') {
             form.append('<div class="mb-3">' +
                 '<label for="team_id" class="form-label">Team ID</label>' +
@@ -476,7 +495,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Item updated successfully');
                     $('#editModal').modal('hide');
-                    location.reload();
+                    //location.reload();
                 } else {
                     alert('Error: ' + response.message);
                     console.error('Update failed:', response);
@@ -508,7 +527,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Team added successfully');
                     $('#addModal').modal('hide');
-                    location.reload();
+                    //location.reload();
                 } else {
                     alert('Error: ' + response.message);
                 }
@@ -536,6 +555,7 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         alert('Item deleted successfully from table ' + table + ' with ID ' + id);
+                        //location.reload();
                         // Optionally, refresh the table or page
                     } else {
                         alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
@@ -571,7 +591,7 @@ $(document).ready(function () {
                         $('#conflictCounts').text(response.conflictCounts.join(', '));
 
                         setTimeout(function () {
-                            location.reload();
+                            //location.reload();
                         }, 2000);
                     } else {
                         $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');

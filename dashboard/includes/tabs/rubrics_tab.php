@@ -13,7 +13,15 @@
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        <?php foreach ($rubrics as $rubric): ?>
+                                        <?php
+                                        $items_per_page = 10;
+                                        $total_items = count($rubrics);
+                                        $total_pages = ceil($total_items / $items_per_page);
+                                        $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
+                                        $start_index = ($current_page - 1) * $items_per_page;
+                                        $rubrics_to_display = array_slice($rubrics, $start_index, $items_per_page);
+
+                                        foreach ($rubrics_to_display as $rubric): ?>
                                         <tr>
                                             <td><?php echo htmlspecialchars($rubric['name']); ?></td>
                                             <td><?php echo htmlspecialchars($rubric['description']); ?></td>
@@ -28,4 +36,23 @@
                                     </tbody>
                                 </table>
                             </div>
+                            <nav aria-label="Page navigation">
+                                <ul class="pagination">
+                                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
+                                            <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
+                                                <span aria-hidden="true">&laquo;</span>
+                                            </a>
+                                        </li>
+                                        <?php for ($i = 1; $i <= $total_pages; $i++): ?>
+                                            <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
+                                                <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
+                                            </li>
+                                        <?php endfor; ?>
+                                        <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
+                                            <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
+                                                <span aria-hidden="true">&raquo;</span>
+                                            </a>
+                                        </li>
+                                </ul>
+                            </nav>
                         </div>

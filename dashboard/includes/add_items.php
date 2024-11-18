@@ -20,6 +20,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         unset($_POST['approved']);
         $_POST['approved_at'] = $approved;
     }
+
+    // Special handling for rubrics
+    if($table === 'rubrics'){
+        $pdo->beginTransaction();
+        try {
+            // Disable foreign key checks
+            $pdo->exec("SET FOREIGN_KEY_CHECKS=0");
+            
+            // Insert into rubrics table
+            $stmt = $pdo->prepare("INSERT INTO rubrics (name, description) VALUES (:name, :description)");
+            $stmt->execute(['name' => $_POST['name'], 'description' => $_POST['description']]);
+            
+            // Enable foreign key checks
+            $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
+            
+            // Get the last inserted ID
+            $rubricId = $pdo->lastInsertId();
+            
+            $pdo->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        
+        exit;
+    }
     
     // Special handling for teams
     if ($table === 'teams') {
@@ -89,16 +116,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
  * Note:
  * Ensure that the necessary dependencies and configurations are set up before including this file.
  */
-require_once __DIR__ . '/../index.php';
-
-fetchAllUsers($pdo);
-fetchAllThesisTopics($pdo);
-fetchAllResearchTitles($pdo);
-fetchAllDefenseSchedules($pdo);
-fetchAllRubrics($pdo);
-fetchAllTeams($pdo);
-fetchAllRequirements($pdo);
-fetchAllEvaluations($pdo);
-fetchAllEnvVariables($pdo);
-
 ?>

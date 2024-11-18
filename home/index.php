@@ -36,15 +36,6 @@ define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
 include '..\assets\setup\db.inc.php';
-
-// Check if the category field is selected from the query string (if passed)
-$selectedField = "Computer Science"; // Default to "Computer Science"
-
-// Query to fetch topics based on the selected field
-$stmt = $pdo->prepare("SELECT topic, description FROM thesis_topics WHERE category = :selectedField");
-$stmt->bindParam(':selectedField', $selectedField, PDO::PARAM_STR);
-$stmt->execute();
-$topics = $stmt->fetchAll();
 ?>
 
 <script>
@@ -152,26 +143,32 @@ $topics = $stmt->fetchAll();
                                 </select>
                             </div>
                         </div>
-                        <?php
-                        // Display results in a table
-                        if ($topics) {
-                            echo "<table class='table table-bordered mt-4'>";
-                            echo "<thead class='thead-dark'><tr><th>Topic</th><th>Description</th></tr></thead>";
-                            echo "<tbody>";
-                            foreach ($topics as $row) {
-                                echo "<tr>";
-                                echo "<td>" . htmlspecialchars($row['topic']) . "</td>";
-                                echo "<td>" . htmlspecialchars($row['description']) . "</td>";
-                                echo "</tr>";
-                            }
-                            echo "</tbody></table>";
-                        } else {
-                            echo "<p class='mt-4 text-warning'>No topics found for the selected field.</p>";
-                        }
-                        ?>
+                        <div id="topicsTable">
+                            <!-- The filtered topics table will be loaded here -->
+                        </div>
                     </div>
-
                 </div>
+
+                <script>
+                    document.getElementById('thesisField').addEventListener('change', function() {
+                        let selectedField = this.value;
+
+                        // Create an AJAX request
+                        let xhr = new XMLHttpRequest();
+                        xhr.open('POST', 'includes/get_topics.php', true);
+                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+
+                        xhr.onload = function() {
+                            if (xhr.status === 200) {
+                                // Update the table with the server response
+                                document.getElementById('topicsTable').innerHTML = xhr.responseText;
+                            }
+                        };
+
+                        // Send the selected field to the server
+                        xhr.send('field=' + encodeURIComponent(selectedField));
+                    });
+                </script>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
                     <div class="my-3 p-3 home-sidebar-box">

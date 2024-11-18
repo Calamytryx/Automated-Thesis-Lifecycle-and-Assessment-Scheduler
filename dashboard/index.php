@@ -195,46 +195,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 ?>
 
 <script>
-document.addEventListener("DOMContentLoaded", function() {
-    // Check if there's a previously selected tab stored in localStorage
-    const activeTab = localStorage.getItem("activeTab");
+    document.addEventListener("DOMContentLoaded", function() {
+        // Check if there's a previously selected tab stored in localStorage
+        let activeTab = localStorage.getItem("activeTab");
 
-    // If there is a stored active tab, activate it
-    if (activeTab) {
-        // Deactivate all tab-panes and nav-links
-        const allTabPanes = document.querySelectorAll('.tab-pane');
-        const allNavLinks = document.querySelectorAll('.nav-link');
+        // If there is a stored active tab, activate it
+        if (activeTab) {
+            // Deactivate all tab-panes and nav-links
+            const allTabPanes = document.querySelectorAll('.tab-pane');
+            const allNavLinks = document.querySelectorAll('.nav-link');
 
-        allTabPanes.forEach(pane => {
-            pane.classList.remove("show", "active");
-        });
+            // allTabPanes.forEach(pane => {
+            //     pane.classList.remove("show", "active");
+            // });
 
-        allNavLinks.forEach(link => {
-            link.classList.remove("active");
-        });
+            // allNavLinks.forEach(link => {
+            //     link.classList.remove("active");
+            // });
 
-        // Activate the tab and its content
-        const activeTabPane = document.getElementById(activeTab);
-        const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
-        
-        if (activeTabPane) {
-            activeTabPane.classList.add("show", "active");
+            // Activate the tab and its content
+            const activeTabPane = document.getElementById(activeTab);
+            const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+
+            if (activeTabPane) {
+                activeTabPane.classList.add("show", "active");
+            }
+            if (activeNavLink) {
+                activeNavLink.classList.add("active");
+            }
         }
-        if (activeNavLink) {
-            activeNavLink.classList.add("active");
-        }
-    }
 
-    // Add event listener to tabs to update localStorage when clicked
-    const tabs = document.querySelectorAll('.nav-link');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', function(event) {
-            // Store the ID of the clicked tab-pane
-            const clickedTabId = event.target.getAttribute('href').substring(1);
-            localStorage.setItem('activeTab', clickedTabId);
+        // Add event listener to tabs to update localStorage when clicked
+        const tabs = document.querySelectorAll('.nav-link');
+        tabs.forEach(tab => {
+            tab.addEventListener('click', function(event) {
+                // Store the ID of the clicked tab-pane
+                const clickedTabId = event.target.getAttribute('href').substring(1);
+                localStorage.setItem('activeTab', clickedTabId);
+            });
         });
     });
-});
 </script>
 
 <main role="main" class="container-fluid">
@@ -285,7 +285,9 @@ document.addEventListener("DOMContentLoaded", function() {
                 </div>
             <?php else: ?>
                 <!-- Regular user dashboard content -->
-                <p>Welcome to your dashboard. You can view your team and research information here.</p>
+                <script>
+                    window.location.href = '../home';
+                </script>
                 <!-- Add more content for regular users as needed -->
             <?php endif; ?>
         </div>

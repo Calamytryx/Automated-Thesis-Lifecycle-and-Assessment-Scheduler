@@ -23,9 +23,6 @@
                                                 <button class="btn btn-primary btn-sm edit-btn"
                                                     data-table="env_variables"
                                                     data-id="<?php echo $variable['id']; ?>">Edit</button>
-                                                <button class="btn btn-danger btn-sm delete-btn"
-                                                    data-table="env_variables"
-                                                    data-id="<?php echo $variable['id']; ?>">Delete</button>
                                             </td>
                                         </tr>
                                         <?php endforeach; ?>
