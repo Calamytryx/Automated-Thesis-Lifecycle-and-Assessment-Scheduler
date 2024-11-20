@@ -8,12 +8,11 @@ require '../../assets/includes/security_functions.php';
 
 check_logged_out();
 
-if (!isset($_POST['loginsubmit'])){
+if (!isset($_POST['loginsubmit'])) {
 
     header("Location: ../");
     exit();
-}
-else {
+} else {
 
     /*
     * -------------------------------------------------------------------------------
@@ -21,7 +20,7 @@ else {
     * -------------------------------------------------------------------------------
     */
 
-    foreach($_POST as $key => $value){
+    foreach ($_POST as $key => $value) {
 
         $_POST[$key] = _cleaninjections(trim($value));
     }
@@ -33,14 +32,14 @@ else {
     * -------------------------------------------------------------------------------
     */
 
-    if (!verify_csrf_token()){
+    if (!verify_csrf_token()) {
 
         $_SESSION['STATUS']['loginstatus'] = 'Request could not be validated';
         header("Location: ../");
         exit();
     }
 
-    
+
     require '../../assets/setup/db.inc.php';
 
     $username = $_POST['username'];
@@ -51,8 +50,7 @@ else {
         $_SESSION['STATUS']['loginstatus'] = 'fields cannot be empty';
         header("Location: ../");
         exit();
-    } 
-    else {
+    } else {
 
         /*
         * -------------------------------------------------------------------------------
@@ -89,15 +87,14 @@ else {
                 $_SESSION['ERRORS']['wrongpassword'] = 'wrong password';
                 header("Location: ../");
                 exit();
-            } 
-            else if ($pwdCheck == true) {
+            } else if ($pwdCheck == true) {
 
                 session_start();
 
-                if($row['verified_at'] != NULL){
+                if ($row['verified_at'] != NULL) {
 
                     $_SESSION['auth'] = 'verified';
-                } else{
+                } else {
 
                     $_SESSION['auth'] = 'loggedin';
                 }
@@ -118,6 +115,27 @@ else {
                 $_SESSION['deleted_at'] = $row['deleted_at'];
                 $_SESSION['last_login_at'] = $row['last_login_at'];
                 $_SESSION['usertype'] = $row['usertype'];
+                $_SESSION['team_id'] = $row['team_id'];
+                $sql = "SELECT * FROM team_members WHERE user_id=?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$_SESSION['id']]);
+                $teamMemberRows = $stmt->fetchAll();
+
+                if ($teamMemberRows) {
+                    $teamIds = [];
+                    $teamRoles = [];
+
+                    foreach ($teamMemberRows as $row) {
+                        if ($row['role'] === 'adviser') {
+                            $teamId[] = $row['team_id'];
+                        }
+                        $teamRoles[] = $row['role']; // Collecting all roles for reference
+                    }
+
+                    $_SESSION['team_role'] = implode(',', array_unique($teamRoles)); // Store all unique roles
+                    $_SESSION['team_id'] = $teamId; // Store an array of team IDs if role is adviser
+                }
+
                 //$_SESSION['expire'] = time() + 1000; // Session expires in 24 hours
 
                 /*
@@ -126,7 +144,7 @@ else {
                 * -------------------------------------------------------------------------------
                 */
 
-                if (isset($_POST['rememberme'])){
+                if (isset($_POST['rememberme'])) {
 
                     $selector = bin2hex(random_bytes(8));
                     $token = random_bytes(32);
@@ -156,7 +174,7 @@ else {
 
                 header("Location: ../../home/");
                 exit();
-            } 
-        } 
+            }
+        }
     }
 }

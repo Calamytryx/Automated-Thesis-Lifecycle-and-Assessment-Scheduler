@@ -36,6 +36,9 @@ define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
 include '..\assets\setup\db.inc.php';
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 ?>
 
 <script>
@@ -200,9 +203,14 @@ include '..\assets\setup\db.inc.php';
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary">
                                 <strong class="d-block text-gray-dark">Document Checklist</strong>
+                            <div id="teamSelectorContainer">
+                                <!-- The dropdown will be dynamically inserted here -->
+                            </div>
                             <div id="requirementChecklist">
                                 <!-- Checklist items will be dynamically added here -->
                             </div>
+
+
                             </p>
                         </div>
                     </div>
@@ -235,141 +243,142 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-    console.log('FullCalendar loaded:', typeof FullCalendar !== 'undefined');
     $(document).ready(function() {
-        // Thesis Topic Decision Tool
-        $('#topicSuggestionForm').on('submit', function(e) {
-            e.preventDefault();
-            var field = $('#field').val();
-            // AJAX call to get topic suggestions
-            $.ajax({
-                url: 'includes/get_topic_suggestions.php',
-                method: 'POST',
-                data: {
-                    field: field
-                },
-                dataType: 'json',
-                success: function(response) {
-                    var suggestionsHtml = '<ul>';
-                    response.suggestions.forEach(function(suggestion) {
-                        suggestionsHtml += '<li>' + suggestion + '</li>';
+        <?php
+        $role = isset($_SESSION['team_role']) ? $_SESSION['team_role'] : '';
+        $teamId = isset($_SESSION['team_id']) ? $_SESSION['team_id'] : [];
+
+        if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) {
+            if ($role === 'adviser') {
+                // Retrieve the teams from the session (ensure $teamId is an array)
+                $teams = [];
+                if (!empty($teamId)) {
+                    // Query the team information based on the team_id from session
+                    $teamIdStr = implode(',', (array)$teamId);
+                    $stmt = $pdo->prepare("SELECT id, name FROM teams WHERE id IN ($teamIdStr)");
+                    $stmt->execute();
+                    $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                }
+        ?>
+
+                $(document).ready(function() {
+                    var teamSelectHtml = '<select id="teamSelect" class="form-select mb-3">';
+                    <?php if (!empty($teams)) { ?>
+                        <?php foreach ($teams as $team) { ?>
+                            teamSelectHtml += '<option value="<?php echo $team['id']; ?>"><?php echo htmlspecialchars($team['name']); ?></option>';
+                        <?php } ?>
+                    <?php } else { ?>
+                        teamSelectHtml += '<option value="">No teams available</option>';
+                    <?php } ?>
+                    teamSelectHtml += '</select>';
+                    console.log(teamSelectHtml);
+                    $('#teamSelectorContainer').html(teamSelectHtml);
+
+                    // Load initial requirements for the first team
+                    var initialTeamId = $('#teamSelect').val();
+                    if (initialTeamId) {
+                        loadRequirements(initialTeamId);
+                    }
+
+                    // Reload requirements when team changes
+                    $('#teamSelect').on('change', function() {
+                        var selectedTeamId = $(this).val();
+                        loadRequirements(selectedTeamId);
                     });
-                    suggestionsHtml += '</ul>';
-                    $('#suggestedTopics').html(suggestionsHtml);
-                },
-                error: function() {
-                    $('#suggestedTopics').html('<p>Error fetching suggestions. Please try again.</p>');
-                }
-            });
-        });
-
-        // Scheduling System
-        function loadUserSchedule() {
-            $.ajax({
-                url: 'includes/get_user_schedule.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    console.log("AJAX response:", response);
-                    if (response.success) {
-                        var events = [];
-                        // Add user schedules to events
-                        response.user_schedules.forEach(function(event) {
-                            events.push({
-                                title: event.description,
-                                start: event.date + 'T' + event.start_time,
-                                end: event.date + 'T' + event.end_time,
-                            });
-                        });
-                        // Add defense schedules to events
-                        response.defense_schedules.forEach(function(event) {
-                            events.push({
-                                title: event.description,
-                                start: event.date + 'T' + event.start_time,
-                                end: event.date + 'T' + event.end_time,
-                            });
-                        });
-                        console.log("Events to be rendered:", events);
-                        initializeCalendar(events);
-                    } else {
-                        $('#userSchedule').html('<p>Error loading schedules: ' + response.error + '</p>');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX error:", textStatus, errorThrown);
-                    $('#userSchedule').html('<p>Error loading schedules. Please try again later.</p>');
-                }
-            });
-        }
-
-        function initializeCalendar(events) {
-            var calendarEl = document.getElementById('calendar');
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                height: 'auto', // or set a specific height like '600px'
-                events: events, // Use the dynamically loaded events
-                eventClick: function(info) {
-                    alert('Event: ' + info.event.title);
-                }
-            });
-            calendar.render();
-        }
-
-        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { ?>
-            // Requirement Checker Tool
-            function loadRequirements() {
-                $.ajax({
-                    url: 'includes/get_requirements.php',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            var checklistHtml = '<form id="requirementForm">';
-                            response.requirements.forEach(function(req) {
-                                checklistHtml += `
-                            <div class="form-check mb-3">
-                                <input class="form-check-input" type="checkbox" value="${req.id}" id="req${req.id}" name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
-                                <label class="form-check-label" for="req${req.id}"><strong>${req.name}</strong></label>
-                                <p class="mb-1 text-muted">${req.description}</p>
-                                <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
-                                <div class="mt-2">
-                                    <label for="status${req.id}">Status:</label>
-                                    <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
-                                        <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                        <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
-                                        <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
-                                        <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                                    </select>
-                                </div>
-                                <div class="mt-2">
-                                    <label for="feedback${req.id}">Feedback:</label>
-                                    <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
-                                </div>
-                            </div>
-                        `;
-                            });
-                            checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
-                            $('#requirementChecklist').html(checklistHtml);
-                        } else {
-                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                            console.error('Error fetching requirements:', response.error);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
-                        console.error("AJAX error:", textStatus, errorThrown);
-                        console.error("Response Text:", jqXHR.responseText);
-                        console.error("Status Code:", jqXHR.status);
-                    }
                 });
+
+                function loadRequirements(teamId) {
+                    console.log("Loading requirements for teamId:", teamId);
+                    $.ajax({
+                        url: 'includes/get_requirements.php',
+                        method: 'GET',
+                        data: {
+                            team_id: teamId
+                        },
+                        dataType: 'json',
+                        success: function(response) {
+                            console.log("AJAX request successful. Response:", response);
+                            if (response.success) {
+                                var checklistHtml = '<form id="requirementForm" enctype="multipart/form-data">';
+                                response.requirements.forEach(function(req) {
+                                    checklistHtml += `
+                        <div class="form-check mb-3">
+                            <input class="form-check-input" type="checkbox" value="${req.id}" id="req${req.id}" name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
+                            <label class="form-check-label" for="req${req.id}"><strong>${req.name}</strong></label>
+                            <p class="mb-1 text-muted">${req.description || 'No description provided.'}</p>
+                            <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
+                            <div class="mt-2">
+                                <label for="status${req.id}">Status:</label>
+                                <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
+                                    <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                    <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                                    <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                    <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                </select>
+                            </div>
+                            <div class="mt-2">
+                                <label for="feedback${req.id}">Feedback:</label>
+                                <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
+                            </div>
+                            <div class="mt-2">
+                                <a href="./submission/${req.file_name}" class="btn btn-secondary" download>Download File</a>
+                                <a href="./submission/viewer.html?file=${req.file_name}" class="btn btn-secondary">View and Download File</a>
+                            </div>
+                            <div class="mt-2">
+                                <label for="feedbackFile${req.id}">Upload Feedback File:</label>
+                                <input class="form-control form-control-sm" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
+                            </div>
+                            <div class="mt-2">
+                                ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` : ''}
+                            </div>
+                        </div>
+                    `;
+                                });
+                                checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
+                                $('#requirementChecklist').html(checklistHtml);
+
+                                // Handle form submission
+                                $('#requirementForm').on('submit', function(e) {
+                                    e.preventDefault(); // Prevent default form submission
+                                    var formData = new FormData(this);
+
+                                    $.ajax({
+                                        url: 'includes/update_requirements.php', // Server-side script for updates
+                                        method: 'POST',
+                                        data: formData,
+                                        processData: false, // Required for FormData
+                                        contentType: false,
+                                        dataType: 'json',
+                                        success: function(response) {
+                                            if (response.success) {
+                                                alert('Requirements updated successfully!');
+                                                loadRequirements(teamId); // Reload requirements
+                                            } else {
+                                                alert('Error: ' + response.error);
+                                            }
+                                        },
+                                        error: function(jqXHR, textStatus, errorThrown) {
+                                            console.error("AJAX error:", textStatus, errorThrown);
+                                            alert('An error occurred while updating requirements. Please try again.');
+                                        }
+                                    });
+                                });
+                            } else {
+                                $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                                console.error('Error in response:', response.error);
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                            console.error("AJAX error:", textStatus, errorThrown);
+                            console.error("Response Text:", jqXHR.responseText);
+                        }
+                    });
+                }
+            <?php
             }
-        <?php } elseif ($_SESSION['usertype'] == 1) { ?>
+        } else if ($_SESSION['usertype'] == 1) { ?>
+            loadRequirements(); // Just call the function here for usertype 1
 
             function loadRequirements() {
                 $.ajax({
@@ -380,7 +389,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         if (response.success) {
                             var displayHtml = '<div class="row">';
                             response.requirements.forEach(function(req) {
-                                displayHtml += `
+                                <?php if ($role === 'leader' || $role === 'member') { ?>
+                                    displayHtml += `
                                 <div class="col-md-6 mb-4">
                                     <div class="card h-100 shadow-sm">
                                         <div class="card-body">
@@ -392,9 +402,28 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             <li class="list-group-item"><strong>Status:</strong> ${req.status}</li>
                                             <li class="list-group-item"><strong>Feedback:</strong> ${req.feedback}</li>
                                         </ul>
+                                        <div class="card-footer">
+                                            ${req.feedback_file ? 
+                                                `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` 
+                                                : ''}
+                                        </div>
+                                        <?php if ($role === 'leader') { ?>
+                                        <div class="card-footer">
+                                            <form id="uploadForm-${req.id}" enctype="multipart/form-data">
+                                                <input type="hidden" name="document_name" value="${req.name}">
+                                                <input type="hidden" name="requirement_id" value="${req.id}">
+                                                <div class="mb-3">
+                                                <label for="file-${req.id}" class="form-label">Upload File</label>
+                                                <input class="form-control" type="file" id="file-${req.id}" name="file" required>
+                                                </div>
+                                                <button type="submit" class="btn btn-secondary">Submit File</button>
+                                            </form>
+                                        </div>
+                                        <?php } ?>
                                     </div>
                                 </div>
                             `;
+                                <?php } ?>
                             });
                             displayHtml += '</div>';
                             $('#requirementChecklist').html(displayHtml);
@@ -411,231 +440,9 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     }
                 });
             }
+
         <?php } ?>
 
-        loadRequirements();
-
     });
-
-    const calendarEl = document.getElementById('calendar');
-
-    // Function to get the next date for a given day of the week
-    function getNextDateForDay(day) {
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const today = new Date();
-        const targetDayIndex = daysOfWeek.indexOf(day);
-        if (targetDayIndex === -1) {
-            return day; // Return original if invalid day
-        }
-        const resultDate = new Date(today);
-        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
-        return resultDate.toISOString().split('T')[0];
-    }
-
-
-    /**
-     * Function to redirect to decision-support with the team_id as a POST value.
-     * @param {number} teamId - The ID of the team to send via POST.
-     */
-    function redirectToDecisionSupport(teamId) {
-        if (!teamId) {
-            console.error('Invalid teamId. Cannot redirect.');
-            alert('Team information is missing. Cannot proceed.');
-            return;
-        }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '../decision-support/';
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'team_id';
-        input.value = teamId;
-
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
-    }
-
-    // Select the target element (#scheduling)
-    const targetNode = document.querySelector('#scheduling');
-
-    // Initial check: run if the 'show' class is already present on page load
-    if (targetNode && targetNode.classList.contains('show')) {
-        // Fetch events and requirements via AJAX
-        $.ajax({
-            url: 'includes/get_user_schedule.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    const events = [];
-
-                    response.defense_schedules.forEach(defense => {
-                        events.push({
-                            title: defense.description,
-                            start: `${defense.date}T${defense.start_time}`,
-                            end: `${defense.date}T${defense.end_time}`,
-                            location: defense.room,
-                            eventType: 'defense',
-                            team_id: defense.team_id
-                        });
-                    });
-
-                    response.user_schedules.forEach(schedule => {
-                        events.push({
-                            title: schedule.description,
-                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                            location: schedule.room,
-                            eventType: 'user'
-                        });
-                    });
-
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        height: 'auto',
-                        events: events,
-                        eventClick: function(info) {
-                            const eventType = info.event.extendedProps.eventType;
-
-                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                const teamId = info.event.extendedProps.team_id;
-                                if (teamId) {
-                                    redirectToDecisionSupport(teamId);
-                                } else {
-                                    console.error('team_id is undefined for this defense event.');
-                                    alert('Unable to retrieve team information for this event.');
-                                }
-                            } else {
-                                const title = info.event.title;
-                                const room = info.event.extendedProps.location;
-                                alert(`Event: ${title}\nRoom: ${room}`);
-                            }
-                        },
-                        dateClick: function(info) {
-                            const currentView = calendar.view.type;
-                            if (currentView === 'dayGridMonth') {
-                                calendar.changeView('timeGridWeek');
-                            } else if (currentView === 'timeGridWeek') {
-                                calendar.changeView('timeGridDay');
-                            }
-                            calendar.gotoDate(info.dateStr);
-                        }
-                    });
-
-                    calendar.render();
-                } else {
-                    console.error('Error fetching schedules:', response.error);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX error:", textStatus, errorThrown);
-            }
-        });
-    }
-
-    // Create an observer instance
-    const observer = new MutationObserver((mutationsList) => {
-        mutationsList.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                // Trigger only when the 'show' class is added
-                if (targetNode.classList.contains('show')) {
-                    // Fetch events and requirements via AJAX
-                    $.ajax({
-                        url: 'includes/get_user_schedule.php',
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.success) {
-                                const events = [];
-
-                                response.defense_schedules.forEach(defense => {
-                                    events.push({
-                                        title: defense.description,
-                                        start: `${defense.date}T${defense.start_time}`,
-                                        end: `${defense.date}T${defense.end_time}`,
-                                        location: defense.room,
-                                        eventType: 'defense',
-                                        team_id: defense.team_id
-                                    });
-                                });
-
-                                response.user_schedules.forEach(schedule => {
-                                    events.push({
-                                        title: schedule.description,
-                                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                                        location: schedule.room,
-                                        eventType: 'user'
-                                    });
-                                });
-
-                                const calendar = new FullCalendar.Calendar(calendarEl, {
-                                    initialView: 'dayGridMonth',
-                                    headerToolbar: {
-                                        left: 'prev,next today',
-                                        center: 'title',
-                                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                                    },
-                                    height: 'auto',
-                                    events: events,
-                                    eventClick: function(info) {
-                                        const eventType = info.event.extendedProps.eventType;
-
-                                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                            const teamId = info.event.extendedProps.team_id;
-                                            if (teamId) {
-                                                redirectToDecisionSupport(teamId);
-                                            } else {
-                                                console.error('team_id is undefined for this defense event.');
-                                                alert('Unable to retrieve team information for this event.');
-                                            }
-                                        } else {
-                                            const title = info.event.title;
-                                            const room = info.event.extendedProps.location;
-                                            alert(`Event: ${title}\nRoom: ${room}`);
-                                        }
-                                    },
-                                    dateClick: function(info) {
-                                        const currentView = calendar.view.type;
-                                        if (currentView === 'dayGridMonth') {
-                                            calendar.changeView('timeGridWeek');
-                                        } else if (currentView === 'timeGridWeek') {
-                                            calendar.changeView('timeGridDay');
-                                        }
-                                        calendar.gotoDate(info.dateStr);
-                                    }
-                                });
-
-                                calendar.render();
-                            } else {
-                                console.error('Error fetching schedules:', response.error);
-                            }
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            console.error("AJAX error:", textStatus, errorThrown);
-                        }
-                    });
-                }
-            }
-        });
-    });
-
-    // Set up the configuration for the observer: watch for attribute changes
-    const config = {
-        attributes: true, // Watch for changes to attributes
-        attributeFilter: ['class'], // Only watch changes to the 'class' attribute
-    };
-
-    // Start observing the target node
-    if (targetNode) {
-        observer.observe(targetNode, config);
-    }
+    <?php require 'includes/calendar.js.php'; ?>
 </script>
