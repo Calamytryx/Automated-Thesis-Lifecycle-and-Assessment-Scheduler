@@ -1,9 +1,10 @@
 <?php
 
 error_reporting(E_ALL);
-ini_set('display_errors', 0);
+ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
+error_log("POST data: " . print_r($_POST, true));
 
 header('Content-Type: application/json');
 
@@ -19,13 +20,20 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $teams = fetchTeams($pdo);
         $panelists = fetchPanelists($pdo);
-        $rooms = ['Defense Room A', 'Defense Room B'];
-        $timeSlots = ['07:00:00', '08:00:00', '09:00:00', '10:00:00', '11:00:00', '13:00:00', '14:00:00', '15:00:00', '16:00:00'];
-        $days = ['2024-12-09', '2024-12-10', '2024-12-11', '2024-12-12', '2024-12-13', '2024-12-14'];
+        $duration = $_POST['duration'];
+        $rooms = $_POST['rooms'];
+        $timeSlots = $_POST['timeSlots'];
+        $days = $_POST['days'];
+        
+        if (!is_numeric($duration) || intval($duration) <= 0) {
+            throw new Exception("Invalid duration. It must be a positive integer.");
+        }
+        $duration = intval($duration); // Ensure it's an integer
+        
         $userSchedules = fetchUserSchedules($pdo);
 
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 10, 50, 0.01);
-        
+        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 200, 50, 0.01);
+
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
                 'success' => true,
@@ -37,10 +45,10 @@ try {
                 'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
                 'message' => 'Schedule generated and saved successfully'
             ];
-        
+
             // Save the response to a JSON file
             file_put_contents('schedule_data.json', json_encode($result));
-        
+
             echo json_encode($result);
         } else {
             throw new Exception("Failed to save schedule to database");
@@ -53,7 +61,8 @@ try {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
-function fetchTeams($pdo) {
+function fetchTeams($pdo)
+{
     $stmt = $pdo->query("
         SELECT t.id, tm.user_id as adviser_id
         FROM teams t
@@ -63,12 +72,14 @@ function fetchTeams($pdo) {
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-function fetchPanelists($pdo) {
+function fetchPanelists($pdo)
+{
     $stmt = $pdo->query("SELECT id FROM users WHERE usertype = 2");
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function fetchUserSchedules($pdo) {
+function fetchUserSchedules($pdo)
+{
     $stmt = $pdo->query("SELECT user_id, day_of_week, start_time, end_time FROM user_schedules");
     $schedules = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -77,10 +88,10 @@ function fetchUserSchedules($pdo) {
     return $schedules;
 }
 
-function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize = 100, $generations = 200, $mutationRate = 0.05) {
+function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize = 100, $generations = 200, $mutationRate = 0.05)
+{
     $population = createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days);
     DefenseSchedule::$initialPopulation = $population; // Store only the initial population
-
     DefenseSchedule::$populationPerGeneration = [];
     DefenseSchedule::$conflictCounts = []; // Reset for each run
     DefenseSchedule::$fitnessScores = []; // Reset for each run
@@ -91,9 +102,9 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
         foreach ($population as $schedule) {
             $schedule->calculateFitness($userSchedules);
         }
-        
+
         // Track population data for the current generation
-        DefenseSchedule::$populationPerGeneration[] = array_map(function($schedule) {
+        DefenseSchedule::$populationPerGeneration[] = array_map(function ($schedule) {
             return [
                 'fitness' => $schedule->fitness,
                 'chromosomes' => $schedule->chromosomes
@@ -101,17 +112,17 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
         }, $population);
 
         // Collect total conflict counts and total fitness scores for the generation
-        $totalConflicts = array_sum(array_map(function($schedule) {
+        $totalConflicts = array_sum(array_map(function ($schedule) {
             return $schedule->fitness < 0 ? 1 : 0; // Count conflicts based on fitness
         }, $population));
-        
+
         // Store average conflict count per generation
         DefenseSchedule::$averageConflictCounts[] = $totalConflicts / $populationSize; // Average per generation
         // Store average fitness score per generation
         DefenseSchedule::$averageFitnessScores[] = array_sum(array_column($population, 'fitness')) / $populationSize; // Average per generation
 
         $selected = selection($population);
-        
+
         $newPopulation = $selected;
         while (count($newPopulation) < $populationSize) {
             $parent1 = $selected[array_rand($selected)];
@@ -120,18 +131,19 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
             mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules);
             $newPopulation[] = $child;
         }
-        
+
         $population = $newPopulation;
     }
-    
-    usort($population, function($a, $b) {
+
+    usort($population, function ($a, $b) {
         return $b->fitness - $a->fitness;
     });
-    
+
     return $population[0];
 }
 
-function createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days) {
+function createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days)
+{
     $population = [];
     for ($i = 0; $i < $populationSize; $i++) {
         $population[] = new DefenseSchedule($pdo, $teams, $panelists, $rooms, $timeSlots, $days);
@@ -139,14 +151,16 @@ function createInitialPopulation($pdo, $populationSize, $teams, $panelists, $roo
     return $population;
 }
 
-function selection($population) {
-    usort($population, function($a, $b) {
+function selection($population)
+{
+    usort($population, function ($a, $b) {
         return $b->fitness - $a->fitness;
     });
     return array_slice($population, 0, count($population) / 2);
 }
 
-function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms) {
+function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms)
+{
     $child = new DefenseSchedule($parent1->pdo, [], [], $rooms, $timeSlots, $days);
     $crossoverPoint = rand(0, count($parent1->chromosomes) - 1);
     $child->chromosomes = array_merge(
@@ -173,16 +187,25 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
     return $child;
 }
 
-function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules) {
+function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules)
+{
     foreach ($schedule->chromosomes as $index => &$defense) {
         if (rand() / getrandmax() < $mutationRate) {
             $mutationType = rand(0, 3);
             $original = $defense;
             switch ($mutationType) {
-                case 0: $defense['panelist_ids'] = array_rand(array_flip($panelists), 3); break;
-                case 1: $defense['room'] = $rooms[array_rand($rooms)]; break;
-                case 2: $defense['time_slot'] = $timeSlots[array_rand($timeSlots)]; break;
-                case 3: $defense['day'] = $days[array_rand($days)]; break;
+                case 0:
+                    $defense['panelist_ids'] = array_rand(array_flip($panelists), 3);
+                    break;
+                case 1:
+                    $defense['room'] = $rooms[array_rand($rooms)];
+                    break;
+                case 2:
+                    $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
+                    break;
+                case 3:
+                    $defense['day'] = $days[array_rand($days)];
+                    break;
             }
             if (hasConflicts($schedule->pdo, $defense, $userSchedules, $schedule->all_defenses)) {
                 $defense = $original; // Revert if the mutation caused a conflict
@@ -194,13 +217,14 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
     }
 }
 
-function hasConflicts($pdo, $defense, $userSchedules, $all_defenses) {
+function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
+{
     foreach ($defense['panelist_ids'] as $panelist_id) {
         if (hasScheduleConflict($pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses)) {
             return true;
         }
     }
-    
+
     // Check conflicts with team members
     $teamMembers = getTeamMembers($pdo, $defense['team_id'], 'array');
     foreach ($teamMembers as $member) {
@@ -208,25 +232,28 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses) {
             return true;
         }
     }
-    
+
     return false;
 }
 
-function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses) {
+function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses)
+{
     if (!isset($userSchedules[$user_id])) return false;
-    
+
     $defense_start = strtotime($time_slot);
-    $defense_end = strtotime('+1 hour', $defense_start);
+    $duration = $_POST['duration'];
+    $defense_end = strtotime('+' . $duration . ' hour', $defense_start);
     $defense_day = date('w', strtotime($day));
 
     foreach ($userSchedules[$user_id] as $schedule) {
         if ($schedule['day_of_week'] == $defense_day) {
             $schedule_start = strtotime($schedule['start_time']);
             $schedule_end = strtotime($schedule['end_time']);
-            
+
             if (($defense_start >= $schedule_start && $defense_start < $schedule_end) ||
                 ($defense_end > $schedule_start && $defense_end <= $schedule_end) ||
-                ($defense_start <= $schedule_start && $defense_end >= $schedule_end)) {
+                ($defense_start <= $schedule_start && $defense_end >= $schedule_end)
+            ) {
                 return true;
             }
         }
@@ -237,10 +264,12 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
         foreach ($all_defenses as $existing_defense) {
             if ($existing_defense['day'] == $day && $existing_defense['room'] == $room) {
                 $existing_start = strtotime($existing_defense['time_slot']);
-                $existing_end = strtotime('+1 hour', $existing_start);
-                
+                $duration = $_POST['duration'];
+                $existing_end = strtotime('+' . $duration . ' hour', $existing_start);
+
                 if (($defense_start >= $existing_start && $defense_start < $existing_end) ||
-                    ($defense_end > $existing_start && $defense_end <= $existing_end)) {
+                    ($defense_end > $existing_start && $defense_end <= $existing_end)
+                ) {
                     return true;
                 }
             }
@@ -250,7 +279,8 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
     return false;
 }
 
-function saveScheduleToDatabase($pdo, $schedule) {
+function saveScheduleToDatabase($pdo, $schedule)
+{
     try {
         $pdo->beginTransaction();
 
@@ -264,7 +294,8 @@ function saveScheduleToDatabase($pdo, $schedule) {
             $date = new DateTime($defense['day']);
             $startTime = new DateTime($defense['time_slot']);
             $endTime = clone $startTime;
-            $endTime->modify('+1 hour');
+            $duration = $_POST['duration'];
+            $endTime->modify('+' . $duration . ' hour');
 
             $stmt->execute([
                 $defense['team_id'],
@@ -287,7 +318,8 @@ function saveScheduleToDatabase($pdo, $schedule) {
     }
 }
 
-class DefenseSchedule {
+class DefenseSchedule
+{
     public $pdo;  // Change this to public
     public $chromosomes = [];
     public $fitness = 0;
@@ -301,7 +333,8 @@ class DefenseSchedule {
     public static $populationPerGeneration = [];
     public $all_defenses = [];
 
-    public function __construct($pdo, $teams, $panelists, $rooms, $timeSlots, $days) {
+    public function __construct($pdo, $teams, $panelists, $rooms, $timeSlots, $days)
+    {
         $this->pdo = $pdo;
         foreach ($teams as $team) {
             $availablePanelists = array_diff($panelists, [$team['adviser_id']]);
@@ -317,7 +350,8 @@ class DefenseSchedule {
         }
     }
 
-    public function calculateFitness($userSchedules) {
+    public function calculateFitness($userSchedules)
+    {
         $this->fitness = 0;
         $conflicts = 0;
         foreach ($this->chromosomes as $defense) {
@@ -335,7 +369,7 @@ class DefenseSchedule {
                 $this->fitness -= 10;
                 $conflicts++;
             }
-            
+
             foreach ($defense['panelist_ids'] as $panelist_id) {
                 if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
                     $this->fitness -= 5;
@@ -348,11 +382,12 @@ class DefenseSchedule {
     }
 }
 
-function getTeamMembers($pdo, $team_id, $format = 'array') {
+function getTeamMembers($pdo, $team_id, $format = 'array')
+{
     $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, tm.role FROM team_members tm JOIN users u ON tm.user_id = u.id WHERE tm.team_id = ? ORDER BY FIELD(tm.role, 'adviser', 'leader', 'member')");
     $stmt->execute([$team_id]);
     $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if ($format === 'array') {
         return array_map(function ($member) {
             return [
@@ -371,7 +406,8 @@ function getTeamMembers($pdo, $team_id, $format = 'array') {
 }
 
 // Unused functions are kept at the end
-function isTimeSlotAvailable($schedule, $day, $timeSlot, $room) {
+function isTimeSlotAvailable($schedule, $day, $timeSlot, $room)
+{
     foreach ($schedule->chromosomes as $defense) {
         if ($defense['day'] == $day && $defense['time_slot'] == $timeSlot && $defense['room'] == $room) {
             return false;
@@ -380,7 +416,8 @@ function isTimeSlotAvailable($schedule, $day, $timeSlot, $room) {
     return true;
 }
 
-function getAvailableTimeSlot($schedule, $days, $timeSlots, $rooms) {
+function getAvailableTimeSlot($schedule, $days, $timeSlots, $rooms)
+{
     $availableSlots = [];
     foreach ($days as $day) {
         foreach ($timeSlots as $timeSlot) {
@@ -394,21 +431,22 @@ function getAvailableTimeSlot($schedule, $days, $timeSlots, $rooms) {
     return $availableSlots ? $availableSlots[array_rand($availableSlots)] : null;
 }
 
-function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array') {
+function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
+{
     $query = "SELECT u.id, u.first_name, u.last_name, tm.role 
               FROM team_members tm 
               JOIN users u ON tm.user_id = u.id 
               WHERE tm.team_id = :team_id";
-    
+
     try {
         $stmt = $pdo->prepare($query);
         $stmt->execute(['team_id' => $team_id]);
         $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         if ($return_type === 'array') {
             return $members;
         } else {
-            return implode(', ', array_map(function($member) {
+            return implode(', ', array_map(function ($member) {
                 return $member['first_name'] . ' ' . $member['last_name'];
             }, $members));
         }

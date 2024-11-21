@@ -567,32 +567,74 @@ $(document).ready(function () {
             });
         }
     });
-
+    if (typeof moment === 'undefined') {
+        console.error("Moment.js is not loaded!");
+    }
+    
     $(document).ready(function () {
+        // Datepicker initialization
+        $("#days").datepicker({
+            dateFormat: "yy-mm-dd",
+            multidate: true,
+            beforeShowDay: function(date) {
+                var day = date.getDay();
+                return [day != 0, '']; // Disable Sundays
+            }
+        });
+    
+        $('#saveSchedulerSettings').on('click', function() {
+            // You can add validation here if needed (e.g., check if rooms, dates are provided)
+            $('#schedulerSettingsModal').modal('hide'); // Close the modal
+            // Enable "Generate Schedule" button after settings are saved
+            $('#generateSchedule').prop('disabled', false);
+        });
+    
         $('#generateSchedule').on('click', function () {
             var $button = $(this);
             var $status = $('#scheduleGenerationStatus');
-
+    
+            // Get scheduler settings
+            var rooms = $('#rooms').val().split(',').map(function(room) {
+                return room.trim();
+            });
+            var timeDuration = parseInt($('#timeDuration').val());
+            var startTime = $('#startTime').val();
+            var endTime = $('#endTime').val();
+            var days = $('#days').datepicker('getDates').map(function(date) {
+                return moment(date).format('YYYY-MM-DD'); // Format dates correctly
+            });
+    
+            var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
+    
             $button.prop('disabled', true).text('Generating...');
             $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
-
+    
             $.ajax({
                 url: 'includes/run_scheduler.php',
                 method: 'POST',
+                data: { 
+                    rooms: rooms, 
+                    timeSlots: timeSlots, 
+                    days: days,
+                    duration: timeDuration
+                },
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
                         $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-
-                        // Update metrics
+    
+                        // Update metrics (include all relevant metrics from the PHP response)
                         $('#initialPopulationSize').text(response.initialPopulationSize);
                         $('#crossoverCount').text(response.crossoverCount);
                         $('#mutationCount').text(response.mutationCount);
                         $('#conflictCounts').text(response.conflictCounts.join(', '));
-
+                        // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
+    
+                        // Reload or update the schedule display after a short delay
                         setTimeout(function () {
-                            //location.reload();
+                            location.reload(); // Or update the schedule table dynamically
                         }, 2000);
+    
                     } else {
                         $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
                         $button.prop('disabled', false).text('Generate Defense Schedule');
@@ -605,10 +647,35 @@ $(document).ready(function () {
                     }
                     $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
                     $button.prop('disabled', false).text('Generate Defense Schedule');
-                }
+                },
+                complete: function() {
+                  // This will run regardless of success or failure.
+                  // Optionally, you can remove the "Generating..." state here.
+                  $button.text('Generate Defense Schedule');
+              }
             });
         });
+    
+        function generateTimeSlots(start, end, duration) {
+            var timeSlots = [];
+        
+            // Parse start and end times as Moment.js objects
+            var current = moment(start, "HH:mm");
+            var endTime = moment(end, "HH:mm");
+        
+            // Loop to generate slots
+            while (current.isBefore(endTime)) {
+                timeSlots.push(current.format("HH:mm:ss"));
+        
+                // Increment by 30 minutes for the next slot
+                current.add(30, "minutes");
+            }
+        
+            return timeSlots;
+        }
+    
     });
+    
 });
 function addNewPanelist(staff) {
     console.log('addNewPanelist function called');

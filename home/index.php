@@ -39,6 +39,9 @@ include '..\assets\setup\db.inc.php';
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
+// echo '<pre>';
+// print_r($_SESSION['team_id'][0]);
+// echo '</pre>';
 ?>
 
 <script>
@@ -114,15 +117,33 @@ error_reporting(E_ALL);
         <div class="col-sm-9">
             <div class="tab-content" id="v-pills-tabContent">
                 <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
-                        <div class="media text-muted pt-3">
-                            <!-- <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary"> -->
-                            <div id="calendar"></div> <!-- Calendar div -->
-                            </p>
+                    <div class="row"> <!-- Added a row wrapper -->
+                        <div class="col-sm-9 my-3 p-3 home-sidebar-box">
+                            <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
+                            <div class="media text-muted pt-3">
+                                <!-- Calendar Div -->
+                                <div id="calendar"></div>
+                            </div>
+                        </div>
+                        <?php
+                        $stmt = $pdo->query("SELECT name, due_date FROM coecsa_thesis.requirements;");
+                        $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        ?>
+                        <div class="requirements-list col-sm-3 my-3 p-3">
+                            <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirements</h6>
+                            <ul class="list-group">
+                                <?php foreach ($requirements as $requirement): ?>
+                                    <li class="list-group-item">
+                                        <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
+                                        <br>
+                                        <small>Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
                         </div>
                     </div>
                 </div>
+
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
                     <div class="my-3 p-3 home-sidebar-box">
@@ -378,9 +399,11 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
             <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>
+            // console.log("Loading requirements for teamId:", teamId);
             loadRequirements(); // Just call the function here for usertype 1
 
             function loadRequirements() {
+
                 $.ajax({
                     url: 'includes/get_requirements.php',
                     method: 'GET',

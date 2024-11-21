@@ -115,7 +115,7 @@ if (!isset($_POST['loginsubmit'])) {
                 $_SESSION['deleted_at'] = $row['deleted_at'];
                 $_SESSION['last_login_at'] = $row['last_login_at'];
                 $_SESSION['usertype'] = $row['usertype'];
-                $_SESSION['team_id'] = $row['team_id'];
+                // $_SESSION['team_id'] = $row['team_id'];
                 $sql = "SELECT * FROM team_members WHERE user_id=?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$_SESSION['id']]);
@@ -126,14 +126,12 @@ if (!isset($_POST['loginsubmit'])) {
                     $teamRoles = [];
 
                     foreach ($teamMemberRows as $row) {
-                        if ($row['role'] === 'adviser') {
-                            $teamId[] = $row['team_id'];
-                        }
+                        $teamId[] = $row['team_id'];
                         $teamRoles[] = $row['role']; // Collecting all roles for reference
                     }
 
                     $_SESSION['team_role'] = implode(',', array_unique($teamRoles)); // Store all unique roles
-                    $_SESSION['team_id'] = $teamId; // Store an array of team IDs if role is adviser
+                    $_SESSION['team_id'] = $teamId; // Store an array of team IDs
                 }
 
                 //$_SESSION['expire'] = time() + 1000; // Session expires in 24 hours
