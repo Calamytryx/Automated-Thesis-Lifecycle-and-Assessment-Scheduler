@@ -197,7 +197,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Check if there's a previously selected tab stored in localStorage
-        let activeTab = localStorage.getItem("activeTab");
+        const activeTab = localStorage.getItem("activeTab");
 
         // If there is a stored active tab, activate it
         if (activeTab) {
@@ -216,12 +216,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Activate the tab and its content
             const activeTabPane = document.getElementById(activeTab);
             const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+            console.log("Active tab:", activeTab);
+            console.log("Active tab pane:", activeTabPane);
+            console.log("Active nav link:", activeNavLink);
 
             if (activeTabPane) {
                 activeTabPane.classList.add("show", "active");
+            } else {
+                document.getElementById('overview').classList.add("show", "active");
             }
             if (activeNavLink) {
                 activeNavLink.classList.add("active");
+            } else {
+                document.getElementById('overview-tab').classList.add("active");
             }
         }
 
