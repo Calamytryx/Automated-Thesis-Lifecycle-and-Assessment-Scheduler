@@ -233,7 +233,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         // Add event listener to tabs to update localStorage when clicked
-        const tabs = document.querySelectorAll('.nav-link');
+        const tabs = document.querySelectorAll('#v-pills-tab .nav-link');
         tabs.forEach(tab => {
             tab.addEventListener('click', function(event) {
                 // Store the ID of the clicked tab-pane

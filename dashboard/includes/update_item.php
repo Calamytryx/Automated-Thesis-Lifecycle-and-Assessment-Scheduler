@@ -56,45 +56,69 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $name = $_POST['name'] ?? '';
                 $title = $_POST['title'] ?? '';
                 $members = json_decode($_POST['members'] ?? '[]', true);
-            
+                
                 error_log("Updating team: Name=$name, Title=$title, Members=" . print_r($members, true));
-            
+                
                 // Update team name
                 $sql = "UPDATE `teams` SET `name` = ? WHERE `id` = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$name, $id]);
                 error_log("Team name updated. Affected rows: " . $stmt->rowCount());
-            
+                
                 // Update research title
                 $sql = "UPDATE `research_titles` SET `title` = ? WHERE `team_id` = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$title, $id]);
                 error_log("Research title updated. Affected rows: " . $stmt->rowCount());
+                
+                // Get current members in the team
+                $currentMembers = $pdo->query("SELECT user_id, role FROM team_members WHERE team_id = $id")->fetchAll(PDO::FETCH_ASSOC);
+                $currentMembersMap = [];
+                foreach ($currentMembers as $currentMember) {
+                    $currentMembersMap[$currentMember['user_id']] = $currentMember['role'];
+                }
             
-                // Update team members
-                $currentMembers = $pdo->query("SELECT user_id FROM team_members WHERE team_id = $id")->fetchAll(PDO::FETCH_COLUMN);
-                $newMembers = array_column($members, 'id');
-
+                // Create an associative array of the new members with their roles
+                $newMembers = [];
+                foreach ($members as $member) {
+                    $newMembers[$member['id']] = $member['role'];
+                }
+            
                 // Remove members not in the new list
-                $membersToRemove = array_diff($currentMembers, $newMembers);
+                $membersToRemove = array_diff(array_keys($currentMembersMap), array_keys($newMembers));
                 if (!empty($membersToRemove)) {
                     $sql = "DELETE FROM team_members WHERE team_id = ? AND user_id IN (" . implode(',', array_fill(0, count($membersToRemove), '?')) . ")";
                     $stmt = $pdo->prepare($sql);
                     $stmt->execute(array_merge([$id], $membersToRemove));
                     error_log("Removed members: " . implode(', ', $membersToRemove));
                 }
-
-                // Add new members and update roles
-                $sql = "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?) ON DUPLICATE KEY UPDATE role = VALUES(role)";
+            
+                // Handle updating the roles for members, ensuring no duplicate user for the same team
+                $sql = "INSERT INTO team_members (team_id, user_id, role) 
+                        VALUES (?, ?, ?) 
+                        ON DUPLICATE KEY UPDATE role = VALUES(role)";
                 $stmt = $pdo->prepare($sql);
-
+            
+                // Loop through the new members and ensure no duplicates for the same team_id
                 foreach ($members as $member) {
-                    $stmt->execute([$id, $member['id'], $member['role']]);
-                    error_log("Updated/Added member. User ID: {$member['id']}, Role: {$member['role']}, Team ID: $id. Affected rows: " . $stmt->rowCount());
+                    // Check if the user already exists in the team
+                    if (isset($currentMembersMap[$member['id']])) {
+                        // If the user already exists, update their role if needed
+                        if ($currentMembersMap[$member['id']] !== $member['role']) {
+                            // Update their role in the team
+                            $stmt->execute([$id, $member['id'], $member['role']]);
+                            error_log("Updated member role. User ID: {$member['id']}, Role: {$member['role']}, Team ID: $id. Affected rows: " . $stmt->rowCount());
+                        }
+                    } else {
+                        // If the user is not in the team, insert them
+                        $stmt->execute([$id, $member['id'], $member['role']]);
+                        error_log("Added member. User ID: {$member['id']}, Role: {$member['role']}, Team ID: $id. Affected rows: " . $stmt->rowCount());
+                    }
                 }
-
+            
                 $result = true; // Assume success if no exception is thrown
-            } elseif ($table === 'defense_schedules') {
+            }
+             elseif ($table === 'defense_schedules') {
                 // Handle defense schedules update
                 $schedule_date = $_POST['schedule_date'] ?? '';
                 $start_time = $_POST['start_time'] ?? '';
