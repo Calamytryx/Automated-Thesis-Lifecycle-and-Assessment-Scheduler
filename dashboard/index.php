@@ -205,13 +205,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             const allTabPanes = document.querySelectorAll('.tab-pane');
             const allNavLinks = document.querySelectorAll('.nav-link');
 
-            // allTabPanes.forEach(pane => {
-            //     pane.classList.remove("show", "active");
-            // });
+            allTabPanes.forEach(pane => {
+                pane.classList.remove("show", "active");
+            });
 
-            // allNavLinks.forEach(link => {
-            //     link.classList.remove("active");
-            // });
+            allNavLinks.forEach(link => {
+                link.classList.remove("active");
+            });
 
             // Activate the tab and its content
             const activeTabPane = document.getElementById(activeTab);
