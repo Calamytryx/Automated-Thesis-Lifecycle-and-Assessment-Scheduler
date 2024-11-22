@@ -45,7 +45,7 @@
 .btn-primary {
     border: none;
     border-radius: 10px;
-    padding: 1rem;
+    padding: 12px;
     font-size: 1.2rem;
     margin-top: 20px;
     background-color: var(--main-primary);
@@ -67,4 +67,11 @@
 #username, #password{
     background-color: var(--main-bg-light);
     border: solid 1px var(--main-bg-dark);
+    padding: 12px;
+}
+
+.login-card{
+    background-color: var(--main-bg-light);
+    border: solid 1px var(--main-bg-dark);
+    border-radius: 10px;
 }

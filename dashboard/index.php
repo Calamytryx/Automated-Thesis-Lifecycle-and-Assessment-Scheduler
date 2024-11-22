@@ -244,7 +244,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     });
 </script>
 
-<main role="main" class="container-fluid">
+<main role="main" class="container">
     <div class="row">
         <!-- <div class="col-sm-3">
             <?php //include('../assets/layouts/profile-card.php'); 
@@ -255,11 +255,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- Admin dashboard content -->
                 <div class="row">
                     <div class="col-sm-3">
-                        <div class="d-flex align-items-center p-3 my-3 sidebar-header rounded shadow-sm">
-                            <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
+                        <div class="d-flex align-items-center p-3 my-3 sidebar-header">
+                        <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
                             <div class="lh-100">
-                                <h5 class="mb-0 lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h5>
-                                <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
+                                <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
+                                <!-- <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small> -->
                             </div>
                         </div>
                         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">

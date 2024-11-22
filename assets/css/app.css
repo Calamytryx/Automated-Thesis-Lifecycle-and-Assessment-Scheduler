@@ -83,7 +83,7 @@ a{
     transition: background-color 0.3s ease;
 }
 a:hover{
-    color: var(--main-accent);
+    color: var(--main-primary);
 }
 a.visited{
     color: var(--secondary-400);
@@ -200,11 +200,12 @@ a.visited{
 }
 
 .nav-item:hover{
-    background-color: var(--neutral-200);
+    background-color: var(--main-bg-light);
     border: none;
     border-radius: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
- 
+
 #nav-ul li :hover{
     background-color: var(--neutral-100); 
 }
@@ -215,25 +216,28 @@ a.visited{
 }
 
 .nav-pills .nav-link:hover {
-    background-color: var(--neutral-200); 
+    background-color: var(--main-bg-light);  
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.08);
     color: var(--main-bg-dark); 
 }
  
 .nav-pills .nav-link.active {
-    background-color: var(--secondary-400); 
+    background-color: var(--main-bg-light); 
     color: var(--main-bg-dark);  
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
     transition: background-color 0.3s ease;
 }
 
 .nav-pills .nav-link.active:hover {
-    background-color: var(--secondary-600);
-    color: var(--main-bg-dark);
+    background-color: var(--main-primary);
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    color: var(--main-bg-light);
 }
 
 .sidebar-header{
-    background-color: var(--neutral-900);
-    border: solid 1px var(--main-bg-dark);
-    color: var(--main-bg-light);
+    background-color: var(--main-bg-light);
+    border: none;
+    color: var(--main-bg-dark);
 }
 
 /* --------------Profile card---------------------- */
@@ -424,8 +428,10 @@ border-top: solid 1px var(--main-bg-dark);
 .thesis-card {
     display: flex;
     align-items: center;
-    background-color: var(--main-white);
-    border: solid 1px var(--main-bg-dark);
+    background-color: var(--main-bg-light);
+    border: none;
+    border-radius: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
     border-radius: 5px;
 }
 
@@ -466,16 +472,34 @@ border-top: solid 1px var(--main-bg-dark);
 }
 
 .user-card{
-    background-color: var(--main-white);
-    border: solid 1px var(--main-bg-dark);
+    background-color: var(--main-bg-light);
+    border: none;
     border-radius: 5px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .overview-users-count{
     color: var(--main-primary);
 }
 
-.thesis-card
+/* Dashboard table */
+
+.db-table{
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+} 
+
+.db-table th {
+    background-color: var(--main-white);
+    color: var(--main-primary);
+    text-align: center;
+}
+
+.db-table td, .db-table th {
+    padding: 10px;
+    vertical-align: middle; 
+}
 
 /* Scrollbar styles */
 ::-webkit-scrollbar {

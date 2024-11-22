@@ -52,7 +52,7 @@
                                 <span id="scheduleGenerationStatus" class="ml-2"></span>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped table-sm">
+                                <table class="table table-bordered table-hover table-sm db-table">
                                     <thead>
                                         <tr>
                                             <th>Date & Time</th>
@@ -100,13 +100,17 @@
                                                 <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
                                                 <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
                                                 <td><?php echo htmlspecialchars($schedule['room']); ?></td>
-                                                <td>
-                                                    <button class="btn btn-primary btn-sm edit-btn"
+                                                <td class="text-center align-middle">
+                                                    <div class="d-flex">
+                                                        <button class="btn btn-primary btn-sm edit-btn"
                                                         data-table="defense_schedules"
-                                                        data-id="<?php echo $schedule['id']; ?>">Edit</button>
-                                                    <button class="btn btn-danger btn-sm delete-btn"
+                                                        data-id="<?php echo $schedule['id']; ?>">Edit
+                                                        </button>
+                                                        <button class="btn btn-danger btn-sm delete-btn"
                                                         data-table="defense_schedules"
-                                                        data-id="<?php echo $schedule['id']; ?>">Delete</button>
+                                                        data-id="<?php echo $schedule['id']; ?>">Delete
+                                                        </button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endfor; ?>
@@ -114,10 +118,11 @@
                                 </table>
                                 <div id="scheduleGenerationResult" class="mb-3"></div>
                                 <nav aria-label="Page navigation">
-                                    <ul class="pagination">
+                                    <ul class="pagination justify-content-center">
                                         <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
                                             <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
+                                                <!-- <span aria-hidden="true">&laquo;</span> -->
+                                                 Previous
                                             </a>
                                         </li>
                                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
@@ -127,7 +132,8 @@
                                         <?php endfor; ?>
                                         <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
                                             <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
+                                                <!-- <span aria-hidden="true">&raquo;</span> -->
+                                                 Next
                                             </a>
                                         </li>
                                     </ul>

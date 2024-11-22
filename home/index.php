@@ -98,18 +98,18 @@ error_reporting(E_ALL);
         <div class="col-sm-3">
             <!-- Sidebar -->
             <div class="sidebar">
-                <div class="d-flex align-items-center p-3 my-3 sidebar-header rounded shadow-sm">
+                <div class="d-flex align-items-center p-3 my-3 sidebar-header">
                     <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
                     <div class="lh-100">
-                        <h5 class="mb-0 lh-100"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h5>
-                        <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
+                        <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
+                        <!-- <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small> -->
                     </div>
                 </div>
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Calendar</a>
-                    <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
-                    <a class="nav-link" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
-                    <a class="nav-link" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">Requirement Checker</a>
+                    <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Calendar</a>
+                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
+                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
+                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">Requirement Checker</a>
                 </div>
             </div>
         </div>
@@ -119,7 +119,7 @@ error_reporting(E_ALL);
                 <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
                     <div class="row"> <!-- Added a row wrapper -->
                         <div class="col-sm-9 my-3 p-3 home-sidebar-box">
-                            <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h6>
+                            <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h4>
                             <div class="media text-muted pt-3">
                                 <!-- Calendar Div -->
                                 <div id="calendar"></div>
@@ -130,24 +130,24 @@ error_reporting(E_ALL);
                         $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         ?>
                         <div class="requirements-list col-sm-3 my-3 p-3">
-                            <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirements</h6>
+                            <h4 class="pb-2 mb-0 feature-title">Requirements</h4> 
                             <ul class="list-group">
                                 <?php foreach ($requirements as $requirement): ?>
-                                    <li class="list-group-item">
+                                    <li class="list-group-item my-1 req-li">
                                         <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                        <br>
-                                        <small>Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                        <br> 
+                                        <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
                                     </li>
                                 <?php endforeach; ?>
-                            </ul>
-                        </div>
+                            </ul> 
+                        </div> 
                     </div>
                 </div>
 
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
                     <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Latest topic trends</h6>
+                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Latest topic trends</h4>
                         <div class="media text-muted pt-3">
                             <div class="form-group">
                                 <label for="thesisField">Select a field:</label>
@@ -196,7 +196,7 @@ error_reporting(E_ALL);
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
                     <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Research Title Acceptance Tool</h6>
+                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Research Title Acceptance Tool</h4>
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 feature-subtitle">
                                 <strong class="d-block text-gray-dark">Title Uniqueness Check</strong>
@@ -220,13 +220,13 @@ error_reporting(E_ALL);
 
                 <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
                     <div class="my-3 p-3 home-sidebar-box">
-                        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirement Checker Tool</h6>
+                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirement Checker Tool</h4>
                         <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125 border-bottom border-secondary">
+                            <p class="media-body pb-3 mb-0 small lh-125">
                                 <strong class="d-block text-gray-dark">Document Checklist</strong>
                             <div id="teamSelectorContainer">
                                 <!-- The dropdown will be dynamically inserted here -->
-                            </div>
+                            </div> 
                             <div id="requirementChecklist">
                                 <!-- Checklist items will be dynamically added here -->
                             </div>
@@ -415,23 +415,21 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 <?php if ($role === 'leader' || $role === 'member') { ?>
                                     displayHtml += `
                                 <div class="col-md-6 mb-4">
-                                    <div class="card h-100 shadow-sm">
-                                        <div class="card-body">
-                                            <h5 class="card-title">${req.name}</h5>
+                                    <div class="card h-100 shadow-sm rounded">
+                                        <div class="card-body rct-cbody">
+                                            <h5 class="card-title rct-ctitle">${req.name}</h5>
                                             <p class="card-text">${req.description}</p>
+                                            <p class="card-text"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
+                                            <p class="card-text"><strong>Status:</strong> ${req.status}</p>
+                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback}</p>
                                         </div>
-                                        <ul class="list-group list-group-flush">
-                                            <li class="list-group-item"><strong>Due Date:</strong> ${new Date(req.due_date).toLocaleDateString()}</li>
-                                            <li class="list-group-item"><strong>Status:</strong> ${req.status}</li>
-                                            <li class="list-group-item"><strong>Feedback:</strong> ${req.feedback}</li>
-                                        </ul>
                                         <div class="card-footer">
                                             ${req.feedback_file ? 
                                                 `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` 
                                                 : ''}
-                                        </div>
+                                        </div> 
                                         <?php if ($role === 'leader') { ?>
-                                        <div class="card-footer">
+                                        <div class="card-footer rct-cfooter">
                                             <form id="uploadForm-${req.id}" enctype="multipart/form-data">
                                                 <input type="hidden" name="document_name" value="${req.name}">
                                                 <input type="hidden" name="requirement_id" value="${req.id}">
@@ -439,8 +437,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                                 <label for="file-${req.id}" class="form-label">Upload File</label>
                                                 <input class="form-control" type="file" id="file-${req.id}" name="file" required>
                                                 </div>
-                                                <button type="submit" class="btn btn-secondary">Submit File</button>
-                                            </form>
+                                                <button type="submit" class="btn btn-primary feature-btn">Submit File</button>
+                                            </form> 
                                         </div>
                                         <?php } ?>
                                     </div>

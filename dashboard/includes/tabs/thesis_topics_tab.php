@@ -4,7 +4,7 @@
                             <div class="d-flex justify-content-between align-items-center mb-3 my-3">
                                 <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="thesis_topics">Add Thesis Topic</button>
                             </div>
-                            <div class="my-3 p-3 home-sidebar-box">
+                            <div class="my-3 home-sidebar-box">
                                 <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Thesis Topic Decision Tool</h6>
                                 <div class="media text-muted pt-3">
                                     <div class="form-group">
@@ -31,7 +31,7 @@
                             </div>
 
                             <div class="table-responsive">
-                                <table class="table table-striped table-sm">
+                                <table class="table table-bordered table-hover table-sm db-table">
                                     <thead>
                                         <tr>
                                             <th>Topic</th>
@@ -54,9 +54,11 @@
                                                 <td><?php echo htmlspecialchars($topic['topic']); ?></td>
                                                 <td><?php echo htmlspecialchars($topic['description']); ?></td>
                                                 <td><?php echo htmlspecialchars($topic['category']); ?></td>
-                                                <td>
-                                                    <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Edit</button>
-                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Delete</button>
+                                                <td class="text-center align-middle">
+                                                    <div class="d-flex gap-2">
+                                                        <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Edit</button>
+                                                        <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="<?php echo $topic['id']; ?>">Delete</button>
+                                                    </div>
                                                 </td>
                                             </tr>
                                         <?php endforeach; ?>
@@ -64,10 +66,11 @@
                                 </table>
                             </div>
                             <nav aria-label="Page navigation">
-                                <ul class="pagination">
+                                <ul class="pagination justify-content-center">
                                     <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
                                         <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                                            <span aria-hidden="true">&laquo;</span>
+                                            <!-- <span aria-hidden="true">&laquo;</span> -->
+                                            Previous
                                         </a>
                                     </li>
                                     <?php for ($i = 1; $i <= $totalPages; $i++): ?>
@@ -77,7 +80,8 @@
                                     <?php endfor; ?>
                                     <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
                                         <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                                            <span aria-hidden="true">&raquo;</span>
+                                            <!-- <span aria-hidden="true">&raquo;</span> -->
+                                            Next
                                         </a>
                                     </li>
                                 </ul>

@@ -36,9 +36,9 @@ body {
 }
 
 .home-sidebar-box{
-    background-color: var(--main-white);
-    border: solid 1px var(--main-bg-dark);
+    background-color: var(--main-white); 
     border-radius: 10px;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
 }
 
 .feature-title{
@@ -74,3 +74,29 @@ body {
 .feature-btn:hover{
     background-color: var(--primary-400);
 }
+
+.req-li{
+    background-color: var(--main-bg-light);
+    border: none; 
+}  
+
+.req-li:hover{
+    background-color: var(--main-bg-light);
+    border: none;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    border-radius: 10px;
+    color: var(--main-primary);  
+}  
+
+.due-date-txt{
+    color: var(--neutral-700);
+}
+
+.rct-ctitle{
+    font-weight: bold;
+    color: var(--main-primary);
+}
+
+.rct-cbody,.rct-cfooter{
+    background-color: var(--main-white);
+} 

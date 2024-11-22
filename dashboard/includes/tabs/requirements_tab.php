@@ -5,7 +5,7 @@
                                     Requirement</button>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped table-sm">
+                                <table class="table table-bordered table-hover table-sm db-table">
                                     <thead>
                                         <tr>
                                             <th>Name</th>
@@ -28,7 +28,7 @@
                                                 <td><?php echo htmlspecialchars($requirement['name']); ?></td>
                                                 <td><?php echo htmlspecialchars($requirement['description']); ?></td>
                                                 <td><?php echo htmlspecialchars($requirement['due_date']); ?></td>
-                                                <td>
+                                                <td class="text-center align-middle">
                                                     <button class="btn btn-primary btn-sm edit-btn" data-table="requirements" data-id="<?php echo $requirement['id']; ?>">Edit</button>
                                                     <button class="btn btn-danger btn-sm delete-btn" data-table="requirements" data-id="<?php echo $requirement['id']; ?>">Delete</button>
                                                 </td>
@@ -38,10 +38,11 @@
                                 </table>
                             </div>
                             <nav>
-                                <ul class="pagination">
+                                <ul class="pagination justify-content-center">
                                     <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
                                         <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                                            <span aria-hidden="true">&laquo;</span>
+                                            <!-- <span aria-hidden="true">&laquo;</span> -->
+                                             Previous
                                         </a>
                                     </li>
                                     <?php for ($i = 1; $i <= $total_pages; $i++): ?>
@@ -51,7 +52,8 @@
                                     <?php endfor; ?>
                                     <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
                                         <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                                            <span aria-hidden="true">&raquo;</span>
+                                            <!-- <span aria-hidden="true">&raquo;</span> -->
+                                             Next
                                         </a>
                                     </li>
                                 </ul>

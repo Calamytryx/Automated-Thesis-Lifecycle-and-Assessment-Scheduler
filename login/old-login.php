@@ -7,28 +7,29 @@ $first_letter = substr($app_name, 0, 1);
 $rest_of_name = substr($app_name, 1);
 ?>
 
-<div class="container d-flex align-items-center justify-content-center vh-100">
-    <div class="card shadow-lg p-4 login-card" style="max-width: 400px; width: 100%;">
-        <div class="card-body">
-            <!-- Logo -->
-            <div class="text-center mb-4">
-                <img src="../assets/images/logo_full_lightbg.png" alt="Logo" class="img-fluid" style="width: 200px; height: auto;">
+<div id="log-reg-container">
+    <div class="row g-0">
+        <div class="img-container">
+        <div class="overlay"></div>
+            <img src="../assets/images/login-bg.jpg" alt="Building">
+        </div> 
+        <div class="form-container">
+            <div class="logo">
+                <img src="../assets/images/logo_full_lightbg.png" alt="logo" style="width:268px; height:100px;">
+            <!-- <span class="text-1"><?php echo $first_letter; ?></span><span class="text-2"><?php echo $rest_of_name; ?></span> -->
             </div>
+            <form class="form-auth form" action="includes/login.inc.php" method="post">
 
-            <!-- Status Message -->
-            <div class="text-center mb-3">
-                <small class="text-success font-weight-bold">
-                    <?php
-                        if (isset($_SESSION['STATUS']['loginstatus']))
-                            echo $_SESSION['STATUS']['loginstatus'];
-                    ?>
-                </small>
-            </div> 
-
-            <!-- Login Form -->
-            <form action="includes/login.inc.php" method="post">
-                <!-- CSRF Token -->
                 <?php insert_csrf_token(); ?>
+
+                <div class="text-center mb-3">
+                    <small class="text-success font-weight-bold">
+                        <?php
+                            if (isset($_SESSION['STATUS']['loginstatus']))
+                                echo $_SESSION['STATUS']['loginstatus'];
+                        ?>
+                    </small>
+                </div>
 
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
@@ -52,25 +53,24 @@ $rest_of_name = substr($app_name, 1);
                     </sub>
                 </div>
 
-                <!-- Forgot Password Link -->
                 <div class="mb-3 text-end">
                     <a href="../reset-password/" class="text-decoration-none">Forgot password?</a>
                 </div>
 
-                <!-- Submit Button -->
                 <button class="btn btn-primary w-100" type="submit" value="loginsubmit" name="loginsubmit">Login</button>
 
-                <!-- Remember Me -->
-                <div class="form-check my-3">
-                    <input type="checkbox" class="form-check-input" id="rememberme" name="rememberme">
-                    <label class="form-check-label" for="rememberme">Remember me</label>
+                <div class="col-auto my-1 mb-4">
+                    <div class="custom-control custom-checkbox mr-sm-2">
+                        <input type="checkbox" class="custom-control-input" id="rememberme" name="rememberme">
+                        <label class="custom-control-label" for="rememberme">Remember me</label>
+                    </div>
                 </div>
-            </form>
 
-            <!-- Footer Links -->
-            <p class="mt-4 text-muted text-center">
-                <a href="../contact" target="_blank" class="text-decoration-none">Contact Us</a>
-            </p>
+                <p class="mt-4 mb-3 text-muted text-center">
+                    <a href="../contact" target="_blank">Contact Us</a>
+                    <!-- <a href="../register/" target="_blank">No account? Sign up</a> -->
+                </p>
+            </form>
         </div>
     </div>
 </div>

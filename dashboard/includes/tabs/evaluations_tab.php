@@ -5,7 +5,7 @@
                                     Evaluation</button>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped table-sm">
+                                <table class="table table-bordered table-hover table-sm db-table">
                                     <thead>
                                         <tr>
                                             <th>Defense Schedule</th>
@@ -31,7 +31,7 @@
                                             <td><?php echo htmlspecialchars(getUserName($pdo, $evaluation['panelist_id'])); ?></td>
                                             <td><?php echo htmlspecialchars(getRubricName($pdo, $evaluation['rubric_id'])); ?></td>
                                             <td><?php echo htmlspecialchars($evaluation['score']); ?></td>
-                                            <td>
+                                            <td class="text-center align-middle">
                                                 <button class="btn btn-primary btn-sm edit-btn" data-table="evaluations"
                                                     data-id="<?php echo $evaluation['id']; ?>">Edit</button>
                                                 <button class="btn btn-danger btn-sm delete-btn" data-table="evaluations"
@@ -46,7 +46,8 @@
                                 <ul class="pagination">
                                 <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
                                             <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                                                <span aria-hidden="true">&laquo;</span>
+                                                <!-- <span aria-hidden="true">&laquo;</span> -->
+                                                 Previous
                                             </a>
                                         </li>
                                         <?php for ($i = 1; $i <= $total_pages; $i++): ?>
@@ -56,7 +57,8 @@
                                         <?php endfor; ?>
                                         <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
                                             <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                                                <span aria-hidden="true">&raquo;</span>
+                                                <!-- <span aria-hidden="true">&raquo;</span> -->
+                                                 Next
                                             </a>
                                         </li>
                                 </ul>

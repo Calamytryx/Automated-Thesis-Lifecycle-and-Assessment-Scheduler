@@ -6,7 +6,7 @@
                                     Environment Variable</button>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-striped table-sm">
+                                <table class="table table-bordered table-hover table-sm db-table">
                                     <thead>
                                         <tr>
                                             <th>Name</th>
@@ -19,7 +19,7 @@
                                         <tr>
                                             <td><?php echo htmlspecialchars($variable['key']); ?></td>
                                             <td><?php echo htmlspecialchars($variable['value']); ?></td>
-                                            <td>
+                                            <td class="text-center align-middle">
                                                 <button class="btn btn-primary btn-sm edit-btn"
                                                     data-table="env_variables"
                                                     data-id="<?php echo $variable['id']; ?>">Edit</button>
