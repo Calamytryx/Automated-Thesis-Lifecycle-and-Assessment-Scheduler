@@ -4,15 +4,6 @@
         <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="users">Add User</button>
     </div>
     <div class="table-responsive">
-        <?php
-        $limit = 10;
-        $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-        $offset = ($page - 1) * $limit;
-        $total_users = count($users);
-        $total_pages = ceil($total_users / $limit);
-        $users_to_display = array_slice($users, $offset, $limit);
-        ?>
-
         <table class="table table-bordered table-hover table-sm db-table">
             <thead>
                 <tr>
@@ -20,48 +11,100 @@
                     <th>Email</th>
                     <th>First Name</th>
                     <th>Last Name</th>
-                    <th>User Type</th> 
+                    <th>User Type</th>
                     <th>Action</th>
                 </tr>
-            </thead> 
+            </thead>
             <tbody>
-                <?php foreach ($users_to_display as $user): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars($user['username']); ?></td>
-                        <td><?php echo htmlspecialchars($user['email']); ?></td>
-                        <td><?php echo htmlspecialchars($user['first_name']); ?></td>
-                        <td><?php echo htmlspecialchars($user['last_name']); ?></td>
-                        <td><?php echo getUserType($user['usertype']); ?></td>
-                        <td class="text-center align-middle"> 
-                            <button class="btn btn-primary btn-sm edit-btn" data-table="users" data-id="<?php echo $user['id']; ?>">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-table="users" data-id="<?php echo $user['id']; ?>">Delete</button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
             </tbody>
         </table>
 
         <nav aria-label="Page navigation">
             <ul class="pagination justify-content-center">
-                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                    <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                        <span aria-hidden="true">&laquo;</span>
-                    </a>
-                </li>
-                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
-                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                    </li>
-                <?php endfor; ?>
-                <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                    <!-- <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                        <span aria-hidden="true">&raquo;</span>
-                    </a> -->
-                    <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                        Next
-                    </a>
-                </li>
+                <!-- Pagination loaded via AJAX -->
             </ul>
         </nav>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+            const loadUsers = (page = 1) => {
+                fetch(`includes/tabs/get_table.php?table=users&page=${page}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.error) {
+                    console.error(data.error);
+                    return;
+                    }
+
+                    const tbody = document.querySelector('.db-table tbody');
+                    tbody.innerHTML = '';
+                    data.data.forEach(user => {
+                    tbody.innerHTML += `
+                <tr>
+                    <td>${user.username}</td>
+                    <td>${user.email}</td>
+                    <td>${user.first_name}</td>
+                    <td>${user.last_name}</td>
+                    <td>${getUserType(user.usertype)}</td>
+                    <td class="text-center align-middle"> 
+                    <button class="btn btn-primary btn-sm edit-btn" data-table="users" data-id="${user.id}">Edit</button>
+                    <button class="btn btn-danger btn-sm delete-btn" data-table="users" data-id="${user.id}">Delete</button>
+                    </td>
+                </tr>
+                `;
+                    });
+
+                    // Pagination
+                    const pagination = document.querySelector('.pagination');
+                    pagination.innerHTML = '';
+
+                    // Previous Button
+                    pagination.innerHTML += `
+                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+                    Previous
+                </a>
+                </li>
+            `;
+
+                    // Page Numbers
+                    for (let i = 1; i <= data.total_pages; i++) {
+                    pagination.innerHTML += `
+                <li class="page-item ${page === i ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+                `;
+                    }
+
+                    // Next Button
+                    pagination.innerHTML += `
+                <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+                    Next
+                </a>
+                </li>
+            `;
+                });
+            };
+
+            const getUserType = (type) => {
+                return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Staff' : 'Unknown';
+            };
+
+            // Initial load
+            loadUsers();
+
+            // Handle pagination clicks
+            document.querySelector('.pagination').addEventListener('click', function(e) {
+                e.preventDefault();
+                if (e.target.tagName === 'A') {
+                const page = parseInt(e.target.getAttribute('data-page'));
+                if (!isNaN(page)) {
+                    loadUsers(page);
+                }
+                }
+            });
+            });
+        </script>
     </div>
 </div>

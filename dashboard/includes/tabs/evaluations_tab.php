@@ -1,11 +1,10 @@
 <!-- Evaluations Tab -->
 <div class="tab-pane fade" id="evaluations" role="tabpanel" aria-labelledby="evaluations-tab">
     <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="evaluations">Add
-            Evaluation</button>
+        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="evaluations">Add Evaluation</button>
     </div>
     <div class="table-responsive">
-        <table class="table table-bordered table-hover table-sm db-table">
+        <table class="table table-bordered table-hover table-sm db-table" id="evaluations-table">
             <thead>
                 <tr>
                     <th>Defense Schedule</th>
@@ -16,51 +15,85 @@
                 </tr>
             </thead>
             <tbody>
-                <?php
-                // Pagination logic
-                $limit = 10;
-                $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                $offset = ($page - 1) * $limit;
-                $totalEvaluations = count($evaluations);
-                $totalPages = ceil($totalEvaluations / $limit);
-                $currentEvaluations = array_slice($evaluations, $offset, $limit);
-
-                foreach ($currentEvaluations as $evaluation): ?>
-                    <tr>
-                        <td><?php echo htmlspecialchars(getDefenseScheduleInfo($pdo, $evaluation['defense_schedule_id'])); ?></td>
-                        <td><?php echo htmlspecialchars(getUserName($pdo, $evaluation['panelist_id'])); ?></td>
-                        <td><?php echo htmlspecialchars(getRubricName($pdo, $evaluation['rubric_id'])); ?></td>
-                        <td><?php echo htmlspecialchars($evaluation['score']); ?></td>
-                        <td class="text-center align-middle">
-                            <button class="btn btn-primary btn-sm edit-btn" data-table="evaluations"
-                                data-id="<?php echo $evaluation['id']; ?>">Edit</button>
-                            <button class="btn btn-danger btn-sm delete-btn" data-table="evaluations"
-                                data-id="<?php echo $evaluation['id']; ?>">Delete</button>
-                        </td>
-                    </tr>
-                <?php endforeach; ?>
+                <!-- Data will be dynamically populated via AJAX -->
             </tbody>
         </table>
     </div>
-    <nav aria-label="Page navigation">
-        <ul class="pagination">
-            <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                    <!-- <span aria-hidden="true">&laquo;</span> -->
-                    Previous
-                </a>
-            </li>
-            <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
-                    <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                </li>
-            <?php endfor; ?>
-            <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                    <!-- <span aria-hidden="true">&raquo;</span> -->
-                    Next
-                </a>
-            </li>
+    <nav aria-label="Page navigation" id="evaluations-pagination">
+        <ul class="pagination justify-content-center">
+            <!-- Pagination will be dynamically populated via AJAX -->
         </ul>
     </nav>
 </div>
+<script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const loadRubrics = (page = 1) => {
+                fetch(`includes/tabs/get_table.php?table=evaluations&page=${page}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.error) {
+                            console.error(data.error);
+                            return;
+                        }
+
+                        const tbody = document.querySelector('#evaluations .db-table tbody');
+                        tbody.innerHTML = '';
+                        data.data.forEach(evaluation => {
+                            tbody.innerHTML += `
+                                <tr>
+                            <td>${evaluation.defense_schedule}</td>
+                            <td>${evaluation.panelist}</td>
+                            <td>${evaluation.rubric}</td>
+                            <td>${evaluation.score}</td>
+                            <td class="text-center align-middle">
+                                <button class="btn btn-primary btn-sm edit-btn" data-table="evaluations" data-id="${evaluation.id}">Edit</button>
+                                <button class="btn btn-danger btn-sm delete-btn" data-table="evaluations" data-id="${evaluation.id}">Delete</button>
+                            </td>
+                        </tr>
+                            `;
+                        });
+
+                        // Update Pagination
+                        const pagination = document.querySelector('#evaluations .pagination');
+                        pagination.innerHTML = '';
+
+                        // Previous Button
+                        pagination.innerHTML += `
+                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">Previous</a>
+                            </li>
+                        `;
+
+                        // Page Numbers
+                        for (let i = 1; i <= data.total_pages; i++) {
+                            pagination.innerHTML += `
+                                <li class="page-item ${page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+                        }
+
+                        // Next Button
+                        pagination.innerHTML += `
+                            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">Next</a>
+                            </li>
+                        `;
+                    });
+            };
+
+            // Initial Load
+            loadRubrics();
+
+            // Handle Pagination Clicks
+            document.querySelector('#evaluations .pagination').addEventListener('click', function (e) {
+                e.preventDefault();
+                if (e.target.tagName === 'A') {
+                    const page = parseInt(e.target.getAttribute('data-page'));
+                    if (!isNaN(page)) {
+                        loadRubrics(page);
+                    }
+                }
+            });
+        });
+</script>
