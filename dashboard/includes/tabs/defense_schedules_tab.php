@@ -67,7 +67,7 @@
                         pagination.innerHTML = '';
                         pagination.innerHTML += `
                             <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
+                                <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
                             </li>
                         `;
                         for (let i = 1; i <= data.total_pages; i++) {
@@ -79,7 +79,7 @@
                         }
                         pagination.innerHTML += `
                             <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}">Next</a>
+                                <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
                             </li>
                         `;
                     });

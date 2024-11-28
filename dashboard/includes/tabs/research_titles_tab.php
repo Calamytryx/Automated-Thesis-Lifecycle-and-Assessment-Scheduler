@@ -63,8 +63,7 @@
         <ul class="pagination justify-content-center">
             <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
                 <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                    <!-- <span aria-hidden="true">&laquo;</span> -->
-                    Previous
+                    &#8249;
                 </a>
             </li>
             <?php for ($i = 1; $i <= $totalPages; $i++): ?>
@@ -74,8 +73,7 @@
             <?php endfor; ?>
             <li class="page-item <?php if ($page >= $totalPages) echo 'disabled'; ?>">
                 <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                    <!-- <span aria-hidden="true">&raquo;</span> -->
-                    Next
+                    &#8250;
                 </a>
             </li>
         </ul>

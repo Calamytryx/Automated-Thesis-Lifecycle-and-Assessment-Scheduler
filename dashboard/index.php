@@ -263,16 +263,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                         </div>
                         <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <a class="nav-link active" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
-                            <a class="nav-link" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
-                            <a class="nav-link" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
-                            <a class="nav-link" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>
-                            <a class="nav-link" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">Defense Schedules</a>
-                            <a class="nav-link" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">Rubrics</a>
-                            <a class="nav-link" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">Teams</a>
-                            <a class="nav-link" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">Requirements</a>
-                            <a class="nav-link" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">Evaluations</a>
-                            <a class="nav-link" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">Environment Variables</a>
+                            <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
+                            <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
+                            <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
+                            <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>
+                            <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">Defense Schedules</a>
+                            <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">Rubrics</a>
+                            <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">Teams</a>
+                            <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">Requirements</a>
+                            <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">Evaluations</a>
+                            <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">Environment Variables</a>
                         </div>
                     </div>
                     <div class="col-sm-9">
@@ -347,8 +347,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="saveChanges">Save changes</button>
+                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
             </div>
         </div>
     </div>

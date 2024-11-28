@@ -52,38 +52,37 @@
                     </td>
                 </tr>
                 `;
-                    });
+                    }); 
 
-                    // Pagination
                     const pagination = document.querySelector('.pagination');
                     pagination.innerHTML = '';
 
-                    // Previous Button
+                    // Previous Button (Arrow Left)
                     pagination.innerHTML += `
-                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
-                    Previous
-                </a>
-                </li>
-            `;
+                        <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+                                &#8249; <!-- Left Arrow -->
+                            </a>
+                        </li>
+                    `;
 
                     // Page Numbers
                     for (let i = 1; i <= data.total_pages; i++) {
-                    pagination.innerHTML += `
-                <li class="page-item ${page === i ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                </li>
-                `;
+                        pagination.innerHTML += `
+                            <li class="page-item ${page === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            </li>
+                        `;
                     }
 
-                    // Next Button
+                    // Next Button (Arrow Right)
                     pagination.innerHTML += `
-                <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
-                    Next
-                </a>
-                </li>
-            `;
+                        <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+                                &#8250; <!-- Right Arrow -->
+                            </a>
+                        </li>
+                    `;
                 });
             };
 

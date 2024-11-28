@@ -49,6 +49,7 @@
     --main-white   : #fffcf8; /* White */
     --main-bg-dark : #242424; /* BG-dark */
     --main-bg-light: #e8e8e8; /* BG-light */
+    --main-btn-del : #e71818;
   }
 
 html {
@@ -116,12 +117,26 @@ a.visited{
     border-color: var(--primary-300);
 }
 
-/* .bg-color{
-    background-color: var(--primary-200);
+.nav-dropdown{ 
+    background-color: var(--main-white);
+    border-radius: 10px;
+    color: var(--main-bg-dark);
 }
-.bg-main{
+
+.dropdown-item{ 
+    border-radius: 5px;
+    background-color: var(--main-white) !important;
+}
+ 
+.dropdown-item:hover{ 
+    background-color: var(--neutral-100) !important;
+    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+    color: var(--main-bg-dark);
+    border-radius: 5px;
+}
+/* .bg-main{
     background-color: var(--primary-400);
-} */
+}  */
 
 /* --------------User Image Upload---------------------- */
 
@@ -209,7 +224,7 @@ a.visited{
 #nav-ul li :hover{
     background-color: var(--neutral-100); 
 }
-
+ 
 .nav-pills .nav-link {
     color: var(--main-bg-dark); 
     transition: background-color 0.3s ease;
@@ -222,22 +237,23 @@ a.visited{
 }
  
 .nav-pills .nav-link.active {
-    background-color: var(--main-bg-light); 
+    background-color: var(--main-bg-light);  
     color: var(--main-bg-dark);  
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-    transition: background-color 0.3s ease;
-}
+    transition: background-color 0.3s ease; 
+    font-weight: bold;
+} 
 
 .nav-pills .nav-link.active:hover {
     background-color: var(--main-primary);
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
     color: var(--main-bg-light);
-}
+} 
 
 .sidebar-header{
-    background-color: var(--main-bg-light);
-    border: none;
-    color: var(--main-bg-dark);
+    border-top: solid 2px var(--main-primary);
+    border-bottom: solid 2px var(--main-primary);
+    color: var(--main-bg-dark); 
 }
 
 /* --------------Profile card---------------------- */
@@ -425,62 +441,8 @@ border-top: solid 1px var(--main-bg-dark);
 
 
 /* Overview tab */
-.thesis-card {
-    display: flex;
-    align-items: center;
-    background-color: var(--main-bg-light);
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-    border-radius: 5px;
-}
 
-.image-box {
-    width: 50px; 
-    height: 50px;  
-    border-radius: 5px; 
-    margin-right: 10px; 
-    overflow: hidden;
-}
 
-.text-box {
-    flex-grow: 1;
-    text-align: center; 
-}
-
-.overview-thesis-cards-img{
-    width: 60px; 
-    height: 60px; 
-    object-fit: cover;
-    border-radius: 5px;
-    overflow: hidden;
-}
-
-.overview-users{
-    font-weight: 500;
-    color: var(--main-bg-dark);
-}
-
-.overview-thesis{ 
-    font-weight: 500; 
-    color: var(--main-bg-dark);
-}
-
-.overview-user-container{
-    background-color: var(--main-bg-light);
-    border: none;
-}
-
-.user-card{
-    background-color: var(--main-bg-light);
-    border: none;
-    border-radius: 5px;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-}
-
-.overview-users-count{
-    color: var(--main-primary);
-}
 
 /* Dashboard table */
 
@@ -492,13 +454,93 @@ border-top: solid 1px var(--main-bg-dark);
 
 .db-table th {
     background-color: var(--main-white);
-    color: var(--main-primary);
+    color: var(--main-bg-dark);
     text-align: center;
+    border-color: var(--main-neutral);
 }
 
 .db-table td, .db-table th {
+    background-color: var(--main-white);
     padding: 10px;
     vertical-align: middle; 
+    border-color: var(--main-neutral);
+}
+
+.edit-btn{
+    background-color: var(--primary-300);
+    border-radius: 5px;
+}
+
+.edit-btn:hover{ 
+    background-color: var(--primary-600);
+}
+
+.delete-btn{
+    background-color: var(--main-white);
+    color: var(--main-btn-del);
+    border-radius: 5px;
+}
+
+.delete-btn:hover{
+    background-color: var(--main-btn-del);
+    color: var(--main-white);
+}
+
+/* Pagination */
+
+.pagination .page-link {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 40px;  
+    height: 40px; 
+    border-radius: 50% !important; 
+    margin: 0 10px; 
+    background-color: var(--main-white); 
+    color: var(--main-bg-dark); 
+    transition: all 0.3s ease; 
+}
+
+.pagination .page-link:hover {
+    background-color: var(--secondary-300); 
+    color: var(--main-bg-dark);
+}
+
+.pagination .page-item.active .page-link {
+    background-color: var(--main-accent); 
+    color: var(--main-bg-dark); 
+    border-color: var(--main-accent); 
+}
+
+.pagination .page-item.disabled .page-link {
+    background-color: var(--neutral-200); 
+    color: var(--neutral-800); 
+    pointer-events: none; 
+}
+
+/* Modal and stuff perhaps*/
+
+.mod-pri-btn{
+    background-color: var(--main-primary);
+    border-radius: 5px;
+    border: solid 1px var(--main-bg-dark) !important;
+}
+
+.mod-pri-btn:hover{ 
+    background-color: var(--main-accent);
+    color: var(--main-bg-dark);
+}
+
+.mod-sec-btn{
+    background-color: var(--main-white);
+    color: var(--main-bg-dark);
+    border-radius: 5px;
+}
+
+.mod-sec-btn:hover{ 
+    border: solid 1px var(--main-bg-dark);
+    background-color: var(--neutral-600);
+    color: var(--main-bg-dark);
 }
 
 /* Scrollbar styles */

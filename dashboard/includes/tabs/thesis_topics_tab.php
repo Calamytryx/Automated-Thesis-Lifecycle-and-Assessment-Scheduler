@@ -155,7 +155,7 @@
                                     <td class="text-center align-middle">
                                         <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="${topic.id}">Edit</button>
                                         <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="${topic.id}">Delete</button>
-                                    </td>
+                                    </td> 
                                 </tr>
                             `;
                         });
@@ -164,10 +164,12 @@
                         const pagination = document.querySelector('#thesis-topics .pagination');
                         pagination.innerHTML = '';
 
-                        // Previous Button
+                        // Previous Button (Arrow Left)
                         pagination.innerHTML += `
                             <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&laquo;</a>
+                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+                                    &#8249; <!-- Left Arrow -->
+                                </a>
                             </li>
                         `;
 
@@ -180,10 +182,12 @@
                             `;
                         }
 
-                        // Next Button
+                        // Next Button (Arrow Right)
                         pagination.innerHTML += `
                             <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&raquo;</a>
+                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+                                    &#8250; <!-- Right Arrow -->
+                                </a>
                             </li>
                         `;
                     });

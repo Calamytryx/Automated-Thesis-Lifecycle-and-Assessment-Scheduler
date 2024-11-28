@@ -45,120 +45,180 @@ $staffCountStmt->execute();
 $totalStaff = $staffCountStmt->fetchColumn();
 ?>
 
-<!-- Overview Tab -->
-<div class="tab-pane fade show active my-3" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-    <div class="row">
-        <!-- Total Users Section -->
-        <div class="col-md-12 mb-3">
-            <div class="card text-center overview-user-container">
-                <div class="card-body"> 
-                    <h5 class="card-title">Total Users: <span style="color: var(--main-primary); font-weight: 500;"><?php echo $totalUsers; ?></span></h5>
-                    <p class="card-text"></p>
-                </div>
-                <div class="row justify-content-center">
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-center"> 
-                            <div class="card-body user-card">
-                                <img src="../assets/icons/admin.svg" alt="Admin Icon" class="mb-3 overview-thesis-cards-img" >
-                                <h5 class="card-title overview-users">Admins</h5>
-                                <p class="card-text overview-users-count" ><?php echo $totalAdmins; ?></p>
+<div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
+    <div class="container-fluid my-3">
+        <!-- User Statistics Section -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h4 class="mb-4 ">User Statistics</h4>
+            </div>
+            <div class="col-sm-6 col-xl-3 mb-3">
+                <div class="card bg-primary text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-normal mb-2">Total Users</h6>
+                                <h2 class="mb-0"><?php echo $totalUsers; ?></h2>
                             </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-center">
-                            <div class="card-body user-card">
-                                <img src="../assets/icons/student.svg" alt="Student Icon" class="mb-3 overview-thesis-cards-img" >
-                                <h5 class="card-title overview-users">Students</h5>
-                                <p class="card-text overview-users-count"><?php echo $totalStudents; ?></p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-3 mb-3">
-                        <div class="card text-center">
-                            <div class="card-body user-card">
-                                <img src="../assets/icons/staff.svg" alt="Staff Icon" class="mb-3 overview-thesis-cards-img" >
-                                <h5 class="card-title overview-users">Staff</h5>
-                                <p class="card-text overview-users-count"><?php echo $totalStaff; ?></p>
+                            <div class="fs-1 opacity-75">
+                                <i class="bi bi-people-fill"></i>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </div>
 
-        <!-- Thesis-related Data Section -->
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <!-- Fixed-size left box for image -->
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/approved.svg" alt="Icon" class="img-fluid">
+            <div class="col-sm-6 col-xl-3 mb-3"> 
+                <div class="card bg-success text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-normal mb-2">Admins</h6>
+                                <h2 class="mb-0"><?php echo $totalAdmins; ?></h2>
+                            </div>
+                            <div class="fs-1 opacity-75">
+                                <i class="bi bi-person-badge"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <!-- Flexible right box for text -->
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Approved Titles</h6>
-                    <span>6</span>
+            </div>
+
+            <div class="col-sm-6 col-xl-3 mb-3">
+                <div class="card bg-info text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-normal mb-2">Students</h6>
+                                <h2 class="mb-0"><?php echo $totalStudents; ?></h2>
+                            </div>
+                            <div class="fs-1 opacity-75">
+                                <i class="bi bi-mortarboard-fill"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-sm-6 col-xl-3 mb-3">
+                <div class="card bg-warning text-white h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="fw-normal mb-2">Staff</h6>
+                                <h2 class="mb-0"><?php echo $totalStaff; ?></h2>
+                            </div>
+                            <div class="fs-1 opacity-75">
+                                <i class="bi bi-person-workspace"></i>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/rejected.svg" alt="Icon" class="img-fluid">
-                </div>
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Pending Titles</h6>
-                    <span>1</span>
+        <!-- Thesis Statistics -->
+        <div class="row">
+            <div class="col-12">
+                <h4 class="mb-4">Thesis Management</h4>
+            </div>
+            
+            <!-- Thesis Status -->
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="card-title mb-0">Thesis Status</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-check-circle text-success"></i>
+                                </div>
+                                <span>Approved Titles</span>
+                            </div>
+                            <span class="badge bg-success rounded-pill">6</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-warning bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-clock text-warning"></i>
+                                </div>
+                                <span>Pending Titles</span>
+                            </div>
+                            <span class="badge bg-warning rounded-pill">1</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-primary bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-people text-primary"></i>
+                                </div>
+                                <span>Total Teams</span>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">7</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/group.svg" alt="Icon" class="img-fluid">
-                </div>
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Total Teams</h6>
-                    <span>7</span>
+            <!-- Defense Schedule -->
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card border-0 shadow-sm h-100">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="card-title mb-0">Defense Schedule</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-info bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-calendar-event text-info"></i>
+                                </div>
+                                <span>Upcoming Defenses</span>
+                            </div>
+                            <span class="badge bg-info rounded-pill">7</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-success bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-calendar-check text-success"></i>
+                                </div>
+                                <span>Defenses Today</span>
+                            </div>
+                            <span class="badge bg-success rounded-pill">0</span>
+                        </div>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center">
+                                <div class="bg-secondary bg-opacity-10 p-2 rounded me-2">
+                                    <i class="bi bi-calendar-x text-secondary"></i>
+                                </div>
+                                <span>Past Defenses</span>
+                            </div>
+                            <span class="badge bg-secondary rounded-pill">0</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
 
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/upcoming.svg" alt="Icon" class="img-fluid">
-                </div>
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Upcoming Defenses</h6>
-                    <span>7</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/today.svg" alt="Icon" class="img-fluid">
-                </div>
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Defenses Today</h6>
-                    <span>0</span>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-md-4 mb-3">
-            <div class="card thesis-card p-2 d-flex flex-row align-items-center">
-                <div class="image-box d-flex align-items-center justify-content-center">
-                    <img src="../assets/icons/past.svg" alt="Icon" class="img-fluid">
-                </div>
-                <div class="text-box flex-grow-1 text-center">
-                    <h6 class="mb-0 overview-thesis">Past Defenses</h6>
-                    <span>0</span>
-                </div>
+            <!-- Quick Actions na di gumagana, suggestion lang kase wala pa ako idea sa pede ipalit-->
+            <div class="col-md-6 col-xl-4 mb-4">
+                <div class="card border-0 shadow-sm">
+                    <div class="card-header bg-white border-0">
+                        <h5 class="card-title mb-0">Recent Activity</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-grid gap-2">
+                            <button class="btn btn-primary">
+                                <i class="bi bi-plus-circle me-2"></i>Users
+                            </button>
+                            <button class="btn btn-info text-white">
+                                <i class="bi bi-calendar-plus me-2"></i>Thesis Topics
+                            </button>
+                            <button class="btn btn-success">
+                                <i class="bi bi-file-earmark-text me-2"></i>Research Titles
+                            </button>
+                        </div>
+                    </div>
+                </div> 
             </div>
         </div>
     </div>

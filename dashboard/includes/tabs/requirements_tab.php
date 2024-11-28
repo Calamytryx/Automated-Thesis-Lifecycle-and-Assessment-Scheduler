@@ -58,7 +58,7 @@
                         // Previous Button
                         pagination.innerHTML += `
                             <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">Previous</a>
+                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
                             </li>
                         `;
 
@@ -74,7 +74,7 @@
                         // Next Button
                         pagination.innerHTML += `
                             <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">Next</a>
+                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
                             </li>
                         `;
                     });
