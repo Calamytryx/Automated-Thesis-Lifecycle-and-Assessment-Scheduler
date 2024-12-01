@@ -125,22 +125,141 @@ error_reporting(E_ALL);
                                 <div id="calendar"></div>
                             </div>
                         </div>
-                        <?php
-                        $stmt = $pdo->query("SELECT name, due_date FROM coecsa_thesis.requirements;");
-                        $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                        ?>
-                        <div class="requirements-list col-sm-3 my-3 p-3">
-                            <h4 class="pb-2 mb-0 feature-title">Requirements</h4> 
-                            <ul class="list-group">
-                                <?php foreach ($requirements as $requirement): ?>
-                                    <li class="list-group-item my-1 req-li">
-                                        <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                        <br> 
-                                        <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
-                                    </li>
-                                <?php endforeach; ?>
-                            </ul> 
-                        </div> 
+                        <?php if ($_SESSION['usertype'] == 2): ?>
+                            <?php
+                            $stmt = $pdo->query("SELECT id, name, due_date FROM coecsa_thesis.requirements;");
+                            $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+                            <div class="requirements-list col-sm-3 my-3 p-3">
+                                <div class="accordion" id="requirementsAccordion">
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingRequirements">
+                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRequirements" aria-expanded="true" aria-controls="collapseRequirements">
+                                                Requirements
+                                            </button>
+                                        </h2>
+                                        <div id="collapseRequirements" class="accordion-collapse collapse show" aria-labelledby="headingRequirements" data-bs-parent="#requirementsAccordion">
+                                            <div class="accordion-body" style="max-height: 50vh; overflow-y: auto;">
+                                                <ul class="list-group">
+                                                    <?php foreach ($requirements as $requirement): ?>
+                                                        <li class="list-group-item my-1 req-li" onclick="redirectToRequirements()">
+                                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
+                                                            <br>
+                                                            <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <script>
+                                        function redirectToRequirements() {
+                                            // Remove active and show classes from the currently active tab and content
+                                            const activeTab = document.querySelector('.nav-link.active');
+                                            if (activeTab) {
+                                                activeTab.classList.remove('active');
+                                            }
+
+                                            const activeTabPane = document.querySelector('.tab-pane.show.active');
+                                            if (activeTabPane) {
+                                                activeTabPane.classList.remove('show', 'active');
+                                            }
+
+                                            // Add active class to the "Requirement Checker" tab
+                                            const requirementCheckerTab = document.getElementById('requirement-checker-link');
+                                            if (requirementCheckerTab) {
+                                                requirementCheckerTab.classList.add('active');
+                                            }
+
+                                            // Add show and active classes to the "Requirement Checker" content
+                                            const requirementCheckerPane = document.getElementById('requirement-checker');
+                                            if (requirementCheckerPane) {
+                                                requirementCheckerPane.classList.add('show', 'active');
+                                            }
+                                        }
+                                    </script>
+
+                                    <?php
+                                    $stmt = $pdo->query("SELECT 
+                                                            ds.*, 
+                                                            t.name AS team_name 
+                                                        FROM 
+                                                            coecsa_thesis.defense_schedules ds
+                                                        JOIN 
+                                                            coecsa_thesis.teams t 
+                                                        ON 
+                                                            ds.team_id = t.id
+                                                        WHERE 
+                                                            ds.panelist_id = {$_SESSION['id']} 
+                                                            OR ds.panelist_id2 = {$_SESSION['id']} 
+                                                            OR ds.panelist_id3 = {$_SESSION['id']};
+                                                        ");
+                                    $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    ?>
+                                    <div class="accordion-item">
+                                        <h2 class="accordion-header" id="headingDefenses">
+                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDefenses" aria-expanded="false" aria-controls="collapseDefenses">
+                                                Defenses
+                                            </button>
+                                        </h2>
+                                        <div id="collapseDefenses" class="accordion-collapse collapse" aria-labelledby="headingDefenses" data-bs-parent="#requirementsAccordion">
+                                            <div class="accordion-body" style="max-height: 50vh; overflow-y: auto;">
+                                                <ul class="list-group">
+                                                    <?php foreach ($schedules as $schedule):
+                                                        $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
+                                                        $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
+                                                        $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
+                                                    ?>
+                                                        <li class="list-group-item my-1 req-li" onclick="redirectToDecisionSupport(<?php echo $schedule['team_id']; ?>)">
+                                                            <strong><?php echo htmlspecialchars($schedule['team_name']); ?></strong>
+                                                            <br>
+                                                            <small class="due-date-txt">Date: <br> <?php echo htmlspecialchars($formatted_date); ?></small>
+                                                            <br>
+                                                            <small class="due-date-txt">Time: <br> <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?></small>
+                                                            <br>
+                                                            <small class="due-date-txt">Room: <br> <?php echo htmlspecialchars($schedule['room']); ?></small>
+                                                        </li>
+                                                    <?php endforeach; ?>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        <?php elseif ($_SESSION['usertype'] == 1): ?>
+                            <?php
+                            $stmt = $pdo->query("
+                                                    SELECT r.name, r.due_date, tr.status 
+                                                    FROM coecsa_thesis.requirements r
+                                                    LEFT JOIN coecsa_thesis.team_requirements tr ON r.id = tr.requirement_id;
+                                                ");
+                            $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+
+                            <div class="requirements-list col-sm-3 my-3 p-3">
+                                <h4 class="pb-2 mb-0 feature-title">Requirements</h4>
+                                <ul class="list-group">
+                                    <?php foreach ($requirements as $requirement): ?>
+                                        <li class="list-group-item my-1 req-li">
+                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
+                                            <br>
+                                            <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                            <br>
+                                            <small class="status-txt">
+                                                <?php if ($requirement['status'] !== null): ?>
+                                                    Status: <?php echo ucfirst(htmlspecialchars($requirement['status'])); ?>
+                                                <?php else: ?>
+                                                    Status: Not Submitted
+                                                <?php endif; ?>
+                                            </small>
+                                        </li>
+                                    <?php endforeach; ?>
+                                </ul>
+                            </div>
+
+                        <?php else: ?>
+                            <p>No requirements available.</p>
+                        <?php endif; ?>
                     </div>
                 </div>
 
@@ -226,7 +345,7 @@ error_reporting(E_ALL);
                                 <strong class="d-block text-gray-dark">Document Checklist</strong>
                             <div id="teamSelectorContainer">
                                 <!-- The dropdown will be dynamically inserted here -->
-                            </div> 
+                            </div>
                             <div id="requirementChecklist">
                                 <!-- Checklist items will be dynamically added here -->
                             </div>
@@ -465,5 +584,316 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         <?php } ?>
 
     });
-    <?php require 'includes/calendar.js.php'; ?>
+    //calendar
+    console.log('FullCalendar loaded:', typeof FullCalendar !== 'undefined');
+    $(document).ready(function() {
+        // Thesis Topic Decision Tool
+        $('#topicSuggestionForm').on('submit', function(e) {
+            e.preventDefault();
+            var field = $('#field').val();
+            // AJAX call to get topic suggestions
+            $.ajax({
+                url: 'includes/get_topic_suggestions.php',
+                method: 'POST',
+                data: {
+                    field: field
+                },
+                dataType: 'json',
+                success: function(response) {
+                    var suggestionsHtml = '<ul>';
+                    response.suggestions.forEach(function(suggestion) {
+                        suggestionsHtml += '<li>' + suggestion + '</li>';
+                    });
+                    suggestionsHtml += '</ul>';
+                    $('#suggestedTopics').html(suggestionsHtml);
+                },
+                error: function() {
+                    $('#suggestedTopics').html('<p>Error fetching suggestions. Please try again.</p>');
+                }
+            });
+        });
+
+        // Scheduling System
+        function loadUserSchedule() {
+            $.ajax({
+                url: 'includes/get_user_schedule.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    console.log("AJAX response:", response);
+                    if (response.success) {
+                        var events = [];
+                        // Add user schedules to events
+                        response.user_schedules.forEach(function(event) {
+                            events.push({
+                                title: event.description,
+                                start: event.date + 'T' + event.start_time,
+                                end: event.date + 'T' + event.end_time,
+                            });
+                        });
+                        // Add defense schedules to events
+                        response.defense_schedules.forEach(function(event) {
+                            events.push({
+                                title: event.description,
+                                start: event.date + 'T' + event.start_time,
+                                end: event.date + 'T' + event.end_time,
+                            });
+                        });
+                        console.log("Events to be rendered:", events);
+                        initializeCalendar(events);
+                    } else {
+                        $('#userSchedule').html('<p>Error loading schedules: ' + response.error + '</p>');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("AJAX error:", textStatus, errorThrown);
+                    $('#userSchedule').html('<p>Error loading schedules. Please try again later.</p>');
+                }
+            });
+        }
+
+        function initializeCalendar(events) {
+            var calendarEl = document.getElementById('calendar');
+
+            var calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                },
+                height: 'auto', // or set a specific height like '600px'
+                events: events, // Use the dynamically loaded events
+                eventClick: function(info) {
+                    alert('Event: ' + info.event.title);
+                }
+            });
+            calendar.render();
+        }
+
+    });
+
+
+
+    const calendarEl = document.getElementById('calendar');
+
+    // Function to get the next date for a given day of the week
+    function getNextDateForDay(day) {
+        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+        const today = new Date();
+        const targetDayIndex = daysOfWeek.indexOf(day);
+        if (targetDayIndex === -1) {
+            return day; // Return original if invalid day
+        }
+        const resultDate = new Date(today);
+        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
+        return resultDate.toISOString().split('T')[0];
+    }
+
+
+    /**
+     * Function to redirect to decision-support with the team_id as a POST value.
+     * @param {number} teamId - The ID of the team to send via POST.
+     */
+    function redirectToDecisionSupport(teamId) {
+        if (!teamId) {
+            console.error('Invalid teamId. Cannot redirect.');
+            alert('Team information is missing. Cannot proceed.');
+            return;
+        }
+
+        const form = document.createElement('form');
+        form.method = 'POST';
+        form.action = '../decision-support/';
+
+        const input = document.createElement('input');
+        input.type = 'hidden';
+        input.name = 'team_id';
+        input.value = teamId;
+
+        form.appendChild(input);
+        document.body.appendChild(form);
+        form.submit();
+    }
+
+    // Select the target element (#scheduling)
+    const targetNode = document.querySelector('#scheduling');
+
+    // Initial check: run if the 'show' class is already present on page load
+    if (targetNode && targetNode.classList.contains('show')) {
+        // Fetch events and requirements via AJAX
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    const events = [];
+
+                    response.defense_schedules.forEach(defense => {
+                        events.push({
+                            title: defense.description,
+                            start: `${defense.date}T${defense.start_time}`,
+                            end: `${defense.date}T${defense.end_time}`,
+                            location: defense.room,
+                            eventType: 'defense',
+                            team_id: defense.team_id
+                        });
+                    });
+
+                    response.user_schedules.forEach(schedule => {
+                        events.push({
+                            title: schedule.description,
+                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                            location: schedule.room,
+                            eventType: 'user'
+                        });
+                    });
+
+                    const calendar = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'dayGridMonth',
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                        },
+                        height: 'auto',
+                        events: events,
+                        eventClick: function(info) {
+                            const eventType = info.event.extendedProps.eventType;
+
+                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                                const teamId = info.event.extendedProps.team_id;
+                                if (teamId) {
+                                    redirectToDecisionSupport(teamId);
+                                } else {
+                                    console.error('team_id is undefined for this defense event.');
+                                    alert('Unable to retrieve team information for this event.');
+                                }
+                            } else {
+                                const title = info.event.title;
+                                const room = info.event.extendedProps.location;
+                                alert(`Event: ${title}\nRoom: ${room}`);
+                            }
+                        },
+                        dateClick: function(info) {
+                            const currentView = calendar.view.type;
+                            if (currentView === 'dayGridMonth') {
+                                calendar.changeView('timeGridWeek');
+                            } else if (currentView === 'timeGridWeek') {
+                                calendar.changeView('timeGridDay');
+                            }
+                            calendar.gotoDate(info.dateStr);
+                        }
+                    });
+
+                    calendar.render();
+                } else {
+                    console.error('Error fetching schedules:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:", textStatus, errorThrown);
+            }
+        });
+    }
+
+    // Create an observer instance
+    const observer = new MutationObserver((mutationsList) => {
+        mutationsList.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
+                // Trigger only when the 'show' class is added
+                if (targetNode.classList.contains('show')) {
+                    // Fetch events and requirements via AJAX
+                    $.ajax({
+                        url: 'includes/get_user_schedule.php',
+                        method: 'GET',
+                        dataType: 'json',
+                        success: function(response) {
+                            if (response.success) {
+                                const events = [];
+
+                                response.defense_schedules.forEach(defense => {
+                                    events.push({
+                                        title: defense.description,
+                                        start: `${defense.date}T${defense.start_time}`,
+                                        end: `${defense.date}T${defense.end_time}`,
+                                        location: defense.room,
+                                        eventType: 'defense',
+                                        team_id: defense.team_id
+                                    });
+                                });
+
+                                response.user_schedules.forEach(schedule => {
+                                    events.push({
+                                        title: schedule.description,
+                                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                                        location: schedule.room,
+                                        eventType: 'user'
+                                    });
+                                });
+
+                                const calendar = new FullCalendar.Calendar(calendarEl, {
+                                    initialView: 'dayGridMonth',
+                                    headerToolbar: {
+                                        left: 'prev,next today',
+                                        center: 'title',
+                                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
+                                    },
+                                    height: 'auto',
+                                    events: events,
+                                    eventClick: function(info) {
+                                        const eventType = info.event.extendedProps.eventType;
+
+                                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
+                                            const teamId = info.event.extendedProps.team_id;
+                                            if (teamId) {
+                                                redirectToDecisionSupport(teamId);
+                                            } else {
+                                                console.error('team_id is undefined for this defense event.');
+                                                alert('Unable to retrieve team information for this event.');
+                                            }
+                                        } else {
+                                            const title = info.event.title;
+                                            const room = info.event.extendedProps.location;
+                                            alert(`Event: ${title}\nRoom: ${room}`);
+                                        }
+                                    },
+                                    dateClick: function(info) {
+                                        const currentView = calendar.view.type;
+                                        if (currentView === 'dayGridMonth') {
+                                            calendar.changeView('timeGridWeek');
+                                        } else if (currentView === 'timeGridWeek') {
+                                            calendar.changeView('timeGridDay');
+                                        }
+                                        calendar.gotoDate(info.dateStr);
+                                    }
+                                });
+
+                                calendar.render();
+                            } else {
+                                console.error('Error fetching schedules:', response.error);
+                            }
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error("AJAX error:", textStatus, errorThrown);
+                        }
+                    });
+                }
+            }
+        });
+    });
+
+    // Set up the configuration for the observer: watch for attribute changes
+    const config = {
+        attributes: true, // Watch for changes to attributes
+        attributeFilter: ['class'], // Only watch changes to the 'class' attribute
+    };
+
+    // Start observing the target node
+    if (targetNode) {
+        observer.observe(targetNode, config);
+    }
 </script>
