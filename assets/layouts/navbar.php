@@ -43,7 +43,7 @@
                         <img class="navbar-img" src="../assets/uploads/users/<?php echo $_SESSION['profile_image'] ?>" alt="Profile">
                     </a>
                     <ul class="dropdown-menu dropdown-menu-end p-2 nav-dropdown" aria-labelledby="navbarDropdown" id="nav-ul">
-                        <li><a class="dropdown-item" href="../profile"><i class="fas fa-user me-2"></i> Profile</a></li>
+                        <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-user me-2"></i> Profile</a></li>
                         <!-- <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-pencil-alt me-2"></i> Edit Profile</a></li> -->
                         <li>
                             <hr class="dropdown-divider">
