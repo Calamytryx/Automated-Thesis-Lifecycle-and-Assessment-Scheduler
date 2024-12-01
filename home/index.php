@@ -482,6 +482,11 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                     e.preventDefault(); // Prevent default form submission
                                     var formData = new FormData(this);
 
+                                    // Debug formData contents
+                                    for (var pair of formData.entries()) {
+                                        console.log(pair[0] + ': ' + pair[1]);
+                                    }
+
                                     $.ajax({
                                         url: 'includes/update_requirements.php', // Server-side script for updates
                                         method: 'POST',
@@ -498,11 +503,12 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             }
                                         },
                                         error: function(jqXHR, textStatus, errorThrown) {
-                                            console.error("AJAX error:", textStatus, errorThrown);
+                                            console.error("AJAX error:", textStatus, errorThrown, jqXHR.status, jqXHR.statusText, jqXHR.responseText);
                                             alert('An error occurred while updating requirements. Please try again.');
                                         }
                                     });
                                 });
+
                             } else {
                                 $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
                                 console.error('Error in response:', response.error);
@@ -540,24 +546,28 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             <p class="card-text">${req.description}</p>
                                             <p class="card-text"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
                                             <p class="card-text"><strong>Status:</strong> ${req.status}</p>
-                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback}</p>
+                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback || 'Submit File First'}</p>
                                         </div>
                                         <div class="card-footer">
                                             ${req.feedback_file ? 
                                                 `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` 
-                                                : ''}
+                                                : 'No Uploaded Feedback File'}
                                         </div> 
                                         <?php if ($role === 'leader') { ?>
                                         <div class="card-footer rct-cfooter">
-                                            <form id="uploadForm-${req.id}" enctype="multipart/form-data">
-                                                <input type="hidden" name="document_name" value="${req.name}">
-                                                <input type="hidden" name="requirement_id" value="${req.id}">
-                                                <div class="mb-3">
-                                                <label for="file-${req.id}" class="form-label">Upload File</label>
-                                                <input class="form-control" type="file" id="file-${req.id}" name="file" required>
-                                                </div>
-                                                <button type="submit" class="btn btn-primary feature-btn">Submit File</button>
-                                            </form> 
+                                            ${req.file_name 
+                                                ? `<a href="./submission/${req.file_name}" class="btn btn-secondary" download>Download Submitted File</a>` 
+                                                : `
+                                                    <form id="uploadForm-${req.id}" enctype="multipart/form-data">
+                                                        <input type="hidden" name="document_name" value="${req.name}">
+                                                        <input type="hidden" name="requirement_id" value="${req.id}">
+                                                        <div class="mb-3">
+                                                            <label for="file-${req.id}" class="form-label">Upload File</label>
+                                                            <input class="form-control" type="file" id="file-${req.id}" name="file" required>
+                                                        </div>
+                                                        <button type="submit" class="btn btn-primary feature-btn">Submit File</button>
+                                                    </form> 
+                                                `}
                                         </div>
                                         <?php } ?>
                                     </div>

@@ -16,11 +16,11 @@ if (!$team_id) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT id, name, description, due_date FROM requirements ORDER BY due_date ASC, name ASC");
+    $stmt = $pdo->prepare("SELECT * FROM requirements ORDER BY due_date ASC, name ASC");
     $stmt->execute();
     $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    $teamReqStmt = $pdo->prepare("SELECT requirement_id, status, submitted_at, feedback, file_name FROM team_requirements WHERE team_id = ?");
+    $teamReqStmt = $pdo->prepare("SELECT * FROM team_requirements WHERE team_id = ?");
     $teamReqStmt->execute([$team_id]);
     $teamRequirements = $teamReqStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -40,7 +40,7 @@ try {
         }
     }
 
-    echo json_encode(['success' => true, 'requirements' => $requirements]);
+    echo json_encode(['success' => true, 'requirements' => $requirements, 'team_id' => $team_id]);
 } catch (PDOException $e) {
     echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
