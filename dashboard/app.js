@@ -712,11 +712,9 @@ $(document).ready(function () {
             // Loop to generate slots
             while (current.isBefore(endTime)) {
                 timeSlots.push(current.format("HH:mm:ss"));
-        
-                // Increment by 30 minutes for the next slot
-                current.add(30, "minutes");
+                current.add(duration, 'hours');
             }
-        
+            console.log('Time slots:', timeSlots);
             return timeSlots;
         }
     
