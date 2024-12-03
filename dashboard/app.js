@@ -495,7 +495,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Item updated successfully');
                     $('#editModal').modal('hide');
-                    //location.reload();
+                    location.reload();
                 } else {
                     alert('Error: ' + response.message);
                     console.error('Update failed:', response);
@@ -527,7 +527,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Team added successfully');
                     $('#addModal').modal('hide');
-                    //location.reload();
+                    location.reload();
                 } else {
                     alert('Error: ' + response.message);
                 }
@@ -555,7 +555,7 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         alert('Item deleted successfully from table ' + table + ' with ID ' + id);
-                        //location.reload();
+                        location.reload();
                         // Optionally, refresh the table or page
                     } else {
                         alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
