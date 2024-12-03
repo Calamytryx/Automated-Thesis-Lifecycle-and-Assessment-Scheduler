@@ -8,43 +8,19 @@
                 <div class="col-sm-3">
                     <h2 class="logo">
                         <a href="../home/" target="_blank">
-                            <img src="../assets/images/logowhite.png" alt="" width="50%" height="50%" class="">
+                            <img src="../assets/images/<?php echo APP_LOGO_FOOTER; ?>" alt="" width="50%" height="50%" class="">
                         </a>
                     </h2>
                 </div>
-                <div class="col-sm-2">
-                    <h5>Get started</h5>
+                <div class="col-sm-6">
+                    <h5>Atlas</h5>
                     <ul>
-                        <li><a href="../welcome/" target="_blank">Welcome</a></li>
-                        <li><a href="../login/" target="_blank">Log in</a></li>
-                        <li><a href="../register/" target="_blank">Sign up</a></li>
+                        <p>This project is licensed under the MIT License 2024. <a href="../privacy"><strong>Privacy policy</strong></a></p>
                     </ul>
                 </div>
-                <div class="col-sm-2">
-                    <h5>Features</h5>
-                    <ul>
-                        <li><a href="../home/" target="_blank">Home</a></li>
-                        <li><a href="../dashboard/" target="_blank">Dashboard</a></li>
-                        <li><a href="../profile/" target="_blank">Profile</a></li>
-                        <li><a href="../profile-edit/" target="_blank">Edit Profile</a></li>
-                    </ul>
-                </div>
-                <div class="col-sm-2">
-                    <h5>Support</h5>
-                    <ul>
-                        <li><a href="../contact/" target="_blank">Contact Us</a></li>
-                    </ul>
-                </div>
+            
                 <div class="col-sm-3 my-3">
-                    <div class="social-networks">
-                        <a href="#" class="twitter" target="_blank">
-                            <i class="fab fa-github"></i>
-                        </a>
-                        <a href="#" class="facebook" target="_blank">
-                            <i class="fab fa-linkedin"></i>
-                        </a>
-                    </div>
-                    <a class="btn btn-default" href="mailto:ton.agustin09@gmail.com" target="_blank">Email Me</a>
+                    <a class="btn btn-default" href="mailto:ton.agustin09@gmail.com" target="_blank">Email Us!</a>
                 </div>
             </div>
         </div>

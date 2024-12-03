@@ -3,8 +3,7 @@
     <div class="container">
         <a class="navbar-brand" href="../home">
 
-            <img src="../assets/images/logo_full_lightbg.png" alt="" width="88" height="10%" class="10%">
-
+            <img src="../assets/images/<?php echo APP_LOGO_NAVBAR; ?>" alt="" width="88" height="10%" class="10%">
 
             <!-- <?php echo APP_NAME; ?> -->
 

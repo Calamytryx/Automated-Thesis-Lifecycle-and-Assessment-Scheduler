@@ -365,9 +365,7 @@ error_reporting(E_ALL);
 
 
 <?php
-
 include '../assets/layouts/footer.php'
-
 ?>
 <!-- AI GEMINI MODULE -->
 <!-- Main Module JS -->

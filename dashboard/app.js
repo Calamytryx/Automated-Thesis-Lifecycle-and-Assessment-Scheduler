@@ -214,7 +214,34 @@ $(document).ready(function () {
                                     <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
                                 </div>
                             `;
+
+                        // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
+                        if (response.data.key === 'DB_PASSWORD' || response.data.key === 'MAIL_ENCRYPTION') {
+                            $('#value').val(''); // Clear the value field
+                            form.html(`
+                                <input type="hidden" name="table" value="${table}">
+                                <input type="hidden" name="id" value="${id}">
+                                <div class="mb-3">
+                                    <label for="key" class="form-label">Key</label>
+                                    <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="value" class="form-label">Value</label>
+                                    <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
+                                </div>
+                                <div class="mb-3">
+                                    <label for="old_value" class="form-label">Old Value</label>
+                                    <input type="password" class="form-control" id="old_value" name="old_value" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
+                                </div>
+                                
+                            `);
+                        } else {
                         form.html(formHtml);
+                        }
                     } else if (table === 'defense_schedules') {
                         var formHtml = `
                         <input type="hidden" name="table" value="${table}">
@@ -399,9 +426,18 @@ $(document).ready(function () {
                 console.log('Add Team Member button clicked');
                 addNewTeamMember();
             });
-
-
-
+        } else if (table === 'env_variables') {
+            form.append('<div class="mb-3">' +
+                '<label for="name" class="form-label">Key</label>' +
+                '<input type="text" class="form-control" id="key" name="key" required>' +
+                '</div>' +
+                '<label for="name" class="form-label">Value</label>' +
+                '<input type="text" class="form-control" id="value" name="value" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="created_by" class="form-label">Description</label>' +
+                '<input type="text" class="form-control" id="Description" name="description" required>' +
+                '</div>');
         } else if (table === 'rubrics') {
             form.append('<div class="mb-3">' +
                 '<label for="name" class="form-label">Name</label>' +
@@ -479,6 +515,16 @@ $(document).ready(function () {
             formData.delete('member_role[]');
             formData.delete('new_user_id[]');
             formData.delete('new_role[]');
+        }
+
+        if (formData.get('table') === 'env_variables' && (formData.get('key') === 'DB_PASSWORD' || formData.get('key') === 'MAIL_ENCRYPTION')) {
+            var oldValue = formData.get('old_value');
+            if (!oldValue) {
+                alert('Old value is required for DB_PASSWORD and MAIL_ENCRYPTION');
+                return;
+            }
+            formData.set('value', null); // Set value to null
+            formData.set('old_value', oldValue); // Add old value to form data
         }
 
         console.log('Form data before send:', Object.fromEntries(formData));
