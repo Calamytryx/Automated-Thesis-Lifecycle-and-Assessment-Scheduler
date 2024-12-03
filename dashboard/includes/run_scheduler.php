@@ -32,7 +32,7 @@ try {
         
         $userSchedules = fetchUserSchedules($pdo);
 
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 200, 50, 0.01);
+        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.001);
 
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
@@ -88,7 +88,7 @@ function fetchUserSchedules($pdo)
     return $schedules;
 }
 
-function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize = 100, $generations = 200, $mutationRate = 0.05)
+function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $populationSize, $generations, $mutationRate)
 {
     $population = createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days);
     DefenseSchedule::$initialPopulation = $population; // Store only the initial population
@@ -354,7 +354,7 @@ class DefenseSchedule
     {
         $this->fitness = 0;
         $conflicts = 0;
-        foreach ($this->chromosomes as $defense) {
+        foreach ($this->chromosomes as $defenseKey => $defense) {
             $teamMembers = getTeamMembers($this->pdo, $defense['team_id'], 'array');
 
             if (is_array($teamMembers)) {
@@ -374,6 +374,24 @@ class DefenseSchedule
                 if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
                     $this->fitness -= 5;
                     $conflicts++;
+                }
+            }
+
+            // Check for overlapping times in the same room
+            foreach ($this->chromosomes as $otherKey => $otherDefense) {
+                if ($defenseKey != $otherKey && $defense['room'] == $otherDefense['room'] && $defense['day'] == $otherDefense['day']) {
+                    $duration = intval($_POST['duration']);
+                    $defenseStart = strtotime($defense['time_slot']);
+                    $defenseEnd = strtotime('+' . $duration . ' hours', $defenseStart);
+
+                    $otherStart = strtotime($otherDefense['time_slot']);
+                    $otherEnd = strtotime('+' . $duration . ' hours', $otherStart);
+
+                    if (($defenseStart < $otherEnd) && ($defenseEnd > $otherStart)) {
+                        $this->fitness -= 10;
+                        $conflicts++;
+                        break;
+                    }
                 }
             }
         }
@@ -406,23 +424,34 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
 }
 
 // Unused functions are kept at the end
-function isTimeSlotAvailable($schedule, $day, $timeSlot, $room)
+function isTimeSlotAvailable($schedule, $day, $timeSlot, $duration, $room)
 {
     foreach ($schedule->chromosomes as $defense) {
-        if ($defense['day'] == $day && $defense['time_slot'] == $timeSlot && $defense['room'] == $room) {
-            return false;
+        if ($defense['day'] == $day && $defense['room'] == $room) {
+            // Calculate start and end times for the existing defense
+            $existingStart = strtotime($defense['time_slot']);
+            $existingEnd = strtotime('+' . $duration . ' hour', $existingStart);
+
+            // Calculate start and end times for the new defense
+            $newStart = strtotime($timeSlot);
+            $newEnd = strtotime('+' . $duration . ' hour', $newStart);
+
+            // Check if the time slots overlap
+            if (($newStart < $existingEnd) && ($newEnd > $existingStart)) {
+                return false;
+            }
         }
     }
     return true;
 }
 
-function getAvailableTimeSlot($schedule, $days, $timeSlots, $rooms)
+function getAvailableTimeSlot($schedule, $days, $timeSlots, $duration, $rooms)
 {
     $availableSlots = [];
     foreach ($days as $day) {
         foreach ($timeSlots as $timeSlot) {
             foreach ($rooms as $room) {
-                if (isTimeSlotAvailable($schedule, $day, $timeSlot, $room)) {
+                if (isTimeSlotAvailable($schedule, $day, $timeSlot, $duration, $room)) {
                     $availableSlots[] = ['day' => $day, 'time_slot' => $timeSlot, 'room' => $room];
                 }
             }
