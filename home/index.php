@@ -152,32 +152,6 @@ error_reporting(E_ALL);
                                             </div>
                                         </div>
                                     </div>
-                                    <script>
-                                        function redirectToRequirements() {
-                                            // Remove active and show classes from the currently active tab and content
-                                            const activeTab = document.querySelector('.nav-link.active');
-                                            if (activeTab) {
-                                                activeTab.classList.remove('active');
-                                            }
-
-                                            const activeTabPane = document.querySelector('.tab-pane.show.active');
-                                            if (activeTabPane) {
-                                                activeTabPane.classList.remove('show', 'active');
-                                            }
-
-                                            // Add active class to the "Requirement Checker" tab
-                                            const requirementCheckerTab = document.getElementById('requirement-checker-link');
-                                            if (requirementCheckerTab) {
-                                                requirementCheckerTab.classList.add('active');
-                                            }
-
-                                            // Add show and active classes to the "Requirement Checker" content
-                                            const requirementCheckerPane = document.getElementById('requirement-checker');
-                                            if (requirementCheckerPane) {
-                                                requirementCheckerPane.classList.add('show', 'active');
-                                            }
-                                        }
-                                    </script>
 
                                     <?php
                                     $stmt = $pdo->query("SELECT 
@@ -240,7 +214,7 @@ error_reporting(E_ALL);
                                 <h4 class="pb-2 mb-0 feature-title">Requirements</h4>
                                 <ul class="list-group">
                                     <?php foreach ($requirements as $requirement): ?>
-                                        <li class="list-group-item my-1 req-li">
+                                        <li class="list-group-item my-1 req-li" onclick="redirectToRequirements()">
                                             <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
                                             <br>
                                             <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
@@ -262,6 +236,33 @@ error_reporting(E_ALL);
                         <?php endif; ?>
                     </div>
                 </div>
+
+                <script>
+                                        function redirectToRequirements() {
+                                            // Remove active and show classes from the currently active tab and content
+                                            const activeTab = document.querySelector('.nav-link.active');
+                                            if (activeTab) {
+                                                activeTab.classList.remove('active');
+                                            }
+
+                                            const activeTabPane = document.querySelector('.tab-pane.show.active');
+                                            if (activeTabPane) {
+                                                activeTabPane.classList.remove('show', 'active');
+                                            }
+
+                                            // Add active class to the "Requirement Checker" tab
+                                            const requirementCheckerTab = document.getElementById('requirement-checker-link');
+                                            if (requirementCheckerTab) {
+                                                requirementCheckerTab.classList.add('active');
+                                            }
+
+                                            // Add show and active classes to the "Requirement Checker" content
+                                            const requirementCheckerPane = document.getElementById('requirement-checker');
+                                            if (requirementCheckerPane) {
+                                                requirementCheckerPane.classList.add('show', 'active');
+                                            }
+                                        }
+                                    </script>
 
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
