@@ -335,15 +335,9 @@ $(document).ready(function () {
                         document.getElementById('rubricBuilder').innerHTML = builder.renderBuilder();
                         builder.attachEventListeners();
 
-                        // Load existing structure if available
-                        if (response.data.structure) {
-                            try {
-                                const existingStructure = JSON.parse(response.data.structure);
-                                builder.loadExistingStructure(existingStructure);
-                            } catch (e) {
-                                console.error('Error loading existing structure:', e);
-                            }
-                        }
+                        // Load existing structure
+                        const existingStructure = JSON.parse(response.data.structure);
+                        builder.loadExistingStructure(existingStructure);
 
                         // Handle form submission
                         $('#editModal').find('#saveChanges').off('click').on('click', function() {

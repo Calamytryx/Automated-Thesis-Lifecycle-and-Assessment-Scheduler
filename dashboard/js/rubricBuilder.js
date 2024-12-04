@@ -245,13 +245,17 @@ class RubricBuilder {
 
         const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent.trim());
         const rows = Array.from(table.querySelectorAll('tbody tr')).map(row => 
-            Array.from(row.cells).map(cell => cell.textContent.trim())
+            Array.from(row.cells).map(cell => ({
+                content: cell.textContent.trim(),
+                rowSpan: cell.rowSpan || 1,
+                colSpan: cell.colSpan || 1
+            }))
         );
 
         const structure = {
             levels: headers.slice(1),
-            criteria: rows.filter(row => row[0].trim() !== '').map(row => ({
-                criterion: row[0],
+            criteria: rows.filter(row => row[0].content !== '').map(row => ({
+                criterion: row[0].content,
                 levels: row.slice(1)
             }))
         };
@@ -276,7 +280,9 @@ class RubricBuilder {
             const row = document.createElement('tr');
             row.innerHTML = `
                 <td contenteditable="true">${criterion.criterion}</td>
-                ${criterion.levels.map(level => `<td contenteditable="true">${level}</td>`).join('')}
+                ${criterion.levels.map(level => `
+                    <td contenteditable="true" rowspan="${level.rowSpan}" colspan="${level.colSpan}">${level.content}</td>
+                `).join('')}
             `;
             tbody.appendChild(row);
         });
