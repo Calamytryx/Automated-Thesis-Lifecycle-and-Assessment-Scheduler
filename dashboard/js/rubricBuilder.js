@@ -1,10 +1,9 @@
 class RubricBuilder {
     constructor() {
         this.columns = ['Criteria', 'Level 1', 'Level 2', 'Level 3', 'Level 4'];
-        this.rows = [];
-        this.maxScore = 4;
         this.selectedCells = [];
         this.isSelecting = false;
+        this.lastSelectedCell = null;
     }
 
     renderBuilder() {
@@ -15,8 +14,8 @@ class RubricBuilder {
                     <button type="button" class="btn btn-sm btn-primary me-2" id="addCriterion">Add Criterion</button>
                     <button type="button" class="btn btn-sm btn-danger me-2" id="removeLevel">Remove Level</button>
                     <button type="button" class="btn btn-sm btn-danger me-2" id="removeCriterion">Remove Criterion</button>
-                    <button type="button" class="btn btn-sm btn-success me-2" id="mergeCells">Merge Cells</button>
-                    <button type="button" class="btn btn-sm btn-warning" id="splitCell">Split Cell</button>
+                    <button type="button" class="btn btn-sm btn-secondary me-2" id="mergeCells">Merge Cells</button>
+                    <button type="button" class="btn btn-sm btn-secondary" id="splitCell">Split Cell</button>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered" id="rubricTable">
@@ -26,7 +25,9 @@ class RubricBuilder {
                             </tr>
                         </thead>
                         <tbody>
-                            ${this.renderEmptyRow()}
+                            <tr>
+                                ${this.columns.map(() => `<td contenteditable="true"></td>`).join('')}
+                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -35,11 +36,7 @@ class RubricBuilder {
     }
 
     renderEmptyRow() {
-        return `
-            <tr>
-                ${this.columns.map(col => `<td contenteditable="true"></td>`).join('')}
-            </tr>
-        `;
+        return `<tr>${this.columns.map(() => `<td contenteditable="true"></td>`).join('')}</tr>`;
     }
 
     attachEventListeners() {
@@ -51,15 +48,47 @@ class RubricBuilder {
         document.getElementById('splitCell').addEventListener('click', () => this.splitCell());
 
         const table = document.getElementById('rubricTable');
+        table.addEventListener('click', (e) => this.handleClick(e));
         table.addEventListener('mousedown', (e) => this.handleMouseDown(e));
         table.addEventListener('mouseover', (e) => this.handleMouseOver(e));
         document.addEventListener('mouseup', () => this.handleMouseUp());
     }
 
+    handleClick(e) {
+        if (e.target.tagName !== 'TD') return;
+
+        if (e.ctrlKey || e.metaKey) {
+            // Control/Command click for multiple selection
+            const index = this.selectedCells.indexOf(e.target);
+            if (index === -1) {
+                this.selectedCells.push(e.target);
+            } else {
+                this.selectedCells.splice(index, 1);
+            }
+        } else if (e.shiftKey && this.lastSelectedCell) {
+            // Shift click for range selection
+            const cells = Array.from(document.querySelectorAll('#rubricTable td'));
+            const start = cells.indexOf(this.lastSelectedCell);
+            const end = cells.indexOf(e.target);
+            const range = cells.slice(
+                Math.min(start, end),
+                Math.max(start, end) + 1
+            );
+            this.selectedCells = range;
+        } else {
+            // Normal click
+            this.selectedCells = [e.target];
+            this.lastSelectedCell = e.target;
+        }
+
+        this.updateSelectedCellsStyle();
+    }
+
     handleMouseDown(e) {
-        if (e.target.tagName === 'TD') {
+        if (e.target.tagName === 'TD' && !e.ctrlKey && !e.shiftKey) {
             this.isSelecting = true;
             this.selectedCells = [e.target];
+            this.lastSelectedCell = e.target;
             this.updateSelectedCellsStyle();
         }
     }
@@ -78,61 +107,97 @@ class RubricBuilder {
     }
 
     updateSelectedCellsStyle() {
-        const table = document.getElementById('rubricTable');
-        table.querySelectorAll('td').forEach(cell => {
-            cell.classList.remove('selected-cell');
+        // Reset all cell styles
+        const allCells = document.querySelectorAll('#rubricTable td');
+        allCells.forEach(cell => {
+            cell.style.backgroundColor = '';
+            cell.style.color = '';
         });
+
+        // Highlight selected cells
         this.selectedCells.forEach(cell => {
-            cell.classList.add('selected-cell');
+            cell.style.backgroundColor = '#007bff';
+            cell.style.color = 'white';
         });
     }
 
     mergeCells() {
-        if (this.selectedCells.length < 2) return;
-        
+        if (this.selectedCells.length < 2) {
+            alert('Please select at least 2 cells to merge');
+            return;
+        }
+
+        // Check if cells are adjacent
         const firstCell = this.selectedCells[0];
-        const rowSpan = this.selectedCells.length;
-        const content = this.selectedCells.map(cell => cell.textContent).join(' ');
-        
-        firstCell.textContent = content;
+        const rowSpan = firstCell.rowSpan || 1;
+        const colSpan = firstCell.colSpan || 1;
+
+        // Combine content
+        const combinedContent = this.selectedCells.map(cell => cell.textContent).join(' ');
+        firstCell.textContent = combinedContent;
         firstCell.rowSpan = rowSpan;
+        firstCell.colSpan = this.selectedCells.length;
+
+        // Remove other cells
+        this.selectedCells.slice(1).forEach(cell => cell.remove());
         
-        this.selectedCells.slice(1).forEach(cell => {
-            cell.remove();
-        });
-        
+        // Clear selection
         this.selectedCells = [];
         this.updateSelectedCellsStyle();
     }
 
     splitCell() {
-        if (this.selectedCells.length !== 1) return;
-        
-        const cell = this.selectedCells[0];
-        if (cell.rowSpan <= 1) return;
-        
-        const content = cell.textContent;
-        const row = cell.parentElement;
-        const cellIndex = Array.from(row.cells).indexOf(cell);
-        
-        cell.rowSpan = 1;
-        
-        for (let i = 1; i < cell.rowSpan; i++) {
-            const nextRow = row.nextElementSibling;
-            const newCell = document.createElement('td');
-            newCell.textContent = content;
-            newCell.contentEditable = true;
-            nextRow.insertCell(cellIndex);
+        if (this.selectedCells.length !== 1) {
+            alert('Please select one merged cell to split');
+            return;
         }
-        
+
+        const cell = this.selectedCells[0];
+        if (!cell.colSpan || cell.colSpan === 1) {
+            alert('Selected cell is not merged');
+            return;
+        }
+
+        const row = cell.parentElement;
+        const content = cell.textContent;
+        const colSpan = cell.colSpan;
+
+        // Reset the first cell
+        cell.colSpan = 1;
+        cell.textContent = content;
+
+        // Add new cells
+        for (let i = 1; i < colSpan; i++) {
+            const newCell = document.createElement('td');
+            newCell.contentEditable = true;
+            row.insertBefore(newCell, cell.nextSibling);
+        }
+
+        // Clear selection
         this.selectedCells = [];
         this.updateSelectedCellsStyle();
     }
 
     addLevel() {
-        const levelNum = this.columns.length;
-        this.columns.push(`Level ${levelNum}`);
-        this.refreshTable();
+        const table = document.getElementById('rubricTable');
+        const headerRow = table.querySelector('thead tr');
+        const newLevelNum = headerRow.children.length;
+        
+        // Add header
+        const newHeader = document.createElement('th');
+        newHeader.contentEditable = true;
+        newHeader.textContent = `Level ${newLevelNum}`;
+        headerRow.appendChild(newHeader);
+        
+        // Add column to each row
+        const rows = table.querySelectorAll('tbody tr');
+        rows.forEach(row => {
+            const newCell = document.createElement('td');
+            newCell.contentEditable = true;
+            row.appendChild(newCell);
+        });
+        
+        this.columns.push(`Level ${newLevelNum}`);
     }
 
     addCriterion() {
@@ -141,9 +206,10 @@ class RubricBuilder {
     }
 
     removeLevel() {
-        if (this.columns.length > 2) {
+        const table = document.getElementById('rubricTable');
+        if (table.rows[0].cells.length > 2) {
+            Array.from(table.rows).forEach(row => row.deleteCell(-1));
             this.columns.pop();
-            this.refreshTable();
         }
     }
 

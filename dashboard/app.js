@@ -2,8 +2,11 @@ $(document).ready(function () {
 
     // Edit button functionality
     $(document).on('click', '.edit-btn', function () {
-        var table = $(this).data('table');
+        // Remove any existing modal shown event handlers
+        $('#editModal').off('shown.bs.modal');
+        
         var id = $(this).data('id');
+        var table = $(this).data('table');
 
         console.log('Edit button clicked. Table:', table, 'ID:', id);
 
@@ -360,29 +363,10 @@ $(document).ready(function () {
                                         const result = typeof response === 'string' ? JSON.parse(response) : response;
                                         if (result.success) {
                                             $('#editModal').modal('hide');
-                                            // Refresh the rubrics table
-                                            fetch(`includes/tabs/get_table.php?table=rubrics&page=1`)
-                                                .then(response => response.json())
-                                                .then(data => {
-                                                    if (data.error) {
-                                                        console.error(data.error);
-                                                        return;
-                                                    }
-                                                    const tbody = document.querySelector('#rubrics .db-table tbody');
-                                                    tbody.innerHTML = '';
-                                                    data.data.forEach(rubric => {
-                                                        tbody.innerHTML += `
-                                                            <tr>
-                                                                <td>${rubric.name}</td>
-                                                                <td>${rubric.description}</td>
-                                                                <td class="text-center align-middle">
-                                                                    <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="${rubric.id}">Edit</button>
-                                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="${rubric.id}">Delete</button>
-                                                                </td>
-                                                            </tr>
-                                                        `;
-                                                    });
-                                                });
+                                            // Show success message
+                                            alert(result.message);
+                                            // Refresh the page to reset everything
+                                            location.reload();
                                         } else {
                                             alert('Error: ' + (result.message || 'Failed to update rubric'));
                                         }
@@ -414,101 +398,11 @@ $(document).ready(function () {
     $(document).on('click', '.add-btn', function () {
         var table = $(this).data('table');
         var form = $('#addForm');
-        form.empty();
-        form.append('<input type="hidden" name="table" value="' + table + '">');
-
-        if (table === 'users') {
-            form.append('<div class="mb-3">' +
-                '<label for="username" class="form-label">Username</label>' +
-                '<input type="text" class="form-control" id="username" name="username" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="email" class="form-label">Email</label>' +
-                '<input type="email" class="form-control" id="email" name="email" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="password" class="form-label">Password</label>' +
-                '<input type="password" class="form-control" id="password" name="password" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="first_name" class="form-label">First Name</label>' +
-                '<input type="text" class="form-control" id="first_name" name="first_name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="last_name" class="form-label">Last Name</label>' +
-                '<input type="text" class="form-control" id="last_name" name="last_name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="usertype" class="form-label">User Type</label>' +
-                '<select class="form-select" id="usertype" name="usertype" required>' +
-                '<option value="0">Admin</option>' +
-                '<option value="1">Student</option>' +
-                '<option value="2">Faculty</option>' +
-                '</select>' +
-                '</div>');
-        } else if (table === 'thesis_topics') {
-            form.append('<div class="mb-3">' +
-                '<label for="topic" class="form-label">Topic</label>' +
-                '<input type="text" class="form-control" id="topic" name="topic" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="category" class="form-label">Category</label>' +
-                '<input type="text" class="form-control" id="category" name="category" required>' +
-                '</div>'
-            );
-        } else if (table === 'research_titles') {
-            form.append('<div class="mb-3">' +
-                '<label for="team_id" class="form-label">Team ID</label>' +
-                '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="title" class="form-label">Title</label>' +
-                '<input type="text" class="form-control" id="title" name="title" required>' +
-                '</div>' +
-                '<div class="mb-3 form-check">' +
-                '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
-                '<label class="form-check-label" for="approved">Approved</label>' +
-                '</div>');
-        } else if (table === 'teams') {
-            var formHtml = `
-            <div class="mb-3">
-                <label for="name" class="form-label">Team Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-                <label for="title" class="form-label">Research Title</label>
-                <input type="text" class="form-control" id="title" name="title" required>
-            </div>
-            <h5 class="mt-4">Team Members</h5>
-            <div id="teamMembers">
-                <!-- Team members will be added here -->
-            </div>
-            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
-        `;
-            form.append(formHtml);
-
-            // Add team member functionality
-            $('#addTeamMember').on('click', function () {
-                console.log('Add Team Member button clicked');
-                addNewTeamMember();
-            });
-        } else if (table === 'env_variables') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Key</label>' +
-                '<input type="text" class="form-control" id="key" name="key" required>' +
-                '</div>' +
-                '<label for="name" class="form-label">Value</label>' +
-                '<input type="text" class="form-control" id="value" name="value" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="created_by" class="form-label">Description</label>' +
-                '<input type="text" class="form-control" id="Description" name="description" required>' +
-                '</div>');
-        } else if (table === 'rubrics') {
+        
+        // Remove any existing modal shown event handlers
+        $('#addModal').off('shown.bs.modal');
+        
+        if (table === 'rubrics') {
             form.empty().append(`
                 <input type="hidden" name="table" value="rubrics">
                 <div class="mb-3">
@@ -531,6 +425,9 @@ $(document).ready(function () {
             document.getElementById('rubricBuilder').innerHTML = builder.renderBuilder();
             builder.attachEventListeners();
 
+            // Show the modal
+            $('#addModal').modal('show');
+
             // Handle form submission
             $('#addModal').find('#addItem').off('click').on('click', function() {
                 const structure = builder.getStructure();
@@ -545,94 +442,28 @@ $(document).ready(function () {
                     processData: false,
                     contentType: false,
                     success: function(response) {
-                        console.log('Raw response:', response);
                         try {
                             const result = typeof response === 'string' ? JSON.parse(response) : response;
-                            console.log('Parsed response:', result);
                             if (result.success) {
                                 $('#addModal').modal('hide');
-                                // Refresh the rubrics table
-                                fetch(`includes/tabs/get_table.php?table=rubrics&page=1`)
-                                    .then(response => response.json())
-                                    .then(data => {
-                                        if (data.error) {
-                                            console.error(data.error);
-                                            return;
-                                        }
-                                        const tbody = document.querySelector('#rubrics .db-table tbody');
-                                        tbody.innerHTML = '';
-                                        data.data.forEach(rubric => {
-                                            tbody.innerHTML += `
-                                                <tr>
-                                                    <td>${rubric.name}</td>
-                                                    <td>${rubric.description}</td>
-                                                    <td class="text-center align-middle">
-                                                        <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="${rubric.id}">Edit</button>
-                                                        <button class="btn btn-info btn-sm view-rubric-btn" data-id="${rubric.id}">View Structure</button>
-                                                        <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="${rubric.id}">Delete</button>
-                                                    </td>
-                                                </tr>
-                                            `;
-                                        });
-                                    });
+                                alert(result.message);
+                                // Refresh the page to reset everything
+                                location.reload();
                             } else {
                                 alert('Error: ' + (result.message || 'Failed to add rubric'));
                             }
                         } catch (e) {
                             console.error('Parse error:', e);
-                            console.error('Response:', response);
                             alert('Error: Server returned invalid response format');
                         }
                     },
                     error: function(xhr, status, error) {
-                        console.error('AJAX Error:', {xhr, status, error});
-                        console.error('Response Text:', xhr.responseText);
-                        alert('Error: ' + error);
+                        console.error('AJAX Error:', xhr.responseText);
+                        alert('Error: Unable to add item');
                     }
                 });
             });
-        } else if (table === 'requirements') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="due_date" class="form-label">Due Date</label>' +
-                '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
-                '</div>');
-        } else if (table === 'evaluations') {
-            form.append('<div class="mb-3">' +
-                '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
-                '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
-                '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="total_score" class="form-label">Total Score</label>' +
-                '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="comments" class="form-label">Comments</label>' +
-                '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="recommendation" class="form-label">Recommendation</label>' +
-                '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
-                '</div>');
-        } else {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>');
         }
-
-        $('#addModal').modal('show');
     });
 
     $('#saveChanges').on('click', function () {
@@ -701,6 +532,7 @@ $(document).ready(function () {
     $('#addItem').on('click', function () {
         var form = $('#addForm');
         var formData = new FormData(form[0]);
+        var table = formData.get('table');
 
         $.ajax({
             url: 'includes/add_items.php',
@@ -711,15 +543,43 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
-                    alert('Team added successfully');
                     $('#addModal').modal('hide');
-                    location.reload();
+                    
+                    if (table === 'rubrics') {
+                        // Refresh the rubrics table without page reload
+                        fetch(`includes/tabs/get_table.php?table=rubrics&page=1`)
+                            .then(response => response.json())
+                            .then(data => {
+                                if (data.error) {
+                                    console.error(data.error);
+                                    return;
+                                }
+                                const tbody = document.querySelector('#rubrics .db-table tbody');
+                                tbody.innerHTML = '';
+                                data.data.forEach(rubric => {
+                                    tbody.innerHTML += `
+                                        <tr>
+                                            <td>${rubric.name}</td>
+                                            <td>${rubric.description}</td>
+                                            <td class="text-center align-middle">
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="${rubric.id}">Edit</button>
+                                                <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="${rubric.id}">Delete</button>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                            });
+                        alert(response.message);
+                    } else {
+                        location.reload();
+                    }
                 } else {
                     alert('Error: ' + response.message);
                 }
             },
-            error: function () {
-                alert('Error: Unable to add team');
+            error: function (xhr, status, error) {
+                console.error('AJAX Error:', xhr.responseText);
+                alert('Error: Unable to add item');
             }
         });
     });

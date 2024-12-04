@@ -38,7 +38,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
             
             $pdo->commit();
-            echo json_encode(['success' => true]);
+            echo json_encode(['success' => true, 'message' => 'Rubric updated successfully']);
         } catch (Exception $e) {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
