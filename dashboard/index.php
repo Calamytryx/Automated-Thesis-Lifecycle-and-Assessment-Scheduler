@@ -303,7 +303,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
@@ -356,7 +356,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
 <!-- Add Modal -->
 <div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="addModalLabel">Add Item</h5>
@@ -378,7 +378,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
+                <button type="button" class="btn btn-primary mod-pri-btn" id="addItem">Add Item</button>
             </div>
         </div>
     </div>

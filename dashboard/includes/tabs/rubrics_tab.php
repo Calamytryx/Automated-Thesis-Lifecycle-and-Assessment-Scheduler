@@ -23,6 +23,8 @@
         </ul>
     </nav>
 
+    <script src="js/rubricBuilder.js"></script>
+
     <script>
         document.addEventListener('DOMContentLoaded', function () {
             const loadRubrics = (page = 1) => {
@@ -33,7 +35,6 @@
                             console.error(data.error);
                             return;
                         }
-
                         const tbody = document.querySelector('#rubrics .db-table tbody');
                         tbody.innerHTML = '';
                         data.data.forEach(rubric => {
@@ -48,37 +49,10 @@
                                 </tr>
                             `;
                         });
-
-                        // Update Pagination
-                        const pagination = document.querySelector('#rubrics .pagination');
-                        pagination.innerHTML = '';
-
-                        // Previous Button
-                        pagination.innerHTML += `
-                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
-                            </li>
-                        `;
-
-                        // Page Numbers
-                        for (let i = 1; i <= data.total_pages; i++) {
-                            pagination.innerHTML += `
-                                <li class="page-item ${page === i ? 'active' : ''}">
-                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                </li>
-                            `;
-                        }
-
-                        // Next Button
-                        pagination.innerHTML += `
-                            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
-                            </li>
-                        `;
                     });
             };
 
-            // Initial Load
+            // Call loadRubrics on page load
             loadRubrics();
 
             // Handle Pagination Clicks

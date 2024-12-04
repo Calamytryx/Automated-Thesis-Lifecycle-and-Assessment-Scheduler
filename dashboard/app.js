@@ -309,24 +309,94 @@ $(document).ready(function () {
                             $(this).closest('.panelist').remove();
                         });
                     } else if (table === 'rubrics') {
-                        var fieldsToShow = Object.keys(response.data);
-                        fieldsToShow.forEach(function (key) {
-                            var value = response.data[key] || '';
-                            var inputType = (key === 'email') ? 'email' : 'text';
-                            var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
+                        form.empty().append(`
+                            <input type="hidden" name="table" value="rubrics">
+                            <input type="hidden" name="id" value="${response.data.id}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" value="${response.data.name}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required>${response.data.description}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label">Rubric Structure</label>
+                                <div id="rubricBuilder"></div>
+                                <input type="hidden" name="structure" id="rubricStructure">
+                            </div>
+                        `);
 
-                            // Check if the key is 'id' or 'created_at' to make them hidden
-                            if (key === 'id' || key === 'created_at') {
-                                form.append('<input type="hidden" id="' + key + '" name="' + key + '" value="' + value + '">');
-                            } else {
-                                form.append('<div class="mb-3">' +
-                                    '<label for="' + key + '" class="form-label">' + label + '</label>' +
-                                    '<input type="' + inputType + '" class="form-control" id="' + key + '" name="' + key + '" value="' + value + '">' +
-                                    '</div>');
+                        // Initialize rubric builder with existing structure
+                        const builder = new RubricBuilder();
+                        document.getElementById('rubricBuilder').innerHTML = builder.renderBuilder();
+                        builder.attachEventListeners();
+
+                        // Load existing structure if available
+                        if (response.data.structure) {
+                            try {
+                                const existingStructure = JSON.parse(response.data.structure);
+                                builder.loadExistingStructure(existingStructure);
+                            } catch (e) {
+                                console.error('Error loading existing structure:', e);
                             }
+                        }
+
+                        // Handle form submission
+                        $('#editModal').find('#saveChanges').off('click').on('click', function() {
+                            const structure = builder.getStructure();
+                            $('#rubricStructure').val(structure);
+                            
+                            const formData = new FormData($('#editForm')[0]);
+                            
+                            $.ajax({
+                                url: 'includes/edit_items.php',
+                                method: 'POST',
+                                data: formData,
+                                processData: false,
+                                contentType: false,
+                                success: function(response) {
+                                    try {
+                                        const result = typeof response === 'string' ? JSON.parse(response) : response;
+                                        if (result.success) {
+                                            $('#editModal').modal('hide');
+                                            // Refresh the rubrics table
+                                            fetch(`includes/tabs/get_table.php?table=rubrics&page=1`)
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.error) {
+                                                        console.error(data.error);
+                                                        return;
+                                                    }
+                                                    const tbody = document.querySelector('#rubrics .db-table tbody');
+                                                    tbody.innerHTML = '';
+                                                    data.data.forEach(rubric => {
+                                                        tbody.innerHTML += `
+                                                            <tr>
+                                                                <td>${rubric.name}</td>
+                                                                <td>${rubric.description}</td>
+                                                                <td class="text-center align-middle">
+                                                                    <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="${rubric.id}">Edit</button>
+                                                                    <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="${rubric.id}">Delete</button>
+                                                                </td>
+                                                            </tr>
+                                                        `;
+                                                    });
+                                                });
+                                        } else {
+                                            alert('Error: ' + (result.message || 'Failed to update rubric'));
+                                        }
+                                    } catch (e) {
+                                        console.error('Parse error:', e);
+                                        alert('Error: Server returned invalid response format');
+                                    }
+                                },
+                                error: function(xhr, status, error) {
+                                    console.error('AJAX Error:', xhr.responseText);
+                                    alert('Error: ' + error);
+                                }
+                            });
                         });
-
-
                     }
                     // Add more conditions for other tables as needed
                     $('#editModal').modal('show');
@@ -439,18 +509,88 @@ $(document).ready(function () {
                 '<input type="text" class="form-control" id="Description" name="description" required>' +
                 '</div>');
         } else if (table === 'rubrics') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="created_by" class="form-label">Created By</label>' +
-                '<input type="text" class="form-control" id="created_by" name="created_by" required>' +
-                '</div>');
+            form.empty().append(`
+                <input type="hidden" name="table" value="rubrics">
+                <div class="mb-3">
+                    <label for="name" class="form-label">Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                </div>
+                <div class="mb-3">
+                    <label for="description" class="form-label">Description</label>
+                    <textarea class="form-control" id="description" name="description" rows="3" required></textarea>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label">Rubric Structure</label>
+                    <div id="rubricBuilder"></div>
+                    <input type="hidden" name="structure" id="rubricStructure">
+                </div>
+            `);
+
+            // Initialize rubric builder
+            const builder = new RubricBuilder();
+            document.getElementById('rubricBuilder').innerHTML = builder.renderBuilder();
+            builder.attachEventListeners();
+
+            // Handle form submission
+            $('#addModal').find('#addItem').off('click').on('click', function() {
+                const structure = builder.getStructure();
+                $('#rubricStructure').val(structure);
+                
+                const formData = new FormData($('#addForm')[0]);
+                
+                $.ajax({
+                    url: 'includes/add_items.php',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    success: function(response) {
+                        console.log('Raw response:', response);
+                        try {
+                            const result = typeof response === 'string' ? JSON.parse(response) : response;
+                            console.log('Parsed response:', result);
+                            if (result.success) {
+                                $('#addModal').modal('hide');
+                                // Refresh the rubrics table
+                                fetch(`includes/tabs/get_table.php?table=rubrics&page=1`)
+                                    .then(response => response.json())
+                                    .then(data => {
+                                        if (data.error) {
+                                            console.error(data.error);
+                                            return;
+                                        }
+                                        const tbody = document.querySelector('#rubrics .db-table tbody');
+                                        tbody.innerHTML = '';
+                                        data.data.forEach(rubric => {
+                                            tbody.innerHTML += `
+                                                <tr>
+                                                    <td>${rubric.name}</td>
+                                                    <td>${rubric.description}</td>
+                                                    <td class="text-center align-middle">
+                                                        <button class="btn btn-primary btn-sm edit-btn" data-table="rubrics" data-id="${rubric.id}">Edit</button>
+                                                        <button class="btn btn-info btn-sm view-rubric-btn" data-id="${rubric.id}">View Structure</button>
+                                                        <button class="btn btn-danger btn-sm delete-btn" data-table="rubrics" data-id="${rubric.id}">Delete</button>
+                                                    </td>
+                                                </tr>
+                                            `;
+                                        });
+                                    });
+                            } else {
+                                alert('Error: ' + (result.message || 'Failed to add rubric'));
+                            }
+                        } catch (e) {
+                            console.error('Parse error:', e);
+                            console.error('Response:', response);
+                            alert('Error: Server returned invalid response format');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('AJAX Error:', {xhr, status, error});
+                        console.error('Response Text:', xhr.responseText);
+                        alert('Error: ' + error);
+                    }
+                });
+            });
         } else if (table === 'requirements') {
             form.append('<div class="mb-3">' +
                 '<label for="name" class="form-label">Name</label>' +

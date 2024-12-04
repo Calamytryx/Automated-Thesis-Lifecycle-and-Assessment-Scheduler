@@ -23,20 +23,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for rubrics
     if($table === 'rubrics'){
+        error_log("Received POST data: " . print_r($_POST, true));
         $pdo->beginTransaction();
         try {
-            // Disable foreign key checks
-            $pdo->exec("SET FOREIGN_KEY_CHECKS=0");
+            // Validate structure JSON
+            $structure = isset($_POST['structure']) ? $_POST['structure'] : null;
+            error_log("Structure data: " . $structure);
+            
+            if ($structure) {
+                $decoded = json_decode($structure);
+                if (json_last_error() !== JSON_ERROR_NONE) {
+                    error_log("JSON Error: " . json_last_error_msg());
+                    throw new Exception('Invalid rubric structure: ' . json_last_error_msg());
+                }
+            }
             
             // Insert into rubrics table
-            $stmt = $pdo->prepare("INSERT INTO rubrics (name, description) VALUES (:name, :description)");
-            $stmt->execute(['name' => $_POST['name'], 'description' => $_POST['description']]);
-            
-            // Enable foreign key checks
-            $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
-            
-            // Get the last inserted ID
-            $rubricId = $pdo->lastInsertId();
+            $stmt = $pdo->prepare("INSERT INTO rubrics (name, description, structure, created_by) VALUES (:name, :description, :structure, :created_by)");
+            $stmt->execute([
+                'name' => $_POST['name'],
+                'description' => $_POST['description'],
+                'structure' => $structure,
+                'created_by' => $_SESSION['id'] ?? null
+            ]);
             
             $pdo->commit();
             echo json_encode(['success' => true]);
@@ -44,7 +53,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
-        
         exit;
     }
     

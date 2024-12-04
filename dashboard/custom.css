@@ -22,3 +22,12 @@ body {
 .feature-btn:hover{
     background-color: var(--primary-400);
 } 
+
+.selected-cell {
+    background-color: rgba(0, 123, 255, 0.2) !important;
+}
+
+#rubricTable td {
+    cursor: pointer;
+    user-select: none;
+}
