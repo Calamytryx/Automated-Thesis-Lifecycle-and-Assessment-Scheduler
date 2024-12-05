@@ -394,7 +394,7 @@ $(document).ready(function () {
         var form = $('#addForm');
         
         // Remove any existing modal shown event handlers
-        $('#addModal').off('shown.bs.modal');
+        //$('#addModal').off('shown.bs.modal');
         
         if (table === 'rubrics') {
             form.empty().append(`
