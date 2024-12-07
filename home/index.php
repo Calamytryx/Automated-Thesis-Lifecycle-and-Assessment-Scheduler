@@ -232,7 +232,7 @@ error_reporting(E_ALL);
                             </div>
 
                         <?php else: ?>
-                            <p>No requirements available.</p>
+                            
                         <?php endif; ?>
                     </div>
                 </div>

@@ -66,13 +66,13 @@ if (isset($_POST['update-profile'])) {
         header("Location: ../");
         exit();
     } 
-    if ($_SESSION['email'] != $email && !availableEmail($conn, $email)) {
+    if ($_SESSION['email'] != $email && !availableEmail($pdo, $email)) {
 
         $_SESSION['ERRORS']['emailerror'] = 'email already taken';
         header("Location: ../");
         exit();
     }
-    if ( $_SESSION['username'] != $username && !availableUsername($conn, $username)) {
+    if ( $_SESSION['username'] != $username && !availableUsername($pdo, $username)) {
 
         $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
         header("Location: ../");
