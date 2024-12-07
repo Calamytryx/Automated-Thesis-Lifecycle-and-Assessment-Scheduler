@@ -9,6 +9,7 @@
                 <tr>
                     <th>Name</th>
                     <th>Research Title</th>
+                    <th>Adviser</th>
                     <th>Members</th>
                     <th>Action</th>
                 </tr>
@@ -42,6 +43,7 @@
                                 <tr>
                             <td>${team.name}</td>
                             <td>${team.research_title}</td>
+                            <td>${team.adviser}</td>
                             <td>${team.team_members}</td>
                             <td class="text-center align-middle">
                                 <button class="btn btn-primary btn-sm edit-btn" data-table="teams" data-id="${team.id}">Edit</button>

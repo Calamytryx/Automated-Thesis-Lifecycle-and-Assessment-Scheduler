@@ -274,10 +274,11 @@ $(document).ready(function () {
 
                         if (response.data.panelists) {
                             response.data.panelists.forEach(function (panelist, index) {
+                                
                                 formHtml += `
                                 <div class="mb-3 row panelist" data-user-id="${panelist.id}">
                                     <div class="col-sm-10">
-                                        <select class="form-select" name="panelist_id[]">
+                                        <select class="form-select" name="panelist_id[${index}]">
                                             ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
                                         </select>
                                     </div>
@@ -286,6 +287,7 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
+                            index++;
                             });
                         } else {
                             console.error('Panelists data is missing in the response');
@@ -541,7 +543,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Item updated successfully');
                     $('#editModal').modal('hide');
-                    location.reload();
+                    // location.reload();
                 } else {
                     alert('Error: ' + response.message);
                     console.error('Update failed:', response);
@@ -573,7 +575,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Team added successfully');
                     $('#addModal').modal('hide');
-                    location.reload();
+                    // location.reload();
                 } else {
                     alert('Error: ' + response.message);
                 }
@@ -601,7 +603,7 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         alert('Item deleted successfully from table ' + table + ' with ID ' + id);
-                        location.reload();
+                        // location.reload();
                         // Optionally, refresh the table or page
                     } else {
                         alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
@@ -678,7 +680,7 @@ $(document).ready(function () {
     
                         // Reload or update the schedule display after a short delay
                         setTimeout(function () {
-                            location.reload(); // Or update the schedule table dynamically
+                            // location.reload(); // Or update the schedule table dynamically
                         }, 2000);
     
                     } else {
@@ -722,13 +724,20 @@ $(document).ready(function () {
     
 });
 function addNewPanelist(staff) {
-    console.log('addNewPanelist function called');
+    // Determine the next index based on existing panelists
+    var currentIndices = $('#panelists .panelist select').map(function() {
+        var name = $(this).attr('name');
+        var match = name.match(/\[(\d+)\]/);
+        return match ? parseInt(match[1], 10) : -1;
+    }).get();
+    var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
+
     var newPanelistHtml = `
         <div class="mb-3 row panelist">
             <div class="col-sm-10">
-                <select class="form-select" name="new_panelist_id[]">
+                <select class="form-select" name="panelist_id[${nextIndex}]">
                     <option value="">Select a panelist</option>
-                    ${staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                    ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
                 </select>
             </div>
             <div class="col-sm-2">
@@ -736,10 +745,17 @@ function addNewPanelist(staff) {
             </div>
         </div>
     `;
-    console.log('New panelist HTML:', newPanelistHtml);
     $('#panelists').append(newPanelistHtml);
-    console.log('New panelist added to DOM');
+    console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
 }
+
+// Optionally, update existing panelist entries to have unique indices
+$(document).ready(function () {
+    $('#panelists .panelist').each(function(index) {
+        $(this).find('select').attr('name', `panelist_id[${index}]`);
+    });
+});
+
 // Define addNewTeamMember function globally
 function addNewTeamMember() {
     console.log('addNewTeamMember function called');

@@ -54,18 +54,35 @@ try {
     LIMIT :limit OFFSET :offset;";
 
         $stmt = $pdo->prepare($query);
-    }elseif ($table === 'teams') {
+    } elseif ($table === 'teams') {
         $query = "
             SELECT 
-                t.id,
-                t.name,
-                rt.title AS research_title,
-                GROUP_CONCAT(DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) ORDER BY tm.id SEPARATOR ', ') AS team_members
-            FROM teams t
-            JOIN research_titles rt ON t.id = rt.team_id
-            JOIN team_members tm ON t.id = tm.team_id
-            JOIN users u_student ON tm.user_id = u_student.id AND u_student.usertype != 2
-            GROUP BY t.id, rt.title
+    t.id,
+    t.name,
+    rt.title AS research_title,
+    GROUP_CONCAT(
+        DISTINCT CASE 
+            WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name)
+        END 
+        ORDER BY tm.id SEPARATOR ', '
+    ) AS team_members,
+    GROUP_CONCAT(
+        DISTINCT CASE 
+            WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name)
+        END 
+        ORDER BY tm.id SEPARATOR ', '
+    ) AS adviser
+FROM 
+    teams t
+JOIN 
+    research_titles rt ON t.id = rt.team_id
+JOIN 
+    team_members tm ON t.id = tm.team_id
+JOIN 
+    users u ON tm.user_id = u.id
+GROUP BY 
+    t.id, rt.title
+
             LIMIT :limit OFFSET :offset;
         ";
 

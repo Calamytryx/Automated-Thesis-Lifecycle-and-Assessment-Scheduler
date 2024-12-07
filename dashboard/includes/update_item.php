@@ -127,9 +127,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $team_id = $_POST['team_id'] ?? '';
             
                 // Handle panelist IDs as scalars
-                $panelist_id = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][0] : $_POST['panelist_id']) : null;
-                $panelist_id2 = isset($_POST['panelist_id2']) ? (is_array($_POST['panelist_id2']) ? $_POST['panelist_id2'][0] : $_POST['panelist_id2']) : null;
-                $panelist_id3 = isset($_POST['panelist_id3']) ? (is_array($_POST['panelist_id3']) ? $_POST['panelist_id3'][0] : $_POST['panelist_id3']) : null;
+                $panelist_id = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][0] : $_POST['panelist_id'][0]) : null;
+                $panelist_id2 = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][1] : $_POST['panelist_id'][1]) : null;
+                $panelist_id3 = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][2] : $_POST['panelist_id'][2]): null;
             
                 error_log("Updating defense schedule: Date=$schedule_date, Start=$start_time, End=$end_time, Room=$room, Team ID=$team_id, Panelists=[$panelist_id, $panelist_id2, $panelist_id3]");
             
