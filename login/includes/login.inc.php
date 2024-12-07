@@ -170,8 +170,13 @@ if (!isset($_POST['loginsubmit'])) {
                     $stmt->execute([$_SESSION['email'], $selector, $hashedToken, $expires]);
                 }
 
-                header("Location: ../../home/");
-                exit();
+                if ($_SESSION['usertype'] == 0) {
+                    header("Location: ../../dashboard");
+                    exit();
+                } else {
+                    header("Location: ../../home");
+                    exit();
+                }
             }
         }
     }

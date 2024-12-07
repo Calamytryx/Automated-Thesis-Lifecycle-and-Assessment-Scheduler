@@ -2,7 +2,11 @@
 
 if (isset($_SESSION['auth'])) {
 
-    header("Location: home");
+    if ($_SESSION['usertype'] == 0) {
+        header("Location: dashboard");
+    } else {
+        header("Location: home");
+    }
     exit();
 }
 else {

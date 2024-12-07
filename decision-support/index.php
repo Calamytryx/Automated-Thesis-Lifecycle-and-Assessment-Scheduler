@@ -96,7 +96,7 @@ include '../assets/layouts/header.php';
                             <p class="card-text">PDF VIEW</p>
                             <button class="btn btn-primary mt-2" onclick="toggleFullScreen()">Full Screen</button>
                             <div class="d-flex justify-content-between align-items-center">
-                                <iframe id="pdf" src="viewer.html?file=file.pdf" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
+                                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
                                 <script>
                                     function toggleFullScreen() {
                                         var iframe = document.getElementById('pdf');
