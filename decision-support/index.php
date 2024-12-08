@@ -10,19 +10,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 }
 
-// // Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
-// $requirementStmt = $pdo->prepare("SELECT file_name FROM coecsa_thesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
-// $requirementStmt->execute([$team_id]);
-// $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
+// Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
+$requirementStmt = $pdo->prepare("SELECT file_name FROM coecsa_thesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
+$requirementStmt->execute([$team_id]);
+$requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
 
-// if ($requirement) {
-//     $fileName = htmlspecialchars($requirement['file_name']);
-//     // You can use $fileName as needed, for example:
-//     // echo "<p>File Name: {$fileName}</p>";
-// } else {
-//     echo "<p class='text-danger'>Requirement not found.</p>";
-//     exit;
-// }
+if ($requirement) {
+    $fileName = htmlspecialchars($requirement['file_name']);
+    // You can use $fileName as needed, for example:
+    // echo "<p>File Name: {$fileName}</p>";
+} else {
+    echo "<p class='text-danger'>Requirement not found.</p>" . $team_id;
+    exit;
+}
 
 try {
     // Fetch team details
@@ -179,7 +179,7 @@ include '../assets/layouts/header.php';
                             <p class="card-text">PDF VIEW</p>
                             <button class="btn btn-primary mt-2" onclick="toggleFullScreen()">Full Screen</button>
                             <div class="d-flex justify-content-between align-items-center">
-                                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=" frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
+                                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?> " frameborder="0" style="width: 100%; height: 100%;" allowfullscreen></iframe>
                                 <script>
                                     function toggleFullScreen() {
                                         var iframe = document.getElementById('pdf');

@@ -54,7 +54,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $newFileName = "{$teamName}-{$documentName}-{$date}.pdf";
 
             // Ensure submission directory exists
-            $targetDir = __DIR__ . '/../submission/';
+            $targetDir = '../../assets/uploads/submission/';
             if (!is_dir($targetDir)) {
                 mkdir($targetDir, 0755, true);
             }
@@ -143,4 +143,5 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 } else {
     echo json_encode(['success' => false, 'error' => 'Invalid request method.']);
 }
+header('location: ../');
 ?>

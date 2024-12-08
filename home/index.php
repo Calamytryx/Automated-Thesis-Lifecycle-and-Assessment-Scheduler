@@ -404,7 +404,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     var teamSelectHtml = '<select id="teamSelect" class="form-select mb-3">';
                     <?php if (!empty($teams)) { ?>
                         <?php foreach ($teams as $team) { ?>
-                            teamSelectHtml += '<option value="<?php echo $team['id']; ?>"><?php echo htmlspecialchars($team['name']); ?></option>';
+                            teamSelectHtml += '<option id="team_id-<?php echo $team['id']; ?>" value="<?php echo $team['id']; ?>"><?php echo htmlspecialchars($team['name']); ?></option>';
                         <?php } ?>
                     <?php } else { ?>
                         teamSelectHtml += '<option value="">No teams available</option>';
@@ -438,7 +438,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         success: function(response) {
                             console.log("AJAX request successful. Response:", response);
                             if (response.success) {
-                                var checklistHtml = '<form id="requirementForm" enctype="multipart/form-data">';
+                                var checklistHtml = '<form id="requirementChecklist" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data">';
                                 response.requirements.forEach(function(req) {
                                     checklistHtml += `
                         <div class="form-check mb-3">
@@ -460,8 +460,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
                             </div>
                             <div class="mt-2">
-                                <a href="./submission/${req.file_name}" class="btn btn-secondary" download>Download File</a>
-                                <a href="./submission/viewer.html?file=${req.file_name}" class="btn btn-secondary">View and Download File</a>
+                                <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary" download>Download File</a>
+                                <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-secondary">View File</a>
                             </div>
                             <div class="mt-2">
                                 <label for="feedbackFile${req.id}">Upload Feedback File:</label>
@@ -475,38 +475,6 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 });
                                 checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
                                 $('#requirementChecklist').html(checklistHtml);
-
-                                // Handle form submission
-                                $('#requirementForm').on('submit', function(e) {
-                                    e.preventDefault(); // Prevent default form submission
-                                    var formData = new FormData(this);
-
-                                    // Debug formData contents
-                                    for (var pair of formData.entries()) {
-                                        console.log(pair[0] + ': ' + pair[1]);
-                                    }
-
-                                    $.ajax({
-                                        url: 'includes/update_requirements.php', // Server-side script for updates
-                                        method: 'POST',
-                                        data: formData,
-                                        processData: false, // Required for FormData
-                                        contentType: false,
-                                        dataType: 'json',
-                                        success: function(response) {
-                                            if (response.success) {
-                                                alert('Requirements updated successfully!');
-                                                loadRequirements(teamId); // Reload requirements
-                                            } else {
-                                                alert('Error: ' + response.error);
-                                            }
-                                        },
-                                        error: function(jqXHR, textStatus, errorThrown) {
-                                            console.error("AJAX error:", textStatus, errorThrown, jqXHR.status, jqXHR.statusText, jqXHR.responseText);
-                                            alert('An error occurred while updating requirements. Please try again.');
-                                        }
-                                    });
-                                });
 
                             } else {
                                 $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
@@ -545,7 +513,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             <p class="card-text">${req.description}</p>
                                             <p class="card-text"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
                                             <p class="card-text"><strong>Status:</strong> ${req.status}</p>
-                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback || 'Submit File First'}</p>
+                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback}</p>
                                         </div>
                                         <div class="card-footer">
                                             ${req.feedback_file ? 
@@ -555,9 +523,9 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         <?php if ($role === 'leader') { ?>
                                         <div class="card-footer rct-cfooter">
                                             ${req.file_name 
-                                                ? `<a href="./submission/${req.file_name}" class="btn btn-secondary" download>Download Submitted File</a>` 
+                                                ? `<a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary" download>Download Submitted File</a>` 
                                                 : `
-                                                    <form id="uploadForm-${req.id}" enctype="multipart/form-data">
+                                                    <form id="uploadForm-${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                         <input type="hidden" name="document_name" value="${req.name}">
                                                         <input type="hidden" name="requirement_id" value="${req.id}">
                                                         <div class="mb-3">
