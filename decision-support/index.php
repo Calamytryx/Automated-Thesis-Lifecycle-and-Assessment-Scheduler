@@ -7,7 +7,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['team_id'])) {
         $team_id = intval($_POST['team_id']);
     }
-    
 }
 
 // Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
@@ -75,70 +74,71 @@ include '../assets/layouts/header.php';
 ?>
 
 <script type="module">
-    import { getDocument, GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+    import {
+        getDocument,
+        GlobalWorkerOptions
+    } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
 
     // Specify the worker script source
     GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
 
     const predefinedPdfUrl = `../assets/uploads/submission/`; // Replace with your PDF URL
 
-    if (window.location.pathname.includes('coecsathesis/decision-support/<?php if (isset($fileName)) {echo $fileName;} ?>')) {
+    if (window.location.pathname.includes('coecsathesis/decision-support/<?php if (isset($fileName)) echo $fileName; ?>')) {
         window.extractText = async function(pdfUrl) {
-      const filenameInput = document.getElementById('filename');
-      const output = document.getElementById('output');
+            const filenameInput = document.getElementById('filename');
+            const output = document.getElementById('output');
 
-      try {
-        const response = await fetch(pdfUrl);
-        if (!response.ok) {
-          throw new Error('Network response was not ok');
-        }
-        const arrayBuffer = await response.arrayBuffer();
-        const pdfData = new Uint8Array(arrayBuffer);
+            try {
+                const response = await fetch(pdfUrl);
+                if (!response.ok) {
+                    throw new Error('Network response was not ok');
+                }
+                const arrayBuffer = await response.arrayBuffer();
+                const pdfData = new Uint8Array(arrayBuffer);
 
-        // Extract filename from URL
-        const filename = pdfUrl.split('/').pop();
-        filenameInput.value = `File: ${filename}`;
+                // Extract filename from URL
+                const filename = pdfUrl.split('/').pop();
+                filenameInput.value = `File: ${filename}`;
 
-        const pdf = await getDocument(pdfData).promise;
-        let extractedText = '';
+                const pdf = await getDocument(pdfData).promise;
+                let extractedText = '';
 
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-          const page = await pdf.getPage(pageNum);
-          const textContent = await page.getTextContent();
+                for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const textContent = await page.getTextContent();
 
-          let pageText = `--- Page ${pageNum} ---\n`;
-          let lastY = null;
+                    let pageText = `--- Page ${pageNum} ---\n`;
+                    let lastY = null;
 
-          textContent.items.forEach(item => {
-            const currentY = item.transform[5];
-            
-            if (lastY !== null && Math.abs(currentY - lastY) > 5) {
-              pageText += '\n';
+                    textContent.items.forEach(item => {
+                        const currentY = item.transform[5];
+
+                        if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                            pageText += '\n';
+                        }
+
+                        pageText += item.str;
+                        lastY = currentY;
+                    });
+
+                    extractedText += pageText + '\n\n';
+                }
+
+                output.value = extractedText.trim();
+            } catch (error) {
+                alert('Failed to load PDF file.');
+                console.error(error);
             }
-            
-            pageText += item.str;
-            lastY = currentY;
-          });
-
-          extractedText += pageText + '\n\n';
         }
-
-        output.value = extractedText.trim();
-      } catch (error) {
-        alert('Failed to load PDF file.');
-        console.error(error);
-      }
     }
-}
 
     // Load the PDF on page load
     window.addEventListener('DOMContentLoaded', () => {
-      extractText(predefinedPdfUrl);
+        extractText(predefinedPdfUrl);
     });
 </script>
 
-  <input type="hidden" id="filename">
-  <input type="hidden" id="output">
 
 <main role="main">
 
@@ -349,6 +349,10 @@ include '../assets/layouts/header.php';
                 </div>
                 <div class="card-body">
                     <p class="card-text">Title Proposal Defense Evaluation Sheet</p>
+
+                    <input type="hidden" id="filename">
+                    <input type="hidden" id="output">
+
                     <textarea class="form-control" rows="3" placeholder="Comments, Evaluation and Recommendations"></textarea>
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="btn-group">
