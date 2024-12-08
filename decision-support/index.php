@@ -2,7 +2,6 @@
 // Include database connection
 require '../assets/setup/db.inc.php';
 
-
 // Retrieve team_id from POST data
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['team_id'])) {
@@ -11,16 +10,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
 }
 
+// // Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
+// $requirementStmt = $pdo->prepare("SELECT file_name FROM coecsa_thesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
+// $requirementStmt->execute([$team_id]);
+// $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
+
+// if ($requirement) {
+//     $fileName = htmlspecialchars($requirement['file_name']);
+//     // You can use $fileName as needed, for example:
+//     // echo "<p>File Name: {$fileName}</p>";
+// } else {
+//     echo "<p class='text-danger'>Requirement not found.</p>";
+//     exit;
+// }
+
 try {
     // Fetch team details
-    $teamStmt = $pdo->prepare("SELECT name, title, created_at FROM coecsa_thesis.teams WHERE id = ?");
+    $teamStmt = $pdo->prepare("SELECT name, course FROM coecsa_thesis.teams WHERE id = ?");
+    $researchTitleStmt = $pdo->prepare("SELECT title FROM coecsa_thesis.research_titles WHERE team_id = ?");
+
     if (isset($team_id)) {
         $teamStmt->execute([$team_id]);
+        $researchTitleStmt->execute([$team_id]);
     } else {
         echo "<script>window.location.href = '../home\index.php;</script>";
         exit;
     }
     $team = $teamStmt->fetch(PDO::FETCH_ASSOC);
+    $researchTitle = $researchTitleStmt->fetchColumn();
 
     if (!$team) {
         echo "<p class='text-danger'>Team not found.</p>";
@@ -57,11 +74,77 @@ include '../assets/layouts/header.php';
 
 ?>
 
+<script type="module">
+    import { getDocument, GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+
+    // Specify the worker script source
+    GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+
+    const predefinedPdfUrl = `../assets/uploads/submission/`; // Replace with your PDF URL
+
+    if (window.location.pathname.includes('coecsathesis/decision-support/<?php if (isset($fileName)) {echo $fileName;} ?>')) {
+        window.extractText = async function(pdfUrl) {
+      const filenameInput = document.getElementById('filename');
+      const output = document.getElementById('output');
+
+      try {
+        const response = await fetch(pdfUrl);
+        if (!response.ok) {
+          throw new Error('Network response was not ok');
+        }
+        const arrayBuffer = await response.arrayBuffer();
+        const pdfData = new Uint8Array(arrayBuffer);
+
+        // Extract filename from URL
+        const filename = pdfUrl.split('/').pop();
+        filenameInput.value = `File: ${filename}`;
+
+        const pdf = await getDocument(pdfData).promise;
+        let extractedText = '';
+
+        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+          const page = await pdf.getPage(pageNum);
+          const textContent = await page.getTextContent();
+
+          let pageText = `--- Page ${pageNum} ---\n`;
+          let lastY = null;
+
+          textContent.items.forEach(item => {
+            const currentY = item.transform[5];
+            
+            if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+              pageText += '\n';
+            }
+            
+            pageText += item.str;
+            lastY = currentY;
+          });
+
+          extractedText += pageText + '\n\n';
+        }
+
+        output.value = extractedText.trim();
+      } catch (error) {
+        alert('Failed to load PDF file.');
+        console.error(error);
+      }
+    }
+}
+
+    // Load the PDF on page load
+    window.addEventListener('DOMContentLoaded', () => {
+      extractText(predefinedPdfUrl);
+    });
+</script>
+
+  <input type="hidden" id="filename">
+  <input type="hidden" id="output">
+
 <main role="main">
 
     <section class="jumbotron text-center py-5">
         <div class="container">
-            <h1 class="jumbotron-heading mb-4"><?php echo htmlspecialchars($team['title']); ?></h1>
+            <h1 class="jumbotron-heading mb-4"><?php echo htmlspecialchars($researchTitle); ?></h1>
             <p class="text-muted">
                 <strong>Members:</strong><br>
                 <?php
@@ -76,7 +159,7 @@ include '../assets/layouts/header.php';
                 <hr class="my-3">
                 <strong>Adviser:</strong> <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
                 <hr class="my-3">
-                Course here
+                <strong>Course:</strong> <?php echo htmlspecialchars($team['course']); ?>
             </p>
         </div>
     </section>
