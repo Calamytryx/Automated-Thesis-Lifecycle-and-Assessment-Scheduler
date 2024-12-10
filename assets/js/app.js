@@ -72,8 +72,10 @@ document.addEventListener('DOMContentLoaded', function() {
 
         analyzeTitle(title, field);
     });
-});
 
+    // Call the new AI processing function on page load
+    processOutputToAI();
+});
 
 /**
  * Retrieves the top thesis topics for a given field by performing a web search and generating a table of broad research areas.
@@ -140,3 +142,28 @@ document.addEventListener('DOMContentLoaded', function() {
         getTopThesisTopics(field);
     });
 });
+
+// New function to send output to AI and display the response
+async function processOutputToAI() {
+    document.getElementById('ai-output').innerHTML = 'Processing output...';
+    let outputValue = '';
+    while (!outputValue) {
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        outputValue = document.getElementById('output-pdf').value;
+    }
+    
+    try {
+        const prompt = `Please analyze the following content for its strengths, weaknesses, and possible revisions:\n\n${outputValue}`;
+        const aiResponse = await sendMessageToModel(prompt);
+        document.getElementById('ai-output').innerHTML = marked.parse(aiResponse);
+    } catch (error) {
+        console.error('Error processing AI response:', error);
+        document.getElementById('ai-output').innerText = 'An error occurred while processing the AI response.';
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+        processOutputToAI();
+});
+
+

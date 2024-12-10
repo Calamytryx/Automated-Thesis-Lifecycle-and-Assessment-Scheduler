@@ -232,37 +232,37 @@ error_reporting(E_ALL);
                             </div>
 
                         <?php else: ?>
-                            
+
                         <?php endif; ?>
                     </div>
                 </div>
 
                 <script>
-                                        function redirectToRequirements() {
-                                            // Remove active and show classes from the currently active tab and content
-                                            const activeTab = document.querySelector('.nav-link.active');
-                                            if (activeTab) {
-                                                activeTab.classList.remove('active');
-                                            }
+                    function redirectToRequirements() {
+                        // Remove active and show classes from the currently active tab and content
+                        const activeTab = document.querySelector('.nav-link.active');
+                        if (activeTab) {
+                            activeTab.classList.remove('active');
+                        }
 
-                                            const activeTabPane = document.querySelector('.tab-pane.show.active');
-                                            if (activeTabPane) {
-                                                activeTabPane.classList.remove('show', 'active');
-                                            }
+                        const activeTabPane = document.querySelector('.tab-pane.show.active');
+                        if (activeTabPane) {
+                            activeTabPane.classList.remove('show', 'active');
+                        }
 
-                                            // Add active class to the "Requirement Checker" tab
-                                            const requirementCheckerTab = document.getElementById('requirement-checker-link');
-                                            if (requirementCheckerTab) {
-                                                requirementCheckerTab.classList.add('active');
-                                            }
+                        // Add active class to the "Requirement Checker" tab
+                        const requirementCheckerTab = document.getElementById('requirement-checker-link');
+                        if (requirementCheckerTab) {
+                            requirementCheckerTab.classList.add('active');
+                        }
 
-                                            // Add show and active classes to the "Requirement Checker" content
-                                            const requirementCheckerPane = document.getElementById('requirement-checker');
-                                            if (requirementCheckerPane) {
-                                                requirementCheckerPane.classList.add('show', 'active');
-                                            }
-                                        }
-                                    </script>
+                        // Add show and active classes to the "Requirement Checker" content
+                        const requirementCheckerPane = document.getElementById('requirement-checker');
+                        if (requirementCheckerPane) {
+                            requirementCheckerPane.classList.add('show', 'active');
+                        }
+                    }
+                </script>
 
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
@@ -371,6 +371,7 @@ include '../assets/layouts/footer.php'
 <!-- Main Module JS -->
 <script type="module" src="../assets/js/mainModule.js"></script>
 <!-- app.js -->
+<script type="module" src="../assets/js/app.js"></script>
 <?php
 $stmt = $pdo->query("SELECT title FROM coecsa_thesis.research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -378,7 +379,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 <script>
     var existingTitles = "<?php echo implode(', ', $titles); ?>";
 </script>
-<script type="module" src="../assets/js/app.js"></script>
+
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
