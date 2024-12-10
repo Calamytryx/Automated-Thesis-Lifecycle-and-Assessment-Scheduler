@@ -49,10 +49,10 @@
 
         <div id="scheduleGenerationStatus"></div>
         <button id="generateSchedule" class="btn btn-primary ml-auto" disabled>Generate Defense Schedule</button>
-        <span id="scheduleGenerationStatus" class="ml-2"></span>
+        <span id="scheduleGenerationStatusSpan" class="ml-2"></span> <!-- Changed ID to ensure uniqueness -->
     </div>
-    <div class="table-responsive">
-        <table class="table table-bordered table-hover table-sm db-table">
+    <div class="table-responsive" id="def-sched">
+        <table class="table table-bordered table-hover table-sm db-table" id="def-table">
             <thead>
                 <tr>
                     <th>Date & Time</th>
@@ -66,75 +66,116 @@
                 </tr>
             </thead>
             <tbody>
-                <?php
-                $current_date = null;
-                $items_per_page = 10;
-                $total_items = count($defenseSchedules);
-                $total_pages = ceil($total_items / $items_per_page);
-                $current_page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
-                $start_index = ($current_page - 1) * $items_per_page;
-                $end_index = min($start_index + $items_per_page, $total_items);
-
-                for ($i = $start_index; $i < $end_index; $i++):
-                    $schedule = $defenseSchedules[$i];
-                    $schedule_date = date('M-d-y', strtotime($schedule['schedule_date']));
-                    $start_time = date('H:i', strtotime($schedule['start_time']));
-                    $end_time = date('H:i', strtotime($schedule['end_time']));
-
-                    // Display the date only if it's different from the previous row
-                    $date_display = ($current_date !== $schedule_date) ? $schedule_date . '<br>' : '';
-                    $current_date = $schedule_date;
-
-                    // Filter out staff members from team_members
-                    $team_members = array_filter(explode(', ', $schedule['team_members']), function ($member) {
-                        // Assuming staff names always start with "Staff"
-                        return strpos($member, 'Staff') !== 0;
-                    });
-                    $team_members = implode(', ', $team_members);
-                ?>
-                    <tr>
-                        <td><?php echo $date_display . $start_time . ' - ' . $end_time; ?></td>
-                        <td><?php echo htmlspecialchars($schedule['team_name']); ?></td>
-                        <td><?php echo htmlspecialchars($team_members); ?></td>
-                        <td><?php echo htmlspecialchars($schedule['adviser']); ?></td>
-                        <td><?php echo htmlspecialchars($schedule['thesis_title']); ?></td>
-                        <td><?php echo htmlspecialchars($schedule['panelists']); ?></td>
-                        <td><?php echo htmlspecialchars($schedule['room']); ?></td>
-                        <td class="text-center align-middle">
-                            <div class="d-flex">
-                                <button class="btn btn-primary btn-sm edit-btn"
-                                    data-table="defense_schedules"
-                                    data-id="<?php echo $schedule['id']; ?>">Edit
-                                </button>
-                                <button class="btn btn-danger btn-sm delete-btn"
-                                    data-table="defense_schedules"
-                                    data-id="<?php echo $schedule['id']; ?>">Delete
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                <?php endfor; ?>
+                <!-- Existing PHP-generated rows removed -->
             </tbody>
         </table>
-        <div id="scheduleGenerationResult" class="mb-3"></div>
-        <nav aria-label="Page navigation">
+
+        <nav id="def-nav" aria-label="Page navigation">
             <ul class="pagination justify-content-center">
-                <li class="page-item <?php if ($page <= 1) echo 'disabled'; ?>">
-                    <a class="page-link" href="?page=<?php echo $page - 1; ?>" aria-label="Previous">
-                        &#8249;
-                    </a>
-                </li>
-                <?php for ($i = 1; $i <= $total_pages; $i++): ?>
-                    <li class="page-item <?php if ($page == $i) echo 'active'; ?>">
-                        <a class="page-link" href="?page=<?php echo $i; ?>"><?php echo $i; ?></a>
-                    </li>
-                <?php endfor; ?>
-                <li class="page-item <?php if ($page >= $total_pages) echo 'disabled'; ?>">
-                    <a class="page-link" href="?page=<?php echo $page + 1; ?>" aria-label="Next">
-                    &#8250;
-                    </a>
-                </li>
+                <!-- Pagination loaded via AJAX -->
             </ul>
         </nav>
+
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const loadDefenseSchedules = (page = 1) => {
+                    console.log(`Loading Defense Schedules Page: ${page}`);
+                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`) // Changed to absolute path
+                        .then(response => {
+                            console.log('Fetch Response Status:', response.status);
+                            if (!response.ok) {
+                                throw new Error(`HTTP error! status: ${response.status}`);
+                            }
+                            return response.json();
+                        })
+                        .then(data => {
+                            console.log('Data Received:', data);
+                            if (data.error) {
+                                console.error('Server Error:', data.error);
+                                document.getElementById('scheduleGenerationStatus').innerText = `Error: ${data.error}`;
+                                return;
+                            }
+
+                            const tbody = document.querySelector('#def-table tbody'); // Updated selector
+                            tbody.innerHTML = '';
+                            data.data.forEach(schedule => {
+                                const dateTime = `${schedule.schedule_date} ${schedule.start_time} - ${schedule.end_time}`;
+                                
+                                tbody.innerHTML += `
+                                    <tr>
+                                        <td>${dateTime}</td>
+                                        <td>${schedule.team_name}</td>
+                                        <td>${schedule.team_members}</td>
+                                        <td>${schedule.adviser}</td>
+                                        <td>${schedule.thesis_title}</td>
+                                        <td>${schedule.panelists}</td>
+                                        <td>${schedule.room}</td>
+                                        
+                                        <td class="text-center align-middle">
+                                            <div class="d-flex">
+                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">Edit</button>
+                                                <button class="btn btn-danger btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">Delete</button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+
+                            // Remove Test Row
+                            // tbody.insertAdjacentHTML('beforeend', `<tr><td colspan="8">Test Row</td></tr>`); // Test row insertion removed
+                            // console.log('Test row added'); // Test row log removed
+
+                            const pagination = document.querySelector('#def-nav .pagination'); // Updated selector
+                            pagination.innerHTML = '';
+
+                            // Previous Button
+                            pagination.innerHTML += `
+                                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+                                        &#8249;
+                                    </a>
+                                </li>
+                            `;
+
+                            // Page Numbers
+                            for (let i = 1; i <= data.total_pages; i++) {
+                                pagination.innerHTML += `
+                                    <li class="page-item ${page === i ? 'active' : ''}">
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                    </li>
+                                `;
+                            }
+
+                            // Next Button
+                            pagination.innerHTML += `
+                                <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+                                        &#8250;
+                                    </a>
+                                </li>
+                            `;
+                        })
+                        .catch(error => {
+                            console.error('Fetch Error:', error);
+                            document.getElementById('scheduleGenerationStatus').innerText = `Fetch Error: ${error.message}`;
+                        });
+                };
+
+                // Initial load
+                loadDefenseSchedules();
+
+                // Handle pagination clicks
+                document.querySelector('#def-nav .pagination').addEventListener('click', function(e) { // Updated selector
+                    e.preventDefault();
+                    if (e.target.tagName === 'A') {
+                        const page = parseInt(e.target.getAttribute('data-page'));
+                        if (!isNaN(page)) {
+                            console.log(`Pagination Clicked: Loading Page ${page}`);
+                            loadDefenseSchedules(page);
+                        }
+                    }
+                });
+            });
+        </script>
     </div>
 </div>

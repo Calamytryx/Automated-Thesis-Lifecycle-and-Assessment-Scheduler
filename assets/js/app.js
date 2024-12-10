@@ -153,9 +153,11 @@ async function processOutputToAI() {
     }
     
     try {
-        const prompt = `analyze the following content for its strengths, weaknesses, and possible revisions and ignore the inconsistent formatting and typos as this is raw text 
+        const prompt = `analyze the following content for its strengths, weaknesses, and possible revisions and ignore the inconsistent formatting and need for images as this is raw text
+        check if it have chapter 4 and 5 if they have it means you can evaluate the results and discussion, and conclusion say final
+        if they dont it means it is a proposal and you can evaluate the introduction, literature review, and methodology say proposal
         anwer in this format
-        H2 Analysis of (insert title here) 
+        H2 Analysis of (Proposal or Final) Defense (insert title here) 
         strong Strengths:
         - Strength 1
         strong Weaknesses:

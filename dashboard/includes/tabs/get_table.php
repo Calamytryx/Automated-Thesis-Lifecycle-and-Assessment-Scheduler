@@ -47,7 +47,7 @@ try {
     JOIN teams t ON ds.team_id = t.id
     JOIN research_titles rt ON t.id = rt.team_id
     JOIN team_members tm ON t.id = tm.team_id
-    JOIN users u_student ON tm.user_id = u_student.id AND u_student.usertype != 2 -- Exclude usertype == 1
+    JOIN users u_student ON tm.user_id = u_student.id AND u_student.usertype != 1 -- Exclude usertype == 1
     LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
     GROUP BY ds.id, t.name, rt.title
     ORDER BY ds.schedule_date, ds.start_time
