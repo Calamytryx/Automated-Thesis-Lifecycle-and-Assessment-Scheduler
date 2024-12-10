@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 10, 2024 at 12:58 PM
+-- Generation Time: Dec 10, 2024 at 10:44 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.3.12
 
@@ -174,6 +174,34 @@ CREATE TABLE `evaluation_details` (
   `score` float DEFAULT NULL,
   `comment` text DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `evaluation_per_panel`
+--
+
+CREATE TABLE `evaluation_per_panel` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED NOT NULL,
+  `evaluator_id` int(11) UNSIGNED NOT NULL,
+  `student_id` int(11) UNSIGNED NOT NULL,
+  `group_score` float DEFAULT NULL,
+  `solo_score` float DEFAULT NULL,
+  `total_score` float DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `evaluation_per_panel`
+--
+
+INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`, `student_id`, `group_score`, `solo_score`, `total_score`, `comments`, `created_at`) VALUES
+(1, 120, 59, 38, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
+(2, 120, 59, 39, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
+(3, 120, 59, 40, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
+(4, 120, 59, 41, 60, 40, 100, 'hi', '2024-12-10 20:58:33');
 
 -- --------------------------------------------------------
 
@@ -451,8 +479,8 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password
 (55, 1, 'student18', 'BSCS', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eighteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'BLIS', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'BLIS', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', NULL, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 06:56:03', NULL, '2024-12-10 06:56:03'),
-(59, 2, 'staff2', NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Two', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 08:31:34', NULL, '2024-12-10 08:31:34'),
+(58, 2, 'staff1', NULL, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 14:26:15', NULL, '2024-12-10 14:26:15'),
+(59, 2, 'staff2', NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Two', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 20:55:13', NULL, '2024-12-10 20:55:13'),
 (60, 2, 'staff3', NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Three', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-09 05:09:46', NULL, '2024-12-09 05:09:46'),
 (61, 2, 'staff4', NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Four', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
 (62, 2, 'staff5', NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Five', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
@@ -463,7 +491,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password
 (67, 2, 'staff10', NULL, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
 (70, 0, 'a', NULL, 'a@a.a', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2024-11-11 06:39:12', NULL, '2024-10-24 19:31:28'),
 (71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43'),
-(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-09 05:12:02', '0000-00-00 00:00:00', '2024-12-09 05:12:02');
+(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-10 14:26:23', '0000-00-00 00:00:00', '2024-12-10 14:26:23');
 
 -- --------------------------------------------------------
 
@@ -537,6 +565,15 @@ ALTER TABLE `evaluation_details`
   ADD PRIMARY KEY (`id`),
   ADD KEY `evaluation_id` (`evaluation_id`),
   ADD KEY `criterion_id` (`criterion_id`);
+
+--
+-- Indexes for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`),
+  ADD KEY `evaluator_id` (`evaluator_id`),
+  ADD KEY `evalusations_per_panel_ibfk_3_idx` (`student_id`);
 
 --
 -- Indexes for table `requirements`
@@ -629,7 +666,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=141;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -648,6 +685,12 @@ ALTER TABLE `evaluations`
 --
 ALTER TABLE `evaluation_details`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT for table `requirements`
@@ -742,6 +785,12 @@ ALTER TABLE `evaluations`
 ALTER TABLE `evaluation_details`
   ADD CONSTRAINT `evaluation_details_ibfk_1` FOREIGN KEY (`evaluation_id`) REFERENCES `evaluations` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `evaluation_details_ibfk_2` FOREIGN KEY (`criterion_id`) REFERENCES `rubric_criteria` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
 -- Constraints for table `research_titles`
