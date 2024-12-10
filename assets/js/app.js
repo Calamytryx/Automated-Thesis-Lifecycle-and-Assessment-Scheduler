@@ -153,7 +153,19 @@ async function processOutputToAI() {
     }
     
     try {
-        const prompt = `Please analyze the following content for its strengths, weaknesses, and possible revisions:\n\n${outputValue}`;
+        const prompt = `analyze the following content for its strengths, weaknesses, and possible revisions and ignore the inconsistent formatting and typos as this is raw text 
+        anwer in this format
+        H2 Analysis of (insert title here) 
+        strong Strengths:
+        - Strength 1
+        strong Weaknesses:
+        - Weakness 1
+        strong Revisions:
+        - Revision 1
+        it should be in a markdown format
+
+        Analyze this:
+        \n\n${outputValue}`;
         const aiResponse = await sendMessageToModel(prompt);
         document.getElementById('ai-output').innerHTML = marked.parse(aiResponse);
     } catch (error) {
