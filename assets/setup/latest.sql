@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 20, 2024 at 04:17 PM
+-- Generation Time: Dec 10, 2024 at 12:58 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.3.12
 
@@ -36,6 +36,14 @@ CREATE TABLE `auth_tokens` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `expires_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `auth_tokens`
+--
+
+INSERT INTO `auth_tokens` (`id`, `user_email`, `auth_type`, `selector`, `token`, `created_at`, `expires_at`) VALUES
+(104, 'sean.gono@lpu.edu.ph', 'password_reset', 'ca92c4dad4d8cdbf', '$2y$10$3AkW3EFEvXovTXyIU31nT.GJ.RKd.RKQuAP5l7DjmcNTpZAiJvZHq', '2024-12-07 15:13:46', '2024-12-07 09:13:46'),
+(105, 'ton.agustin09@gmail.com', 'remember_me', '0c70140ff6a97d0c', '$2y$10$YaPaGBlc2EzyJgR6vaTC7e0gPMiS/8O4cQpCK5jT2ugAcRHZjti4m', '2024-12-08 01:33:21', '2024-12-17 18:33:21');
 
 -- --------------------------------------------------------
 
@@ -93,13 +101,13 @@ CREATE TABLE `defense_schedules` (
 --
 
 INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`) VALUES
-(29, 1, 60, 62, 66, '2024-12-13', '11:00:00', '12:00:00', 'Defense Room A', 'scheduled', '2024-11-16 15:51:42'),
-(30, 2, 60, 63, 64, '2024-12-14', '16:00:00', '17:00:00', 'Defense Room B', 'scheduled', '2024-11-16 15:51:42'),
-(31, 3, 59, NULL, NULL, '2024-12-13', '12:00:00', '13:00:00', 'Defense Room A', 'scheduled', '2024-11-16 15:51:42'),
-(32, 4, 58, 60, 67, '2024-12-13', '09:00:00', '10:00:00', 'Defense Room A', 'scheduled', '2024-11-16 15:51:42'),
-(33, 5, 59, 60, 67, '2024-12-13', '11:00:00', '12:00:00', 'Defense Room B', 'scheduled', '2024-11-16 15:51:42'),
-(34, 6, 58, 59, 67, '2024-12-11', '09:00:00', '10:00:00', 'Defense Room B', 'scheduled', '2024-11-16 15:51:42'),
-(35, 7, 58, NULL, NULL, '2024-12-10', '10:00:00', '11:00:00', 'Defense Room B', 'scheduled', '2024-11-16 15:51:42');
+(120, 1, 59, 60, 61, '2024-12-11', '09:00:00', '11:00:00', 'Defense Room B', 'scheduled', '2024-12-03 18:32:18'),
+(121, 2, 58, 62, 63, '2024-12-11', '09:00:00', '11:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
+(122, 3, 61, 64, 65, '2024-12-11', '13:00:00', '15:00:00', 'Defense Room B', 'scheduled', '2024-12-03 18:32:18'),
+(123, 4, 63, 65, 67, '2024-12-11', '15:00:00', '17:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
+(124, 5, 63, 64, 65, '2024-12-11', '07:00:00', '09:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
+(125, 6, 59, 60, 66, '2024-12-11', '13:00:00', '15:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
+(126, 7, 59, 61, 66, '2024-12-11', '11:00:00', '13:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18');
 
 -- --------------------------------------------------------
 
@@ -133,7 +141,9 @@ INSERT INTO `env_variables` (`id`, `key`, `value`, `description`) VALUES
 (12, 'MAIL_USERNAME', 'ton.agustin09@gmail.com', 'Mail username'),
 (13, 'MAIL_PASSWORD', 'rdrc cinf leli xdms', 'Mail password'),
 (14, 'MAIL_ENCRYPTION', 'ssl', 'Mail encryption'),
-(15, 'MAIL_PORT', '465', 'Mail port');
+(15, 'MAIL_PORT', '465', 'Mail port'),
+(16, 'APP_LOGO_NAVBAR', 'logo_full_lightbg.png', NULL),
+(17, 'APP_LOGO_FOOTER', 'logowhite.png', NULL);
 
 -- --------------------------------------------------------
 
@@ -210,7 +220,7 @@ CREATE TABLE `research_titles` (
 --
 
 INSERT INTO `research_titles` (`id`, `team_id`, `title`, `approved_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 'Analysis of Machine Learning Algorithms in Predictive Maintenance', NULL, '2024-10-13 07:15:44', '2024-10-28 02:30:17'),
+(1, 1, 'ATLAS: ADVANCED THESIS LOGISTICS AND AI SYSTEM FOR THE COLLEGE OF ENGINEERING, COMPUTER STUDIES AND ARCHITECTURE AT LYCEUM OF THE PHILIPPINES UNIVERSITY CAVITE', '2024-12-02 19:50:07', '2024-10-13 07:15:44', '2024-12-03 02:50:07'),
 (2, 2, 'Sustainable Urban Planning: A Case Study of Green Cities', '2024-11-16 02:30:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
 (3, 3, 'The Impact of Social Media on Mental Health in Adolescents', '2024-11-17 03:45:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
 (4, 4, 'Renewable Energy Integration in Smart Grids', '2024-11-18 06:00:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
@@ -229,15 +239,16 @@ CREATE TABLE `rubrics` (
   `name` varchar(100) NOT NULL,
   `description` text DEFAULT NULL,
   `created_by` int(11) UNSIGNED DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `structure` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`structure`))
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `rubrics`
 --
 
-INSERT INTO `rubrics` (`id`, `name`, `description`, `created_by`, `created_at`) VALUES
-(2, 'a', 'a', NULL, '2024-11-18 08:40:55');
+INSERT INTO `rubrics` (`id`, `name`, `description`, `created_by`, `created_at`, `structure`) VALUES
+(9, 'test', 'desc', NULL, '2024-12-04 19:02:49', '{\"levels\":[\"Level 1\",\"Level 2\",\"Level 3\",\"Level 4\"],\"criteria\":[{\"criterion\":\"cri\",\"levels\":[{\"content\":\"1\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"2\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"3\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"4\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"cri2\",\"levels\":[{\"content\":\"1 2\",\"rowSpan\":1,\"colSpan\":2},{\"content\":\"3 4\",\"rowSpan\":1,\"colSpan\":2}]}]}');
 
 -- --------------------------------------------------------
 
@@ -263,21 +274,21 @@ CREATE TABLE `teams` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `title` varchar(255) NOT NULL
+  `course` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teams`
 --
 
-INSERT INTO `teams` (`id`, `name`, `created_at`, `title`) VALUES
-(1, 'Team1', '2024-10-13 06:58:29', 'Analysis of Machine Learning Algorithms in Predictive Maintenance'),
-(2, 'Team2', '2024-10-13 06:58:29', 'Sustainable Urban Planning: A Case Study of Green Cities'),
-(3, 'Team3', '2024-10-13 06:58:29', 'The Impact of Social Media on Mental Health in Adolescents'),
-(4, 'Team4', '2024-10-13 06:58:29', 'Renewable Energy Integration in Smart Grids'),
-(5, 'Team5', '2024-10-13 06:58:29', 'Cybersecurity Challenges in Internet of Things (IoT) Devices'),
-(6, 'Team6', '2024-10-13 06:58:29', 'The Role of Artificial Intelligence in Healthcare Diagnostics'),
-(7, 'Team7', '2024-10-13 06:58:29', 'Blockchain Technology in Supply Chain Management');
+INSERT INTO `teams` (`id`, `name`, `created_at`, `course`) VALUES
+(1, '120ms', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(2, 'Team2', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(3, 'Team3', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(4, 'Team4', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(5, 'Team5', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(6, 'Team6', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(7, 'Team7', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science');
 
 -- --------------------------------------------------------
 
@@ -297,8 +308,7 @@ CREATE TABLE `team_members` (
 --
 
 INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
-(5, 2, 60, 'adviser'),
-(6, 2, 41, 'leader'),
+(5, 2, 58, 'adviser'),
 (7, 2, 42, 'member'),
 (8, 2, 43, 'member'),
 (9, 3, 60, 'adviser'),
@@ -320,10 +330,12 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (25, 7, 64, 'adviser'),
 (26, 7, 56, 'leader'),
 (27, 7, 57, 'member'),
-(61, 1, 58, 'adviser'),
-(62, 1, 38, 'leader'),
-(63, 1, 39, 'member'),
-(64, 1, 40, 'member');
+(69, 1, 58, 'adviser'),
+(70, 1, 38, 'leader'),
+(71, 1, 39, 'member'),
+(72, 1, 40, 'member'),
+(73, 2, 42, 'leader'),
+(74, 1, 41, 'member');
 
 -- --------------------------------------------------------
 
@@ -347,7 +359,8 @@ CREATE TABLE `team_requirements` (
 --
 
 INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `submitted_at`, `feedback`, `file_name`, `feedback_file`) VALUES
-(1, 2, 1, 'submitted', '2024-11-19 14:19:41', '', 'Team2-Chapter1-20241119.pdf', NULL);
+(6, 1, 5, 'submitted', '2024-12-08 10:48:34', '', '120ms-BookbindCopy-20241208.pdf', NULL),
+(7, 1, 1, 'submitted', '2024-12-10 08:24:13', '', '120ms-Chapter1-20241210.pdf', NULL);
 
 -- --------------------------------------------------------
 
@@ -417,41 +430,40 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
-(1, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 13:55:38', '2024-10-05 13:55:38', '2024-11-19 13:59:24', '0000-00-00 00:00:00', '2024-11-19 13:59:24'),
-(35, 0, 'supahot', NULL, 'supa@hot.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Supahot', 'Soverysupahot', 'm', 'Headline of a supa hot user', 'This is the bio of a supa hot user. Now i will say needless stuff to make this longer so this looks like a bio and not anything other than a bio.', '_defaultUser.png', NULL, '2024-10-08 05:25:07', '2024-11-11 14:39:12', NULL, NULL),
-(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 13:14:14', '2024-10-08 13:13:14', '2024-11-11 14:39:12', NULL, '2024-11-11 14:37:29'),
-(38, 1, 'student1', 'BSCS', 'student1@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'One', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-19 14:36:46', NULL, '2024-11-19 14:36:46'),
-(39, 1, 'student2', 'BSCS', 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Two', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-19 11:44:04', NULL, '2024-11-19 11:44:04'),
-(40, 1, 'student3', 'BSCS', 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Three', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-12 04:44:23'),
-(41, 1, 'student4', 'BSCS', 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Four', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-19 14:47:12', NULL, '2024-11-19 14:47:12'),
-(42, 1, 'student5', 'BSCS', 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Five', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-11-13 03:21:37'),
-(43, 1, 'student6', 'BSCS', 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Six', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-11-13 01:18:56'),
-(44, 1, 'student7', 'BSCS', 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-11-13 01:24:45'),
-(45, 1, 'student8', 'BSCS', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eight', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(46, 1, 'student9', 'BLIS', 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nine', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(47, 1, 'student10', 'BSIT', 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Ten', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(48, 1, 'student11', 'BSIT', 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eleven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(49, 1, 'student12', 'BSIT', 'student12@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twelve', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(50, 1, 'student13', 'BSIT', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Thirteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(51, 1, 'student14', 'BSIT', 'student14@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fourteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(52, 1, 'student15', 'BSIT', 'student15@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fifteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(53, 1, 'student16', 'BSCS', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Sixteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(54, 1, 'student17', 'BSCS', 'student17@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seventeen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(55, 1, 'student18', 'BSCS', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eighteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(56, 1, 'student19', 'BLIS', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(57, 1, 'student20', 'BLIS', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-16 12:41:51', NULL, '2024-10-10 06:07:06'),
-(58, 2, 'staff1', NULL, 'staff1@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'One', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-19 23:17:44', NULL, '2024-11-19 23:17:44'),
-(59, 2, 'staff2', NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Two', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-20 00:24:23', NULL, '2024-11-20 00:24:23'),
-(60, 2, 'staff3', NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Three', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-20 12:48:49', NULL, '2024-11-20 12:48:49'),
-(61, 2, 'staff4', NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Four', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(62, 2, 'staff5', NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Five', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(63, 2, 'staff6', NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Six', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(64, 2, 'staff7', NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Seven', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(65, 2, 'staff8', NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Eight', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(66, 2, 'staff9', NULL, 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Nine', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(67, 2, 'staff10', NULL, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-10 06:07:06', '2024-10-10 06:07:06', '2024-11-11 14:39:12', NULL, '2024-10-10 06:07:06'),
-(70, 0, 'a', NULL, 'a@a.a', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2024-11-11 14:39:12', NULL, '2024-10-25 03:31:28'),
-(71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-28 02:12:34', '2024-10-28 02:10:53', '2024-11-11 14:39:12', NULL, '2024-10-28 02:12:43');
+(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2024-12-10 08:19:58', NULL, '2024-12-10 08:19:58'),
+(38, 1, '2021-2-02134', 'BSCS', 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 08:23:39', NULL, '2024-12-10 08:23:39'),
+(39, 1, 'student2', 'BSCS', 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-02 18:52:16', NULL, '2024-11-19 03:44:04'),
+(40, 1, 'student3', 'BSCS', 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-02 18:52:47', NULL, '2024-10-11 20:44:23'),
+(41, 1, 'student4', 'BSCS', 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Ivan Kerwin', 'Ilano', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-09 05:17:09', NULL, '2024-12-09 05:17:09'),
+(42, 1, 'student5', 'BSCS', 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Five', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 19:21:37'),
+(43, 1, 'student6', 'BSCS', 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Six', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 17:18:56'),
+(44, 1, 'student7', 'BSCS', 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 17:24:45'),
+(45, 1, 'student8', 'BSCS', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eight', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(46, 1, 'student9', 'BLIS', 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nine', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(47, 1, 'student10', 'BSIT', 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Ten', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(48, 1, 'student11', 'BSIT', 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eleven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(49, 1, 'student12', 'BSIT', 'student12@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twelve', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(50, 1, 'student13', 'BSIT', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Thirteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(51, 1, 'student14', 'BSIT', 'student14@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fourteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(52, 1, 'student15', 'BSIT', 'student15@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fifteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(53, 1, 'student16', 'BSCS', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Sixteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(54, 1, 'student17', 'BSCS', 'student17@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seventeen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(55, 1, 'student18', 'BSCS', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eighteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(56, 1, 'student19', 'BLIS', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(57, 1, 'student20', 'BLIS', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(58, 2, 'staff1', NULL, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 06:56:03', NULL, '2024-12-10 06:56:03'),
+(59, 2, 'staff2', NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Two', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 08:31:34', NULL, '2024-12-10 08:31:34'),
+(60, 2, 'staff3', NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Three', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-09 05:09:46', NULL, '2024-12-09 05:09:46'),
+(61, 2, 'staff4', NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Four', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(62, 2, 'staff5', NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Five', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(63, 2, 'staff6', NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Six', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(64, 2, 'staff7', NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Seven', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(65, 2, 'staff8', NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Eight', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(66, 2, 'staff9', NULL, 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Nine', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(67, 2, 'staff10', NULL, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(70, 0, 'a', NULL, 'a@a.a', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2024-11-11 06:39:12', NULL, '2024-10-24 19:31:28'),
+(71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43'),
+(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-09 05:12:02', '0000-00-00 00:00:00', '2024-12-09 05:12:02');
 
 -- --------------------------------------------------------
 
@@ -467,132 +479,6 @@ CREATE TABLE `user_schedules` (
   `end_time` time NOT NULL,
   `class_name` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `user_schedules`
---
-
-INSERT INTO `user_schedules` (`id`, `user_id`, `day_of_week`, `start_time`, `end_time`, `class_name`) VALUES
-(6, 38, 'Tuesday', '13:00:00', '16:00:00', 'English'),
-(7, 38, 'Wednesday', '08:00:00', '11:00:00', 'History'),
-(8, 38, 'Monday', '10:00:00', '14:00:00', 'Literature'),
-(9, 38, 'Friday', '15:00:00', '18:00:00', 'Math'),
-(10, 38, 'Wednesday', '16:00:00', '20:00:00', 'Economics'),
-(11, 39, 'Wednesday', '12:00:00', '15:00:00', 'English'),
-(12, 39, 'Friday', '18:00:00', '23:00:00', 'Economics'),
-(13, 39, 'Monday', '15:00:00', '19:00:00', 'History'),
-(14, 40, 'Wednesday', '17:00:00', '21:00:00', 'English'),
-(15, 40, 'Tuesday', '13:00:00', '18:00:00', 'Programming'),
-(16, 40, 'Monday', '07:00:00', '11:00:00', 'History'),
-(17, 41, 'Monday', '14:00:00', '17:00:00', 'English'),
-(18, 41, 'Thursday', '08:00:00', '11:00:00', 'Chemistry'),
-(19, 41, 'Wednesday', '14:00:00', '18:00:00', 'English'),
-(20, 41, 'Tuesday', '11:00:00', '15:00:00', 'Literature'),
-(21, 41, 'Friday', '11:00:00', '14:00:00', 'Physics'),
-(22, 42, 'Friday', '17:00:00', '20:00:00', 'Chemistry'),
-(23, 42, 'Monday', '14:00:00', '17:00:00', 'Physics'),
-(24, 42, 'Thursday', '14:00:00', '19:00:00', 'Math'),
-(25, 42, 'Tuesday', '13:00:00', '18:00:00', 'Programming'),
-(26, 43, 'Wednesday', '19:00:00', '22:00:00', 'Programming'),
-(27, 43, 'Monday', '07:00:00', '10:00:00', 'Literature'),
-(28, 43, 'Thursday', '18:00:00', '22:00:00', 'Science'),
-(29, 44, 'Friday', '10:00:00', '13:00:00', 'Programming'),
-(30, 44, 'Saturday', '11:00:00', '14:00:00', 'Chemistry'),
-(31, 44, 'Saturday', '15:00:00', '20:00:00', 'English'),
-(32, 44, 'Thursday', '08:00:00', '12:00:00', 'Economics'),
-(33, 44, 'Friday', '10:00:00', '14:00:00', 'Programming'),
-(34, 45, 'Wednesday', '16:00:00', '20:00:00', 'English'),
-(35, 45, 'Tuesday', '15:00:00', '18:00:00', 'Chemistry'),
-(36, 45, 'Thursday', '19:00:00', '24:00:00', 'History'),
-(37, 45, 'Monday', '16:00:00', '21:00:00', 'Literature'),
-(38, 46, 'Thursday', '12:00:00', '15:00:00', 'Literature'),
-(39, 46, 'Friday', '09:00:00', '14:00:00', 'Programming'),
-(40, 46, 'Wednesday', '17:00:00', '22:00:00', 'Physics'),
-(41, 46, 'Wednesday', '17:00:00', '20:00:00', 'History'),
-(42, 47, 'Friday', '10:00:00', '13:00:00', 'Economics'),
-(43, 47, 'Saturday', '12:00:00', '16:00:00', 'Literature'),
-(44, 47, 'Wednesday', '11:00:00', '14:00:00', 'History'),
-(45, 47, 'Saturday', '09:00:00', '12:00:00', 'English'),
-(46, 47, 'Friday', '10:00:00', '14:00:00', 'Economics'),
-(47, 48, 'Monday', '08:00:00', '11:00:00', 'Chemistry'),
-(48, 48, 'Thursday', '07:00:00', '12:00:00', 'English'),
-(49, 48, 'Saturday', '09:00:00', '12:00:00', 'Economics'),
-(50, 49, 'Saturday', '07:00:00', '12:00:00', 'Economics'),
-(51, 49, 'Monday', '09:00:00', '14:00:00', 'Economics'),
-(52, 49, 'Friday', '12:00:00', '17:00:00', 'Chemistry'),
-(53, 50, 'Thursday', '13:00:00', '16:00:00', 'Literature'),
-(54, 50, 'Thursday', '10:00:00', '13:00:00', 'Chemistry'),
-(55, 50, 'Wednesday', '10:00:00', '14:00:00', 'English'),
-(56, 51, 'Thursday', '19:00:00', '23:00:00', 'English'),
-(57, 51, 'Saturday', '19:00:00', '23:00:00', 'History'),
-(58, 51, 'Saturday', '19:00:00', '22:00:00', 'Literature'),
-(59, 51, 'Friday', '11:00:00', '15:00:00', 'Science'),
-(60, 51, 'Friday', '07:00:00', '10:00:00', 'Science'),
-(61, 52, 'Saturday', '13:00:00', '18:00:00', 'Literature'),
-(62, 52, 'Thursday', '17:00:00', '22:00:00', 'Literature'),
-(63, 52, 'Wednesday', '08:00:00', '12:00:00', 'English'),
-(64, 52, 'Tuesday', '16:00:00', '19:00:00', 'Chemistry'),
-(65, 52, 'Monday', '13:00:00', '18:00:00', 'Physics'),
-(66, 53, 'Wednesday', '13:00:00', '18:00:00', 'Chemistry'),
-(67, 53, 'Tuesday', '12:00:00', '16:00:00', 'Programming'),
-(68, 53, 'Saturday', '13:00:00', '18:00:00', 'Programming'),
-(69, 53, 'Monday', '08:00:00', '13:00:00', 'Literature'),
-(70, 54, 'Saturday', '14:00:00', '19:00:00', 'Science'),
-(71, 54, 'Friday', '19:00:00', '22:00:00', 'Economics'),
-(72, 54, 'Wednesday', '15:00:00', '19:00:00', 'History'),
-(73, 54, 'Thursday', '10:00:00', '14:00:00', 'Literature'),
-(74, 54, 'Tuesday', '15:00:00', '18:00:00', 'Chemistry'),
-(75, 55, 'Friday', '13:00:00', '17:00:00', 'Programming'),
-(76, 55, 'Saturday', '16:00:00', '20:00:00', 'Economics'),
-(77, 55, 'Friday', '16:00:00', '21:00:00', 'Literature'),
-(78, 56, 'Friday', '19:00:00', '24:00:00', 'History'),
-(79, 56, 'Saturday', '13:00:00', '18:00:00', 'History'),
-(80, 56, 'Thursday', '13:00:00', '18:00:00', 'Physics'),
-(81, 57, 'Saturday', '17:00:00', '20:00:00', 'Chemistry'),
-(82, 57, 'Wednesday', '12:00:00', '16:00:00', 'Math'),
-(83, 57, 'Saturday', '16:00:00', '21:00:00', 'Chemistry'),
-(84, 57, 'Tuesday', '14:00:00', '18:00:00', 'History'),
-(85, 57, 'Wednesday', '07:00:00', '12:00:00', 'Chemistry'),
-(86, 58, 'Thursday', '13:00:00', '17:00:00', 'Programming'),
-(87, 58, 'Monday', '10:00:00', '14:00:00', 'Literature'),
-(88, 58, 'Monday', '19:00:00', '24:00:00', 'Math'),
-(89, 58, 'Tuesday', '14:00:00', '18:00:00', 'Chemistry'),
-(90, 58, 'Saturday', '11:00:00', '14:00:00', 'Economics'),
-(91, 59, 'Friday', '19:00:00', '22:00:00', 'Economics'),
-(92, 59, 'Friday', '17:00:00', '22:00:00', 'Physics'),
-(93, 59, 'Thursday', '16:00:00', '21:00:00', 'Literature'),
-(94, 59, 'Tuesday', '10:00:00', '13:00:00', 'Chemistry'),
-(95, 60, 'Friday', '07:00:00', '10:00:00', 'Science'),
-(96, 60, 'Tuesday', '16:00:00', '19:00:00', 'Science'),
-(97, 60, 'Monday', '10:00:00', '14:00:00', 'Chemistry'),
-(98, 60, 'Thursday', '19:00:00', '22:00:00', 'Programming'),
-(99, 61, 'Wednesday', '09:00:00', '12:00:00', 'Science'),
-(100, 61, 'Saturday', '08:00:00', '11:00:00', 'Chemistry'),
-(101, 61, 'Monday', '08:00:00', '13:00:00', 'Economics'),
-(102, 61, 'Monday', '16:00:00', '20:00:00', 'Programming'),
-(103, 62, 'Monday', '09:00:00', '14:00:00', 'Math'),
-(104, 62, 'Tuesday', '18:00:00', '22:00:00', 'Programming'),
-(105, 62, 'Wednesday', '12:00:00', '15:00:00', 'Literature'),
-(106, 62, 'Thursday', '08:00:00', '12:00:00', 'Programming'),
-(107, 62, 'Tuesday', '12:00:00', '17:00:00', 'History'),
-(108, 63, 'Saturday', '18:00:00', '22:00:00', 'Economics'),
-(109, 63, 'Wednesday', '15:00:00', '20:00:00', 'English'),
-(110, 63, 'Tuesday', '18:00:00', '22:00:00', 'Literature'),
-(111, 63, 'Tuesday', '08:00:00', '11:00:00', 'Chemistry'),
-(112, 64, 'Wednesday', '13:00:00', '17:00:00', 'History'),
-(113, 64, 'Saturday', '16:00:00', '20:00:00', 'Programming'),
-(114, 64, 'Wednesday', '13:00:00', '18:00:00', 'Literature'),
-(115, 65, 'Wednesday', '12:00:00', '17:00:00', 'Literature'),
-(116, 65, 'Tuesday', '13:00:00', '17:00:00', 'Literature'),
-(117, 65, 'Saturday', '12:00:00', '16:00:00', 'Chemistry'),
-(118, 65, 'Friday', '10:00:00', '13:00:00', 'Math'),
-(119, 66, 'Saturday', '11:00:00', '14:00:00', 'Math'),
-(120, 66, 'Monday', '16:00:00', '21:00:00', 'Economics'),
-(121, 66, 'Thursday', '14:00:00', '17:00:00', 'Programming'),
-(122, 67, 'Tuesday', '08:00:00', '11:00:00', 'Physics'),
-(123, 67, 'Tuesday', '08:00:00', '11:00:00', 'Science'),
-(124, 67, 'Tuesday', '18:00:00', '23:00:00', 'Science'),
-(125, 67, 'Thursday', '16:00:00', '21:00:00', 'History');
 
 --
 -- Indexes for dumped tables
@@ -731,7 +617,7 @@ ALTER TABLE `user_schedules`
 -- AUTO_INCREMENT for table `auth_tokens`
 --
 ALTER TABLE `auth_tokens`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=104;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=106;
 
 --
 -- AUTO_INCREMENT for table `defense_panelists`
@@ -743,19 +629,19 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=141;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
 --
 ALTER TABLE `env_variables`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
 
 --
 -- AUTO_INCREMENT for table `evaluations`
 --
 ALTER TABLE `evaluations`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `evaluation_details`
@@ -767,7 +653,7 @@ ALTER TABLE `evaluation_details`
 -- AUTO_INCREMENT for table `requirements`
 --
 ALTER TABLE `requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=39;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
 
 --
 -- AUTO_INCREMENT for table `research_titles`
@@ -779,7 +665,7 @@ ALTER TABLE `research_titles`
 -- AUTO_INCREMENT for table `rubrics`
 --
 ALTER TABLE `rubrics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `rubric_criteria`
@@ -797,13 +683,13 @@ ALTER TABLE `teams`
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
 
 --
 -- AUTO_INCREMENT for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `thesis_topics`
@@ -815,7 +701,7 @@ ALTER TABLE `thesis_topics`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=72;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=73;
 
 --
 -- AUTO_INCREMENT for table `user_schedules`
