@@ -8,7 +8,7 @@ if (!isset($_SESSION['auth'])) {
     exit;
 }
 
-$team_id = isset($_GET['team_id']) ? $_GET['team_id'] : null;
+$team_id = isset($_GET['team_id']) ? $_GET['team_id'] : $_SESSION['team_id'][0];
 
 if (!$team_id) {
     echo json_encode(['success' => false, 'error' => 'No team selected', 'team_id' => $team_id]);
