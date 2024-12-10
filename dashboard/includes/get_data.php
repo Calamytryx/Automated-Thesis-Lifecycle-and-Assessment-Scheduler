@@ -28,7 +28,7 @@ if (isset($_POST['action'])) {
                 $response = fetchAllRequirements($pdo);
                 break;
             case 'fetchEvaluations':
-                $response = fetchAllEvaluations($pdo);
+                $response = fetchEvaluationDetails($pdo);
                 break;
             case 'fetchEnvVariables':
                 $response = fetchAllEnvVariables($pdo);

@@ -87,6 +87,33 @@ GROUP BY
         ";
 
         $stmt = $pdo->prepare($query);
+    } elseif ($table === 'evaluations') {
+        $query = "
+            SELECT 
+                ep.id,
+                ds.team_id,
+                t.name AS team_name,
+                e.first_name AS evaluator_first_name,
+                e.last_name AS evaluator_last_name,
+                s.first_name AS student_first_name,
+                s.last_name AS student_last_name,
+                ep.group_score,
+                ep.solo_score,
+                ep.total_score,
+                ep.comments
+            FROM 
+                evaluation_per_panel ep
+            JOIN 
+                defense_schedules ds ON ep.defense_schedule_id = ds.id
+            JOIN 
+                teams t ON ds.team_id = t.id
+            JOIN 
+                users e ON ep.evaluator_id = e.id
+            JOIN 
+                users s ON ep.student_id = s.id
+            LIMIT :limit OFFSET :offset
+        ";
+        $stmt = $pdo->prepare($query);
     } else {
         $query = "SELECT * FROM $table LIMIT :limit OFFSET :offset";
         $stmt = $pdo->prepare($query);
@@ -104,6 +131,8 @@ GROUP BY
             FROM defense_schedules ds 
             JOIN teams t ON ds.team_id = t.id
             JOIN research_titles rt ON t.id = rt.team_id";
+    } elseif ($table === 'evaluations') {
+        $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
     } else {
         $countQuery = "SELECT COUNT(*) FROM $table";
     }

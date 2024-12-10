@@ -115,7 +115,7 @@ function fetchAllRequirements($pdo)
 // Function to fetch all evaluations
 function fetchAllEvaluations($pdo)
 {
-    $stmt = $pdo->prepare("SELECT * FROM evaluations");
+    $stmt = $pdo->prepare("SELECT * FROM evaluation_per_panel");
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
@@ -171,6 +171,37 @@ function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
     }
 }
 
+// Function to fetch evaluation details with team name and user names
+function fetchEvaluationDetails($pdo)
+{
+    $query = "
+        SELECT 
+            ep.id,
+            ds.team_id,
+            t.name AS team_name,
+            e.first_name AS evaluator_first_name,
+            e.last_name AS evaluator_last_name,
+            s.first_name AS student_first_name,
+            s.last_name AS student_last_name,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments
+        FROM 
+            evaluation_per_panel ep
+        JOIN 
+            defense_schedules ds ON ep.defense_schedule_id = ds.id
+        JOIN 
+            teams t ON ds.team_id = t.id
+        JOIN 
+            users e ON ep.evaluator_id = e.id
+        JOIN 
+            users s ON ep.student_id = s.id
+    ";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 $users = fetchAllUsers($pdo);
 $thesisTopics = fetchAllThesisTopics($pdo);
@@ -179,7 +210,7 @@ $defenseSchedules = fetchAllDefenseSchedules($pdo);
 $rubrics = fetchAllRubrics($pdo);
 $teams = fetchAllTeams($pdo);
 $requirements = fetchAllRequirements($pdo);
-$evaluations = fetchAllEvaluations($pdo);
+$evaluations = fetchEvaluationDetails($pdo);
 $envVariables = fetchAllEnvVariables($pdo);
 
 // Handle form submission
