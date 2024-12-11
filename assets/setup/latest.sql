@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 10, 2024 at 10:44 PM
+-- Generation Time: Dec 11, 2024 at 01:03 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.3.12
 
@@ -249,10 +249,10 @@ CREATE TABLE `research_titles` (
 
 INSERT INTO `research_titles` (`id`, `team_id`, `title`, `approved_at`, `created_at`, `updated_at`) VALUES
 (1, 1, 'ATLAS: ADVANCED THESIS LOGISTICS AND AI SYSTEM FOR THE COLLEGE OF ENGINEERING, COMPUTER STUDIES AND ARCHITECTURE AT LYCEUM OF THE PHILIPPINES UNIVERSITY CAVITE', '2024-12-02 19:50:07', '2024-10-13 07:15:44', '2024-12-03 02:50:07'),
-(2, 2, 'Sustainable Urban Planning: A Case Study of Green Cities', '2024-11-16 02:30:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
-(3, 3, 'The Impact of Social Media on Mental Health in Adolescents', '2024-11-17 03:45:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
-(4, 4, 'Renewable Energy Integration in Smart Grids', '2024-11-18 06:00:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
-(5, 5, 'Cybersecurity Challenges in Internet of Things (IoT) Devices', '2024-11-19 07:30:00', '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
+(2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', '2024-11-16 02:30:00', '2024-10-13 07:15:44', '2024-12-10 22:46:52'),
+(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', '2024-11-17 03:45:00', '2024-10-13 07:15:44', '2024-12-10 22:47:28'),
+(4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', '2024-11-18 06:00:00', '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
+(5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', '2024-11-19 07:30:00', '2024-10-13 07:15:44', '2024-12-10 22:48:45'),
 (6, 6, 'The Role of Artificial Intelligence in Healthcare Diagnostics', NULL, '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
 (7, 7, 'Blockchain Technology in Supply Chain Management', '2024-11-20 05:15:00', '2024-10-13 07:16:51', '2024-10-13 07:16:51');
 
@@ -311,12 +311,10 @@ CREATE TABLE `teams` (
 
 INSERT INTO `teams` (`id`, `name`, `created_at`, `course`) VALUES
 (1, '120ms', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(2, 'Team2', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(2, 'Arcadia', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
 (3, 'Team3', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
 (4, 'Team4', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(5, 'Team5', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(6, 'Team6', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(7, 'Team7', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science');
+(5, 'Team5', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science');
 
 -- --------------------------------------------------------
 
@@ -336,19 +334,13 @@ CREATE TABLE `team_members` (
 --
 
 INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
-(5, 2, 58, 'adviser'),
-(7, 2, 42, 'member'),
 (8, 2, 43, 'member'),
 (9, 3, 60, 'adviser'),
-(10, 3, 44, 'leader'),
-(11, 3, 45, 'member'),
 (12, 3, 46, 'member'),
 (13, 4, 61, 'adviser'),
-(14, 4, 47, 'leader'),
 (15, 4, 48, 'member'),
 (16, 4, 49, 'member'),
 (17, 5, 62, 'adviser'),
-(18, 5, 50, 'leader'),
 (19, 5, 51, 'member'),
 (20, 5, 52, 'member'),
 (21, 6, 63, 'adviser'),
@@ -362,8 +354,15 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (70, 1, 38, 'leader'),
 (71, 1, 39, 'member'),
 (72, 1, 40, 'member'),
-(73, 2, 42, 'leader'),
-(74, 1, 41, 'member');
+(74, 1, 41, 'member'),
+(76, 2, 42, 'leader'),
+(79, 3, 47, 'adviser'),
+(80, 4, 50, 'leader'),
+(81, 5, 53, 'leader'),
+(82, 2, 59, 'adviser'),
+(83, 3, 45, 'leader'),
+(85, 2, 44, 'member'),
+(86, 2, 54, 'member');
 
 -- --------------------------------------------------------
 
@@ -466,15 +465,15 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password
 (42, 1, 'student5', 'BSCS', 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Five', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 19:21:37'),
 (43, 1, 'student6', 'BSCS', 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Six', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 17:18:56'),
 (44, 1, 'student7', 'BSCS', 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-11-12 17:24:45'),
-(45, 1, 'student8', 'BSCS', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eight', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(45, 1, 'student8', 'BSCS', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Renzo', 'Viñas', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:19:10', NULL, '2024-10-09 22:07:06'),
 (46, 1, 'student9', 'BLIS', 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nine', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (47, 1, 'student10', 'BSIT', 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Ten', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (48, 1, 'student11', 'BSIT', 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eleven', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (49, 1, 'student12', 'BSIT', 'student12@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twelve', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
-(50, 1, 'student13', 'BSIT', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Thirteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(50, 1, 'student13', 'BSIT', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kenneth Joshua', 'Pedero', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:20:22', NULL, '2024-10-09 22:07:06'),
 (51, 1, 'student14', 'BSIT', 'student14@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fourteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (52, 1, 'student15', 'BSIT', 'student15@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Fifteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
-(53, 1, 'student16', 'BSCS', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Sixteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
+(53, 1, 'student16', 'BSCS', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Tyrone Joshu', 'Jaco', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:21:07', NULL, '2024-10-09 22:07:06'),
 (54, 1, 'student17', 'BSCS', 'student17@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Seventeen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (55, 1, 'student18', 'BSCS', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Eighteen', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'BLIS', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
@@ -491,7 +490,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password
 (67, 2, 'staff10', NULL, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
 (70, 0, 'a', NULL, 'a@a.a', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2024-11-11 06:39:12', NULL, '2024-10-24 19:31:28'),
 (71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43'),
-(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-10 14:26:23', '0000-00-00 00:00:00', '2024-12-10 14:26:23');
+(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-10 22:33:49', '0000-00-00 00:00:00', '2024-12-10 22:33:49');
 
 -- --------------------------------------------------------
 
@@ -690,7 +689,7 @@ ALTER TABLE `evaluation_details`
 -- AUTO_INCREMENT for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `requirements`
@@ -726,7 +725,7 @@ ALTER TABLE `teams`
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=75;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=87;
 
 --
 -- AUTO_INCREMENT for table `team_requirements`
