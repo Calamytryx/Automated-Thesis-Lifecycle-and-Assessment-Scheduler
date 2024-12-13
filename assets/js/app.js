@@ -20,7 +20,7 @@ import { initializeChatSession, sendMessageToModel, performWebSearch } from './m
  * @returns {Promise<void>}
  */
 
-async function analyzeTitle(title, field) {
+async function analyzeTitle(title, field, problem) {
     try {
         // First prompt to check similarity
         const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${title}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response as "score(number only): 'title'".`;
@@ -35,10 +35,26 @@ async function analyzeTitle(title, field) {
         
         if (similarityScoreFloat < 5 || confirm(`The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
             // Proceed to analyze as usual
-            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}". 
+            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
                 Also, assess its potential uniqueness and originality.
-                If improvements are needed, suggest up to three alternative titles.`;
+                Additionally, evaluate if the research problem is feasible or if further investigation is needed to determine its feasibility.
+                If improvements are needed, suggest up to three alternative titles.
+                
+                Format the response as follows:
+                H2 Analysis of Research Title: "${title}"
+                strong Clarity: (feedback)
+                strong Specificity: (feedback)
+                strong Potential Impact: (feedback)
+                strong Uniqueness: (feedback)
+                strong Originality: (feedback)
+                strong Problem: (feedback)
+                H3 Alternative Titles:
+                1. (title 1)
+                2. (title 2)
+                3. (title 3)
+                
+                Ensure the feedback is clear, concise, and actionable. Do not use tilde or code blocks.`;
         
             console.log("Sending analysis prompt to AI:", analysisPrompt);
             const aiResponse = await sendMessageToModel(analysisPrompt);
@@ -65,12 +81,13 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Submit button clicked");
         var title = document.getElementById('researchTitle').value;
         var field = document.getElementById('researchField').value;
+        var problem = document.getElementById('problem').value;
         
-        console.log("Analyzing title:", title, "in field:", field);
+        console.log("Analyzing title:", title, "in field:", field + " with problem to solve of " + problem);
         document.getElementById('uniquenessResult').innerHTML = '<p>Analyzing title...</p>';
         document.getElementById('aiSuggestions').innerHTML = '';
 
-        analyzeTitle(title, field);
+        analyzeTitle(title, field, problem);
     });
 
     // Call the new AI processing function on page load

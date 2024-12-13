@@ -320,14 +320,18 @@ error_reporting(E_ALL);
                         <div class="media text-muted pt-3">
                             <p class="media-body pb-3 mb-0 small lh-125 feature-subtitle">
                                 <strong class="d-block text-gray-dark">Title Uniqueness Check</strong>
-                            <form id="titleSubmissionForm">
+                            <form id="titleSubmissionForm row">
                                 <div class="mb-3">
                                     <label for="researchTitle" class="form-label">Proposed Research Title</label>
                                     <input type="text" class="form-control" id="researchTitle" name="researchTitle" required>
                                 </div>
-                                <div class="mb-3">
+                                <div class="mb-3 col-6">
                                     <label for="researchField" class="form-label">Research Field</label>
                                     <input type="text" class="form-control" id="researchField" name="researchField" required>
+                                </div>
+                                <div class="mb-3 col-6">
+                                    <label for="problem" class="form-label">Problem</label>
+                                    <input type="text" class="form-control" id="problem" name="problem" required>
                                 </div>
                                 <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn">Check Title</button>
                             </form>

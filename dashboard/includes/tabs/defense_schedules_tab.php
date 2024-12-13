@@ -57,7 +57,6 @@
                 <tr>
                     <th>Date & Time</th>
                     <th>Team</th>
-                    <th>Members</th>
                     <th>Adviser</th>
                     <th>Thesis Title</th>
                     <th>Panelists</th>
@@ -105,7 +104,6 @@
                                     <tr>
                                         <td>${dateTime}</td>
                                         <td>${schedule.team_name}</td>
-                                        <td>${schedule.team_members}</td>
                                         <td>${schedule.adviser}</td>
                                         <td>${schedule.thesis_title}</td>
                                         <td>${schedule.panelists}</td>
