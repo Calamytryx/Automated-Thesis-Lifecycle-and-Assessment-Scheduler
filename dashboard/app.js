@@ -240,7 +240,7 @@ $(document).ready(function () {
                                 
                             `);
                         } else {
-                        form.html(formHtml);
+                            form.html(formHtml);
                         }
                     } else if (table === 'defense_schedules') {
                         var formHtml = `
@@ -274,7 +274,7 @@ $(document).ready(function () {
 
                         if (response.data.panelists) {
                             response.data.panelists.forEach(function (panelist, index) {
-                                
+
                                 formHtml += `
                                 <div class="mb-3 row panelist" data-user-id="${panelist.id}">
                                     <div class="col-sm-10">
@@ -287,7 +287,7 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
-                            index++;
+                                index++;
                             });
                         } else {
                             console.error('Panelists data is missing in the response');
@@ -543,7 +543,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Item updated successfully');
                     $('#editModal').modal('hide');
-                     location.reload();
+                    location.reload();
                 } else {
                     alert('Error: ' + response.message);
                     console.error('Update failed:', response);
@@ -575,7 +575,7 @@ $(document).ready(function () {
                 if (response.success) {
                     alert('Team added successfully');
                     $('#addModal').modal('hide');
-                     location.reload();
+                    location.reload();
                 } else {
                     alert('Error: ' + response.message);
                 }
@@ -603,7 +603,7 @@ $(document).ready(function () {
                 success: function (response) {
                     if (response.success) {
                         alert('Item deleted successfully from table ' + table + ' with ID ' + id);
-                         location.reload();
+                        location.reload();
                         // Optionally, refresh the table or page
                     } else {
                         alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
@@ -618,99 +618,109 @@ $(document).ready(function () {
     if (typeof moment === 'undefined') {
         console.error("Moment.js is not loaded!");
     }
-    
+
     $(document).ready(function () {
         // Datepicker initialization
         $("#days").datepicker({
             dateFormat: "yy-mm-dd",
             multidate: true,
-            beforeShowDay: function(date) {
+            beforeShowDay: function (date) {
                 var day = date.getDay();
                 return [day != 0, '']; // Disable Sundays
             }
         });
-    
-        $('#saveSchedulerSettings').on('click', function() {
+
+        $('#saveSchedulerSettings').on('click', function () {
             // You can add validation here if needed (e.g., check if rooms, dates are provided)
             $('#schedulerSettingsModal').modal('hide'); // Close the modal
             // Enable "Generate Schedule" button after settings are saved
             $('#generateSchedule').prop('disabled', false);
         });
-    
+
         $('#generateSchedule').on('click', function () {
-            var $button = $(this);
-            var $status = $('#scheduleGenerationStatus');
-    
-            // Get scheduler settings
-            var rooms = $('#rooms').val().split(',').map(function(room) {
-                return room.trim();
-            });
-            var timeDuration = parseInt($('#timeDuration').val());
-            var startTime = $('#startTime').val();
-            var endTime = $('#endTime').val();
-            var days = $('#days').datepicker('getDates').map(function(date) {
-                return moment(date).format('YYYY-MM-DD'); // Format dates correctly
-            });
-    
-            var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
-    
-            $button.prop('disabled', true).text('Generating...');
-            $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
-    
-            $.ajax({
-                url: 'includes/run_scheduler.php',
-                method: 'POST',
-                data: { 
-                    rooms: rooms, 
-                    timeSlots: timeSlots, 
-                    days: days,
-                    duration: timeDuration
-                },
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-    
-                        // Update metrics (include all relevant metrics from the PHP response)
-                        $('#initialPopulationSize').text(response.initialPopulationSize);
-                        $('#crossoverCount').text(response.crossoverCount);
-                        $('#mutationCount').text(response.mutationCount);
-                        $('#conflictCounts').text(response.conflictCounts.join(', '));
-                        // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
-    
-                        // Reload or update the schedule display after a short delay
-                        setTimeout(function () {
-                             location.reload(); // Or update the schedule table dynamically
-                        }, 2000);
-    
-                    } else {
-                        $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
-                        $button.prop('disabled', false).text('Generate Defense Schedule');
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX Error:', textStatus, errorThrown);
-                    if (jqXHR.responseText) {
-                        console.error('Server Response:', jqXHR.responseText);
-                    }
-                    $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
-                    $button.prop('disabled', false).text('Generate Defense Schedule');
-                },
-                complete: function() {
-                  // This will run regardless of success or failure.
-                  // Optionally, you can remove the "Generating..." state here.
-                  $button.text('Generate Defense Schedule');
-              }
-            });
+            if (totalScheds !== 0) {
+                if (confirm('Existing schedules will be removed. Are you sure you want to proceed?')) {
+
+                    var $button = $(this);
+                    var $status = $('#scheduleGenerationStatus');
+
+                    // Get scheduler settings
+                    var rooms = $('#rooms').val().split(',').map(function (room) {
+                        return room.trim();
+                    });
+                    var timeDuration = parseInt($('#timeDuration').val());
+                    var startTime = $('#startTime').val();
+                    var endTime = $('#endTime').val();
+                    var days = $('#days').datepicker('getDates').map(function (date) {
+                        return moment(date).format('YYYY-MM-DD'); // Format dates correctly
+                    });
+
+                    var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
+
+                    $button.prop('disabled', true).text('Generating...');
+                    $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
+
+                    $.ajax({
+                        url: 'includes/run_scheduler.php',
+                        method: 'POST',
+                        data: {
+                            rooms: rooms,
+                            timeSlots: timeSlots,
+                            days: days,
+                            duration: timeDuration
+                        },
+                        dataType: 'json',
+                        success: function (response) {
+                            if (response.success) {
+                                $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
+
+                                // Update metrics (include all relevant metrics from the PHP response)
+                                $('#initialPopulationSize').text(response.initialPopulationSize);
+                                $('#crossoverCount').text(response.crossoverCount);
+                                $('#mutationCount').text(response.mutationCount);
+                                $('#conflictCounts').text(response.conflictCounts.join(', '));
+                                // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
+
+                                // Reload or update the schedule display after a short delay
+                                setTimeout(function () {
+                                    location.reload(); // Or update the schedule table dynamically
+                                }, 2000);
+
+                            } else {
+                                $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
+                                $button.prop('disabled', false).text('Generate Defense Schedule');
+                            }
+                        },
+                        error: function (jqXHR, textStatus, errorThrown) {
+                            console.error('AJAX Error:', textStatus, errorThrown);
+                            if (jqXHR.responseText) {
+                                console.error('Server Response:', jqXHR.responseText);
+                            }
+                            $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+                            $button.prop('disabled', false).text('Generate Defense Schedule');
+                        },
+                        complete: function () {
+                            // This will run regardless of success or failure.
+                            // Optionally, you can remove the "Generating..." state here.
+                            $button.text('Generate Defense Schedule');
+                        }
+                    });
+
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', './includes/truncate_sched.php', true);
+                    xhr.send();
+                }
+            }
+
         });
-    
+
         function generateTimeSlots(start, end, duration) {
             var timeSlots = [];
-        
+
             // Parse start and end times as Moment.js objects
             var current = moment(start, "HH:mm");
             var endTime = moment(end, "HH:mm");
-        
+
             // Loop to generate slots
             while (current.isBefore(endTime)) {
                 timeSlots.push(current.format("HH:mm:ss"));
@@ -719,13 +729,13 @@ $(document).ready(function () {
             console.log('Time slots:', timeSlots);
             return timeSlots;
         }
-    
+
     });
-    
+
 });
 function addNewPanelist(staff) {
     // Determine the next index based on existing panelists
-    var currentIndices = $('#panelists .panelist select').map(function() {
+    var currentIndices = $('#panelists .panelist select').map(function () {
         var name = $(this).attr('name');
         var match = name.match(/\[(\d+)\]/);
         return match ? parseInt(match[1], 10) : -1;
@@ -751,7 +761,7 @@ function addNewPanelist(staff) {
 
 // Optionally, update existing panelist entries to have unique indices
 $(document).ready(function () {
-    $('#panelists .panelist').each(function(index) {
+    $('#panelists .panelist').each(function (index) {
         $(this).find('select').attr('name', `panelist_id[${index}]`);
     });
 });

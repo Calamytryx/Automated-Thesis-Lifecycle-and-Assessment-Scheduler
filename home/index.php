@@ -325,6 +325,7 @@ error_reporting(E_ALL);
                                     <label for="researchTitle" class="form-label">Proposed Research Title</label>
                                     <input type="text" class="form-control" id="researchTitle" name="researchTitle" required>
                                 </div>
+                                <div class="row">
                                 <div class="mb-3 col-6">
                                     <label for="researchField" class="form-label">Research Field</label>
                                     <input type="text" class="form-control" id="researchField" name="researchField" required>
@@ -332,6 +333,7 @@ error_reporting(E_ALL);
                                 <div class="mb-3 col-6">
                                     <label for="problem" class="form-label">Problem</label>
                                     <input type="text" class="form-control" id="problem" name="problem" required>
+                                </div>
                                 </div>
                                 <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn">Check Title</button>
                             </form>

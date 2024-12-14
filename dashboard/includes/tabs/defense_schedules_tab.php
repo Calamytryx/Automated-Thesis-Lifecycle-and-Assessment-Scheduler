@@ -17,8 +17,20 @@
                             </div>
                             <div class="mb-3">
                                 <label for="timeDuration" class="form-label">Time Duration (hours)</label>
-                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" value="1" required>
+                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" max="24" value="1" required>
                             </div>
+                            <script>
+                                document.addEventListener('DOMContentLoaded', function() {
+                                    const timeDurationInput = document.getElementById('timeDuration');
+                                    timeDurationInput.addEventListener('input', function() {
+                                        if (timeDurationInput.value < 1) {
+                                            timeDurationInput.value = 1;
+                                        } else if (timeDurationInput.value > 24) {
+                                            timeDurationInput.value = 24;
+                                        }
+                                    });
+                                });
+                            </script>
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">Start Time</label>
                                 <input type="time" class="form-control" id="startTime" name="startTime" required>
@@ -35,6 +47,44 @@
                             </div>
                         </form>
                     </div>
+                    <?php
+                    $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM teams");
+                    if ($stmt->execute()) {
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $totalTeams = $row['total'] ?? 0;
+                    } else {
+                        $totalTeams = 0;
+                    }
+                    ?>
+
+                    <script>
+                        document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
+                            const rooms = document.getElementById('rooms').value.split(',').length;
+                            const timeDuration = parseInt(document.getElementById('timeDuration').value);
+                            const startTimeParts = document.getElementById('startTime').value.split(':');
+                            const endTimeParts = document.getElementById('endTime').value.split(':');
+                            const startTime = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
+                            const endTime = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
+                            const days = document.getElementById('days').value.split(',').length;
+
+                            // Assume numberOfTeams is available globally or fetched from the server
+                            const numberOfTeams = <?php echo $totalTeams; ?>;
+
+                            const availableHours = endTime - startTime;
+                            const slotsPerRoomPerDay = Math.floor(availableHours / timeDuration);
+                            const totalSlots = slotsPerRoomPerDay * rooms * days;
+
+                            const statusElement = document.getElementById('scheduleGenerationStatus');
+
+                            if (totalSlots < numberOfTeams) {
+                                statusElement.innerText = 'Cannot generate schedule: Not enough time slots for all teams.';
+                                document.getElementById('generateSchedule').disabled = true;
+                            } else {
+                                statusElement.innerText = 'Settings are valid. You can generate the schedule.';
+                                document.getElementById('generateSchedule').disabled = false;
+                            }
+                        });
+                    </script>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" id="saveSchedulerSettings">Save Settings</button>
@@ -49,6 +99,19 @@
 
         <div id="scheduleGenerationStatus"></div>
         <button id="generateSchedule" class="btn btn-primary ml-auto" disabled>Generate Defense Schedule</button>
+        <?php
+        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM defense_schedules");
+        if ($stmt->execute()) {
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+            $totalScheds = $row['total'] ?? 0;
+        } else {
+            $totalScheds = 0;
+        }
+        ?>
+        <script>
+            let totalScheds = <?php echo $totalScheds; ?>;
+        </script>
+
         <span id="scheduleGenerationStatusSpan" class="ml-2"></span> <!-- Changed ID to ensure uniqueness -->
     </div>
     <div class="table-responsive" id="def-sched">
@@ -99,7 +162,7 @@
                             tbody.innerHTML = '';
                             data.data.forEach(schedule => {
                                 const dateTime = `${schedule.schedule_date} ${schedule.start_time} - ${schedule.end_time}`;
-                                
+
                                 tbody.innerHTML += `
                                     <tr>
                                         <td>${dateTime}</td>

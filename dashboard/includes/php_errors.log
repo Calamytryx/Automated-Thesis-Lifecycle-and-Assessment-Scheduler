@@ -42743,3 +42743,223 @@ Stack trace:
     [duration] => 1
 )
 
+[14-Dec-2024 15:13:42 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:15:24 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:16:09 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:16:44 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => 
+        )
+
+    [duration] => 1
+)
+
+[14-Dec-2024 15:16:44 Europe/Berlin] PHP Warning:  Undefined array key "timeSlots" in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 25
+[14-Dec-2024 15:16:44 Europe/Berlin] PHP Warning:  Undefined array key "days" in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 26
+[14-Dec-2024 15:16:44 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: array_rand(): Argument #1 ($array) must be of type array, null given in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:345
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(345): array_rand(NULL)
+#1 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(149): DefenseSchedule->__construct(Object(PDO), Array, Array, Array, NULL, NULL)
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(93): createInitialPopulation(Object(PDO), 100, Array, Array, Array, NULL, NULL)
+#3 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(35): geneticAlgorithm(Object(PDO), Array, Array, Array, NULL, NULL, Array, 100, 200, 0.1)
+#4 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 345
+[14-Dec-2024 15:17:15 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:18:32 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:19:29 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:20:43 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
+[14-Dec-2024 15:27:35 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room A
+            [1] => Defense Room B
+        )
+
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2024-12-11
+        )
+
+    [duration] => 2
+)
+
