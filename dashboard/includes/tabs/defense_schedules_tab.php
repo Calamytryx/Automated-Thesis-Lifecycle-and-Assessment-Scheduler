@@ -1,7 +1,7 @@
 <!-- Defense Schedules Tab -->
 <div class="tab-pane fade" id="defense-schedules" role="tabpanel"
     aria-labelledby="defense-schedules-tab">
-    <div class="d-flex justify-content-between align-items-center mb-3 my-3">
+    <div class="d-flex align-items-center mb-3 my-3">
         <div class="modal fade" id="schedulerSettingsModal" tabindex="-1" aria-labelledby="schedulerSettingsModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -93,12 +93,17 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
-            Scheduler Settings
+        <!-- Scheduler Settings Button -->
+        <button type="button" class="btn feature-btn scheduler-btn" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
+            <i class="fas fa-cog me-1"></i>Scheduler Settings
         </button>
 
         <div id="scheduleGenerationStatus"></div>
-        <button id="generateSchedule" class="btn btn-primary ml-auto" disabled>Generate Defense Schedule</button>
+
+        <!-- Generate Schedule Button -->
+        <button id="generateSchedule" class="btn feature-btn generate-btn" disabled>
+            <i class="fas fa-calendar-plus me-1"></i>Generate Defense Schedule
+        </button>
         <?php
         $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM defense_schedules");
         if ($stmt->execute()) {
@@ -114,7 +119,7 @@
 
         <span id="scheduleGenerationStatusSpan" class="ml-2"></span> <!-- Changed ID to ensure uniqueness -->
     </div>
-    <div class="table-responsive" id="def-sched">
+    <div class="table-responsive db-table-container" id="def-sched">
         <table class="table table-bordered table-hover table-sm db-table" id="def-table">
             <thead>
                 <tr>
@@ -172,10 +177,14 @@
                                         <td>${schedule.panelists}</td>
                                         <td>${schedule.room}</td>
                                         
-                                        <td class="text-center align-middle">
-                                            <div class="d-flex">
-                                                <button class="btn btn-primary btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">Edit</button>
-                                                <button class="btn btn-danger btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">Delete</button>
+                                        <td class="action-buttons">
+                                            <div class="d-flex gap-2 justify-content-center">
+                                                <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                                <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">
+                                                    <i class="fas fa-trash-alt me-1"></i>Delete
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>

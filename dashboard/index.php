@@ -283,36 +283,71 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div> -->
         <div class="col-sm-12">
             <?php if ($_SESSION['usertype'] == 0): ?>
-                <!-- Admin dashboard content -->
-                <div class="row">
-                    <div class="col-sm-3">
-                        <div class="d-flex align-items-center p-3 my-3 sidebar-header">
-                        <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
-                            <div class="lh-100">
+                <!-- Admin dashboard content --> 
+                <div class="row g-0">
+                    <div id="sidebarContainer">
+                        <div class="d-flex align-items-center mt-3 pb-3 sidebar-header">
+                            <div class="lh-100 d-flex justify-content-between w-100">
                                 <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
-                                <!-- <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small> -->
+                                <button id="toggleSidebar" class="btn btn-link">
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
                             </div>
                         </div>
-                        <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                            <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">Overview</a>
-                            <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">Users</a>
-                            <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">Thesis Topics</a>
-                            <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">Research Titles</a>
-                            <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">Defense Schedules</a>
-                            <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">Rubrics</a>
-                            <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">Teams</a>
-                            <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">Requirements</a>
-                            <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">Evaluations</a>
-                            <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">Content Management</a>
+                        <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <!-- Dashboard Overview -->
+                            <div class="sidebar-category mb-2">Dashboard</div>
+                            <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                <i class="fas fa-home me-2"></i>Overview
+                            </a>
+
+                            <!-- User Management -->
+                            <div class="sidebar-category mb-2 mt-3">User Management</div>
+                            <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                                <i class="fas fa-users me-2"></i>Users
+                            </a>
+                            <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
+                                <i class="fas fa-user-friends me-2"></i>Teams
+                            </a>
+
+                            <!-- Thesis Management -->
+                            <div class="sidebar-category mb-2 mt-3">Thesis Management</div>
+                            <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">
+                                <i class="fas fa-book me-2"></i>Thesis Topics
+                            </a>
+                            <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
+                                <i class="fas fa-file-alt me-2"></i>Research Titles
+                            </a>
+
+                            <!-- Defense Management -->
+                            <div class="sidebar-category mb-2 mt-3">Defense Management</div>
+                            <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
+                                <i class="fas fa-calendar-alt me-2"></i>Defense Schedules
+                            </a>
+                            <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
+                                <i class="fas fa-list-alt me-2"></i>Rubrics
+                            </a>
+                            <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
+                                <i class="fas fa-star me-2"></i>Evaluations
+                            </a>
+                            <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
+                                <i class="fas fa-tasks me-2"></i>Requirements
+                            </a>
+
+                            <!-- Requirements -->
+                            <div class="sidebar-category mb-2 mt-3">System</div>
+                            <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
+                                <i class="fas fa-cog me-2"></i>Content Management
+                            </a>
                         </div>
                     </div>
-                    <div class="col-sm-9">
+                    <div id="mainContent">
                         <div class="tab-content" id="v-pills-tabContent">
                             <?php include 'includes/tabs/overview_tab.php'; ?>
-                            <?php include 'includes/tabs/users_tab.php'; ?>
+                            <?php include 'includes/tabs/users_tab.php'; ?> 
                             <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
                             <?php include 'includes/tabs/research_titles_tab.php'; ?>
-                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
+                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?> 
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
                             <?php include 'includes/tabs/teams_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
@@ -330,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
         </div>
     </div>
-</main>
+</main> 
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">

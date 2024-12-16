@@ -2,10 +2,11 @@
 <div class="tab-pane fade" id="env-variables" role="tabpanel"
     aria-labelledby="env-variables-tab">
     <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="env_variables">Add
-            Environment Variable</button>
+    <button class="btn feature-btn add-btn" data-table="env_variables">
+            <i class="fas fa-plus"></i>Add Environment Variable
+        </button>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive db-table-container">
         <?php 
         $groupedVariables = [];
         foreach ($envVariables as $variable) {
@@ -40,10 +41,12 @@
                                 }
                                 ?>
                             </td>
-                            <td class="text-center align-middle">
-                                <button class="btn btn-primary btn-sm edit-btn"
-                                    data-table="env_variables"
-                                    data-id="<?php echo $variable['id']; ?>">Edit</button>
+                            <td class="action-buttons">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button class="btn btn-sm edit-btn" data-table="env_variables" data-id="<?php echo $variable['id']; ?>">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>

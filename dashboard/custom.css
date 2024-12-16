@@ -1,7 +1,6 @@
-html,
+/* html,
 body {
     overflow-x: hidden;
-    /* Prevent scroll on narrow devices */
 }
 
 .text-white-50 {
@@ -21,4 +20,4 @@ body {
 
 .feature-btn:hover{
     background-color: var(--primary-400);
-} 
+}   */

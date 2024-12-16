@@ -24,9 +24,9 @@
     font-weight: 300;
 }
 
-.jumbotron .container {
+/* .jumbotron .container {
     max-width: 40rem;
-}
+} */
 
 .box-shadow {
     box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);

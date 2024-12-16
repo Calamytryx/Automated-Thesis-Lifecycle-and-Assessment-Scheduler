@@ -1,35 +1,46 @@
 <!-- Thesis Topics Tab -->
 <div class="tab-pane fade" id="thesis-topics" role="tabpanel" aria-labelledby="thesis-topics-tab">
-    <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="thesis_topics">Add Thesis Topic</button>
+    <!-- Header Section with Add Button -->
+    <div class="d-flex justify-content-between align-items-center my-3">
+        <button class="btn feature-btn add-btn" data-table="thesis_topics">
+            <i class="fas fa-plus"></i>Add Thesis Topic
+        </button>   
     </div>
-    <div class="my-3 home-sidebar-box">
-        <h6 class="border-bottom border-secondary pb-2 mb-0 feature-title">Thesis Topic Decision Tool</h6>
-        <div class="media text-muted pt-3">
-            <div class="form-group">
-                <label for="thesisField">Select a field:</label>
-                <select id="thesisField" class="form-select">
-                    <option value="">Select a field</option>
-                    <option value="Architecture">Architecture</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Information Technology">Information Technology</option>
-                    <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-                    <option value="Civil Engineering">Civil Engineering</option>
-                    <option value="Computer Engineering">Computer Engineering</option>
-                    <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
-                    <option value="Electrical Engineering">Electrical Engineering</option>
-                    <option value="Electronics Engineering">Electronics Engineering</option>
-                    <option value="Industrial Engineering">Industrial Engineering</option>
-                    <option value="Mechanical Engineering">Mechanical Engineering</option>
-                </select>
+
+    <!-- Decision Tool Section -->
+    <div class="decision-tool-container mb-4">
+        <div class="card border-0 shadow-sm">
+            <div class="card-header bg-white border-0">
+                <h6 class="mb-0 feature-title">Thesis Topic Decision Tool</h6>
             </div>
-            <button id="getTopicsBtn" class="btn btn-primary mt-3 feature-btn">Get Latest Topics</button>
+            <div class="card-body">
+                <div class="form-group mb-3">
+                    <label for="thesisField" class="form-label">Field of study:</label>
+                    <select id="thesisField" class="form-select">
+                        <option value="">Select a field</option>
+                        <option value="Architecture">Architecture</option>
+                        <option value="Computer Science">Computer Science</option>
+                        <option value="Information Technology">Information Technology</option>
+                        <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                        <option value="Civil Engineering">Civil Engineering</option>
+                        <option value="Computer Engineering">Computer Engineering</option>
+                        <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
+                        <option value="Electrical Engineering">Electrical Engineering</option>
+                        <option value="Electronics Engineering">Electronics Engineering</option>
+                        <option value="Industrial Engineering">Industrial Engineering</option>
+                        <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    </select>
+                </div>
+                <button id="getTopicsBtn" class="btn feature-btn">Get Latest Topics</button>
+            </div>
         </div>
         <div id="topicAnalysisResult" class="mt-3">
+            <!-- Analysis results will be loaded here --> 
         </div>
     </div>
 
-    <div class="table-responsive">
+    <!-- Topics Table Section -->
+    <div class="table-responsive db-table-container">
         <table class="table table-bordered table-hover table-sm db-table">
             <thead>
                 <tr>
@@ -152,10 +163,16 @@
                                     <td>${topic.topic}</td>
                                     <td>${topic.description}</td>
                                     <td>${topic.category}</td>
-                                    <td class="text-center align-middle">
-                                        <button class="btn btn-primary btn-sm edit-btn" data-table="thesis_topics" data-id="${topic.id}">Edit</button>
-                                        <button class="btn btn-danger btn-sm delete-btn" data-table="thesis_topics" data-id="${topic.id}">Delete</button>
-                                    </td> 
+                                    <td class="action-buttons">
+                                        <div class="d-flex gap-2 justify-content-center">
+                                            <button class="btn btn-sm edit-btn" data-table="thesis_topics" data-id="${topic.id}">
+                                                <i class="fas fa-edit me-1"></i>Edit
+                                            </button>
+                                            <button class="btn btn-sm delete-btn" data-table="thesis_topics" data-id="${topic.id}">
+                                                <i class="fas fa-trash-alt me-1"></i>Delete
+                                            </button>
+                                        </div>
+                                    </td>
                                 </tr>
                             `;
                         });

@@ -1,9 +1,11 @@
 <!-- Teams Tab -->
 <div class="tab-pane fade" id="teams" role="tabpanel" aria-labelledby="teams-tab">
     <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="teams">Add Team</button>
+        <button class="btn feature-btn add-btn" data-table="teams">
+            <i class="fas fa-plus"></i>Add Team
+        </button>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive db-table-container">
         <table class="table table-bordered table-hover table-sm db-table" id="teams-table">
             <thead>
                 <tr>
@@ -45,9 +47,15 @@
                             <td>${team.research_title}</td>
                             <td>${team.adviser}</td>
                             <td>${team.team_members}</td>
-                            <td class="text-center align-middle">
-                                <button class="btn btn-primary btn-sm edit-btn" data-table="teams" data-id="${team.id}">Edit</button>
-                                <button class="btn btn-danger btn-sm delete-btn" data-table="teams" data-id="${team.id}">Delete</button>
+                            <td class="action-buttons">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button class="btn btn-sm edit-btn" data-table="teams" data-id="${team.id}">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <button class="btn btn-sm delete-btn" data-table="teams" data-id="${team.id}">
+                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                             `;

@@ -1,9 +1,11 @@
 <!-- Requirements Tab -->
 <div class="tab-pane fade" id="requirements" role="tabpanel" aria-labelledby="requirements-tab">
     <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <button class="btn btn-primary btn-sm add-btn feature-btn" data-table="requirements">Add Requirement</button>
+        <button class="btn feature-btn add-btn" data-table="requirements">
+            <i class="fas fa-plus"></i>Add Requirement
+        </button>
     </div>
-    <div class="table-responsive">
+    <div class="table-responsive db-table-container">
         <table class="table table-bordered table-hover table-sm db-table" id="requirements-table">
             <thead>
                 <tr>
@@ -43,9 +45,15 @@
                             <td>${requirement.name}</td>
                             <td>${requirement.description}</td>
                             <td>${requirement.due_date}</td>
-                            <td class="text-center align-middle">
-                                <button class="btn btn-primary btn-sm edit-btn" data-table="requirements" data-id="${requirement.id}">Edit</button>
-                                <button class="btn btn-danger btn-sm delete-btn" data-table="requirements" data-id="${requirement.id}">Delete</button>
+                            <td class="action-buttons">
+                                <div class="d-flex gap-2 justify-content-center">
+                                    <button class="btn btn-sm edit-btn" data-table="requirements" data-id="${requirement.id}">
+                                        <i class="fas fa-edit me-1"></i>Edit
+                                    </button>
+                                    <button class="btn btn-sm delete-btn" data-table="requirements" data-id="${requirement.id}">
+                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                    </button>
+                                </div>
                             </td>
                         </tr>
                             `;

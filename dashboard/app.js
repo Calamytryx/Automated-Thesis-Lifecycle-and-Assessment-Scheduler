@@ -12,7 +12,7 @@ $(document).ready(function () {
             method: 'POST',
             data: {
                 table: table,
-                id: id
+                id: id 
             },
             dataType: 'json',
             success: function (response) {
@@ -730,6 +730,38 @@ $(document).ready(function () {
             return timeSlots;
         }
 
+    });
+
+    const sidebarContainer = $('#sidebarContainer');
+    const mainContent = $('#mainContent');
+    const toggleButton = $('#toggleSidebar');
+
+    toggleButton.on('click', function() {
+        sidebarContainer.toggleClass('collapsed');
+        mainContent.toggleClass('expanded');
+        toggleButton.toggleClass('collapsed');
+        
+        // Store the sidebar state in localStorage
+        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+    });
+
+    // Check localStorage for saved sidebar state on page load
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        sidebarContainer.addClass('collapsed');
+        mainContent.addClass('expanded');
+        toggleButton.addClass('collapsed');
+    }
+
+    // Handle window resize
+    $(window).on('resize', function() {
+        if (window.innerWidth <= 768) {
+            mainContent.addClass('expanded');
+        } else {
+            if (!sidebarContainer.hasClass('collapsed')) {
+                mainContent.removeClass('expanded');
+            }
+        }
     });
 
 });

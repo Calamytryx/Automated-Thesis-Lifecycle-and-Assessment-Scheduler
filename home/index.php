@@ -106,10 +106,18 @@ error_reporting(E_ALL);
                     </div>
                 </div>
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">Calendar</a>
-                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">Thesis Topic Decision</a>
-                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">Research Title Acceptance</a>
-                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">Requirement Checker</a>
+                    <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
+                        <i class="fas fa-calendar-alt me-2"></i>Calendar
+                    </a>
+                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">
+                        <i class="fas fa-lightbulb me-2"></i>Thesis Topic Decision
+                    </a>
+                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">
+                        <i class="fas fa-check-circle me-2"></i>Research Title Acceptance
+                    </a>
+                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">
+                        <i class="fas fa-tasks me-2"></i>Requirement Checker
+                    </a>
                 </div>
             </div>
         </div>
@@ -130,22 +138,39 @@ error_reporting(E_ALL);
                             $stmt = $pdo->query("SELECT id, name, due_date FROM coecsa_thesis.requirements;");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
-                            <div class="requirements-list col-sm-3 my-3 p-3">
-                                <div class="accordion" id="requirementsAccordion">
-                                    <div class="accordion-item">
+                            <div class="requirements-list col-sm-3 my-3">
+                                <div class="accordion custom-accordion" id="requirementsAccordion">
+                                    <!-- Requirements Section -->
+                                    <div class="accordion-item shadow-sm">
                                         <h2 class="accordion-header" id="headingRequirements">
-                                            <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseRequirements" aria-expanded="true" aria-controls="collapseRequirements">
+                                            <button class="accordion-button custom-accordion-btn" type="button" data-bs-toggle="collapse" 
+                                                    data-bs-target="#collapseRequirements" aria-expanded="true" 
+                                                    aria-controls="collapseRequirements">
+                                                <!-- <i class="fas fa-tasks me-2"></i> -->
                                                 Requirements
                                             </button>
                                         </h2>
-                                        <div id="collapseRequirements" class="accordion-collapse collapse show" aria-labelledby="headingRequirements" data-bs-parent="#requirementsAccordion">
-                                            <div class="accordion-body" style="max-height: 50vh; overflow-y: auto;">
+                                        <div id="collapseRequirements" class="accordion-collapse collapse show" 
+                                                     aria-labelledby="headingRequirements" data-bs-parent="#requirementsAccordion">
+                                            <div class="accordion-body custom-scrollbar">
                                                 <ul class="list-group">
                                                     <?php foreach ($requirements as $requirement): ?>
-                                                        <li class="list-group-item my-1 req-li" onclick="redirectToRequirements()">
-                                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                                            <br>
-                                                            <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                                        <li class="list-group-item requirement-item" onclick="redirectToRequirements()">
+                                                            <div class="d-flex justify-content-between align-items-start">
+                                                                <div>
+                                                                    <h6 class="mb-1"><?php echo htmlspecialchars($requirement['name']); ?></h6>
+                                                                    <div class="due-date">
+                                                                        <i class="far fa-calendar-alt me-1"></i>
+                                                                        <small><?php echo htmlspecialchars($requirement['due_date']); ?></small>
+                                                                    </div>
+                                                                </div>
+                                                                <span class="status-badge 
+                                                                    <?php echo isset($requirement['status']) ? 
+                                                                        'status-' . strtolower($requirement['status']) : 'status-pending'; ?>">
+                                                                    <?php echo isset($requirement['status']) ? 
+                                                                        ucfirst($requirement['status']) : 'Pending'; ?>
+                                                                </span>
+                                                            </div>
                                                         </li>
                                                     <?php endforeach; ?>
                                                 </ul>
@@ -170,28 +195,45 @@ error_reporting(E_ALL);
                                                         ");
                                     $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
-                                    <div class="accordion-item">
+                                    <div class="accordion-item shadow-sm mt-2">
                                         <h2 class="accordion-header" id="headingDefenses">
-                                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseDefenses" aria-expanded="false" aria-controls="collapseDefenses">
-                                                Defenses
+                                            <button class="accordion-button custom-accordion-btn collapsed" type="button" 
+                                                    data-bs-toggle="collapse" data-bs-target="#collapseDefenses" 
+                                                    aria-expanded="false" aria-controls="collapseDefenses">
+                                                <!-- <i class="fas fa-calendar-alt me-2"></i> -->
+                                                Defense Schedules
                                             </button>
                                         </h2>
-                                        <div id="collapseDefenses" class="accordion-collapse collapse" aria-labelledby="headingDefenses" data-bs-parent="#requirementsAccordion">
-                                            <div class="accordion-body" style="max-height: 50vh; overflow-y: auto;">
+                                        <div id="collapseDefenses" class="accordion-collapse collapse" 
+                                                     aria-labelledby="headingDefenses" data-bs-parent="#requirementsAccordion">
+                                            <div class="accordion-body custom-scrollbar">
                                                 <ul class="list-group">
-                                                    <?php foreach ($schedules as $schedule):
+                                                    <?php foreach ($schedules as $schedule): 
                                                         $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                         $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                         $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
                                                     ?>
-                                                        <li class="list-group-item my-1 req-li" onclick="redirectToDecisionSupport(<?php echo $schedule['team_id']; ?>)">
-                                                            <strong><?php echo htmlspecialchars($schedule['team_name']); ?></strong>
-                                                            <br>
-                                                            <small class="due-date-txt">Date: <br> <?php echo htmlspecialchars($formatted_date); ?></small>
-                                                            <br>
-                                                            <small class="due-date-txt">Time: <br> <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?></small>
-                                                            <br>
-                                                            <small class="due-date-txt">Room: <br> <?php echo htmlspecialchars($schedule['room']); ?></small>
+                                                        <li class="list-group-item defense-item" 
+                                                            onclick="redirectToDecisionSupport(<?php echo $schedule['team_id']; ?>)">
+                                                            <div class="defense-content">
+                                                                <h6 class="team-name mb-2">
+                                                                    <?php echo htmlspecialchars($schedule['team_name']); ?>
+                                                                </h6>
+                                                                <div class="defense-details">
+                                                                    <div class="detail-item">
+                                                                        <i class="far fa-calendar me-2"></i>
+                                                                        <?php echo htmlspecialchars($formatted_date); ?>
+                                                                    </div>
+                                                                    <div class="detail-item">
+                                                                        <i class="far fa-clock me-2"></i>
+                                                                        <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?>
+                                                                    </div>
+                                                                    <div class="detail-item">
+                                                                        <i class="fas fa-door-open me-2"></i>
+                                                                        <?php echo htmlspecialchars($schedule['room']); ?>
+                                                                    </div>
+                                                                </div>
+                                                            </div>
                                                         </li>
                                                     <?php endforeach; ?>
                                                 </ul>
@@ -266,13 +308,22 @@ error_reporting(E_ALL);
 
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Latest topic trends</h4>
-                        <div class="media text-muted pt-3">
+                    <div class="my-3 p-4 home-sidebar-box bg-white rounded shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-lightbulb text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 feature-title">Latest Topic Trends</h4>
+                                <p class="text-muted mb-0">Discover trending research topics in your field of study</p>
+                            </div>
+                        </div>
+
+                        <div class="card border-0 mb-4">
                             <div class="form-group">
-                                <label for="thesisField">Select a field:</label>
-                                <select id="thesisField" class="form-select">
-                                    <option value="">Select a field</option>
+                                <label for="thesisField" class="form-label fw-semibold mb-2">Select your field of study:</label>
+                                <select id="thesisField" class="form-select form-select-lg shadow-sm">
+                                    <option value="">Choose a field</option>
                                     <option value="Architecture">Architecture</option>
                                     <option value="Computer Science">Computer Science</option>
                                     <option value="Information Technology">Information Technology</option>
@@ -315,32 +366,53 @@ error_reporting(E_ALL);
                 </script>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Research Title Acceptance Tool</h4>
-                        <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125 feature-subtitle">
-                                <strong class="d-block text-gray-dark">Title Uniqueness Check</strong>
-                            <form id="titleSubmissionForm row">
-                                <div class="mb-3">
-                                    <label for="researchTitle" class="form-label">Proposed Research Title</label>
-                                    <input type="text" class="form-control" id="researchTitle" name="researchTitle" required>
-                                </div>
-                                <div class="row">
-                                <div class="mb-3 col-6">
-                                    <label for="researchField" class="form-label">Research Field</label>
-                                    <input type="text" class="form-control" id="researchField" name="researchField" required>
-                                </div>
-                                <div class="mb-3 col-6">
-                                    <label for="problem" class="form-label">Problem</label>
-                                    <input type="text" class="form-control" id="problem" name="problem" required>
-                                </div>
-                                </div>
-                                <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn">Check Title</button>
-                            </form>
-                            <div id="uniquenessResult" class="mt-3"></div>
-                            <div id="aiSuggestions" class="mt-3"></div>
-                            </p>
+                    <div class="my-3 p-4 home-sidebar-box bg-white rounded shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-check-circle text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 feature-title">Research Title Acceptance Tool</h4>
+                                <p class="text-muted mb-0">Check the uniqueness of your research title and get AI-powered suggestions</p>
+                            </div>
                         </div>
+                        
+                        <div class="card border-0 mb-4">
+                            <form id="titleSubmissionForm" class="needs-validation">
+                                <div class="mb-4">
+                                    <label for="researchTitle" class="form-label fw-semibold">Proposed Research Title</label>
+                                    <input type="text" class="form-control form-control-lg border-0 shadow-sm rtat-input" 
+                                           id="researchTitle" name="researchTitle" 
+                                           placeholder="Enter your research title" required>
+                                </div>
+                                
+                                <div class="row g-4">
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="researchField" class="form-label fw-semibold">Research Field</label>
+                                            <input type="text" class="form-control border-0 shadow-sm rtat-input" 
+                                                   id="researchField" name="researchField" 
+                                                   placeholder="e.g., Computer Science" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="mb-3">
+                                            <label for="problem" class="form-label fw-semibold">Problem Statement</label>
+                                            <input type="text" class="form-control border-0 shadow-sm rtat-input" 
+                                                   id="problem" name="problem" 
+                                                   placeholder="Brief description of the problem" required>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn px-4 py-2 mt-3">
+                                    <i class="fas fa-search me-2"></i>Check Title
+                                </button>
+                            </form>
+                        </div>
+
+                        <div id="uniquenessResult" class="result-section mb-4"></div>
+                        <div id="aiSuggestions" class="suggestions-section"></div>
                     </div>
                 </div>
 
@@ -880,4 +952,4 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if (targetNode) {
         observer.observe(targetNode, config);
     }
-</script>
+</script> 

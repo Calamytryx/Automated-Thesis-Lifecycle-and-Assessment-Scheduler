@@ -154,25 +154,34 @@ include '../assets/layouts/header.php';
 <main role="main">
   <section class="jumbotron text-center py-5">
     <div class="container">
-      <h1 class="jumbotron-heading mb-4"><?php echo htmlspecialchars($researchTitle); ?></h1>
-      <p class="text-muted">
-        <strong>Members:</strong><br>
-        <?php
-        if (!empty($members)) {
-          foreach ($members as $member) {
-            echo htmlspecialchars($member['fullname']) . " - " . htmlspecialchars($member['role']) . "<br>";
-          }
-        } else {
-          echo "No members found.<br>";
-        }
-        ?>
+        <h1 class="jumbotron-heading mb-4 fw-bold"><?php echo htmlspecialchars($researchTitle); ?></h1>
+        <div class="row mb-3">
+            <div class="col">
+                <strong>Members:</strong>
+                <div class="d-flex flex-wrap justify-content-center">
+                    <?php
+                    if (!empty($members)) {
+                        foreach ($members as $member) {
+                            echo '<span class="badge bg-primary me-2 mb-2">' . htmlspecialchars($member['fullname']) . '</span>';
+                        }
+                    } else {
+                        echo "No members found.<br>";
+                    }
+                    ?>
+                </div>
+            </div>
+        </div>
         <hr class="my-3">
-        <strong>Adviser:</strong> <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
-        <hr class="my-3">
-        <strong>Course:</strong> <?php echo htmlspecialchars($team['course']); ?>
-      </p>
+        <div class="row">
+            <div class="col">
+                <strong>Adviser:</strong> <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
+            </div>
+            <div class="col">
+                <strong>Course:</strong> <?php echo htmlspecialchars($team['course']); ?>
+            </div>
+        </div>
     </div>
-  </section>
+</section> 
 
   <div class="album py-5">
     <div class="container">
@@ -220,11 +229,11 @@ include '../assets/layouts/header.php';
                 <tr>
                   <th class="text-center">Evaluation Area</th>
                   <th class="text-center">Unacceptable (1-3)</th>
-                  <th class="text-center">Fairly Acceptable (3)</th>
+                  <th class="text-center">Fairly Acceptable (3)</th> 
                   <th class="text-center">Acceptable (4)</th>
                   <th class="text-center">Highly Acceptable (5)</th>
                   <th class="text-center">Rating/Score</th>
-                </tr>
+                </tr> 
               </thead>
               <tbody>
                 <tr>
@@ -687,7 +696,7 @@ include '../assets/layouts/header.php';
         individualGrades[i] = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
         document.getElementById(`solo-${i}`).textContent = individualGrades[i];
         document.getElementById(`solo${i}-grade`).value = individualGrades[i];
-      }
+      } 
 
       // Update total individual grade
       const individualTotal = Object.values(individualGrades).reduce((sum, grade) => sum + grade, 0);
@@ -749,6 +758,141 @@ include '../assets/layouts/header.php';
     });
 
     updateTotals();
+
+    const numericInputs = document.querySelectorAll('input[type="number"]');
+  
+  numericInputs.forEach(input => {
+    // Prevent keyboard input
+    input.addEventListener('keydown', (e) => {
+      // Allow only arrow keys, tab, and delete/backspace
+      if (!['ArrowUp', 'ArrowDown', 'Tab', 'Backspace', 'Delete'].includes(e.key)) {
+        e.preventDefault();
+      }
+    });
+
+    // Prevent paste
+    input.addEventListener('paste', (e) => {
+      e.preventDefault();
+    });
+
+    // Prevent drop
+    input.addEventListener('drop', (e) => {
+      e.preventDefault();
+    });
+
+    // Ensure values stay within min/max bounds when changed
+    input.addEventListener('change', () => {
+      const min = parseInt(input.getAttribute('min')) || 0;
+      const max = parseInt(input.getAttribute('max')) || 100;
+      let value = parseInt(input.value) || 0;
+
+      // Clamp value between min and max
+      value = Math.max(min, Math.min(max, value));
+      input.value = value;
+    });
+
+    // Add custom spinner buttons
+    const wrapper = document.createElement('div');
+    wrapper.className = 'input-spinner-wrapper position-relative';
+    input.parentNode.insertBefore(wrapper, input);
+    wrapper.appendChild(input);
+
+    // Add custom styling
+    input.style.paddingRight = '20px';
+    
+    // Create custom spinner buttons
+    const spinnerButtons = document.createElement('div');
+    spinnerButtons.className = 'position-absolute end-0 top-50 translate-middle-y d-flex flex-column';
+    spinnerButtons.style.height = '100%';
+    
+    const upButton = document.createElement('button');
+    upButton.type = 'button';
+    upButton.className = 'btn btn-sm p-0 border-0';
+    upButton.innerHTML = '▲';
+    upButton.style.height = '50%';
+    upButton.style.fontSize = '8px';
+    upButton.style.lineHeight = '1';
+    
+    const downButton = document.createElement('button');
+    downButton.type = 'button';
+    downButton.className = 'btn btn-sm p-0 border-0';
+    downButton.innerHTML = '▼';
+    downButton.style.height = '50%';
+    downButton.style.fontSize = '8px';
+    downButton.style.lineHeight = '1';
+
+    spinnerButtons.appendChild(upButton);
+    spinnerButtons.appendChild(downButton);
+    wrapper.appendChild(spinnerButtons);
+
+    // Add click handlers for custom buttons
+    upButton.addEventListener('click', () => {
+      const max = parseInt(input.getAttribute('max')) || 100;
+      const currentValue = parseInt(input.value) || 0;
+      if (currentValue < max) {
+        input.value = currentValue + 1;
+        input.dispatchEvent(new Event('input'));
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+
+    downButton.addEventListener('click', () => {
+      const min = parseInt(input.getAttribute('min')) || 0;
+      const currentValue = parseInt(input.value) || 0;
+      if (currentValue > min) {
+        input.value = currentValue - 1;
+        input.dispatchEvent(new Event('input'));
+        input.dispatchEvent(new Event('change'));
+      }
+    });
+  });
+
+  // Add form submission validation
+  const form = document.querySelector('form');
+  form.addEventListener('submit', (e) => {
+    e.preventDefault();
+    
+    // Check if all required inputs have values
+    const requiredInputs = form.querySelectorAll('input[type="number"]');
+    let isValid = true;
+    let firstInvalid = null;
+
+    requiredInputs.forEach(input => {
+      if (!input.value) {
+        isValid = false;
+        input.classList.add('is-invalid');
+        if (!firstInvalid) firstInvalid = input;
+      } else {
+        input.classList.remove('is-invalid');
+      }
+    });
+
+    // Check if comments are provided
+    const comments = form.querySelector('textarea[name="comments"]');
+    if (!comments.value.trim()) {
+      isValid = false;
+      comments.classList.add('is-invalid');
+      if (!firstInvalid) firstInvalid = comments;
+    } else {
+      comments.classList.remove('is-invalid');
+    }
+
+    if (!isValid) {
+      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      // Show alert
+      const alert = document.createElement('div');
+      alert.className = 'alert alert-danger alert-dismissible fade show';
+      alert.innerHTML = `
+        <strong>Error!</strong> Please fill in all required fields.
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+      `;
+      form.insertBefore(alert, form.firstChild);
+      return; 
+    }
+
+    // If all validations pass, submit the form
+    form.submit();
+  });
   });
 </script>
 
