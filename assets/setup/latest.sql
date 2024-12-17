@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 11, 2024 at 01:32 AM
+-- Generation Time: Dec 17, 2024 at 04:34 PM
 -- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- PHP Version: 8.3.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -101,13 +101,11 @@ CREATE TABLE `defense_schedules` (
 --
 
 INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`) VALUES
-(120, 1, 59, 60, 61, '2024-12-11', '09:00:00', '11:00:00', 'Defense Room B', 'scheduled', '2024-12-03 18:32:18'),
-(121, 2, 58, 62, 63, '2024-12-11', '09:00:00', '11:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
-(122, 3, 61, 64, 65, '2024-12-11', '13:00:00', '15:00:00', 'Defense Room B', 'scheduled', '2024-12-03 18:32:18'),
-(123, 4, 63, 65, 67, '2024-12-11', '15:00:00', '17:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
-(124, 5, 63, 64, 65, '2024-12-11', '07:00:00', '09:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
-(125, 6, 59, 60, 66, '2024-12-11', '13:00:00', '15:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18'),
-(126, 7, 59, 61, 66, '2024-12-11', '11:00:00', '13:00:00', 'Defense Room A', 'scheduled', '2024-12-03 18:32:18');
+(1, 1, 60, 64, 62, '2024-12-11', '11:00:00', '13:00:00', 'Defense Room 1', 'scheduled', '2024-12-17 15:03:16'),
+(2, 2, 58, 63, 66, '2024-12-11', '11:00:00', '13:00:00', 'Defense Room 2', 'scheduled', '2024-12-17 15:03:16'),
+(3, 3, 61, 64, 59, '2024-12-11', '07:00:00', '09:00:00', 'Defense Room 1', 'scheduled', '2024-12-17 15:03:16'),
+(4, 4, 59, 62, 58, '2024-12-11', '15:00:00', '17:00:00', 'acreditation room', 'scheduled', '2024-12-17 15:03:16'),
+(5, 5, 59, 64, 66, '2024-12-11', '13:00:00', '15:00:00', 'acreditation room', 'scheduled', '2024-12-17 15:03:16');
 
 -- --------------------------------------------------------
 
@@ -201,7 +199,11 @@ INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`,
 (1, 120, 59, 38, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
 (2, 120, 59, 39, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
 (3, 120, 59, 40, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
-(4, 120, 59, 41, 60, 40, 100, 'hi', '2024-12-10 20:58:33');
+(4, 120, 59, 41, 60, 40, 100, 'hi', '2024-12-10 20:58:33'),
+(9, 120, 61, 38, 39, 1, 40, '', '2024-12-11 03:22:33'),
+(10, 120, 61, 39, 39, 0, 39, '', '2024-12-11 03:22:33'),
+(11, 120, 61, 40, 39, 0, 39, '', '2024-12-11 03:22:33'),
+(12, 120, 61, 41, 39, 0, 39, '', '2024-12-11 03:22:33');
 
 -- --------------------------------------------------------
 
@@ -226,7 +228,8 @@ INSERT INTO `requirements` (`id`, `name`, `description`, `due_date`, `created_at
 (2, 'Chapter 2', '', '2024-10-31', '2024-11-11 10:52:54'),
 (3, 'Chapter 3', '', '2024-11-30', '2024-11-11 10:52:41'),
 (4, 'Endorsement Letter', '', '2024-11-30', '2024-11-11 10:51:55'),
-(5, 'Book bind Copy', '', '2024-12-04', '2024-11-11 10:52:22');
+(5, 'Book bind Copy', '', '2024-12-04', '2024-11-11 10:52:22'),
+(41, 'grading sheet', 'grades', '2024-12-13', '2024-12-11 04:12:01');
 
 -- --------------------------------------------------------
 
@@ -239,6 +242,7 @@ CREATE TABLE `research_titles` (
   `team_id` int(11) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL,
   `approved_at` timestamp NULL DEFAULT NULL,
+  `defended_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -247,14 +251,12 @@ CREATE TABLE `research_titles` (
 -- Dumping data for table `research_titles`
 --
 
-INSERT INTO `research_titles` (`id`, `team_id`, `title`, `approved_at`, `created_at`, `updated_at`) VALUES
-(1, 1, 'ATLAS: ADVANCED THESIS LOGISTICS AND AI SYSTEM FOR THE COLLEGE OF ENGINEERING, COMPUTER STUDIES AND ARCHITECTURE AT LYCEUM OF THE PHILIPPINES UNIVERSITY CAVITE', '2024-12-02 19:50:07', '2024-10-13 07:15:44', '2024-12-03 02:50:07'),
-(2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', '2024-11-16 02:30:00', '2024-10-13 07:15:44', '2024-12-10 22:46:52'),
-(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', '2024-11-17 03:45:00', '2024-10-13 07:15:44', '2024-12-10 22:47:28'),
-(4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', '2024-11-18 06:00:00', '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
-(5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', '2024-11-19 07:30:00', '2024-10-13 07:15:44', '2024-12-10 22:48:45'),
-(6, 6, 'The Role of Artificial Intelligence in Healthcare Diagnostics', NULL, '2024-10-13 07:15:44', '2024-10-13 07:15:44'),
-(7, 7, 'Blockchain Technology in Supply Chain Management', '2024-11-20 05:15:00', '2024-10-13 07:16:51', '2024-10-13 07:16:51');
+INSERT INTO `research_titles` (`id`, `team_id`, `title`, `approved_at`, `defended_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 'ATLAS: ADVANCED THESIS LOGISTICS AND AI SYSTEM FOR THE COLLEGE OF ENGINEERING, COMPUTER STUDIES AND ARCHITECTURE AT LYCEUM OF THE PHILIPPINES UNIVERSITY CAVITE', '2024-12-16 08:20:54', '2024-12-16 08:20:54', '2024-10-13 07:15:44', '2024-12-16 15:20:54'),
+(2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', '2024-11-16 02:30:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:46:52'),
+(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', NULL, NULL, '2024-10-13 07:15:44', '2024-12-17 08:11:15'),
+(4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', '2024-11-18 06:00:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
+(5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', '2024-11-19 07:30:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:48:45');
 
 -- --------------------------------------------------------
 
@@ -302,19 +304,19 @@ CREATE TABLE `teams` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `course` varchar(255) NOT NULL
+  `program` varchar(255) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teams`
 --
 
-INSERT INTO `teams` (`id`, `name`, `created_at`, `course`) VALUES
+INSERT INTO `teams` (`id`, `name`, `created_at`, `program`) VALUES
 (1, '120ms', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
 (2, 'Arcadia', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(3, 'Team3', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(4, 'Team4', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
-(5, 'Team5', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science');
+(3, 'Solace', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(4, 'Adapt', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science'),
+(5, 'QuizScan', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science');
 
 -- --------------------------------------------------------
 
@@ -354,7 +356,6 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (72, 1, 40, 'member'),
 (74, 1, 41, 'member'),
 (76, 2, 42, 'leader'),
-(79, 3, 47, 'adviser'),
 (80, 4, 50, 'leader'),
 (81, 5, 53, 'leader'),
 (82, 2, 59, 'adviser'),
@@ -363,7 +364,8 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (86, 2, 54, 'member'),
 (87, 5, 55, 'member'),
 (88, 4, 60, 'adviser'),
-(89, 5, 61, 'adviser');
+(89, 5, 61, 'adviser'),
+(91, 3, 47, 'member');
 
 -- --------------------------------------------------------
 
@@ -388,7 +390,8 @@ CREATE TABLE `team_requirements` (
 
 INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `submitted_at`, `feedback`, `file_name`, `feedback_file`) VALUES
 (6, 1, 5, 'submitted', '2024-12-08 10:48:34', '', '120ms-BookbindCopy-20241208.pdf', NULL),
-(7, 1, 1, 'submitted', '2024-12-10 08:24:13', '', '120ms-Chapter1-20241210.pdf', NULL);
+(7, 1, 1, 'submitted', '2024-12-10 08:24:13', '', '120ms-Chapter1-20241210.pdf', NULL),
+(8, 4, 5, 'submitted', '2024-12-11 01:52:20', '', 'Adapt-BookbindCopy-20241211.pdf', NULL);
 
 -- --------------------------------------------------------
 
@@ -425,7 +428,8 @@ INSERT INTO `thesis_topics` (`id`, `topic`, `description`, `category`, `created_
 (16, 'Cloud Computing and Distributed Systems', 'Developing and managing scalable and reliable cloud-based systems. Enabling efficient resource utilization and accessibility of computing resources.', 'Computer Science', '2024-11-18 08:59:48'),
 (17, 'Software Engineering and Development', 'Improving software development methodologies and processes. Increased efficiency and quality of software development.', 'Computer Science', '2024-11-18 08:59:51'),
 (18, 'Human-Computer Interaction (HCI)', 'Designing and evaluating user interfaces and interactions. Improved user experience and accessibility of technology.', 'Computer Science', '2024-11-18 08:59:56'),
-(19, 'Theoretical Computer Science', 'Exploring the foundations of computation and algorithms. Development of novel computational approaches and algorithms.', 'Computer Science', '2024-11-18 09:00:06');
+(19, 'Theoretical Computer Science', 'Exploring the foundations of computation and algorithms. Development of novel computational approaches and algorithms.', 'Computer Science', '2024-11-18 09:00:06'),
+(20, 'Cybersecurity and Privacy', 'Exploring methods for enhancing data security, privacy protection, and mitigating cyber threats in various IT systems and applications. Improved data protection, reduced risks from cyberattacks, enhanced user trust in online systems.', 'Information Technology', '2024-12-11 03:52:59');
 
 -- --------------------------------------------------------
 
@@ -437,7 +441,7 @@ CREATE TABLE `users` (
   `id` int(11) UNSIGNED NOT NULL,
   `usertype` int(1) NOT NULL DEFAULT 1,
   `username` varchar(255) NOT NULL,
-  `program` varchar(10) DEFAULT NULL,
+  `program` varchar(255) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `first_name` varchar(255) DEFAULT NULL,
@@ -458,40 +462,40 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
-(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2024-12-11 00:10:02', NULL, '2024-12-11 00:10:02'),
-(38, 1, '2021-2-02134', 'BSCS', 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 08:23:39', NULL, '2024-12-10 08:23:39'),
-(39, 1, 'student2', 'BSCS', 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-02 18:52:16', NULL, '2024-11-19 03:44:04'),
-(40, 1, 'student3', 'BSCS', 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-02 18:52:47', NULL, '2024-10-11 20:44:23'),
-(41, 1, 'student4', 'BSCS', 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Ivan Kerwin', 'Ilano', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-09 05:17:09', NULL, '2024-12-09 05:17:09'),
-(42, 1, 'student5', 'BSCS', 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Linus Karl', 'Sambile', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:14:07', NULL, '2024-11-12 19:21:37'),
-(43, 1, 'student6', 'BSCS', 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Yusuf', 'Mirasol', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:15:10', NULL, '2024-11-12 17:18:56'),
-(44, 1, 'student7', 'BSCS', 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Keith Andrei', 'Marpuri', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:15:52', NULL, '2024-11-12 17:24:45'),
-(45, 1, 'student8', 'BSCS', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Renzo', 'Viñas', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:19:10', NULL, '2024-10-09 22:07:06'),
-(46, 1, 'student9', 'BLIS', 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Earl Stephen', 'Tacda', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:18:39', NULL, '2024-10-09 22:07:06'),
-(47, 1, 'student10', 'BSIT', 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Cassandra', 'Roxas', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:19:12', NULL, '2024-10-09 22:07:06'),
-(48, 1, 'student11', 'BSIT', 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kedd Cyrus', 'Alegre', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:23:26', NULL, '2024-10-09 22:07:06'),
-(49, 1, 'student12', 'BSIT', 'student12@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Gian David ', 'Marasigan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:24:37', NULL, '2024-10-09 22:07:06'),
-(50, 1, 'student13', 'BSIT', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kenneth Joshua', 'Pedero', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:20:22', NULL, '2024-10-09 22:07:06'),
-(51, 1, 'student14', 'BSIT', 'student14@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Christann', 'Nabablit', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:26:14', NULL, '2024-10-09 22:07:06'),
-(52, 1, 'student15', 'BSIT', 'student15@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Gerche Jay', 'Balaan', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:26:57', NULL, '2024-10-09 22:07:06'),
-(53, 1, 'student16', 'BSCS', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Tyrone Joshu', 'Jaco', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 23:21:07', NULL, '2024-10-09 22:07:06'),
-(54, 1, 'student17', 'BSCS', 'student17@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Von Zachary Benedict', 'Fadri', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:16:31', NULL, '2024-10-09 22:07:06'),
-(55, 1, 'student18', 'BSCS', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:27:21', NULL, '2024-10-09 22:07:06'),
-(56, 1, 'student19', 'BLIS', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
-(57, 1, 'student20', 'BLIS', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-16 04:41:51', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', NULL, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-10 14:26:15', NULL, '2024-12-10 14:26:15'),
-(59, 2, 'staff2', NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:28:54', NULL, '2024-12-10 20:55:13'),
-(60, 2, 'staff3', NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:29:51', NULL, '2024-12-09 05:09:46'),
-(61, 2, 'staff4', NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-11 00:31:33', NULL, '2024-10-09 22:07:06'),
-(62, 2, 'staff5', NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Five', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
-(63, 2, 'staff6', NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Six', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
-(64, 2, 'staff7', NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Seven', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
-(65, 2, 'staff8', NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Eight', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
-(66, 2, 'staff9', NULL, 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Nine', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
-(67, 2, 'staff10', NULL, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-11-11 06:39:12', NULL, '2024-10-09 22:07:06'),
+(0, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-17 14:40:02', '0000-00-00 00:00:00', '2024-12-17 14:40:02'),
+(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2024-12-11 03:02:54', NULL, '2024-12-11 03:02:54'),
+(38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 04:12:17'),
+(39, 1, 'student2', 'Bachelor of Science in Computer Science', 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-19 03:44:04'),
+(40, 1, 'student3', 'Bachelor of Science in Computer Science', 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-11 20:44:23'),
+(41, 1, 'student4', 'Bachelor of Science in Computer Science', 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Ivan Kerwin', 'Ilano', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-09 05:17:09'),
+(42, 1, 'student5', 'Bachelor of Science in Computer Science', 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Linus Karl', 'Sambile', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 19:21:37'),
+(43, 1, 'student6', 'Bachelor of Science in Computer Science', 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Yusuf', 'Mirasol', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 17:18:56'),
+(44, 1, 'student7', 'Bachelor of Science in Computer Science', 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Keith Andrei', 'Marpuri', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 17:24:45'),
+(45, 1, 'student8', 'Bachelor of Science in Computer Science', 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Renzo', 'Viñas', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(46, 1, 'student9', 'Bachelor of Science in Computer Science', 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Earl Stephen', 'Tacda', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(47, 1, 'student10', 'Bachelor of Science in Computer Science', 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Cassandra', 'Roxas', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(48, 1, 'student11', 'Bachelor of Science in Computer Science', 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kedd Cyrus', 'Alegre', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(49, 1, 'student12', 'Bachelor of Science in Computer Science', 'student12@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Gian David ', 'Marasigan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(50, 1, 'student13', 'Bachelor of Science in Computer Science', 'student13@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kenneth Joshua', 'Pedero', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 01:51:05'),
+(51, 1, 'student14', 'Bachelor of Science in Computer Science', 'student14@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Christann', 'Nabablit', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(52, 1, 'student15', 'Bachelor of Science in Computer Science', 'student15@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Gerche Jay', 'Balaan', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(53, 1, 'student16', 'Bachelor of Science in Computer Science', 'student16@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'John Lyrick', 'Jonson', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 01:56:08'),
+(54, 1, 'student17', 'Bachelor of Science in Computer Science', 'student17@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Von Zachary Benedict', 'Fadri', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(55, 1, 'student18', 'Bachelor of Science in Computer Science', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(56, 1, 'student19', 'Bachelor of Science in Computer Science', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(57, 1, 'student20', 'Bachelor of Science in Computer Science', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-10 14:26:15'),
+(59, 2, 'staff2', 'Bachelor of Science in Computer Science', 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:03:23'),
+(60, 2, 'staff3', 'Bachelor of Science in Computer Science', 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-09 05:09:46'),
+(61, 2, 'staff4', 'Bachelor of Science in Computer Science', 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:05:31'),
+(62, 2, 'staff5', 'Bachelor of Science in Information Technology', 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:06:45'),
+(63, 2, 'staff6', 'Bachelor of Science in Information Technology', 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Delia', 'Fainsan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(64, 2, 'staff7', 'Bachelor of Science in Information Technology', 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elmer', 'Matel', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:34', NULL, '2024-10-09 22:07:06'),
+(65, 2, 'staff8', 'Bachelor of Science in Computer Engineering', 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Alyssa Paola', 'Pocaan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:13', NULL, '2024-10-09 22:07:06'),
+(66, 2, 'staff9', 'Bachelor of Science in Computer Engineering', 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Nine', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(67, 2, 'staff10', 'Bachelor of Science in Computer Engineering', 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Staff', 'Ten', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (70, 0, 'a', NULL, 'a@a.a', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2024-11-11 06:39:12', NULL, '2024-10-24 19:31:28'),
-(71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43'),
-(72, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-10 22:33:49', '0000-00-00 00:00:00', '2024-12-10 22:33:49');
+(71, 1, 'ilano', NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43');
 
 -- --------------------------------------------------------
 
@@ -666,7 +670,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=148;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -690,13 +694,13 @@ ALTER TABLE `evaluation_details`
 -- AUTO_INCREMENT for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `requirements`
 --
 ALTER TABLE `requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=41;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=42;
 
 --
 -- AUTO_INCREMENT for table `research_titles`
@@ -726,19 +730,19 @@ ALTER TABLE `teams`
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=90;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=92;
 
 --
 -- AUTO_INCREMENT for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `thesis_topics`
 --
 ALTER TABLE `thesis_topics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
 
 --
 -- AUTO_INCREMENT for table `users`
