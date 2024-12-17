@@ -18,15 +18,6 @@ $requirementStmt = $pdo->prepare("SELECT file_name FROM coecsa_thesis.team_requi
 $requirementStmt->execute([$team_id]);
 $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
 
-if ($requirement) {
-  $fileName = htmlspecialchars($requirement['file_name']);
-  // You can use $fileName as needed, for example:
-  // echo "<p>File Name: {$fileName}</p>";
-} else {
-  echo "<p class='text-danger'>Requirement not found.</p>" . $team_id;
-  exit;
-}
-
 try {
   // Fetch team details
   $teamStmt = $pdo->prepare("SELECT name, program FROM coecsa_thesis.teams WHERE id = ?");
@@ -84,9 +75,19 @@ try {
 define('TITLE', "Defense");
 include '../assets/layouts/header.php';
 
-?>
-
-<script type="module">
+if ($requirement) {
+  $fileName = htmlspecialchars($requirement['file_name']);
+  // You can use $fileName as needed, for example:
+  // echo "<p>File Name: {$fileName}</p>";
+} else {
+  echo "<h1 class='text-danger text-center'>Requirement not found. <br> Returning you to Home</h1>";
+  echo "<script>setTimeout(() => { window.location.href = '../home'; }, 3000);</script>";
+  exit;
+    }
+    
+    ?>
+    
+    <script type="module">
   import {
     getDocument,
     GlobalWorkerOptions
