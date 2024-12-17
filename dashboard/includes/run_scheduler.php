@@ -20,7 +20,7 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $teams = fetchTeams($pdo);
         $panelists = fetchPanelists($pdo);
-        $duration = $_POST['duration'];
+        $duration = $_POST['timeDuration'];
         $rooms = $_POST['rooms'];
         $timeSlots = $_POST['timeSlots'];
         $days = $_POST['days'];
@@ -64,7 +64,7 @@ try {
 function fetchTeams($pdo)
 {
     $stmt = $pdo->query("
-        SELECT t.id, tm.user_id as adviser_id
+        SELECT t.id, tm.user_id as adviser_id, t.program
         FROM teams t
         JOIN team_members tm ON t.id = tm.team_id
         WHERE tm.role = 'adviser'
@@ -76,6 +76,24 @@ function fetchPanelists($pdo)
 {
     $stmt = $pdo->query("SELECT id FROM users WHERE usertype = 2");
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function fetchPanelistsByProgram($pdo, $teamProgram)
+{
+    // Fetch panelists with the same program as the team
+    $stmtSame = $pdo->prepare("SELECT id FROM users WHERE usertype = 2 AND program = ?");
+    $stmtSame->execute([$teamProgram]);
+    $sameProgramPanelists = $stmtSame->fetchAll(PDO::FETCH_COLUMN);
+
+    // Fetch panelists with different programs
+    $stmtDiff = $pdo->prepare("SELECT id FROM users WHERE usertype = 2 AND program != ?");
+    $stmtDiff->execute([$teamProgram]);
+    $differentProgramPanelists = $stmtDiff->fetchAll(PDO::FETCH_COLUMN);
+
+    return [
+        'same' => $sameProgramPanelists,
+        'different' => $differentProgramPanelists
+    ];
 }
 
 function fetchUserSchedules($pdo)
@@ -241,7 +259,7 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
     if (!isset($userSchedules[$user_id])) return false;
 
     $defense_start = strtotime($time_slot);
-    $duration = $_POST['duration'];
+    $duration = $_POST['timeDuration'];;
     $defense_end = strtotime('+' . $duration . ' hour', $defense_start);
     $defense_day = date('w', strtotime($day));
 
@@ -264,7 +282,7 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
         foreach ($all_defenses as $existing_defense) {
             if ($existing_defense['day'] == $day && $existing_defense['room'] == $room) {
                 $existing_start = strtotime($existing_defense['time_slot']);
-                $duration = $_POST['duration'];
+                $duration = $_POST['timeDuration'];;
                 $existing_end = strtotime('+' . $duration . ' hour', $existing_start);
 
                 if (($defense_start >= $existing_start && $defense_start < $existing_end) ||
@@ -294,7 +312,7 @@ function saveScheduleToDatabase($pdo, $schedule)
             $date = new DateTime($defense['day']);
             $startTime = new DateTime($defense['time_slot']);
             $endTime = clone $startTime;
-            $duration = $_POST['duration'];
+            $duration = $_POST['timeDuration'];;
             $endTime->modify('+' . $duration . ' hour');
 
             $stmt->execute([
@@ -307,6 +325,13 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $endTime->format('H:i:s'),
                 $defense['room']
             ]);
+
+            // Track panelist assignments
+            foreach ($defense['panelist_ids'] as $panelist_id) {
+                // Update the last assigned panelist for the day
+                global $lastAssignedPanelists;
+                $lastAssignedPanelists[$defense['day']][] = $panelist_id;
+            }
         }
 
         $pdo->commit();
@@ -337,10 +362,26 @@ class DefenseSchedule
     {
         $this->pdo = $pdo;
         foreach ($teams as $team) {
-            $availablePanelists = array_diff($panelists, [$team['adviser_id']]);
+            $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program']);
+            
+            // Exclude the team's adviser from panelists
+            $panelistsByProgram['same'] = array_diff($panelistsByProgram['same'], [$team['adviser_id']]);
+            $panelistsByProgram['different'] = array_diff($panelistsByProgram['different'], [$team['adviser_id']]);
+            
+            // Select at least one panelist from the same program
+            $samePanelist = $panelistsByProgram['same'] ? [$panelistsByProgram['same'][array_rand($panelistsByProgram['same'])]] : [];
+            // Select at least one panelist from different programs
+            $diffPanelist = $panelistsByProgram['different'] ? [$panelistsByProgram['different'][array_rand($panelistsByProgram['different'])]] : [];
+            // Select remaining panelists ensuring no consecutive assignments
+            $availablePanelists = array_diff($panelistsByProgram['same'], $samePanelist);
+            $availablePanelists = array_merge($availablePanelists, array_diff($panelistsByProgram['different'], $diffPanelist));
+            $additionalPanelists = $availablePanelists ? [ $availablePanelists[array_rand($availablePanelists)] ] : [];
+    
+            $selectedPanelists = array_merge($samePanelist, $diffPanelist, $additionalPanelists);
+    
             $defense = [
                 'team_id' => $team['id'],
-                'panelist_ids' => array_rand(array_flip($availablePanelists), 3),
+                'panelist_ids' => $selectedPanelists,
                 'room' => $rooms[array_rand($rooms)],
                 'time_slot' => $timeSlots[array_rand($timeSlots)],
                 'day' => $days[array_rand($days)]
@@ -371,6 +412,12 @@ class DefenseSchedule
             }
 
             foreach ($defense['panelist_ids'] as $panelist_id) {
+                // Prevent consecutive assignments
+                if (hasConsecutiveAssignment($panelist_id, $defense['day'], $defense['time_slot'])) {
+                    $this->fitness -= 5;
+                    $conflicts++;
+                }
+
                 if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
                     $this->fitness -= 5;
                     $conflicts++;
@@ -380,7 +427,7 @@ class DefenseSchedule
             // Check for overlapping times in the same room
             foreach ($this->chromosomes as $otherKey => $otherDefense) {
                 if ($defenseKey != $otherKey && $defense['room'] == $otherDefense['room'] && $defense['day'] == $otherDefense['day']) {
-                    $duration = intval($_POST['duration']);
+                    $duration = intval($_POST['timeDuration']);
                     $defenseStart = strtotime($defense['time_slot']);
                     $defenseEnd = strtotime('+' . $duration . ' hours', $defenseStart);
 
@@ -398,6 +445,19 @@ class DefenseSchedule
         self::$conflictCounts[] = $conflicts;
         self::$fitnessScores[] = $this->fitness;
     }
+}
+
+// Add a function to check for consecutive assignments
+function hasConsecutiveAssignment($panelist_id, $day, $time_slot)
+{
+    // Implement logic to check if the panelist was assigned in the immediately previous schedule
+    // This may require tracking the order of schedules and panelist assignments
+    // For simplicity, assume a global or session-based tracking mechanism
+    global $lastAssignedPanelists;
+    if (isset($lastAssignedPanelists[$day])) {
+        return in_array($panelist_id, $lastAssignedPanelists[$day]);
+    }
+    return false;
 }
 
 function getTeamMembers($pdo, $team_id, $format = 'array')
@@ -484,3 +544,6 @@ function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
         return ($return_type === 'array') ? [] : '';
     }
 }
+
+// Initialize the tracking variable
+$lastAssignedPanelists = [];

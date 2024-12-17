@@ -1,3 +1,5 @@
+<script>
+
 $(document).ready(function () {
 
     // Edit button functionality
@@ -12,7 +14,7 @@ $(document).ready(function () {
             method: 'POST',
             data: {
                 table: table,
-                id: id 
+                id: id
             },
             dataType: 'json',
             success: function (response) {
@@ -619,152 +621,188 @@ $(document).ready(function () {
         console.error("Moment.js is not loaded!");
     }
 
-    $(document).ready(function () {
-        // Datepicker initialization
-        $("#days").datepicker({
-            dateFormat: "yy-mm-dd",
-            multidate: true,
-            beforeShowDay: function (date) {
-                var day = date.getDay();
-                return [day != 0, '']; // Disable Sundays
-            }
-        });
-
-        $('#saveSchedulerSettings').on('click', function () {
-            // You can add validation here if needed (e.g., check if rooms, dates are provided)
-            $('#schedulerSettingsModal').modal('hide'); // Close the modal
-            // Enable "Generate Schedule" button after settings are saved
-            $('#generateSchedule').prop('disabled', false);
-        });
-
-        $('#generateSchedule').on('click', function () {
-            if (totalScheds !== 0) {
-                if (confirm('Existing schedules will be removed. Are you sure you want to proceed?')) {
-
-                    var $button = $(this);
-                    var $status = $('#scheduleGenerationStatus');
-
-                    // Get scheduler settings
-                    var rooms = $('#rooms').val().split(',').map(function (room) {
-                        return room.trim();
-                    });
-                    var timeDuration = parseInt($('#timeDuration').val());
-                    var startTime = $('#startTime').val();
-                    var endTime = $('#endTime').val();
-                    var days = $('#days').datepicker('getDates').map(function (date) {
-                        return moment(date).format('YYYY-MM-DD'); // Format dates correctly
-                    });
-
-                    var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
-
-                    $button.prop('disabled', true).text('Generating...');
-                    $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
-
-                    $.ajax({
-                        url: 'includes/run_scheduler.php',
-                        method: 'POST',
-                        data: {
-                            rooms: rooms,
-                            timeSlots: timeSlots,
-                            days: days,
-                            duration: timeDuration
-                        },
-                        dataType: 'json',
-                        success: function (response) {
-                            if (response.success) {
-                                $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-
-                                // Update metrics (include all relevant metrics from the PHP response)
-                                $('#initialPopulationSize').text(response.initialPopulationSize);
-                                $('#crossoverCount').text(response.crossoverCount);
-                                $('#mutationCount').text(response.mutationCount);
-                                $('#conflictCounts').text(response.conflictCounts.join(', '));
-                                // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
-
-                                // Reload or update the schedule display after a short delay
-                                setTimeout(function () {
-                                    location.reload(); // Or update the schedule table dynamically
-                                }, 2000);
-
-                            } else {
-                                $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
-                                $button.prop('disabled', false).text('Generate Defense Schedule');
-                            }
-                        },
-                        error: function (jqXHR, textStatus, errorThrown) {
-                            console.error('AJAX Error:', textStatus, errorThrown);
-                            if (jqXHR.responseText) {
-                                console.error('Server Response:', jqXHR.responseText);
-                            }
-                            $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
-                            $button.prop('disabled', false).text('Generate Defense Schedule');
-                        },
-                        complete: function () {
-                            // This will run regardless of success or failure.
-                            // Optionally, you can remove the "Generating..." state here.
-                            $button.text('Generate Defense Schedule');
-                        }
-                    });
-
-                    var xhr = new XMLHttpRequest();
-                    xhr.open('POST', './includes/truncate_sched.php', true);
-                    xhr.send();
-                }
-            }
-
-        });
-
-        function generateTimeSlots(start, end, duration) {
-            var timeSlots = [];
-
-            // Parse start and end times as Moment.js objects
-            var current = moment(start, "HH:mm");
-            var endTime = moment(end, "HH:mm");
-
-            // Loop to generate slots
-            while (current.isBefore(endTime)) {
-                timeSlots.push(current.format("HH:mm:ss"));
-                current.add(duration, 'hours');
-            }
-            console.log('Time slots:', timeSlots);
-            return timeSlots;
+    // Datepicker initialization
+    $("#days").datepicker({
+        dateFormat: "yy-mm-dd",
+        multidate: true,
+        beforeShowDay: function (date) {
+            var day = date.getDay();
+            return [day != 0, '']; // Disable Sundays
         }
-
     });
 
-    const sidebarContainer = $('#sidebarContainer');
-    const mainContent = $('#mainContent');
-    const toggleButton = $('#toggleSidebar');
-
-    toggleButton.on('click', function() {
-        sidebarContainer.toggleClass('collapsed');
-        mainContent.toggleClass('expanded');
-        toggleButton.toggleClass('collapsed');
-        
-        // Store the sidebar state in localStorage
-        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+    $('#saveSchedulerSettings').on('click', function () {
+        // You can add validation here if needed (e.g., check if rooms, dates are provided)
+        $('#schedulerSettingsModal').modal('hide'); // Close the modal
+        // Enable "Generate Schedule" button after settings are saved
+        $('#generateSchedule').prop('disabled', false);
     });
 
-    // Check localStorage for saved sidebar state on page load
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (sidebarCollapsed) {
-        sidebarContainer.addClass('collapsed');
-        mainContent.addClass('expanded');
-        toggleButton.addClass('collapsed');
+    $('#generateSchedule').on('click', function () {
+        console.log('Generate Schedule button clicked'); // Existing log
+
+        <?php
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules");
+        $stmt->execute();
+        $totalScheds = $stmt->fetchColumn();
+        ?>
+        // Check if there are existing schedules
+        var totalScheds = <?php echo $totalScheds; ?>; // Get the total schedules from PHP
+
+        console.log('Total Schedules:', totalScheds); // New log
+
+        if (totalScheds !== 0) {
+            if (confirm('Existing schedules will be removed. Are you sure you want to proceed?')) {
+                initiateScheduleGeneration();
+                var xhr = new XMLHttpRequest();
+                xhr.open('POST', './includes/truncate_sched.php', true);
+                xhr.send();
+            }
+        } else {
+            initiateScheduleGeneration();
+        }
+    });
+
+    // New function to initiate schedule generation
+    function initiateScheduleGeneration() {
+        var $button = $('#generateSchedule');
+        var $status = $('#scheduleGenerationStatus');
+
+        // Get scheduler settings
+        var rooms = $('#rooms').val().split(',').map(function (room) {
+            return room.trim();
+        });
+        var timeDuration = parseInt($('#timeDuration').val());
+        var startTime = $('#startTime').val();
+        var endTime = $('#endTime').val();
+        var days = $('#days').datepicker('getDates').map(function (date) {
+            return moment(date).format('YYYY-MM-DD'); // Format dates correctly
+        });
+
+        var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
+
+        // Retrieve program and status from the form
+        var program = $('#programSelect').val(); // Ensure the ID matches your program select element
+        var status = $('input[name="status[]"]:checked').map(function () {
+            return this.value;
+        }).get();   // Collect all checked status checkboxes
+
+        // Debugging logs
+        console.log('Rooms:', rooms);
+        console.log('Time Duration:', timeDuration);
+        console.log('Start Time:', startTime);
+        console.log('End Time:', endTime);
+        console.log('Time Slots:', timeSlots);
+        console.log('Days:', days);
+
+        $button.prop('disabled', true).text('Generating...');
+        $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
+
+        $.ajax({
+            url: 'includes/run_scheduler.php',
+            method: 'POST',
+            data: {
+                rooms: rooms,
+                timeDuration: timeDuration,
+                startTime: startTime,
+                endTime: endTime,
+                timeSlots: timeSlots,
+                days: days,
+            },
+            dataType: 'json',
+            success: function (response) {
+                console.log('AJAX response:', response); // Existing log
+                if (response.success) {
+                    $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
+
+                    // Update metrics (include all relevant metrics from the PHP response)
+                    $('#initialPopulationSize').text(response.initialPopulationSize);
+                    $('#crossoverCount').text(response.crossoverCount);
+                    $('#mutationCount').text(response.mutationCount);
+                    $('#conflictCounts').text(response.conflictCounts.join(', '));
+                    // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
+
+                    // Reload or update the schedule display after a short delay
+                    setTimeout(function () {
+                        location.reload(); // Or update the schedule table dynamically
+                    }, 2000);
+
+                } else {
+                    $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
+                    $button.prop('disabled', false).text('Generate Defense Schedule');
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('AJAX Error:', textStatus, errorThrown);
+                if (jqXHR.responseText) {
+                    console.error('Server Response:', jqXHR.responseText);
+                }
+                $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+                $button.prop('disabled', false).text('Generate Defense Schedule');
+            },
+            complete: function () {
+                // This will run regardless of success or failure.
+                // Optionally, you can remove the "Generating..." state here.
+                $button.text('Generate Defense Schedule');
+            }
+        });
+
+        var xhr = new XMLHttpRequest();
+        xhr.open('POST', './includes/truncate_sched.php', true);
+        xhr.send();
+
     }
 
-    // Handle window resize
-    $(window).on('resize', function() {
-        if (window.innerWidth <= 768) {
-            mainContent.addClass('expanded');
-        } else {
-            if (!sidebarContainer.hasClass('collapsed')) {
-                mainContent.removeClass('expanded');
-            }
+    function generateTimeSlots(start, end, duration) {
+        var timeSlots = [];
+
+        // Parse start and end times as Moment.js objects
+        var current = moment(start, "HH:mm");
+        var endTime = moment(end, "HH:mm");
+
+        // Loop to generate slots
+        while (current.isBefore(endTime)) {
+            timeSlots.push(current.format("HH:mm:ss"));
+            current.add(duration, 'hours');
         }
-    });
+        console.log('Time slots:', timeSlots);
+        return timeSlots;
+    }
 
 });
+
+const sidebarContainer = $('#sidebarContainer');
+const mainContent = $('#mainContent');
+const toggleButton = $('#toggleSidebar');
+
+toggleButton.on('click', function () {
+    sidebarContainer.toggleClass('collapsed');
+    mainContent.toggleClass('expanded');
+    toggleButton.toggleClass('collapsed');
+
+    // Store the sidebar state in localStorage
+    localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+});
+
+// Check localStorage for saved sidebar state on page load
+const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+if (sidebarCollapsed) {
+    sidebarContainer.addClass('collapsed');
+    mainContent.addClass('expanded');
+    toggleButton.addClass('collapsed');
+}
+
+// Handle window resize
+$(window).on('resize', function () {
+    if (window.innerWidth <= 768) {
+        mainContent.addClass('expanded');
+    } else {
+        if (!sidebarContainer.hasClass('collapsed')) {
+            mainContent.removeClass('expanded');
+        }
+    }
+});
+
 function addNewPanelist(staff) {
     // Determine the next index based on existing panelists
     var currentIndices = $('#panelists .panelist select').map(function () {
@@ -870,3 +908,4 @@ $(document).on('click', '.remove-member', function () {
         teamMember.remove();
     }
 });
+</script>

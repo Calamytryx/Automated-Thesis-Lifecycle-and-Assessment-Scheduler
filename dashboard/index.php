@@ -283,7 +283,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div> -->
         <div class="col-sm-12">
             <?php if ($_SESSION['usertype'] == 0): ?>
-                <!-- Admin dashboard content --> 
+                <!-- Admin dashboard content -->
                 <div class="row g-0">
                     <div id="sidebarContainer">
                         <div class="d-flex align-items-center mt-3 pb-3 sidebar-header">
@@ -344,10 +344,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div id="mainContent">
                         <div class="tab-content" id="v-pills-tabContent">
                             <?php include 'includes/tabs/overview_tab.php'; ?>
-                            <?php include 'includes/tabs/users_tab.php'; ?> 
+                            <?php include 'includes/tabs/users_tab.php'; ?>
                             <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
                             <?php include 'includes/tabs/research_titles_tab.php'; ?>
-                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?> 
+                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
                             <?php include 'includes/tabs/teams_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
@@ -365,7 +365,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php endif; ?>
         </div>
     </div>
-</main> 
+</main>
 
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -457,4 +457,4 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-<script src="app.js"></script>
+<?php require 'app.js.php'; ?>
