@@ -29,7 +29,7 @@ if ($requirement) {
 
 try {
   // Fetch team details
-  $teamStmt = $pdo->prepare("SELECT name, course FROM coecsa_thesis.teams WHERE id = ?");
+  $teamStmt = $pdo->prepare("SELECT name, program FROM coecsa_thesis.teams WHERE id = ?");
   $researchTitleStmt = $pdo->prepare("SELECT title FROM coecsa_thesis.research_titles WHERE team_id = ?");
 
   if (isset($team_id)) {
@@ -177,7 +177,7 @@ include '../assets/layouts/header.php';
                 <strong>Adviser:</strong> <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
             </div>
             <div class="col">
-                <strong>Course:</strong> <?php echo htmlspecialchars($team['course']); ?>
+                <strong>Program:</strong> <?php echo htmlspecialchars($team['program']); ?>
             </div>
         </div>
     </div>
