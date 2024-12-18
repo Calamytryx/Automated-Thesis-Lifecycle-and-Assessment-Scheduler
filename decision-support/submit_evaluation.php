@@ -33,11 +33,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         $pdo->commit();
-        echo "Evaluation submitted successfully.";
-        header("Location: ../home");
+        // Return JSON response instead of echo
+        echo json_encode(['status' => 'success', 'message' => 'Evaluation submitted successfully.']);
     } catch (Exception $e) {
         $pdo->rollBack();
-        echo "Error: " . $e->getMessage();
+        // Return JSON error response
+        echo json_encode(['status' => 'error', 'message' => $e->getMessage()]);
     }
+    exit;
 }
 ?>
