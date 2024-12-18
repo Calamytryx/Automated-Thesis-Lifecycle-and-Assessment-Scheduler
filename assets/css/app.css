@@ -1324,3 +1324,260 @@ border-top: solid 1px var(--main-bg-dark);
     border-color: #dc3545;
     box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.25);
   }
+
+/* AI Analysis Container Styles */
+.ai-analysis-container {
+  height: 600px; 
+  overflow-y: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.ai-analysis-container::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+#ai-output {
+  padding-right: 10px; 
+}
+
+/* PDF and AI Analysis Panel Styles */
+.pdf-container, .ai-container {
+  background: var(--main-white);
+  border-radius: 10px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.panel-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--neutral-100);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.panel-header h4 {
+  margin: 0;
+  color: var(--main-bg-dark);
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.panel-content {
+  padding: 1rem;
+}
+
+/* PDF View Specific Styles */
+.fullscreen-btn {
+  background-color: var(--main-primary);
+  color: var(--main-white);
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--main-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  transition: all 0.2s ease;
+}
+
+.fullscreen-btn:hover {
+  background-color: var(--primary-600);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  color: var(--main-white);
+}
+
+.fullscreen-btn i {
+  font-size: 1rem;
+}
+
+/* AI Analysis Container Styles */
+.ai-analysis-container {
+  height: 600px;
+  overflow-y: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  padding: 1rem;
+  background-color: var(--main-white);
+}
+
+.ai-analysis-container::-webkit-scrollbar {
+  display: none;
+}
+
+#ai-output {
+  padding-right: 10px;
+  color: var(--main-bg-dark);
+}
+
+/* Evaluation Tables Styling */
+.evaluation-section {
+  margin-top: 2rem;
+}
+
+.evaluation-table {
+  background: var(--main-white);
+  border-radius: 10px;
+  overflow: hidden;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  margin-bottom: 2rem;
+}
+
+.evaluation-header {
+  padding: 1.25rem;
+  background: var(--main-white);
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.evaluation-header h4 {
+  margin: 0;
+  color: var(--main-bg-dark);
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.evaluation-header h4 .percentage {
+  color: var(--main-primary);
+  font-size: 1.1rem;
+}
+
+.evaluation-content {
+  padding: 1.25rem;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+.evaluation-content::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
+}
+
+.evaluation-table table {
+  width: 100%;
+  min-width: 800px; /* Minimum width to prevent squishing */
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.evaluation-table th {
+  background: var(--neutral-50);
+  padding: 1rem;
+  font-weight: 600;
+  color: var(--main-bg-dark);
+  text-align: center;
+  border-bottom: 2px solid var(--neutral-200);
+}
+
+.evaluation-table td {
+  padding: 1rem;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--neutral-100);
+}
+
+.evaluation-table tr:hover {
+  background-color: var(--neutral-50);
+  transition: background-color 0.2s ease;
+}
+
+.evaluation-table td:first-child {
+  font-weight: 500;
+  color: var(--main-bg-dark);
+}
+
+/* Rating Input Styling */
+.rating-input {
+  width: 80px;
+  text-align: center;
+  padding: 0.5rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: 6px;
+  transition: all 0.2s ease;
+}
+
+.rating-input:focus {
+  border-color: var(--main-primary);
+  box-shadow: 0 0 0 2px rgba(var(--main-primary-rgb), 0.1);
+  outline: none;
+}
+
+/* Score Summary Styling */
+.score-summary {
+  background: var(--main-white);
+  border-top: 2px solid var(--neutral-200);
+  padding: 1rem;
+}
+
+.score-summary td {
+  font-weight: 600;
+}
+
+.score-cell {
+  text-align: right;
+  color: var(--main-primary);
+  font-weight: 600;
+}
+
+/* Table Navigation */
+.table-nav {
+  position: sticky;
+  top: 0;
+  background: var(--main-white);
+  padding: 1rem;
+  z-index: 100;
+  border-bottom: 1px solid var(--neutral-100);
+  display: flex;
+  gap: 1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.table-nav::-webkit-scrollbar {
+  display: none;
+}
+
+.table-nav-item {
+  padding: 0.75rem 1.25rem;
+  background: var(--neutral-50);
+  border-radius: 20px;
+  color: var(--main-primary);
+  font-weight: 500;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+  border: 1px solid var(--neutral-200);
+}
+
+.table-nav-item:hover {
+  background: var(--primary-50);
+  color: var(--main-primary);
+  transform: translateY(-1px);
+}
+
+.table-nav-item.active {
+  background: var(--main-primary);
+  color: var(--main-white);
+  border-color: var(--main-primary);
+}
+
+/* Add horizontal scroll indicator on mobile */
+@media (max-width: 992px) {
+  .evaluation-content {
+    position: relative;
+  }
+
+  .evaluation-content::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: 30px;
+    background: linear-gradient(to right, transparent, rgba(var(--main-bg-dark-rgb), 0.05));
+    pointer-events: none;
+  }
+}
