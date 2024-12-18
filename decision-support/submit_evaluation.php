@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
         $pdo->commit();
         echo "Evaluation submitted successfully.";
+        header("Location: ../home");
     } catch (Exception $e) {
         $pdo->rollBack();
         echo "Error: " . $e->getMessage();

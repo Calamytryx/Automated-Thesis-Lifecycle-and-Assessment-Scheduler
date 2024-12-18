@@ -233,30 +233,38 @@ if ($requirement) {
       <div class="row">
         <!-- PDF View Column (Left) -->
         <div class="col-md-8">
-          <div class="card mb-4 box-shadow h-100 pdf-container">
-            <div class="panel-header">
-              <h4>PDF Document View</h4>
-              <button class="fullscreen-btn" onclick="toggleFullScreen()">
-                <i class="fas fa-expand"></i>
-                Full Screen
-              </button>
-            </div>
-            <div class="panel-content">
-              <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
-                frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-              </iframe>
+          <div class="row h-100">
+            <div class="col-12">
+              <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
+                <div class="panel-header">
+                  <h4>PDF Document View</h4>
+                  <button class="fullscreen-btn" onclick="toggleFullScreen()">
+                    <i class="fas fa-expand"></i>
+                    Full Screen
+                  </button>
+                </div>
+                <div class="panel-content">
+                  <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
+                    frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
+                  </iframe>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <!-- AI Analysis Column (Right) -->
         <div class="col-md-4">
-          <div class="card mb-4 box-shadow h-100 ai-container">
-            <div class="panel-header">
-              <h4>AI Evaluation Results</h4>
-            </div>
-            <div class="ai-analysis-container">
-              <div id="ai-output"></div>
+          <div class="row h-100">
+            <div class="col-12">
+              <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
+                <div class="panel-header">
+                  <h4>AI Evaluation Results</h4>
+                </div>
+                <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
+                  <div id="ai-output"></div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
