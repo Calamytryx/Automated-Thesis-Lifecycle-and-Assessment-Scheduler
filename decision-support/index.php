@@ -1006,6 +1006,7 @@ if ($requirement) {
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <?php
 include '../assets/layouts/footer.php'
