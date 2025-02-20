@@ -1,4 +1,4 @@
-#log-reg-container {
+/* #log-reg-container {
     width: 100%;
     height: 100%;
     background-color: var(--main-bg-light);
@@ -8,7 +8,7 @@
     flex-direction: column;
     flex-wrap: nowrap;
     justify-content: center;
-}
+} */
 .row {
     height: 100%;
 }
@@ -16,7 +16,7 @@
     height: 100%;
     width: 62% !important;
     overflow: hidden;
-}
+} 
 .overlay {
     position: absolute;
     height: 100%;
@@ -75,3 +75,15 @@
     border: solid 1px var(--main-bg-dark);
     border-radius: 10px;
 }
+
+.login-wrapper {
+    background-image: url('../assets/images/login-bg2.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh; 
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+}  

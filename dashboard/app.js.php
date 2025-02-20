@@ -543,11 +543,14 @@ $(document).ready(function () {
             success: function (response) {
                 console.log('Server response:', response);
                 if (response.success) {
-                    alert('Item updated successfully');
+                    showToast('Success', 'Item updated successfully', 'success');
                     $('#editModal').modal('hide');
-                    location.reload();
+                    // Add delay before reload
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000); // 2 second delay
                 } else {
-                    alert('Error: ' + response.message);
+                    showToast('Error', response.message, 'error');
                     console.error('Update failed:', response);
                 }
             },
@@ -556,7 +559,7 @@ $(document).ready(function () {
                 console.log('Response Text:', jqXHR.responseText);
                 console.log('Status:', jqXHR.status);
                 console.log('Status Text:', jqXHR.statusText);
-                alert('Error: Unable to update item. Check console for details.');
+                showToast('Error', 'Unable to update item. Check console for details.', 'error');
             }
         });
     });
@@ -575,15 +578,18 @@ $(document).ready(function () {
             dataType: 'json',
             success: function (response) {
                 if (response.success) {
-                    alert('Team added successfully');
+                    showToast('Success', 'Added successfully', 'success');
                     $('#addModal').modal('hide');
-                    location.reload();
+                    // Add delay before reload
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000); // 2 second delay
                 } else {
-                    alert('Error: ' + response.message);
+                    showToast('Error', response.message, 'error');
                 }
             },
             error: function () {
-                alert('Error: Unable to add team');
+                showToast('Error', 'Unable to add team', 'error'); 
             }
         });
     });
@@ -592,8 +598,19 @@ $(document).ready(function () {
     $(document).on('click', '.delete-btn', function () {
         var id = $(this).data('id');
         var table = $(this).data('table');
-
-        if (confirm('Are you sure you want to delete this item from table ' + table + ' with ID ' + id + '?')) {
+        
+        // Update modal content
+        $('#deleteTableName').text(table);
+        $('#deleteItemId').text(id);
+        
+        // Show modal
+        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+        deleteModal.show();
+        
+        // Handle delete confirmation
+        $('#confirmDelete').one('click', function() {
+            deleteModal.hide();
+            
             $.ajax({
                 url: 'includes/delete_item.php',
                 method: 'POST',
@@ -604,19 +621,26 @@ $(document).ready(function () {
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        alert('Item deleted successfully from table ' + table + ' with ID ' + id);
-                        location.reload();
-                        // Optionally, refresh the table or page
+                        showToast('Success', 'Item deleted successfully from table ' + table + ' with ID ' + id, 'success');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
                     } else {
-                        alert('Error: ' + response.message + ' (Table: ' + table + ', ID: ' + id + ')');
+                        showToast('Error', response.message + ' (Table: ' + table + ', ID: ' + id + ')', 'error');
                     }
                 },
                 error: function () {
-                    alert('Error: Unable to delete item from table ' + table + ' with ID ' + id);
+                    showToast('Error', 'Unable to delete item from table ' + table + ' with ID ' + id, 'error');
                 }
             });
-        }
+        });
     });
+
+    // Clean up event handler when modal is hidden
+    $('#deleteConfirmModal').on('hidden.bs.modal', function () {
+        $('#confirmDelete').off('click');
+    });
+
     if (typeof moment === 'undefined') {
         console.error("Moment.js is not loaded!");
     }
@@ -872,7 +896,7 @@ function addNewTeamMember() {
         error: function (jqXHR, textStatus, errorThrown) {
             console.error('Error fetching users:', textStatus, errorThrown);
         }
-    });
+    }); 
 }
 // Remove team member functionality
 $(document).on('click', '.remove-member', function () {
@@ -900,7 +924,7 @@ $(document).on('click', '.remove-member', function () {
                 },
                 error: function () {
                     alert('Error: Unable to remove team member');
-                }
+                } 
             });
         }
     } else {
@@ -908,4 +932,71 @@ $(document).on('click', '.remove-member', function () {
         teamMember.remove();
     }
 });
+
+// Helper function for showing toasts
+function showToast(title, message, type = 'success') {
+    // Create toast container if it doesn't exist
+    if (!$('#toastContainer').length) {
+        $('body').append(`
+            <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
+            </div>
+        `);
+    }
+
+    // Generate unique ID for the toast
+    const toastId = 'toast-' + Date.now();
+
+    // Create toast HTML with more prominent styling
+    const toast = `
+        <div id="${toastId}" class="toast align-items-center border-0" 
+            role="alert" 
+            aria-live="assertive" 
+            aria-atomic="true"
+            style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : 'var(--main-btn-del)'};">
+            <div class="d-flex">
+                <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
+                    <strong>${title}:</strong> ${message}
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+        </div>
+    `;
+
+    // Add toast to container
+    $('#toastContainer').append(toast);
+
+    // Initialize and show the toast with modified options
+    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+        autohide: true,
+        delay: 3000,
+        animation: true
+    });
+    toastElement.show();
+
+    // Remove toast element after it's hidden
+    $(`#${toastId}`).on('hidden.bs.toast', function () {
+        $(this).remove();
+    });
+}
 </script>
+
+<!-- First, add this HTML to your page (can be at the bottom before closing body tag) -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this item?</p>
+                <p class="mb-0"><strong>Table:</strong> <span id="deleteTableName"></span></p>
+                <p class="mb-0"><strong>ID:</strong> <span id="deleteItemId"></span></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>

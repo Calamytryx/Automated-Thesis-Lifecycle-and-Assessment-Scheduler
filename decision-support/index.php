@@ -153,11 +153,11 @@ if ($requirement) {
 <input type="hidden" id="filename">
 <input type="hidden" id="output-pdf">
 <main role="main">
-  <section class="jumbotron py-5 shadow-sm rounded-3 mb-4">
+  <section class="jumbotron py-5 mb-4 jbtron">
     <div class="container">
         <!-- Research Title -->
         <div class="text-center mb-4">
-            <h1 class="display-6 fw-bold mb-3" style="color: var(--main-primary)"><?php echo htmlspecialchars($researchTitle); ?></h1>
+            <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
             <div class="d-flex justify-content-center gap-2 mb-4">
                 <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
                     <i class="fas fa-file-alt me-2" style="color: inherit;"></i>Research Paper
@@ -168,13 +168,13 @@ if ($requirement) {
         <div class="row g-4">
             <!-- Team Members -->
             <div class="col-12">
-                <div class="card border-0" style="background-color: var(--neutral-50)">
-                    <div class="card-body">
+                <div class="card border-0">
+                    <div class="card-body jumbotronCard">
                         <h5 class="card-title d-flex align-items-center mb-3">
                             <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
                             <span class="feature-title">Team Members</span>
                         </h5>
-                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                        <div class="d-flex flex-wrap justify-content-center gap-2"> 
                             <?php
                             if (!empty($members)) {
                                 foreach ($members as $member) {
@@ -198,7 +198,7 @@ if ($requirement) {
                 <div class="row g-3">
                     <div class="col-md-6">
                         <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body">
+                            <div class="card-body jumbotronCard">
                                 <h5 class="card-title d-flex align-items-center mb-3">
                                     <i class="fas fa-chalkboard-teacher me-2" style="color: var(--main-primary)"></i>
                                     <span class="feature-title">Adviser</span>
@@ -211,7 +211,7 @@ if ($requirement) {
                     </div>
                     <div class="col-md-6">
                         <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body">
+                            <div class="card-body jumbotronCard">
                                 <h5 class="card-title d-flex align-items-center mb-3">
                                     <i class="fas fa-graduation-cap me-2" style="color: var(--main-primary)"></i>
                                     <span class="feature-title">Program</span>
@@ -270,21 +270,18 @@ if ($requirement) {
         </div>
       </div>
 
-      <!-- Rest of the content -->
       <div class="row">
         <div class="col-12">
-          <!-- Your existing tables and forms continue here -->
-          <!-- Add this navigation section before your tables -->
-          <div class="table-nav rounded-3 mt-3">
+          
+          <div class="table-nav rounded-3 mt-3"> 
             <a href="#content-table" class="table-nav-item">Content (40%)</a>
             <a href="#organization-table" class="table-nav-item">Organization (10%)</a>
             <a href="#novelty-table" class="table-nav-item">Novelty and Impact (10%)</a>
             <a href="#score-sheet" class="table-nav-item">Score Sheet</a>
           </div>
 
-          <!-- Update your existing table sections with new classes -->
           <div class="evaluation-section">
-            <div class="evaluation-table">
+            <div class="evaluation-table"> 
               <div class="evaluation-header">
                 <h4>Content <span class="percentage">(40%)</span></h4>
               </div>
@@ -307,7 +304,7 @@ if ($requirement) {
                       <td>Thesis and objectives are vaguely stated but lack adequate justification or clarity.</td>
                       <td>Thesis clearly stated with a reasonable justification for the research objectives.</td>
                       <td>Thesis and objectives are clearly stated and fully justified, providing a strong foundation for the research.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td><b>2. Significance of the Study / Rationale</b></td>
@@ -315,7 +312,7 @@ if ($requirement) {
                       <td>Score justification is provided but lacks depth or clear connection to the research objectives.</td>
                       <td>The significance of the study is well-argued and aligned with the research objectives.</td>
                       <td>The study's significance is compellingly argued with thorough rationale, clearly showing the research's value.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td><b>3. Extent and Sufficiency of the Literature Review and References Cited</b></td>
@@ -323,7 +320,7 @@ if ($requirement) {
                       <td>Literature review includes some relevant sources, but many gaps or weak citations exist.</td>
                       <td>Literature review is comprehensive with well-chosen and sufficent sources cited.</td>
                       <td>Literature review is exhaustive, with high-quality, relevant sources, showing thorough research and citations.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td><b>4. Appropriate Data and Methodology used</b></td>
@@ -331,7 +328,7 @@ if ($requirement) {
                       <td>Methodology is somewhat suitable but lacks clarity or sufficient data.</td>
                       <td>Appropriate data and methodology are used, with a clear explanation of their relevance.</td>
                       <td>Data and methodology are well-chosen and highly-appropriate for the research, fully supporting the objectives.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="5" class="text-end"><b>TOTAL</b></td>
@@ -374,7 +371,7 @@ if ($requirement) {
                       <td>Ideas are presented with some clarity but may require effort to interpret.</td>
                       <td>Ideas are mostly clear, with minor ambiguities or areas for refinement.</td>
                       <td>Ideas are exceptionally clear, precise, and immediately understandable.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="2"><b>b. Logical Flow</b></td>
@@ -382,7 +379,7 @@ if ($requirement) {
                       <td>Ideas follow a basic sequence but may lack smooth transitions.</td>
                       <td>Ideas are logical and cohesive, with minor inconsistencies.</td>
                       <td>Ideas are flawlessly organized, with smooth and seamless transitions.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="2"><b>c. Standards of Scholarship</b></td>
@@ -390,7 +387,7 @@ if ($requirement) {
                       <td>Content demonstrates some depth and accuracy, with limited research or evidence.</td>
                       <td>Content shows good research and depth, with some room for improvement.</td>
                       <td>Content reflects outstanding depth, accuracy, and relevance, with comprehensive evidence.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="6" align="right"><b>TOTAL</b></td>
@@ -433,7 +430,7 @@ if ($requirement) {
                       <td>The prototype and algorithm show some originality but remain heavily based on existing technologies or methods.</td>
                       <td>The prototype and algorithm introduces new concepts or approaches, offering some level of originality.</td>
                       <td>The prototype and algorithm are highly original, introducing novel concepts, techniques, or methodologies that significantly advance the field.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr class="iock">
                       <td><b>b. Novelty in Solving Problems or Addressing Gaps</b></td>
@@ -441,7 +438,7 @@ if ($requirement) {
                       <td>The system and algorithm address a problem, but the solution is not entirely new or substantial in its contribution.</td>
                       <td>The system and algorithm address a known gap, providing a creative or valuable solution to an existing problem.</td>
                       <td>The system and algorithm address an important gap, providing a groundbreaking solution that substantially advances knowledge or practice in the field.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr class="iock">
                       <td><b>c. Contribution to the Existing Body of Knowledge</b></td>
@@ -449,7 +446,7 @@ if ($requirement) {
                       <td>The system and algorithm contribute moderately to the existing body of knowledge, with limited innovation or application.</td>
                       <td>The system and algorithm contribute meaningfully advancing knowledge, or theoretically or practically, in the field.</td>
                       <td>The system and algorithm make a significant contribution to the field, enhancing theoretical understanding or providing impactful, or practical solutions.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="5" class="text-end fw-bold">TOTAL</td>
@@ -468,7 +465,7 @@ if ($requirement) {
                       <td>The system and algorithm have limited practical applications, impacting a small group or niche.</td>
                       <td>The system and algorithm have clear and meaningful applications, benefitting a specific communities or sectors.</td>
                       <td>The system and algorithm have broad, positive implications, offering scalable solutions with substantial benefits for a wide range of communities or industries.</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr class="isb">
                       <td><b>b. Accessibilty and Inclusivity</b></td>
@@ -476,7 +473,7 @@ if ($requirement) {
                       <td>The system and algorithm provide some accessibility features, but exlude certain groups or limit their impact.</td>
                       <td>The system and algorithm contribute accessible to a broad range of users, wih a focus on inclusivity and diverse needs.</td>
                       <td>The system and algorithm are highly accessible, and inclusive, designed to benefit diverse user groups and address accessibility challenges</td>
-                      <td><input type="number" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
                     </tr>
                     <tr>
                       <td colspan="5" class="text-end fw-bold">TOTAL</td>
@@ -621,7 +618,7 @@ if ($requirement) {
                       <tr>
                         <td><?php echo ($key + 1) . '. ' . $criterion[0]; ?></td>
                         <?php foreach ($members as $index => $member): ?>
-                          <td><input type="number" name="solo-<?php echo $index; ?>-pres-<?php echo $key; ?>" class="form-control" placeholder="Rating" min="1" max="5"></td>
+                          <td><input type="number" name="solo-<?php echo $index; ?>-pres-<?php echo $key; ?>" class="form-control" placeholder="score" min="1" max="5"></td>
                         <?php endforeach; ?>
                         <td><?php echo $criterion[1]; ?></td>
                       </tr>
@@ -647,7 +644,7 @@ if ($requirement) {
                       <tr>
                         <td><?php echo ($key + 1) . '. ' . $criterion[0]; ?></td>
                         <?php foreach ($members as $index => $member): ?>
-                          <td><input type="number" name="solo-<?php echo $index; ?>-qa-<?php echo $key; ?>" class="form-control" placeholder="Rating" min="1" max="10"></td>
+                          <td><input type="number" name="solo-<?php echo $index; ?>-qa-<?php echo $key; ?>" class="form-control" placeholder="score" min="1" max="10"></td>
                         <?php endforeach; ?>
                         <td><?php echo $criterion[1]; ?></td>
                       </tr>
@@ -732,10 +729,10 @@ if ($requirement) {
     };
 
     const updateTotals = () => {
-      const contentInputs = document.querySelectorAll('#content-table input[placeholder="Rating"]');
-      const organizationInputs = document.querySelectorAll('#organization-table input[placeholder="Rating"]');
-      const iockInputs = document.querySelectorAll('#novelty-table .iock input[placeholder="Rating"]');
-      const isbInputs = document.querySelectorAll('#novelty-table .isb input[placeholder="Rating"]'); // Assuming ISB is part of novelty-table
+      const contentInputs = document.querySelectorAll('#content-table input[placeholder="score"]');
+      const organizationInputs = document.querySelectorAll('#organization-table input[placeholder="score"]');
+      const iockInputs = document.querySelectorAll('#novelty-table .iock input[placeholder="score"]');
+      const isbInputs = document.querySelectorAll('#novelty-table .isb input[placeholder="score"]'); // Assuming ISB is part of novelty-table
 
       const contentPercentage = calculateSection(contentInputs, 20, 'content-score', 'content-percentage');
       const organizationPercentage = calculateSection(organizationInputs, 15, 'organization-score', 'organization-percentage');
@@ -821,7 +818,7 @@ if ($requirement) {
       }
     };
 
-    const inputs = document.querySelectorAll('input[type="number"][placeholder="Rating"]');
+    const inputs = document.querySelectorAll('input[type="number"][placeholder="score"]');
     inputs.forEach(input => {
       input.addEventListener('input', updateTotals);
     });

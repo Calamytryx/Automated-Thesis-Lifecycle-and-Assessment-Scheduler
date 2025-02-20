@@ -95,16 +95,16 @@ error_reporting(E_ALL);
 </script>
 <main role="main" class="container">
     <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-3 my-3">
             <!-- Sidebar -->
             <div class="sidebar">
-                <div class="d-flex align-items-center p-3 my-3 sidebar-header">
-                    <!-- <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48"> -->
+                <!-- <div class="d-flex align-items-center p-3 my-3 sidebar-header">
+                    <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
                     <div class="lh-100">
                         <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
-                        <!-- <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small> -->
+                        <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
                     </div>
-                </div>
+                </div> -->
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                     <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
                         <i class="fas fa-calendar-alt me-2"></i>Calendar
@@ -127,7 +127,7 @@ error_reporting(E_ALL);
                 <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
                     <div class="row"> <!-- Added a row wrapper -->
                         <div class="col-sm-9 my-3 p-3 home-sidebar-box">
-                            <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h4>
+                            <!-- <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h4> -->
                             <div class="media text-muted pt-3">
                                 <!-- Calendar Div -->
                                 <div id="calendar"></div>
@@ -238,7 +238,7 @@ error_reporting(E_ALL);
                                                     <?php endforeach; ?>
                                                 </ul>
                                             </div>
-                                        </div>
+                                        </div> 
                                     </div>
                                 </div>
                             </div>
@@ -308,7 +308,7 @@ error_reporting(E_ALL);
 
 
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
-                    <div class="my-3 p-4 home-sidebar-box bg-white rounded shadow-sm">
+                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-lightbulb text-primary fs-4"></i>
@@ -366,7 +366,7 @@ error_reporting(E_ALL);
                 </script>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
-                    <div class="my-3 p-4 home-sidebar-box bg-white rounded shadow-sm">
+                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-check-circle text-primary fs-4"></i>
@@ -417,20 +417,24 @@ error_reporting(E_ALL);
                 </div>
 
                 <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
-                    <div class="my-3 p-3 home-sidebar-box">
-                        <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Requirement Checker Tool</h4>
+                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-tasks text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 feature-title">Requirement Checker Tool</h4>
+                                <p class="text-muted mb-0">Track and manage your thesis requirements and submissions</p>
+                            </div>
+                        </div>
+                        
                         <div class="media text-muted pt-3">
-                            <p class="media-body pb-3 mb-0 small lh-125">
-                                <strong class="d-block text-gray-dark">Document Checklist</strong>
-                            <div id="teamSelectorContainer">
+                            <div id="teamSelectorContainer" class="mb-4">
                                 <!-- The dropdown will be dynamically inserted here -->
                             </div>
-                            <div id="requirementChecklist">
-                                <!-- Checklist items will be dynamically added here -->
+                            <div id="requirementChecklist" class="row g-4">
+                                <!-- Checklist items will be dynamically added here in a grid -->
                             </div>
-
-
-                            </p>
                         </div>
                     </div>
                 </div>
@@ -517,42 +521,60 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         success: function(response) {
                             console.log("AJAX request successful. Response:", response);
                             if (response.success) {
-                                var checklistHtml = '<form id="requirementChecklist" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data">';
+                                var checklistHtml = '<form id="requirementChecklist" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';
                                 response.requirements.forEach(function(req) {
                                     checklistHtml += `
-                        <div class="form-check mb-3">
-                            <input class="form-check-input" type="checkbox" value="${req.id}" id="req${req.id}" name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
-                            <label class="form-check-label" for="req${req.id}"><strong>${req.name}</strong></label>
-                            <p class="mb-1 text-muted">${req.description || 'No description provided.'}</p>
-                            <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
-                            <div class="mt-2">
-                                <label for="status${req.id}">Status:</label>
-                                <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
-                                    <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                    <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
-                                    <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
-                                    <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                                </select>
+                        <div class="col-12 col-lg-6">
+                            <div class="card h-100 shadow-sm">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start">
+                                        <div class="requirement-content">
+                                            <label class="form-check-label" for="req${req.id}">
+                                                <strong>${req.name}</strong>
+                                                <p class="mb-1 text-muted">${req.description || 'No description provided.'}</p>
+                                                <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
+                                            </label>
+                                        </div>
+                                        <div class="form-check">
+                                            <input class="form-check-input requirement-checkbox" type="checkbox" 
+                                                   value="${req.id}" id="req${req.id}" 
+                                                   name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <label for="status${req.id}" class="form-label">Status:</label>
+                                        <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
+                                            <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
+                                            <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
+                                            <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
+                                            <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <label for="feedback${req.id}" class="form-label">Feedback:</label>
+                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
+                                    </div>
+                                    
+                                    <div class="mt-3 d-flex gap-2 flex-wrap">
+                                        <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-sm btn-secondary" download>Download File</a>
+                                        <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-sm btn-secondary">View File</a>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <label for="feedbackFile${req.id}" class="form-label">Upload Feedback File:</label>
+                                        <input class="form-control form-control-sm" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-sm btn-secondary" download>Download Feedback File</a>` : ''}
+                                    </div>
+                                </div>
                             </div>
-                            <div class="mt-2">
-                                <label for="feedback${req.id}">Feedback:</label>
-                                <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
-                            </div>
-                            <div class="mt-2">
-                                <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary" download>Download File</a>
-                                <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-secondary">View File</a>
-                            </div>
-                            <div class="mt-2">
-                                <label for="feedbackFile${req.id}">Upload Feedback File:</label>
-                                <input class="form-control form-control-sm" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
-                            </div>
-                            <div class="mt-2">
-                                ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` : ''}
-                            </div>
-                        </div>
-                    `;
+                        </div>`;
                                 });
-                                checklistHtml += '<button type="submit" class="btn btn-primary mt-3">Update Requirements</button></form>';
+                                checklistHtml += '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
                                 $('#requirementChecklist').html(checklistHtml);
 
                             } else {
@@ -563,7 +585,6 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         error: function(jqXHR, textStatus, errorThrown) {
                             $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
                             console.error("AJAX error:", textStatus, errorThrown);
-                            console.error("Response Text:", jqXHR.responseText);
                         }
                     });
                 }
