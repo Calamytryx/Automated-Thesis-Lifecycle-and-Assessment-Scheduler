@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode(['success' => false, 'message' => 'Invalid table']);
         exit;
     }
-    
+
     // Special handling for research_titles
     if ($table === 'research_titles') {
         $approved = isset($_POST['approved']) ? date('Y-m-d H:i:s') : null;

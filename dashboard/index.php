@@ -344,14 +344,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     <div id="mainContent">
                         <div class="tab-content" id="v-pills-tabContent">
                             <?php include 'includes/tabs/overview_tab.php'; ?>
+
                             <?php include 'includes/tabs/users_tab.php'; ?>
+                            <?php include 'includes/tabs/teams_tab.php'; ?>
+
                             <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
                             <?php include 'includes/tabs/research_titles_tab.php'; ?>
+
                             <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
-                            <?php include 'includes/tabs/teams_tab.php'; ?>
-                            <?php include 'includes/tabs/requirements_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
+                            <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            
                             <?php include 'includes/tabs/env_variables_tab.php'; ?>
                         </div>
                     </div>

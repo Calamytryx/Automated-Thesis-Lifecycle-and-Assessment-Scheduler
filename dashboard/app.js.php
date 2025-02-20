@@ -188,17 +188,12 @@ $(document).ready(function () {
                         formHtml += `
         </div>
     `;
-
                         form.html(formHtml);
-
                         // Add team member functionality
                         $('#addTeamMember').on('click', function () {
                             console.log('Add Team Member button clicked');
                             addNewTeamMember();
                         });
-
-
-
                     } else if (table === 'env_variables') {
                         var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
@@ -489,6 +484,98 @@ $(document).ready(function () {
                 '<label for="recommendation" class="form-label">Recommendation</label>' +
                 '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
                 '</div>');
+        } else if(table === 'defense_schedules') {
+            $.ajax({
+            url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
+            method: 'GET',
+            dataType: 'json',
+            success: function(data) {
+                var formHtml = `
+                <div class="mb-3">
+                    <label for="schedule_date" class="form-label">Schedule Date</label>
+                    <input type="date" class="form-control" id="schedule_date" name="schedule_date" required>
+                </div>
+                <div class="mb-3">
+                    <label for="start_time" class="form-label">Start Time</label>
+                    <input type="time" class="form-control" id="start_time" name="start_time" required>
+                </div>
+                <div class="mb-3">
+                    <label for="end_time" class="form-label">End Time</label>
+                    <input type="time" class="form-control" id="end_time" name="end_time" required>
+                </div>
+                <div class="mb-3">
+                    <label for="room" class="form-label">Room</label>
+                    <input type="text" class="form-control" id="room" name="room" required>
+                </div>
+                <div class="mb-3">
+                    <label for="team_id" class="form-label">Team</label>
+                    <select class="form-select" id="team_id" name="team_id" required>
+                    <option value="">Select Team</option>
+                    ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                    </select>
+                </div>
+                <h5 class="mt-4">Panelists</h5>
+                <div id="panelists">
+                    <div class="mb-3 row panelist">
+                    <div class="col-sm-10">
+                        <select class="form-select" name="panelist_id[0]">
+                        <option value="">Select Panelist</option>
+                        ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                    </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                `;
+
+                form.html(formHtml);
+
+                // Store staff data for addNewPanelist function
+                window.staffData = data.staff;
+
+                // Add panelist functionality
+                $('#addPanelist').on('click', function() {
+                console.log('Add Panelist button clicked');
+                addNewPanelist(window.staffData);
+                });
+
+                // Remove panelist functionality
+                $(document).on('click', '.remove-panelist', function() {
+                $(this).closest('.panelist').remove();
+                });
+            },
+            error: function() {
+                showToast('Error', 'Unable to fetch teams and staff data', 'error');
+            }
+            });
+                // <div class="mb-3">
+                //             <label for="schedule_date" class="form-label">Schedule Date</label>
+                //             <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
+                //         </div>
+                //         <div class="mb-3">
+                //             <label for="start_time" class="form-label">Start Time</label>
+                //             <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
+                //         </div>
+                //         <div class="mb-3">
+                //             <label for="end_time" class="form-label">End Time</label>
+                //             <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
+                //         </div>
+                //         <div class="mb-3">
+                //             <label for="room" class="form-label">Room</label>
+                //             <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
+                //         </div>
+                //         <div class="mb-3">
+                //             <label for="team_id" class="form-label">Team</label>
+                //             <select class="form-select" id="team_id" name="team_id" required>
+                //                 ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                //             </select>
+                //         </div>
+                //         <h5 class="mt-4">Panelists</h5>
+                //         <div id="panelists">
+
         } else {
             form.append('<div class="mb-3">' +
                 '<label for="name" class="form-label">Name</label>' +

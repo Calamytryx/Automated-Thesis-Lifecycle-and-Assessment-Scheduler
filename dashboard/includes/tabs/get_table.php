@@ -114,6 +114,21 @@ GROUP BY
             LIMIT :limit OFFSET :offset
         ";
         $stmt = $pdo->prepare($query);
+    } elseif ($table === 'users') {
+        $query = "SELECT * FROM users";
+
+        // Conditionally apply usertype filter
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
+            $query .= " WHERE usertype = :usertype";
+        }
+
+        $query .= " LIMIT :limit OFFSET :offset";
+
+        $stmt = $pdo->prepare($query);
+
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
+            $stmt->bindValue(':usertype', (int)$_GET['usertype'], PDO::PARAM_INT);
+        }
     } else {
         $query = "SELECT * FROM $table LIMIT :limit OFFSET :offset";
         $stmt = $pdo->prepare($query);
@@ -125,21 +140,39 @@ GROUP BY
     $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Get total rows for pagination
-    if ($table === 'defense_schedules') {
+    if ($table === 'users') {
+        $countQuery = "SELECT COUNT(*) FROM users";
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
+            $countQuery .= " WHERE usertype = :usertype";
+        }
+
+        $countStmt = $pdo->prepare($countQuery);
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
+            $countStmt->bindValue(':usertype', (int)$_GET['usertype'], PDO::PARAM_INT);
+        }
+        $countStmt->execute();
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
+    } elseif ($table === 'defense_schedules') {
         $countQuery = "
             SELECT COUNT(DISTINCT ds.id) 
             FROM defense_schedules ds 
             JOIN teams t ON ds.team_id = t.id
             JOIN research_titles rt ON t.id = rt.team_id";
+        $countStmt = $pdo->query($countQuery);
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
     } elseif ($table === 'evaluations') {
         $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
+        $countStmt = $pdo->query($countQuery);
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
     } else {
         $countQuery = "SELECT COUNT(*) FROM $table";
+        $countStmt = $pdo->query($countQuery);
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
     }
-
-    $countStmt = $pdo->query($countQuery);
-    $total_rows = $countStmt->fetchColumn();
-    $total_pages = ceil($total_rows / $limit);
 
     echo json_encode([
         'data' => $data,

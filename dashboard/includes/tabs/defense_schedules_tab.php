@@ -1,6 +1,8 @@
 <!-- Defense Schedules Tab -->
-<div class="tab-pane fade" id="defense-schedules" role="tabpanel"
-    aria-labelledby="defense-schedules-tab">
+<div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
+<button class="btn feature-btn add-btn" data-table="defense_schedules">
+            <i class="fas fa-plus"></i>Add Defense Schedule
+        </button>
     <div class="d-flex align-items-center mb-3 my-3">
         <div class="modal fade" id="schedulerSettingsModal" tabindex="-1" aria-labelledby="schedulerSettingsModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -98,6 +100,8 @@
             <i class="fas fa-cog me-1"></i>Scheduler Settings
         </button>
 
+        <div id="generationSetting"></div>
+        <!-- Schedule Generation Status -->
         <div id="scheduleGenerationStatus"></div>
 
         <!-- Generate Schedule Button -->
@@ -115,6 +119,15 @@
         ?>
         <script>
             let totalScheds = <?php echo $totalScheds; ?>;
+
+            document.getElementById("saveSchedulerSettings").addEventListener("click", function(){
+        const settingsOutput = "Rooms: " + document.getElementById("rooms").value + "<br>" +
+            "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
+            "Start Time: " + document.getElementById("startTime").value + "<br>" +
+            "End Time: " + document.getElementById("endTime").value + "<br>" +
+            "Days: " + document.getElementById("days").value + "<br>";
+        document.getElementById("generationSetting").innerHTML = settingsOutput;
+    });
         </script>
 
         <span id="scheduleGenerationStatusSpan" class="ml-2"></span> <!-- Changed ID to ensure uniqueness -->
