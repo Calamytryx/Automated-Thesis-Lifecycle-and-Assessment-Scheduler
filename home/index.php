@@ -118,6 +118,9 @@ error_reporting(E_ALL);
                     <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">
                         <i class="fas fa-tasks me-2"></i>Requirement Checker
                     </a>
+                    <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill" href="#research-evaluation" role="tab" aria-controls="research-evaluation" aria-selected="false">
+                        <i class="fas fa-comments me-2"></i>Research Evaluation
+                    </a>
                 </div>
             </div>
         </div>
@@ -435,6 +438,93 @@ error_reporting(E_ALL);
                             <div id="requirementChecklist" class="row g-4">
                                 <!-- Checklist items will be dynamically added here in a grid -->
                             </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="research-evaluation" role="tabpanel" aria-labelledby="research-evaluation-link">
+                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-comments text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 feature-title">Research Evaluation Comments</h4>
+                                <p class="text-muted mb-0">View evaluation feedback and comments from panelists</p>
+                            </div>
+                        </div>
+
+                        <div class="table-responsive">
+                            <table class="table table-hover table-bordered rounded overflow-hidden">
+                                <thead class="bg-light">
+                                    <tr>
+                                        <th>Team Name</th>
+                                        <th>Research Title</th>
+                                        <?php if ($_SESSION['usertype'] != 1): ?>
+                                            <th>Student Name</th>
+                                        <?php endif; ?>
+                                        <th>Evaluator</th>
+                                        <th>Comments</th>
+                                        <th>Total Score</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <?php
+                                    // Different queries for students and professors
+                                    if ($_SESSION['usertype'] == 1) { // Student
+                                        $query = "SELECT 
+                                            t.name AS team_name,
+                                            rt.title AS research_title,
+                                            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
+                                            ep.comments,
+                                            ep.total_score
+                                        FROM evaluation_per_panel ep
+                                        JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                                        JOIN teams t ON ds.team_id = t.id
+                                        JOIN research_titles rt ON t.id = rt.team_id
+                                        JOIN users e ON ep.evaluator_id = e.id
+                                        JOIN team_members tm ON t.id = tm.team_id
+                                        WHERE tm.user_id = ?
+                                        ORDER BY ep.created_at DESC";
+                                        
+                                        $stmt = $pdo->prepare($query);
+                                        $stmt->execute([$_SESSION['id']]);
+                                    } else { // Professor/Panelist
+                                        $query = "SELECT 
+                                            t.name AS team_name,
+                                            rt.title AS research_title,
+                                            CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+                                            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
+                                            ep.comments,
+                                            ep.total_score
+                                        FROM evaluation_per_panel ep
+                                        JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                                        JOIN teams t ON ds.team_id = t.id
+                                        JOIN research_titles rt ON t.id = rt.team_id
+                                        JOIN users e ON ep.evaluator_id = e.id
+                                        JOIN users s ON ep.student_id = s.id
+                                        WHERE ep.evaluator_id = ?
+                                        ORDER BY ep.created_at DESC";
+                                        
+                                        $stmt = $pdo->prepare($query);
+                                        $stmt->execute([$_SESSION['id']]);
+                                    }
+                                    
+                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
+                                    ?>
+                                        <tr>
+                                            <td><?php echo htmlspecialchars($row['team_name']); ?></td>
+                                            <td><?php echo htmlspecialchars($row['research_title']); ?></td>
+                                            <?php if ($_SESSION['usertype'] != 1): ?>
+                                                <td><?php echo htmlspecialchars($row['student_name']); ?></td>
+                                            <?php endif; ?>
+                                            <td><?php echo htmlspecialchars($row['evaluator_name']); ?></td>
+                                            <td><?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
+                                            <td><?php echo htmlspecialchars($row['total_score']); ?></td>
+                                        </tr>
+                                    <?php endwhile; ?>
+                                </tbody>
+                            </table>
                         </div>
                     </div>
                 </div>

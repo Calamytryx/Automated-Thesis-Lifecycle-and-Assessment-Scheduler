@@ -427,37 +427,36 @@ border-top: solid 1px var(--main-bg-dark);
 .db-table {
     border-radius: 10px;
     border-collapse: separate;
-    border-spacing: 0 4px;
-    border: none;
+    border-spacing: 0;
+    border: 1px solid var(--neutral-200);
     width: 100%;
-    min-width: 800px;
+    overflow: hidden;
 }
 
 .db-table th {
     background-color: var(--main-bg-dark);
-    color: var(--main-bg-light); 
+    color: var(--main-bg-light);
     text-align: left;
-    border: none;
-    padding: 12px 16px; 
+    padding: 12px 16px;
     white-space: nowrap;
+    border-bottom: 1px solid var(--neutral-200);
+    border-right: 1px solid var(--neutral-200);
 }
  
 .db-table thead tr th:first-child {
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
+    border-top-left-radius: 10px;
 } 
  
 .db-table thead tr th:last-child {
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-top-right-radius: 10px;
 }
-
+ 
 .db-table td {
     padding: 8px 12px;
     vertical-align: middle;
-    border: none;
+    border-bottom: 1px solid var(--neutral-200);
+    border-right: 1px solid var(--neutral-200);
     word-wrap: break-word;
-    max-width: 150px;
     background-color: var(--main-white);
 }
 
@@ -1343,17 +1342,19 @@ border-top: solid 1px var(--main-bg-dark);
 
 /* PDF and AI Analysis Panel Styles */
 .pdf-container, .ai-container {
+  width: 100%;
+  margin: 0 auto;
   background: var(--main-white);
-  border-radius: 10px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .panel-header {
-  padding: 1rem;
-  border-bottom: 1px solid var(--neutral-100);
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 1rem 1.5rem;
+  border-bottom: 1px solid var(--neutral-100);
 }
 
 .panel-header h4 {
@@ -1456,34 +1457,78 @@ border-top: solid 1px var(--main-bg-dark);
   display: none; /* Chrome, Safari, Opera */
 }
 
-.evaluation-table table {
-  width: 100%;
-  min-width: 800px; /* Minimum width to prevent squishing */
+.evaluation-content table {
+  border-radius: 10px;
   border-collapse: separate;
   border-spacing: 0;
+  border: 1px solid var(--neutral-200);
+  width: 100%;
+  overflow: hidden;
 }
 
-.evaluation-table th {
-  background: var(--neutral-50);
-  padding: 1rem;
-  font-weight: 600;
-  color: var(--main-bg-dark);
-  text-align: center;
-  border-bottom: 2px solid var(--neutral-200);
+.evaluation-content table th {
+  background-color: var(--main-bg-dark);
+  color: var(--main-bg-light);
+  text-align: left;
+  padding: 12px 16px;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--neutral-200);
+  border-right: 1px solid var(--neutral-200);
 }
 
-.evaluation-table td {
-  padding: 1rem;
+.evaluation-content table th:last-child {
+  border-right: none;
+}
+
+.evaluation-content table thead tr:first-child th:first-child {
+  border-top-left-radius: 10px;
+}
+
+.evaluation-content table thead tr:first-child th:last-child {
+  border-top-right-radius: 10px;
+}
+
+.evaluation-content table td {
+  padding: 8px 12px;
   vertical-align: middle;
-  border-bottom: 1px solid var(--neutral-100);
+  border-bottom: 1px solid var(--neutral-200);
+  border-right: 1px solid var(--neutral-200);
+  word-wrap: break-word;
+  background-color: var(--main-white);
 }
 
-.evaluation-table tr:hover {
-  background-color: var(--neutral-50);
-  transition: background-color 0.2s ease;
+.evaluation-content table td:last-child {
+  border-right: none;
 }
 
-.evaluation-table td:first-child {
+.evaluation-content table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.evaluation-content table tbody tr:last-child td:first-child {
+  border-bottom-left-radius: 10px;
+}
+
+.evaluation-content table tbody tr:last-child td:last-child {
+  border-bottom-right-radius: 10px;
+}
+
+.evaluation-content table tbody tr {
+  background-color: var(--neutral-100);
+  transition: all 0.3s ease;
+}
+
+.evaluation-content table tbody tr:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+}
+
+.evaluation-content table tbody tr:hover td {
+  background-color: var(--neutral-100);
+}
+
+.evaluation-content table td:first-child {
   font-weight: 500;
   color: var(--main-bg-dark);
 }
@@ -1818,4 +1863,234 @@ color: #444 !important;
     background-color: var(--main-white);
     border-radius: 5px;
     border: solid 1px var(--main-bg-dark);
+}
+
+/* Defense Content Tabs Styling */
+#defenseContentTabs {
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+#defenseContentTabs .nav-link {
+    color: var(--main-bg-dark);
+    font-weight: 500;
+    padding: 1rem 2rem;
+    border: none;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s ease;
+} 
+
+#defenseContentTabs .nav-link:hover {
+    border-color: var(--neutral-300);
+}
+
+#defenseContentTabs .nav-link.active {
+    font-weight: bold;
+    color: var(--main-primary);
+    border-bottom: 2px solid var(--main-primary);
+    background-color: transparent;
+}
+
+#defenseContentTabsContent {
+    background-color: var(--main-bg-light);
+}
+
+#defenseContentTabsContent .tab-pane {
+     animation: fadeIn 0.3s ease-in-out;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+    opacity: 1;
+    }
+}
+
+/* Toggle Buttons Styling */
+.toggle-container {
+  max-width: 300px;
+  margin: 0 auto;
+  margin-bottom: 1.5rem;
+}
+
+.toggle-container .btn-group {
+  background-color: var(--main-bg-light);
+  padding: 0.25rem;
+  border-radius: 25px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--main-neutral);
+}
+
+.toggle-btn {
+  flex: 1;
+  padding: 0.5rem 1rem !important;
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--main-bg-dark) !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease !important;
+  border-radius: 20px !important;
+}
+
+.toggle-btn:hover {
+  background-color: var(--neutral-100) !important;
+  transform: translateY(-1px);
+}
+
+.toggle-btn.active {
+  background-color: var(--main-white) !important;
+  color: var(--main-primary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+.toggle-btn i {
+  font-size: 0.875rem;
+  margin-right: 0.35rem;
+}
+
+/* Animation for section transitions */
+.section-toggle {
+  width: 100%;
+  transition: all 0.3s ease-in-out;
+  padding: 1rem 0;
+}
+
+.section-toggle.d-none {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.section-toggle.d-block {
+  opacity: 1;
+  transform: translateY(0);
+  animation: fadeInUp 0.3s ease-out;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Score Sheet Toggle Buttons */
+#score-sheet-content .toggle-container {
+  max-width: 800px;  /* Wider to accommodate more buttons */
+  margin: 0 auto;
+  margin-bottom: 1.5rem;
+}
+
+#score-sheet-content .btn-group {
+  background-color: var(--main-bg-light);
+  padding: 0.25rem;
+  border-radius: 25px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--main-neutral);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.25rem;
+}
+
+#score-sheet-content .toggle-btn {
+  flex: 1;
+  min-width: 120px;
+  padding: 0.5rem 1rem !important;
+  border: none !important;
+  background-color: transparent !important;
+  color: var(--main-bg-dark) !important;
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: all 0.3s ease !important;
+  border-radius: 20px !important;
+  white-space: nowrap;
+}
+
+#score-sheet-content .toggle-btn:hover {
+  background-color: var(--neutral-100) !important;
+  transform: translateY(-1px);
+}
+
+#score-sheet-content .toggle-btn.active {
+  background-color: var(--main-white) !important;
+  color: var(--main-primary) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-weight: 600;
+}
+
+#score-sheet-content .toggle-btn i {
+  font-size: 0.875rem;
+  margin-right: 0.35rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+  #score-sheet-content .toggle-container {
+    max-width: 100%;
+  }
+  
+  #score-sheet-content .btn-group {
+    flex-wrap: wrap;
+  }
+  
+  #score-sheet-content .toggle-btn {
+    min-width: calc(50% - 0.25rem);
+  }
+}
+
+/* Update Grade Summary Section */
+#grade-summary .evaluation-table {
+  margin-bottom: 2rem;
+}
+
+#grade-summary .evaluation-table:last-child {
+  margin-bottom: 0;
+}
+
+/* Evaluation Form Styling */
+.evaluation-form {
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+.evaluation-form textarea {
+  width: 100%;
+  min-height: 150px;
+  padding: 1rem;
+  border: 1px solid var(--neutral-200);
+  border-radius: 8px;
+  resize: vertical;
+  font-size: 0.95rem;
+  line-height: 1.5;
+  transition: all 0.3s ease;
+}
+
+.evaluation-form textarea:focus {
+  outline: none;
+  border-color: var(--main-primary);
+  box-shadow: 0 0 0 2px rgba(var(--main-primary-rgb), 0.1);
+}
+
+.evaluation-form .btn-primary {
+  background-color: var(--main-primary);
+  border-color: var(--main-primary);
+  padding: 0.5rem 2rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.evaluation-form .btn-primary:hover {
+  background-color: var(--main-primary-dark);
+  border-color: var(--main-primary-dark);
+  transform: translateY(-1px);
+}
+
+.evaluation-form .text-muted {
+  font-size: 0.875rem;
 }

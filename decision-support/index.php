@@ -228,60 +228,101 @@ if ($requirement) {
     </div>
 </section> 
 
-  <div class="album py-5">
-    <div class="container">
-      <div class="row">
-        <!-- PDF View Column (Left) -->
-        <div class="col-md-8">
-          <div class="row h-100">
-            <div class="col-12">
-              <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
-                <div class="panel-header">
-                  <h4>PDF Document View</h4>
-                  <button class="fullscreen-btn" onclick="toggleFullScreen()">
-                    <i class="fas fa-expand"></i>
-                    Full Screen
-                  </button>
-                </div>
-                <div class="panel-content">
-                  <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
-                    frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                  </iframe>
-                </div>
+  <!-- Tab navigation -->
+  <div class="container mb-4">
+    <ul class="nav nav-tabs" id="defenseContentTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="research-paper-tab" data-bs-toggle="tab" data-bs-target="#research-paper" type="button" role="tab" aria-controls="research-paper" aria-selected="true">
+          Research Paper
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="score-sheet-tab" data-bs-toggle="tab" data-bs-target="#score-sheet-content" type="button" role="tab" aria-controls="score-sheet-content" aria-selected="false">
+          Score Sheet
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <!-- Tab content -->
+  <div class="tab-content" id="defenseContentTabsContent">
+    <!-- Research Paper Tab -->
+    <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
+      <div class="album">
+        <div class="container">
+          <!-- Toggle Buttons -->
+          <div class="toggle-container">
+            <div class="btn-group w-100" role="group" aria-label="View toggles">
+              <button type="button" class="btn toggle-btn active" data-target="pdf-section">
+                <i class="fas fa-file-pdf me-2"></i>PDF View
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="ai-section">
+                <i class="fas fa-robot me-2"></i>AI Analysis
+              </button>
+            </div>
+          </div>
+
+          <!-- PDF View Section -->
+          <div class="section-toggle" id="pdf-section">
+            <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
+              <div class="panel-header">
+                <h4>PDF Document View</h4>
+                <button class="fullscreen-btn" onclick="toggleFullScreen()">
+                  <i class="fas fa-expand"></i>
+                  Full Screen
+                </button>
+              </div>
+              <div class="panel-content">
+                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
+                  frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
+                </iframe>
               </div>
             </div>
           </div>
-        </div>
 
-        <!-- AI Analysis Column (Right) -->
-        <div class="col-md-4">
-          <div class="row h-100">
-            <div class="col-12">
-              <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
-                <div class="panel-header">
-                  <h4>AI Evaluation Results</h4>
-                </div>
-                <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
-                  <div id="ai-output"></div>
-                </div>
+          <!-- AI Analysis Section -->
+          <div class="section-toggle d-none" id="ai-section">
+            <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
+              <div class="panel-header">
+                <h4>AI Evaluation Results</h4>
+              </div>
+              <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
+                <div id="ai-output"></div>
               </div>
             </div>
           </div>
         </div>
       </div>
+    </div>
 
-      <div class="row">
-        <div class="col-12">
-          
-          <div class="table-nav rounded-3 mt-3"> 
-            <a href="#content-table" class="table-nav-item">Content (40%)</a>
-            <a href="#organization-table" class="table-nav-item">Organization (10%)</a>
-            <a href="#novelty-table" class="table-nav-item">Novelty and Impact (10%)</a>
-            <a href="#score-sheet" class="table-nav-item">Score Sheet</a>
+    <!-- Score Sheet Tab -->
+    <div class="tab-pane fade" id="score-sheet-content" role="tabpanel" aria-labelledby="score-sheet-tab">
+      <div class="album">
+        <div class="container">
+          <!-- Toggle Buttons -->
+          <div class="toggle-container">
+            <div class="btn-group w-100" role="group" aria-label="Score sheet toggles">
+              <button type="button" class="btn toggle-btn active" data-target="content-criteria">
+                <i class="fas fa-list-alt me-2"></i>Content
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="organization-criteria">
+                <i class="fas fa-sitemap me-2"></i>Organization
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="novelty-criteria">
+                <i class="fas fa-lightbulb me-2"></i>Novelty
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="grade-summary">
+                <i class="fas fa-chart-bar me-2"></i>Summary
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="evaluation">
+                <i class="fas fa-clipboard-check me-2"></i>Evaluation
+              </button>
+            </div>
           </div>
 
-          <div class="evaluation-section">
-            <div class="evaluation-table"> 
+          <!-- Content Table Section -->
+          <div class="section-toggle" id="content-criteria">
+            <div class="evaluation-table">
               <div class="evaluation-header">
                 <h4>Content <span class="percentage">(40%)</span></h4>
               </div>
@@ -343,8 +384,9 @@ if ($requirement) {
               </div>
             </div>
           </div>
-          <!-- Table 2 -->
-          <div class="evaluation-section">
+
+          <!-- Organization Table Section -->
+          <div class="section-toggle d-none" id="organization-criteria">
             <div class="evaluation-table">
               <div class="evaluation-header">
                 <h4>Organization <span class="percentage">(10%)</span></h4>
@@ -402,8 +444,9 @@ if ($requirement) {
               </div>
             </div>
           </div>
-          <!-- table 3 -->
-          <div class="evaluation-section">
+
+          <!-- Novelty Table Section -->
+          <div class="section-toggle d-none" id="novelty-criteria">
             <div class="evaluation-table">
               <div class="evaluation-header">
                 <h4>Novelty and Impact <span class="percentage">(10%)</span></h4>
@@ -488,17 +531,18 @@ if ($requirement) {
               </div>
             </div>
           </div>
-          <!-- total -->
-          <div class="evaluation-section">
-            <div class="evaluation-table">
+
+          <!-- Grade Summary Section -->
+          <div class="section-toggle d-none" id="grade-summary">
+            <div class="evaluation-table mb-4">
               <div class="evaluation-header">
-                <h4>GRADE SUMMARY:</h4>
+                <h4>Grade Summary:</h4>
               </div>
               <div class="evaluation-content">
                 <table class="table table-bordered table-hover" id="summary-table">
                   <thead>
                     <th>Criteria</td>
-                    <th>Rating/Score</td>
+                    <th>Rating/Score</th>
                   </thead>
                   <tr>
                     <td>Content (40%)</td>
@@ -513,16 +557,13 @@ if ($requirement) {
                     <td id="novelty-total"></td>
                   </tr>
                   <tr>
-                    <th>RESEARCH PAPER PROJECT TOTAL</td>
+                    <th>RESEARCH PAPER PROJECT TOTAL</th>
                     <td id="init-total"></td>
                   </tr>
                 </table>
               </div>
             </div>
-          </div>
 
-          <!-- report -->
-          <div class="evaluation-section">
             <div class="evaluation-table">
               <div class="evaluation-header">
                 <h4>Research Proposal Defense Score Sheet</h4>
@@ -678,14 +719,19 @@ if ($requirement) {
             </div>
           </div>
 
-          <form action="submit_evaluation.php" method="POST">
-            <div class="evaluation-section">
-              <div class="evaluation-table">
-                <div class="evaluation-header">
-                  <h4>Comments, Evaluation and Recommendations</h4>
-                </div>
-                <div class="evaluation-content">
-                  <textarea name="comments" class="form-control" rows="3" placeholder="Comments, Evaluation and Recommendations"></textarea>
+          <!-- Evaluation Section -->
+          <div class="section-toggle d-none" id="evaluation">
+            <div class="evaluation-table">
+              <div class="evaluation-header">
+                <h4>Comments, Evaluation and Recommendations</h4>
+              </div>
+              <div class="evaluation-content p-4">
+                <form action="submit_evaluation.php" method="POST" class="evaluation-form">
+                  <div class="form-group mb-4">
+                    <textarea name="comments" class="form-control" rows="5" placeholder="Enter your comments, evaluation and recommendations here"></textarea>
+                  </div>
+                  
+                  <!-- Hidden inputs -->
                   <input type="hidden" name="defense_schedule_id" value="<?php echo $schedule['id']; ?>">
                   <input type="hidden" name="evaluator_id" value="<?php echo $_SESSION['id']; ?>">
                   <input type="hidden" name="group_score" id="group-grade">
@@ -696,20 +742,20 @@ if ($requirement) {
                     <input type="hidden" name="solo_scores[]" id="solo<?php echo $i; ?>-grade">
                     <input type="hidden" name="total_scores[]" id="total<?php echo $i; ?>-grade">
                   <?php endfor; ?>
-                  <div class="d-flex justify-content-between align-items-center">
-                    <div class="btn-group col-9">
-                      <button type="submit" class="btn btn-sm btn-outline-secondary">Submit</button>
-                    </div>
-                    <small class="text-muted col-3 ms-auto text-end">/3 Panelist Complete</small>
+                  
+                  <div class="d-flex justify-content-between align-items-center mt-3">
+                    <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+                    <small class="text-muted">/3 Panelist Complete</small>
                   </div>
-                </div>
+                </form>
               </div>
             </div>
-          </form>
+          </div>
         </div>
       </div>
     </div>
   </div>
+</div>
 </main>
 
 <script>
@@ -995,6 +1041,39 @@ if ($requirement) {
     });
   });
   });
+
+  document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const sections = document.querySelectorAll('.section-toggle');
+
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      toggleBtns.forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
+      
+      sections.forEach(section => {
+        section.classList.add('d-none');
+        section.classList.remove('d-block');
+      });
+
+      const targetSection = document.getElementById(this.dataset.target);
+      targetSection.classList.remove('d-none');
+      targetSection.classList.add('d-block');
+    });
+  });
+
+  // Show content criteria when score sheet tab is clicked
+  const scoreSheetTab = document.getElementById('score-sheet-tab');
+  if (scoreSheetTab) {
+    scoreSheetTab.addEventListener('click', function() {
+      // Simulate click on content criteria toggle button
+      const contentToggleBtn = document.querySelector('[data-target="content-criteria"]');
+      if (contentToggleBtn) {
+        contentToggleBtn.click();
+      } 
+    });
+  }
+});
 </script>
 
 <!-- AI GEMINI MODULE -->
