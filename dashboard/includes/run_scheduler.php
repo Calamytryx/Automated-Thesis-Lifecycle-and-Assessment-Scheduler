@@ -32,7 +32,18 @@ try {
         
         $userSchedules = fetchUserSchedules($pdo);
 
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 100, 200, 0.1);
+        // Validate input parameters
+        if (empty($teams) || empty($panelists)) {
+            throw new Exception("No teams or panelists available for scheduling");
+        }
+        
+        // Increase population size and generations for better results
+        $populationSize = 150;    // Increased from 100
+        $generations = 300;       // Increased from 200
+        $mutationRate = 0.15;     // Slightly increased from 0.1
+        
+        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 
+            $populationSize, $generations, $mutationRate);
 
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
