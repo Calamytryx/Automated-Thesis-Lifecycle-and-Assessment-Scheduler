@@ -19,33 +19,136 @@
                             </div>
                             <div class="mb-3">
                                 <label for="timeDuration" class="form-label">Time Duration (hours)</label>
-                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" max="24" value="1" required>
+                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" max="5" required 
+                                    oninput="this.value = Math.min(5, Math.max(1, Math.round(this.value)))">
                             </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
                                     const timeDurationInput = document.getElementById('timeDuration');
-                                    timeDurationInput.addEventListener('input', function() {
-                                        if (timeDurationInput.value < 1) {
-                                            timeDurationInput.value = 1;
-                                        } else if (timeDurationInput.value > 24) {
-                                            timeDurationInput.value = 24;
+                                    const startTimeInput = document.getElementById('startTime');
+                                    const endTimeInput = document.getElementById('endTime');
+                                    const daysInput = document.getElementById('days');
+                                    const roomsInput = document.getElementById('rooms');
+                                    const saveButton = document.getElementById('saveSchedulerSettings');
+                                    const statusElement = document.getElementById('scheduleGenerationStatus');
+                                    const warningElement = document.createElement('div');
+                                    warningElement.className = 'text-danger';
+
+                                    // Limit time inputs to working hours (7 AM to 8 PM)
+                                    startTimeInput.min = "07:00";
+                                    startTimeInput.max = "20:30";
+                                    endTimeInput.min = "07:00";
+                                    endTimeInput.max = "20:30";
+
+                                    // Prevent selecting previous dates
+                                    const now = new Date();
+                                    const todayMonth = String(now.getMonth() + 1).padStart(2, '0');
+                                    const todayDay = String(now.getDate()).padStart(2, '0');
+                                    const todayYear = now.getFullYear();
+                                    const today = `${todayMonth}-${todayDay}-${todayYear}`;
+console.log('Today:', today);
+                                    // Validate inputs and enable/disable save button
+                                    function validateInputs() {
+                                        const startTime = startTimeInput.value;
+                                        const endTime = endTimeInput.value;
+                                        const timeDuration = parseInt(timeDurationInput.value);
+                                        const days = daysInput.value.split(',').filter(date => date >= today).length;
+                                        const rooms = roomsInput.value.split(',').length;
+                                        const includeLunchBreak = document.getElementById('includeLunchBreak').checked;
+
+                                        let isValid = true;
+                                        let warningMessage = '';
+
+                                        if (!startTime || !endTime || !timeDuration || days === 0 || rooms === 0) {
+                                            isValid = false;
+                                            warningMessage = 'All fields are required.';
+                                        } else {
+                                            const startTimeParts = startTime.split(':');
+                                            const endTimeParts = endTime.split(':');
+                                            const startHour = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
+                                            const endHour = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
+                                            console.log('Start Hour:', startHour);
+console.log('End Hour:', endHour);
+                                            const startAMPM = startHour >= 12 ? 'PM' : 'AM';
+                                            const endAMPM = endHour >= 12 ? 'PM' : 'AM';
+
+                                            let availableHours = endHour - startHour;
+                                            const numberOfTeams = <?php echo $totalTeams; ?>;
+
+                                            if (includeLunchBreak && startHour <= 12 && endHour >= 13) {
+                                                availableHours -= 1; // Subtract 1 hour for lunch break
+                                            }
+
+                                            const slotsPerRoomPerDay = Math.floor(availableHours / timeDuration);
+                                            const totalSlots = slotsPerRoomPerDay * rooms * days;
+                                            console.log('Total Slots:', totalSlots);
+
+                                            if (availableHours < timeDuration) {
+                                                isValid = false;
+                                                warningMessage = 'Duration exceeds available hours.';
+                                            } else if (startHour < 7 || endHour > 20.5) {
+                                                isValid = false;
+                                                warningMessage = 'Time must be within working hours (7:00 AM to 8:30 PM).';
+                                            } else if (totalSlots < numberOfTeams) {
+                                                isValid = false;
+                                                warningMessage = 'Not enough time slots for all teams.';
+                                            } else if (daysInput.value.split(',').some(date => new Date(date) < new Date(today))) {
+                                                isValid = false;
+                                                warningMessage = 'Please select dates that are today or later.';
+                                            }
                                         }
-                                    });
+
+                                        if (!isValid) {
+                                            saveButton.disabled = true;
+                                            statusElement.innerText = warningMessage;
+                                            warningElement.innerText = warningMessage;
+                                            saveButton.parentNode.insertBefore(warningElement, saveButton.nextSibling);
+                                        } else {
+                                            saveButton.disabled = false;
+                                            statusElement.innerText = 'Settings are valid. You can generate the schedule.';
+                                            if (warningElement.parentNode) {
+                                                warningElement.parentNode.removeChild(warningElement);
+                                            }
+                                        }
+                                    }
+
+                                    timeDurationInput.addEventListener('input', validateInputs);
+                                    startTimeInput.addEventListener('input', validateInputs);
+                                    endTimeInput.addEventListener('input', validateInputs);
+                                    daysInput.addEventListener('input', validateInputs);
+                                    roomsInput.addEventListener('input', validateInputs);
+
+                                    validateInputs(); // Initial validation
                                 });
                             </script>
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="startTime" name="startTime" required>
+                                <input type="time" class="form-control" id="startTime" name="startTime" min="07:00 AM" max="20:00 PM" step="1800" required 
+                                    onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             </div>
                             <div class="mb-3">
                                 <label for="endTime" class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="endTime" name="endTime" required>
+                                <input type="time" class="form-control" id="endTime" name="endTime" min="07:00" max="20:00" step="1800" required
+                                    onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             </div>
                             <div class="mb-3">
                                 <label for="days" class="form-label">Days (Select multiple dates if necessary)</label>
-                                <input type="text" class="form-control" id="days" name="days" required>
-                                <small id="daysHelp" class="form-text text-muted">Enter dates in YYYY-MM-DD format separated by commas.</small>
-
+                                <input type="text" class="form-control datepicker" id="days" name="days" required>
+                                <small id="daysHelp" class="form-text text-muted">Click to select dates. Multiple dates can be selected.</small>
+                            </div>
+                            <script>
+                                $(document).ready(function() {
+                                    $('.datepicker').datepicker({
+                                        format: 'mm-dd-yyyy',
+                                        multidate: true,
+                                        startDate: new Date(),
+                                        todayHighlight: true
+                                    });
+                                });
+                            </script>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="includeLunchBreak" name="includeLunchBreak">
+                                <label class="form-check-label" for="includeLunchBreak">Include Lunch Break (12 PM - 1 PM)</label>
                             </div>
                         </form>
                     </div>
@@ -67,12 +170,16 @@
                             const endTimeParts = document.getElementById('endTime').value.split(':');
                             const startTime = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
                             const endTime = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
-                            const days = document.getElementById('days').value.split(',').length;
+                            const days = document.getElementById('days').value.split(',').filter(date => date >= today).length;
+                            
 
                             // Assume numberOfTeams is available globally or fetched from the server
                             const numberOfTeams = <?php echo $totalTeams; ?>;
 
-                            const availableHours = endTime - startTime;
+                            let availableHours = endTime - startTime;
+                            if (includeLunchBreak && startTime <= 12 && endTime >= 13) {
+                                availableHours -= 1; // Subtract 1 hour for lunch break
+                            }
                             const slotsPerRoomPerDay = Math.floor(availableHours / timeDuration);
                             const totalSlots = slotsPerRoomPerDay * rooms * days;
 
@@ -125,7 +232,8 @@
             "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
             "Start Time: " + document.getElementById("startTime").value + "<br>" +
             "End Time: " + document.getElementById("endTime").value + "<br>" +
-            "Days: " + document.getElementById("days").value + "<br>";
+            "Days: " + document.getElementById("days").value + "<br>" +
+            "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");    
         document.getElementById("generationSetting").innerHTML = settingsOutput;
     });
         </script>

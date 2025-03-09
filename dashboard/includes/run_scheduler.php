@@ -38,9 +38,9 @@ try {
         }
         
         // Increase population size and generations for better results
-        $populationSize = 150;    // Increased from 100
-        $generations = 300;       // Increased from 200
-        $mutationRate = 0.15;     // Slightly increased from 0.1
+        $populationSize = 200;    // Increased from 100
+        $generations = 500;       // Increased from 200
+        $mutationRate = 0.2;     // Slightly increased from 0.1
         
         $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 
             $populationSize, $generations, $mutationRate);
@@ -75,7 +75,7 @@ try {
 function fetchTeams($pdo)
 {
     $stmt = $pdo->query("
-        SELECT t.id, tm.user_id as adviser_id, t.program
+        SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
         FROM teams t
         JOIN team_members tm ON t.id = tm.team_id
         WHERE tm.role = 'adviser'
@@ -85,26 +85,51 @@ function fetchTeams($pdo)
 
 function fetchPanelists($pdo)
 {
-    $stmt = $pdo->query("SELECT id FROM users WHERE usertype = 2");
-    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    $stmt = $pdo->query("SELECT id, area_of_expertise FROM users WHERE usertype = 2");
+    $panelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Convert the result to a more usable format: id => area_of_expertise
+    $formattedPanelists = [];
+    foreach ($panelists as $panelist) {
+        $formattedPanelists[$panelist['id']] = $panelist['area_of_expertise'];
+    }
+    
+    return $formattedPanelists;
 }
 
-function fetchPanelistsByProgram($pdo, $teamProgram)
+function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelists)
 {
-    // Fetch panelists with the same program as the team
-    $stmtSame = $pdo->prepare("SELECT id FROM users WHERE usertype = 2 AND program = ?");
-    $stmtSame->execute([$teamProgram]);
-    $sameProgramPanelists = $stmtSame->fetchAll(PDO::FETCH_COLUMN);
+    $sameProgramPanelists = [];
+    $differentProgramPanelists = [];
 
-    // Fetch panelists with different programs
-    $stmtDiff = $pdo->prepare("SELECT id FROM users WHERE usertype = 2 AND program != ?");
-    $stmtDiff->execute([$teamProgram]);
-    $differentProgramPanelists = $stmtDiff->fetchAll(PDO::FETCH_COLUMN);
+    foreach ($allPanelists as $panelistId => $panelistExpertise) {
+        $panelistData = getPanelistData($pdo, $panelistId);
+        if ($panelistData['program'] == $teamProgram) {
+            $sameProgramPanelists[] = ['id' => $panelistId, 'expertise' => $panelistExpertise];
+        } else {
+            $differentProgramPanelists[] = ['id' => $panelistId, 'expertise' => $panelistExpertise];
+        }
+    }
+
+    // Sort panelists by expertise similarity
+    usort($sameProgramPanelists, function($a, $b) use ($teamExpertise) {
+        return similar_text($teamExpertise, $b['expertise']) - similar_text($teamExpertise, $a['expertise']);
+    });
+
+    usort($differentProgramPanelists, function($a, $b) use ($teamExpertise) {
+        return similar_text($teamExpertise, $b['expertise']) - similar_text($teamExpertise, $a['expertise']);
+    });
 
     return [
-        'same' => $sameProgramPanelists,
-        'different' => $differentProgramPanelists
+        'same' => array_column($sameProgramPanelists, 'id'),
+        'different' => array_column($differentProgramPanelists, 'id')
     ];
+}
+
+function getPanelistData($pdo, $panelistId) {
+    $stmt = $pdo->prepare("SELECT program, area_of_expertise FROM users WHERE id = ?");
+    $stmt->execute([$panelistId]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
 function fetchUserSchedules($pdo)
@@ -127,9 +152,16 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
     DefenseSchedule::$averageConflictCounts = []; // Reset for averages
     DefenseSchedule::$averageFitnessScores = []; // Reset for averages
 
+    $bestSchedule = null;
+    $bestFitness = PHP_INT_MIN;
+
     for ($i = 0; $i < $generations; $i++) {
         foreach ($population as $schedule) {
             $schedule->calculateFitness($userSchedules);
+            if ($schedule->fitness > $bestFitness) {
+                $bestFitness = $schedule->fitness;
+                $bestSchedule = $schedule;
+            }
         }
 
         // Track population data for the current generation
@@ -156,19 +188,28 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
         while (count($newPopulation) < $populationSize) {
             $parent1 = $selected[array_rand($selected)];
             $parent2 = $selected[array_rand($selected)];
-            $child = crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms);
+            $child = crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms, $panelists);
             mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules);
             $newPopulation[] = $child;
         }
 
+        // Diversity Preservation
+        $newPopulation = diversityPreservation($newPopulation, $populationSize, $pdo, $teams, $panelists, $rooms, $timeSlots, $days);
+
         $population = $newPopulation;
+
+        // Dynamic Mutation Rate Adjustment
+        $mutationRate = adjustMutationRate($mutationRate, $population);
     }
 
-    usort($population, function ($a, $b) {
-        return $b->fitness - $a->fitness;
-    });
+    if ($bestSchedule === null) {
+        usort($population, function ($a, $b) {
+            return $b->fitness - $a->fitness;
+        });
+        $bestSchedule = $population[0];
+    }
 
-    return $population[0];
+    return $bestSchedule;
 }
 
 function createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days)
@@ -188,7 +229,7 @@ function selection($population)
     return array_slice($population, 0, count($population) / 2);
 }
 
-function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms)
+function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms, $panelists)
 {
     $child = new DefenseSchedule($parent1->pdo, [], [], $rooms, $timeSlots, $days);
     $crossoverPoint = rand(0, count($parent1->chromosomes) - 1);
@@ -205,6 +246,12 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
             $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
             $defense['day'] = $days[array_rand($days)];
             $defense['room'] = $rooms[array_rand($rooms)];
+            
+            // Re-select panelists to resolve conflicts
+            $team = fetchTeamById($parent1->pdo, $defense['team_id']);
+            $panelistsByProgram = fetchPanelistsByProgram($parent1->pdo, $team['program'], $team['area_of_expertise'], $panelists);
+            $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+            
             $attempts++;
         }
         if ($attempts >= $maxAttempts) {
@@ -224,7 +271,9 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
             $original = $defense;
             switch ($mutationType) {
                 case 0:
-                    $defense['panelist_ids'] = array_rand(array_flip($panelists), 3);
+                    $team = fetchTeamById($schedule->pdo, $defense['team_id']);
+                    $panelistsByProgram = fetchPanelistsByProgram($schedule->pdo, $team['program'], $team['area_of_expertise'], $panelists);
+                    $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
                     break;
                 case 1:
                     $defense['room'] = $rooms[array_rand($rooms)];
@@ -373,22 +422,8 @@ class DefenseSchedule
     {
         $this->pdo = $pdo;
         foreach ($teams as $team) {
-            $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program']);
-            
-            // Exclude the team's adviser from panelists
-            $panelistsByProgram['same'] = array_diff($panelistsByProgram['same'], [$team['adviser_id']]);
-            $panelistsByProgram['different'] = array_diff($panelistsByProgram['different'], [$team['adviser_id']]);
-            
-            // Select at least one panelist from the same program
-            $samePanelist = $panelistsByProgram['same'] ? [$panelistsByProgram['same'][array_rand($panelistsByProgram['same'])]] : [];
-            // Select at least one panelist from different programs
-            $diffPanelist = $panelistsByProgram['different'] ? [$panelistsByProgram['different'][array_rand($panelistsByProgram['different'])]] : [];
-            // Select remaining panelists ensuring no consecutive assignments
-            $availablePanelists = array_diff($panelistsByProgram['same'], $samePanelist);
-            $availablePanelists = array_merge($availablePanelists, array_diff($panelistsByProgram['different'], $diffPanelist));
-            $additionalPanelists = $availablePanelists ? [ $availablePanelists[array_rand($availablePanelists)] ] : [];
-    
-            $selectedPanelists = array_merge($samePanelist, $diffPanelist, $additionalPanelists);
+            $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
+            $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
     
             $defense = [
                 'team_id' => $team['id'],
@@ -433,6 +468,12 @@ class DefenseSchedule
                     $this->fitness -= 5;
                     $conflicts++;
                 }
+
+                // Reward panelists with expertise in the team's area
+                $panelistExpertise = getPanelistExpertise($this->pdo, $panelist_id);
+                $teamExpertise = getTeamExpertise($this->pdo, $defense['team_id']);
+                $similarity = similar_text($teamExpertise, $panelistExpertise);
+                $this->fitness += $similarity; // Add similarity score to fitness
             }
 
             // Check for overlapping times in the same room
@@ -492,6 +533,101 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
         }
         return $output;
     }
+}
+
+// Function to fetch team by ID
+function fetchTeamById($pdo, $team_id) {
+    $stmt = $pdo->prepare("SELECT id, program, area_of_expertise, user_id as adviser_id FROM teams WHERE id = ?");
+    $stmt->execute([$team_id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
+// Function to get panelist expertise
+function getPanelistExpertise($pdo, $panelist_id) {
+    $stmt = $pdo->prepare("SELECT area_of_expertise FROM users WHERE id = ?");
+    $stmt->execute([$panelist_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['area_of_expertise'] : '';
+}
+
+// Function to get team expertise
+function getTeamExpertise($pdo, $team_id) {
+    $stmt = $pdo->prepare("SELECT area_of_expertise FROM teams WHERE id = ?");
+    $stmt->execute([$team_id]);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['area_of_expertise'] : '';
+}
+
+// Diversity Preservation function
+function diversityPreservation($population, $populationSize, $pdo, $teams, $panelists, $rooms, $timeSlots, $days) {
+    usort($population, function ($a, $b) {
+        return $b->fitness - $a->fitness;
+    });
+
+    $elites = array_slice($population, 0, $populationSize / 4);
+    $newPopulation = $elites;
+
+    while (count($newPopulation) < $populationSize) {
+        $newSchedule = new DefenseSchedule($pdo, $teams, $panelists, $rooms, $timeSlots, $days);
+        $newPopulation[] = $newSchedule;
+    }
+
+    return $newPopulation;
+}
+
+// Adjust Mutation Rate function
+function adjustMutationRate($mutationRate, $population) {
+    $avgFitness = array_sum(array_column($population, 'fitness')) / count($population);
+    $bestFitness = max(array_column($population, 'fitness'));
+
+    if ($bestFitness == $avgFitness) {
+        // Increase mutation rate if the population is converging
+        $mutationRate *= 1.1;
+    } else {
+        // Otherwise, slightly decrease it
+        $mutationRate *= 0.9;
+    }
+
+    // Keep mutation rate within reasonable bounds
+    $mutationRate = max(0.05, min(0.5, $mutationRate));
+
+    return $mutationRate;
+}
+
+function selectPanelists($panelistsByProgram, $allPanelists, $adviserId) {
+    $selectedPanelists = [];
+
+    // Select at least one panelist from the same program
+    if (!empty($panelistsByProgram['same'])) {
+        $selectedPanelists[] = $panelistsByProgram['same'][array_rand($panelistsByProgram['same'])];
+    }
+
+    // Select at least one panelist from different programs
+    if (!empty($panelistsByProgram['different'])) {
+        $selectedPanelists[] = $panelistsByProgram['different'][array_rand($panelistsByProgram['different'])];
+    }
+
+    // Select remaining panelists ensuring no consecutive assignments
+    $availablePanelists = array_merge($panelistsByProgram['same'] ?? [], $panelistsByProgram['different'] ?? []);
+    $availablePanelists = array_diff($availablePanelists, $selectedPanelists);
+
+    if (!empty($availablePanelists)) {
+        $selectedPanelists[] = $availablePanelists[array_rand($availablePanelists)];
+    }
+
+    // If we don't have enough panelists, use from the general panelist list
+    while (count($selectedPanelists) < 3 && !empty($allPanelists)) {
+        $availableGeneralPanelists = array_keys(array_diff_key($allPanelists, array_flip($selectedPanelists), [$adviserId => '']));
+
+        if (!empty($availableGeneralPanelists)) {
+            $panelistId = $availableGeneralPanelists[array_rand($availableGeneralPanelists)];
+            $selectedPanelists[] = $panelistId;
+        } else {
+            break; // No more panelists available
+        }
+    }
+
+    return $selectedPanelists;
 }
 
 // Unused functions are kept at the end

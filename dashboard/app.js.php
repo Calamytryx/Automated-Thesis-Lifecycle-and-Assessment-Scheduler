@@ -1,34 +1,33 @@
 <script>
+    $(document).ready(function() {
 
-$(document).ready(function () {
+        // Edit button functionality
+        $(document).on('click', '.edit-btn', function() {
+            var table = $(this).data('table');
+            var id = $(this).data('id');
 
-    // Edit button functionality
-    $(document).on('click', '.edit-btn', function () {
-        var table = $(this).data('table');
-        var id = $(this).data('id');
+            console.log('Edit button clicked. Table:', table, 'ID:', id);
 
-        console.log('Edit button clicked. Table:', table, 'ID:', id);
+            $.ajax({
+                url: 'includes/get_item_details.php',
+                method: 'POST',
+                data: {
+                    table: table,
+                    id: id
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Response data:', response)
+                    if (response.success) {
+                        var form = $('#editForm');
+                        form.empty();
 
-        $.ajax({
-            url: 'includes/get_item_details.php',
-            method: 'POST',
-            data: {
-                table: table,
-                id: id
-            },
-            dataType: 'json',
-            success: function (response) {
-                console.log('Response data:', response)
-                if (response.success) {
-                    var form = $('#editForm');
-                    form.empty();
+                        // Add hidden inputs for table and id
+                        form.append('<input type="hidden" name="table" value="' + table + '">');
+                        form.append('<input type="hidden" name="id" value="' + id + '">');
 
-                    // Add hidden inputs for table and id
-                    form.append('<input type="hidden" name="table" value="' + table + '">');
-                    form.append('<input type="hidden" name="id" value="' + id + '">');
-
-                    if (table === 'users') {
-                        var formHtml = `
+                        if (table === 'users') {
+                            var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
@@ -41,33 +40,50 @@ $(document).ready(function () {
                                 </div>
                             `;
 
-                        var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
+                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'area_of_expertise','gender', 'headline', 'bio'];
 
-                        fieldsToShow.forEach(function (key) {
-                            var value = response.data[key] || '';
-                            var inputType = (key === 'email') ? 'email' : 'text';
-                            var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
+                            fieldsToShow.forEach(function(key) {
+                                var value = response.data[key] || '';
+                                var inputType = (key === 'email') ? 'email' : 'text';
+                                var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
 
-                            if (key === 'bio') {
-                                formHtml += `
+                                if (key === 'bio') {
+                                    formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
                                             <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
                                         </div>
                                     `;
-                            } else {
-                                formHtml += `
+                                } else if (key === 'area_of_expertise') {
+                                    // Add area_of_expertise field only for faculty usertype (2)
+                                    formHtml += `
+                            <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
+                                <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+                                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                            </div>
+                        `;
+                                } else {
+                                    formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
                                             <input type="${inputType}" class="form-control" id="${key}" name="${key}" value="${value}">
                                         </div>
                                     `;
-                            }
-                        });
+                                }
+                            });
 
-                        form.html(formHtml);
-                    } else if (table === 'thesis_topics') {
-                        var formHtml = `
+                            form.html(formHtml);
+
+                            // Add event listener to show/hide area of expertise field when usertype changes
+                            $('#usertype').on('change', function() {
+                                if ($(this).val() == 2) {
+                                    $('.area-expertise-field').show();
+                                } else {
+                                    $('.area-expertise-field').hide();
+                                }
+                            });
+                        } else if (table === 'thesis_topics') {
+                            var formHtml = `
                             <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
@@ -83,9 +99,9 @@ $(document).ready(function () {
                                     <input type="text" class="form-control" id="category" name="category" value="${response.data.category}">
                                 </div>
                             `;
-                        form.html(formHtml);
-                    } else if (table === 'teams') {
-                        var formHtml = `
+                            form.html(formHtml);
+                        } else if (table === 'teams') {
+                            var formHtml = `
         <input type="hidden" name="table" value="${table}">
         <input type="hidden" name="id" value="${id}">
         <div class="mb-3">
@@ -96,12 +112,16 @@ $(document).ready(function () {
             <label for="title" class="form-label">Research Title</label>
             <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
         </div>
+        <div class="mb-3">
+            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+        </div>
         <h5 class="mt-4">Team Members</h5>
         <div id="teamMembers">
     `;
 
-                        response.data.members.forEach(function (member, index) {
-                            formHtml += `
+                            response.data.members.forEach(function(member, index) {
+                                formHtml += `
             <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-5">
                     <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
@@ -118,28 +138,30 @@ $(document).ready(function () {
                 </div>
             </div>
         `;
-                        });
+                            });
 
-                        formHtml += `
+                            formHtml += `
         </div>
         <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
     `;
-                        form.html(formHtml);
+                            form.html(formHtml);
 
-                        // Add team member functionality
-                        $('#addTeamMember').on('click', function () {
-                            console.log('Add Team Member button clicked');
-                            addNewTeamMember();
-                        });
+                            // Add team member functionality
+                            $('#addTeamMember').on('click', function() {
+                                console.log('Add Team Member button clicked');
+                                addNewTeamMember();
+                            });
 
-                    } else if (table === 'research_titles') {
-                        var formHtml = `
+                        } else if (table === 'research_titles') {
+                            var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
                                     <label for="team_id" class="form-label">Team ID</label>
                                     <input type="text" class="form-control" id="team_id" name="team_id" value="${response.data.team_id}">
-                                </div>
+                                </div>  ${response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                                <div class="mb-3">
+                                    <label for="title" class="form-label">Title</label>
                                 <div class="mb-3">
                                     <label for="title" class="form-label">Title</label>
                                     <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
@@ -151,9 +173,9 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
-                        form.html(formHtml);
-                    } else if (table === 'teams') {
-                        var formHtml = `
+                            form.html(formHtml);
+                        } else if (table === 'teams') {
+                            var formHtml = `
         <input type="hidden" name="table" value="${table}">
         <input type="hidden" name="id" value="${id}">
         <div class="mb-3">
@@ -168,8 +190,8 @@ $(document).ready(function () {
         <div id="teamMembers">
     `;
 
-                        response.data.members.forEach(function (member, index) {
-                            formHtml += `
+                            response.data.members.forEach(function(member, index) {
+                                formHtml += `
             <div class="mb-3 row team-member" data-user-id="${member.id}">
                 <div class="col-sm-7">
                     <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
@@ -183,19 +205,19 @@ $(document).ready(function () {
                 </div>
             </div>
         `;
-                        });
+                            });
 
-                        formHtml += `
+                            formHtml += `
         </div>
     `;
-                        form.html(formHtml);
-                        // Add team member functionality
-                        $('#addTeamMember').on('click', function () {
-                            console.log('Add Team Member button clicked');
-                            addNewTeamMember();
-                        });
-                    } else if (table === 'env_variables') {
-                        var formHtml = `
+                            form.html(formHtml);
+                            // Add team member functionality
+                            $('#addTeamMember').on('click', function() {
+                                console.log('Add Team Member button clicked');
+                                addNewTeamMember();
+                            });
+                        } else if (table === 'env_variables') {
+                            var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
@@ -212,10 +234,10 @@ $(document).ready(function () {
                                 </div>
                             `;
 
-                        // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
-                        if (response.data.key === 'DB_PASSWORD' || response.data.key === 'MAIL_ENCRYPTION') {
-                            $('#value').val(''); // Clear the value field
-                            form.html(`
+                            // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
+                            if (response.data.key === 'DB_PASSWORD' || response.data.key === 'MAIL_ENCRYPTION') {
+                                $('#value').val(''); // Clear the value field
+                                form.html(`
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
@@ -236,11 +258,11 @@ $(document).ready(function () {
                                 </div>
                                 
                             `);
-                        } else {
-                            form.html(formHtml);
-                        }
-                    } else if (table === 'defense_schedules') {
-                        var formHtml = `
+                            } else {
+                                form.html(formHtml);
+                            }
+                        } else if (table === 'defense_schedules') {
+                            var formHtml = `
                         <input type="hidden" name="table" value="${table}">
                         <input type="hidden" name="id" value="${id}">
                         <div class="mb-3">
@@ -269,10 +291,10 @@ $(document).ready(function () {
                         <div id="panelists">
                     `;
 
-                        if (response.data.panelists) {
-                            response.data.panelists.forEach(function (panelist, index) {
+                            if (response.data.panelists) {
+                                response.data.panelists.forEach(function(panelist, index) {
 
-                                formHtml += `
+                                    formHtml += `
                                 <div class="mb-3 row panelist" data-user-id="${panelist.id}">
                                     <div class="col-sm-10">
                                         <select class="form-select" name="panelist_id[${index}]">
@@ -284,213 +306,221 @@ $(document).ready(function () {
                                     </div>
                                 </div>
                             `;
-                                index++;
-                            });
-                        } else {
-                            console.error('Panelists data is missing in the response');
-                        }
+                                    index++;
+                                });
+                            } else {
+                                console.error('Panelists data is missing in the response');
+                            }
 
-                        formHtml += `
+                            formHtml += `
                         </div>
                         <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                     `;
 
-                        form.html(formHtml);
+                            form.html(formHtml);
 
-                        // Add panelist functionality
-                        $('#addPanelist').on('click', function () {
-                            console.log('Add Panelist button clicked');
-                            addNewPanelist(response.staff);
-                        });
+                            // Add panelist functionality
+                            $('#addPanelist').on('click', function() {
+                                console.log('Add Panelist button clicked');
+                                addNewPanelist(response.staff);
+                            });
 
-                        // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function () {
-                            $(this).closest('.panelist').remove();
-                        });
-                    } else if (table === 'rubrics') {
-                        var fieldsToShow = Object.keys(response.data);
-                        fieldsToShow.forEach(function (key) {
-                            var value = response.data[key] || '';
-                            var inputType = (key === 'email') ? 'email' : 'text';
-                            var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
+                            // Remove panelist functionality
+                            $(document).on('click', '.remove-panelist', function() {
+                                $(this).closest('.panelist').remove();
+                            });
+                        } else if (table === 'rubrics') {
+                            var fieldsToShow = Object.keys(response.data);
+                            fieldsToShow.forEach(function(key) {
+                                var value = response.data[key] || '';
+                                var inputType = (key === 'email') ? 'email' : 'text';
+                                var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
 
-                            // Check if the key is 'id' or 'created_at' to make them hidden
-                            if (key === 'id' || key === 'created_at') {
-                                form.append('<input type="hidden" id="' + key + '" name="' + key + '" value="' + value + '">');
-                            } else {
-                                form.append('<div class="mb-3">' +
-                                    '<label for="' + key + '" class="form-label">' + label + '</label>' +
-                                    '<input type="' + inputType + '" class="form-control" id="' + key + '" name="' + key + '" value="' + value + '">' +
-                                    '</div>');
-                            }
-                        });
+                                // Check if the key is 'id' or 'created_at' to make them hidden
+                                if (key === 'id' || key === 'created_at') {
+                                    form.append('<input type="hidden" id="' + key + '" name="' + key + '" value="' + value + '">');
+                                } else {
+                                    form.append('<div class="mb-3">' +
+                                        '<label for="' + key + '" class="form-label">' + label + '</label>' +
+                                        '<input type="' + inputType + '" class="form-control" id="' + key + '" name="' + key + '" value="' + value + '">' +
+                                        '</div>');
+                                }
+                            });
 
 
+                        }
+                        // Add more conditions for other tables as needed
+                        $('#editModal').modal('show');
+                    } else {
+                        alert('Error: ' + response.message);
                     }
-                    // Add more conditions for other tables as needed
-                    $('#editModal').modal('show');
-                } else {
-                    alert('Error: ' + response.message);
+                },
+                error: function() {
+                    alert('Error: Unable to fetch item details');
                 }
-            },
-            error: function () {
-                alert('Error: Unable to fetch item details');
-            }
+            });
         });
-    });
 
-    // Add button functionality
-    $(document).on('click', '.add-btn', function () {
-        var table = $(this).data('table');
-        var form = $('#addForm');
-        form.empty();
-        form.append('<input type="hidden" name="table" value="' + table + '">');
+        // Add button functionality
+        $(document).on('click', '.add-btn', function() {
+            var table = $(this).data('table');
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="' + table + '">');
 
-        if (table === 'users') {
-            form.append('<div class="mb-3">' +
-                '<label for="username" class="form-label">Username</label>' +
-                '<input type="text" class="form-control" id="username" name="username" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="email" class="form-label">Email</label>' +
-                '<input type="email" class="form-control" id="email" name="email" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="password" class="form-label">Password</label>' +
-                '<input type="password" class="form-control" id="password" name="password" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="first_name" class="form-label">First Name</label>' +
-                '<input type="text" class="form-control" id="first_name" name="first_name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="last_name" class="form-label">Last Name</label>' +
-                '<input type="text" class="form-control" id="last_name" name="last_name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="usertype" class="form-label">User Type</label>' +
-                '<select class="form-select" id="usertype" name="usertype" required>' +
-                '<option value="0">Admin</option>' +
-                '<option value="1">Student</option>' +
-                '<option value="2">Faculty</option>' +
-                '</select>' +
-                '</div>');
-        } else if (table === 'thesis_topics') {
-            form.append('<div class="mb-3">' +
-                '<label for="topic" class="form-label">Topic</label>' +
-                '<input type="text" class="form-control" id="topic" name="topic" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="category" class="form-label">Category</label>' +
-                '<input type="text" class="form-control" id="category" name="category" required>' +
-                '</div>'
-            );
-        } else if (table === 'research_titles') {
-            form.append('<div class="mb-3">' +
-                '<label for="team_id" class="form-label">Team ID</label>' +
-                '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="title" class="form-label">Title</label>' +
-                '<input type="text" class="form-control" id="title" name="title" required>' +
-                '</div>' +
-                '<div class="mb-3 form-check">' +
-                '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
-                '<label class="form-check-label" for="approved">Approved</label>' +
-                '</div>');
-        } else if (table === 'teams') {
-            var formHtml = `
+            if (table === 'users') {
+                form.append('<div class="mb-3">' +
+                    '<label for="username" class="form-label">Username</label>' +
+                    '<input type="text" class="form-control" id="username" name="username" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="email" class="form-label">Email</label>' +
+                    '<input type="email" class="form-control" id="email" name="email" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="password" class="form-label">Password</label>' +
+                    '<input type="password" class="form-control" id="password" name="password" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="first_name" class="form-label">First Name</label>' +
+                    '<input type="text" class="form-control" id="first_name" name="first_name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="last_name" class="form-label">Last Name</label>' +
+                    '<input type="text" class="form-control" id="last_name" name="last_name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
+                    '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="usertype" class="form-label">User Type</label>' +
+                    '<select class="form-select" id="usertype" name="usertype" required>' +
+                    '<option value="0">Admin</option>' +
+                    '<option value="1">Student</option>' +
+                    '<option value="2">Faculty</option>' +
+                    '</select>' +
+                    '</div>');
+            } else if (table === 'thesis_topics') {
+                form.append('<div class="mb-3">' +
+                    '<label for="topic" class="form-label">Topic</label>' +
+                    '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="category" class="form-label">Category</label>' +
+                    '<input type="text" class="form-control" id="category" name="category" required>' +
+                    '</div>'
+                );
+            } else if (table === 'research_titles') {
+                form.append('<div class="mb-3">' +
+                    '<label for="team_id" class="form-label">Team ID</label>' +
+                    '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="title" class="form-label">Title</label>' +
+                    '<input type="text" class="form-control" id="title" name="title" required>' +
+                    '</div>' +
+                    '<div class="mb-3 form-check">' +
+                    '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
+                    '<label class="form-check-label" for="approved">Approved</label>' +
+                    '</div>');
+            } else if (table === 'teams') {
+                var formHtml = `
             <div class="mb-3">
-                <label for="name" class="form-label">Team Name</label>
-                <input type="text" class="form-control" id="name" name="name" required>
+            <label for="name" class="form-label">Team Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
             </div>
             <div class="mb-3">
-                <label for="title" class="form-label">Research Title</label>
-                <input type="text" class="form-control" id="title" name="title" required>
+            <label for="title" class="form-label">Research Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">
             </div>
             <h5 class="mt-4">Team Members</h5>
             <div id="teamMembers">
-                <!-- Team members will be added here -->
+            <!-- Team members will be added here -->
             </div>
             <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
         `;
-            form.append(formHtml);
+                form.append(formHtml);
 
-            // Add team member functionality
-            $('#addTeamMember').on('click', function () {
-                console.log('Add Team Member button clicked');
-                addNewTeamMember();
-            });
-        } else if (table === 'env_variables') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Key</label>' +
-                '<input type="text" class="form-control" id="key" name="key" required>' +
-                '</div>' +
-                '<label for="name" class="form-label">Value</label>' +
-                '<input type="text" class="form-control" id="value" name="value" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="created_by" class="form-label">Description</label>' +
-                '<input type="text" class="form-control" id="Description" name="description" required>' +
-                '</div>');
-        } else if (table === 'rubrics') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="created_by" class="form-label">Created By</label>' +
-                '<input type="text" class="form-control" id="created_by" name="created_by" required>' +
-                '</div>');
-        } else if (table === 'requirements') {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="description" class="form-label">Description</label>' +
-                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="due_date" class="form-label">Due Date</label>' +
-                '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
-                '</div>');
-        } else if (table === 'evaluations') {
-            form.append('<div class="mb-3">' +
-                '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
-                '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
-                '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="total_score" class="form-label">Total Score</label>' +
-                '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="comments" class="form-label">Comments</label>' +
-                '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
-                '</div>' +
-                '<div class="mb-3">' +
-                '<label for="recommendation" class="form-label">Recommendation</label>' +
-                '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
-                '</div>');
-        } else if(table === 'defense_schedules') {
-            $.ajax({
-            url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
-            method: 'GET',
-            dataType: 'json',
-            success: function(data) {
-                var formHtml = `
+                // Add team member functionality
+                $('#addTeamMember').on('click', function() {
+                    console.log('Add Team Member button clicked');
+                    addNewTeamMember();
+                });
+            } else if (table === 'env_variables') {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Key</label>' +
+                    '<input type="text" class="form-control" id="key" name="key" required>' +
+                    '</div>' +
+                    '<label for="name" class="form-label">Value</label>' +
+                    '<input type="text" class="form-control" id="value" name="value" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="created_by" class="form-label">Description</label>' +
+                    '<input type="text" class="form-control" id="Description" name="description" required>' +
+                    '</div>');
+            } else if (table === 'rubrics') {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="created_by" class="form-label">Created By</label>' +
+                    '<input type="text" class="form-control" id="created_by" name="created_by" required>' +
+                    '</div>');
+            } else if (table === 'requirements') {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="due_date" class="form-label">Due Date</label>' +
+                    '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
+                    '</div>');
+            } else if (table === 'evaluations') {
+                form.append('<div class="mb-3">' +
+                    '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
+                    '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
+                    '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="total_score" class="form-label">Total Score</label>' +
+                    '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="comments" class="form-label">Comments</label>' +
+                    '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="recommendation" class="form-label">Recommendation</label>' +
+                    '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
+                    '</div>');
+            } else if (table === 'defense_schedules') {
+                $.ajax({
+                    url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var formHtml = `
                 <div class="mb-3">
                     <label for="schedule_date" class="form-label">Schedule Date</label>
                     <input type="date" class="form-control" id="schedule_date" name="schedule_date" required>
@@ -531,26 +561,26 @@ $(document).ready(function () {
                 <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                 `;
 
-                form.html(formHtml);
+                        form.html(formHtml);
 
-                // Store staff data for addNewPanelist function
-                window.staffData = data.staff;
+                        // Store staff data for addNewPanelist function
+                        window.staffData = data.staff;
 
-                // Add panelist functionality
-                $('#addPanelist').on('click', function() {
-                console.log('Add Panelist button clicked');
-                addNewPanelist(window.staffData);
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(window.staffData);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
+                    }
                 });
-
-                // Remove panelist functionality
-                $(document).on('click', '.remove-panelist', function() {
-                $(this).closest('.panelist').remove();
-                });
-            },
-            error: function() {
-                showToast('Error', 'Unable to fetch teams and staff data', 'error');
-            }
-            });
                 // <div class="mb-3">
                 //             <label for="schedule_date" class="form-label">Schedule Date</label>
                 //             <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
@@ -576,354 +606,354 @@ $(document).ready(function () {
                 //         <h5 class="mt-4">Panelists</h5>
                 //         <div id="panelists">
 
-        } else {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>');
-        }
-
-        $('#addModal').modal('show');
-    });
-
-    $('#saveChanges').on('click', function () {
-        var form = $('#editForm');
-        var formData = new FormData(form[0]);
-
-        if (formData.get('table') === 'teams') {
-            var members = [];
-            $('.team-member').each(function () {
-                var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
-                var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
-                if (userId && role) {
-                    members.push({
-                        id: userId,
-                        role: role
-                    });
-                }
-            });
-            formData.set('members', JSON.stringify(members));
-            formData.delete('member_role[]');
-            formData.delete('new_user_id[]');
-            formData.delete('new_role[]');
-        }
-
-        if (formData.get('table') === 'env_variables' && (formData.get('key') === 'DB_PASSWORD' || formData.get('key') === 'MAIL_ENCRYPTION')) {
-            var oldValue = formData.get('old_value');
-            if (!oldValue) {
-                alert('Old value is required for DB_PASSWORD and MAIL_ENCRYPTION');
-                return;
+            } else {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>');
             }
-            formData.set('value', null); // Set value to null
-            formData.set('old_value', oldValue); // Add old value to form data
-        }
 
-        console.log('Form data before send:', Object.fromEntries(formData));
-
-        $.ajax({
-            url: 'includes/update_item.php',
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (response) {
-                console.log('Server response:', response);
-                if (response.success) {
-                    showToast('Success', 'Item updated successfully', 'success');
-                    $('#editModal').modal('hide');
-                    // Add delay before reload
-                    setTimeout(function() {
-                        location.reload();
-                    }, 2000); // 2 second delay
-                } else {
-                    showToast('Error', response.message, 'error');
-                    console.error('Update failed:', response);
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('AJAX error:', textStatus, errorThrown);
-                console.log('Response Text:', jqXHR.responseText);
-                console.log('Status:', jqXHR.status);
-                console.log('Status Text:', jqXHR.statusText);
-                showToast('Error', 'Unable to update item. Check console for details.', 'error');
-            }
+            $('#addModal').modal('show');
         });
-    });
 
-    // JavaScript code to handle form submission
-    $('#addItem').on('click', function () {
-        var form = $('#addForm');
-        var formData = new FormData(form[0]);
+        $('#saveChanges').on('click', function() {
+            var form = $('#editForm');
+            var formData = new FormData(form[0]);
 
-        $.ajax({
-            url: 'includes/add_items.php',
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function (response) {
-                if (response.success) {
-                    showToast('Success', 'Added successfully', 'success');
-                    $('#addModal').modal('hide');
-                    // Add delay before reload
-                    setTimeout(function() {
-                        location.reload();
-                    }, 2000); // 2 second delay
-                } else {
-                    showToast('Error', response.message, 'error');
-                }
-            },
-            error: function () {
-                showToast('Error', 'Unable to add team', 'error'); 
+            if (formData.get('table') === 'teams') {
+                var members = [];
+                $('.team-member').each(function() {
+                    var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
+                    var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
+                    if (userId && role) {
+                        members.push({
+                            id: userId,
+                            role: role
+                        });
+                    }
+                });
+                formData.set('members', JSON.stringify(members));
+                formData.delete('member_role[]');
+                formData.delete('new_user_id[]');
+                formData.delete('new_role[]');
             }
-        });
-    });
 
-    // JavaScript code to handle delete button click
-    $(document).on('click', '.delete-btn', function () {
-        var id = $(this).data('id');
-        var table = $(this).data('table');
-        
-        // Update modal content
-        $('#deleteTableName').text(table);
-        $('#deleteItemId').text(id);
-        
-        // Show modal
-        var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
-        deleteModal.show();
-        
-        // Handle delete confirmation
-        $('#confirmDelete').one('click', function() {
-            deleteModal.hide();
-            
+            if (formData.get('table') === 'env_variables' && (formData.get('key') === 'DB_PASSWORD' || formData.get('key') === 'MAIL_ENCRYPTION')) {
+                var oldValue = formData.get('old_value');
+                if (!oldValue) {
+                    alert('Old value is required for DB_PASSWORD and MAIL_ENCRYPTION');
+                    return;
+                }
+                formData.set('value', null); // Set value to null
+                formData.set('old_value', oldValue); // Add old value to form data
+            }
+
+            console.log('Form data before send:', Object.fromEntries(formData));
+
             $.ajax({
-                url: 'includes/delete_item.php',
+                url: 'includes/update_item.php',
                 method: 'POST',
-                data: {
-                    id: id,
-                    table: table
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
-                success: function (response) {
+                success: function(response) {
+                    console.log('Server response:', response);
                     if (response.success) {
-                        showToast('Success', 'Item deleted successfully from table ' + table + ' with ID ' + id, 'success');
+                        showToast('Success', 'Item updated successfully', 'success');
+                        $('#editModal').modal('hide');
+                        // Add delay before reload
                         setTimeout(function() {
                             location.reload();
-                        }, 2000);
+                        }, 2000); // 2 second delay
                     } else {
-                        showToast('Error', response.message + ' (Table: ' + table + ', ID: ' + id + ')', 'error');
+                        showToast('Error', response.message, 'error');
+                        console.error('Update failed:', response);
                     }
                 },
-                error: function () {
-                    showToast('Error', 'Unable to delete item from table ' + table + ' with ID ' + id, 'error');
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX error:', textStatus, errorThrown);
+                    console.log('Response Text:', jqXHR.responseText);
+                    console.log('Status:', jqXHR.status);
+                    console.log('Status Text:', jqXHR.statusText);
+                    showToast('Error', 'Unable to update item. Check console for details.', 'error');
                 }
             });
         });
-    });
 
-    // Clean up event handler when modal is hidden
-    $('#deleteConfirmModal').on('hidden.bs.modal', function () {
-        $('#confirmDelete').off('click');
-    });
+        // JavaScript code to handle form submission
+        $('#addItem').on('click', function() {
+            var form = $('#addForm');
+            var formData = new FormData(form[0]);
 
-    if (typeof moment === 'undefined') {
-        console.error("Moment.js is not loaded!");
-    }
+            $.ajax({
+                url: 'includes/add_items.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Success', 'Added successfully', 'success');
+                        $('#addModal').modal('hide');
+                        // Add delay before reload
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000); // 2 second delay
+                    } else {
+                        showToast('Error', response.message, 'error');
+                    }
+                },
+                error: function() {
+                    showToast('Error', 'Unable to add team', 'error');
+                }
+            });
+        });
 
-    // Datepicker initialization
-    $("#days").datepicker({
-        dateFormat: "yy-mm-dd",
-        multidate: true,
-        beforeShowDay: function (date) {
-            var day = date.getDay();
-            return [day != 0, '']; // Disable Sundays
+        // JavaScript code to handle delete button click
+        $(document).on('click', '.delete-btn', function() {
+            var id = $(this).data('id');
+            var table = $(this).data('table');
+
+            // Update modal content
+            $('#deleteTableName').text(table);
+            $('#deleteItemId').text(id);
+
+            // Show modal
+            var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
+            deleteModal.show();
+
+            // Handle delete confirmation
+            $('#confirmDelete').one('click', function() {
+                deleteModal.hide();
+
+                $.ajax({
+                    url: 'includes/delete_item.php',
+                    method: 'POST',
+                    data: {
+                        id: id,
+                        table: table
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            showToast('Success', 'Item deleted successfully from table ' + table + ' with ID ' + id, 'success');
+                            setTimeout(function() {
+                                location.reload();
+                            }, 2000);
+                        } else {
+                            showToast('Error', response.message + ' (Table: ' + table + ', ID: ' + id + ')', 'error');
+                        }
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to delete item from table ' + table + ' with ID ' + id, 'error');
+                    }
+                });
+            });
+        });
+
+        // Clean up event handler when modal is hidden
+        $('#deleteConfirmModal').on('hidden.bs.modal', function() {
+            $('#confirmDelete').off('click');
+        });
+
+        if (typeof moment === 'undefined') {
+            console.error("Moment.js is not loaded!");
         }
-    });
 
-    $('#saveSchedulerSettings').on('click', function () {
-        // You can add validation here if needed (e.g., check if rooms, dates are provided)
-        $('#schedulerSettingsModal').modal('hide'); // Close the modal
-        // Enable "Generate Schedule" button after settings are saved
-        $('#generateSchedule').prop('disabled', false);
-    });
+        // Datepicker initialization
+        $("#days").datepicker({
+            dateFormat: "yy-mm-dd",
+            multidate: true,
+            beforeShowDay: function(date) {
+                var day = date.getDay();
+                return [day != 0, '']; // Disable Sundays
+            }
+        });
 
-    $('#generateSchedule').on('click', function () {
-        console.log('Generate Schedule button clicked'); // Existing log
+        $('#saveSchedulerSettings').on('click', function() {
+            // You can add validation here if needed (e.g., check if rooms, dates are provided)
+            $('#schedulerSettingsModal').modal('hide'); // Close the modal
+            // Enable "Generate Schedule" button after settings are saved
+            $('#generateSchedule').prop('disabled', false);
+        });
 
-        <?php
-        $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules");
-        $stmt->execute();
-        $totalScheds = $stmt->fetchColumn();
-        ?>
-        // Check if there are existing schedules
-        var totalScheds = <?php echo $totalScheds; ?>; // Get the total schedules from PHP
+        $('#generateSchedule').on('click', function() {
+            console.log('Generate Schedule button clicked'); // Existing log
 
-        console.log('Total Schedules:', totalScheds); // New log
+            <?php
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules");
+            $stmt->execute();
+            $totalScheds = $stmt->fetchColumn();
+            ?>
+            // Check if there are existing schedules
+            var totalScheds = <?php echo $totalScheds; ?>; // Get the total schedules from PHP
 
-        if (totalScheds !== 0) {
-            if (confirm('Existing schedules will be removed. Are you sure you want to proceed?')) {
+            console.log('Total Schedules:', totalScheds); // New log
+
+            if (totalScheds !== 0) {
+                if (confirm('Existing schedules will be removed. Are you sure you want to proceed?')) {
+                    initiateScheduleGeneration();
+                    var xhr = new XMLHttpRequest();
+                    xhr.open('POST', './includes/truncate_sched.php', true);
+                    xhr.send();
+                }
+            } else {
                 initiateScheduleGeneration();
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', './includes/truncate_sched.php', true);
-                xhr.send();
             }
+        });
+
+        // New function to initiate schedule generation
+        function initiateScheduleGeneration() {
+            var $button = $('#generateSchedule');
+            var $status = $('#scheduleGenerationStatus');
+
+            // Get scheduler settings
+            var rooms = $('#rooms').val().split(',').map(function(room) {
+                return room.trim();
+            });
+            var timeDuration = parseInt($('#timeDuration').val());
+            var startTime = $('#startTime').val();
+            var endTime = $('#endTime').val();
+            var days = $('#days').datepicker('getDates').map(function(date) {
+                return moment(date).format('YYYY-MM-DD'); // Format dates correctly
+            });
+
+            var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
+
+            // Retrieve program and status from the form
+            var program = $('#programSelect').val(); // Ensure the ID matches your program select element
+            var status = $('input[name="status[]"]:checked').map(function() {
+                return this.value;
+            }).get(); // Collect all checked status checkboxes
+
+            // Debugging logs
+            console.log('Rooms:', rooms);
+            console.log('Time Duration:', timeDuration);
+            console.log('Start Time:', startTime);
+            console.log('End Time:', endTime);
+            console.log('Time Slots:', timeSlots);
+            console.log('Days:', days);
+
+            $button.prop('disabled', true).text('Generating...');
+            $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
+
+            $.ajax({
+                url: 'includes/run_scheduler.php',
+                method: 'POST',
+                data: {
+                    rooms: rooms,
+                    timeDuration: timeDuration,
+                    startTime: startTime,
+                    endTime: endTime,
+                    timeSlots: timeSlots,
+                    days: days,
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log('AJAX response:', response); // Existing log
+                    if (response.success) {
+                        $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
+
+                        // Update metrics (include all relevant metrics from the PHP response)
+                        $('#initialPopulationSize').text(response.initialPopulationSize);
+                        $('#crossoverCount').text(response.crossoverCount);
+                        $('#mutationCount').text(response.mutationCount);
+                        $('#conflictCounts').text(response.conflictCounts.join(', '));
+                        // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
+
+                        // Reload or update the schedule display after a short delay
+                        setTimeout(function() {
+                            location.reload(); // Or update the schedule table dynamically
+                        }, 2000);
+
+                    } else {
+                        $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
+                        $button.prop('disabled', false).text('Generate Defense Schedule');
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error('AJAX Error:', textStatus, errorThrown);
+                    if (jqXHR.responseText) {
+                        console.error('Server Response:', jqXHR.responseText);
+                    }
+                    $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
+                    $button.prop('disabled', false).text('Generate Defense Schedule');
+                },
+                complete: function() {
+                    // This will run regardless of success or failure.
+                    // Optionally, you can remove the "Generating..." state here.
+                    $button.text('Generate Defense Schedule');
+                }
+            });
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', './includes/truncate_sched.php', true);
+            xhr.send();
+
+        }
+
+        function generateTimeSlots(start, end, duration) {
+            var timeSlots = [];
+
+            // Parse start and end times as Moment.js objects
+            var current = moment(start, "HH:mm");
+            var endTime = moment(end, "HH:mm");
+
+            // Loop to generate slots
+            while (current.isBefore(endTime)) {
+                timeSlots.push(current.format("HH:mm:ss"));
+                current.add(duration, 'hours');
+            }
+            console.log('Time slots:', timeSlots);
+            return timeSlots;
+        }
+
+    });
+
+    const sidebarContainer = $('#sidebarContainer');
+    const mainContent = $('#mainContent');
+    const toggleButton = $('#toggleSidebar');
+
+    toggleButton.on('click', function() {
+        sidebarContainer.toggleClass('collapsed');
+        mainContent.toggleClass('expanded');
+        toggleButton.toggleClass('collapsed');
+
+        // Store the sidebar state in localStorage
+        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+    });
+
+    // Check localStorage for saved sidebar state on page load
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        sidebarContainer.addClass('collapsed');
+        mainContent.addClass('expanded');
+        toggleButton.addClass('collapsed');
+    }
+
+    // Handle window resize
+    $(window).on('resize', function() {
+        if (window.innerWidth <= 768) {
+            mainContent.addClass('expanded');
         } else {
-            initiateScheduleGeneration();
+            if (!sidebarContainer.hasClass('collapsed')) {
+                mainContent.removeClass('expanded');
+            }
         }
     });
 
-    // New function to initiate schedule generation
-    function initiateScheduleGeneration() {
-        var $button = $('#generateSchedule');
-        var $status = $('#scheduleGenerationStatus');
+    function addNewPanelist(staff) {
+        // Determine the next index based on existing panelists
+        var currentIndices = $('#panelists .panelist select').map(function() {
+            var name = $(this).attr('name');
+            var match = name.match(/\[(\d+)\]/);
+            return match ? parseInt(match[1], 10) : -1;
+        }).get();
+        var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
 
-        // Get scheduler settings
-        var rooms = $('#rooms').val().split(',').map(function (room) {
-            return room.trim();
-        });
-        var timeDuration = parseInt($('#timeDuration').val());
-        var startTime = $('#startTime').val();
-        var endTime = $('#endTime').val();
-        var days = $('#days').datepicker('getDates').map(function (date) {
-            return moment(date).format('YYYY-MM-DD'); // Format dates correctly
-        });
-
-        var timeSlots = generateTimeSlots(startTime, endTime, timeDuration);
-
-        // Retrieve program and status from the form
-        var program = $('#programSelect').val(); // Ensure the ID matches your program select element
-        var status = $('input[name="status[]"]:checked').map(function () {
-            return this.value;
-        }).get();   // Collect all checked status checkboxes
-
-        // Debugging logs
-        console.log('Rooms:', rooms);
-        console.log('Time Duration:', timeDuration);
-        console.log('Start Time:', startTime);
-        console.log('End Time:', endTime);
-        console.log('Time Slots:', timeSlots);
-        console.log('Days:', days);
-
-        $button.prop('disabled', true).text('Generating...');
-        $status.text('Generating schedule...').removeClass('text-success text-danger').addClass('text-warning');
-
-        $.ajax({
-            url: 'includes/run_scheduler.php',
-            method: 'POST',
-            data: {
-                rooms: rooms,
-                timeDuration: timeDuration,
-                startTime: startTime,
-                endTime: endTime,
-                timeSlots: timeSlots,
-                days: days,
-            },
-            dataType: 'json',
-            success: function (response) {
-                console.log('AJAX response:', response); // Existing log
-                if (response.success) {
-                    $status.text('Schedule generated successfully!').removeClass('text-warning').addClass('text-success');
-
-                    // Update metrics (include all relevant metrics from the PHP response)
-                    $('#initialPopulationSize').text(response.initialPopulationSize);
-                    $('#crossoverCount').text(response.crossoverCount);
-                    $('#mutationCount').text(response.mutationCount);
-                    $('#conflictCounts').text(response.conflictCounts.join(', '));
-                    // Add other metrics as needed (e.g., fitnessScores, populationPerGeneration)
-
-                    // Reload or update the schedule display after a short delay
-                    setTimeout(function () {
-                        location.reload(); // Or update the schedule table dynamically
-                    }, 2000);
-
-                } else {
-                    $status.text('Error: ' + response.message).removeClass('text-warning').addClass('text-danger');
-                    $button.prop('disabled', false).text('Generate Defense Schedule');
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('AJAX Error:', textStatus, errorThrown);
-                if (jqXHR.responseText) {
-                    console.error('Server Response:', jqXHR.responseText);
-                }
-                $status.text('An error occurred while generating the schedule.').removeClass('text-warning').addClass('text-danger');
-                $button.prop('disabled', false).text('Generate Defense Schedule');
-            },
-            complete: function () {
-                // This will run regardless of success or failure.
-                // Optionally, you can remove the "Generating..." state here.
-                $button.text('Generate Defense Schedule');
-            }
-        });
-
-        var xhr = new XMLHttpRequest();
-        xhr.open('POST', './includes/truncate_sched.php', true);
-        xhr.send();
-
-    }
-
-    function generateTimeSlots(start, end, duration) {
-        var timeSlots = [];
-
-        // Parse start and end times as Moment.js objects
-        var current = moment(start, "HH:mm");
-        var endTime = moment(end, "HH:mm");
-
-        // Loop to generate slots
-        while (current.isBefore(endTime)) {
-            timeSlots.push(current.format("HH:mm:ss"));
-            current.add(duration, 'hours');
-        }
-        console.log('Time slots:', timeSlots);
-        return timeSlots;
-    }
-
-});
-
-const sidebarContainer = $('#sidebarContainer');
-const mainContent = $('#mainContent');
-const toggleButton = $('#toggleSidebar');
-
-toggleButton.on('click', function () {
-    sidebarContainer.toggleClass('collapsed');
-    mainContent.toggleClass('expanded');
-    toggleButton.toggleClass('collapsed');
-
-    // Store the sidebar state in localStorage
-    localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
-});
-
-// Check localStorage for saved sidebar state on page load
-const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-if (sidebarCollapsed) {
-    sidebarContainer.addClass('collapsed');
-    mainContent.addClass('expanded');
-    toggleButton.addClass('collapsed');
-}
-
-// Handle window resize
-$(window).on('resize', function () {
-    if (window.innerWidth <= 768) {
-        mainContent.addClass('expanded');
-    } else {
-        if (!sidebarContainer.hasClass('collapsed')) {
-            mainContent.removeClass('expanded');
-        }
-    }
-});
-
-function addNewPanelist(staff) {
-    // Determine the next index based on existing panelists
-    var currentIndices = $('#panelists .panelist select').map(function () {
-        var name = $(this).attr('name');
-        var match = name.match(/\[(\d+)\]/);
-        return match ? parseInt(match[1], 10) : -1;
-    }).get();
-    var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
-
-    var newPanelistHtml = `
+        var newPanelistHtml = `
         <div class="mb-3 row panelist">
             <div class="col-sm-10">
                 <select class="form-select" name="panelist_id[${nextIndex}]">
@@ -936,27 +966,27 @@ function addNewPanelist(staff) {
             </div>
         </div>
     `;
-    $('#panelists').append(newPanelistHtml);
-    console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
-}
+        $('#panelists').append(newPanelistHtml);
+        console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
+    }
 
-// Optionally, update existing panelist entries to have unique indices
-$(document).ready(function () {
-    $('#panelists .panelist').each(function (index) {
-        $(this).find('select').attr('name', `panelist_id[${index}]`);
+    // Optionally, update existing panelist entries to have unique indices
+    $(document).ready(function() {
+        $('#panelists .panelist').each(function(index) {
+            $(this).find('select').attr('name', `panelist_id[${index}]`);
+        });
     });
-});
 
-// Define addNewTeamMember function globally
-function addNewTeamMember() {
-    console.log('addNewTeamMember function called');
-    $.ajax({
-        url: 'includes/get_users.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function (users) {
-            console.log('Users fetched:', users);
-            var newMemberHtml = `
+    // Define addNewTeamMember function globally
+    function addNewTeamMember() {
+        console.log('addNewTeamMember function called');
+        $.ajax({
+            url: 'includes/get_users.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(users) {
+                console.log('Users fetched:', users);
+                var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
                         <select class="form-select" name="new_user_id[]">
@@ -976,65 +1006,65 @@ function addNewTeamMember() {
                     </div>
                 </div>
             `;
-            console.log('New member HTML:', newMemberHtml);
-            $('#teamMembers').append(newMemberHtml);
-            console.log('New member added to DOM');
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error('Error fetching users:', textStatus, errorThrown);
-        }
-    }); 
-}
-// Remove team member functionality
-$(document).on('click', '.remove-member', function () {
-    var teamMember = $(this).closest('.team-member');
-    var userId = teamMember.data('user-id');
-    var teamId = $('input[name="id"]').val();
-
-    if (userId && teamId) {
-        if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
-            $.ajax({
-                url: 'includes/remove_team_member.php',
-                method: 'POST',
-                data: {
-                    user_id: userId,
-                    team_id: teamId
-                },
-                dataType: 'json',
-                success: function (response) {
-                    if (response.success) {
-                        teamMember.remove();
-                        alert('Team member removed successfully');
-                    } else {
-                        alert('Error: ' + response.message);
-                    }
-                },
-                error: function () {
-                    alert('Error: Unable to remove team member');
-                } 
-            });
-        }
-    } else {
-        // If it's a new member (not yet saved to database), just remove from form
-        teamMember.remove();
+                console.log('New member HTML:', newMemberHtml);
+                $('#teamMembers').append(newMemberHtml);
+                console.log('New member added to DOM');
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error('Error fetching users:', textStatus, errorThrown);
+            }
+        });
     }
-});
+    // Remove team member functionality
+    $(document).on('click', '.remove-member', function() {
+        var teamMember = $(this).closest('.team-member');
+        var userId = teamMember.data('user-id');
+        var teamId = $('input[name="id"]').val();
 
-// Helper function for showing toasts
-function showToast(title, message, type = 'success') {
-    // Create toast container if it doesn't exist
-    if (!$('#toastContainer').length) {
-        $('body').append(`
+        if (userId && teamId) {
+            if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+                $.ajax({
+                    url: 'includes/remove_team_member.php',
+                    method: 'POST',
+                    data: {
+                        user_id: userId,
+                        team_id: teamId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            teamMember.remove();
+                            alert('Team member removed successfully');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error: Unable to remove team member');
+                    }
+                });
+            }
+        } else {
+            // If it's a new member (not yet saved to database), just remove from form
+            teamMember.remove();
+        }
+    });
+
+    // Helper function for showing toasts
+    function showToast(title, message, type = 'success') {
+        // Create toast container if it doesn't exist
+        if (!$('#toastContainer').length) {
+            $('body').append(`
             <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
             </div>
         `);
-    }
+        }
 
-    // Generate unique ID for the toast
-    const toastId = 'toast-' + Date.now();
+        // Generate unique ID for the toast
+        const toastId = 'toast-' + Date.now();
 
-    // Create toast HTML with more prominent styling
-    const toast = `
+        // Create toast HTML with more prominent styling
+        const toast = `
         <div id="${toastId}" class="toast align-items-center border-0" 
             role="alert" 
             aria-live="assertive" 
@@ -1049,22 +1079,22 @@ function showToast(title, message, type = 'success') {
         </div>
     `;
 
-    // Add toast to container
-    $('#toastContainer').append(toast);
+        // Add toast to container
+        $('#toastContainer').append(toast);
 
-    // Initialize and show the toast with modified options
-    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-        autohide: true,
-        delay: 3000,
-        animation: true
-    });
-    toastElement.show();
+        // Initialize and show the toast with modified options
+        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+            autohide: true,
+            delay: 3000,
+            animation: true
+        });
+        toastElement.show();
 
-    // Remove toast element after it's hidden
-    $(`#${toastId}`).on('hidden.bs.toast', function () {
-        $(this).remove();
-    });
-}
+        // Remove toast element after it's hidden
+        $(`#${toastId}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
 </script>
 
 <!-- First, add this HTML to your page (can be at the bottom before closing body tag) -->

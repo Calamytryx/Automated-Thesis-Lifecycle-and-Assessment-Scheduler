@@ -43444,3 +43444,839 @@ Stack trace:
 
 )
 
+[09-Mar-2025 09:10:54 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 09:36:55 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 09:44:00 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:04:56 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:56 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:04:57 Europe/Berlin] Generation 0 - Best Fitness: 1000, Conflicts: 0
+[09-Mar-2025 10:04:57 Europe/Berlin] Perfect solution found at generation 0
+[09-Mar-2025 10:05:24 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:24 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:25 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:25 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:25 Europe/Berlin] Generation 0 - Best Fitness: 1000, Conflicts: 0
+[09-Mar-2025 10:05:25 Europe/Berlin] Perfect solution found at generation 0
+[09-Mar-2025 10:05:37 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 07:00
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:05:37 Europe/Berlin] PHP Warning:  Undefined array key "timeSlots" in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 25
+[09-Mar-2025 10:05:37 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:279
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(238): createSeedSchedule(Object(PDO), Array, Array, Array, NULL, Array, 'spread_days')
+#1 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(123): createInitialPopulation(Object(PDO), 150, Array, Array, Array, NULL, Array)
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(45): geneticAlgorithm(Object(PDO), Array, Array, Array, NULL, Array, Array, 150, 300, 0.15)
+#3 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 279
+[09-Mar-2025 10:05:40 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 07:00
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:05:40 Europe/Berlin] PHP Warning:  Undefined array key "timeSlots" in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 25
+[09-Mar-2025 10:05:40 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:279
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(238): createSeedSchedule(Object(PDO), Array, Array, Array, NULL, Array, 'spread_days')
+#1 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(123): createInitialPopulation(Object(PDO), 150, Array, Array, Array, NULL, Array)
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(45): geneticAlgorithm(Object(PDO), Array, Array, Array, NULL, Array, Array, 150, 300, 0.15)
+#3 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 279
+[09-Mar-2025 10:05:49 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:05:49 Europe/Berlin] Generation 0 - Best Fitness: 1000, Conflicts: 0
+[09-Mar-2025 10:05:49 Europe/Berlin] Perfect solution found at generation 0
+[09-Mar-2025 10:06:25 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 07:00
+    [days] => Array
+        (
+            [0] => 2025-03-10
+            [1] => 2025-03-11
+        )
+
+)
+
+[09-Mar-2025 10:06:25 Europe/Berlin] PHP Warning:  Undefined array key "timeSlots" in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 25
+[09-Mar-2025 10:06:25 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: count(): Argument #1 ($value) must be of type Countable|array, null given in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:279
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(238): createSeedSchedule(Object(PDO), Array, Array, Array, NULL, Array, 'spread_days')
+#1 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(123): createInitialPopulation(Object(PDO), 150, Array, Array, Array, NULL, Array)
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(45): geneticAlgorithm(Object(PDO), Array, Array, Array, NULL, Array, Array, 150, 300, 0.15)
+#3 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 279
+[09-Mar-2025 10:26:59 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] High fitness solution found: 1000 with 0 conflicts
+[09-Mar-2025 10:26:59 Europe/Berlin] Generation 0 - Best Fitness: 1000, Conflicts: 0
+[09-Mar-2025 10:26:59 Europe/Berlin] Perfect solution found at generation 0
+[09-Mar-2025 10:31:39 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 10:55:01 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 10:55:01 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:55:01 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:55:01 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:57:17 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 10:57:17 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:57:17 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:57:17 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:59:36 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:30
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 10:59:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:59:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 10:59:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 11:00:36 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 11:00:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 11:00:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 11:00:36 Europe/Berlin] Number of panelists available for scheduling: 10
+[09-Mar-2025 11:24:20 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 11:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+            [1] => 2025-03-12
+        )
+
+)
+
+[09-Mar-2025 11:32:09 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-11
+        )
+
+)
+
