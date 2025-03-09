@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 17, 2024 at 04:34 PM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.3.12
+-- Generation Time: Mar 09, 2025 at 02:57 PM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -105,7 +105,9 @@ INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`,
 (2, 2, 58, 63, 66, '2024-12-11', '11:00:00', '13:00:00', 'Defense Room 2', 'scheduled', '2024-12-17 15:03:16'),
 (3, 3, 61, 64, 59, '2024-12-11', '07:00:00', '09:00:00', 'Defense Room 1', 'scheduled', '2024-12-17 15:03:16'),
 (4, 4, 59, 62, 58, '2024-12-11', '15:00:00', '17:00:00', 'acreditation room', 'scheduled', '2024-12-17 15:03:16'),
-(5, 5, 59, 64, 66, '2024-12-11', '13:00:00', '15:00:00', 'acreditation room', 'scheduled', '2024-12-17 15:03:16');
+(5, 5, 59, 64, 66, '2024-12-11', '13:00:00', '15:00:00', 'acreditation room', 'scheduled', '2024-12-17 15:03:16'),
+(6, 1, 60, 64, 62, '2024-12-20', '13:00:00', '15:00:00', 'Defense Room 3', 'scheduled', '2025-03-09 13:23:14'),
+(7, 1, 60, 64, 62, '2025-03-14', '13:00:00', '15:00:00', 'Defense Room 3', 'scheduled', '2025-03-09 13:33:00');
 
 -- --------------------------------------------------------
 
@@ -204,6 +206,30 @@ INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`,
 (10, 120, 61, 39, 39, 0, 39, '', '2024-12-11 03:22:33'),
 (11, 120, 61, 40, 39, 0, 39, '', '2024-12-11 03:22:33'),
 (12, 120, 61, 41, 39, 0, 39, '', '2024-12-11 03:22:33');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `form_assignments`
+--
+
+CREATE TABLE `form_assignments` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED NOT NULL,
+  `embed_link` text NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `form_assignments`
+--
+
+INSERT INTO `form_assignments` (`id`, `defense_schedule_id`, `embed_link`, `is_active`, `created_at`, `updated_at`) VALUES
+(1, 1, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdQ4FkofF2p-7IYqiBviGmhEifLmagOzA3mL7mZP06tNyqjYw/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 13:22:50', '2025-03-09 13:36:19'),
+(2, 6, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdGJjmT0gKrHNXFoTwQCQn8CUZ7TCU-xE5vR-j0PUXJx_EUmQ/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 13:23:14', '2025-03-09 13:23:14'),
+(3, 1, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdQ4FkofF2p-7IYqiBviGmhEifLmagOzA3mL7mZP06tNyqjYw/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 13:36:19', '2025-03-09 13:36:19');
 
 -- --------------------------------------------------------
 
@@ -463,7 +489,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
 (0, 0, 'winstonadmin', NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2024-12-17 14:40:02', '0000-00-00 00:00:00', '2024-12-17 14:40:02'),
-(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2024-12-11 03:02:54', NULL, '2024-12-11 03:02:54'),
+(37, 0, 'neilv', NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-03-09 13:05:06', NULL, '2025-03-09 13:05:06'),
 (38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 04:12:17'),
 (39, 1, 'student2', 'Bachelor of Science in Computer Science', 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-19 03:44:04'),
 (40, 1, 'student3', 'Bachelor of Science in Computer Science', 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-11 20:44:23'),
@@ -484,9 +510,9 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `email`, `password
 (55, 1, 'student18', 'Bachelor of Science in Computer Science', 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'Bachelor of Science in Computer Science', 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'Bachelor of Science in Computer Science', 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', 'Bachelor of Science in Computer Science', 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-10 14:26:15'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-09 13:38:16', NULL, '2025-03-09 13:38:16'),
 (59, 2, 'staff2', 'Bachelor of Science in Computer Science', 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:03:23'),
-(60, 2, 'staff3', 'Bachelor of Science in Computer Science', 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-09 05:09:46'),
+(60, 2, 'staff3', 'Bachelor of Science in Computer Science', 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-09 13:40:41', NULL, '2025-03-09 13:40:41'),
 (61, 2, 'staff4', 'Bachelor of Science in Computer Science', 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:05:31'),
 (62, 2, 'staff5', 'Bachelor of Science in Information Technology', 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:06:45'),
 (63, 2, 'staff6', 'Bachelor of Science in Information Technology', 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Delia', 'Fainsan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
@@ -580,6 +606,13 @@ ALTER TABLE `evaluation_per_panel`
   ADD KEY `evalusations_per_panel_ibfk_3_idx` (`student_id`);
 
 --
+-- Indexes for table `form_assignments`
+--
+ALTER TABLE `form_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`);
+
+--
 -- Indexes for table `requirements`
 --
 ALTER TABLE `requirements`
@@ -670,7 +703,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -695,6 +728,12 @@ ALTER TABLE `evaluation_details`
 --
 ALTER TABLE `evaluation_per_panel`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `form_assignments`
+--
+ALTER TABLE `form_assignments`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `requirements`
@@ -797,6 +836,12 @@ ALTER TABLE `evaluation_per_panel`
   ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
 
 --
+-- Constraints for table `form_assignments`
+--
+ALTER TABLE `form_assignments`
+  ADD CONSTRAINT `form_assignments_ibfk_1` FOREIGN KEY (`defense_schedule_id`) REFERENCES `defense_schedules` (`id`) ON DELETE CASCADE;
+
+--
 -- Constraints for table `research_titles`
 --
 ALTER TABLE `research_titles`
@@ -815,24 +860,11 @@ ALTER TABLE `rubric_criteria`
   ADD CONSTRAINT `rubric_criteria_ibfk_1` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `team_members`
---
-ALTER TABLE `team_members`
-  ADD CONSTRAINT `team_members_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
 -- Constraints for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
   ADD CONSTRAINT `team_requirements_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `team_requirements_ibfk_2` FOREIGN KEY (`requirement_id`) REFERENCES `requirements` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `user_schedules`
---
-ALTER TABLE `user_schedules`
-  ADD CONSTRAINT `user_schedules_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

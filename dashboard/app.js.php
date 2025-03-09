@@ -551,31 +551,6 @@ $(document).ready(function () {
                 showToast('Error', 'Unable to fetch teams and staff data', 'error');
             }
             });
-                // <div class="mb-3">
-                //             <label for="schedule_date" class="form-label">Schedule Date</label>
-                //             <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="start_time" class="form-label">Start Time</label>
-                //             <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="end_time" class="form-label">End Time</label>
-                //             <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="room" class="form-label">Room</label>
-                //             <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="team_id" class="form-label">Team</label>
-                //             <select class="form-select" id="team_id" name="team_id" required>
-                //                 ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
-                //             </select>
-                //         </div>
-                //         <h5 class="mt-4">Panelists</h5>
-                //         <div id="panelists">
-
         } else {
             form.append('<div class="mb-3">' +
                 '<label for="name" class="form-label">Name</label>' +
@@ -1065,6 +1040,462 @@ function showToast(title, message, type = 'success') {
         $(this).remove();
     });
 }
+
+// Google Forms popup window handling
+let googleFormsWindow = null;
+
+function openGoogleForm(type) {
+    // Close any existing popup
+    if (googleFormsWindow && !googleFormsWindow.closed) {
+        googleFormsWindow.close();
+    }
+    
+    // Set the URL based on the type
+    let url = '';
+    let windowName = '';
+    
+    if (type === 'create') {
+        url = 'https://docs.google.com/forms/u/0/create';
+        windowName = 'CreateGoogleForm';
+    } else if (type === 'manage') {
+        url = 'https://docs.google.com/forms/u/0/';
+        windowName = 'ManageGoogleForms';
+    }
+    
+    // Calculate centered position
+    const width = Math.min(1200, window.screen.availWidth * 0.9);
+    const height = Math.min(800, window.screen.availHeight * 0.9);
+    const left = (window.screen.availWidth - width) / 2;
+    const top = (window.screen.availHeight - height) / 2;
+    
+    // Open the popup
+    googleFormsWindow = window.open(
+        url, 
+        windowName, 
+        `width=${width},height=${height},top=${top},left=${left},resizable=yes,scrollbars=yes,status=yes,location=yes`
+    );
+    
+    // Show status message
+    const popupStatus = document.getElementById('popupStatus');
+    const popupStatusText = document.getElementById('popupStatusText');
+    
+    if (popupStatus && popupStatusText) {
+        popupStatusText.textContent = `Google Forms is open in a popup window. ${type === 'create' ? 'Create your form' : 'Manage your forms'} and close the window when done.`;
+        popupStatus.style.display = 'block';
+        
+        // Check if popup was blocked
+        if (!googleFormsWindow || googleFormsWindow.closed || typeof googleFormsWindow.closed === 'undefined') {
+            popupStatusText.textContent = 'Popup was blocked! Please allow popups for this site and try again.';
+            popupStatus.classList.remove('alert-info');
+            popupStatus.classList.add('alert-warning');
+        } else {
+            // Set up interval to check if window is closed
+            const checkClosed = setInterval(() => {
+                if (googleFormsWindow.closed) {
+                    clearInterval(checkClosed);
+                    popupStatus.style.display = 'none';
+                    
+                    // Refresh the defense schedules dropdown
+                    loadDefenseSchedules();
+                }
+            }, 500);
+        }
+    }
+}
+
+// Function to load defense schedules into the dropdown
+function loadDefenseSchedules() {
+    const select = document.getElementById('defenseScheduleSelect');
+    if (!select) {
+        console.error('Defense schedule select element not found');
+        return;
+    }
+    
+    // Clear existing options except the first one
+    while (select.options.length > 1) {
+        select.remove(1);
+    }
+    
+    console.log('Fetching defense schedules...');
+    
+    // Fetch defense schedules from the server
+    fetch('includes/get_defense_schedules.php')
+        .then(response => {
+            console.log('Response status:', response.status);
+            return response.json();
+        })
+        .then(data => {
+            console.log('Received data:', data);
+            
+            if (data.error) {
+                console.error('Error from server:', data.error);
+                return;
+            }
+            
+            // Add options for each defense schedule
+            data.forEach(schedule => {
+                const option = document.createElement('option');
+                option.value = schedule.id;
+                const scheduleDate = new Date(schedule.schedule_date);
+                option.textContent = `${schedule.team_name} - ${scheduleDate.toLocaleDateString()} ${schedule.start_time}`;
+                select.appendChild(option);
+            });
+            
+            console.log(`Added ${data.length} defense schedules to dropdown`);
+        })
+        .catch(error => {
+            console.error('Error loading defense schedules:', error);
+        });
+}
+
+// Function to load assigned forms
+function loadAssignedForms() {
+    const table = document.getElementById('assignedFormsTable');
+    if (!table) return;
+    
+    const tbody = table.querySelector('tbody');
+    if (!tbody) return;
+    
+    // Clear existing rows
+    tbody.innerHTML = '';
+    
+    // Show loading indicator
+    tbody.innerHTML = `
+        <tr>
+            <td colspan="4" class="text-center py-4">
+                <div class="spinner-border spinner-border-sm text-primary me-2" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+                Loading assigned forms...
+            </td>
+        </tr>
+    `;
+    
+    // Fetch assigned forms from the server
+    fetch('includes/get_assigned_forms.php')
+        .then(response => response.json())
+        .then(data => {
+            // Clear loading indicator
+            tbody.innerHTML = '';
+            
+            if (data.error) {
+                console.error(data.error);
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4">
+                            <p class="text-danger mb-0">Error loading assigned forms</p>
+                            <small>${data.error}</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" class="text-center py-4">
+                            <p class="text-muted mb-0">No forms assigned yet</p>
+                            <small>Assign a form to see it listed here</small>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            // Add rows for each assigned form
+            data.forEach(form => {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>${form.team_name}</td>
+                    <td>${new Date(form.schedule_date).toLocaleDateString()} ${form.start_time}</td>
+                    <td>
+                        <span class="badge ${form.is_active ? 'bg-success' : 'bg-secondary'}">
+                            ${form.is_active ? 'Active' : 'Inactive'}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="btn-group btn-group-sm">
+                            <button class="btn btn-outline-primary view-form-btn" data-id="${form.id}" data-embed="${form.embed_link}">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-outline-warning edit-form-btn" data-id="${form.id}" data-embed="${form.embed_link}">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-outline-danger delete-form-btn" data-id="${form.id}">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    </td>
+                `;
+                tbody.appendChild(row);
+            });
+            
+            // Add event listeners to the buttons
+            document.querySelectorAll('.view-form-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const embedLink = this.getAttribute('data-embed');
+                    showFormPreviewModal(embedLink);
+                });
+            });
+            
+            document.querySelectorAll('.edit-form-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const formId = this.getAttribute('data-id');
+                    const embedLink = this.getAttribute('data-embed');
+                    editFormAssignment(formId, embedLink);
+                });
+            });
+            
+            document.querySelectorAll('.delete-form-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    const formId = this.getAttribute('data-id');
+                    deleteFormAssignment(formId);
+                });
+            });
+        })
+        .catch(error => {
+            console.error('Error loading assigned forms:', error);
+            tbody.innerHTML = `
+                <tr>
+                    <td colspan="4" class="text-center py-4">
+                        <p class="text-danger mb-0">Error loading assigned forms</p>
+                        <small>Please try again later</small>
+                    </td>
+                </tr>
+            `;
+        });
+}
+
+// Function to show form preview modal
+function showFormPreviewModal(embedLink) {
+    // Create modal if it doesn't exist
+    let modal = document.getElementById('formPreviewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'formPreviewModal';
+        modal.className = 'modal fade';
+        modal.tabIndex = '-1';
+        modal.setAttribute('aria-labelledby', 'formPreviewModalLabel');
+        modal.setAttribute('aria-hidden', 'true');
+        
+        modal.innerHTML = `
+            <div class="modal-dialog modal-xl">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="formPreviewModalLabel">Form Preview</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div id="formPreviewContainer" style="height: 600px;"></div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.appendChild(modal);
+    }
+    
+    // Extract the src from the iframe
+    let src = '';
+    if (embedLink.includes('src="')) {
+        src = embedLink.split('src="')[1].split('"')[0];
+    }
+    
+    // Update the preview container
+    const previewContainer = document.getElementById('formPreviewContainer');
+    if (previewContainer) {
+        if (src) {
+            previewContainer.innerHTML = `<iframe src="${src}" width="100%" height="100%" frameborder="0" marginheight="0" marginwidth="0">Loading…</iframe>`;
+        } else {
+            previewContainer.innerHTML = `<div class="alert alert-warning">Invalid embed link format. Please check the link and try again.</div>`;
+        }
+    }
+    
+    // Show the modal
+    const bsModal = new bootstrap.Modal(modal);
+    bsModal.show();
+}
+
+// Function to edit form assignment
+function editFormAssignment(formId, embedLink) {
+    // Set the form values
+    const embedLinkInput = document.getElementById('embedLink');
+    const defenseScheduleSelect = document.getElementById('defenseScheduleSelect');
+    
+    if (embedLinkInput && defenseScheduleSelect) {
+        embedLinkInput.value = embedLink;
+        
+        // Fetch the defense schedule ID for this form
+        fetch(`includes/get_form_schedule.php?form_id=${formId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    console.error(data.error);
+                    return;
+                }
+                
+                // Set the defense schedule select value
+                defenseScheduleSelect.value = data.defense_schedule_id;
+                
+                // Add a hidden input for the form ID
+                let formIdInput = document.getElementById('formId');
+                if (!formIdInput) {
+                    formIdInput = document.createElement('input');
+                    formIdInput.type = 'hidden'; 
+                    formIdInput.id = 'formId';
+                    formIdInput.name = 'formId';
+                    document.getElementById('embedLinkForm').appendChild(formIdInput);
+                }
+                formIdInput.value = formId;
+                
+                // Scroll to the form
+                document.getElementById('embedLinkForm').scrollIntoView({ behavior: 'smooth' });
+                
+                // Update the submit button text
+                const submitButton = document.querySelector('#embedLinkForm button[type="submit"]');
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-save me-2"></i>Update Form Assignment';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching form schedule:', error);
+            });
+    }
+}
+
+// Function to delete form assignment
+function deleteFormAssignment(formId) {
+    if (confirm('Are you sure you want to delete this form assignment? This action cannot be undone.')) {
+        fetch('includes/delete_form_assignment.php', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `form_id=${formId}`
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                alert(`Error: ${data.error}`);
+                return;
+            }
+            
+            alert('Form assignment deleted successfully');
+            loadAssignedForms();
+        })
+        .catch(error => {
+            console.error('Error deleting form assignment:', error);
+            alert('An error occurred while deleting the form assignment. Please try again.');
+        });
+    }
+}
+
+// Add event listeners when the document is ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('Document ready, initializing rubrics tab...');
+    
+    // Load defense schedules
+    loadDefenseSchedules();
+    
+    // Load assigned forms
+    loadAssignedForms();
+    
+    // Add event listener for the embed link form
+    const embedLinkForm = document.getElementById('embedLinkForm');
+    if (embedLinkForm) {
+        console.log('Found embed link form, adding submit event listener');
+        
+        embedLinkForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const embedLink = document.getElementById('embedLink').value;
+            const defenseScheduleId = document.getElementById('defenseScheduleSelect').value;
+            const formId = document.getElementById('formId')?.value || '';
+            
+            console.log('Form submitted with values:', {
+                embedLink: embedLink,
+                defenseScheduleId: defenseScheduleId,
+                formId: formId
+            });
+            
+            // Validate inputs
+            if (!embedLink) {
+                alert('Please enter a Google Form embed link');
+                return;
+            }
+            
+            if (!defenseScheduleId) {
+                alert('Please select a defense schedule');
+                return;
+            }
+            
+            // Send the data to the server
+            fetch('includes/save_form_assignment.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                },
+                body: `embed_link=${encodeURIComponent(embedLink)}&defense_schedule_id=${defenseScheduleId}&form_id=${formId}`
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.error) {
+                    alert(`Error: ${data.error}`);
+                    return;
+                }
+                
+                // Show success message
+                alert(formId ? 'Form assignment updated successfully' : 'Form assigned successfully');
+                
+                // Reset the form
+                embedLinkForm.reset();
+                
+                // Remove the form ID input if it exists
+                const formIdInput = document.getElementById('formId');
+                if (formIdInput) {
+                    formIdInput.remove();
+                }
+                
+                // Reset the submit button text
+                const submitButton = document.querySelector('#embedLinkForm button[type="submit"]');
+                if (submitButton) {
+                    submitButton.innerHTML = '<i class="fas fa-save me-2"></i>Assign Form to Schedule';
+                }
+                
+                // Reload the assigned forms table
+                loadAssignedForms();
+            })
+            .catch(error => {
+                console.error('Error saving form assignment:', error);
+                alert('An error occurred while saving the form assignment. Please try again.');
+            });
+        });
+    } else {
+        console.error('Embed link form not found');
+    }
+    
+    // Add event listener for the refresh button
+    const refreshButton = document.getElementById('refreshAssignedForms');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', loadAssignedForms);
+    }
+    
+    // Add event listener for the help button
+    const helpButton = document.querySelector('button[data-bs-toggle="tooltip"]');
+    if (helpButton) {
+        helpButton.addEventListener('click', function() {
+            const modal = new bootstrap.Modal(document.getElementById('embedHelpModal'));
+            modal.show();
+        });
+        
+        // Initialize tooltip
+        new bootstrap.Tooltip(helpButton);
+    }
+});
 </script>
 
 <!-- First, add this HTML to your page (can be at the bottom before closing body tag) -->
