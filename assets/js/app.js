@@ -170,19 +170,43 @@ async function processOutputToAI() {
     }
     
     try {
-        const prompt = `analyze the following content for its strengths, weaknesses, and possible revisions and ignore the inconsistent formatting and need for images as this is raw text
-        check if it have chapter 4 and 5 if they have it means you can evaluate the results and discussion, and conclusion say final
-        if they dont it means it is a proposal and you can evaluate the introduction, literature review, and methodology say proposal
-        anwer in this format (Strictly follow the format):
-        H2 Analysis of (Proposal or Final) Defense (insert title here) 
-        strong Strengths:
-        - Strength 1
-        strong Weaknesses:
-        - Weakness 1
-        strong Revisions:
-        - Revision 1
-        it should be in a markdown format
+        const prompt = `Analyze the following thesis content and provide a chapter-by-chapter summary and analysis:
 
+        First, identify if this is a proposal (contains only introduction, literature review, methodology) or a final paper (includes chapters 4 and 5: results, discussion, conclusion).
+        
+        For each chapter and its major sections (background, statement of the problem, objectives, etc.), provide:
+        1. A brief summary (2-3 sentences)
+        2. Key points identified
+        
+        Then provide an overall analysis with:
+        - Strengths
+        - Weaknesses
+        - Suggested revisions
+        
+        Format your response in markdown as follows:
+        H2 Chapter-by-Chapter Summary of [Proposal/Final] Paper: [TITLE]
+        
+        H3 Chapter 1: Introduction
+        H4 Background of the Study
+        - Summary: [brief summary]
+        - Key points: [bullet points]
+        
+        H4 Statement of the Problem
+        - Summary: [brief summary]
+        - Key points: [bullet points]
+        
+        [Continue for each section and chapter]
+        
+        H3 Overall Analysis
+        strong Strengths:
+        - [list strengths]
+        
+        strong Weaknesses:
+        - [list weaknesses]
+        
+        strong Suggested Revisions:
+        - [list revision suggestions]
+        
         Analyze this:
         \n\n${outputValue}`;
         const aiResponse = await sendMessageToModel(prompt);
