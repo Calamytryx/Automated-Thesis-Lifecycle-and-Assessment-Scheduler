@@ -71,6 +71,21 @@
                                     `;
                                 }
                             });
+                            
+                            // Add Is Part Time radio buttons for faculty (usertype 2)
+                            formHtml += `
+                            <div class="mb-3 is-part-time-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
+                                <label class="form-label">Is Part Time</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is_parttime" id="fullTime" value="0" ${response.data.is_parttime == 0 || response.data.is_parttime == null ? 'checked' : ''}>
+                                    <label class="form-check-label" for="fullTime">Full Time</label>
+                                </div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="radio" name="is_parttime" id="partTime" value="1" ${response.data.is_parttime == 1 ? 'checked' : ''}>
+                                    <label class="form-check-label" for="partTime">Part Time</label>
+                                </div>
+                            </div>
+                            `;
 
                             form.html(formHtml);
 
@@ -78,8 +93,10 @@
                             $('#usertype').on('change', function() {
                                 if ($(this).val() == 2) {
                                     $('.area-expertise-field').show();
+                                    $('.is-part-time-field').show();
                                 } else {
                                     $('.area-expertise-field').hide();
+                                    $('.is-part-time-field').hide();
                                 }
                             });
                         } else if (table === 'thesis_topics') {
@@ -389,7 +406,7 @@
                     '<label for="last_name" class="form-label">Last Name</label>' +
                     '<input type="text" class="form-control" id="last_name" name="last_name" required>' +
                     '</div>' +
-                    '<div class="mb-3">' +
+                    '<div class="mb-3 area-expertise-field" style="display:none;">' +
                     '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
                     '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">' +
                     '</div>' +
@@ -400,7 +417,29 @@
                     '<option value="1">Student</option>' +
                     '<option value="2">Faculty</option>' +
                     '</select>' +
+                    '</div>' +
+                    '<div class="mb-3 is-part-time-field" style="display:none;">' +
+                    '<label class="form-label">Is Part Time</label>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
+                    '<label class="form-check-label" for="addFullTime">Full Time</label>' +
+                    '</div>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
+                    '<label class="form-check-label" for="addPartTime">Part Time</label>' +
+                    '</div>' +
                     '</div>');
+                
+                // Add event listener for usertype change in add form
+                $('#addForm').on('change', '#usertype', function() {
+                    if ($(this).val() == 2) {
+                        $('.area-expertise-field').show();
+                        $('.is-part-time-field').show();
+                    } else {
+                        $('.area-expertise-field').hide();
+                        $('.is-part-time-field').hide();
+                    }
+                });
             } else if (table === 'thesis_topics') {
                 form.append('<div class="mb-3">' +
                     '<label for="topic" class="form-label">Topic</label>' +
