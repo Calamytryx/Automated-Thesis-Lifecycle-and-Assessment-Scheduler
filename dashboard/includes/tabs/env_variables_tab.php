@@ -630,15 +630,58 @@
 </div>
 
 <script>
-    // Initialize tooltips
+    // Initialize tooltips and content
     document.addEventListener('DOMContentLoaded', function() {
+        // Initialize tooltips
         var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
         var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
             return new bootstrap.Tooltip(tooltipTriggerEl, {
                 html: true,
                 container: 'body'
+            }); 
+        });
+        
+        // Function to initialize content management tab when it becomes visible
+        const initializeContentManagementTab = () => {
+            // Check if the env-variables tab is currently visible
+            if (document.getElementById('env-variables').classList.contains('active')) {
+                // Ensure the "All Content" tab is active and visible
+                const allContentTab = document.getElementById('all-content');
+                const allContentTabButton = document.getElementById('all-content-tab');
+                
+                if (allContentTab && !allContentTab.classList.contains('show')) {
+                    // Manually activate the "All Content" tab if it's not already active
+                    document.querySelectorAll('#cmsContentTabs .nav-link').forEach(tab => {
+                        tab.classList.remove('active');
+                        tab.setAttribute('aria-selected', 'false');
+                    });
+                    
+                    document.querySelectorAll('#cmsContentTabsContent .tab-pane').forEach(pane => {
+                        pane.classList.remove('show', 'active');
+                    });
+                    
+                    if (allContentTabButton) {
+                        allContentTabButton.classList.add('active');
+                        allContentTabButton.setAttribute('aria-selected', 'true');
+                    }
+                    
+                    allContentTab.classList.add('show', 'active');
+                }
+            }
+        };
+        
+        // Initialize when the main dashboard tab for content management becomes visible
+        document.querySelectorAll('#v-pills-tab .nav-link').forEach(tab => {
+            tab.addEventListener('shown.bs.tab', function(e) {
+                if (e.target.id === 'env-variables-tab') {
+                    initializeContentManagementTab();
+                }
             });
         });
+        
+        // Call initialization function on page load
+        // This ensures content is visible if the content management tab is visible by default
+        setTimeout(initializeContentManagementTab, 100);
         
         // Add click event for info icons to show modal with full details
         document.querySelectorAll('.info-icon').forEach(function(icon) {

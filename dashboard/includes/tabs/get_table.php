@@ -116,18 +116,34 @@ GROUP BY
         $stmt = $pdo->prepare($query);
     } elseif ($table === 'users') {
         $query = "SELECT * FROM users";
+        $conditions = [];
+        $params = [];
 
         // Conditionally apply usertype filter
-        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
-            $query .= " WHERE usertype = :usertype";
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '' && $_GET['usertype'] !== 'all') {
+            $conditions[] = "usertype = :usertype";
+            $params[':usertype'] = (int)$_GET['usertype'];
+        }
+
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(username LIKE :search OR email LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
+            $params[':search'] = $searchTerm;
+        }
+
+        // Add WHERE clause if conditions exist
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(' AND ', $conditions);
         }
 
         $query .= " LIMIT :limit OFFSET :offset";
 
         $stmt = $pdo->prepare($query);
 
-        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
-            $stmt->bindValue(':usertype', (int)$_GET['usertype'], PDO::PARAM_INT);
+        // Bind all parameters
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
     } else {
         $query = "SELECT * FROM $table LIMIT :limit OFFSET :offset";
@@ -142,14 +158,34 @@ GROUP BY
     // Get total rows for pagination
     if ($table === 'users') {
         $countQuery = "SELECT COUNT(*) FROM users";
-        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
-            $countQuery .= " WHERE usertype = :usertype";
+        $countConditions = [];
+        $countParams = [];
+
+        // Conditionally apply usertype filter
+        if (isset($_GET['usertype']) && $_GET['usertype'] !== '' && $_GET['usertype'] !== 'all') {
+            $countConditions[] = "usertype = :usertype";
+            $countParams[':usertype'] = (int)$_GET['usertype'];
+        }
+
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $countConditions[] = "(username LIKE :search OR email LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
+            $countParams[':search'] = $searchTerm;
+        }
+
+        // Add WHERE clause if conditions exist
+        if (!empty($countConditions)) {
+            $countQuery .= " WHERE " . implode(' AND ', $countConditions);
         }
 
         $countStmt = $pdo->prepare($countQuery);
-        if (isset($_GET['usertype']) && $_GET['usertype'] !== '') {
-            $countStmt->bindValue(':usertype', (int)$_GET['usertype'], PDO::PARAM_INT);
+        
+        // Bind all parameters
+        foreach ($countParams as $key => $value) {
+            $countStmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
         }
+        
         $countStmt->execute();
         $total_rows = $countStmt->fetchColumn();
         $total_pages = ceil($total_rows / $limit);

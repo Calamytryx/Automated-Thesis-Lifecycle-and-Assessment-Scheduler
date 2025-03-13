@@ -253,13 +253,37 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             if (activeTabPane) {
                 activeTabPane.classList.add("show", "active");
+                
+                // Trigger the shown.bs.tab event manually to ensure content is loaded
+                if (activeNavLink) {
+                    const event = new Event('shown.bs.tab');
+                    activeNavLink.dispatchEvent(event);
+                }
             } else {
                 document.getElementById('overview').classList.add("show", "active");
+                
+                // Trigger the shown.bs.tab event manually for the overview tab
+                const overviewTab = document.getElementById('overview-tab');
+                if (overviewTab) {
+                    const event = new Event('shown.bs.tab');
+                    overviewTab.dispatchEvent(event);
+                }
             }
             if (activeNavLink) {
                 activeNavLink.classList.add("active");
             } else {
                 document.getElementById('overview-tab').classList.add("active");
+            }
+        } else {
+            // If no active tab is stored, activate the overview tab and trigger its event
+            document.getElementById('overview').classList.add("show", "active");
+            document.getElementById('overview-tab').classList.add("active");
+            
+            // Trigger the shown.bs.tab event manually for the overview tab
+            const overviewTab = document.getElementById('overview-tab');
+            if (overviewTab) {
+                const event = new Event('shown.bs.tab');
+                overviewTab.dispatchEvent(event);
             }
         }
 
@@ -275,7 +299,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     });
 </script>
 
-<main role="main" class="container">
+<main role="main" class="container"> 
     <div class="row">
         <!-- <div class="col-sm-3">
             <?php //include('../assets/layouts/profile-card.php'); 
