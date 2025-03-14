@@ -100,9 +100,9 @@ function updateTeam($pdo, $id, $name, $title, $members) {
         $pdo->beginTransaction();
 
         // Update team name
-        $sql = "UPDATE `teams` SET `name` = ? WHERE `id` = ?";
+        $sql = "UPDATE `teams` SET `name` = ?, `program` = ? WHERE `id` = ?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$name, $id]);
+        $stmt->execute([$name, $_POST['program'] ?? null, $id]);
 
         // Update research title
         $sql = "UPDATE `research_titles` SET `title` = ? WHERE `team_id` = ?";

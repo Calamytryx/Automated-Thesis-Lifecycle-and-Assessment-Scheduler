@@ -54,10 +54,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         
         try {
             // Insert into teams table with title and area_of_expertise
-            $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise) VALUES (:name, :area_of_expertise)");
+            $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
             $stmt->execute([
                 'name' => $_POST['name'],
-                'area_of_expertise' => isset($_POST['area_of_expertise']) ? $_POST['area_of_expertise'] : null
+                'area_of_expertise' => isset($_POST['area_of_expertise']) ? $_POST['area_of_expertise'] : null,
+                'program' => isset($_POST['program']) ? $_POST['program'] : null
             ]);
             
             // Get the last inserted ID

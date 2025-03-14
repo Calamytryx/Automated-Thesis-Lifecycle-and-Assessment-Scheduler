@@ -133,6 +133,10 @@
             <label for="area_of_expertise" class="form-label">Area of Expertise</label>
             <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
         </div>
+        <div class="mb-3">
+            <label for="program" class="form-label">Program</label>
+            <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
+        </div>
         <h5 class="mt-4">Team Members</h5>
         <div id="teamMembers">
     `;
@@ -510,6 +514,10 @@
             <div class="mb-3">
             <label for="area_of_expertise" class="form-label">Area of Expertise</label>
             <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">
+            </div>
+            <div class="mb-3">
+            <label for="program" class="form-label">Program</label>
+            <input type="text" class="form-control" id="program" name="program">
             </div>
             <h5 class="mt-4">Team Members</h5>
             <div id="teamMembers">

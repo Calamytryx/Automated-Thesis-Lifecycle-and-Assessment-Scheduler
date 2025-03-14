@@ -1,13 +1,8 @@
 <?php
-// Include the database connection
 require_once '../../../assets/setup/db.inc.php';
-
-// Set header for JSON response
 header('Content-Type: application/json');
 
 try {
-    // Query to find teams without research titles
-    // Uses LEFT JOIN to find teams with no entries in research_titles table
     $sql = "SELECT t.id, t.name, t.program 
             FROM teams t 
             LEFT JOIN research_titles rt ON t.id = rt.team_id 
@@ -16,12 +11,20 @@ try {
     
     $stmt = $pdo->prepare($sql);
     $stmt->execute();
-    $teams = $stmt->fetchAll();
+    $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Return the teams as JSON
-    echo json_encode($teams);
+    // Format response to highlight name and program
+    $result = [];
+    foreach ($teams as $team) {
+        $result[] = [
+            'id' => $team['id'],
+            'name' => $team['name'],
+            'program' => $team['program']
+        ];
+    }
+    
+    echo json_encode($result);
 } catch (PDOException $e) {
-    // Return error message if database query fails
     echo json_encode(['error' => 'Database error: ' . $e->getMessage()]);
     exit;
 }
