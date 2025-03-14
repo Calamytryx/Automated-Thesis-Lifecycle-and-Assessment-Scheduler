@@ -150,6 +150,23 @@ console.log('End Hour:', endHour);
                                 <input type="checkbox" class="form-check-input" id="includeLunchBreak" name="includeLunchBreak">
                                 <label class="form-check-label" for="includeLunchBreak">Include Lunch Break (12 PM - 1 PM)</label>
                             </div>
+                            
+                            <!-- Add Program Selection Dropdown -->
+                            <div class="mb-3">
+                                <label for="programSelect" class="form-label">Program Filter</label>
+                                <select class="form-select" id="programSelect" name="program">
+                                    <option value="">All Programs</option>
+                                    <?php
+                                    // Get unique programs from teams table
+                                    $stmt = $pdo->prepare("SELECT DISTINCT program FROM teams WHERE program IS NOT NULL ORDER BY program");
+                                    $stmt->execute();
+                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                        echo "<option value=\"" . htmlspecialchars($row['program']) . "\">" . htmlspecialchars($row['program']) . "</option>";
+                                    }
+                                    ?>
+                                </select>
+                                <small class="form-text text-muted">Leave blank to include all programs</small>
+                            </div>
                         </form>
                     </div>
                     <?php
@@ -266,6 +283,22 @@ console.log('End Hour:', endHour);
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // Format date to "Mar 15, 2025" style
+                const formatDate = (dateStr) => {
+                    const date = new Date(dateStr);
+                    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                    return date.toLocaleDateString('en-US', options);
+                };
+
+                // Format time from "07:00:00" to "7:00 AM" style
+                const formatTime = (timeStr) => {
+                    // Parse the time (assuming timeStr is in format "HH:MM:SS" or "HH:MM")
+                    const [hours, minutes] = timeStr.split(':').map(Number);
+                    const period = hours >= 12 ? 'PM' : 'AM';
+                    const hour12 = hours % 12 || 12; // Convert to 12-hour format
+                    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+                };
+                
                 const loadDefenseSchedules = (page = 1) => {
                     console.log(`Loading Defense Schedules Page: ${page}`);
                     fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`) // Changed to absolute path
@@ -287,7 +320,11 @@ console.log('End Hour:', endHour);
                             const tbody = document.querySelector('#def-table tbody'); // Updated selector
                             tbody.innerHTML = '';
                             data.data.forEach(schedule => {
-                                const dateTime = `${schedule.schedule_date} ${schedule.start_time} - ${schedule.end_time}`;
+                                // Format date and time with the new helper functions
+                                const formattedDate = formatDate(schedule.schedule_date);
+                                const formattedStartTime = formatTime(schedule.start_time);
+                                const formattedEndTime = formatTime(schedule.end_time);
+                                const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
 
                                 tbody.innerHTML += `
                                     <tr>

@@ -44280,3 +44280,442 @@ Stack trace:
 
 )
 
+[14-Mar-2025 20:05:02 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 08:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 08:00:00
+            [1] => 10:00:00
+            [2] => 12:00:00
+            [3] => 14:00:00
+            [4] => 16:00:00
+            [5] => 18:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:05:02 Europe/Berlin] Cleared previous schedules
+[14-Mar-2025 20:05:02 Europe/Berlin] PHP Fatal error:  Uncaught TypeError: similar_text(): Argument #2 ($string2) must be of type string, array given in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:123
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(123): similar_text('webdev', Array)
+#1 [internal function]: {closure}(Array, Array)
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(122): usort(Array, Object(Closure))
+#3 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(503): fetchPanelistsByProgram(Object(PDO), 'Bachelor of Sci...', 'webdev', Array)
+#4 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(251): DefenseSchedule->__construct(Object(PDO), Array, Array, Array, Array, Array)
+#5 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(168): createInitialPopulation(Object(PDO), 100, Array, Array, Array, Array, Array)
+#6 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(49): geneticAlgorithm(Object(PDO), Array, Array, Array, Array, Array, Array, 100, 200, 0.1, 100)
+#7 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php on line 123
+[14-Mar-2025 20:07:30 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 08:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 08:00:00
+            [1] => 10:00:00
+            [2] => 12:00:00
+            [3] => 14:00:00
+            [4] => 16:00:00
+            [5] => 18:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:16:22 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:18:58 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:18:58 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:18:58 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.0091609954833984 seconds
+[14-Mar-2025 20:18:58 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.19613003730774 seconds
+[14-Mar-2025 20:18:58 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:18:58 Europe/Berlin] Genetic algorithm completed in 0.28171706199646 seconds
+[14-Mar-2025 20:21:23 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:21:23 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:21:23 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.0083250999450684 seconds
+[14-Mar-2025 20:21:23 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.24950194358826 seconds
+[14-Mar-2025 20:21:23 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:21:23 Europe/Berlin] Genetic algorithm completed in 0.33449196815491 seconds
+[14-Mar-2025 20:24:16 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:24:16 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:24:16 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.0080399513244629 seconds
+[14-Mar-2025 20:24:16 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.17101788520813 seconds
+[14-Mar-2025 20:24:16 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:24:16 Europe/Berlin] Genetic algorithm completed in 0.24282789230347 seconds
+[14-Mar-2025 20:24:16 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:24:16 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:24:16 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:30:30 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:30:30 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:30:30 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.0092799663543701 seconds
+[14-Mar-2025 20:30:30 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.21218395233154 seconds
+[14-Mar-2025 20:30:31 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:30:31 Europe/Berlin] Genetic algorithm completed in 0.30307793617249 seconds
+[14-Mar-2025 20:30:31 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:30:31 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:30:31 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:31:07 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:31:07 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:31:07 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.013758897781372 seconds
+[14-Mar-2025 20:31:07 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.3108959197998 seconds
+[14-Mar-2025 20:31:08 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:31:08 Europe/Berlin] Genetic algorithm completed in 0.45543098449707 seconds
+[14-Mar-2025 20:31:08 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:31:08 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:31:08 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:35:10 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:35:10 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:35:10 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.013625860214233 seconds
+[14-Mar-2025 20:35:10 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.33418488502502 seconds
+[14-Mar-2025 20:35:10 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:35:10 Europe/Berlin] Genetic algorithm completed in 0.48041796684265 seconds
+[14-Mar-2025 20:35:10 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:35:10 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:35:10 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:36:33 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+            [6] => 19:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:36:33 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:36:33 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.021101951599121 seconds
+[14-Mar-2025 20:36:33 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.40587687492371 seconds
+[14-Mar-2025 20:36:34 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:36:34 Europe/Berlin] Genetic algorithm completed in 0.55011296272278 seconds
+[14-Mar-2025 20:36:34 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:36:34 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:36:34 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:40:53 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:40:53 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:40:53 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.012922048568726 seconds
+[14-Mar-2025 20:40:53 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.32151818275452 seconds
+[14-Mar-2025 20:40:53 Europe/Berlin] Early stopping at generation 30 - no improvement for 30 generations
+[14-Mar-2025 20:40:53 Europe/Berlin] Genetic algorithm completed in 0.46861410140991 seconds
+[14-Mar-2025 20:40:53 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:40:53 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:40:53 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[14-Mar-2025 20:45:28 Europe/Berlin] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-15
+        )
+
+)
+
+[14-Mar-2025 20:45:28 Europe/Berlin] Previous schedules cleared
+[14-Mar-2025 20:45:28 Europe/Berlin] Generation 0 completed. Best fitness: 300. Elapsed time: 0.022698879241943 seconds
+[14-Mar-2025 20:45:29 Europe/Berlin] Generation 20 completed. Best fitness: 300. Elapsed time: 0.67447996139526 seconds
+[14-Mar-2025 20:45:29 Europe/Berlin] Generation 40 completed. Best fitness: 300. Elapsed time: 1.2498419284821 seconds
+[14-Mar-2025 20:45:30 Europe/Berlin] Generation 60 completed. Best fitness: 300. Elapsed time: 1.8072280883789 seconds
+[14-Mar-2025 20:45:30 Europe/Berlin] Generation 80 completed. Best fitness: 300. Elapsed time: 2.3469948768616 seconds
+[14-Mar-2025 20:45:31 Europe/Berlin] Generation 100 completed. Best fitness: 300. Elapsed time: 2.9025449752808 seconds
+[14-Mar-2025 20:45:31 Europe/Berlin] Generation 120 completed. Best fitness: 300. Elapsed time: 3.4363470077515 seconds
+[14-Mar-2025 20:45:32 Europe/Berlin] Generation 140 completed. Best fitness: 300. Elapsed time: 3.9701330661774 seconds
+[14-Mar-2025 20:45:32 Europe/Berlin] Generation 160 completed. Best fitness: 300. Elapsed time: 4.5134789943695 seconds
+[14-Mar-2025 20:45:33 Europe/Berlin] Generation 180 completed. Best fitness: 300. Elapsed time: 5.0520339012146 seconds
+[14-Mar-2025 20:45:33 Europe/Berlin] Generation 200 completed. Best fitness: 300. Elapsed time: 5.5803070068359 seconds
+[14-Mar-2025 20:45:34 Europe/Berlin] Generation 220 completed. Best fitness: 300. Elapsed time: 6.1188859939575 seconds
+[14-Mar-2025 20:45:35 Europe/Berlin] Generation 240 completed. Best fitness: 300. Elapsed time: 6.6479659080505 seconds
+[14-Mar-2025 20:45:35 Europe/Berlin] Generation 260 completed. Best fitness: 300. Elapsed time: 7.1757929325104 seconds
+[14-Mar-2025 20:45:36 Europe/Berlin] Generation 280 completed. Best fitness: 300. Elapsed time: 7.6985728740692 seconds
+[14-Mar-2025 20:45:36 Europe/Berlin] Generation 300 completed. Best fitness: 300. Elapsed time: 8.2279469966888 seconds
+[14-Mar-2025 20:45:37 Europe/Berlin] Generation 320 completed. Best fitness: 300. Elapsed time: 8.8138010501862 seconds
+[14-Mar-2025 20:45:37 Europe/Berlin] Generation 340 completed. Best fitness: 300. Elapsed time: 9.380569934845 seconds
+[14-Mar-2025 20:45:38 Europe/Berlin] Generation 360 completed. Best fitness: 300. Elapsed time: 9.9172790050507 seconds
+[14-Mar-2025 20:45:38 Europe/Berlin] Generation 380 completed. Best fitness: 300. Elapsed time: 10.443145990372 seconds
+[14-Mar-2025 20:45:39 Europe/Berlin] Generation 400 completed. Best fitness: 300. Elapsed time: 10.979151964188 seconds
+[14-Mar-2025 20:45:39 Europe/Berlin] Generation 420 completed. Best fitness: 300. Elapsed time: 11.514900922775 seconds
+[14-Mar-2025 20:45:40 Europe/Berlin] Generation 440 completed. Best fitness: 300. Elapsed time: 12.065027952194 seconds
+[14-Mar-2025 20:45:41 Europe/Berlin] Generation 460 completed. Best fitness: 300. Elapsed time: 12.599260091782 seconds
+[14-Mar-2025 20:45:41 Europe/Berlin] Generation 480 completed. Best fitness: 300. Elapsed time: 13.130347013474 seconds
+[14-Mar-2025 20:45:42 Europe/Berlin] Genetic algorithm completed in 13.668199062347 seconds
+[14-Mar-2025 20:45:42 Europe/Berlin] Missing teams detected: 5
+[14-Mar-2025 20:45:42 Europe/Berlin] Creating fallback schedule for team ID: 5
+[14-Mar-2025 20:45:42 Europe/Berlin] Teams scheduled: 5 out of 5 expected

@@ -1001,10 +1001,14 @@
             // Parse start and end times as Moment.js objects
             var current = moment(start, "HH:mm");
             var endTime = moment(end, "HH:mm");
+            var maxTime = moment("18:00", "HH:mm"); // Set maximum time to 6 PM
 
             // Loop to generate slots
             while (current.isBefore(endTime)) {
-                timeSlots.push(current.format("HH:mm:ss"));
+                // Only add time slots that are at or before 6 PM
+                if (!current.isAfter(maxTime)) {
+                    timeSlots.push(current.format("HH:mm:ss"));
+                }
                 current.add(duration, 'hours');
             }
             console.log('Time slots:', timeSlots);
