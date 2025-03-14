@@ -455,18 +455,48 @@
                     '</div>'
                 );
             } else if (table === 'research_titles') {
-                form.append('<div class="mb-3">' +
-                    '<label for="team_id" class="form-label">Team ID</label>' +
-                    '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="title" class="form-label">Title</label>' +
-                    '<input type="text" class="form-control" id="title" name="title" required>' +
-                    '</div>' +
-                    '<div class="mb-3 form-check">' +
-                    '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
-                    '<label class="form-check-label" for="approved">Approved</label>' +
-                    '</div>');
+                // Fetch teams data to populate the dropdown
+                $.ajax({
+                    url: 'includes/get_teams_and_staff.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var formHtml = `
+                            <div class="mb-3">
+                                <label for="team_id" class="form-label">Team Name</label>
+                                <select class="form-select" id="team_id" name="team_id" required>
+                                    <option value="">Select Team</option>
+                                    ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="approved" name="approved">
+                                <label class="form-check-label" for="approved">Approved</label>
+                            </div>
+                        `;
+                        $('#addForm').append(formHtml);
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams data', 'error');
+                        // Fallback to simple input field if AJAX fails
+                        form.append('<div class="mb-3">' +
+                            '<label for="team_id" class="form-label">Team ID</label>' +
+                            '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                            '<label for="title" class="form-label">Title</label>' +
+                            '<input type="text" class="form-control" id="title" name="title" required>' +
+                            '</div>' +
+                            '<div class="mb-3 form-check">' +
+                            '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
+                            '<label class="form-check-label" for="approved">Approved</label>' +
+                            '</div>');
+                    }
+                });
             } else if (table === 'teams') {
                 var formHtml = `
             <div class="mb-3">
@@ -724,6 +754,30 @@
         $('#addItem').on('click', function() {
             var form = $('#addForm');
             var formData = new FormData(form[0]);
+            
+            // Special handling for teams
+            if (formData.get('table') === 'teams') {
+                var members = [];
+                $('#teamMembers .team-member').each(function() {
+                    var userId = $(this).find('select[name="new_user_id[]"]').val();
+                    var role = $(this).find('select[name="new_role[]"]').val();
+                    if (userId && role) {
+                        members.push({
+                            id: userId,
+                            role: role
+                        });
+                    }
+                });
+                
+                // Add members data to formData as JSON string
+                if (members.length > 0) {
+                    formData.set('members', JSON.stringify(members));
+                }
+                
+                // Remove unnecessary form fields to avoid confusion
+                formData.delete('new_user_id[]');
+                formData.delete('new_role[]');
+            }
 
             $.ajax({
                 url: 'includes/add_items.php',
@@ -1025,16 +1079,17 @@
             dataType: 'json',
             success: function(users) {
                 console.log('Users fetched:', users);
+                
+                // Create new team member row
                 var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
-                        <select class="form-select" name="new_user_id[]">
+                        <select class="form-select user-select" name="new_user_id[]">
                             <option value="">Select a user</option>
-                            ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
                         </select>
                     </div>
                     <div class="col-sm-5">
-                        <select class="form-select" name="new_role[]">
+                        <select class="form-select role-select" name="new_role[]">
                             <option value="adviser">Adviser</option>
                             <option value="leader">Leader</option>
                             <option value="member">Member</option>
@@ -1044,13 +1099,49 @@
                         <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
                     </div>
                 </div>
-            `;
-                console.log('New member HTML:', newMemberHtml);
+                `;
+                
+                // Add the new row to the DOM
                 $('#teamMembers').append(newMemberHtml);
-                console.log('New member added to DOM');
+                
+                // Get the newly added elements
+                var $newRow = $('#teamMembers .team-member').last();
+                var $roleSelect = $newRow.find('.role-select');
+                var $userSelect = $newRow.find('.user-select');
+                
+                // Function to update user options based on selected role
+                function updateUserOptions(role) {
+                    $userSelect.empty().append('<option value="">Select a user</option>');
+                    
+                    // Filter users based on role
+                    var filteredUsers = users.filter(function(user) {
+                        if (role === 'adviser') {
+                            return user.usertype == 2; // Faculty only for adviser
+                        } else if (role === 'leader' || role === 'member') {
+                            return user.usertype == 1; // Student only for leader/member
+                        }
+                        return false; // Never show admins (usertype 0)
+                    });
+                    
+                    // Add filtered users to dropdown
+                    filteredUsers.forEach(function(user) {
+                        $userSelect.append(`<option value="${user.id}">${user.first_name} ${user.last_name}</option>`);
+                    });
+                }
+                
+                // Initial filter based on default role (adviser)
+                updateUserOptions($roleSelect.val());
+                
+                // Add event listener for role change
+                $roleSelect.on('change', function() {
+                    updateUserOptions($(this).val());
+                });
+                
+                console.log('New member added to DOM with role-based filtering');
             },
             error: function(jqXHR, textStatus, errorThrown) {
                 console.error('Error fetching users:', textStatus, errorThrown);
+                alert('Error loading users. Please try again.');
             }
         });
     }

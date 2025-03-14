@@ -53,22 +53,35 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $pdo->beginTransaction();
         
         try {
-            // Insert into teams table
-            $stmt = $pdo->prepare("INSERT INTO teams (name) VALUES (:name)");
-            $stmt->execute(['name' => $_POST['name']]);
+            // Insert into teams table with title and area_of_expertise
+            $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise) VALUES (:name, :area_of_expertise)");
+            $stmt->execute([
+                'name' => $_POST['name'],
+                'area_of_expertise' => isset($_POST['area_of_expertise']) ? $_POST['area_of_expertise'] : null
+            ]);
             
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
             
-            // Insert team members if any
-            if (isset($_POST['members'])) {
-                foreach ($_POST['members'] as $member) {
-                    $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
-                    $stmt->execute([
-                        'team_id' => $teamId,
-                        'user_id' => $member['id'],
-                        'role' => $member['role']
-                    ]);
+            // Check if members data exists and is in the correct format
+            if (isset($_POST['members']) && !empty($_POST['members'])) {
+                // If members is a JSON string, decode it
+                $members = $_POST['members'];
+                if (is_string($members)) {
+                    $members = json_decode($members, true);
+                }
+                
+                if (is_array($members)) {
+                    foreach ($members as $member) {
+                        if (isset($member['id']) && isset($member['role'])) {
+                            $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                            $stmt->execute([
+                                'team_id' => $teamId,
+                                'user_id' => $member['id'],
+                                'role' => $member['role']
+                            ]);
+                        }
+                    }
                 }
             }
             
