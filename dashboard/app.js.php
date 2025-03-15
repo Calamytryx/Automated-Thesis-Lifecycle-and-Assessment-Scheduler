@@ -1,13 +1,28 @@
 <script>
     $(document).ready(function() {
+        // Create toast container if it doesn't exist
+        if (!$('#toastContainer').length) {
+            $('body').append('<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>');
+        }
 
         // Edit button functionality
-        $(document).on('click', '.edit-btn', function() {
+        $(document).off('click.editBtn').on('click.editBtn', '.edit-btn', function(e) {
+            e.preventDefault();
+            
             var table = $(this).data('table');
             var id = $(this).data('id');
 
-            console.log('Edit button clicked. Table:', table, 'ID:', id);
+            console.log('Main app: Edit button clicked. Table:', table, 'ID:', id);
+            
+            // Special handling for rubrics
+            if (table === 'rubrics') {
+                console.log('Main app: Delegating rubric edit to rubrics_tab.php handler');
+                // Let the edit-rubric-btn handler in rubrics_tab.php handle this
+                $('.edit-rubric-btn[data-id="' + id + '"]').trigger('click');
+                return true; // Allow event to bubble to other handlers
+            }
 
+            // Continue with normal edit handling for other tables
             $.ajax({
                 url: 'includes/get_item_details.php',
                 method: 'POST',
@@ -351,24 +366,8 @@
                                 $(this).closest('.panelist').remove();
                             });
                         } else if (table === 'rubrics') {
-                            var fieldsToShow = Object.keys(response.data);
-                            fieldsToShow.forEach(function(key) {
-                                var value = response.data[key] || '';
-                                var inputType = (key === 'email') ? 'email' : 'text';
-                                var label = key.replace('_', ' ').charAt(0).toUpperCase() + key.slice(1);
-
-                                // Check if the key is 'id' or 'created_at' to make them hidden
-                                if (key === 'id' || key === 'created_at') {
-                                    form.append('<input type="hidden" id="' + key + '" name="' + key + '" value="' + value + '">');
-                                } else {
-                                    form.append('<div class="mb-3">' +
-                                        '<label for="' + key + '" class="form-label">' + label + '</label>' +
-                                        '<input type="' + inputType + '" class="form-control" id="' + key + '" name="' + key + '" value="' + value + '">' +
-                                        '</div>');
-                                }
-                            });
-
-
+                            // Don't generate form fields - they're handled in rubrics_tab.php
+                            return;
                         }
                         // Add more conditions for other tables as needed
                         $('#editModal').modal('show');
@@ -376,19 +375,60 @@
                         alert('Error: ' + response.message);
                     }
                 },
-                error: function() {
-                    alert('Error: Unable to fetch item details');
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    alert('Error: Unable to fetch item details - ' + error);
                 }
             });
         });
 
         // Add button functionality
-        $(document).on('click', '.add-btn', function() {
+        $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
+            e.preventDefault();
+            
             var table = $(this).data('table');
+            console.log('Main app: Add button clicked for table:', table);
+            
+            // Special handling for rubrics
+            if (table === 'rubrics') {
+                console.log('Main app: Delegating rubric add to rubrics_tab.php handler');
+                // Let the dedicated handler in rubrics_tab.php handle this
+                return true; // Allow event to bubble to other handlers
+            }
+            
+            // Special handling for thesis_topics
+            if (table === 'thesis_topics') {
+                console.log('Main app: Processing thesis topic add');
+                // For thesis topics, we'll let the main handler show the add modal,
+                // and the thesis_topics_tab.php handler will populate it
+                var form = $('#addForm');
+                form.empty();
+                form.append('<input type="hidden" name="table" value="' + table + '">');
+                
+                form.append('<div class="mb-3">' +
+                    '<label for="topic" class="form-label">Topic</label>' +
+                    '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="category" class="form-label">Category</label>' +
+                    '<input type="text" class="form-control" id="category" name="category" required>' +
+                    '</div>'
+                );
+                
+                $('#addModal').modal('show');
+                return true;
+            }
+            
+            // Standard handling for all other tables
             var form = $('#addForm');
             form.empty();
             form.append('<input type="hidden" name="table" value="' + table + '">');
 
+            // Generate form fields based on table
             if (table === 'users') {
                 form.append('<div class="mb-3">' +
                     '<label for="username" class="form-label">Username</label>' +
@@ -544,19 +584,6 @@
                     '<label for="created_by" class="form-label">Description</label>' +
                     '<input type="text" class="form-control" id="Description" name="description" required>' +
                     '</div>');
-            } else if (table === 'rubrics') {
-                form.append('<div class="mb-3">' +
-                    '<label for="name" class="form-label">Name</label>' +
-                    '<input type="text" class="form-control" id="name" name="name" required>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="description" class="form-label">Description</label>' +
-                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="created_by" class="form-label">Created By</label>' +
-                    '<input type="text" class="form-control" id="created_by" name="created_by" required>' +
-                    '</div>');
             } else if (table === 'requirements') {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
@@ -658,31 +685,6 @@
                         showToast('Error', 'Unable to fetch teams and staff data', 'error');
                     }
                 });
-                // <div class="mb-3">
-                //             <label for="schedule_date" class="form-label">Schedule Date</label>
-                //             <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="start_time" class="form-label">Start Time</label>
-                //             <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="end_time" class="form-label">End Time</label>
-                //             <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="room" class="form-label">Room</label>
-                //             <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
-                //         </div>
-                //         <div class="mb-3">
-                //             <label for="team_id" class="form-label">Team</label>
-                //             <select class="form-select" id="team_id" name="team_id" required>
-                //                 ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
-                //             </select>
-                //         </div>
-                //         <h5 class="mt-4">Panelists</h5>
-                //         <div id="panelists">
-
             } else {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
@@ -690,14 +692,20 @@
                     '</div>');
             }
 
+            // Show the modal for tables other than rubrics
             $('#addModal').modal('show');
         });
 
-        $('#saveChanges').on('click', function() {
+        // Save changes button functionality
+        $(document).off('click.saveChanges').on('click.saveChanges', '#saveChanges', function(e) {
+            e.preventDefault();
+            console.log('Save changes button clicked');
+            
             var form = $('#editForm');
             var formData = new FormData(form[0]);
-
-            if (formData.get('table') === 'teams') {
+            
+            var table = formData.get('table');
+            if (table === 'teams') {
                 var members = [];
                 $('.team-member').each(function() {
                     var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
@@ -714,7 +722,7 @@
                 formData.delete('new_user_id[]');
                 formData.delete('new_role[]');
             }
-
+            
             if (formData.get('table') === 'env_variables' && (formData.get('key') === 'DB_PASSWORD' || formData.get('key') === 'MAIL_ENCRYPTION')) {
                 var oldValue = formData.get('old_value');
                 if (!oldValue) {
@@ -758,13 +766,16 @@
             });
         });
 
-        // JavaScript code to handle form submission
-        $('#addItem').on('click', function() {
+        // Add item button functionality
+        $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
+            e.preventDefault();
+            console.log('Add item button clicked');
+            
             var form = $('#addForm');
             var formData = new FormData(form[0]);
             
-            // Special handling for teams
-            if (formData.get('table') === 'teams') {
+            var table = formData.get('table');
+            if (table === 'teams') {
                 var members = [];
                 $('#teamMembers .team-member').each(function() {
                     var userId = $(this).find('select[name="new_user_id[]"]').val();
@@ -786,7 +797,7 @@
                 formData.delete('new_user_id[]');
                 formData.delete('new_role[]');
             }
-
+            
             $.ajax({
                 url: 'includes/add_items.php',
                 method: 'POST',
@@ -806,57 +817,114 @@
                         showToast('Error', response.message, 'error');
                     }
                 },
-                error: function() {
-                    showToast('Error', 'Unable to add team', 'error');
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    showToast('Error', 'Unable to add item: ' + error, 'error');
                 }
             });
         });
 
-        // JavaScript code to handle delete button click
-        $(document).on('click', '.delete-btn', function() {
-            var id = $(this).data('id');
+        // Delete button functionality
+        $(document).off('click.deleteBtn').on('click.deleteBtn', '.delete-btn', function(e) {
+            e.preventDefault();
+            
             var table = $(this).data('table');
+            var id = $(this).data('id');
+            
+            console.log('Main app: Delete button clicked. Table:', table, 'ID:', id);
+            
+            // Special handling for rubrics
+            if (table === 'rubrics') {
+                console.log('Main app: Delegating rubric delete to rubrics_tab.php handler');
+                // Let the delete-rubric-btn handler in rubrics_tab.php handle this
+                $('.delete-rubric-btn[data-id="' + id + '"]').trigger('click');
+                return true; // Allow event to bubble to other handlers
+            }
 
+            // For all other tables, show the confirmation modal
             // Update modal content
             $('#deleteTableName').text(table);
             $('#deleteItemId').text(id);
-
+            
             // Show modal
             var deleteModal = new bootstrap.Modal(document.getElementById('deleteConfirmModal'));
             deleteModal.show();
-
-            // Handle delete confirmation
-            $('#confirmDelete').one('click', function() {
-                deleteModal.hide();
-
-                $.ajax({
-                    url: 'includes/delete_item.php',
-                    method: 'POST',
-                    data: {
-                        id: id,
-                        table: table
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            showToast('Success', 'Item deleted successfully from table ' + table + ' with ID ' + id, 'success');
-                            setTimeout(function() {
-                                location.reload();
-                            }, 2000);
-                        } else {
-                            showToast('Error', response.message + ' (Table: ' + table + ', ID: ' + id + ')', 'error');
-                        }
-                    },
-                    error: function() {
-                        showToast('Error', 'Unable to delete item from table ' + table + ' with ID ' + id, 'error');
-                    }
-                });
-            });
+            
+            // Store data for the confirmation button
+            $('#confirmDelete').data('table', table);
+            $('#confirmDelete').data('id', id);
         });
 
-        // Clean up event handler when modal is hidden
-        $('#deleteConfirmModal').on('hidden.bs.modal', function() {
-            $('#confirmDelete').off('click');
+        // Confirm delete button handler
+        $(document).off('click.confirmDelete').on('click.confirmDelete', '#confirmDelete', function(e) {
+            e.preventDefault();
+            
+            var table = $('#deleteTableName').text();
+            var id = $('#deleteItemId').text();
+            
+            console.log('Main app: Confirm delete clicked for table:', table, 'ID:', id);
+            
+            $.ajax({
+                url: 'includes/delete_item.php',
+                method: 'POST',
+                data: {
+                    table: table,
+                    id: id
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        // Hide modal and refresh the table
+                        $('#deleteConfirmModal').modal('hide');
+                        
+                        // Show success toast
+                        showToast('Success', 'Item deleted successfully', 'success');
+                        
+                        // Reload the appropriate tab
+                        if (table === 'users') {
+                            if (typeof loadUsers === 'function') {
+                                loadUsers();
+                            } else {
+                                // Fall back to page reload after a delay
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1500);
+                            }
+                        } else if (table === 'teams') {
+                            if (typeof loadTeams === 'function') {
+                                loadTeams();
+                            } else {
+                                setTimeout(function() { location.reload(); }, 1500);
+                            }
+                        } else if (table === 'defense_schedules') {
+                            if (typeof loadDefenseSchedules === 'function') {
+                                loadDefenseSchedules();
+                            } else {
+                                setTimeout(function() { location.reload(); }, 1500);
+                            }
+                        } else if (table === 'thesis_topics') {
+                            // Assuming there's a function to reload thesis topics
+                            if (typeof loadThesisTopics === 'function') {
+                                loadThesisTopics();
+                            } else {
+                                setTimeout(function() { location.reload(); }, 1500);
+                            }
+                        } else {
+                            // For any other table, just reload the page
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1500);
+                        }
+                    } else {
+                        // Show error toast
+                        showToast('Error', response.message || 'Unknown error occurred', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    showToast('Error', 'Failed to delete item: ' + error, 'error');
+                }
+            });
         });
 
         if (typeof moment === 'undefined') {
@@ -1192,54 +1260,56 @@
         }
     });
 
-    // Helper function for showing toasts
-    function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
-        if (!$('#toastContainer').length) {
-            $('body').append(`
-            <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-            </div>
-        `);
-        }
+}); // End of document ready
 
-        // Generate unique ID for the toast
-        const toastId = 'toast-' + Date.now();
-
-        // Create toast HTML with more prominent styling
-        const toast = `
-        <div id="${toastId}" class="toast align-items-center border-0" 
-            role="alert" 
-            aria-live="assertive" 
-            aria-atomic="true"
-            style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : 'var(--main-btn-del)'};">
-            <div class="d-flex">
-                <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
-                    <strong>${title}:</strong> ${message}
-                </div>
-                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
+// Helper function for showing toasts
+function showToast(title, message, type = 'success') {
+    // Create toast container if it doesn't exist
+    if (!$('#toastContainer').length) {
+        $('body').append(`
+        <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
         </div>
-    `;
-
-        // Add toast to container
-        $('#toastContainer').append(toast);
-
-        // Initialize and show the toast with modified options
-        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-            autohide: true,
-            delay: 3000,
-            animation: true
-        });
-        toastElement.show();
-
-        // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function() {
-            $(this).remove();
-        });
+    `);
     }
+
+    // Generate unique ID for the toast
+    const toastId = 'toast-' + Date.now();
+
+    // Create toast HTML with more prominent styling
+    const toast = `
+    <div id="${toastId}" class="toast align-items-center border-0" 
+        role="alert" 
+        aria-live="assertive" 
+        aria-atomic="true"
+        style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : 'var(--main-btn-del)'};">
+        <div class="d-flex">
+            <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
+                <strong>${title}:</strong> ${message}
+            </div>
+            <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        </div>
+    </div>
+`;
+
+    // Add toast to container
+    $('#toastContainer').append(toast);
+
+    // Initialize and show the toast with modified options
+    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+        autohide: true,
+        delay: 3000,
+        animation: true
+    });
+    toastElement.show();
+
+    // Remove toast element after it's hidden
+    $(`#${toastId}`).on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
 </script>
 
-<!-- First, add this HTML to your page (can be at the bottom before closing body tag) -->
+<!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">

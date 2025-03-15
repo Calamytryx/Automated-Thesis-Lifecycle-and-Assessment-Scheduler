@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 12, 2025 at 10:06 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.3.12
+-- Generation Time: Mar 15, 2025 at 06:15 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -292,6 +292,9 @@ CREATE TABLE `rubrics` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `description` text DEFAULT NULL,
+  `max_total_score` int(11) DEFAULT NULL,
+  `quality_criteria_count` int(11) DEFAULT NULL,
+  `is_active` tinyint(1) DEFAULT 0,
   `created_by` int(11) UNSIGNED DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `structure` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin NOT NULL CHECK (json_valid(`structure`))
@@ -301,8 +304,10 @@ CREATE TABLE `rubrics` (
 -- Dumping data for table `rubrics`
 --
 
-INSERT INTO `rubrics` (`id`, `name`, `description`, `created_by`, `created_at`, `structure`) VALUES
-(9, 'test', 'desc', NULL, '2024-12-04 19:02:49', '{\"levels\":[\"Level 1\",\"Level 2\",\"Level 3\",\"Level 4\"],\"criteria\":[{\"criterion\":\"cri\",\"levels\":[{\"content\":\"1\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"2\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"3\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"4\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"cri2\",\"levels\":[{\"content\":\"1 2\",\"rowSpan\":1,\"colSpan\":2},{\"content\":\"3 4\",\"rowSpan\":1,\"colSpan\":2}]}]}');
+INSERT INTO `rubrics` (`id`, `name`, `description`, `max_total_score`, `quality_criteria_count`, `is_active`, `created_by`, `created_at`, `structure`) VALUES
+(9, 'test', 'desc', NULL, NULL, 0, NULL, '2024-12-04 19:02:49', '{\"levels\":[\"Level 1\",\"Level 2\",\"Level 3\",\"Level 4\"],\"criteria\":[{\"criterion\":\"cri\",\"levels\":[{\"content\":\"1\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"2\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"3\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"4\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"cri2\",\"levels\":[{\"content\":\"1 2\",\"rowSpan\":1,\"colSpan\":2},{\"content\":\"3 4\",\"rowSpan\":1,\"colSpan\":2}]}]}'),
+(10, 'Atlas', 'desctop', 11, 3, 0, NULL, '2025-03-15 00:13:47', '{\"levels\":[\"just some\",\"some more\",\"and even more\"],\"criteria\":[{\"criterion\":\"row 1\",\"levels\":[{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"row 2\",\"levels\":[{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"row 3\",\"levels\":[{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1}]}]}'),
+(11, 'dsadsada', 'fsfddsfs', 8, 2, 0, NULL, '2025-03-15 00:24:32', '{\"levels\":[\"fdsr5gd\",\"fgd46\"],\"criteria\":[{\"criterion\":\"5fg\",\"levels\":[{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1}]},{\"criterion\":\"sfsfs\",\"levels\":[{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1},{\"content\":\"\",\"rowSpan\":1,\"colSpan\":1}]}]}');
 
 -- --------------------------------------------------------
 
@@ -317,6 +322,57 @@ CREATE TABLE `rubric_criteria` (
   `max_score` int(11) DEFAULT NULL,
   `weight` float DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_quality_criteria`
+--
+
+CREATE TABLE `rubric_quality_criteria` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `rubric_id` int(11) UNSIGNED NOT NULL,
+  `quality_level` int(11) NOT NULL,
+  `points` int(11) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rubric_quality_criteria`
+--
+
+INSERT INTO `rubric_quality_criteria` (`id`, `rubric_id`, `quality_level`, `points`, `description`, `created_at`) VALUES
+(4, 10, 1, 3, 'just some', '2025-03-15 00:23:51'),
+(5, 10, 2, 4, 'some more', '2025-03-15 00:23:51'),
+(6, 10, 3, 5, 'and even more', '2025-03-15 00:23:51'),
+(11, 11, 1, 5, 'fdsr5gd', '2025-03-15 02:44:07'),
+(12, 11, 2, 4, 'fgd468', '2025-03-15 02:44:07');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_rows`
+--
+
+CREATE TABLE `rubric_rows` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `rubric_id` int(11) UNSIGNED NOT NULL,
+  `description` text NOT NULL,
+  `order_index` int(11) NOT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rubric_rows`
+--
+
+INSERT INTO `rubric_rows` (`id`, `rubric_id`, `description`, `order_index`, `created_at`) VALUES
+(3, 10, 'row 1', 0, '2025-03-15 00:23:51'),
+(4, 10, 'row 2', 1, '2025-03-15 00:23:51'),
+(5, 10, 'row 3', 2, '2025-03-15 00:23:51'),
+(10, 11, '5fg', 0, '2025-03-15 02:44:07'),
+(11, 11, 'sfsfs', 1, '2025-03-15 02:44:07');
 
 -- --------------------------------------------------------
 
@@ -492,7 +548,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
 (0, 0, 'winstonadmin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-03-11 11:49:31', '0000-00-00 00:00:00', '2025-03-11 11:49:31'),
-(37, 0, 'neilv', NULL, NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-02-20 16:36:55', NULL, '2025-02-20 16:36:55'),
+(37, 0, 'neilv', NULL, NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-03-15 02:43:04', NULL, '2025-03-15 02:43:04'),
 (38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-08 02:38:04', NULL, '2025-03-08 02:38:04'),
 (39, 1, 'student2', 'Bachelor of Science in Computer Science', NULL, NULL, 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:46:33', NULL, '2025-03-10 03:46:33'),
 (40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-11 20:44:23'),
@@ -517,7 +573,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:37:10', NULL, '2025-03-10 03:37:10'),
 (60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:37:41', NULL, '2025-03-10 03:37:41'),
 (61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:47:27', NULL, '2025-03-10 03:47:27'),
-(62, 2, 'staff5', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-12-11 03:06:45'),
+(62, 2, 'staff5', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-15 00:14:36', NULL, '2025-03-15 00:14:36'),
 (63, 2, 'staff6', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Delia', 'Fainsan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (64, 2, 'staff7', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elmer', 'Matel', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:34', NULL, '2024-10-09 22:07:06'),
 (65, 2, 'staff8', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Alyssa Paola', 'Pocaan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:13', NULL, '2024-10-09 22:07:06'),
@@ -643,6 +699,20 @@ ALTER TABLE `rubric_criteria`
   ADD KEY `rubric_id` (`rubric_id`);
 
 --
+-- Indexes for table `rubric_quality_criteria`
+--
+ALTER TABLE `rubric_quality_criteria`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `rubric_id` (`rubric_id`);
+
+--
+-- Indexes for table `rubric_rows`
+--
+ALTER TABLE `rubric_rows`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `rubric_id` (`rubric_id`);
+
+--
 -- Indexes for table `teams`
 --
 ALTER TABLE `teams`
@@ -754,13 +824,25 @@ ALTER TABLE `research_titles`
 -- AUTO_INCREMENT for table `rubrics`
 --
 ALTER TABLE `rubrics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `rubric_criteria`
 --
 ALTER TABLE `rubric_criteria`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `rubric_quality_criteria`
+--
+ALTER TABLE `rubric_quality_criteria`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `rubric_rows`
+--
+ALTER TABLE `rubric_rows`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `teams`
@@ -863,11 +945,16 @@ ALTER TABLE `rubric_criteria`
   ADD CONSTRAINT `rubric_criteria_ibfk_1` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE;
 
 --
--- Constraints for table `team_members`
+-- Constraints for table `rubric_quality_criteria`
 --
-ALTER TABLE `team_members`
-  ADD CONSTRAINT `team_members_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+ALTER TABLE `rubric_quality_criteria`
+  ADD CONSTRAINT `rubric_quality_criteria_ibfk_1` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `rubric_rows`
+--
+ALTER TABLE `rubric_rows`
+  ADD CONSTRAINT `rubric_rows_ibfk_1` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `team_requirements`
@@ -875,12 +962,6 @@ ALTER TABLE `team_members`
 ALTER TABLE `team_requirements`
   ADD CONSTRAINT `team_requirements_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `team_requirements_ibfk_2` FOREIGN KEY (`requirement_id`) REFERENCES `requirements` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `user_schedules`
---
-ALTER TABLE `user_schedules`
-  ADD CONSTRAINT `user_schedules_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

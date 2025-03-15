@@ -1,4 +1,3 @@
-
 <?php
 /**
  * This script handles updating items in the database based on POST data.
@@ -38,8 +37,27 @@ ini_set('display_errors', 1);
 
 $response = ['success' => false, 'message' => ''];
 
-// Log all POST data
+// Enhanced logging for all POST data and specific fields
+error_log("=== START UPDATE ITEM REQUEST ===");
 error_log("Received POST data: " . print_r($_POST, true));
+
+// Log specific important fields for debugging
+$table = $_POST['table'] ?? 'unknown';
+$id = $_POST['id'] ?? 'unknown';
+error_log("Table: $table, ID: $id");
+
+if (isset($_POST['quality_level'])) {
+    error_log("Quality levels count: " . count($_POST['quality_level']));
+}
+if (isset($_POST['criterion_description'])) {
+    error_log("Criteria descriptions count: " . count($_POST['criterion_description']));
+}
+if (isset($_POST['points'])) {
+    error_log("Points count: " . count($_POST['points']));
+}
+if (isset($_POST['quality_description'])) {
+    error_log("Quality descriptions count: " . count($_POST['quality_description']));
+}
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $table = $_POST['table'] ?? '';
@@ -159,6 +177,143 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("Defense schedule updated. Affected rows: " . $stmt->rowCount());
 
                 $result = true; // Assume success if no exception is thrown
+            } elseif ($table === 'rubrics') {
+                try {
+                    // Transaction already started in the outer try block, no need to start again
+                    // $pdo->beginTransaction();
+                    
+                    // Get the quality criteria count
+                    $quality_criteria_count = count($_POST['quality_level'] ?? []);
+                    error_log("Quality criteria count: $quality_criteria_count");
+                    
+                    // Get the criteria count (number of rows)
+                    $criteria_count = count($_POST['criterion_description'] ?? []);
+                    error_log("Criteria count: $criteria_count");
+                    
+                    // Calculate max total score
+                    $max_total_score = $_POST['max_total_score'] ?? 0;
+                    error_log("Max total score: $max_total_score");
+                    
+                    // Create a default structure JSON
+                    $criteria = [];
+                    $levels = [];
+                    
+                    // Ensure we have at least one level and one criterion
+                    $quality_criteria_count = max(1, $quality_criteria_count);
+                    $criteria_count = max(1, $criteria_count);
+                    
+                    // Add levels from quality criteria
+                    for ($i = 0; $i < $quality_criteria_count; $i++) {
+                        $level_name = $_POST['quality_level'][$i] ?? "Level " . ($i + 1);
+                        $levels[] = $level_name;
+                    }
+                    
+                    // Add criteria rows
+                    for ($i = 0; $i < $criteria_count; $i++) {
+                        $criterion = [
+                            'criterion' => $_POST['criterion_description'][$i] ?? "Criterion " . ($i + 1),
+                            'levels' => []
+                        ];
+                        
+                        // Add level content for each criterion
+                        for ($j = 0; $j < $quality_criteria_count; $j++) {
+                            $content = [
+                                'content' => '',
+                                'rowSpan' => 1,
+                                'colSpan' => 1
+                            ];
+                            $criterion['levels'][] = $content;
+                        }
+                        
+                        $criteria[] = $criterion;
+                    }
+                    
+                    // Create the structure JSON
+                    $structure = [
+                        'levels' => $levels,
+                        'criteria' => $criteria
+                    ];
+                    $structure_json = json_encode($structure);
+                    if ($structure_json === false) {
+                        // JSON encoding failed, create a basic structure
+                        error_log("JSON encoding failed. Error: " . json_last_error_msg());
+                        $structure_json = '{"levels":["Level 1"],"criteria":[{"criterion":"Criterion 1","levels":[{"content":"","rowSpan":1,"colSpan":1}]}]}';
+                    }
+                    error_log("Structure JSON created: " . substr($structure_json, 0, 200) . "...");
+                    
+                    // Update basic rubric info
+                    error_log("Updating rubric with ID: $id");
+                    $stmt = $pdo->prepare("UPDATE rubrics SET name = ?, description = ?, max_total_score = ?, quality_criteria_count = ?, structure = ? WHERE id = ?");
+                    $updateResult = $stmt->execute([
+                        $_POST['name'],
+                        $_POST['description'],
+                        $max_total_score,
+                        $quality_criteria_count,
+                        $structure_json,
+                        $id
+                    ]);
+                    error_log("Rubric update result: " . ($updateResult ? "Success" : "Failed") . " - Rows affected: " . $stmt->rowCount());
+                    
+                    // Delete existing quality criteria and rows
+                    $stmt = $pdo->prepare("DELETE FROM rubric_quality_criteria WHERE rubric_id = ?");
+                    $deleteQCResult = $stmt->execute([$id]);
+                    error_log("Delete quality criteria result: " . ($deleteQCResult ? "Success" : "Failed") . " - Rows affected: " . $stmt->rowCount());
+                    
+                    $stmt = $pdo->prepare("DELETE FROM rubric_rows WHERE rubric_id = ?");
+                    $deleteRowsResult = $stmt->execute([$id]);
+                    error_log("Delete rubric rows result: " . ($deleteRowsResult ? "Success" : "Failed") . " - Rows affected: " . $stmt->rowCount());
+                    
+                    // Insert new quality criteria
+                    if ($quality_criteria_count > 0) {
+                        $stmt = $pdo->prepare("INSERT INTO rubric_quality_criteria (rubric_id, quality_level, points, description) VALUES (?, ?, ?, ?)");
+                        
+                        foreach ($_POST['quality_level'] as $index => $level) {
+                            if (isset($_POST['points'][$index])) {
+                                $qcResult = $stmt->execute([
+                                    $id,
+                                    $index + 1,
+                                    $_POST['points'][$index],
+                                    $_POST['quality_description'][$index] ?? ''
+                                ]);
+                                error_log("Insert quality criteria level $index result: " . ($qcResult ? "Success" : "Failed"));
+                            }
+                        }
+                    }
+                    
+                    // Insert new rubric rows
+                    if ($criteria_count > 0) {
+                        $stmt = $pdo->prepare("INSERT INTO rubric_rows (rubric_id, description, order_index) VALUES (?, ?, ?)");
+                        
+                        foreach ($_POST['criterion_description'] as $index => $description) {
+                            $rowResult = $stmt->execute([
+                                $id,
+                                $description,
+                                $index
+                            ]);
+                            error_log("Insert rubric row $index result: " . ($rowResult ? "Success" : "Failed"));
+                        }
+                    }
+                    
+                    // Don't commit here, let the outer try-catch handle it
+                    // $pdo->commit();
+                    $response['success'] = true;
+                    $response['message'] = 'Rubric updated successfully';
+                    error_log("Rubric update processing completed successfully");
+                    
+                    // Explicitly set result to true
+                    $result = true;
+                } catch (Exception $e) {
+                    // Don't roll back here, let the outer try-catch handle it
+                    // if ($pdo->inTransaction()) {
+                    //     $pdo->rollBack();
+                    //     error_log("Rolled back transaction due to error");
+                    // }
+                    $response['message'] = 'Database error: ' . $e->getMessage();
+                    error_log("Error updating rubric: " . $e->getMessage());
+                    $result = false;
+                    // Re-throw to the outer catch block
+                    throw $e;
+                }
             } else {
                 // Handle other tables as before
                 $updateData = [];
@@ -195,12 +350,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $response['success'] = true;
                 $response['message'] = 'Item updated successfully';
             } else {
-                $pdo->rollBack();
+                if ($pdo->inTransaction()) {
+                    $pdo->rollBack();
+                }
                 $response['message'] = 'Failed to update item';
-                error_log("PDO Error Info: " . print_r($stmt->errorInfo(), true));
+                // Check if $stmt is defined before trying to access errorInfo()
+                if (isset($stmt) && $stmt !== null) {
+                    error_log("PDO Error Info: " . print_r($stmt->errorInfo(), true));
+                } else {
+                    error_log("Update failed but no statement available for error info");
+                }
             }
         } catch (PDOException $e) {
-            $pdo->rollBack();
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $response['message'] = 'Database error: ' . $e->getMessage();
             error_log("PDO Exception: " . $e->getMessage());
         }
@@ -212,6 +376,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $response['message'] = 'Invalid request method';
     error_log("Invalid request method: " . $_SERVER['REQUEST_METHOD']);
 }
+
+// Log the final response
+error_log("Final response: " . json_encode($response));
+error_log("=== END UPDATE ITEM REQUEST ===");
 
 header('Content-Type: application/json');
 echo json_encode($response);

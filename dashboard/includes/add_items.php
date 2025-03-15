@@ -23,25 +23,131 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for rubrics
     if($table === 'rubrics'){
+        error_log("=== START ADD RUBRIC ===");
+        error_log("Received POST data for rubric: " . print_r($_POST, true));
+        
         $pdo->beginTransaction();
         try {
             // Disable foreign key checks
             $pdo->exec("SET FOREIGN_KEY_CHECKS=0");
+            error_log("Foreign key checks disabled");
+            
+            // Get the quality criteria count
+            $quality_criteria_count = count($_POST['quality_level'] ?? []);
+            error_log("Quality criteria count: $quality_criteria_count");
+            
+            // Get the criteria count (number of rows)
+            $criteria_count = count($_POST['criterion_description'] ?? []);
+            error_log("Criteria count: $criteria_count");
+            
+            // Calculate max total score
+            $max_total_score = $_POST['max_total_score'] ?? 0;
+            error_log("Max total score: $max_total_score");
+            
+            // Create a default structure JSON
+            $criteria = [];
+            $levels = [];
+            
+            // Ensure we have at least one level and one criterion
+            $quality_criteria_count = max(1, $quality_criteria_count);
+            $criteria_count = max(1, $criteria_count);
+            
+            // Add levels from quality criteria
+            for ($i = 0; $i < $quality_criteria_count; $i++) {
+                $level_name = $_POST['quality_level'][$i] ?? "Level " . ($i + 1);
+                $levels[] = $level_name;
+            }
+            
+            // Add criteria rows
+            for ($i = 0; $i < $criteria_count; $i++) {
+                $criterion = [
+                    'criterion' => $_POST['criterion_description'][$i] ?? "Criterion " . ($i + 1),
+                    'levels' => []
+                ];
+                
+                // Add level content for each criterion
+                for ($j = 0; $j < $quality_criteria_count; $j++) {
+                    $content = [
+                        'content' => '',
+                        'rowSpan' => 1,
+                        'colSpan' => 1
+                    ];
+                    $criterion['levels'][] = $content;
+                }
+                
+                $criteria[] = $criterion;
+            }
+            
+            // Create the structure JSON
+            $structure = [
+                'levels' => $levels,
+                'criteria' => $criteria
+            ];
+            $structure_json = json_encode($structure);
+            if ($structure_json === false) {
+                // JSON encoding failed, create a basic structure
+                error_log("JSON encoding failed. Error: " . json_last_error_msg());
+                $structure_json = '{"levels":["Level 1"],"criteria":[{"criterion":"Criterion 1","levels":[{"content":"","rowSpan":1,"colSpan":1}]}]}';
+            }
+            error_log("Structure JSON created: " . substr($structure_json, 0, 200) . "...");
             
             // Insert into rubrics table
-            $stmt = $pdo->prepare("INSERT INTO rubrics (name, description) VALUES (:name, :description)");
-            $stmt->execute(['name' => $_POST['name'], 'description' => $_POST['description']]);
-            
-            // Enable foreign key checks
-            $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
+            $stmt = $pdo->prepare("INSERT INTO rubrics (name, description, max_total_score, quality_criteria_count, structure) VALUES (:name, :description, :max_total_score, :quality_criteria_count, :structure)");
+            $result = $stmt->execute([
+                'name' => $_POST['name'],
+                'description' => $_POST['description'],
+                'max_total_score' => $max_total_score,
+                'quality_criteria_count' => $quality_criteria_count,
+                'structure' => $structure_json
+            ]);
+            error_log("Rubric insert result: " . ($result ? "Success" : "Failed") . " - Last insert ID: " . $pdo->lastInsertId());
             
             // Get the last inserted ID
             $rubricId = $pdo->lastInsertId();
             
+            // Insert quality criteria
+            if ($quality_criteria_count > 0) {
+                $stmt = $pdo->prepare("INSERT INTO rubric_quality_criteria (rubric_id, quality_level, points, description) VALUES (:rubric_id, :quality_level, :points, :description)");
+                
+                foreach ($_POST['quality_level'] as $index => $level) {
+                    if (isset($_POST['points'][$index])) {
+                        $qcResult = $stmt->execute([
+                            'rubric_id' => $rubricId,
+                            'quality_level' => $index + 1,
+                            'points' => $_POST['points'][$index],
+                            'description' => $_POST['quality_description'][$index] ?? ''
+                        ]);
+                        error_log("Insert quality criteria level $index result: " . ($qcResult ? "Success" : "Failed"));
+                    }
+                }
+            }
+            
+            // Insert rubric rows
+            if ($criteria_count > 0) {
+                $stmt = $pdo->prepare("INSERT INTO rubric_rows (rubric_id, description, order_index) VALUES (:rubric_id, :description, :order_index)");
+                
+                foreach ($_POST['criterion_description'] as $index => $description) {
+                    $rowResult = $stmt->execute([
+                        'rubric_id' => $rubricId,
+                        'description' => $description,
+                        'order_index' => $index
+                    ]);
+                    error_log("Insert rubric row $index result: " . ($rowResult ? "Success" : "Failed"));
+                }
+            }
+            
+            // Enable foreign key checks
+            $pdo->exec("SET FOREIGN_KEY_CHECKS=1");
+            error_log("Foreign key checks enabled");
+            
             $pdo->commit();
+            error_log("Transaction committed successfully");
+            error_log("=== END ADD RUBRIC ===");
             echo json_encode(['success' => true]);
         } catch (Exception $e) {
             $pdo->rollBack();
+            error_log("Error occurred, transaction rolled back: " . $e->getMessage());
+            error_log("=== END ADD RUBRIC (WITH ERROR) ===");
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
         

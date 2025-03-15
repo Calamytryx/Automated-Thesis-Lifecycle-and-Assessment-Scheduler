@@ -96,10 +96,15 @@
             const observer = new MutationObserver(callback);
             observer.observe(targetNode, config);
         });
-        $(document).on('click', '.add-btn', function() {
+        $(document).on('click', '.add-btn', function(e) {
+            // Only process this if it's a thesis topic button
+            if (!$(this).closest('#thesis-topics').length && $(this).data('table') !== 'thesis_topics') {
+                return true; // Exit and let other handlers take over
+            }
+            
             // Correctly reference the clicked button using 'this'
             var button = $(this);
-            console.log('Add button clicked');
+            console.log('Thesis topic add button clicked');
 
             // Retrieve the 'btn-n' class if needed
             var btnClasses = button.attr('class').split(' ');
@@ -127,7 +132,7 @@
             console.log('Category:', category);
 
             // Populate the modal form fields
-            $('#addModal').on('shown.bs.modal', function() {
+            $('#addModal').off('shown.bs.modal').on('shown.bs.modal', function() {
                 const topicInput = document.querySelector('#addForm #topic');
                 const descriptionInput = document.querySelector('#addForm #description');
                 const categoryInput = document.querySelector('#addForm #category');
@@ -142,6 +147,11 @@
                     if (!categoryInput) console.error('Category input element not found.');
                 }
             });
+            
+            // Explicitly show the modal for thesis topics
+            $('#addModal').modal('show'); 
+            
+            return false; // Prevent other handlers from processing this
         });
     </script>
     <script>

@@ -92,6 +92,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     $response['data']['members'] = $members;
                     $response['data']['title'] = $researchTitle;
+                } else if ($table === 'rubrics') {
+                    try {
+                        // Get basic rubric info
+                        $stmt = $pdo->prepare("SELECT * FROM rubrics WHERE id = ?");
+                        $stmt->execute([$id]);
+                        $data = $stmt->fetch(PDO::FETCH_ASSOC);
+                        
+                        if ($data) {
+                            // Get quality criteria
+                            $stmt = $pdo->prepare("SELECT * FROM rubric_quality_criteria WHERE rubric_id = ? ORDER BY quality_level");
+                            $stmt->execute([$id]);
+                            $data['quality_criteria'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            // Get rubric rows
+                            $stmt = $pdo->prepare("SELECT * FROM rubric_rows WHERE rubric_id = ? ORDER BY order_index");
+                            $stmt->execute([$id]);
+                            $data['rows'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                            
+                            $response['success'] = true;
+                            $response['data'] = $data;
+                        } else {
+                            $response['message'] = 'Rubric not found';
+                        }
+                    } catch (Exception $e) {
+                        $response['message'] = 'Database error: ' . $e->getMessage();
+                    }
                 }
             } else {
                 $response['message'] = 'Item not found';

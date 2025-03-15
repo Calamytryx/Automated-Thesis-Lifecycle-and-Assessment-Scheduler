@@ -75,20 +75,27 @@ async function analyzeTitle(title, field, problem) {
 
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document ready, initializing chat session...");
-    initializeChatSession();
+    // Initialize chat session only if in the relevant page
+    if (typeof initializeChatSession === 'function') {
+        initializeChatSession();
+    }
 
-    document.getElementById('submitTitleBtn').addEventListener('click', function() {
-        console.log("Submit button clicked");
-        var title = document.getElementById('researchTitle').value;
-        var field = document.getElementById('researchField').value;
-        var problem = document.getElementById('problem').value;
-        
-        console.log("Analyzing title:", title, "in field:", field + " with problem to solve of " + problem);
-        document.getElementById('uniquenessResult').innerHTML = '<p>Analyzing title...</p>';
-        document.getElementById('aiSuggestions').innerHTML = '';
+    // Only add these event listeners if the elements exist
+    const submitTitleBtn = document.getElementById('submitTitleBtn');
+    if (submitTitleBtn) {
+        submitTitleBtn.addEventListener('click', function() {
+            console.log("Submit button clicked");
+            var title = document.getElementById('researchTitle').value;
+            var field = document.getElementById('researchField').value;
+            var problem = document.getElementById('problem').value;
+            
+            console.log("Analyzing title:", title, "in field:", field + " with problem to solve of " + problem);
+            document.getElementById('uniquenessResult').innerHTML = '<p>Analyzing title...</p>';
+            document.getElementById('aiSuggestions').innerHTML = '';
 
-        analyzeTitle(title, field, problem);
-    });
+            analyzeTitle(title, field, problem);
+        });
+    }
 
     // Call the new AI processing function on page load
     processOutputToAI();
@@ -162,11 +169,20 @@ document.addEventListener('DOMContentLoaded', function() {
 
 // New function to send output to AI and display the response
 async function processOutputToAI() {
-    document.getElementById('ai-output').innerHTML = 'Processing output...';
+    const aiOutputElement = document.getElementById('ai-output');
+    const outputPdfElement = document.getElementById('output-pdf');
+    
+    // Check if elements exist before trying to use them
+    if (!aiOutputElement || !outputPdfElement) {
+        console.log('Required elements are not available on this page');
+        return;
+    }
+    
+    aiOutputElement.innerHTML = 'Processing output...';
     let outputValue = '';
     while (!outputValue) {
         await new Promise(resolve => setTimeout(resolve, 1000));
-        outputValue = document.getElementById('output-pdf').value;
+        outputValue = outputPdfElement.value;
     }
     
     try {
