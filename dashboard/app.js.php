@@ -195,7 +195,7 @@
                                 <div class="mb-3">
                                     <label for="team_id" class="form-label">Team ID</label>
                                     <input type="text" class="form-control" id="team_id" name="team_id" value="${response.data.team_id}">
-                                </div>  ${response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                                </div>  ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
                                 <div class="mb-3">
                                     <label for="title" class="form-label">Title</label>
                                 <div class="mb-3">
