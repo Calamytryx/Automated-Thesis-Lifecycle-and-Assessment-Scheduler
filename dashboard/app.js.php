@@ -1260,7 +1260,6 @@
         }
     });
 
-}); // End of document ready
 
 // Helper function for showing toasts
 function showToast(title, message, type = 'success') {
