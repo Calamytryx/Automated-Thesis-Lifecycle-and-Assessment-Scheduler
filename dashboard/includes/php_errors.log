@@ -44719,3 +44719,61 @@ Stack trace:
 [14-Mar-2025 20:45:42 Europe/Berlin] Missing teams detected: 5
 [14-Mar-2025 20:45:42 Europe/Berlin] Creating fallback schedule for team ID: 5
 [14-Mar-2025 20:45:42 Europe/Berlin] Teams scheduled: 5 out of 5 expected
+[23-Mar-2025 13:51:14 UTC] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [startTime] => 07:00
+    [endTime] => 20:00
+    [timeSlots] => Array
+        (
+            [0] => 07:00:00
+            [1] => 09:00:00
+            [2] => 11:00:00
+            [3] => 13:00:00
+            [4] => 15:00:00
+            [5] => 17:00:00
+        )
+
+    [days] => Array
+        (
+            [0] => 2025-03-23
+        )
+
+)
+
+[23-Mar-2025 13:51:14 UTC] Previous schedules cleared
+[23-Mar-2025 13:51:14 UTC] Generation 0 completed. Best fitness: -125. Elapsed time: 0.17221808433533 seconds
+[23-Mar-2025 13:51:18 UTC] Generation 20 completed. Best fitness: -125. Elapsed time: 3.7512881755829 seconds
+[23-Mar-2025 13:51:21 UTC] Generation 40 completed. Best fitness: -125. Elapsed time: 7.1952719688416 seconds
+[23-Mar-2025 13:51:25 UTC] Generation 60 completed. Best fitness: -125. Elapsed time: 10.794918060303 seconds
+[23-Mar-2025 13:51:28 UTC] Generation 80 completed. Best fitness: -125. Elapsed time: 14.227260112762 seconds
+[23-Mar-2025 13:51:32 UTC] Generation 100 completed. Best fitness: -125. Elapsed time: 17.641066074371 seconds
+[23-Mar-2025 13:51:35 UTC] Generation 120 completed. Best fitness: -125. Elapsed time: 21.222719192505 seconds
+[23-Mar-2025 13:51:39 UTC] Generation 140 completed. Best fitness: -125. Elapsed time: 24.711621999741 seconds
+[23-Mar-2025 13:51:42 UTC] Generation 160 completed. Best fitness: -125. Elapsed time: 28.190956115723 seconds
+[23-Mar-2025 13:51:46 UTC] Generation 180 completed. Best fitness: -125. Elapsed time: 31.801118135452 seconds
+[23-Mar-2025 13:51:50 UTC] Generation 200 completed. Best fitness: -125. Elapsed time: 36.015050172806 seconds
+[23-Mar-2025 13:51:54 UTC] Generation 220 completed. Best fitness: -125. Elapsed time: 39.564228057861 seconds
+[23-Mar-2025 13:51:57 UTC] Generation 240 completed. Best fitness: -125. Elapsed time: 43.083827018738 seconds
+[23-Mar-2025 13:52:01 UTC] Generation 260 completed. Best fitness: -125. Elapsed time: 46.606127023697 seconds
+[23-Mar-2025 13:52:05 UTC] Generation 280 completed. Best fitness: -125. Elapsed time: 50.583995103836 seconds
+[23-Mar-2025 13:52:09 UTC] Generation 300 completed. Best fitness: -125. Elapsed time: 54.65833902359 seconds
+[23-Mar-2025 13:52:12 UTC] Generation 320 completed. Best fitness: -125. Elapsed time: 58.103212118149 seconds
+[23-Mar-2025 13:52:16 UTC] Generation 340 completed. Best fitness: -125. Elapsed time: 61.601525068283 seconds
+[23-Mar-2025 13:52:19 UTC] Generation 360 completed. Best fitness: -125. Elapsed time: 65.05474114418 seconds
+[23-Mar-2025 13:52:23 UTC] Generation 380 completed. Best fitness: -125. Elapsed time: 68.51077914238 seconds
+[23-Mar-2025 13:52:26 UTC] Generation 400 completed. Best fitness: -125. Elapsed time: 71.963672161102 seconds
+[23-Mar-2025 13:52:30 UTC] Generation 420 completed. Best fitness: -125. Elapsed time: 75.430147171021 seconds
+[23-Mar-2025 13:52:33 UTC] Generation 440 completed. Best fitness: -125. Elapsed time: 78.933077096939 seconds
+[23-Mar-2025 13:52:36 UTC] Generation 460 completed. Best fitness: -125. Elapsed time: 82.357486009598 seconds
+[23-Mar-2025 13:52:40 UTC] Generation 480 completed. Best fitness: -125. Elapsed time: 85.828996181488 seconds
+[23-Mar-2025 13:52:43 UTC] Genetic algorithm completed in 89.132837057114 seconds
+[23-Mar-2025 13:52:43 UTC] Missing teams detected: 5
+[23-Mar-2025 13:52:43 UTC] Creating fallback schedule for team ID: 5
+[23-Mar-2025 13:52:43 UTC] Teams scheduled: 5 out of 5 expected
