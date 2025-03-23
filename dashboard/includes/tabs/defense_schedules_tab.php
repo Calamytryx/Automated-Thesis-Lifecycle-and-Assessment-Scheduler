@@ -265,7 +265,9 @@ console.log('End Hour:', endHour);
                     <th>Team</th>
                     <th>Adviser</th>
                     <th>Thesis Title</th>
-                    <th>Panelists</th>
+                    <th>Panelist 1</th>
+                    <th>Panelist 2</th>
+                    <th>Panelist 3</th>
                     <th>Room</th>
                     <th>Action</th>
                 </tr>
@@ -299,6 +301,19 @@ console.log('End Hour:', endHour);
                     return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
                 };
                 
+                // Function to split panelists into an array of up to 3 panelists
+                const splitPanelists = (panelistsString) => {
+                    // Split panelists by comma
+                    const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
+                    
+                    // Create an array of exactly 3 elements (fill with empty strings if fewer than 3)
+                    return [
+                        panelists[0] || '',
+                        panelists[1] || '',
+                        panelists[2] || ''
+                    ];
+                };
+
                 const loadDefenseSchedules = (page = 1) => {
                     console.log(`Loading Defense Schedules Page: ${page}`);
                     fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`) // Changed to absolute path
@@ -325,6 +340,9 @@ console.log('End Hour:', endHour);
                                 const formattedStartTime = formatTime(schedule.start_time);
                                 const formattedEndTime = formatTime(schedule.end_time);
                                 const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
+                                
+                                // Get panelists as an array of 3 elements
+                                const panelists = splitPanelists(schedule.panelists);
 
                                 tbody.innerHTML += `
                                     <tr>
@@ -332,7 +350,9 @@ console.log('End Hour:', endHour);
                                         <td>${schedule.team_name}</td>
                                         <td>${schedule.adviser}</td>
                                         <td>${schedule.thesis_title}</td>
-                                        <td>${schedule.panelists}</td>
+                                        <td>${panelists[0]}</td>
+                                        <td>${panelists[1]}</td>
+                                        <td>${panelists[2]}</td>
                                         <td>${schedule.room}</td>
                                         
                                         <td class="action-buttons">
@@ -348,10 +368,6 @@ console.log('End Hour:', endHour);
                                     </tr>
                                 `;
                             });
-
-                            // Remove Test Row
-                            // tbody.insertAdjacentHTML('beforeend', `<tr><td colspan="8">Test Row</td></tr>`); // Test row insertion removed
-                            // console.log('Test row added'); // Test row log removed
 
                             const pagination = document.querySelector('#def-nav .pagination'); // Updated selector
                             pagination.innerHTML = '';
