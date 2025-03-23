@@ -363,10 +363,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
                                 <i class="fas fa-cog me-2"></i>Content Management
                             </a>
-                            <a class="nav-link my-1" href="../files" role="tab">
+                            <a class="nav-link my-1" href="../files" target="_blank" role="tab">
                                 <i class="fas fa-folder-open me-2"></i>Files
                             </a>
-                            <a class="nav-link my-1" href="../../phpmyadmin" role="tab">
+                            <a class="nav-link my-1" href="../../phpmyadmin" target="_blank" role="tab">
                                 <i class="fas fa-database me-2"></i>DataBase
                             </a>
                         </div>
