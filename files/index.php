@@ -1,6 +1,6 @@
 <?php
 //Default Configuration
-$CONFIG = '{"lang":"en","error_reporting":false,"show_hidden":false,"hide_Cols":false,"theme":"light"}';
+$CONFIG = '{"lang":"en","error_reporting":true,"show_hidden":true,"hide_Cols":false,"theme":"dark"}';
 
 /**
  * H3K - Tiny File Manager V2.6
@@ -13,7 +13,7 @@ $CONFIG = '{"lang":"en","error_reporting":false,"show_hidden":false,"hide_Cols":
 define('VERSION', '2.6');
 
 //Application Title
-define('APP_TITLE', 'Tiny File Manager');
+define('APP_TITLE', 'Atlas File System');
 
 // --- EDIT BELOW CONFIGURATION CAREFULLY ---
 
@@ -357,13 +357,19 @@ if ($use_auth) {
                                 <form class="form-signin" action="" method="post" autocomplete="off">
                                     <div class="mb-3">
                                         <div class="brand">
-                                            <svg version="1.0" xmlns="http://www.w3.org/2000/svg" M1008 width="100%" height="80px" viewBox="0 0 238.000000 140.000000" aria-label="H3K Tiny File Manager">
+                                            <!-- <svg version="1.0" xmlns="http://www.w3.org/2000/svg" M1008 width="100%" height="80px" viewBox="0 0 238.000000 140.000000" aria-label="H3K Tiny File Manager">
                                                 <g transform="translate(0.000000,140.000000) scale(0.100000,-0.100000)" fill="#000000" stroke="none">
                                                     <path d="M160 700 l0 -600 110 0 110 0 0 260 0 260 70 0 70 0 0 -260 0 -260 110 0 110 0 0 600 0 600 -110 0 -110 0 0 -260 0 -260 -70 0 -70 0 0 260 0 260 -110 0 -110 0 0 -600z" />
                                                     <path fill="#003500" d="M1008 1227 l-108 -72 0 -117 0 -118 110 0 110 0 0 110 0 110 70 0 70 0 0 -180 0 -180 -125 0 c-69 0 -125 -3 -125 -6 0 -3 23 -39 52 -80 l52 -74 73 0 73 0 0 -185 0 -185 -70 0 -70 0 0 115 0 115 -110 0 -110 0 0 -190 0 -190 181 0 181 0 109 73 108 72 1 181 0 181 -69 48 -68 49 68 50 69 49 0 249 0 248 -182 -1 -183 0 -107 -72z" />
                                                     <path d="M1640 700 l0 -600 110 0 110 0 0 208 0 208 35 34 35 34 35 -34 35 -34 0 -208 0 -208 110 0 110 0 0 212 0 213 -87 87 -88 88 88 88 87 87 0 213 0 212 -110 0 -110 0 0 -208 0 -208 -70 -69 -70 -69 0 277 0 277 -110 0 -110 0 0 -600z" />
                                                 </g>
-                                            </svg>
+                                            </svg> -->
+                                            <?php if (FM_THEME == "dark"): ?>
+                                                <img src="../assets/images/logo_full_darkbg.png" alt="Atlas File System Logo" class="img-fluid">
+                                            <?php else: ?>
+                                                <img src="../assets/images/logo_full_lightbg.png" alt="Atlas File System Logo" class="img-fluid">
+                                            <?php endif; ?>
+
                                         </div>
                                         <div class="text-center">
                                             <h1 class="card-title"><?php echo APP_TITLE; ?></h1>
@@ -2764,22 +2770,21 @@ function fm_get_filesize($size)
  */
 function fm_get_zif_info($path, $ext)
 {
-    if ($ext == 'zip' && function_exists('zip_open')) {
-        $arch = @zip_open($path);
-        if ($arch) {
+    if ($ext == 'zip' && class_exists('ZipArchive')) {
+        $zip = new ZipArchive();
+        if ($zip->open($path) === true) {
             $filenames = array();
-            while ($zip_entry = @zip_read($arch)) {
-                $zip_name = @zip_entry_name($zip_entry);
+            for ($i = 0; $i < $zip->numFiles; $i++) {
+                $zip_name = $zip->getNameIndex($i);
                 $zip_folder = substr($zip_name, -1) == '/';
                 $filenames[] = array(
                     'name' => $zip_name,
-                    'filesize' => @zip_entry_filesize($zip_entry),
-                    'compressed_size' => @zip_entry_compressedsize($zip_entry),
+                    'filesize' => $zip->statIndex($i)['size'],
+                    'compressed_size' => $zip->statIndex($i)['comp_size'],
                     'folder' => $zip_folder
-                    //'compression_method' => zip_entry_compressionmethod($zip_entry),
                 );
             }
-            @zip_close($arch);
+            $zip->close();
             return $filenames;
         }
     } elseif ($ext == 'tar' && class_exists('PharData')) {
@@ -3568,12 +3573,14 @@ class FM_Zipper_Tar
      */
     public function unzip($filename, $path)
     {
-        $res = $this->tar->open($filename);
-        if ($res !== true) {
+        try {
+            $this->tar = new PharData($filename);
+            if ($this->tar->extractTo($path)) {
+                return true;
+            }
+        } catch (Exception $e) {
+            // Handle exception
             return false;
-        }
-        if ($this->tar->extractTo($path)) {
-            return true;
         }
         return false;
     }
@@ -3585,6 +3592,10 @@ class FM_Zipper_Tar
      */
     private function addFileOrDir($filename)
     {
+        if (!$this->tar) {
+            return false;
+        }
+        
         if (is_file($filename)) {
             try {
                 $this->tar->addFile($filename);
@@ -3605,6 +3616,10 @@ class FM_Zipper_Tar
      */
     private function addDir($path)
     {
+        if (!$this->tar) {
+            return false;
+        }
+        
         $objects = scandir($path);
         if (is_array($objects)) {
             foreach ($objects as $file) {
@@ -3970,7 +3985,7 @@ function fm_show_header_login()
         <?php if ($favicon_path) {
             echo '<link rel="icon" href="' . fm_enc($favicon_path) . '" type="image/png">';
         } ?>
-        <title><?php echo fm_enc(APP_TITLE) ?> | <?php echo (isset($_GET['view']) ? $_GET['view'] : ((isset($_GET['edit'])) ? $_GET['edit'] : "H3K")); ?></title>
+        <title><?php echo fm_enc(APP_TITLE) ?> | <?php echo (isset($_GET['view']) ? $_GET['view'] : ((isset($_GET['edit'])) ? $_GET['edit'] : "120ms")); ?></title>
         <?php print_external('pre-jsdelivr'); ?>
         <?php print_external('pre-cloudflare'); ?>
         <?php print_external('css-bootstrap'); ?>
