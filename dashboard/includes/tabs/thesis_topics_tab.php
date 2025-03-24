@@ -1,65 +1,104 @@
 <!-- Thesis Topics Tab -->
 <div class="tab-pane fade" id="thesis-topics" role="tabpanel" aria-labelledby="thesis-topics-tab">
-    <!-- Header Section with Add Button -->
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <button class="btn feature-btn add-btn" data-table="thesis_topics">
-            <i class="fas fa-plus"></i>Add Thesis Topic
-        </button>   
-    </div>
-
-    <!-- Decision Tool Section -->
-    <div class="decision-tool-container mb-4">
-        <div class="card border-0 shadow-sm">
-            <div class="card-header bg-white border-0">
-                <h6 class="mb-0 feature-title">Thesis Topic Decision Tool</h6>
+    <div class="container-fluid py-4">
+        <!-- Header with title and description -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-2">Thesis Topics</h3>
+                <p class="text-muted">Manage and explore potential research topics for student teams</p>
             </div>
-            <div class="card-body">
-                <div class="form-group mb-3">
-                    <label for="thesisField" class="form-label">Field of study:</label>
-                    <select id="thesisField" class="form-select">
-                        <option value="">Select a field</option>
-                        <option value="Architecture">Architecture</option>
-                        <option value="Computer Science">Computer Science</option>
-                        <option value="Information Technology">Information Technology</option>
-                        <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-                        <option value="Civil Engineering">Civil Engineering</option>
-                        <option value="Computer Engineering">Computer Engineering</option>
-                        <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
-                        <option value="Electrical Engineering">Electrical Engineering</option>
-                        <option value="Electronics Engineering">Electronics Engineering</option>
-                        <option value="Industrial Engineering">Industrial Engineering</option>
-                        <option value="Mechanical Engineering">Mechanical Engineering</option>
-                    </select>
+        </div>
+
+        <!-- Decision Tool Section -->
+        <div class="decision-tool-container mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0 feature-title">Thesis Topic Decision Tool</h6>
                 </div>
-                <button id="getTopicsBtn" class="btn feature-btn">Get Latest Topics</button>
+                <div class="card-body">
+                    <div class="form-group mb-3">
+                        <label for="thesisField" class="form-label">Field of study:</label>
+                        <select id="thesisField" class="form-select">
+                            <option value="">Select a field</option>
+                            <option value="Architecture">Architecture</option>
+                            <option value="Computer Science">Computer Science</option>
+                            <option value="Information Technology">Information Technology</option>
+                            <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                            <option value="Civil Engineering">Civil Engineering</option>
+                            <option value="Computer Engineering">Computer Engineering</option>
+                            <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
+                            <option value="Electrical Engineering">Electrical Engineering</option>
+                            <option value="Electronics Engineering">Electronics Engineering</option>
+                            <option value="Industrial Engineering">Industrial Engineering</option>
+                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                        </select>
+                    </div>
+                    <button id="getTopicsBtn" class="btn feature-btn">Get Latest Topics</button>
+                </div>
+            </div>
+            <div id="topicAnalysisResult" class="mt-3">
+                <!-- Analysis results will be loaded here --> 
             </div>
         </div>
-        <div id="topicAnalysisResult" class="mt-3">
-            <!-- Analysis results will be loaded here --> 
+
+        <!-- Search, Filter and Add Button Row -->
+        <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
+            <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                <div class="input-group mb-2 mb-md-0" style="width: 250px;">
+                    <input type="text" class="form-control" id="topicSearchInput" placeholder="Search topics...">
+                    <button class="btn btn-outline-secondary" type="button" id="topicSearchButton">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+                <select class="form-select mb-2 mb-md-0" id="topicCategoryFilter" style="width: 180px;">
+                    <option value="">All Categories</option>
+                    <option value="Architecture">Architecture</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Information Technology">Information Technology</option>
+                    <option value="Aeronautical Engineering">Aeronautical Engineering</option>
+                    <option value="Civil Engineering">Civil Engineering</option>
+                    <option value="Computer Engineering">Computer Engineering</option>
+                    <option value="Electrical Engineering">Electrical Engineering</option>
+                    <option value="Electronics Engineering">Electronics Engineering</option>
+                    <option value="Industrial Engineering">Industrial Engineering</option>
+                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                </select>
+                <select class="form-select mb-2 mb-md-0" id="topicSortSelect" style="width: 180px;">
+                    <option value="id:desc">Default (Newest First)</option>
+                    <option value="id:asc">Default (Oldest First)</option>
+                    <option value="topic:asc">Topic (A-Z)</option>
+                    <option value="topic:desc">Topic (Z-A)</option>
+                    <option value="category:asc">Category (A-Z)</option>
+                    <option value="category:desc">Category (Z-A)</option>
+                </select>
+                <button class="btn feature-btn add-btn" data-table="thesis_topics">
+                    <i class="fas fa-plus me-2"></i>Add Thesis Topic
+                </button>
+            </div>
         </div>
-    </div>
 
-    <!-- Topics Table Section -->
-    <div class="table-responsive db-table-container">
-        <table class="table table-bordered table-hover table-sm db-table">
-            <thead>
-                <tr>
-                    <th>Topic</th>
-                    <th>Description</th>
-                    <th>Category</th>
-                    <th>Action</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data loaded via AJAX -->
-            </tbody>
-        </table>
+        <!-- Topics Table Section -->
+        <div class="table-responsive db-table-container">
+            <table class="table table-bordered table-hover table-sm db-table">
+                <thead>
+                    <tr>
+                        <th>Topic</th>
+                        <th>Description</th>
+                        <th>Category</th>
+                        <th>Action</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data loaded via AJAX -->
+                </tbody>
+            </table>
 
-        <nav aria-label="Page navigation">
-            <ul class="pagination justify-content-center">
-                <!-- Pagination loaded via AJAX -->
-            </ul>
-        </nav>
+            <nav aria-label="Page navigation">
+                <ul class="pagination justify-content-center">
+                    <!-- Pagination loaded via AJAX -->
+                </ul>
+            </nav>
+        </div>
     </div>
 
     <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
@@ -156,8 +195,24 @@
     </script>
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const loadThesisTopics = (page = 1) => {
-                fetch(`includes/tabs/get_table.php?table=thesis_topics&page=${page}`)
+            // Function to load thesis topics with search, filter, and sorting
+            const loadThesisTopics = (page = 1, search = '', category = '', sort = 'id:desc') => {
+                let url = `includes/tabs/get_table.php?table=thesis_topics&page=${page}`;
+                
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                if (category) {
+                    url += `&category=${encodeURIComponent(category)}`;
+                }
+                
+                if (sort) {
+                    const [sortField, sortOrder] = sort.split(':');
+                    url += `&sort_by=${encodeURIComponent(sortField)}&sort_dir=${encodeURIComponent(sortOrder)}`;
+                }
+                
+                fetch(url)
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
@@ -167,6 +222,17 @@
 
                         const tbody = document.querySelector('#thesis-topics .db-table tbody');
                         tbody.innerHTML = '';
+                        
+                        // Show a message if no results
+                        if (data.data.length === 0) {
+                            tbody.innerHTML = `
+                                <tr>
+                                    <td colspan="4" class="text-center">No matching topics found</td>
+                                </tr>
+                            `;
+                            return;
+                        }
+                        
                         data.data.forEach(topic => {
                             tbody.innerHTML += `
                                 <tr>
@@ -223,15 +289,64 @@
             // Initial Load
             loadThesisTopics();
 
+            // Handle Search Button Click
+            document.getElementById('topicSearchButton').addEventListener('click', function() {
+                const searchTerm = document.getElementById('topicSearchInput').value;
+                const categoryFilter = document.getElementById('topicCategoryFilter').value;
+                const sortValue = document.getElementById('topicSortSelect').value;
+                loadThesisTopics(1, searchTerm, categoryFilter, sortValue);
+            });
+
+            // Handle Search on Enter Key
+            document.getElementById('topicSearchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value;
+                    const categoryFilter = document.getElementById('topicCategoryFilter').value;
+                    const sortValue = document.getElementById('topicSortSelect').value;
+                    loadThesisTopics(1, searchTerm, categoryFilter, sortValue);
+                }
+            });
+
+            // Handle Category Filter Change
+            document.getElementById('topicCategoryFilter').addEventListener('change', function() {
+                const searchTerm = document.getElementById('topicSearchInput').value;
+                const categoryFilter = this.value;
+                const sortValue = document.getElementById('topicSortSelect').value;
+                loadThesisTopics(1, searchTerm, categoryFilter, sortValue);
+            });
+
+            // Handle Sort Dropdown Change
+            document.getElementById('topicSortSelect').addEventListener('change', function() {
+                const searchTerm = document.getElementById('topicSearchInput').value;
+                const categoryFilter = document.getElementById('topicCategoryFilter').value;
+                const sortValue = this.value;
+                loadThesisTopics(1, searchTerm, categoryFilter, sortValue);
+            });
+
             // Handle Pagination Clicks
             document.querySelector('#thesis-topics .pagination').addEventListener('click', function(e) {
                 e.preventDefault();
                 if (e.target.tagName === 'A') {
                     const page = parseInt(e.target.getAttribute('data-page'));
                     if (!isNaN(page)) {
-                        loadThesisTopics(page);
+                        const searchTerm = document.getElementById('topicSearchInput').value;
+                        const categoryFilter = document.getElementById('topicCategoryFilter').value;
+                        const sortValue = document.getElementById('topicSortSelect').value;
+                        loadThesisTopics(page, searchTerm, categoryFilter, sortValue);
                     }
                 }
+            });
+
+            // Initialize when the thesis topics tab becomes visible
+            document.querySelectorAll('#v-pills-tab .nav-link').forEach(tab => {
+                tab.addEventListener('shown.bs.tab', function(e) {
+                    if (e.target.id === 'thesis-topics-tab') {
+                        const searchTerm = document.getElementById('topicSearchInput').value;
+                        const categoryFilter = document.getElementById('topicCategoryFilter').value;
+                        const sortValue = document.getElementById('topicSortSelect').value;
+                        loadThesisTopics(1, searchTerm, categoryFilter, sortValue);
+                    }
+                });
             });
         });
     </script>

@@ -28,7 +28,7 @@ try {
         ds.start_time,
         ds.end_time,
         ds.room,
-        t.name AS team_name,
+        t.name AS team_name, 
         rt.title AS thesis_title,
         GROUP_CONCAT(
             DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) 
@@ -57,36 +57,63 @@ try {
     } elseif ($table === 'teams') {
         $query = "
             SELECT 
-    t.id,
-    t.name,
-    rt.title AS research_title,
-    GROUP_CONCAT(
-        DISTINCT CASE 
-            WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name)
-        END 
-        ORDER BY tm.id SEPARATOR ', '
-    ) AS team_members,
-    GROUP_CONCAT(
-        DISTINCT CASE 
-            WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name)
-        END 
-        ORDER BY tm.id SEPARATOR ', '
-    ) AS adviser
-FROM 
-    teams t
-JOIN 
-    research_titles rt ON t.id = rt.team_id
-JOIN 
-    team_members tm ON t.id = tm.team_id
-JOIN 
-    users u ON tm.user_id = u.id
-GROUP BY 
-    t.id, rt.title
-
-            LIMIT :limit OFFSET :offset;
+            t.id,
+            t.name,
+            rt.title AS research_title,
+            GROUP_CONCAT(
+                DISTINCT CASE 
+                    WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name)
+                END 
+                ORDER BY tm.id SEPARATOR ', '
+            ) AS team_members,
+            GROUP_CONCAT(
+                DISTINCT CASE 
+                    WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name)
+                END 
+                ORDER BY tm.id SEPARATOR ', '
+            ) AS adviser
+        FROM 
+            teams t
+        JOIN 
+            research_titles rt ON t.id = rt.team_id
+        JOIN 
+            team_members tm ON t.id = tm.team_id
+        JOIN 
+            users u ON tm.user_id = u.id
         ";
-
+        
+        $conditions = [];
+        $params = [];
+        
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(t.name LIKE :search_name OR rt.title LIKE :search_title)";
+            $params[':search_name'] = $searchTerm;
+            $params[':search_title'] = $searchTerm;
+        }
+        
+        // Add WHERE clause if conditions exist
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(' AND ', $conditions);
+        }
+        
+        $query .= " GROUP BY t.id, rt.title";
+        
+        // Add sorting
+        $allowedSortFields = ['id', 'name'];
+        $sortBy = isset($_GET['sort_by']) && in_array($_GET['sort_by'], $allowedSortFields) ? $_GET['sort_by'] : 'id';
+        $sortDir = isset($_GET['sort_dir']) && in_array(strtoupper($_GET['sort_dir']), ['ASC', 'DESC']) ? strtoupper($_GET['sort_dir']) : 'DESC';
+        
+        $query .= " ORDER BY t.$sortBy $sortDir";
+        $query .= " LIMIT :limit OFFSET :offset";
+        
         $stmt = $pdo->prepare($query);
+        
+        // Bind all parameters
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, PDO::PARAM_STR);
+        }
     } elseif ($table === 'evaluations') {
         $query = "
             SELECT 
@@ -128,8 +155,11 @@ GROUP BY
         // Apply search filter if provided
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $conditions[] = "(username LIKE :search OR email LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
-            $params[':search'] = $searchTerm;
+            $conditions[] = "(username LIKE :search_username OR email LIKE :search_email OR first_name LIKE :search_fname OR last_name LIKE :search_lname)";
+            $params[':search_username'] = $searchTerm;
+            $params[':search_email'] = $searchTerm;
+            $params[':search_fname'] = $searchTerm;
+            $params[':search_lname'] = $searchTerm;
         }
 
         // Add WHERE clause if conditions exist
@@ -137,6 +167,12 @@ GROUP BY
             $query .= " WHERE " . implode(' AND ', $conditions);
         }
 
+        // Add sorting
+        $allowedSortFields = ['id', 'username', 'email', 'first_name', 'last_name', 'usertype'];
+        $sortBy = isset($_GET['sort_by']) && in_array($_GET['sort_by'], $allowedSortFields) ? $_GET['sort_by'] : 'id';
+        $sortDir = isset($_GET['sort_dir']) && in_array(strtoupper($_GET['sort_dir']), ['ASC', 'DESC']) ? strtoupper($_GET['sort_dir']) : 'DESC';
+        
+        $query .= " ORDER BY $sortBy $sortDir";
         $query .= " LIMIT :limit OFFSET :offset";
 
         $stmt = $pdo->prepare($query);
@@ -144,6 +180,44 @@ GROUP BY
         // Bind all parameters
         foreach ($params as $key => $value) {
             $stmt->bindValue($key, $value, is_int($value) ? PDO::PARAM_INT : PDO::PARAM_STR);
+        }
+    } elseif ($table === 'thesis_topics') {
+        $query = "SELECT * FROM thesis_topics";
+        $conditions = [];
+        $params = [];
+        
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $conditions[] = "(topic LIKE :search_topic OR description LIKE :search_desc)";
+            $params[':search_topic'] = $searchTerm;
+            $params[':search_desc'] = $searchTerm;
+        }
+        
+        // Apply category filter if provided
+        if (isset($_GET['category']) && $_GET['category'] !== '') {
+            $conditions[] = "category = :category";
+            $params[':category'] = $_GET['category'];
+        }
+        
+        // Add WHERE clause if conditions exist
+        if (!empty($conditions)) {
+            $query .= " WHERE " . implode(' AND ', $conditions);
+        }
+        
+        // Add sorting
+        $allowedSortFields = ['id', 'topic', 'category'];
+        $sortBy = isset($_GET['sort_by']) && in_array($_GET['sort_by'], $allowedSortFields) ? $_GET['sort_by'] : 'id';
+        $sortDir = isset($_GET['sort_dir']) && in_array(strtoupper($_GET['sort_dir']), ['ASC', 'DESC']) ? strtoupper($_GET['sort_dir']) : 'DESC';
+        
+        $query .= " ORDER BY $sortBy $sortDir";
+        $query .= " LIMIT :limit OFFSET :offset";
+        
+        $stmt = $pdo->prepare($query);
+        
+        // Bind all parameters
+        foreach ($params as $key => $value) {
+            $stmt->bindValue($key, $value, PDO::PARAM_STR);
         }
     } else {
         $query = "SELECT * FROM $table LIMIT :limit OFFSET :offset";
@@ -167,11 +241,14 @@ GROUP BY
             $countParams[':usertype'] = (int)$_GET['usertype'];
         }
 
-        // Apply search filter if provided
+        // Apply search filter if provided for count query
         if (isset($_GET['search']) && $_GET['search'] !== '') {
             $searchTerm = '%' . $_GET['search'] . '%';
-            $countConditions[] = "(username LIKE :search OR email LIKE :search OR first_name LIKE :search OR last_name LIKE :search)";
-            $countParams[':search'] = $searchTerm;
+            $countConditions[] = "(username LIKE :search_username OR email LIKE :search_email OR first_name LIKE :search_fname OR last_name LIKE :search_lname)";
+            $countParams[':search_username'] = $searchTerm;
+            $countParams[':search_email'] = $searchTerm;
+            $countParams[':search_fname'] = $searchTerm;
+            $countParams[':search_lname'] = $searchTerm;
         }
 
         // Add WHERE clause if conditions exist
@@ -201,6 +278,73 @@ GROUP BY
     } elseif ($table === 'evaluations') {
         $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
         $countStmt = $pdo->query($countQuery);
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
+    } elseif ($table === 'teams') {
+        $countQuery = "
+            SELECT COUNT(DISTINCT t.id) 
+            FROM teams t
+            JOIN research_titles rt ON t.id = rt.team_id
+        ";
+        
+        $countConditions = [];
+        $countParams = [];
+        
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $countConditions[] = "(t.name LIKE :search_name OR rt.title LIKE :search_title)";
+            $countParams[':search_name'] = $searchTerm;
+            $countParams[':search_title'] = $searchTerm;
+        }
+        
+        // Add WHERE clause if conditions exist
+        if (!empty($countConditions)) {
+            $countQuery .= " WHERE " . implode(' AND ', $countConditions);
+        }
+        
+        $countStmt = $pdo->prepare($countQuery);
+        
+        // Bind all parameters
+        foreach ($countParams as $key => $value) {
+            $countStmt->bindValue($key, $value, PDO::PARAM_STR);
+        }
+        
+        $countStmt->execute();
+        $total_rows = $countStmt->fetchColumn();
+        $total_pages = ceil($total_rows / $limit);
+    } elseif ($table === 'thesis_topics') {
+        $countQuery = "SELECT COUNT(*) FROM thesis_topics";
+        $countConditions = [];
+        $countParams = [];
+        
+        // Apply search filter if provided
+        if (isset($_GET['search']) && $_GET['search'] !== '') {
+            $searchTerm = '%' . $_GET['search'] . '%';
+            $countConditions[] = "(topic LIKE :search_topic OR description LIKE :search_desc)";
+            $countParams[':search_topic'] = $searchTerm;
+            $countParams[':search_desc'] = $searchTerm;
+        }
+        
+        // Apply category filter if provided
+        if (isset($_GET['category']) && $_GET['category'] !== '') {
+            $countConditions[] = "category = :category";
+            $countParams[':category'] = $_GET['category'];
+        }
+        
+        // Add WHERE clause if conditions exist
+        if (!empty($countConditions)) {
+            $countQuery .= " WHERE " . implode(' AND ', $countConditions);
+        }
+        
+        $countStmt = $pdo->prepare($countQuery);
+        
+        // Bind all parameters
+        foreach ($countParams as $key => $value) {
+            $countStmt->bindValue($key, $value, PDO::PARAM_STR);
+        }
+        
+        $countStmt->execute();
         $total_rows = $countStmt->fetchColumn();
         $total_pages = ceil($total_rows / $limit);
     } else {
