@@ -49,24 +49,28 @@
         <div class="tab-content pt-4" id="userManagementTabsContent">
             <!-- All Users Tab -->
             <div class="tab-pane fade show active" id="all-users" role="tabpanel" aria-labelledby="all-users-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div class="d-flex align-items-center">
-                        <div class="input-group me-3" style="width: 300px;">
+                <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
+                    <div class="d-flex align-items-center justify-content-end flex-wrap gap-2">
+                        <div class="input-group mb-2 mb-md-0" style="width: 250px;">
                             <input type="text" class="form-control" id="userSearchInput" placeholder="Search users...">
                             <button class="btn btn-outline-secondary" type="button" id="userSearchButton">
                                 <i class="fas fa-search"></i>
                             </button>
                         </div>
-                        <select class="form-select me-3" id="userTypeFilter" style="width: 150px;">
-                            <option value="all">All Types</option>
-                            <option value="0">Admin</option>
-                            <option value="1">Student</option>
-                            <option value="2">Staff</option>
+                        <select class="form-select mb-2 mb-md-0" id="userSortSelect" style="width: 180px;">
+                            <option value="id:desc">Default (Newest First)</option>
+                            <option value="id:asc">Default (Oldest First)</option>
+                            <option value="username:asc">Username (A-Z)</option>
+                            <option value="username:desc">Username (Z-A)</option>
+                            <option value="first_name:asc">First Name (A-Z)</option>
+                            <option value="first_name:desc">First Name (Z-A)</option>
+                            <option value="last_name:asc">Last Name (A-Z)</option>
+                            <option value="last_name:desc">Last Name (Z-A)</option>
                         </select>
+                        <button class="btn feature-btn add-btn" data-table="users">
+                            <i class="fas fa-plus me-2"></i>Add User
+                        </button>
                     </div>
-                    <button class="btn feature-btn add-btn" data-table="users">
-                        <i class="fas fa-plus me-2"></i>Add User
-                    </button>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table" id="allUsersTable" data-usertype="all">
@@ -90,11 +94,28 @@
 
             <!-- Admin Users Tab -->
             <div class="tab-pane fade" id="admin-users" role="tabpanel" aria-labelledby="admin-users-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Admin Users</h4>
-                    <button class="btn feature-btn add-btn" data-table="users" data-usertype="0">
-                        <i class="fas fa-plus me-2"></i>Add Admin
-                    </button>
+                <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
+                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                        <div class="input-group mb-2 mb-md-0" style="width: 250px;">
+                            <input type="text" class="form-control" id="adminSearchInput" placeholder="Search admins...">
+                            <button class="btn btn-outline-secondary" type="button" id="adminSearchButton">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <select class="form-select mb-2 mb-md-0" id="adminSortSelect" style="width: 180px;">
+                            <option value="id:desc">Default (Newest First)</option>
+                            <option value="id:asc">Default (Oldest First)</option>
+                            <option value="username:asc">Username (A-Z)</option>
+                            <option value="username:desc">Username (Z-A)</option>
+                            <option value="first_name:asc">First Name (A-Z)</option>
+                            <option value="first_name:desc">First Name (Z-A)</option>
+                            <option value="last_name:asc">Last Name (A-Z)</option>
+                            <option value="last_name:desc">Last Name (Z-A)</option>
+                        </select>
+                        <button class="btn feature-btn add-btn" data-table="users" data-usertype="0">
+                            <i class="fas fa-plus me-2"></i>Add Admin
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table" data-usertype="0">
@@ -118,11 +139,28 @@
 
             <!-- Student Users Tab -->
             <div class="tab-pane fade" id="student-users" role="tabpanel" aria-labelledby="student-users-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Student Users</h4>
-                    <button class="btn feature-btn add-btn" data-table="users" data-usertype="1">
-                        <i class="fas fa-plus me-2"></i>Add Student
-                    </button>
+                <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
+                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                        <div class="input-group mb-2 mb-md-0" style="width: 250px;">
+                            <input type="text" class="form-control" id="studentSearchInput" placeholder="Search students...">
+                            <button class="btn btn-outline-secondary" type="button" id="studentSearchButton">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <select class="form-select mb-2 mb-md-0" id="studentSortSelect" style="width: 180px;">
+                            <option value="id:desc">Default (Newest First)</option>
+                            <option value="id:asc">Default (Oldest First)</option>
+                            <option value="username:asc">Username (A-Z)</option>
+                            <option value="username:desc">Username (Z-A)</option>
+                            <option value="first_name:asc">First Name (A-Z)</option>
+                            <option value="first_name:desc">First Name (Z-A)</option>
+                            <option value="last_name:asc">Last Name (A-Z)</option>
+                            <option value="last_name:desc">Last Name (Z-A)</option>
+                        </select>
+                        <button class="btn feature-btn add-btn" data-table="users" data-usertype="1">
+                            <i class="fas fa-plus me-2"></i>Add Student
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table" data-usertype="1">
@@ -146,11 +184,28 @@
 
             <!-- Staff Users Tab -->
             <div class="tab-pane fade" id="staff-users" role="tabpanel" aria-labelledby="staff-users-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Staff Users</h4>
-                    <button class="btn feature-btn add-btn" data-table="users" data-usertype="2">
-                        <i class="fas fa-plus me-2"></i>Add Staff
-                    </button>
+                <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
+                    <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
+                        <div class="input-group mb-2 mb-md-0" style="width: 250px;">
+                            <input type="text" class="form-control" id="staffSearchInput" placeholder="Search staff...">
+                            <button class="btn btn-outline-secondary" type="button" id="staffSearchButton">
+                                <i class="fas fa-search"></i>
+                            </button>
+                        </div>
+                        <select class="form-select mb-2 mb-md-0" id="staffSortSelect" style="width: 180px;">
+                            <option value="id:desc">Default (Newest First)</option>
+                            <option value="id:asc">Default (Oldest First)</option>
+                            <option value="username:asc">Username (A-Z)</option>
+                            <option value="username:desc">Username (Z-A)</option>
+                            <option value="first_name:asc">First Name (A-Z)</option>
+                            <option value="first_name:desc">First Name (Z-A)</option>
+                            <option value="last_name:asc">Last Name (A-Z)</option>
+                            <option value="last_name:desc">Last Name (Z-A)</option>
+                        </select>
+                        <button class="btn feature-btn add-btn" data-table="users" data-usertype="2">
+                            <i class="fas fa-plus me-2"></i>Add Staff
+                        </button>
+                    </div>
                 </div>
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table" data-usertype="2">
@@ -180,16 +235,17 @@
                 return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Staff' : 'Unknown';
             };
 
-            // Function to load all users with search and filter
-            const loadAllUsers = (page = 1, search = '', typeFilter = 'all') => {
+            // Function to load all users with search and sorting
+            const loadAllUsers = (page = 1, search = '', sort = 'id:desc') => {
                 let url = `includes/tabs/get_table.php?table=users&page=${page}`;
                 
                 if (search) {
                     url += `&search=${encodeURIComponent(search)}`;
                 }
                 
-                if (typeFilter !== 'all') {
-                    url += `&usertype=${typeFilter}`;
+                if (sort) {
+                    const [sortField, sortOrder] = sort.split(':');
+                    url += `&sort_by=${encodeURIComponent(sortField)}&sort_dir=${encodeURIComponent(sortOrder)}`;
                 }
                 
                 fetch(url)
@@ -208,6 +264,16 @@
                         }
                         
                         tableBody.innerHTML = '';
+
+                        // Show a message if no results
+                        if (data.data.length === 0) {
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="6" class="text-center">No matching users found</td>
+                                </tr>
+                            `;
+                            return;
+                        }
 
                         // Populate rows
                         data.data.forEach(user => {
@@ -256,16 +322,29 @@
                             <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
                                 <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
                             </li>
-                        `;
+                        `; 
                     })
                     .catch(error => {
                         console.error('Error loading all users:', error);
                     });
             };
 
-            // Function to load users by type
-            const loadUsersByType = (type, page = 1) => {
-                fetch(`includes/tabs/get_table.php?table=users&usertype=${type}&page=${page}`)
+            // Function to load users by type with search and sorting
+            const loadUsersByType = (type, page = 1, search = '', sort = 'id:desc') => {
+                let url = `includes/tabs/get_table.php?table=users&usertype=${type}&page=${page}`;
+                
+                // Add search parameter if provided
+                if (search) {
+                    url += `&search=${encodeURIComponent(search)}`;
+                }
+                
+                // Add sorting parameters
+                if (sort) {
+                    const [sortField, sortOrder] = sort.split(':');
+                    url += `&sort_by=${encodeURIComponent(sortField)}&sort_dir=${encodeURIComponent(sortOrder)}`;
+                }
+                
+                fetch(url)
                     .then(response => response.json())
                     .then(data => {
                         if (data.error) {
@@ -281,6 +360,16 @@
                         }
                         
                         tableBody.innerHTML = '';
+                        
+                        // Show a message if no results
+                        if (data.data.length === 0) {
+                            tableBody.innerHTML = `
+                                <tr>
+                                    <td colspan="6" class="text-center">No matching users found</td>
+                                </tr>
+                            `;
+                            return;
+                        }
 
                         // Populate rows
                         data.data.forEach(user => {
@@ -355,10 +444,7 @@
 
             // Load data immediately on page load
             console.log('DOM loaded, loading user data...');
-            loadAllUsers();
-            loadUsersByType(0);
-            loadUsersByType(1);
-            loadUsersByType(2); 
+            loadAllUsers(1, '', 'id:desc');
 
             // Also initialize when the main dashboard tab for users becomes visible
             document.querySelectorAll('#v-pills-tab .nav-link').forEach(tab => {
@@ -379,24 +465,24 @@
             // Handle search button click
             document.getElementById('userSearchButton').addEventListener('click', function() {
                 const searchTerm = document.getElementById('userSearchInput').value;
-                const typeFilter = document.getElementById('userTypeFilter').value;
-                loadAllUsers(1, searchTerm, typeFilter);
+                const sortValue = document.getElementById('userSortSelect').value;
+                loadAllUsers(1, searchTerm, sortValue);
             });
 
             // Handle search on enter key
             document.getElementById('userSearchInput').addEventListener('keyup', function(e) {
                 if (e.key === 'Enter') {
                     const searchTerm = document.getElementById('userSearchInput').value;
-                    const typeFilter = document.getElementById('userTypeFilter').value;
-                    loadAllUsers(1, searchTerm, typeFilter);
+                    const sortValue = document.getElementById('userSortSelect').value;
+                    loadAllUsers(1, searchTerm, sortValue);
                 }
             });
 
-            // Handle type filter change
-            document.getElementById('userTypeFilter').addEventListener('change', function() {
+            // Handle sort dropdown change
+            document.getElementById('userSortSelect').addEventListener('change', function() {
                 const searchTerm = document.getElementById('userSearchInput').value;
-                const typeFilter = this.value;
-                loadAllUsers(1, searchTerm, typeFilter);
+                const sortValue = this.value;
+                loadAllUsers(1, searchTerm, sortValue);
             });
 
             // Handle pagination clicks for all users
@@ -406,8 +492,8 @@
                     const page = parseInt(e.target.getAttribute('data-page'));
                     if (!isNaN(page)) {
                         const searchTerm = document.getElementById('userSearchInput').value;
-                        const typeFilter = document.getElementById('userTypeFilter').value;
-                        loadAllUsers(page, searchTerm, typeFilter);
+                        const sortValue = document.getElementById('userSortSelect').value;
+                        loadAllUsers(page, searchTerm, sortValue);
                     }
                 }
             });
@@ -419,10 +505,20 @@
                     if (e.target.tagName === 'A') {
                         const page = parseInt(e.target.getAttribute('data-page'));
                         if (!isNaN(page)) {
-                            // Determine user type from class
-                            const type = pg.classList.contains('pagination-admin') ? 0 :
-                                pg.classList.contains('pagination-student') ? 1 : 2;
-                            loadUsersByType(type, page);
+                            // Determine user type from class and get the appropriate search and sort terms
+                            if (pg.classList.contains('pagination-admin')) {
+                                const searchTerm = document.getElementById('adminSearchInput').value;
+                                const sortValue = document.getElementById('adminSortSelect').value;
+                                loadUsersByType(0, page, searchTerm, sortValue);
+                            } else if (pg.classList.contains('pagination-student')) {
+                                const searchTerm = document.getElementById('studentSearchInput').value;
+                                const sortValue = document.getElementById('studentSortSelect').value;
+                                loadUsersByType(1, page, searchTerm, sortValue);
+                            } else if (pg.classList.contains('pagination-staff')) {
+                                const searchTerm = document.getElementById('staffSearchInput').value;
+                                const sortValue = document.getElementById('staffSortSelect').value;
+                                loadUsersByType(2, page, searchTerm, sortValue);
+                            }
                         }
                     }
                 });
@@ -435,14 +531,20 @@
                     console.log('User management tab changed to:', targetId);
                     if (targetId === '#all-users') {
                         const searchTerm = document.getElementById('userSearchInput').value;
-                        const typeFilter = document.getElementById('userTypeFilter').value;
-                        loadAllUsers(1, searchTerm, typeFilter);
+                        const sortValue = document.getElementById('userSortSelect').value;
+                        loadAllUsers(1, searchTerm, sortValue);
                     } else if (targetId === '#admin-users') {
-                        loadUsersByType(0);
+                        const searchTerm = document.getElementById('adminSearchInput').value;
+                        const sortValue = document.getElementById('adminSortSelect').value;
+                        loadUsersByType(0, 1, searchTerm, sortValue);
                     } else if (targetId === '#student-users') {
-                        loadUsersByType(1);
+                        const searchTerm = document.getElementById('studentSearchInput').value;
+                        const sortValue = document.getElementById('studentSortSelect').value;
+                        loadUsersByType(1, 1, searchTerm, sortValue);
                     } else if (targetId === '#staff-users') {
-                        loadUsersByType(2);
+                        const searchTerm = document.getElementById('staffSearchInput').value;
+                        const sortValue = document.getElementById('staffSortSelect').value;
+                        loadUsersByType(2, 1, searchTerm, sortValue);
                     }
                 });
             });
@@ -465,6 +567,69 @@
                     }, 200);
                 }
             }
+
+            // Add event listeners for admin search
+            document.getElementById('adminSearchButton').addEventListener('click', function() {
+                const searchTerm = document.getElementById('adminSearchInput').value;
+                const sortValue = document.getElementById('adminSortSelect').value;
+                loadUsersByType(0, 1, searchTerm, sortValue);
+            });
+
+            document.getElementById('adminSearchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value;
+                    const sortValue = document.getElementById('adminSortSelect').value;
+                    loadUsersByType(0, 1, searchTerm, sortValue);
+                }
+            });
+
+            document.getElementById('adminSortSelect').addEventListener('change', function() {
+                const searchTerm = document.getElementById('adminSearchInput').value;
+                const sortValue = this.value;
+                loadUsersByType(0, 1, searchTerm, sortValue);
+            });
+
+            // Add event listeners for student search
+            document.getElementById('studentSearchButton').addEventListener('click', function() {
+                const searchTerm = document.getElementById('studentSearchInput').value;
+                const sortValue = document.getElementById('studentSortSelect').value;
+                loadUsersByType(1, 1, searchTerm, sortValue);
+            });
+
+            document.getElementById('studentSearchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value;
+                    const sortValue = document.getElementById('studentSortSelect').value;
+                    loadUsersByType(1, 1, searchTerm, sortValue);
+                }
+            });
+
+            document.getElementById('studentSortSelect').addEventListener('change', function() {
+                const searchTerm = document.getElementById('studentSearchInput').value;
+                const sortValue = this.value;
+                loadUsersByType(1, 1, searchTerm, sortValue);
+            });
+
+            // Add event listeners for staff search
+            document.getElementById('staffSearchButton').addEventListener('click', function() {
+                const searchTerm = document.getElementById('staffSearchInput').value;
+                const sortValue = document.getElementById('staffSortSelect').value;
+                loadUsersByType(2, 1, searchTerm, sortValue);
+            });
+
+            document.getElementById('staffSearchInput').addEventListener('keyup', function(e) {
+                if (e.key === 'Enter') {
+                    const searchTerm = this.value;
+                    const sortValue = document.getElementById('staffSortSelect').value;
+                    loadUsersByType(2, 1, searchTerm, sortValue);
+                }
+            });
+
+            document.getElementById('staffSortSelect').addEventListener('change', function() {
+                const searchTerm = document.getElementById('staffSearchInput').value;
+                const sortValue = this.value;
+                loadUsersByType(2, 1, searchTerm, sortValue);
+            });
         });
     </script>
 </div>
