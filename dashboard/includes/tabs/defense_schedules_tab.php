@@ -1,5 +1,5 @@
 <!-- Defense Schedules Tab -->
-<div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
+<div class="tab-pane fade my-3" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
 <button class="btn feature-btn add-btn" data-table="defense_schedules">
             <i class="fas fa-plus"></i>Add Defense Schedule
         </button>
