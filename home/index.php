@@ -47,39 +47,33 @@ error_reporting(E_ALL);
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Check if there's a previously selected tab stored in localStorage
-        const activeTab = localStorage.getItem("activeTab");
+        const activeTab = localStorage.getItem("activeTab") || "overview";
 
-        // If there is a stored active tab, activate it
-        if (activeTab) {
-            // Deactivate all tab-panes and nav-links
-            const allTabPanes = document.querySelectorAll('.tab-pane');
-            const allNavLinks = document.querySelectorAll('.nav-link');
+        // Deactivate all tab-panes and nav-links
+        const allTabPanes = document.querySelectorAll('.tab-pane');
+        const allNavLinks = document.querySelectorAll('.nav-link');
 
-            allTabPanes.forEach(pane => {
-                pane.classList.remove("show", "active");
-            });
+        allTabPanes.forEach(pane => {
+            pane.classList.remove("show", "active");
+        });
 
-            allNavLinks.forEach(link => {
-                link.classList.remove("active");
-            });
+        allNavLinks.forEach(link => {
+            link.classList.remove("active");
+        });
 
-            // Activate the tab and its content
-            const activeTabPane = document.getElementById(activeTab);
-            const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
-            console.log("Active tab:", activeTab);
-            console.log("Active tab pane:", activeTabPane);
-            console.log("Active nav link:", activeNavLink);
+        // Activate the tab and its content
+        const activeTabPane = document.getElementById(activeTab);
+        const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
 
-            if (activeTabPane) {
-                activeTabPane.classList.add("show", "active");
-            } else {
-                document.getElementById('scheduling').classList.add("show", "active");
-            }
-            if (activeNavLink) {
-                activeNavLink.classList.add("active");
-            } else {
-                document.getElementById('scheduling-link').classList.add("active");
-            }
+        if (activeTabPane) {
+            activeTabPane.classList.add("show", "active");
+        } else {
+            document.getElementById('overview').classList.add("show", "active");
+        }
+        if (activeNavLink) {
+            activeNavLink.classList.add("active");
+        } else {
+            document.getElementById('overview-link').classList.add("active");
         }
 
         // Add event listener to tabs to update localStorage when clicked
@@ -91,6 +85,62 @@ error_reporting(E_ALL);
                 localStorage.setItem('activeTab', clickedTabId);
             });
         });
+
+        // Load team overview content when the overview tab is clicked
+        document.getElementById('overview-link').addEventListener('click', function() {
+            fetchTeamOverview();
+        });
+
+        // Fetch team overview content on page load if the overview tab is active
+        if (activeTab === "overview") {
+            fetchTeamOverview();
+        }
+
+        function fetchTeamOverview() {
+            fetch('includes/get_team_overview.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const teamOverviewContent = document.getElementById('teamOverviewContent');
+                        let content = `<div class="card mb-4">
+                                            <div class="card-body">
+                                                <h5 class="card-title">Team: ${data.team.name}</h5>
+                                            </div>
+                                        </div>`;
+
+                        content += '<div class="card mb-4"><div class="card-body"><h6 class="card-title">Requirements</h6>';
+                        data.requirements.forEach(req => {
+                            const statusClass = req.status === 'approved' ? 'bg-success' : req.status === 'submitted' ? 'bg-warning' : 'bg-danger';
+                            const progressValue = req.status === 'approved' ? 100 : req.status === 'submitted' ? 50 : 0;
+                            content += `<div class="mb-3">
+                                            <label>${req.name}</label>
+                                            <div class="progress">
+                                                <div class="progress-bar ${statusClass}" role="progressbar" style="width: ${progressValue}%" aria-valuenow="${progressValue}" aria-valuemin="0" aria-valuemax="100">${req.status ? req.status : 'Not Submitted'}</div>
+                                            </div>
+                                        </div>`;
+                        });
+                        content += '</div></div>';
+
+                        if (data.defense) {
+                            content += `<div class="card mb-4">
+                                            <div class="card-body">
+                                                <h6 class="card-title">Next Defense Schedule</h6>
+                                                <p>Date: ${data.defense.schedule_date}</p>
+                                                <p>Time: ${data.defense.start_time} - ${data.defense.end_time}</p>
+                                                <p>Room: ${data.defense.room}</p>
+                                            </div>
+                                        </div>`;
+                        } else {
+                            content += '<div class="card mb-4"><div class="card-body"><h6 class="card-title">Next Defense Schedule</h6><p>No defense scheduled</p></div></div>';
+                        }
+
+                        teamOverviewContent.innerHTML = content;
+                    } else {
+                        console.error(data.message);
+                    }
+                })
+                .catch(error => console.error('Error fetching team overview:', error));
+        }
     });
 </script>
 <main role="main" class="container">
@@ -106,6 +156,9 @@ error_reporting(E_ALL);
                     </div>
                 </div> -->
                 <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <a class="nav-link my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="false">
+                        <i class="fas fa-info-circle me-2"></i>Overview
+                    </a>
                     <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
                         <i class="fas fa-calendar-alt me-2"></i>Calendar
                     </a>
@@ -525,6 +578,24 @@ error_reporting(E_ALL);
                                     <?php endwhile; ?>
                                 </tbody>
                             </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tab-pane fade" id="overview" role="tabpanel" aria-labelledby="overview-link">
+                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                        <div class="d-flex align-items-center mb-4">
+                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <i class="fas fa-info-circle text-primary fs-4"></i>
+                            </div>
+                            <div>
+                                <h4 class="mb-1 feature-title">Team Overview</h4>
+                                <p class="text-muted mb-0">Track your requirement progress and next defense schedule</p>
+                            </div>
+                        </div>
+
+                        <div id="teamOverviewContent">
+                            <!-- Team overview content will be loaded here -->
                         </div>
                     </div>
                 </div>
@@ -1063,4 +1134,4 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
     if (targetNode) {
         observer.observe(targetNode, config);
     }
-</script> 
+</script>

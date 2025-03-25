@@ -1,6 +1,6 @@
 <!-- Rubrics Tab -->
 <div class="tab-pane fade" id="rubrics" role="tabpanel">
-    <div class="d-flex justify-content-between align-items-center mb-4">
+    <div class="d-flex justify-content-between align-items-center my-3">
         <h4>Rubrics Management</h4>
         <button class="btn btn-primary add-btn" data-table="rubrics">
             <i class="fas fa-plus"></i> Add New Rubric
@@ -9,7 +9,7 @@
 
     <!-- Rubrics Table -->
     <div class="table-responsive">
-        <table class="table table-hover">
+        <table class="table table-hover db-table">
             <thead>
                 <tr>
                     <th>Name</th>
@@ -240,7 +240,7 @@ function updatePagination(totalPages, currentPage) {
     // Previous button
     pagination.append(`
         <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}">Previous</a>
+            <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
                             </li>
     `);
     
@@ -256,7 +256,7 @@ function updatePagination(totalPages, currentPage) {
     // Next button
     pagination.append(`
         <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}">Next</a>
+            <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
                             </li>
     `);
 }
