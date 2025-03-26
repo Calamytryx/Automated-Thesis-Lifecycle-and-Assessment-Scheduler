@@ -20,7 +20,7 @@ if (!defined('DB_PASSWORD'))        define('DB_PASSWORD', getEnvVariable('DB_PAS
 if (!defined('DB_PORT'))            define('DB_PORT', getEnvVariable('DB_PORT') ?? '3306');
 
 if (!defined('MAIL_HOST'))          define('MAIL_HOST', getEnvVariable('MAIL_HOST') ?? 'smtp.gmail.com');
-if (!defined('MAIL_USERNAME'))      define('MAIL_USERNAME', getEnvVariable('MAIL_USERNAME') ?? 'ton.agustin09@gmail.com');
-if (!defined('MAIL_PASSWORD'))      define('MAIL_PASSWORD', getEnvVariable('MAIL_PASSWORD') ?? 'rdrc cinf leli xdms');
+if (!defined('MAIL_USERNAME'))      define('MAIL_USERNAME', getEnvVariable('MAIL_USERNAME') ?? '');
+if (!defined('MAIL_PASSWORD'))      define('MAIL_PASSWORD', getEnvVariable('MAIL_PASSWORD') ?? '');
 if (!defined('MAIL_ENCRYPTION'))    define('MAIL_ENCRYPTION', getEnvVariable('MAIL_ENCRYPTION') ?? 'ssl');
 if (!defined('MAIL_PORT'))          define('MAIL_PORT', getEnvVariable('MAIL_PORT') ?? 465);
