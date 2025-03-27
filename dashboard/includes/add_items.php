@@ -2,6 +2,12 @@
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // Check if 'table' key exists in $_POST
+    if (!isset($_POST['table'])) {
+        echo json_encode(['success' => false, 'message' => 'Missing required parameter: table']);
+        exit;
+    }
+    
     $table = $_POST['table'];
     
     // Remove table from $_POST
@@ -210,6 +216,93 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     
+    // Special handling for defense_schedules
+    if ($table === 'defense_schedules') {
+        $pdo->beginTransaction();
+        
+        try {
+            // Extract panelist IDs from POST data
+            $panelistIds = [];
+            if (isset($_POST['panelist_id']) && is_array($_POST['panelist_id'])) {
+                $panelistIds = array_filter($_POST['panelist_id'], function($value) {
+                    return !empty($value);
+                });
+                unset($_POST['panelist_id']); // Remove from POST data to prevent array to string conversion
+            }
+            
+            // Add up to three panelists directly to the defense_schedules table
+            if (!empty($panelistIds)) {
+                // Sort by array key to ensure consistent assignment order
+                ksort($panelistIds);
+                $panelistIds = array_values($panelistIds); // Reset keys after sorting
+                
+                if (isset($panelistIds[0])) {
+                    $_POST['panelist_id'] = $panelistIds[0];
+                }
+                
+                if (isset($panelistIds[1])) {
+                    $_POST['panelist_id2'] = $panelistIds[1];
+                }
+                
+                if (isset($panelistIds[2])) {
+                    $_POST['panelist_id3'] = $panelistIds[2];
+                }
+                
+                // Log a warning if there are more than 3 panelists as the database only supports 3
+                if (count($panelistIds) > 3) {
+                    error_log("Warning: Only the first 3 panelists were saved. The database schema only supports 3 panelists.");
+                }
+            }
+            
+            // Validation: Check if there's already a schedule with the same date + time + room
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules 
+                                  WHERE schedule_date = :schedule_date 
+                                  AND ((start_time <= :end_time AND end_time >= :start_time)
+                                  OR (start_time >= :start_time AND start_time < :end_time))
+                                  AND room = :room");
+            $stmt->execute([
+                'schedule_date' => $_POST['schedule_date'],
+                'start_time' => $_POST['start_time'],
+                'end_time' => $_POST['end_time'],
+                'room' => $_POST['room']
+            ]);
+            $roomBooked = ($stmt->fetchColumn() > 0);
+            
+            // Validation: Check if the team is already scheduled for a defense
+            $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules WHERE team_id = :team_id");
+            $stmt->execute(['team_id' => $_POST['team_id']]);
+            $teamBooked = ($stmt->fetchColumn() > 0);
+            
+            // Only proceed if neither condition is true
+            if ($roomBooked) {
+                $pdo->rollBack();
+                echo json_encode(['success' => false, 'message' => 'This room is already booked for this date and time.']);
+                exit;
+            }
+            
+            if ($teamBooked) {
+                $pdo->rollBack();
+                echo json_encode(['success' => false, 'message' => 'This team already has a scheduled defense.']);
+                exit;
+            }
+            
+            // Insert into defense_schedules table
+            $columns = implode(", ", array_keys($_POST));
+            $values = ":" . implode(", :", array_keys($_POST));
+            
+            $stmt = $pdo->prepare("INSERT INTO $table ($columns) VALUES ($values)");
+            $stmt->execute($_POST);
+            
+            $pdo->commit();
+            echo json_encode(['success' => true]);
+        } catch (Exception $e) {
+            $pdo->rollBack();
+            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+        }
+        
+        exit;
+    }
+    
     // General handling for other tables
     $columns = implode(", ", array_keys($_POST));
     $values = ":" . implode(", :", array_keys($_POST));
@@ -225,7 +318,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 }
 /**
  * This file is part of the COECSA Thesis Dashboard.
- * 
  * 
  * Description:
  * This script is responsible for adding items to the dashboard.
