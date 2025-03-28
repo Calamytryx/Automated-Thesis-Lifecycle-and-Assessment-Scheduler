@@ -1,0 +1,169 @@
+# Problem Analysis: Rubrics Functionality Conflict
+
+The issue is occurring due to conflicts between event handlers in the newly developed files in the `compare` folder and the original dashboard functionality. Here's a detailed breakdown of what's happening:
+
+## 1. Event Handler Conflicts
+
+The main conflict is between multiple click event handlers registered for the `.add-btn` elements:
+
+### Original Code (app.js.php):
+```javascript
+// Add button functionality - This is the general handler for all add buttons
+$(document).on('click', '.add-btn', function() {
+    var table = $(this).data('table');
+    var form = $('#addForm');
+    form.empty();
+    form.append('<input type="hidden" name="table" value="' + table + '">');
+    // More code to handle different tables...
+});
+```
+
+### Modified Code (compare/app.js.php):
+```javascript
+// Add button functionality - This tries to delegate rubrics but isn't fully implemented
+$(document).on('click', '.add-btn', function(e) {
+    e.preventDefault();
+    e.stopPropagation(); // Stop event propagation
+    
+    var table = $(this).data('table');
+    console.log('Main app: Add button clicked for table:', table);
+    
+    // Special handling for rubrics
+    if (table === 'rubrics') {
+        console.log('Main app: Delegating rubric add to rubrics_tab.php handler');
+        // Don't do anything here - let the rubrics_tab.php handler take over
+        return false; // Return false to prevent further event handling
+    }
+    
+    // Rest of the code...
+});
+```
+
+### Thesis Topics Implementation (thesis_topics_tab.php):
+```javascript
+$(document).on('click', '.add-btn', function() {
+    // Correctly reference the clicked button using 'this'
+    var button = $(this);
+    console.log('Add button clicked');
+
+    // Get the current row
+    var row = button.closest('tr');
+
+    // Extract data from the row
+    var topic = row.find('td:nth-child(1)').text().trim();
+    var description = row.find('td:nth-child(2)').text().trim();
+    var potentialImpact = row.find('td:nth-child(3)').text().trim();
+    // More code...
+});
+```
+
+### Modified Rubrics Implementation (compare/rubrics_tab.php):
+```javascript
+// Event Listeners
+$(document).ready(function() {
+    // Unbind any existing click handlers to prevent duplication
+    $('.add-btn[data-table="rubrics"]').off('click');
+    $('.edit-rubric-btn').off('click');
+    $('.delete-rubric-btn').off('click');
+    
+    // Handle add rubric button click - use a namespaced event to avoid conflicts
+    $(document).off('click.rubrics').on('click.rubrics', '.add-btn[data-table="rubrics"]', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        console.log('Rubric tab: Add button clicked');
+        
+        // Reset form
+        $('#rubricForm')[0].reset();
+        $('#rubricId').val('');
+        $('#rubricModalTitle').text('Add New Rubric');
+        $('#rubricPreviewBody').empty();
+        
+        // Generate default quality criteria
+        generateQualityCriteriaInputs();
+        
+        // Add one criterion row by default
+        addCriterionRow();
+        
+        // Show the modal
+        $('#rubricModal').modal('show');
+        
+        return false; // Important: prevent other handlers from running
+    });
+    
+    // Similar namespaced event handlers for edit and delete
+    // ...
+});
+```
+
+## 2. The Problem
+
+1. **Console Log Issue**: The thesis_topics_tab.php handler is being triggered for all add buttons because it doesn't check which table the button belongs to. This is causing the console log message:
+
+```
+Add button clicked
+dashboard/:1180 Topic: 
+dashboard/:1181 Description: 
+dashboard/:1182 Potential Impact: 
+dashboard/:1183 Category: 
+```
+
+2. **Edit and Delete Button Issues**: The event handlers for edit and delete buttons are not working because:
+   - They're using namespaced events that don't properly prevent the default handlers
+   - The implementation in the compare/rubrics_tab.php is registering handlers inside a document.ready function, which may run before some elements exist in the DOM
+
+3. **Conflicting jQuery Event Namespacing**: The use of jQuery event namespacing (`click.rubrics`) is not consistent across files, leading to handlers not properly delegating or overriding each other.
+
+## 3. Solution Approach
+
+1. **Fix the Global Add Button Handler**: Modify app.js.php to properly exclude rubrics:
+```javascript
+$(document).on('click', '.add-btn', function(e) {
+    var table = $(this).data('table');
+    
+    // Skip rubrics - let their specialized handler take over
+    if (table === 'rubrics') {
+        return; 
+    }
+    
+    // Original handler code for other tables
+    // ...
+});
+```
+
+2. **Fix the Thesis Topics Handler**: Add a check for the table type:
+```javascript
+$(document).on('click', '.add-btn', function() {
+    var button = $(this);
+    var table = button.data('table');
+    
+    // Only process thesis topics buttons
+    if (table !== 'thesis_topics') {
+        return;
+    }
+    
+    console.log('Add button clicked for thesis topics');
+    // Rest of the code...
+});
+```
+
+3. **Fix the Rubrics-Specific Handlers**: Use proper event delegation based on selector specificity:
+```javascript
+// More specific selector will take precedence
+$(document).on('click', '.add-btn[data-table="rubrics"]', function(e) {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    console.log('Rubric tab: Add button clicked');
+    
+    // Reset form logic
+    // ...
+    
+    // Show the modal
+    $('#rubricModal').modal('show');
+    
+    return false;
+});
+```
+
+4. **Apply Similar Fixes to Edit and Delete Functionality**: Follow the same pattern for the edit and delete button handlers. 
