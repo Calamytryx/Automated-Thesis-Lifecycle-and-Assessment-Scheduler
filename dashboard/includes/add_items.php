@@ -280,6 +280,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 exit;
             }
             
+            // Insert into defense_schedules table
+            $columns = implode(", ", array_keys($_POST));
+            $values = ":" . implode(", :", array_keys($_POST));
+            
             $stmt = $pdo->prepare("INSERT INTO $table ($columns) VALUES ($values)");
             $stmt->execute($_POST);
             
@@ -289,6 +293,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->rollBack();
             echo json_encode(['success' => false, 'message' => $e->getMessage()]);
         }
+        
+        exit;
     }
     
     // General handling for other tables
@@ -303,11 +309,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
-    
 }
 /**
  * This file is part of the COECSA Thesis Dashboard.
- * 
  * 
  * Description:
  * This script is responsible for adding items to the dashboard.
