@@ -31,7 +31,14 @@ try {
 
     foreach ($requirements as &$req) {
         if (isset($teamReqMap[$req['id']])) {
-            $req = array_merge($req, $teamReqMap[$req['id']]);
+            $teamReqData = $teamReqMap[$req['id']];
+            // Merge explicitly while keeping `id`
+            $req = array_merge($req, [
+                'status' => $teamReqData['status'] ?? 'pending',
+                'submitted_at' => $teamReqData['submitted_at'] ?? null,
+                'feedback' => $teamReqData['feedback'] ?? '',
+                'file_name' => $teamReqData['file_name'] ?? '',
+            ]);
         } else {
             $req['status'] = 'pending';
             $req['submitted_at'] = null;

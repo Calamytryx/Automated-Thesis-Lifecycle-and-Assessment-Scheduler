@@ -671,20 +671,20 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 });
 
                 function loadRequirements(teamId) {
-                    console.log("Loading requirements for teamId:", teamId);
-                    $.ajax({
-                        url: 'includes/get_requirements.php',
-                        method: 'GET',
-                        data: {
-                            team_id: teamId
-                        },
-                        dataType: 'json',
-                        success: function(response) {
-                            console.log("AJAX request successful. Response:", response);
-                            if (response.success) {
-                                var checklistHtml = '<form id="requirementChecklist" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';
-                                response.requirements.forEach(function(req) {
-                                    checklistHtml += `
+            console.log("Loading requirements for teamId:", teamId);
+            $.ajax({
+                url: 'includes/get_requirements.php',
+                method: 'GET',
+                data: {
+                    team_id: teamId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    console.log("AJAX request successful. Response:", response);
+                    if (response.success) {
+                        var checklistHtml = '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';
+                        response.requirements.forEach(function(req) {
+                            checklistHtml += `
                         <div class="col-12 col-lg-6">
                             <div class="card h-100 shadow-sm">
                                 <div class="card-body">
@@ -734,21 +734,54 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 </div>
                             </div>
                         </div>`;
-                                });
-                                checklistHtml += '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
-                                $('#requirementChecklist').html(checklistHtml);
-
-                            } else {
-                                $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                                console.error('Error in response:', response.error);
-                            }
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
-                            console.error("AJAX error:", textStatus, errorThrown);
-                        }
-                    });
+                        });
+                        checklistHtml += '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
+                        // Insert the generated HTML into the container
+                        $('#requirementChecklist').html(checklistHtml);
+                    } else {
+                        $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
+                        console.error('Error in response:', response.error);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
+                    console.error("AJAX error:", textStatus, errorThrown);
                 }
+            });
+        }
+        
+
+        $(document).ready(function() {
+ 
+            loadRequirements();
+            
+
+            $(document).on('submit', '#requirementChecklistForm', function(event) {
+                event.preventDefault(); 
+                var formData = new FormData(this);
+                
+                $.ajax({
+                    url: 'includes/update_requirements.php',
+                    method: 'POST',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'json',
+                    success: function(response) {
+                        console.log("Update response:", response);
+                        if (response.success) {
+                            alert("Requirements updated successfully!");
+                        } else {
+                            alert("Error: " + response.error);
+                        }
+                    },
+                    error: function(jqXHR, textStatus, errorThrown) {
+                        console.error("AJAX error:", textStatus, errorThrown);
+                        alert("An error occurred while updating requirements.");
+                    }
+                });
+            });
+        });
             <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>

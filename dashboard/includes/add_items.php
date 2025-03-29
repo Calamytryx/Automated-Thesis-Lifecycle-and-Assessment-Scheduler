@@ -169,7 +169,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
-            
+
+            //add research title
+            $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
+            $stmt->execute([
+                'id' => $teamId, // Ensure research_titles.id matches teams.id
+                'team_id' => $teamId,
+                'title' => $_POST['name']
+            ]);
+
             // Check if members data exists and is in the correct format
             if (isset($_POST['members']) && !empty($_POST['members'])) {
                 // If members is a JSON string, decode it
@@ -210,13 +218,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
     
-    
+    if ($table === 'defense_schedules') {
     $panelist_ids = isset($_POST['panelist_id']) ? (array)$_POST['panelist_id'] : [];
     $_POST['panelist_id']  = isset($panelist_ids[0]) ? $panelist_ids[0] : null;
     $_POST['panelist_id2'] = isset($panelist_ids[1]) ? $panelist_ids[1] : null;
     $_POST['panelist_id3'] = isset($panelist_ids[2]) ? $panelist_ids[2] : null;
     
-    
+    }
     
     // General handling for other tables
     $columns = implode(", ", array_keys($_POST));
