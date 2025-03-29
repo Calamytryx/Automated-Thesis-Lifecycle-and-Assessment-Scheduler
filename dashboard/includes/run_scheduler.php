@@ -6,6 +6,13 @@ ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
 error_log("POST data: " . print_r($_POST, true));
 
+// If the POST submission contains 'startTime', ignore this submission.
+if (isset($_POST['startTime'])) {
+    error_log("Ignoring submission with startTime. Expected submission without startTime.");
+    echo json_encode(['success' => false, 'message' => 'Ignoring unintended submission']);
+    exit;
+}
+
 header('Content-Type: application/json');
 
 try {
@@ -20,43 +27,65 @@ try {
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Clear previous schedules to avoid duplicates
         clearPreviousSchedules($pdo);
-        
-        $teams = fetchTeams($pdo);
+
+        // Get the selected program for filtering
+        $selectedProgram = '';
+        $selectedProgram = (isset($_POST['program']) && trim($_POST['program']) !== '')
+            ? trim($_POST['program'])
+            : ((isset($_POST['selectedProgram']) && trim($_POST['selectedProgram']) !== '')
+                ? trim($_POST['selectedProgram'])
+                : '');
+
+        $teams = fetchTeams($pdo, $selectedProgram);
         $panelists = fetchPanelists($pdo);
         $duration = $_POST['timeDuration'];
-        $rooms = $_POST['rooms'];
-        $timeSlots = $_POST['timeSlots'];
-        $days = $_POST['days'];
-        
+        // Convert to integer
         if (!is_numeric($duration) || intval($duration) <= 0) {
             throw new Exception("Invalid duration. It must be a positive integer.");
         }
-        $duration = intval($duration); // Ensure it's an integer
-        
+        $duration = intval($duration);
+        // FIX: Set duration to a global variable so functions use it instead of $_POST
+        $GLOBALS['timeDuration'] = $duration;
+
+        $rooms = $_POST['rooms'];
+        $timeSlots = $_POST['timeSlots'];
+        $days = $_POST['days'];
+
         $userSchedules = fetchUserSchedules($pdo);
 
         // Validate input parameters
         if (empty($teams) || empty($panelists)) {
             throw new Exception("No teams or panelists available for scheduling");
         }
-        
+
         // Optimize parameters for better performance-quality balance
         $populationSize = 200;     // Reduced from 200 for faster execution
         $generations = 500;       // Reduced from 500 for faster execution
         $mutationRate = 0.2;
         $earlyStopGenerations = 500; // Stop if no improvements after 30 generations
-        
-        $bestSchedule = geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 
-            $populationSize, $generations, $mutationRate, $earlyStopGenerations);
+
+        $bestSchedule = geneticAlgorithm(
+            $pdo,
+            $teams,
+            $panelists,
+            $rooms,
+            $timeSlots,
+            $days,
+            $userSchedules,
+            $populationSize,
+            $generations,
+            $mutationRate,
+            $earlyStopGenerations
+        );
 
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             $result = [
                 'success' => true,
-                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation), // This should now be correct
+                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
                 'crossoverCount' => DefenseSchedule::$crossoverCount,
                 'mutationCount' => DefenseSchedule::$mutationCount,
-                'conflictCounts' => DefenseSchedule::$averageConflictCounts, // Use averaged conflict counts
-                'fitnessScores' => DefenseSchedule::$averageFitnessScores, // Use averaged fitness scores
+                'conflictCounts' => DefenseSchedule::$averageConflictCounts,
+                'fitnessScores' => DefenseSchedule::$averageFitnessScores,
                 'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
                 'message' => 'Schedule generated and saved successfully'
             ];
@@ -76,22 +105,34 @@ try {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
-function fetchTeams($pdo)
+function fetchTeams($pdo, $program = '')
 {
-    $stmt = $pdo->query("
-        SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
-        FROM teams t
-        JOIN team_members tm ON t.id = tm.team_id
-        WHERE tm.role = 'adviser'
-    ");
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (empty(trim($program))) {
+        $stmt = $pdo->query("
+            SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            FROM teams t
+            JOIN team_members tm ON t.id = tm.team_id
+            WHERE tm.role = 'adviser'
+        ");
+    } else {
+        $stmt = $pdo->prepare("
+            SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            FROM teams t
+            JOIN team_members tm ON t.id = tm.team_id
+            WHERE tm.role = 'adviser' AND t.program = ?
+        ");
+        $stmt->execute([trim($program)]);
+    }
+    $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    error_log("Fetched " . count($teams) . " teams for program: " . ($program ?: 'All Programs'));
+    return $teams;
 }
 
 function fetchPanelists($pdo)
 {
     $stmt = $pdo->query("SELECT id, area_of_expertise, is_parttime FROM users WHERE usertype = 2");
     $panelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     // Convert the result to a more usable format: id => [expertise, is_parttime]
     $formattedPanelists = [];
     foreach ($panelists as $panelist) {
@@ -100,7 +141,7 @@ function fetchPanelists($pdo)
             'is_parttime' => isset($panelist['is_parttime']) ? $panelist['is_parttime'] : 0
         ];
     }
-    
+
     return $formattedPanelists;
 }
 
@@ -115,7 +156,7 @@ function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelis
     foreach ($allPanelists as $panelistId => $panelistData) {
         $panelistInfo = getPanelistData($pdo, $panelistId);
         $expertise = is_array($panelistData) ? ($panelistData['expertise'] ?? '') : '';
-        
+
         if ($panelistInfo['program'] == $teamProgram) {
             $sameProgramPanelists[] = ['id' => $panelistId, 'expertise' => $expertise];
         } else {
@@ -124,13 +165,13 @@ function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelis
     }
 
     // Sort panelists by expertise similarity
-    usort($sameProgramPanelists, function($a, $b) use ($teamExpertise) {
+    usort($sameProgramPanelists, function ($a, $b) use ($teamExpertise) {
         $expertiseA = is_string($a['expertise']) ? $a['expertise'] : '';
         $expertiseB = is_string($b['expertise']) ? $b['expertise'] : '';
         return similar_text($teamExpertise, $expertiseB) - similar_text($teamExpertise, $expertiseA);
     });
 
-    usort($differentProgramPanelists, function($a, $b) use ($teamExpertise) {
+    usort($differentProgramPanelists, function ($a, $b) use ($teamExpertise) {
         $expertiseA = is_string($a['expertise']) ? $a['expertise'] : '';
         $expertiseB = is_string($b['expertise']) ? $b['expertise'] : '';
         return similar_text($teamExpertise, $expertiseB) - similar_text($teamExpertise, $expertiseA);
@@ -142,15 +183,16 @@ function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelis
     ];
 }
 
-function getPanelistData($pdo, $panelistId) {
+function getPanelistData($pdo, $panelistId)
+{
     static $cache = [];
-    
+
     if (!isset($cache[$panelistId])) {
         $stmt = $pdo->prepare("SELECT program, area_of_expertise, is_parttime FROM users WHERE id = ?");
         $stmt->execute([$panelistId]);
         $cache[$panelistId] = $stmt->fetch(PDO::FETCH_ASSOC);
     }
-    
+
     return $cache[$panelistId];
 }
 
@@ -164,12 +206,22 @@ function fetchUserSchedules($pdo)
     return $schedules;
 }
 
-function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, 
-                         $populationSize, $generations, $mutationRate, $earlyStopGenerations = 30)
-{
+function geneticAlgorithm(
+    $pdo,
+    $teams,
+    $panelists,
+    $rooms,
+    $timeSlots,
+    $days,
+    $userSchedules,
+    $populationSize,
+    $generations,
+    $mutationRate,
+    $earlyStopGenerations = 30
+) {
     // Store teams globally for use in other functions
     $GLOBALS['teams'] = $teams;
-    
+
     $population = createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days);
     DefenseSchedule::$initialPopulation = $population;
     DefenseSchedule::$populationPerGeneration = [];
@@ -185,7 +237,7 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
 
     for ($i = 0; $i < $generations; $i++) {
         $generationImproved = false;
-        
+
         // Process in batches to avoid memory issues
         foreach ($population as $schedule) {
             $schedule->calculateFitness($userSchedules);
@@ -217,10 +269,10 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
             DefenseSchedule::$averageConflictCounts[] = array_sum(array_map(function ($schedule) {
                 return $schedule->fitness < 0 ? 1 : 0;
             }, $population)) / $populationSize;
-            
+
             DefenseSchedule::$averageFitnessScores[] = array_sum(array_column($population, 'fitness')) / $populationSize;
         }
-        
+
         // Log progress every 20 generations
         if ($i % 20 == 0) {
             $elapsedTime = microtime(true) - $startTime;
@@ -228,24 +280,24 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
         }
 
         $selected = selection($population);
-        
+
         // Create new population
         $newPopulation = $selected; // Keep selected individuals
-        
+
         // Faster new population creation
         $childrenToCreate = $populationSize - count($newPopulation);
         for ($c = 0; $c < $childrenToCreate; $c++) {
             $parent1 = $selected[array_rand($selected)];
             $parent2 = $selected[array_rand($selected)];
             $child = crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms, $panelists);
-            
+
             // Only mutate some children to save time
             if (rand(0, 1) == 1) {
                 mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules);
             }
-            
+
             $newPopulation[] = $child;
-            
+
             // Break early if we have enough children
             if (count($newPopulation) >= $populationSize) {
                 break;
@@ -274,7 +326,7 @@ function geneticAlgorithm($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $
 
     $totalTime = microtime(true) - $startTime;
     error_log("Genetic algorithm completed in $totalTime seconds");
-    
+
     return $bestSchedule;
 }
 
@@ -312,12 +364,12 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
             $defense['time_slot'] = $timeSlots[array_rand($timeSlots)];
             $defense['day'] = $days[array_rand($days)];
             $defense['room'] = $rooms[array_rand($rooms)];
-            
+
             // Re-select panelists to resolve conflicts
             $team = fetchTeamById($parent1->pdo, $defense['team_id']);
             $panelistsByProgram = fetchPanelistsByProgram($parent1->pdo, $team['program'], $team['area_of_expertise'], $panelists);
             $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
-            
+
             $attempts++;
         }
         if ($attempts >= $maxAttempts) {
@@ -364,14 +416,14 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
 function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
 {
     static $conflictCache = [];
-    
+
     // Create a unique key for this conflict check
     $key = md5(json_encode($defense) . json_encode(array_slice($all_defenses, 0, 5)));
-    
+
     if (isset($conflictCache[$key])) {
         return $conflictCache[$key];
     }
-    
+
     // Check panelist conflicts
     foreach ($defense['panelist_ids'] as $panelist_id) {
         if (hasScheduleConflict($pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses)) {
@@ -382,12 +434,12 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
 
     // Cache team members to avoid repeated queries
     static $teamMembersCache = [];
-    
+
     // Check conflicts with team members
     if (!isset($teamMembersCache[$defense['team_id']])) {
         $teamMembersCache[$defense['team_id']] = getTeamMembers($pdo, $defense['team_id'], 'array');
     }
-    
+
     foreach ($teamMembersCache[$defense['team_id']] as $member) {
         if (hasScheduleConflict($pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses)) {
             $conflictCache[$key] = true;
@@ -404,7 +456,12 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
     if (!isset($userSchedules[$user_id])) return false;
 
     $defense_start = strtotime($time_slot);
-    $duration = $_POST['timeDuration'];;
+    // === PROBLEMATIC LINE START ===
+    // Previously: $duration = $_POST['timeDuration'];
+    // FIX: Use global time duration variable instead.
+    $duration = $GLOBALS['timeDuration'];
+    // === PROBLEMATIC LINE END ===
+
     $defense_end = strtotime('+' . $duration . ' hour', $defense_start);
     $defense_day = date('w', strtotime($day));
 
@@ -427,7 +484,11 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
         foreach ($all_defenses as $existing_defense) {
             if ($existing_defense['day'] == $day && $existing_defense['room'] == $room) {
                 $existing_start = strtotime($existing_defense['time_slot']);
-                $duration = $_POST['timeDuration'];;
+                // === PROBLEMATIC LINE START ===
+                // Previously: $duration = $_POST['timeDuration'];
+                // FIX: Use global time duration variable.
+                $duration = $GLOBALS['timeDuration'];
+                // === PROBLEMATIC LINE END ===
                 $existing_end = strtotime('+' . $duration . ' hour', $existing_start);
 
                 if (($defense_start >= $existing_start && $defense_start < $existing_end) ||
@@ -446,24 +507,24 @@ function saveScheduleToDatabase($pdo, $schedule)
 {
     try {
         $pdo->beginTransaction();
-        
+
         // Get all teams that should be scheduled
         $expectedTeams = [];
         foreach ($GLOBALS['teams'] as $team) {
             $expectedTeams[] = $team['id'];
         }
         $expectedTeamCount = count($expectedTeams);
-        
+
         // Track teams that have been scheduled to prevent duplicates
         $scheduledTeams = [];
-        
+
         // Sort chromosomes by fitness score
         $defenses = $schedule->chromosomes;
         foreach ($defenses as &$defense) {
             $defense['fitness'] = calculateDefenseFitness($pdo, $defense);
         }
-        
-        usort($defenses, function($a, $b) {
+
+        usort($defenses, function ($a, $b) {
             return $b['fitness'] - $a['fitness']; // Best to worst (reversed)
         });
 
@@ -479,13 +540,18 @@ function saveScheduleToDatabase($pdo, $schedule)
             if (in_array($defense['team_id'], $scheduledTeams)) {
                 continue;
             }
-            
+
             $scheduledTeams[] = $defense['team_id'];
-            
-            $date = new DateTime($defense['day']);
+
+            $dateObj = parseDate($defense['day']);
+            $date = $dateObj->format('Y-m-d');
             $startTime = new DateTime($defense['time_slot']);
             $endTime = clone $startTime;
-            $duration = $_POST['timeDuration'];
+            // === PROBLEMATIC LINE START ===
+            // Previously: $duration = $_POST['timeDuration'];
+            // FIX: Use global time duration variable.
+            $duration = $GLOBALS['timeDuration'];
+            // === PROBLEMATIC LINE END ===
             $endTime->modify('+' . $duration . ' hour');
 
             $stmt->execute([
@@ -493,7 +559,7 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $defense['panelist_ids'][0],
                 $defense['panelist_ids'][1],
                 $defense['panelist_ids'][2],
-                $date->format('Y-m-d'),
+                $date,
                 $startTime->format('H:i:s'),
                 $endTime->format('H:i:s'),
                 $defense['room']
@@ -505,14 +571,14 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $lastAssignedPanelists[$defense['day']][] = $panelist_id;
             }
         }
-        
+
         // Check if all teams were scheduled
         $missingTeams = array_diff($expectedTeams, $scheduledTeams);
-        
+
         // Second pass - ensure all teams get scheduled
         if (!empty($missingTeams)) {
             error_log("Missing teams detected: " . implode(", ", $missingTeams));
-            
+
             // For any missed teams, create a schedule forcefully
             foreach ($missingTeams as $missingTeamId) {
                 // Find any solution for this team from chromosomes
@@ -523,25 +589,31 @@ function saveScheduleToDatabase($pdo, $schedule)
                         break;
                     }
                 }
-                
+
                 // If no solution found in chromosomes, create a new one
                 if (!$teamDefense) {
                     error_log("Creating fallback schedule for team ID: $missingTeamId");
-                    $team = fetchTeamById($pdo, $missingTeamId);
-                    
+
+                    $team = null;
+                    foreach ($GLOBALS['teams'] as $filteredTeam) {
+                        if ($filteredTeam['id'] == $missingTeamId) {
+                            $team = $filteredTeam;
+                            break;
+                        }
+                    }
                     if (!$team) {
-                        error_log("Error: Team data not found for ID: $missingTeamId");
+                        error_log("Error: Filtered team data not found for ID: $missingTeamId");
                         continue;
                     }
-                    
+
                     $days = $_POST['days'];
                     $timeSlots = $_POST['timeSlots'];
                     $rooms = $_POST['rooms'];
                     $panelists = fetchPanelists($pdo);
-                    
+
                     $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
                     $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
-                    
+
                     $teamDefense = [
                         'team_id' => $missingTeamId,
                         'panelist_ids' => $selectedPanelists,
@@ -550,31 +622,36 @@ function saveScheduleToDatabase($pdo, $schedule)
                         'day' => $days[array_rand($days)]
                     ];
                 }
-                
-                $date = new DateTime($teamDefense['day']);
+
+                $dateObj = parseDate($teamDefense['day']);
+                $date = $dateObj->format('Y-m-d');
                 $startTime = new DateTime($teamDefense['time_slot']);
                 $endTime = clone $startTime;
-                $duration = $_POST['timeDuration'];
+                // === PROBLEMATIC LINE START ===
+                // Previously: $duration = $_POST['timeDuration'];
+                // FIX: Use global time duration variable.
+                $duration = $GLOBALS['timeDuration'];
+                // === PROBLEMATIC LINE END ===
                 $endTime->modify('+' . $duration . ' hour');
-                
+
                 $stmt->execute([
                     $teamDefense['team_id'],
                     $teamDefense['panelist_ids'][0],
                     $teamDefense['panelist_ids'][1],
                     $teamDefense['panelist_ids'][2],
-                    $date->format('Y-m-d'),
+                    $date,
                     $startTime->format('H:i:s'),
                     $endTime->format('H:i:s'),
                     $teamDefense['room']
                 ]);
-                
+
                 $scheduledTeams[] = $missingTeamId;
             }
         }
-        
+
         $scheduledCount = count($scheduledTeams);
         error_log("Teams scheduled: $scheduledCount out of $expectedTeamCount expected");
-        
+
         if ($scheduledCount < $expectedTeamCount) {
             error_log("WARNING: Not all teams were scheduled!");
         }
@@ -588,47 +665,58 @@ function saveScheduleToDatabase($pdo, $schedule)
     }
 }
 
+// Helper function to parse a day string from either "Y-m-d" or "m-d-Y":
+function parseDate($dayStr)
+{
+    $date = DateTime::createFromFormat('Y-m-d', $dayStr);
+    if (!$date) {
+        $date = DateTime::createFromFormat('m-d-Y', $dayStr);
+    }
+    return $date;
+}
+
 // Helper function to calculate fitness for a single defense
-function calculateDefenseFitness($pdo, $defense) {
+function calculateDefenseFitness($pdo, $defense)
+{
     static $fitnessCache = [];
-    
+
     // Create a cache key
     $key = $defense['team_id'] . '-' . implode(',', $defense['panelist_ids']);
-    
+
     if (isset($fitnessCache[$key])) {
         return $fitnessCache[$key];
     }
-    
+
     $fitness = 0;
-    
+
     // Calculate expertise matching
     $teamExpertise = getTeamExpertise($pdo, $defense['team_id']) ?? '';
     $expertiseMatchFound = false;
-    
+
     // Ensure we have strings
     $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
-    
+
     foreach ($defense['panelist_ids'] as $panelist_id) {
         $panelistExpertise = getPanelistExpertise($pdo, $panelist_id) ?? '';
         $panelistExpertise = is_string($panelistExpertise) ? $panelistExpertise : '';
-        
+
         $similarity = 0;
         if (!empty($teamExpertise) && !empty($panelistExpertise)) {
-            $similarity = similar_text($teamExpertise, $panelistExpertise) / 
-                         max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
+            $similarity = similar_text($teamExpertise, $panelistExpertise) /
+                max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
         }
-        
+
         if ($similarity > 70) {
             $expertiseMatchFound = true;
             $fitness += 50; // Reward for expertise match
         }
         $fitness += $similarity; // Add similarity score
     }
-    
+
     if (!$expertiseMatchFound) {
         $fitness -= 100; // Heavy penalty for no expertise match
     }
-    
+
     $fitnessCache[$key] = $fitness;
     return $fitness;
 }
@@ -654,7 +742,7 @@ class DefenseSchedule
         foreach ($teams as $team) {
             $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
             $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
-    
+
             $defense = [
                 'team_id' => $team['id'],
                 'panelist_ids' => $selectedPanelists,
@@ -672,11 +760,11 @@ class DefenseSchedule
         // Cache for performance
         static $teamMembersCache = [];
         static $panelistDataCache = [];
-        
+
         $this->fitness = 0;
         $conflicts = 0;
         $panelistDailyAssignments = [];
-        
+
         // Initialize tracking structure for panelist assignments
         foreach ($this->chromosomes as $defense) {
             foreach ($defense['panelist_ids'] as $panelist_id) {
@@ -690,14 +778,14 @@ class DefenseSchedule
                 }
             }
         }
-        
+
         foreach ($this->chromosomes as $defenseKey => $defense) {
             // Use cached team members data
             if (!isset($teamMembersCache[$defense['team_id']])) {
                 $teamMembersCache[$defense['team_id']] = getTeamMembers($this->pdo, $defense['team_id'], 'array');
             }
             $teamMembers = $teamMembersCache[$defense['team_id']];
-            
+
             // Team member conflict check
             if (is_array($teamMembers)) {
                 foreach ($teamMembers as $member) {
@@ -710,22 +798,22 @@ class DefenseSchedule
                 $this->fitness -= 10;
                 $conflicts++;
             }
-            
+
             // Check panelist assignments and expertise match
             $teamExpertise = getTeamExpertise($this->pdo, $defense['team_id']) ?? '';
             $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
             $expertiseMatchFound = false;
-            
+
             foreach ($defense['panelist_ids'] as $panelist_id) {
                 // Cache panelist data
                 if (!isset($panelistDataCache[$panelist_id])) {
                     $panelistDataCache[$panelist_id] = getPanelistData($this->pdo, $panelist_id);
                 }
                 $panelistData = $panelistDataCache[$panelist_id];
-                
+
                 $isPartTime = isset($panelistData['is_parttime']) ? $panelistData['is_parttime'] : 0;
                 $maxAllowed = $isPartTime ? 1 : 3; // 1 for part-time, 3 for full-time
-                
+
                 if (isset($panelistDailyAssignments[$panelist_id][$defense['day']])) {
                     $dailyAssignments = $panelistDailyAssignments[$panelist_id][$defense['day']];
                     if ($dailyAssignments > $maxAllowed) {
@@ -733,43 +821,43 @@ class DefenseSchedule
                         $conflicts++;
                     }
                 }
-                
+
                 // Expertise matching check (using cached data)
                 $panelistExpertise = $panelistData['area_of_expertise'] ?? '';
                 $panelistExpertise = is_string($panelistExpertise) ? $panelistExpertise : '';
-                
+
                 $similarity = 0;
                 if (!empty($teamExpertise) && !empty($panelistExpertise)) {
-                    $similarity = similar_text($teamExpertise, $panelistExpertise) / 
-                                 max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
+                    $similarity = similar_text($teamExpertise, $panelistExpertise) /
+                        max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
                 }
-                
+
                 if ($similarity > 70) {
                     $expertiseMatchFound = true;
                     $this->fitness += 20;
                 }
-                
+
                 // Other checks
                 if (hasConsecutiveAssignment($panelist_id, $defense['day'], $defense['time_slot'])) {
                     $this->fitness -= 5;
                     $conflicts++;
                 }
-                
+
                 if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
                     $this->fitness -= 5;
                     $conflicts++;
                 }
             }
-            
+
             if (!$expertiseMatchFound) {
                 $this->fitness -= 25;
                 $conflicts++;
             }
-            
+
             // Room conflict check - optimized to stop after first conflict
             foreach ($this->chromosomes as $otherKey => $otherDefense) {
                 if ($defenseKey != $otherKey && $defense['room'] == $otherDefense['room'] && $defense['day'] == $otherDefense['day']) {
-                    $duration = intval($_POST['timeDuration']);
+                    $duration = intval($GLOBALS['timeDuration']);
                     $defenseStart = strtotime($defense['time_slot']);
                     $defenseEnd = strtotime('+' . $duration . ' hours', $defenseStart);
 
@@ -784,7 +872,7 @@ class DefenseSchedule
                 }
             }
         }
-        
+
         self::$conflictCounts[] = $conflicts;
         self::$fitnessScores[] = $this->fitness;
     }
@@ -806,12 +894,12 @@ function hasConsecutiveAssignment($panelist_id, $day, $time_slot)
 function getTeamMembers($pdo, $team_id, $format = 'array')
 {
     static $cache = [];
-    
+
     if (!isset($cache[$team_id])) {
         $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, tm.role FROM team_members tm JOIN users u ON tm.user_id = u.id WHERE tm.team_id = ? ORDER BY FIELD(tm.role, 'adviser', 'leader', 'member')");
         $stmt->execute([$team_id]);
         $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        
+
         $cache[$team_id] = array_map(function ($member) {
             return [
                 'id' => $member['id'],
@@ -820,7 +908,7 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
             ];
         }, $members);
     }
-    
+
     if ($format === 'array') {
         return $cache[$team_id];
     } else {
@@ -833,7 +921,8 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
 }
 
 // Function to fetch team by ID
-function fetchTeamById($pdo, $team_id) {
+function fetchTeamById($pdo, $team_id)
+{
     $stmt = $pdo->prepare("
         SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
         FROM teams t
@@ -845,35 +934,38 @@ function fetchTeamById($pdo, $team_id) {
 }
 
 // Function to get panelist expertise
-function getPanelistExpertise($pdo, $panelist_id) {
+function getPanelistExpertise($pdo, $panelist_id)
+{
     static $cache = [];
-    
+
     if (!isset($cache[$panelist_id])) {
         $stmt = $pdo->prepare("SELECT area_of_expertise FROM users WHERE id = ?");
         $stmt->execute([$panelist_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $cache[$panelist_id] = $result ? $result['area_of_expertise'] : '';
     }
-    
+
     return $cache[$panelist_id];
 }
 
 // Function to get team expertise
-function getTeamExpertise($pdo, $team_id) {
+function getTeamExpertise($pdo, $team_id)
+{
     static $cache = [];
-    
+
     if (!isset($cache[$team_id])) {
         $stmt = $pdo->prepare("SELECT area_of_expertise FROM teams WHERE id = ?");
         $stmt->execute([$team_id]);
         $result = $stmt->fetch(PDO::FETCH_ASSOC);
         $cache[$team_id] = $result ? $result['area_of_expertise'] : '';
     }
-    
+
     return $cache[$team_id];
 }
 
 // Diversity Preservation function
-function diversityPreservation($population, $populationSize, $pdo, $teams, $panelists, $rooms, $timeSlots, $days) {
+function diversityPreservation($population, $populationSize, $pdo, $teams, $panelists, $rooms, $timeSlots, $days)
+{
     usort($population, function ($a, $b) {
         return $b->fitness - $a->fitness;
     });
@@ -890,7 +982,8 @@ function diversityPreservation($population, $populationSize, $pdo, $teams, $pane
 }
 
 // Adjust Mutation Rate function
-function adjustMutationRate($mutationRate, $population) {
+function adjustMutationRate($mutationRate, $population)
+{
     $avgFitness = array_sum(array_column($population, 'fitness')) / count($population);
     $bestFitness = max(array_column($population, 'fitness'));
 
@@ -908,11 +1001,12 @@ function adjustMutationRate($mutationRate, $population) {
     return $mutationRate;
 }
 
-function selectPanelists($panelistsByProgram, $allPanelists, $adviserId) {
+function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
+{
     $selectedPanelists = [];
     $teamId = null;
     $teamExpertise = '';
-    
+
     // Get the current team's expertise
     foreach ($GLOBALS['teams'] as $team) {
         if ($team['adviser_id'] == $adviserId) {
@@ -921,10 +1015,10 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId) {
             break;
         }
     }
-    
+
     // Ensure teamExpertise is a string
     $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
-    
+
     // First priority: Find a panelist with matching expertise
     $expertisePanelists = [];
     foreach ($allPanelists as $id => $info) {
@@ -932,29 +1026,29 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId) {
             // Extract expertise from the info array safely
             $panelistExpertise = is_array($info) ? ($info['expertise'] ?? '') : '';
             $panelistExpertise = is_string($panelistExpertise) ? $panelistExpertise : '';
-            
+
             $similarity = 0;
             if (!empty($teamExpertise) && !empty($panelistExpertise)) {
-                $similarity = similar_text($teamExpertise, $panelistExpertise) / 
-                             max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
+                $similarity = similar_text($teamExpertise, $panelistExpertise) /
+                    max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
             }
-            
+
             if ($similarity > 70) { // 70% similarity threshold
                 $expertisePanelists[] = $id;
             }
         }
     }
-    
+
     if (!empty($expertisePanelists)) {
         $selectedPanelists[] = $expertisePanelists[array_rand($expertisePanelists)];
     }
-    
+
     // Select from same program preferring those with less assignments
     if (!empty($panelistsByProgram['same'])) {
         $sameProgram = $panelistsByProgram['same'];
         // Filter out already selected and adviser
         $sameProgram = array_diff($sameProgram, $selectedPanelists, [$adviserId]);
-        
+
         if (!empty($sameProgram)) {
             $selectedPanelists[] = $sameProgram[array_rand($sameProgram)];
         }
@@ -963,7 +1057,7 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId) {
     // Select remaining from different programs
     $remaining = array_keys($allPanelists);
     $remaining = array_diff($remaining, $selectedPanelists, [$adviserId]);
-    
+
     while (count($selectedPanelists) < 3 && !empty($remaining)) {
         $selectedPanelists[] = $remaining[array_rand($remaining)];
         $remaining = array_diff($remaining, $selectedPanelists);
@@ -1035,7 +1129,8 @@ function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
 }
 
 // Add function to clear previous schedules
-function clearPreviousSchedules($pdo) {
+function clearPreviousSchedules($pdo)
+{
     try {
         $stmt = $pdo->prepare("DELETE FROM defense_schedules WHERE status = 'scheduled'");
         $stmt->execute();

@@ -12,7 +12,7 @@
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body">
-                        <form id="schedulerSettingsForm">
+                        <form id="schedulerSettingsForm" novalidate onsubmit="event.preventDefault(); event.stopImmediatePropagation(); return false;">
                             <div class="mb-3">
                                 <label for="rooms" class="form-label">Rooms (comma-separated)</label>
                                 <input type="text" class="form-control" id="rooms" name="rooms" required>
@@ -73,7 +73,7 @@ console.log('End Hour:', endHour);
                                             const endAMPM = endHour >= 12 ? 'PM' : 'AM';
 
                                             let availableHours = endHour - startHour;
-                                            const numberOfTeams = <?php echo $totalTeams; ?>;
+                                            const numberOfTeams = parseInt(document.getElementById('selectedTeamCount').value);
 
                                             if (includeLunchBreak && startHour <= 12 && endHour >= 13) {
                                                 availableHours -= 1; // Subtract 1 hour for lunch break
@@ -136,13 +136,119 @@ console.log('End Hour:', endHour);
                                 <input type="text" class="form-control datepicker" id="days" name="days" required>
                                 <small id="daysHelp" class="form-text text-muted">Click to select dates. Multiple dates can be selected.</small>
                             </div>
+                            <input type="hidden" id="selectedProgram" name="selectedProgram" value="">
                             <script>
                                 $(document).ready(function() {
+                                    // Explicitly cancel any submit event on the form
+                                    $("#schedulerSettingsForm").on("submit", function(e) {
+                                        e.preventDefault();
+                                        e.stopImmediatePropagation();
+                                        return false;
+                                    });
+
                                     $('.datepicker').datepicker({
                                         format: 'mm-dd-yyyy',
                                         multidate: true,
                                         startDate: new Date(),
                                         todayHighlight: true
+                                    });
+                                    
+                                    $('#programSelect').on('change', function() {
+                                        updateTeamCount();
+                                    });
+                                    
+                                    // Initial count update
+                                    updateTeamCount();
+                                    
+                                    function updateTeamCount() {
+                                        const selectedProgram = $('#programSelect').val();
+                                        console.log('updateTeamCount - Selected program:', selectedProgram);
+                                        // Also update the hidden field
+                                        $('#selectedProgram').val(selectedProgram);
+                                        $.ajax({
+                                            url: '../dashboard/includes/get_team_count.php',
+                                            method: 'POST',
+                                            data: { program: selectedProgram },
+                                            dataType: 'json',
+                                            success: function(response) {
+                                                if(response.success) {
+                                                    $('#teamCountDisplay').text(response.count);
+                                                    $('#selectedTeamCount').val(response.count);
+                                                }
+                                            },
+                                            error: function(xhr, status, error) {
+                                                console.error("Error fetching team count:", error);
+                                            }
+                                        });
+                                    }
+                                    
+                                    // Global flag to prevent duplicate scheduler runs
+                                    let schedulerRunning = false;
+
+                                    // Modify Generate Schedule click handler:
+                                    document.getElementById('generateSchedule').addEventListener('click', function(e) {
+                                        e.preventDefault(); // prevent default submission
+                                        e.stopPropagation();
+                                        if (schedulerRunning) {
+                                            console.log("Scheduler already running, ignoring duplicate call.");
+                                            return;
+                                        }
+                                        schedulerRunning = true;
+                                        // Disable button to prevent duplicate calls
+                                        $("#generateSchedule").prop("disabled", true);
+                                        const statusElement = document.getElementById('scheduleGenerationStatus');
+                                        statusElement.innerText = "Generating schedule, please wait...";
+                                        
+                                        const rooms = document.getElementById("rooms").value.split(',');
+                                        const timeDuration = document.getElementById("timeDuration").value;
+                                        const startTime = document.getElementById("startTime").value;
+                                        const endTime = document.getElementById("endTime").value;
+                                        const days = document.getElementById("days").value.split(',');
+                                        // Read the selected program from the hidden field
+                                        const program = document.getElementById("selectedProgram").value;
+                                        console.log('Generate Schedule - Program selected:', program);
+                                        
+                                        const timeSlots = [];
+                                        let currentTime = new Date(`1970-01-01T${startTime}`);
+                                        const endDateTime = new Date(`1970-01-01T${endTime}`);
+                                        while (currentTime < endDateTime) {
+                                            timeSlots.push(currentTime.toTimeString().substring(0, 5));
+                                            currentTime.setMinutes(currentTime.getMinutes() + 30);
+                                        }
+                                        
+                                        const requestData = {
+                                            rooms: rooms,
+                                            timeDuration: timeDuration,
+                                            timeSlots: timeSlots,
+                                            days: days,
+                                            program: program
+                                        };
+                                        console.log('Request data for generateSchedule:', requestData);
+                                        
+                                        $.ajax({
+                                            url: '../dashboard/includes/run_scheduler.php',
+                                            method: 'POST',
+                                            data: requestData,
+                                            dataType: 'json',
+                                            success: function(response) {
+                                                if (response.success) {
+                                                    statusElement.innerText = "Schedule generated successfully!";
+                                                    loadDefenseSchedules(1);
+                                                    // Optionally, you can refresh the table here
+                                                    location.reload();
+                                                } else {
+                                                    statusElement.innerText = "Error: " + response.message;
+                                                }
+                                                schedulerRunning = false;
+                                                // Re-enable the button after request completes
+                                                $("#generateSchedule").prop("disabled", false);
+                                            },
+                                            error: function(xhr, status, error) {
+                                                statusElement.innerText = "Server error: " + error;
+                                                schedulerRunning = false;
+                                                $("#generateSchedule").prop("disabled", false);
+                                            }
+                                        });
                                     });
                                 });
                             </script>
@@ -151,13 +257,11 @@ console.log('End Hour:', endHour);
                                 <label class="form-check-label" for="includeLunchBreak">Include Lunch Break (12 PM - 1 PM)</label>
                             </div>
                             
-                            <!-- Add Program Selection Dropdown -->
                             <div class="mb-3">
                                 <label for="programSelect" class="form-label">Program Filter</label>
                                 <select class="form-select" id="programSelect" name="program">
                                     <option value="">All Programs</option>
                                     <?php
-                                    // Get unique programs from teams table
                                     $stmt = $pdo->prepare("SELECT DISTINCT program FROM teams WHERE program IS NOT NULL ORDER BY program");
                                     $stmt->execute();
                                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -166,6 +270,7 @@ console.log('End Hour:', endHour);
                                     ?>
                                 </select>
                                 <small class="form-text text-muted">Leave blank to include all programs</small>
+                                <input type="hidden" id="selectedTeamCount" name="selectedTeamCount" value="0">
                             </div>
                         </form>
                     </div>
@@ -178,6 +283,7 @@ console.log('End Hour:', endHour);
                         $totalTeams = 0;
                     }
                     ?>
+                    <div>Selected Teams: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
 
                     <script>
                         document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
@@ -189,13 +295,11 @@ console.log('End Hour:', endHour);
                             const endTime = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
                             const days = document.getElementById('days').value.split(',').filter(date => date >= today).length;
                             
-
-                            // Assume numberOfTeams is available globally or fetched from the server
-                            const numberOfTeams = <?php echo $totalTeams; ?>;
+                            const numberOfTeams = parseInt(document.getElementById('selectedTeamCount').value);
 
                             let availableHours = endTime - startTime;
                             if (includeLunchBreak && startTime <= 12 && endTime >= 13) {
-                                availableHours -= 1; // Subtract 1 hour for lunch break
+                                availableHours -= 1;
                             }
                             const slotsPerRoomPerDay = Math.floor(availableHours / timeDuration);
                             const totalSlots = slotsPerRoomPerDay * rooms * days;
@@ -219,17 +323,14 @@ console.log('End Hour:', endHour);
             </div>
         </div>
 
-        <!-- Scheduler Settings Button -->
         <button type="button" class="btn feature-btn scheduler-btn" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
             <i class="fas fa-cog me-1"></i>Scheduler Settings
         </button>
 
         <div id="generationSetting"></div>
-        <!-- Schedule Generation Status -->
         <div id="scheduleGenerationStatus"></div>
 
-        <!-- Generate Schedule Button -->
-        <button id="generateSchedule" class="btn feature-btn generate-btn" disabled>
+        <button id="generateSchedule" type="button" class="btn feature-btn generate-btn" disabled>
             <i class="fas fa-calendar-plus me-1"></i>Generate Defense Schedule
         </button>
         <?php
@@ -255,7 +356,7 @@ console.log('End Hour:', endHour);
     });
         </script>
 
-        <span id="scheduleGenerationStatusSpan" class="ml-2"></span> <!-- Changed ID to ensure uniqueness -->
+        <span id="scheduleGenerationStatusSpan" class="ml-2"></span>
     </div>
     <div class="table-responsive db-table-container" id="def-sched">
         <table class="table table-bordered table-hover table-sm db-table" id="def-table">
@@ -273,40 +374,31 @@ console.log('End Hour:', endHour);
                 </tr>
             </thead>
             <tbody>
-                <!-- Existing PHP-generated rows removed -->
             </tbody>
         </table>
 
         <nav id="def-nav" aria-label="Page navigation">
             <ul class="pagination justify-content-center">
-                <!-- Pagination loaded via AJAX -->
             </ul>
         </nav>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
-                // Format date to "Mar 15, 2025" style
                 const formatDate = (dateStr) => {
                     const date = new Date(dateStr);
                     const options = { month: 'short', day: 'numeric', year: 'numeric' };
                     return date.toLocaleDateString('en-US', options);
                 };
 
-                // Format time from "07:00:00" to "7:00 AM" style
                 const formatTime = (timeStr) => {
-                    // Parse the time (assuming timeStr is in format "HH:MM:SS" or "HH:MM")
                     const [hours, minutes] = timeStr.split(':').map(Number);
                     const period = hours >= 12 ? 'PM' : 'AM';
-                    const hour12 = hours % 12 || 12; // Convert to 12-hour format
+                    const hour12 = hours % 12 || 12;
                     return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
                 };
                 
-                // Function to split panelists into an array of up to 3 panelists
                 const splitPanelists = (panelistsString) => {
-                    // Split panelists by comma
                     const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
-                    
-                    // Create an array of exactly 3 elements (fill with empty strings if fewer than 3)
                     return [
                         panelists[0] || '',
                         panelists[1] || '',
@@ -316,7 +408,7 @@ console.log('End Hour:', endHour);
 
                 const loadDefenseSchedules = (page = 1) => {
                     console.log(`Loading Defense Schedules Page: ${page}`);
-                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`) // Changed to absolute path
+                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`)
                         .then(response => {
                             console.log('Fetch Response Status:', response.status);
                             if (!response.ok) {
@@ -332,16 +424,14 @@ console.log('End Hour:', endHour);
                                 return;
                             }
 
-                            const tbody = document.querySelector('#def-table tbody'); // Updated selector
+                            const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = '';
                             data.data.forEach(schedule => {
-                                // Format date and time with the new helper functions
                                 const formattedDate = formatDate(schedule.schedule_date);
                                 const formattedStartTime = formatTime(schedule.start_time);
                                 const formattedEndTime = formatTime(schedule.end_time);
                                 const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
                                 
-                                // Get panelists as an array of 3 elements
                                 const panelists = splitPanelists(schedule.panelists);
 
                                 tbody.innerHTML += `
@@ -369,10 +459,9 @@ console.log('End Hour:', endHour);
                                 `;
                             });
 
-                            const pagination = document.querySelector('#def-nav .pagination'); // Updated selector
+                            const pagination = document.querySelector('#def-nav .pagination');
                             pagination.innerHTML = '';
 
-                            // Previous Button
                             pagination.innerHTML += `
                                 <li class="page-item ${page <= 1 ? 'disabled' : ''}">
                                     <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
@@ -381,7 +470,6 @@ console.log('End Hour:', endHour);
                                 </li>
                             `;
 
-                            // Page Numbers
                             for (let i = 1; i <= data.total_pages; i++) {
                                 pagination.innerHTML += `
                                     <li class="page-item ${page === i ? 'active' : ''}">
@@ -390,7 +478,6 @@ console.log('End Hour:', endHour);
                                 `;
                             }
 
-                            // Next Button
                             pagination.innerHTML += `
                                 <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
                                     <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
@@ -405,11 +492,9 @@ console.log('End Hour:', endHour);
                         });
                 };
 
-                // Initial load
                 loadDefenseSchedules();
 
-                // Handle pagination clicks
-                document.querySelector('#def-nav .pagination').addEventListener('click', function(e) { // Updated selector
+                document.querySelector('#def-nav .pagination').addEventListener('click', function(e) {
                     e.preventDefault();
                     if (e.target.tagName === 'A') {
                         const page = parseInt(e.target.getAttribute('data-page'));
