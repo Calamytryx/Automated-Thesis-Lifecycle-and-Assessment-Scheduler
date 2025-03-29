@@ -303,23 +303,29 @@
                         <input type="hidden" name="id" value="${id}">
                         <div class="mb-3">
                             <label for="schedule_date" class="form-label">Schedule Date</label>
-                            <input type="date" class="form-control" id="schedule_date" name="schedule_date" value="${response.data.schedule_date}" required>
+                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                            <small class="form-text text-muted">Select date for the defense schedule.</small>
                         </div>
                         <div class="mb-3">
                             <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" class="form-control" id="start_time" name="start_time" value="${response.data.start_time}" required>
+                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required 
+                                onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                         </div>
                         <div class="mb-3">
                             <label for="end_time" class="form-label">End Time</label>
-                            <input type="time" class="form-control" id="end_time" name="end_time" value="${response.data.end_time}" required>
+                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required
+                                onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                         </div>
                         <div class="mb-3">
                             <label for="room" class="form-label">Room</label>
-                            <input type="text" class="form-control" id="room" name="room" value="${response.data.room}" required>
+                            <input type="text" class="form-control" id="room" name="room" required>
                         </div>
                         <div class="mb-3">
                             <label for="team_id" class="form-label">Team</label>
                             <select class="form-select" id="team_id" name="team_id" required>
+                            <option value="">Select Team</option>
                                 ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
                             </select>
                         </div>
@@ -355,10 +361,33 @@
 
                             form.html(formHtml);
 
+                            // Initialize the date picker with same options as in defense_schedules_tab.php
+                            $('.datepicker').datepicker({
+                                format: 'yyyy-mm-dd', // Match MySQL date format
+                                multidate: false,      // Single date selection for defense schedule
+                                startDate: new Date(), // Prevent selecting previous dates
+                                todayHighlight: true,  // Highlight today's date
+                                autoclose: true        // Close calendar after selection
+                            });
+
+                            // Add time picker validation
+                            $('#start_time, #end_time').on('change', function() {
+                                const startTime = $('#start_time').val();
+                                const endTime = $('#end_time').val();
+                                
+                                if (startTime && endTime && startTime >= endTime) {
+                                    showToast('Error', 'End time must be after start time', 'error');
+                                    $(this).val(''); // Clear the current field
+                                }
+                            });
+
+                            // Store staff data for addNewPanelist function
+                            window.staffData = response.staff;
+
                             // Add panelist functionality
                             $('#addPanelist').on('click', function() {
                                 console.log('Add Panelist button clicked');
-                                addNewPanelist(response.staff);
+                                addNewPanelist(window.staffData);
                             });
 
                             // Remove panelist functionality
@@ -628,15 +657,20 @@
                 <input type="hidden" name="table" value="defense_schedules">        
                 <div class="mb-3">
                     <label for="schedule_date" class="form-label">Schedule Date</label>
-                    <input type="date" class="form-control" id="schedule_date" name="schedule_date" required>
+                    <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                    <small class="form-text text-muted">Select date for the defense schedule.</small>
                 </div>
                 <div class="mb-3">
                     <label for="start_time" class="form-label">Start Time</label>
-                    <input type="time" class="form-control" id="start_time" name="start_time" required>
+                    <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required 
+                        onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                 </div>
                 <div class="mb-3">
                     <label for="end_time" class="form-label">End Time</label>
-                    <input type="time" class="form-control" id="end_time" name="end_time" required>
+                    <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required
+                        onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                 </div>
                 <div class="mb-3">
                     <label for="room" class="form-label">Room</label>
@@ -667,6 +701,26 @@
                 `;
 
                         form.html(formHtml);
+
+                        // Initialize the date picker with same options as in defense_schedules_tab.php
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd', // Match MySQL date format
+                            multidate: false,      // Single date selection for defense schedule
+                            startDate: new Date(), // Prevent selecting previous dates
+                            todayHighlight: true,  // Highlight today's date
+                            autoclose: true        // Close calendar after selection
+                        });
+
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function() {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
+                            
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val(''); // Clear the current field
+                            }
+                        });
 
                         // Store staff data for addNewPanelist function
                         window.staffData = data.staff;
@@ -774,8 +828,12 @@
             
             var form = $('#addForm');
             var formData = new FormData(form[0]);
-            for (var pair of formData.entries()) {
-    console.log(pair[0] + ': ' + pair[1]);
+            
+            // Check if table parameter exists
+            if (!formData.has('table')) {
+                console.error('Error: Missing required parameter: table');
+                showToast('Error', 'Missing required parameter: table', 'error');
+                return; // Stop execution if table parameter is missing
 }
             
             var table = formData.get('table');
@@ -816,7 +874,7 @@
                         // Add delay before reload
                         setTimeout(function() {
                             location.reload();
-                        }, 5000); // 2 second delay
+                        }, 2000); // 2 second delay
                     } else {
                         showToast('Error', response.message, 'error');
                     }
