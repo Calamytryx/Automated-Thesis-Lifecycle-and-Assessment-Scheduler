@@ -169,7 +169,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
-            
+
+            //add research title
+            $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
+            $stmt->execute([
+                'id' => $teamId, // Ensure research_titles.id matches teams.id
+                'team_id' => $teamId,
+                'title' => $_POST['name']
+            ]);
+
             // Check if members data exists and is in the correct format
             if (isset($_POST['members']) && !empty($_POST['members'])) {
                 // If members is a JSON string, decode it

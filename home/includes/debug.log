@@ -1,0 +1,2014 @@
+----- 2025-03-29 15:57:37 -----
+SESSION: Array
+(
+    [token] => 99efe27e101768863ed98f91352e9200822ae8892ecd4eed2de947e8467acadd
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-29 16:50:14
+    [deleted_at] => 
+    [last_login_at] => 2025-03-29 16:50:14
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743263851
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [3] => pending
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [3] => undefined
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [3] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [3] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 15:58:12 -----
+SESSION: Array
+(
+    [token] => 99efe27e101768863ed98f91352e9200822ae8892ecd4eed2de947e8467acadd
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-29 16:50:14
+    [deleted_at] => 
+    [last_login_at] => 2025-03-29 16:50:14
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743263889
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [3] => pending
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [3] => undefined
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [3] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [3] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [3] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 16:09:10 -----
+SESSION: Array
+(
+    [token] => a9a3260ba3d6dd1a29ceb3001ca7784cdf99a379c37b453f7e0b7922e87c25ee
+    [STATUS] => 
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-29 23:08:33
+    [deleted_at] => 
+    [last_login_at] => 2025-03-29 23:08:33
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743264540
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+        )
+
+    [status] => Array
+        (
+            [7] => pending
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [9] => 
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 16:52:26 -----
+SESSION: Array
+(
+    [token] => a9a3260ba3d6dd1a29ceb3001ca7784cdf99a379c37b453f7e0b7922e87c25ee
+    [STATUS] => 
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-29 23:08:33
+    [deleted_at] => 
+    [last_login_at] => 2025-03-29 23:08:33
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743267140
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [9] => 
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 20:39:43 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743280779
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [9] => 
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 20:39:53 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743280779
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 20:40:12 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743280798
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => undefined
+            [9] => 
+            [4] => undefined
+            [6] => 
+            [41] => undefined
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 20:45:19 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743281118
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 20:45:32 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743281131
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 20:45:55 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743281150
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => aaaa
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 20:51:16 -----
+SESSION: 
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 20:51:28 -----
+SESSION: 
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => a
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 20:52:14 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743281480
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 20:52:19 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743281536
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => asd
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 21:24:15 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743283452
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => a
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 21:27:57 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743283457
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => 
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 21:28:34 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743283457
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 21:28:41 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743283716
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => a
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 21:28:51 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743283716
+)
+
+POST: Array
+(
+)
+
+FILES: Array
+(
+)
+
+----- 2025-03-29 21:46:24 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743284780
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => a
+            [2] => 
+            [9] => 
+            [4] => 
+            [6] => 
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
+----- 2025-03-29 21:47:35 -----
+SESSION: Array
+(
+    [token] => db64f372fb818f9ebd269c377bf47bf5bf4828a446ee8bbd9a4430292041591f
+    [auth] => verified
+    [id] => 58
+    [username] => staff1
+    [email] => sean.gono@lpu.edu.ph
+    [first_name] => Sean Charlston
+    [last_name] => Gono
+    [gender] => m
+    [headline] => BOI
+    [bio] => This is a BOI.
+    [profile_image] => 67545c47388503.11452602.jpg
+    [banner_image] => 
+    [verified_at] => 2024-10-10 06:07:06
+    [created_at] => 2024-10-10 06:07:06
+    [updated_at] => 2025-03-30 03:39:39
+    [deleted_at] => 
+    [last_login_at] => 2025-03-30 03:39:39
+    [usertype] => 2
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 1
+        )
+
+    [expire] => 1743284851
+)
+
+POST: Array
+(
+    [requirements] => Array
+        (
+            [0] => 7
+            [1] => 9
+            [2] => 6
+        )
+
+    [status] => Array
+        (
+            [7] => submitted
+            [2] => pending
+            [9] => submitted
+            [4] => pending
+            [6] => submitted
+            [41] => pending
+        )
+
+    [feedback] => Array
+        (
+            [7] => a
+            [2] => 
+            [9] => a
+            [4] => 
+            [6] => a
+            [41] => 
+        )
+
+)
+
+FILES: Array
+(
+    [feedbackFile] => Array
+        (
+            [name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [full_path] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [type] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [tmp_name] => Array
+                (
+                    [7] => 
+                    [2] => 
+                    [9] => 
+                    [4] => 
+                    [6] => 
+                    [41] => 
+                )
+
+            [error] => Array
+                (
+                    [7] => 4
+                    [2] => 4
+                    [9] => 4
+                    [4] => 4
+                    [6] => 4
+                    [41] => 4
+                )
+
+            [size] => Array
+                (
+                    [7] => 0
+                    [2] => 0
+                    [9] => 0
+                    [4] => 0
+                    [6] => 0
+                    [41] => 0
+                )
+
+        )
+
+)
+
