@@ -70,6 +70,10 @@
                         <button class="btn feature-btn add-btn" data-table="users">
                             <i class="fas fa-plus me-2"></i>Add User
                         </button>
+                        <!-- NEW Bulk Add Users button -->
+                        <button class="btn feature-btn bulk-add-btn" data-table="users">
+                            <i class="fas fa-users me-2"></i>Bulk Add Users
+                        </button>
                     </div>
                 </div>
                 <div class="table-responsive">

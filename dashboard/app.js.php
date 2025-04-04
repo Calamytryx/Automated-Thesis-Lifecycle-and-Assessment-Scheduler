@@ -760,6 +760,15 @@
             var formData = new FormData(form[0]);
             
             var table = formData.get('table');
+            if (table === 'users') {
+                var email = form.find('input[name="email"]').val().trim();
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast('Error', 'Invalid email format', 'error');
+                    return; // Prevent update submission
+                }
+            }
+            
             if (table === 'teams') {
                 var members = [];
                 $('.team-member').each(function() {
@@ -827,16 +836,19 @@
             console.log('Add item button clicked');
             
             var form = $('#addForm');
-            var formData = new FormData(form[0]);
+            var table = form.find('input[name="table"]').val();
             
-            // Check if table parameter exists
-            if (!formData.has('table')) {
-                console.error('Error: Missing required parameter: table');
-                showToast('Error', 'Missing required parameter: table', 'error');
-                return; // Stop execution if table parameter is missing
-}
+            // For users, validate the email format
+            if (table === 'users') {
+                var email = form.find('input[name="email"]').val().trim();
+                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+                if (!emailRegex.test(email)) {
+                    showToast('Error', 'Invalid email format', 'error');
+                    return; // Prevent submission on invalid email
+                }
+            }
             
-            var table = formData.get('table');
+            // For teams, process team member fields
             if (table === 'teams') {
                 var members = [];
                 $('#teamMembers .team-member').each(function() {
@@ -850,16 +862,14 @@
                     }
                 });
                 
-                // Add members data to formData as JSON string
                 if (members.length > 0) {
                     formData.set('members', JSON.stringify(members));
                 }
-                
-                // Remove unnecessary form fields to avoid confusion
                 formData.delete('new_user_id[]');
                 formData.delete('new_role[]');
             }
             
+            var formData = new FormData(form[0]);
             $.ajax({
                 url: 'includes/add_items.php',
                 method: 'POST',
@@ -871,10 +881,9 @@
                     if (response.success) {
                         showToast('Success', 'Added successfully', 'success');
                         $('#addModal').modal('hide');
-                        // Add delay before reload
                         setTimeout(function() {
                             location.reload();
-                        }, 2000); // 2 second delay
+                        }, 2000);
                     } else {
                         showToast('Error', response.message, 'error');
                     }
@@ -1008,6 +1017,99 @@
             $('#schedulerSettingsModal').modal('hide'); // Close the modal
             // Enable "Generate Schedule" button after settings are saved
             $('#generateSchedule').prop('disabled', false);
+        });
+
+        // NEW: Bulk Add Users functionality
+        $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Users button clicked');
+            $('#bulkAddModal').modal('show');
+        });
+
+        $(document).off('click.bulkAddSubmit').on('click.bulkAddSubmit', '#bulkAddSubmit', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Users submit clicked');
+            
+            var bulkForm = $('#bulkAddForm');
+            var formData = new FormData(bulkForm[0]);
+            
+            // NEW: If pasted bulk text is provided, append it as "bulk_users"
+            var bulkText = $('#bulkTextInput').val().trim();
+            if(bulkText !== "") {
+                formData.append('bulk_users', bulkText);
+            }
+            
+            // Optionally, add additional processing for the table rows if needed.
+            
+            $.ajax({
+                url: 'includes/bulk_add_users.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Bulk add response:', response);
+                    if (response.success) {
+                        showToast('Success', 'Users added successfully', 'success');
+                        $('#bulkAddModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        showToast('Error', response.message || 'Bulk add failed', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    showToast('Error', 'Unable to add users: ' + error, 'error');
+                }
+            });
+        });
+
+        // NEW: Add bulk row functionality
+        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function(){
+            let count = parseInt($('#rowCountInput').val()) || 1;
+            for (let i = 0; i < count; i++) {
+                var rowCount = $('#bulkAddTable tbody tr').length;
+                var newRow = `
+                  <tr>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][id]"></td>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][name]"></td>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][program]"></td>
+                    <td class="text-center">
+                      <input type="checkbox" name="users[${rowCount}][no_username]">
+                    </td>
+                  </tr>
+                `;
+                $('#bulkAddTable tbody').append(newRow);
+            }
+        });
+
+        // When the Bulk Add Modal is shown, insert the CSV download link if not already present
+        $('#bulkAddModal').on('shown.bs.modal', function() {
+            if (!$(this).find('#downloadCsvTemplate').length) {
+                $(this).find('.modal-body').prepend(`
+                    <div class="mb-3">
+                        <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                    </div>
+                `);
+            }
+        });
+
+        // Add event handler for CSV template download
+        $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) {
+            e.preventDefault();
+            const csvContent = 'ID,Name,Program,No Username\n,,"",false\n';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
 
     });
@@ -1252,6 +1354,67 @@ function showToast(title, message, type = 'success') {
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                 <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
             </div>
+        </div>
+    </div>
+</div>
+
+<!-- Bulk Add Users Modal -->
+<div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="bulkAddForm">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="bulkAddModalLabel">Bulk Add Users</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Option to upload excel file -->
+                    <div class="mb-3">
+                        <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
+                        <input type="file" class="form-control" id="bulkFileInput" name="bulkFile" accept=".csv, .xls, .xlsx">
+                    </div>
+                    <!-- NEW: Option to paste bulk data -->
+                    <div class="mb-3">
+                        <label for="bulkTextInput" class="form-label">Paste Bulk Data</label>
+                        <textarea class="form-control" id="bulkTextInput" name="bulkTextInput" rows="5" placeholder="Paste CSV data here"></textarea>
+                    </div>
+                    <hr>
+                    <!-- Table for manual data input -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="bulkAddTable">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Name <small>(format: Lastname, Firstname [no middle])</small></th>
+                                    <th>Program</th>
+                                    <th>No Username <br><small>(if checked, a username will be auto-generated)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- one sample row -->
+                                <tr>
+                                    <td><input type="text" class="form-control" name="users[0][id]"></td>
+                                    <td><input type="text" class="form-control" name="users[0][name]"></td>
+                                    <td><input type="text" class="form-control" name="users[0][program]"></td>
+                                    <td class="text-center">
+                                        <input type="checkbox" name="users[0][no_username]">
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Optionally, add number input to add multiple rows -->
+                    <div class="mb-3">
+                        <label for="rowCountInput" class="form-label">Add Rows: </label>
+                        <input type="number" id="rowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
+                        <button type="button" class="btn btn-secondary" id="addBulkRow">Add Rows</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="bulkAddSubmit" class="btn btn-info">Submit</button>
+                </div>
+            </form>
         </div>
     </div>
 </div>

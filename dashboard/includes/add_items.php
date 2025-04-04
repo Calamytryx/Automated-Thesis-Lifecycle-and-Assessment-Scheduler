@@ -170,12 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
 
-            //add research title
+            //add research title (fixed to use correct POST value 'title')
             $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
             $stmt->execute([
                 'id' => $teamId, // Ensure research_titles.id matches teams.id
                 'team_id' => $teamId,
-                'title' => $_POST['name']
+                'title' => $_POST['title'] // Fix: use the research title input instead of team name
             ]);
 
             // Check if members data exists and is in the correct format
@@ -212,6 +212,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Special handling for users
     if ($table === 'users') {
+        // Validate email using PHP filter
+        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
+            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
+            exit;
+        }
         // Hash the password
         if (isset($_POST['password'])) {
             $_POST['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
