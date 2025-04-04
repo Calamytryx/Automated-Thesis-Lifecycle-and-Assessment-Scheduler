@@ -70,13 +70,21 @@
                                         </div>
                                     `;
                                 } else if (key === 'area_of_expertise') {
-                                    // Add area_of_expertise field only for faculty usertype (2)
                                     formHtml += `
-                            <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
-                                <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-                                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
-                            </div>
-                        `;
+                                        <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
+                                            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+                                            <div class="input-group">
+                                                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                                                <ul class="dropdown-menu">
+                                                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                                                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                                                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                                                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                                                </ul>
+                                            </div>
+                                        </div>
+                                    `;
                                 } else {
                                     formHtml += `
                                         <div class="mb-3">
@@ -146,11 +154,46 @@
         </div>
         <div class="mb-3">
             <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+            <div class="input-group">
+                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                </ul>
+            </div>
         </div>
         <div class="mb-3">
             <label for="program" class="form-label">Program</label>
-            <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
+            <div class="input-group">
+                <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
+                </ul>
+            </div>
         </div>
         <h5 class="mt-4">Team Members</h5>
         <div id="teamMembers">
@@ -210,48 +253,7 @@
                                 </div>
                             `;
                             form.html(formHtml);
-                        } else if (table === 'teams') {
-                            var formHtml = `
-        <input type="hidden" name="table" value="${table}">
-        <input type="hidden" name="id" value="${id}">
-        <div class="mb-3">
-            <label for="name" class="form-label">Team Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="${response.data.name}">
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Research Title</label>
-            <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
-        </div>
-        <h5 class="mt-4">Team Members</h5>
-        <div id="teamMembers">
-    `;
-
-                            response.data.members.forEach(function(member, index) {
-                                formHtml += `
-            <div class="mb-3 row team-member" data-user-id="${member.id}">
-                <div class="col-sm-7">
-                    <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
-                </div>
-                <div class="col-sm-5">
-                    <select class="form-select" name="member_role[]">
-                        <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
-                        <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
-                        <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
-                    </select>
-                </div>
-            </div>
-        `;
-                            });
-
-                            formHtml += `
-        </div>
-    `;
-                            form.html(formHtml);
-                            // Add team member functionality
-                            $('#addTeamMember').on('click', function() {
-                                console.log('Add Team Member button clicked');
-                                addNewTeamMember();
-                            });
+    // Duplicate teams section removed.
                         } else if (table === 'env_variables') {
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
@@ -461,31 +463,41 @@
             if (table === 'users') {
                 form.append('<div class="mb-3">' +
                     '<label for="username" class="form-label">Username</label>' +
-                    '<input type="text" class="form-control" id="username" name="username" required>' +
+                    '<input type="text" class="form-control" id="username" name="username" placeholder="20xx-2-xxxxx" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="email" class="form-label">Email</label>' +
-                    '<input type="email" class="form-control" id="email" name="email" required>' +
+                    '<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="password" class="form-label">Password</label>' +
-                    '<input type="password" class="form-control" id="password" name="password" required>' +
+                    '<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="first_name" class="form-label">First Name</label>' +
-                    '<input type="text" class="form-control" id="first_name" name="first_name" required>' +
+                    '<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter first name" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="last_name" class="form-label">Last Name</label>' +
-                    '<input type="text" class="form-control" id="last_name" name="last_name" required>' +
+                    '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
                     '</div>' +
                     '<div class="mb-3 area-expertise-field" style="display:none;">' +
                     '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
-                    '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">' +
+                    '<div class="input-group">' +
+                        '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">' +
+                        '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
+                        '<ul class="dropdown-menu">' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>' +
+                        '</ul>' +
+                    '</div>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="usertype" class="form-label">User Type</label>' +
                     '<select class="form-select" id="usertype" name="usertype" required>' +
+                    '<option value="" disabled selected>Select User Type</option>' +
                     '<option value="0">Admin</option>' +
                     '<option value="1">Student</option>' +
                     '<option value="2">Faculty</option>' +
@@ -582,11 +594,46 @@
             </div>
             <div class="mb-3">
             <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise">
+            <div class="input-group">
+                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                </ul>
+            </div>
             </div>
             <div class="mb-3">
             <label for="program" class="form-label">Program</label>
-            <input type="text" class="form-control" id="program" name="program">
+            <div class="input-group">
+                <input type="text" class="form-control" id="program" name="program" placeholder="Enter program">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
+                </ul>
+            </div>
             </div>
             <h5 class="mt-4">Team Members</h5>
             <div id="teamMembers">
@@ -1098,8 +1145,8 @@
         });
 
         // Add event handler for CSV template download
-        $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) {
-            e.preventDefault();
+        $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) { 
+            e.preventDefault();        
             const csvContent = 'ID,Name,Program,No Username\n,,"",false\n';
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
@@ -1112,38 +1159,49 @@
             URL.revokeObjectURL(url);
         });
 
-    });
+        // Event handler for preset buttons in area of expertise fields
+        $(document).on('click', '.area-option', function(e) {
+            e.preventDefault();
+            var presetValue = $(this).data('value');
+            $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
+        });
 
-    const sidebarContainer = $('#sidebarContainer');
-    const mainContent = $('#mainContent');
-    const toggleButton = $('#toggleSidebar');
+        // Event handler for preset buttons in program fields
+        $(document).on('click', '.program-option', function(e) {
+            e.preventDefault();
+            var presetValue = $(this).data('value');
+            $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
+        });
 
-    toggleButton.on('click', function() {
-        sidebarContainer.toggleClass('collapsed');
-        mainContent.toggleClass('expanded');
-        toggleButton.toggleClass('collapsed');
+        const sidebarContainer = $('#sidebarContainer');
+        const mainContent = $('#mainContent');
+        const toggleButton = $('#toggleSidebar');
 
-        // Store the sidebar state in localStorage
-        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
-    });
+        toggleButton.on('click', function() {
+            sidebarContainer.toggleClass('collapsed');
+            mainContent.toggleClass('expanded');
+            toggleButton.toggleClass('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+        });
 
-    // Check localStorage for saved sidebar state on page load
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (sidebarCollapsed) {
-        sidebarContainer.addClass('collapsed');
-        mainContent.addClass('expanded');
-        toggleButton.addClass('collapsed');
-    }
-
-    // Handle window resize
-    $(window).on('resize', function() {
-        if (window.innerWidth <= 768) {
+        // Check localStorage for saved sidebar state on page load
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (sidebarCollapsed) {
+            sidebarContainer.addClass('collapsed');
             mainContent.addClass('expanded');
-        } else {
-            if (!sidebarContainer.hasClass('collapsed')) {
-                mainContent.removeClass('expanded');
-            }
+            toggleButton.addClass('collapsed');
         }
+
+        // Handle window resize
+        $(window).on('resize', function() {
+            if (window.innerWidth <= 768) {
+                mainContent.addClass('expanded');
+            } else {
+                if (!sidebarContainer.hasClass('collapsed')) {
+                    mainContent.removeClass('expanded');
+                }
+            }
+        });
     });
 
     function addNewPanelist(staff) {
@@ -1168,6 +1226,7 @@
             </div>
         </div>
     `;
+
         $('#panelists').append(newPanelistHtml);
         console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
     }
@@ -1188,7 +1247,6 @@
             dataType: 'json',
             success: function(users) {
                 console.log('Users fetched:', users);
-                
                 // Create new team member row
                 var newMemberHtml = `
                 <div class="mb-3 row team-member">
@@ -1209,10 +1267,9 @@
                     </div>
                 </div>
                 `;
-                
                 // Add the new row to the DOM
                 $('#teamMembers').append(newMemberHtml);
-                
+
                 // Get the newly added elements
                 var $newRow = $('#teamMembers .team-member').last();
                 var $roleSelect = $newRow.find('.role-select');
@@ -1226,12 +1283,12 @@
                     var filteredUsers = users.filter(function(user) {
                         if (role === 'adviser') {
                             return user.usertype == 2; // Faculty only for adviser
-                        } else if (role === 'leader' || role === 'member') {
+                        } else if (role === 'leader' || role === 'member') {  
                             return user.usertype == 1; // Student only for leader/member
                         }
                         return false; // Never show admins (usertype 0)
                     });
-                    
+                         
                     // Add filtered users to dropdown
                     filteredUsers.forEach(function(user) {
                         $userSelect.append(`<option value="${user.id}">${user.first_name} ${user.last_name}</option>`);
@@ -1254,12 +1311,12 @@
             }
         });
     }
+
     // Remove team member functionality
     $(document).on('click', '.remove-member', function() {
         var teamMember = $(this).closest('.team-member');
         var userId = teamMember.data('user-id');
         var teamId = $('input[name="id"]').val();
-
         if (userId && teamId) {
             if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
                 $.ajax({
@@ -1289,22 +1346,21 @@
         }
     });
 
-
-// Helper function for showing toasts
-function showToast(title, message, type = 'success') {
-    // Create toast container if it doesn't exist
-    if (!$('#toastContainer').length) {
-        $('body').append(`
+    // Helper function for showing toasts
+    function showToast(title, message, type = 'success') {
+        // Create toast container if it doesn't exist
+        if (!$('#toastContainer').length) {
+            $('body').append(`
         <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
         </div>
     `);
-    }
+        }
 
-    // Generate unique ID for the toast
-    const toastId = 'toast-' + Date.now();
+        // Generate unique ID for the toast
+        const toastId = 'toast-' + Date.now();
 
-    // Create toast HTML with more prominent styling
-    const toast = `
+        // Create toast HTML with more prominent styling
+        const toast = `
     <div id="${toastId}" class="toast align-items-center border-0" 
         role="alert" 
         aria-live="assertive" 
@@ -1319,24 +1375,23 @@ function showToast(title, message, type = 'success') {
     </div>
 `;
 
-    // Add toast to container
-    $('#toastContainer').append(toast);
+        // Add toast to container
+        $('#toastContainer').append(toast);
 
-    // Initialize and show the toast with modified options
-    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-        autohide: true,
-        delay: 3000,
-        animation: true
-    });
-    toastElement.show();
+        // Initialize and show the toast with modified options
+        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+            autohide: true,
+            delay: 3000,
+            animation: true
+        });
+        toastElement.show();
 
-    // Remove toast element after it's hidden
-    $(`#${toastId}`).on('hidden.bs.toast', function() {
-        $(this).remove();
-    });
-}
+        // Remove toast element after it's hidden
+        $(`#${toastId}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
 </script>
-
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
@@ -1357,7 +1412,6 @@ function showToast(title, message, type = 'success') {
         </div>
     </div>
 </div>
-
 <!-- Bulk Add Users Modal -->
 <div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">

@@ -72,7 +72,7 @@
                         </button>
                         <!-- NEW Bulk Add Users button -->
                         <button class="btn feature-btn bulk-add-btn" data-table="users">
-                            <i class="fas fa-users me-2"></i>Bulk Add Users
+                            <i class="fas fa-users me-2"></i>Bulk Add Students
                         </button>
                     </div>
                 </div>
@@ -229,6 +229,65 @@
                 <nav aria-label="Page navigation">
                     <ul class="pagination pagination-staff justify-content-center"><!-- Staff pagination --></ul>
                 </nav>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bulk Add Users Modal -->
+    <div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content">
+                <form id="bulkAddForm">
+                    <div class="modal-header bg-info text-white">
+                        <h5 class="modal-title" id="bulkAddModalLabel">Bulk Add Students</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <!-- Force bulk added users to be type 1 (Student) -->
+                        <input type="hidden" name="usertype" value="1">
+                        <div class="mb-3">
+                            <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
+                            <input type="file" class="form-control" id="bulkFileInput" name="bulkFile" accept=".csv, .xls, .xlsx">
+                        </div>
+                        <div class="mb-3">
+                            <label for="bulkTextInput" class="form-label">Paste Bulk Data</label>
+                            <textarea class="form-control" id="bulkTextInput" name="bulkTextInput" rows="5" placeholder="Paste CSV data here"></textarea>
+                        </div>
+                        <hr>
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="bulkAddTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Name <small>(format: Lastname, Firstname [no middle])</small></th>
+                                        <th>Program</th>
+                                        <th>No Username <br><small>(if checked, a username will be auto-generated)</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" class="form-control" name="users[0][id]"></td>
+                                        <td><input type="text" class="form-control" name="users[0][name]"></td>
+                                        <td><input type="text" class="form-control" name="users[0][program]"></td>
+                                        <td class="text-center">
+                                            <input type="checkbox" name="users[0][no_username]">
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <!-- Number input to add multiple rows -->
+                        <div class="mb-3">
+                            <label for="rowCountInput" class="form-label">Add Rows: </label>
+                            <input type="number" id="rowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
+                            <button type="button" class="btn btn-secondary" id="addBulkRow">Add Rows</button>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="submit" id="bulkAddSubmit" class="btn btn-info">Submit</button>
+                    </div>
+                </form>
             </div>
         </div>
     </div>
