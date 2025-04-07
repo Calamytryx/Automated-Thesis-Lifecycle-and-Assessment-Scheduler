@@ -245,6 +245,21 @@
                     <div class="modal-body">
                         <!-- Force bulk added users to be type 1 (Student) -->
                         <input type="hidden" name="usertype" value="1">
+                        <!-- NEW: Let user select the upload method -->
+                        <div class="mb-3">
+                            <label class="form-label">Upload Method</label>
+                            <div>
+                                <label class="me-3">
+                                    <input type="radio" name="upload_method" value="file" checked> CSV File
+                                </label>
+                                <label class="me-3">
+                                    <input type="radio" name="upload_method" value="paste"> Paste Text
+                                </label>
+                                <label>
+                                    <input type="radio" name="upload_method" value="form"> Manual Form
+                                </label>
+                            </div>
+                        </div>
                         <div class="mb-3">
                             <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
                             <input type="file" class="form-control" id="bulkFileInput" name="bulkFile" accept=".csv, .xls, .xlsx">

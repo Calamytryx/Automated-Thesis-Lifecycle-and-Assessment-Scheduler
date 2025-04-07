@@ -798,85 +798,6 @@
             $('#addModal').modal('show');
         });
 
-        // Save changes button functionality
-        $(document).off('click.saveChanges').on('click.saveChanges', '#saveChanges', function(e) {
-            e.preventDefault();
-            console.log('Save changes button clicked');
-            
-            var form = $('#editForm');
-            var formData = new FormData(form[0]);
-            
-            var table = formData.get('table');
-            if (table === 'users') {
-                var email = form.find('input[name="email"]').val().trim();
-                var emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-                if (!emailRegex.test(email)) {
-                    showToast('Error', 'Invalid email format', 'error');
-                    return; // Prevent update submission
-                }
-            }
-            
-            if (table === 'teams') {
-                var members = [];
-                $('.team-member').each(function() {
-                    var userId = $(this).data('user-id') || $(this).find('select[name="new_user_id[]"]').val();
-                    var role = $(this).find('select[name="member_role[]"], select[name="new_role[]"]').val();
-                    if (userId && role) {
-                        members.push({
-                            id: userId,
-                            role: role
-                        });
-                    }
-                });
-                formData.set('members', JSON.stringify(members));
-                formData.delete('member_role[]');
-                formData.delete('new_user_id[]');
-                formData.delete('new_role[]');
-            }
-            
-            if (formData.get('table') === 'env_variables' && (formData.get('key') === 'DB_PASSWORD' || formData.get('key') === 'MAIL_ENCRYPTION')) {
-                var oldValue = formData.get('old_value');
-                if (!oldValue) {
-                    alert('Old value is required for DB_PASSWORD and MAIL_ENCRYPTION');
-                    return;
-                }
-                formData.set('value', null); // Set value to null
-                formData.set('old_value', oldValue); // Add old value to form data
-            }
-
-            console.log('Form data before send:', Object.fromEntries(formData));
-
-            $.ajax({
-                url: 'includes/update_item.php',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    console.log('Server response:', response);
-                    if (response.success) {
-                        showToast('Success', 'Item updated successfully', 'success');
-                        $('#editModal').modal('hide');
-                        // Add delay before reload
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000); // 2 second delay
-                    } else {
-                        showToast('Error', response.message, 'error');
-                        console.error('Update failed:', response);
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX error:', textStatus, errorThrown);
-                    console.log('Response Text:', jqXHR.responseText);
-                    console.log('Status:', jqXHR.status);
-                    console.log('Status Text:', jqXHR.statusText);
-                    showToast('Error', 'Unable to update item. Check console for details.', 'error');
-                }
-            });
-        });
-
         // Add item button functionality
         $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
             e.preventDefault();
@@ -884,6 +805,7 @@
             
             var form = $('#addForm');
             var table = form.find('input[name="table"]').val();
+            var formData = new FormData(form[0]); // moved initialization here
             
             // For users, validate the email format
             if (table === 'users') {
@@ -916,7 +838,6 @@
                 formData.delete('new_role[]');
             }
             
-            var formData = new FormData(form[0]);
             $.ajax({
                 url: 'includes/add_items.php',
                 method: 'POST',
