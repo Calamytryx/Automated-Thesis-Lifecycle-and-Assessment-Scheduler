@@ -822,10 +822,12 @@
                 var members = [];
                 $('#teamMembers .team-member').each(function() {
                     var userId = $(this).find('select[name="new_user_id[]"]').val();
+                    var username = $(this).find('input[name="new_username[]"]').val();
                     var role = $(this).find('select[name="new_role[]"]').val();
-                    if (userId && role) {
+                    if ((userId || username) && role) {
                         members.push({
                             id: userId,
+                            username: username,
                             role: role
                         });
                     }
@@ -835,6 +837,7 @@
                     formData.set('members', JSON.stringify(members));
                 }
                 formData.delete('new_user_id[]');
+                formData.delete('new_username[]');
                 formData.delete('new_role[]');
             }
             
@@ -1054,26 +1057,115 @@
             }
         });
 
-        // When the Bulk Add Modal is shown, insert the CSV download link if not already present
-        $('#bulkAddModal').on('shown.bs.modal', function() {
-            if (!$(this).find('#downloadCsvTemplate').length) {
-                $(this).find('.modal-body').prepend(`
-                    <div class="mb-3">
-                        <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
-                    </div>
-                `);
-            }
-        });
+        // // When the Bulk Add Modal is shown, insert the CSV download link if not already present
+        // $('#bulkAddModal').on('shown.bs.modal', function() {
+        //     if (!$(this).find('#downloadCsvTemplate').length) {
+        //         $(this).find('.modal-body').prepend(`
+        //             <div class="mb-3">
+        //                 <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
+        //             </div>
+        //         `);
+        //     }
+        // });
 
-        // Add event handler for CSV template download
+        // Update Bulk Add Users CSV download handler
         $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) { 
             e.preventDefault();        
-            const csvContent = 'ID,Name,Program,No Username\n,,"",false\n';
+            const csvContent = 'ID,Name,Program,No Username\n';
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
             a.download = 'users_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // NEW: Bulk Add Teams functionality
+        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Teams button clicked');
+            $('#bulkAddTeamsModal').modal('show');
+        });
+
+        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function(){
+            let count = parseInt($('#teamsRowCountInput').val()) || 1;
+            for (let i = 0; i < count; i++) {
+                var rowCount = $('#bulkAddTeamsTable tbody tr').length;
+                var newRow = `
+                  <tr>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][name]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][title]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][area_of_expertise]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][program]"></td>
+                  </tr>
+                `;
+                $('#bulkAddTeamsTable tbody').append(newRow);
+            }
+        });
+
+        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e){
+            e.preventDefault();
+            console.log('Bulk Add Teams form submitted');
+            
+            var form = $('#bulkAddTeamsForm');
+            var formData = new FormData(form[0]);
+            
+            // If pasted bulk text is provided, append it
+            var bulkText = $('#bulkTeamsTextInput').val().trim();
+            if(bulkText !== ""){
+                formData.append('bulk_teams', bulkText);
+            }
+            
+            $.ajax({
+                url: 'includes/bulk_add_teams.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    console.log('Bulk add teams response:', response);
+                    if (response.success) {
+                        showToast('Success', 'Teams added successfully', 'success');
+                        $('#bulkAddTeamsModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        showToast('Error', response.message || 'Bulk add failed', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    showToast('Error', 'Unable to add teams: ' + error, 'error');
+                }
+            });
+        });
+
+        // When the Bulk Add Teams Modal is shown, insert the CSV download link if not already present
+        $('#bulkAddTeamsModal').on('shown.bs.modal', function() {
+            if (!$(this).find('#downloadCsvTemplateTeams').length) {
+                $(this).find('.modal-body').prepend(`
+                    <div class="mb-3">
+                        <a href="#" id="downloadCsvTemplateTeams" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                    </div>
+                `);
+            }
+        });
+
+        // Update Bulk Add Teams CSV download handler
+        $(document).off('click.downloadCsvTemplateTeams').on('click.downloadCsvTemplateTeams', '#downloadCsvTemplateTeams', function(e) {
+            e.preventDefault();
+            // NEW: CSV template now includes the "Members" header
+            const csvContent = 'Team Name,Research Title,Area of Expertise,Program,Members\n';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'teams_template.csv';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -1161,20 +1253,20 @@
 
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
-        console.log('addNewTeamMember function called');
         $.ajax({
             url: 'includes/get_users.php',
             method: 'GET',
             dataType: 'json',
             success: function(users) {
-                console.log('Users fetched:', users);
-                // Create new team member row
                 var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
-                        <select class="form-select user-select" name="new_user_id[]">
+                        <select class="form-select user-select" name="new_user_id[]" style="display:block;">
                             <option value="">Select a user</option>
+                            ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
                         </select>
+                        <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
+                        <a href="#" class="toggle-input">Switch to manual</a>
                     </div>
                     <div class="col-sm-5">
                         <select class="form-select role-select" name="new_role[]">
@@ -1188,47 +1280,24 @@
                     </div>
                 </div>
                 `;
-                // Add the new row to the DOM
                 $('#teamMembers').append(newMemberHtml);
-
-                // Get the newly added elements
-                var $newRow = $('#teamMembers .team-member').last();
-                var $roleSelect = $newRow.find('.role-select');
-                var $userSelect = $newRow.find('.user-select');
-                
-                // Function to update user options based on selected role
-                function updateUserOptions(role) {
-                    $userSelect.empty().append('<option value="">Select a user</option>');
-                    
-                    // Filter users based on role
-                    var filteredUsers = users.filter(function(user) {
-                        if (role === 'adviser') {
-                            return user.usertype == 2; // Faculty only for adviser
-                        } else if (role === 'leader' || role === 'member') {  
-                            return user.usertype == 1; // Student only for leader/member
-                        }
-                        return false; // Never show admins (usertype 0)
-                    });
-                         
-                    // Add filtered users to dropdown
-                    filteredUsers.forEach(function(user) {
-                        $userSelect.append(`<option value="${user.id}">${user.first_name} ${user.last_name}</option>`);
-                    });
-                }
-                
-                // Initial filter based on default role (adviser)
-                updateUserOptions($roleSelect.val());
-                
-                // Add event listener for role change
-                $roleSelect.on('change', function() {
-                    updateUserOptions($(this).val());
+                $('#teamMembers .toggle-input').last().on('click', function(e) {
+                    e.preventDefault();
+                    var $select = $(this).siblings('.user-select');
+                    var $input = $(this).siblings('.new-username-input');
+                    if ($select.is(':visible')) {
+                        $select.hide();
+                        $input.show();
+                        $(this).text('Switch to select');
+                    } else {
+                        $input.hide();
+                        $select.show();
+                        $(this).text('Switch to manual');
+                    }
                 });
-                
-                console.log('New member added to DOM with role-based filtering');
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                console.error('Error fetching users:', textStatus, errorThrown);
-                alert('Error loading users. Please try again.');
+                alert('Error loading users');
             }
         });
     }
@@ -1388,6 +1457,64 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="submit" id="bulkAddSubmit" class="btn btn-info">Submit</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<!-- Bulk Add Teams Modal -->
+<div class="modal fade" id="bulkAddTeamsModal" tabindex="-1" aria-labelledby="bulkAddTeamsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="bulkAddTeamsForm">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Teams</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- Option to upload excel file -->
+                    <div class="mb-3">
+                        <label for="bulkTeamsFileInput" class="form-label">Upload Excel/CSV File</label>
+                        <input type="file" class="form-control" id="bulkTeamsFileInput" name="bulkTeamsFile" accept=".csv, .xls, .xlsx">
+                    </div>
+                    <!-- NEW: Option to paste bulk data -->
+                    <div class="mb-3">
+                        <label for="bulkTeamsTextInput" class="form-label">Paste Bulk Data</label>
+                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5" placeholder="Paste CSV data here"></textarea>
+                    </div>
+                    <hr>
+                    <!-- Table for manual data input -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="bulkAddTeamsTable">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Research Title</th>
+                                    <th>Area of Expertise</th>
+                                    <th>Program</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- one sample row -->
+                                <tr>
+                                    <td><input type="text" class="form-control" name="teams[0][name]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][title]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][program]"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                    <!-- Optionally, add number input to add multiple rows -->
+                    <div class="mb-3">
+                        <label for="teamsRowCountInput" class="form-label">Add Rows: </label>
+                        <input type="number" id="teamsRowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
+                        <button type="button" class="btn btn-secondary" id="addBulkTeamsRow">Add Rows</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="bulkAddTeamsSubmit" class="btn btn-info">Submit</button>
                 </div>
             </form>
         </div>

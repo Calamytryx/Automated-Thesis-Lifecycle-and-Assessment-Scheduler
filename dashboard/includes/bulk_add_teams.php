@@ -1,0 +1,118 @@
+<?php
+require_once __DIR__ . '/../../assets/setup/db.inc.php';
+
+if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    // NEW: Determine upload method similar to bulk add users
+    $uploadMethod = '';
+    if (!empty($_FILES['bulkTeamsFile']['tmp_name'])) {
+        $uploadMethod = 'file';
+    } elseif (!empty($_POST['bulkTeamsTextInput'])) {
+        $uploadMethod = 'paste';
+    } elseif (!empty($_POST['teams'])) {
+        $uploadMethod = 'form';
+    }
+
+    $teams = [];
+
+    if ($uploadMethod === 'paste') {
+        // If bulk text is provided, assume CSV with columns: Team Name, Research Title, Area of Expertise, Program, [Members]
+        $lines = explode("\n", trim($_POST['bulkTeamsTextInput']));
+        foreach ($lines as $line) {
+            // Basic CSV parsing (adjust delimiter if needed)
+            $parts = str_getcsv($line);
+            if (count($parts) >= 4) {
+                $teamEntry = [
+                    'name' => trim($parts[0]),
+                    'title' => trim($parts[1]),
+                    'area_of_expertise' => trim($parts[2]),
+                    'program' => trim($parts[3])
+                ];
+                // NEW: Capture members info if provided (expected format: username:role;username:role)
+                if (count($parts) >= 5 && trim($parts[4]) !== '') {
+                    $teamEntry['members'] = trim($parts[4]);
+                }
+                $teams[] = $teamEntry;
+            }
+        }
+    } elseif ($uploadMethod === 'form' && isset($_POST['teams']) && is_array($_POST['teams'])) {
+        // Also, check if teams are provided via manual table input
+        foreach ($_POST['teams'] as $team) {
+            if (!empty($team['name']) && !empty($team['title'])) {
+                $entry = [
+                    'name' => $team['name'],
+                    'title' => $team['title'],
+                    'area_of_expertise' => $team['area_of_expertise'] ?? null,
+                    'program' => $team['program'] ?? null
+                ];
+                if (isset($team['members'])) {
+                    $entry['members'] = $team['members']; // same expected format
+                }
+                $teams[] = $entry;
+            }
+        }
+    }
+    // Optionally, you may later add file processing for $uploadMethod === 'file'
+
+    if (empty($teams)) {
+        echo json_encode(['success' => false, 'message' => 'No valid team data provided']);
+        exit;
+    }
+
+    $pdo->beginTransaction();
+    try {
+        foreach ($teams as $team) {
+            // Insert into teams table
+            $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
+            $stmt->execute([
+                'name' => $team['name'],
+                'area_of_expertise' => $team['area_of_expertise'],
+                'program' => $team['program']
+            ]);
+            // Get inserted team id
+            $teamId = $pdo->lastInsertId();
+            
+            // Insert research title for the team (do not supply id)
+            $stmt = $pdo->prepare("INSERT INTO research_titles (team_id, title) VALUES (:team_id, :title)");
+            $stmt->execute([
+                'team_id' => $teamId,
+                'title' => $team['title']
+            ]);
+            
+            // NEW: If team members are provided, process them; otherwise, insert a default leader
+            if (!empty($team['members'])) {
+                // Expected format: "username:role;username:role"
+                $membersStr = $team['members'];
+                $membersList = array_filter(array_map('trim', explode(';', $membersStr)));
+                foreach ($membersList as $memberEntry) {
+                    list($username, $role) = array_map('trim', explode(':', $memberEntry, 2));
+                    if ($username && $role) {
+                        $stmtLookup = $pdo->prepare("SELECT id FROM users WHERE username = :username LIMIT 1");
+                        $stmtLookup->execute(['username' => $username]);
+                        $result = $stmtLookup->fetch(PDO::FETCH_ASSOC);
+                        if ($result) {
+                            $stmtMember = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                            $stmtMember->execute([
+                                'team_id' => $teamId,
+                                'user_id' => $result['id'],
+                                'role' => $role
+                            ]);
+                        }
+                    }
+                }
+            } else {
+                // Insert default team member as leader if no members info provided
+                $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, NULL, :role)");
+                $stmt->execute([
+                    'team_id' => $teamId,
+                    'role' => 'leader'
+                ]);
+            }
+        }
+        $pdo->commit();
+        echo json_encode(['success' => true]);
+    } catch (Exception $e) {
+        $pdo->rollBack();
+        echo json_encode(['success' => false, 'message' => $e->getMessage()]);
+    }
+}
+?>

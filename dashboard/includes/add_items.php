@@ -170,12 +170,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
 
-            //add research title (fixed to use correct POST value 'title')
-            $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
+            // Add research title using the submitted title (do not supply id)
+            $stmt = $pdo->prepare("INSERT INTO research_titles (team_id, title) VALUES (:team_id, :title)");
             $stmt->execute([
-                'id' => $teamId, // Ensure research_titles.id matches teams.id
                 'team_id' => $teamId,
-                'title' => $_POST['title'] // Fix: use the research title input instead of team name
+                'title' => $_POST['title']
             ]);
 
             // Check if members data exists and is in the correct format
@@ -188,11 +187,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 if (is_array($members)) {
                     foreach ($members as $member) {
-                        if (isset($member['id']) && isset($member['role'])) {
+                        $userId = null;
+                        if (isset($member['id']) && !empty($member['id'])) {
+                            $userId = $member['id'];
+                        } elseif (isset($member['username']) && !empty($member['username'])) {
+                            // Look up user by username
+                            $stmtLookup = $pdo->prepare("SELECT id FROM users WHERE username = :username LIMIT 1");
+                            $stmtLookup->execute(['username' => $member['username']]);
+                            $result = $stmtLookup->fetch(PDO::FETCH_ASSOC);
+                            if ($result) {
+                                $userId = $result['id'];
+                            }
+                        }
+                        if ($userId && isset($member['role'])) {
                             $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
                             $stmt->execute([
                                 'team_id' => $teamId,
-                                'user_id' => $member['id'],
+                                'user_id' => $userId,
                                 'role' => $member['role']
                             ]);
                         }

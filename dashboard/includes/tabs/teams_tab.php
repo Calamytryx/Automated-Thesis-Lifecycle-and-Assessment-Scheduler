@@ -42,6 +42,9 @@
                     <option value="name:asc">Team Name (A-Z)</option>
                     <option value="name:desc">Team Name (Z-A)</option>
                 </select>
+                <button class="btn feature-btn bulk-add-teams-btn" data-table="teams">
+                    <i class="fas fa-upload me-2"></i>Bulk Add Teams
+                </button>
                 <button class="btn feature-btn add-btn" data-table="teams">
                     <i class="fas fa-plus me-2"></i>Add Team
                 </button>
@@ -69,6 +72,87 @@
                 <!-- Pagination links will be dynamically populated by AJAX -->
             </ul>
         </nav>
+    </div>
+</div>
+
+<!-- New: Bulk Add Teams Modal -->
+<div class="modal fade" id="bulkAddTeamsModal" tabindex="-1" aria-labelledby="bulkAddTeamsModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <form id="bulkAddTeamsForm">
+                <div class="modal-header bg-info text-white">
+                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Teams</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <!-- NEW: Radio buttons to choose add method -->
+                    <div class="mb-3">
+                        <label class="form-label">Select Method:</label>
+                        <div>
+                            <input type="radio" name="bulkTeamsMethod" id="methodFile" value="file" checked>
+                            <label for="methodFile">CSV File</label>
+                            <input type="radio" name="bulkTeamsMethod" id="methodPaste" value="paste" class="ms-3">
+                            <label for="methodPaste">Paste CSV Data</label>
+                            <input type="radio" name="bulkTeamsMethod" id="methodForm" value="form" class="ms-3">
+                            <label for="methodForm">Input Form</label>
+                        </div>
+                    </div>
+
+                    <!-- CSV File Section -->
+                    <div id="bulkTeamsFileSection" class="mb-3">
+                        <label for="bulkTeamsFileInput" class="form-label">Upload Excel/CSV File</label>
+                        <input type="file" class="form-control" id="bulkTeamsFileInput" name="bulkTeamsFile" accept=".csv, .xls, .xlsx">
+                    </div>
+
+                    <!-- Paste CSV Data Section -->
+                    <div id="bulkTeamsPasteSection" class="mb-3" style="display:none;">
+                        <label for="bulkTeamsTextInput" class="form-label">Paste CSV Data</label>
+                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5" placeholder="Team Name, Research Title, Area of Expertise, Program, Members (optional)"></textarea>
+                    </div>
+
+                    <!-- Input Form Section -->
+                    <div id="bulkTeamsFormSection" style="display:none;">
+                        <div class="table-responsive">
+                            <table class="table table-bordered" id="bulkAddTeamsTable">
+                                <thead>
+                                    <tr>
+                                        <th>Team Name</th>
+                                        <th>Research Title</th>
+                                        <th>Area of Expertise</th>
+                                        <th>Program</th>
+                                        <th>Members <small>(username:role;...)</small></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td><input type="text" class="form-control" name="teams[0][name]"></td>
+                                        <td><input type="text" class="form-control" name="teams[0][title]"></td>
+                                        <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
+                                        <td><input type="text" class="form-control" name="teams[0][program]"></td>
+                                        <td><input type="text" class="form-control" name="teams[0][members]" placeholder="optional"></td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div class="mb-3">
+                            <label for="teamsRowCountInput" class="form-label">Add Rows: </label>
+                            <input type="number" id="teamsRowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
+                            <button type="button" class="btn btn-secondary" id="addBulkTeamsRow">Add Rows</button>
+                        </div>
+                    </div>
+
+                    <hr>
+                    <!-- CSV Template Download Link -->
+                    <div class="mb-3">
+                        <a href="#" id="downloadCsvTemplateTeams" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" id="bulkAddTeamsSubmit" class="btn btn-info">Submit</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
@@ -241,6 +325,21 @@
                     const searchTerm = document.getElementById('teamSearchInput').value;
                     const sortValue = document.getElementById('teamSortSelect').value;
                     loadTeams(1, searchTerm, sortValue);
+                }
+            });
+        });
+
+        // NEW: Toggle sections based on selected radio button method
+        $(document).ready(function() {
+            $('input[name="bulkTeamsMethod"]').on('change', function() {
+                var method = $(this).val();
+                $('#bulkTeamsFileSection, #bulkTeamsPasteSection, #bulkTeamsFormSection').hide();
+                if (method === 'file') {
+                    $('#bulkTeamsFileSection').show();
+                } else if (method === 'paste') {
+                    $('#bulkTeamsPasteSection').show();
+                } else if (method === 'form') {
+                    $('#bulkTeamsFormSection').show();
                 }
             });
         });

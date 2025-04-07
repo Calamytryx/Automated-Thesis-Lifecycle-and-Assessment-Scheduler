@@ -48,9 +48,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 }
                 
                 $password = "1234";
-                $firstToken = strtolower(explode(' ', $first_name)[0]);
-                $lastToken  = strtolower(explode(' ', $last_name)[0]);
-                $email = $firstToken . '.' . $lastToken . '@lpunetwork.edu.ph';
+                $email = $username . '@lpunetwork.edu.ph';
                 
                 $processedUsers[] = [
                     'username'    => $username,

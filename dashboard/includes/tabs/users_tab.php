@@ -268,7 +268,6 @@
                             <label for="bulkTextInput" class="form-label">Paste Bulk Data</label>
                             <textarea class="form-control" id="bulkTextInput" name="bulkTextInput" rows="5" placeholder="Paste CSV data here"></textarea>
                         </div>
-                        <hr>
                         <div class="table-responsive">
                             <table class="table table-bordered" id="bulkAddTable">
                                 <thead>
@@ -290,13 +289,17 @@
                                     </tr>
                                 </tbody>
                             </table>
-                        </div>
-                        <!-- Number input to add multiple rows -->
+                            <!-- Number input to add multiple rows -->
                         <div class="mb-3">
                             <label for="rowCountInput" class="form-label">Add Rows: </label>
                             <input type="number" id="rowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
                             <button type="button" class="btn btn-secondary" id="addBulkRow">Add Rows</button>
                         </div>
+                        </div>
+                        <hr>
+                    <div class="mb-3">
+                        <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                    </div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
@@ -708,6 +711,34 @@
                 const sortValue = this.value;
                 loadUsersByType(2, 1, searchTerm, sortValue);
             });
+
+            // Add event listeners for upload method radio buttons
+            document.querySelectorAll('input[name="upload_method"]').forEach(radio => {
+                radio.addEventListener('change', updateUploadMethodVisibility);
+            });
+
+            function updateUploadMethodVisibility() {
+                const selected = document.querySelector('input[name="upload_method"]:checked').value;
+                const fileInputDiv = document.getElementById('bulkFileInput').closest('.mb-3');
+                const textInputDiv = document.getElementById('bulkTextInput').closest('.mb-3');
+                const manualFormDiv = document.getElementById('bulkAddTable').closest('.table-responsive');
+                if (selected === 'file') {
+                    fileInputDiv.style.display = '';
+                    textInputDiv.style.display = 'none';
+                    manualFormDiv.style.display = 'none';
+                } else if (selected === 'paste') {
+                    fileInputDiv.style.display = 'none';
+                    textInputDiv.style.display = '';
+                    manualFormDiv.style.display = 'none';
+                } else { // selected === 'form'
+                    fileInputDiv.style.display = 'none';
+                    textInputDiv.style.display = 'none';
+                    manualFormDiv.style.display = '';
+                }
+            }
+
+            // Run on DOM load
+            updateUploadMethodVisibility();
         });
     </script>
 </div>
