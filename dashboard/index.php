@@ -215,7 +215,7 @@ $envVariables = fetchAllEnvVariables($pdo);
 
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $result = handleEditSubmission($pdo);
+    $result = handleEditSubmission($pdo, $_POST['table'], $_POST['id'], $_POST);
     if ($result) {
         $_SESSION['SUCCESS'] = "Update successful";
     } else {

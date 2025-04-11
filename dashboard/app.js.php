@@ -413,6 +413,43 @@
             });
         });
 
+        // UPDATED: Edit form submission handler with debug logs
+        $(document).on('submit', '#editForm', function(e) {
+            e.preventDefault();
+            console.log('DEBUG: Edit form submit event triggered');  // <-- New debug log
+            var formData = new FormData(this);
+            $.ajax({
+                url: 'includes/edit_items.php', // Updated path for correct endpoint
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    console.log('DEBUG: Edit response received:', response);
+                    if (response.success) {
+                        showToast('Success', 'Item updated successfully', 'success');
+                        $('#editModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        showToast('Error', response.message || 'Update failed', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('DEBUG: AJAX error in edit form:', xhr.responseText);
+                    showToast('Error', 'Unable to update item: ' + error, 'error');
+                }
+            });
+        });
+
+        // NEW: Connect the saveChanges button to trigger the edit form submission
+        $(document).on('click', '#saveChanges', function(){
+            console.log('DEBUG: Save changes button clicked, triggering edit form submission');
+            $('#editForm').submit();
+        });
+
         // Add button functionality
         $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
             e.preventDefault();
@@ -1382,6 +1419,26 @@
         });
     }
 </script>
+<!-- Edit Modal -->
+<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <form id="editForm">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Form contents filled via AJAX -->
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveEdit">Save Changes</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">

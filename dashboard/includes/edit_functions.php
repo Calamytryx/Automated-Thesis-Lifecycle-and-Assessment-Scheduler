@@ -167,37 +167,24 @@ function updateUserSchedule($pdo, $id, $user_id, $day_of_week, $start_time, $end
     return $stmt->execute([$user_id, $day_of_week, $start_time, $end_time, $class_name, $id]);
 }
 
-// Function to handle form submissions and route to the appropriate update function
-function handleEditSubmission($pdo) {
-    if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-        $table = $_POST['table'] ?? '';
-        $id = $_POST['id'] ?? '';
-
-        switch ($table) {
-            case 'users':
-                return updateUser($pdo, $id, $_POST['username'], $_POST['email'], $_POST['first_name'], $_POST['last_name'], $_POST['gender'], $_POST['headline'], $_POST['bio'], $_POST['usertype']);
-            case 'thesis_topics':
-                return updateThesisTopic($pdo, $id, $_POST['topic'], $_POST['description'], $_POST['category'], $_POST['suggested_by']);
-            case 'research_titles':
-                return updateResearchTitle($pdo, $id, $_POST['title'], $_POST['user_id'], $_POST['status'], $_POST['uniqueness_score'], $_POST['feedback']);
-            case 'defense_schedules':
-                return updateDefenseSchedule($pdo, $id, $_POST['student_id'], $_POST['panelist_id'], $_POST['schedule_date'], $_POST['start_time'], $_POST['end_time'], $_POST['room'], $_POST['status']);
-            case 'rubrics':
-                return updateRubric($pdo, $id, $_POST['name'], $_POST['description'], $_POST['created_by']);
-            case 'teams':
-                $members = json_decode($_POST['members'], true);
-                return updateTeam($pdo, $id, $_POST['name'], $_POST['title'], $members);
-            case 'requirements':
-                return updateRequirement($pdo, $id, $_POST['name'], $_POST['description'], $_POST['due_date']);
-            case 'evaluations':
-                return updateEvaluation($pdo, $id, $_POST['defense_schedule_id'], $_POST['evaluator_id'], $_POST['total_score'], $_POST['comments'], $_POST['recommendation']);
-            case 'env_variables':
-                return updateEnvVariable($pdo, $id, $_POST['key'], $_POST['value'], $_POST['description']);
-            case 'user_schedules':
-                return updateUserSchedule($pdo, $id, $_POST['user_id'], $_POST['day_of_week'], $_POST['start_time'], $_POST['end_time'], $_POST['class_name']);
-            default:
-                return false;
-        }
+// Generic function to handle form submissions and update database
+function handleEditSubmission($pdo, $table, $id, $data) {
+    // If no fields to update return false
+    if (empty($data)) {
+        return false;
+    }
+    // Build the SET clause dynamically using the POST keys
+    $fields = array_keys($data);
+    $setParts = [];
+    foreach ($fields as $field) {
+        $setParts[] = "`$field` = :$field";
+    }
+    $setStr = implode(', ', $setParts);
+    $sql = "UPDATE `$table` SET $setStr WHERE id = :id";
+    $stmt = $pdo->prepare($sql);
+    $data['id'] = $id;
+    if ($stmt->execute($data)){
+        return true;
     }
     return false;
 }

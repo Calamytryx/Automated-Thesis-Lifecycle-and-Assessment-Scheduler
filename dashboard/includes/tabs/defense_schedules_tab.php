@@ -19,8 +19,7 @@
                             </div>
                             <div class="mb-3">
                                 <label for="timeDuration" class="form-label">Time Duration (hours)</label>
-                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" max="5" required 
-                                    oninput="this.value = Math.min(5, Math.max(1, Math.round(this.value)))">
+                                <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="1" max="5" step="0.5" required>
                             </div>
                             <script>
                                 document.addEventListener('DOMContentLoaded', function() {
@@ -51,7 +50,7 @@ console.log('Today:', today);
                                     function validateInputs() {
                                         const startTime = startTimeInput.value;
                                         const endTime = endTimeInput.value;
-                                        const timeDuration = parseInt(timeDurationInput.value);
+                                        const timeDuration = parseFloat(timeDurationInput.value);
                                         const days = daysInput.value.split(',').filter(date => date >= today).length;
                                         const rooms = roomsInput.value.split(',').length;
                                         const includeLunchBreak = document.getElementById('includeLunchBreak').checked;
@@ -200,25 +199,29 @@ console.log('End Hour:', endHour);
                                         statusElement.innerText = "Generating schedule, please wait...";
                                         
                                         const rooms = document.getElementById("rooms").value.split(',');
-                                        const timeDuration = document.getElementById("timeDuration").value;
+                                        const duration = parseFloat(document.getElementById("timeDuration").value);
                                         const startTime = document.getElementById("startTime").value;
                                         const endTime = document.getElementById("endTime").value;
                                         const days = document.getElementById("days").value.split(',');
-                                        // Read the selected program from the hidden field
                                         const program = document.getElementById("selectedProgram").value;
                                         console.log('Generate Schedule - Program selected:', program);
                                         
-                                        const timeSlots = [];
+                                        const increment = (duration % 1 === 0) ? 60 : 30;
                                         let currentTime = new Date(`1970-01-01T${startTime}`);
+                                        if (duration % 1 === 0) {
+                                            currentTime.setMinutes(0);
+                                        }
                                         const endDateTime = new Date(`1970-01-01T${endTime}`);
+                                        
+                                        const timeSlots = [];
                                         while (currentTime < endDateTime) {
                                             timeSlots.push(currentTime.toTimeString().substring(0, 5));
-                                            currentTime.setMinutes(currentTime.getMinutes() + 30);
+                                            currentTime.setMinutes(currentTime.getMinutes() + increment);
                                         }
                                         
                                         const requestData = {
                                             rooms: rooms,
-                                            timeDuration: timeDuration,
+                                            timeDuration: duration,
                                             timeSlots: timeSlots,
                                             days: days,
                                             program: program
@@ -288,7 +291,7 @@ console.log('End Hour:', endHour);
                     <script>
                         document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
                             const rooms = document.getElementById('rooms').value.split(',').length;
-                            const timeDuration = parseInt(document.getElementById('timeDuration').value);
+                            const timeDuration = parseFloat(document.getElementById('timeDuration').value);
                             const startTimeParts = document.getElementById('startTime').value.split(':');
                             const endTimeParts = document.getElementById('endTime').value.split(':');
                             const startTime = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
