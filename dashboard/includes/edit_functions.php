@@ -174,6 +174,105 @@ function handleEditSubmission($pdo, $table, $id, $data) {
         return false;
     }
     
+    // For teams table, handle special processing
+    if ($table === 'teams') {
+        // Extract title to update research_titles separately
+        $teamTitle = isset($data['title']) ? $data['title'] : null;
+        
+        // Extract existing member roles if present
+        $memberRoles = isset($data['member_role']) && is_array($data['member_role']) ? $data['member_role'] : [];
+        
+        // Extract new member data if present
+        $newUserIds = isset($data['new_user_id']) && is_array($data['new_user_id']) ? $data['new_user_id'] : [];
+        $newUsernames = isset($data['new_username']) && is_array($data['new_username']) ? $data['new_username'] : [];
+        $newRoles = isset($data['new_role']) && is_array($data['new_role']) ? $data['new_role'] : [];
+        
+        // Filter out all member-related and title fields from data
+        $cleanData = [];
+        foreach ($data as $key => $value) {
+            if (strpos($key, 'member_') === false && 
+                strpos($key, 'new_') === false && 
+                $key !== 'title') {
+                $cleanData[$key] = $value;
+            }
+        }
+        
+        try {
+            $pdo->beginTransaction();
+            
+            // 1. Update team basic info
+            if (!empty($cleanData)) {
+                $fields = array_keys($cleanData);
+                $setParts = [];
+                foreach ($fields as $field) {
+                    $setParts[] = "`$field` = :$field";
+                }
+                $setStr = implode(', ', $setParts);
+                $sql = "UPDATE `$table` SET $setStr WHERE id = :id";
+                $stmt = $pdo->prepare($sql);
+                $cleanData['id'] = $id;
+                $stmt->execute($cleanData);
+            }
+            
+            // 2. Update research title if provided
+            if ($teamTitle !== null) {
+                $sqlTitle = "UPDATE `research_titles` SET `title` = :title WHERE `team_id` = :id";
+                $stmtTitle = $pdo->prepare($sqlTitle);
+                $stmtTitle->execute(['title' => $teamTitle, 'id' => $id]);
+            }
+            
+            // 3. Update existing team members' roles
+            if (!empty($memberRoles)) {
+                $sql = "SELECT `id`, `user_id`, `role` FROM `team_members` WHERE `team_id` = ?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$id]);
+                $currentMembers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                
+                foreach ($currentMembers as $index => $member) {
+                    if (isset($memberRoles[$index])) {
+                        $sql = "UPDATE `team_members` SET `role` = ? WHERE `id` = ?";
+                        $stmt = $pdo->prepare($sql);
+                        $stmt->execute([$memberRoles[$index], $member['id']]);
+                    }
+                }
+            }
+            
+            // 4. Add new members to team
+            for ($i = 0; $i < count($newRoles); $i++) {
+                $userId = null;
+                
+                // If new_user_id is provided, use it directly
+                if (!empty($newUserIds[$i])) {
+                    $userId = $newUserIds[$i];
+                }
+                // If new_username is provided, look up the user ID
+                else if (!empty($newUsernames[$i])) {
+                    $stmt = $pdo->prepare("SELECT id FROM users WHERE username = ?");
+                    $stmt->execute([$newUsernames[$i]]);
+                    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+                    if ($result) {
+                        $userId = $result['id'];
+                    }
+                }
+                
+                // If we have a user ID and role, add to team_members
+                if ($userId && !empty($newRoles[$i])) {
+                    $sql = "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)";
+                    $stmt = $pdo->prepare($sql);
+                    $stmt->execute([$id, $userId, $newRoles[$i]]);
+                }
+            }
+            
+            $pdo->commit();
+            return true;
+        } 
+        catch (PDOException $e) {
+            $pdo->rollBack();
+            error_log("Error updating team: " . $e->getMessage());
+            return false;
+        }
+    }
+    
     // Special handling for defense_schedules table
     if ($table === 'defense_schedules' && isset($data['panelist_id']) && is_array($data['panelist_id'])) {
         // Map panelist array indices to specific columns
@@ -215,10 +314,7 @@ function handleEditSubmission($pdo, $table, $id, $data) {
     $sql = "UPDATE `$table` SET $setStr WHERE id = :id";
     $stmt = $pdo->prepare($sql);
     $data['id'] = $id;
-    if ($stmt->execute($data)){
-        return true;
-    }
-    return false;
+    return $stmt->execute($data);
 }
 
 function getUserType($usertype) {
