@@ -937,3 +937,99 @@
 [02-Apr-2025 03:34:01 UTC] Missing teams detected: 13
 [02-Apr-2025 03:34:01 UTC] Creating fallback schedule for team ID: 13
 [02-Apr-2025 03:34:01 UTC] Teams scheduled: 2 out of 2 expected
+[10-Apr-2025 23:57:35 America/New_York] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+            [9] => 17:00
+        )
+
+    [days] => Array
+        (
+            [0] => 04-12-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+)
+
+[10-Apr-2025 23:57:35 America/New_York] Previous schedules cleared
+[10-Apr-2025 23:57:35 America/New_York] Fetched 0 teams for program: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[10-Apr-2025 23:57:35 America/New_York] Error in run_scheduler.php: No teams or panelists available for scheduling
+[11-Apr-2025 00:09:26 America/New_York] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+            [9] => 17:00
+        )
+
+    [days] => Array
+        (
+            [0] => 04-12-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+)
+
+[11-Apr-2025 00:09:26 America/New_York] Previous schedules cleared
+[11-Apr-2025 00:09:26 America/New_York] Fetched 7 teams for program: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[11-Apr-2025 00:09:26 America/New_York] Generation 0 completed. Best fitness: -175. Elapsed time: 0.0386238098145 seconds
+[11-Apr-2025 00:09:27 America/New_York] Generation 20 completed. Best fitness: -175. Elapsed time: 1.25103998184 seconds
+[11-Apr-2025 00:09:28 America/New_York] Generation 40 completed. Best fitness: -175. Elapsed time: 2.39668893814 seconds
+[11-Apr-2025 00:09:29 America/New_York] Generation 60 completed. Best fitness: -175. Elapsed time: 3.50903701782 seconds
+[11-Apr-2025 00:09:30 America/New_York] Generation 80 completed. Best fitness: -175. Elapsed time: 4.70134592056 seconds
+[11-Apr-2025 00:09:31 America/New_York] Generation 100 completed. Best fitness: -175. Elapsed time: 5.82835197449 seconds
+[11-Apr-2025 00:09:33 America/New_York] Generation 120 completed. Best fitness: -175. Elapsed time: 7.01444792747 seconds
+[11-Apr-2025 00:09:34 America/New_York] Generation 140 completed. Best fitness: -175. Elapsed time: 8.1927189827 seconds
+[11-Apr-2025 00:09:35 America/New_York] Generation 160 completed. Best fitness: -175. Elapsed time: 9.37712883949 seconds
+[11-Apr-2025 00:09:36 America/New_York] Generation 180 completed. Best fitness: -175. Elapsed time: 10.5348389149 seconds
+[11-Apr-2025 00:09:37 America/New_York] Generation 200 completed. Best fitness: -175. Elapsed time: 11.7637619972 seconds
+[11-Apr-2025 00:09:39 America/New_York] Generation 220 completed. Best fitness: -175. Elapsed time: 12.8982620239 seconds
+[11-Apr-2025 00:09:40 America/New_York] Generation 240 completed. Best fitness: -175. Elapsed time: 14.3374969959 seconds
+[11-Apr-2025 00:09:41 America/New_York] Generation 260 completed. Best fitness: -175. Elapsed time: 15.4656569958 seconds
+[11-Apr-2025 00:09:42 America/New_York] Generation 280 completed. Best fitness: -175. Elapsed time: 16.6375570297 seconds
+[11-Apr-2025 00:09:43 America/New_York] Generation 300 completed. Best fitness: -175. Elapsed time: 17.7767448425 seconds
+[11-Apr-2025 00:09:45 America/New_York] Generation 320 completed. Best fitness: -175. Elapsed time: 19.0531527996 seconds
+[11-Apr-2025 00:09:46 America/New_York] Generation 340 completed. Best fitness: -175. Elapsed time: 20.133548975 seconds
+[11-Apr-2025 00:09:47 America/New_York] Generation 360 completed. Best fitness: -175. Elapsed time: 21.465679884 seconds
+[11-Apr-2025 00:09:48 America/New_York] Generation 380 completed. Best fitness: -175. Elapsed time: 22.548486948 seconds
+[11-Apr-2025 00:09:49 America/New_York] Generation 400 completed. Best fitness: -175. Elapsed time: 23.6329009533 seconds
+[11-Apr-2025 00:09:50 America/New_York] Generation 420 completed. Best fitness: -175. Elapsed time: 24.7672820091 seconds
+[11-Apr-2025 00:09:52 America/New_York] Generation 440 completed. Best fitness: -175. Elapsed time: 25.9253509045 seconds
+[11-Apr-2025 00:09:53 America/New_York] Generation 460 completed. Best fitness: -175. Elapsed time: 27.115541935 seconds
+[11-Apr-2025 00:09:54 America/New_York] Generation 480 completed. Best fitness: -175. Elapsed time: 28.2470638752 seconds
+[11-Apr-2025 00:09:55 America/New_York] Genetic algorithm completed in 29.2436668873 seconds
+[11-Apr-2025 00:09:55 America/New_York] Missing teams detected: 32
+[11-Apr-2025 00:09:55 America/New_York] Creating fallback schedule for team ID: 32
+[11-Apr-2025 00:09:55 America/New_York] Teams scheduled: 7 out of 7 expected

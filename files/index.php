@@ -61,10 +61,10 @@ $default_timezone = 'Etc/UTC'; // UTC
 // use absolute path of directory i.e: '/var/www/folder' or $_SERVER['DOCUMENT_ROOT'].'/folder'
 //make sure update $root_url in next section
 // $root_path = $_SERVER['DOCUMENT_ROOT'];
-$root_path = 'C:';
+$root_path = '/';
 // Root url for links in file manager.Relative to $http_host. Variants: '', 'path/to/subfolder'
 // Will not working if $root_path will be outside of server document root
-$root_url = '';
+$root_url = 'https://atlas.iceiy.com';
 
 // Server hostname. Can set manually if wrong
 // $_SERVER['HTTP_HOST'].'/folder'

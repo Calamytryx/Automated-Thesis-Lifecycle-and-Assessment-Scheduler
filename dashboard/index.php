@@ -363,10 +363,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
                                 <i class="fas fa-cog me-2"></i>Content Management
                             </a>
-                            <a class="nav-link my-1" href="../files" target="_blank" role="tab">
+                            <a class="nav-link my-1" href="https://filemanager.ai/new/#/c/185.27.134.11/icei_38697196/eyJ0IjoiZnRwIiwiYyI6eyJ2IjowLCJwIjoiNHJkTDM0aFNkUUZjZ3JMIn19" target="_blank" role="tab">
                                 <i class="fas fa-folder-open me-2"></i>Files
                             </a>
-                            <a class="nav-link my-1" href="../../phpmyadmin" target="_blank" role="tab">
+                            <a class="nav-link my-1" href="https://web.aeonfree.com/go/login/icei_38697196" target="_blank" role="tab">
                                 <i class="fas fa-database me-2"></i>DataBase
                             </a>
                         </div>

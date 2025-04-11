@@ -305,24 +305,24 @@
                         <input type="hidden" name="id" value="${id}">
                         <div class="mb-3">
                             <label for="schedule_date" class="form-label">Schedule Date</label>
-                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required value="${response.data.schedule_date || ''}">
                             <small class="form-text text-muted">Select date for the defense schedule.</small>
                         </div>
                         <div class="mb-3">
                             <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required 
+                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required value="${response.data.start_time || ''}"
                                 onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                         </div>
                         <div class="mb-3">
                             <label for="end_time" class="form-label">End Time</label>
-                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required
+                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required value="${response.data.end_time || ''}"
                                 onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
                         </div>
                         <div class="mb-3">
                             <label for="room" class="form-label">Room</label>
-                            <input type="text" class="form-control" id="room" name="room" required>
+                            <input type="text" class="form-control" id="room" name="room" required value="${response.data.room || ''}">
                         </div>
                         <div class="mb-3">
                             <label for="team_id" class="form-label">Team</label>

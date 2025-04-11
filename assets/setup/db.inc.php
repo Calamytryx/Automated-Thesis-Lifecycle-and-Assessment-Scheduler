@@ -2,10 +2,10 @@
 
 // --- DATABASE CONFIGURATION ---
 // Change these variables to update your database connection.
-$dbHost    = '127.0.0.1';
-$dbName    = 'coecsa_thesis';
-$dbUser    = 'root';
-$dbPass    = '';
+$dbHost    = 'sql302.iceiy.com';
+$dbName    = 'icei_38697196_coecsathesis';
+$dbUser    = 'icei_38697196';
+$dbPass    = '4rdL34hSdQFcgrL';
 $dbCharset = 'utf8mb4';
 
 // Build the DSN string dynamically.

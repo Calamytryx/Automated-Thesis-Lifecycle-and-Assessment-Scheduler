@@ -42,7 +42,7 @@ if (isset($_POST['resentsend'])) {
 
     $selector = bin2hex(random_bytes(8));
     $token = random_bytes(32);
-    $url = "http://localhost/coecsathesis/reset-password/?selector=" . $selector . "&validator=" . bin2hex($token);
+    $url = "http://atlas.iceiy.com/reset-password/?selector=" . $selector . "&validator=" . bin2hex($token);
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
     $email = $_POST['email'];

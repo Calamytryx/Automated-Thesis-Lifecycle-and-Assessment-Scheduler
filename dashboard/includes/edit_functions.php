@@ -173,6 +173,38 @@ function handleEditSubmission($pdo, $table, $id, $data) {
     if (empty($data)) {
         return false;
     }
+    
+    // Special handling for defense_schedules table
+    if ($table === 'defense_schedules' && isset($data['panelist_id']) && is_array($data['panelist_id'])) {
+        // Map panelist array indices to specific columns
+        $panelistIds = $data['panelist_id'];
+        
+        // Remove the array from data to avoid JSON conversion
+        unset($data['panelist_id']);
+        
+        // Map the first three panelists to their respective columns
+        if (isset($panelistIds[0])) {
+            $data['panelist_id'] = $panelistIds[0];
+        }
+        
+        if (isset($panelistIds[1])) {
+            $data['panelist_id2'] = $panelistIds[1];
+        }
+        
+        if (isset($panelistIds[2])) {
+            $data['panelist_id3'] = $panelistIds[2];
+        }
+    } 
+    // Process other arrays normally
+    else {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                // Convert arrays to JSON strings
+                $data[$key] = json_encode($value);
+            }
+        }
+    }
+    
     // Build the SET clause dynamically using the POST keys
     $fields = array_keys($data);
     $setParts = [];

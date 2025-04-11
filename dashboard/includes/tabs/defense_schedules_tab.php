@@ -1,8 +1,8 @@
 <!-- Defense Schedules Tab -->
 <div class="tab-pane fade my-3" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
-<button class="btn feature-btn add-btn" data-table="defense_schedules">
-            <i class="fas fa-plus"></i>Add Defense Schedule
-        </button>
+    <button class="btn feature-btn add-btn" data-table="defense_schedules">
+        <i class="fas fa-plus"></i>Add Defense Schedule
+    </button>
     <div class="d-flex align-items-center mb-3 my-3">
         <div class="modal fade" id="schedulerSettingsModal" tabindex="-1" aria-labelledby="schedulerSettingsModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -45,7 +45,7 @@
                                     const todayDay = String(now.getDate()).padStart(2, '0');
                                     const todayYear = now.getFullYear();
                                     const today = `${todayMonth}-${todayDay}-${todayYear}`;
-console.log('Today:', today);
+                                    console.log('Today:', today);
                                     // Validate inputs and enable/disable save button
                                     function validateInputs() {
                                         const startTime = startTimeInput.value;
@@ -67,7 +67,7 @@ console.log('Today:', today);
                                             const startHour = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
                                             const endHour = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
                                             console.log('Start Hour:', startHour);
-console.log('End Hour:', endHour);
+                                            console.log('End Hour:', endHour);
                                             const startAMPM = startHour >= 12 ? 'PM' : 'AM';
                                             const endAMPM = endHour >= 12 ? 'PM' : 'AM';
 
@@ -122,7 +122,7 @@ console.log('End Hour:', endHour);
                             </script>
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="startTime" name="startTime" min="07:00 AM" max="20:00 PM" step="1800" required 
+                                <input type="time" class="form-control" id="startTime" name="startTime" min="07:00 AM" max="20:00 PM" step="1800" required
                                     onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             </div>
                             <div class="mb-3">
@@ -151,14 +151,14 @@ console.log('End Hour:', endHour);
                                         startDate: new Date(),
                                         todayHighlight: true
                                     });
-                                    
+
                                     $('#programSelect').on('change', function() {
                                         updateTeamCount();
                                     });
-                                    
+
                                     // Initial count update
                                     updateTeamCount();
-                                    
+
                                     function updateTeamCount() {
                                         const selectedProgram = $('#programSelect').val();
                                         console.log('updateTeamCount - Selected program:', selectedProgram);
@@ -167,10 +167,12 @@ console.log('End Hour:', endHour);
                                         $.ajax({
                                             url: '../dashboard/includes/get_team_count.php',
                                             method: 'POST',
-                                            data: { program: selectedProgram },
+                                            data: {
+                                                program: selectedProgram
+                                            },
                                             dataType: 'json',
                                             success: function(response) {
-                                                if(response.success) {
+                                                if (response.success) {
                                                     $('#teamCountDisplay').text(response.count);
                                                     $('#selectedTeamCount').val(response.count);
                                                 }
@@ -180,7 +182,7 @@ console.log('End Hour:', endHour);
                                             }
                                         });
                                     }
-                                    
+
                                     // Global flag to prevent duplicate scheduler runs
                                     let schedulerRunning = false;
 
@@ -197,7 +199,7 @@ console.log('End Hour:', endHour);
                                         $("#generateSchedule").prop("disabled", true);
                                         const statusElement = document.getElementById('scheduleGenerationStatus');
                                         statusElement.innerText = "Generating schedule, please wait...";
-                                        
+
                                         const rooms = document.getElementById("rooms").value.split(',');
                                         const duration = parseFloat(document.getElementById("timeDuration").value);
                                         const startTime = document.getElementById("startTime").value;
@@ -205,20 +207,20 @@ console.log('End Hour:', endHour);
                                         const days = document.getElementById("days").value.split(',');
                                         const program = document.getElementById("selectedProgram").value;
                                         console.log('Generate Schedule - Program selected:', program);
-                                        
+
                                         const increment = (duration % 1 === 0) ? 60 : 30;
                                         let currentTime = new Date(`1970-01-01T${startTime}`);
                                         if (duration % 1 === 0) {
                                             currentTime.setMinutes(0);
                                         }
                                         const endDateTime = new Date(`1970-01-01T${endTime}`);
-                                        
+
                                         const timeSlots = [];
                                         while (currentTime < endDateTime) {
                                             timeSlots.push(currentTime.toTimeString().substring(0, 5));
                                             currentTime.setMinutes(currentTime.getMinutes() + increment);
                                         }
-                                        
+
                                         const requestData = {
                                             rooms: rooms,
                                             timeDuration: duration,
@@ -227,7 +229,7 @@ console.log('End Hour:', endHour);
                                             program: program
                                         };
                                         console.log('Request data for generateSchedule:', requestData);
-                                        
+
                                         $.ajax({
                                             url: '../dashboard/includes/run_scheduler.php',
                                             method: 'POST',
@@ -259,7 +261,7 @@ console.log('End Hour:', endHour);
                                 <input type="checkbox" class="form-check-input" id="includeLunchBreak" name="includeLunchBreak">
                                 <label class="form-check-label" for="includeLunchBreak">Include Lunch Break (12 PM - 1 PM)</label>
                             </div>
-                            
+
                             <div class="mb-3">
                                 <label for="programSelect" class="form-label">Program Filter</label>
                                 <select class="form-select" id="programSelect" name="program">
@@ -297,7 +299,7 @@ console.log('End Hour:', endHour);
                             const startTime = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
                             const endTime = parseInt(endTimeParts[0]) + parseInt(endTimeParts[1]) / 60;
                             const days = document.getElementById('days').value.split(',').filter(date => date >= today).length;
-                            
+
                             const numberOfTeams = parseInt(document.getElementById('selectedTeamCount').value);
 
                             let availableHours = endTime - startTime;
@@ -348,15 +350,15 @@ console.log('End Hour:', endHour);
         <script>
             let totalScheds = <?php echo $totalScheds; ?>;
 
-            document.getElementById("saveSchedulerSettings").addEventListener("click", function(){
-        const settingsOutput = "Rooms: " + document.getElementById("rooms").value + "<br>" +
-            "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
-            "Start Time: " + document.getElementById("startTime").value + "<br>" +
-            "End Time: " + document.getElementById("endTime").value + "<br>" +
-            "Days: " + document.getElementById("days").value + "<br>" +
-            "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");    
-        document.getElementById("generationSetting").innerHTML = settingsOutput;
-    });
+            document.getElementById("saveSchedulerSettings").addEventListener("click", function() {
+                const settingsOutput = "Rooms: " + document.getElementById("rooms").value + "<br>" +
+                    "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
+                    "Start Time: " + document.getElementById("startTime").value + "<br>" +
+                    "End Time: " + document.getElementById("endTime").value + "<br>" +
+                    "Days: " + document.getElementById("days").value + "<br>" +
+                    "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
+                document.getElementById("generationSetting").innerHTML = settingsOutput;
+            });
         </script>
 
         <span id="scheduleGenerationStatusSpan" class="ml-2"></span>
@@ -389,7 +391,11 @@ console.log('End Hour:', endHour);
             document.addEventListener('DOMContentLoaded', function() {
                 const formatDate = (dateStr) => {
                     const date = new Date(dateStr);
-                    const options = { month: 'short', day: 'numeric', year: 'numeric' };
+                    const options = {
+                        month: 'short',
+                        day: 'numeric',
+                        year: 'numeric'
+                    };
                     return date.toLocaleDateString('en-US', options);
                 };
 
@@ -399,13 +405,13 @@ console.log('End Hour:', endHour);
                     const hour12 = hours % 12 || 12;
                     return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
                 };
-                
+
                 const splitPanelists = (panelistsString) => {
                     const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
                     return [
-                        panelists[0] || '',
-                        panelists[1] || '',
-                        panelists[2] || ''
+                        panelists[0] || null,
+                        panelists[1] || null,
+                        panelists[2] || null
                     ];
                 };
 
@@ -434,7 +440,7 @@ console.log('End Hour:', endHour);
                                 const formattedStartTime = formatTime(schedule.start_time);
                                 const formattedEndTime = formatTime(schedule.end_time);
                                 const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
-                                
+
                                 const panelists = splitPanelists(schedule.panelists);
 
                                 tbody.innerHTML += `

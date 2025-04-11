@@ -170,11 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Get the last inserted ID
             $teamId = $pdo->lastInsertId();
 
-            // Add research title using the submitted title (do not supply id)
-            $stmt = $pdo->prepare("INSERT INTO research_titles (team_id, title) VALUES (:team_id, :title)");
+            //add research title
+            $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
             $stmt->execute([
+                'id' => $teamId, // Ensure research_titles.id matches teams.id
                 'team_id' => $teamId,
-                'title' => $_POST['title']
+                'title' => $_POST['name']
             ]);
 
             // Check if members data exists and is in the correct format
@@ -187,23 +188,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 
                 if (is_array($members)) {
                     foreach ($members as $member) {
-                        $userId = null;
-                        if (isset($member['id']) && !empty($member['id'])) {
-                            $userId = $member['id'];
-                        } elseif (isset($member['username']) && !empty($member['username'])) {
-                            // Look up user by username
-                            $stmtLookup = $pdo->prepare("SELECT id FROM users WHERE username = :username LIMIT 1");
-                            $stmtLookup->execute(['username' => $member['username']]);
-                            $result = $stmtLookup->fetch(PDO::FETCH_ASSOC);
-                            if ($result) {
-                                $userId = $result['id'];
-                            }
-                        }
-                        if ($userId && isset($member['role'])) {
+                        if (isset($member['id']) && isset($member['role'])) {
                             $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
                             $stmt->execute([
                                 'team_id' => $teamId,
-                                'user_id' => $userId,
+                                'user_id' => $member['id'],
                                 'role' => $member['role']
                             ]);
                         }
@@ -223,102 +212,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     // Special handling for users
     if ($table === 'users') {
-        // Validate email using PHP filter
-        if (!filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)) {
-            echo json_encode(['success' => false, 'message' => 'Invalid email address']);
-            exit;
-        }
         // Hash the password
         if (isset($_POST['password'])) {
             $_POST['password'] = password_hash($_POST['password'], PASSWORD_DEFAULT);
         }
     }
     
-    // Special handling for defense_schedules
     if ($table === 'defense_schedules') {
-        $pdo->beginTransaction();
-        
-        try {
-            // Extract panelist IDs from POST data
-            $panelistIds = [];
-            if (isset($_POST['panelist_id']) && is_array($_POST['panelist_id'])) {
-                $panelistIds = array_filter($_POST['panelist_id'], function($value) {
-                    return !empty($value);
-                });
-                unset($_POST['panelist_id']); // Remove from POST data to prevent array to string conversion
-            }
-            
-            // Add up to three panelists directly to the defense_schedules table
-            if (!empty($panelistIds)) {
-                // Sort by array key to ensure consistent assignment order
-                ksort($panelistIds);
-                $panelistIds = array_values($panelistIds); // Reset keys after sorting
-                
-                if (isset($panelistIds[0])) {
-                    $_POST['panelist_id'] = $panelistIds[0];
-                }
-                
-                if (isset($panelistIds[1])) {
-                    $_POST['panelist_id2'] = $panelistIds[1];
-                }
-                
-                if (isset($panelistIds[2])) {
-                    $_POST['panelist_id3'] = $panelistIds[2];
-                }
-                
-                // Log a warning if there are more than 3 panelists as the database only supports 3
-                if (count($panelistIds) > 3) {
-                    error_log("Warning: Only the first 3 panelists were saved. The database schema only supports 3 panelists.");
-                }
-            }
-            
-            // Validation: Check if there's already a schedule with the same date + time + room
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules 
-                                  WHERE schedule_date = :schedule_date 
-                                  AND ((start_time <= :end_time AND end_time >= :start_time)
-                                  OR (start_time >= :start_time AND start_time < :end_time))
-                                  AND room = :room");
-            $stmt->execute([
-                'schedule_date' => $_POST['schedule_date'],
-                'start_time' => $_POST['start_time'],
-                'end_time' => $_POST['end_time'],
-                'room' => $_POST['room']
-            ]);
-            $roomBooked = ($stmt->fetchColumn() > 0);
-            
-            // Validation: Check if the team is already scheduled for a defense
-            $stmt = $pdo->prepare("SELECT COUNT(*) FROM defense_schedules WHERE team_id = :team_id");
-            $stmt->execute(['team_id' => $_POST['team_id']]);
-            $teamBooked = ($stmt->fetchColumn() > 0);
-            
-            // Only proceed if neither condition is true
-            if ($roomBooked) {
-                $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => 'This room is already booked for this date and time.']);
-                exit;
-            }
-            
-            if ($teamBooked) {
-                $pdo->rollBack();
-                echo json_encode(['success' => false, 'message' => 'This team already has a scheduled defense.']);
-                exit;
-            }
-            
-            // Insert into defense_schedules table
-            $columns = implode(", ", array_keys($_POST));
-            $values = ":" . implode(", :", array_keys($_POST));
-            
-            $stmt = $pdo->prepare("INSERT INTO $table ($columns) VALUES ($values)");
-            $stmt->execute($_POST);
-            
-            $pdo->commit();
-            echo json_encode(['success' => true]);
-        } catch (Exception $e) {
-            $pdo->rollBack();
-            echo json_encode(['success' => false, 'message' => $e->getMessage()]);
-        }
-        
-        exit;
+    $panelist_ids = isset($_POST['panelist_id']) ? (array)$_POST['panelist_id'] : [];
+    $_POST['panelist_id']  = isset($panelist_ids[0]) ? $panelist_ids[0] : null;
+    $_POST['panelist_id2'] = isset($panelist_ids[1]) ? $panelist_ids[1] : null;
+    $_POST['panelist_id3'] = isset($panelist_ids[2]) ? $panelist_ids[2] : null;
+    
     }
     
     // General handling for other tables
@@ -333,9 +238,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } catch (Exception $e) {
         echo json_encode(['success' => false, 'message' => $e->getMessage()]);
     }
+    
 }
 /**
  * This file is part of the COECSA Thesis Dashboard.
+ * 
  * 
  * Description:
  * This script is responsible for adding items to the dashboard.
