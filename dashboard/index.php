@@ -351,6 +351,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
                                 <i class="fas fa-list-alt me-2"></i>Rubrics
                             </a>
+                            <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
+                                <i class="fas fa-th-list me-2"></i>Rubric Groups 
                             <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
                                 <i class="fas fa-star me-2"></i>Evaluations
                             </a>
@@ -383,6 +385,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
+                            <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
                             

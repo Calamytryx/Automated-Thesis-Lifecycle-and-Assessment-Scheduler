@@ -17,9 +17,6 @@
  * - updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status)
  *   Updates defense schedule information in the database.
  * 
- * - updateRubric($pdo, $id, $name, $description, $created_by)
- *   Updates rubric information in the database.
- * 
  * - updateTeam($pdo, $id, $name, $title, $members)
  *   Updates team information and its members in the database.
  * 
@@ -85,13 +82,6 @@ function updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_d
     $stmt = $pdo->prepare($sql);
     fetchAllDefenseSchedules($pdo);
     return $stmt->execute([$student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status, $id]);
-}
-
-// Function to update rubric
-function updateRubric($pdo, $id, $name, $description, $created_by) {
-    $sql = "UPDATE rubrics SET name = ?, description = ?, created_by = ? WHERE id = ?";
-    $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$name, $description, $created_by, $id]);
 }
 
 // Function to update team

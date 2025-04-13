@@ -1,21 +1,35 @@
 <?php
 // Include database connection
 require '../assets/setup/db.inc.php';
-$_POST['team_id']=32;
-// Retrieve team_id from POST data
 
-    $team_id = 32;
+// Assume $_SESSION['id'] holds the evaluator's ID
+// session_start(); // Make sure session is started if not already
 
+// --- Configuration ---
+// TODO: Determine how to select the correct rubric group.
+// Option 1: Pass group_id via POST/GET
+// Option 2: Fetch based on defense_schedule_id or team program/defense type
+// For now, let's hardcode a group ID for demonstration. Replace with dynamic logic.
+$rubric_group_id = 1; // <<< HARDCODED - REPLACE WITH DYNAMIC LOGIC
+$evaluator_id = $_SESSION['id'] ?? 0; // Get evaluator ID
 
-$scheduleStmt = $pdo->prepare("SELECT id FROM icei_38697196_coecsathesis.defense_schedules WHERE team_id = ?");
+// --- Fetch Team & Schedule Data (Simplified) ---
+$_POST['team_id'] = 32; // Example team_id
+$team_id = $_POST['team_id'] ?? null;
+
+if (!$team_id) {
+    echo "Error: Team ID not provided.";
+    exit;
+}
+
+// Fetch schedule ID (assuming one schedule per team for simplicity)
+$scheduleStmt = $pdo->prepare("SELECT id FROM defense_schedules WHERE team_id = ? ORDER BY schedule_date DESC LIMIT 1");
 $scheduleStmt->execute([$team_id]);
 $schedule = $scheduleStmt->fetch(PDO::FETCH_ASSOC);
+$defense_schedule_id = $schedule['id'] ?? 0;
 
-// Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
-$requirementStmt = $pdo->prepare("SELECT file_name FROM icei_38697196_coecsathesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
-$requirementStmt->execute([$team_id]);
-$requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
-
+// Fetch team details, members, adviser, research title (Keep existing logic)
+// ... (Keep your existing fetch logic for team, members, adviser, title) ...
 try {
   // Fetch team details
   $teamStmt = $pdo->prepare("SELECT name, program FROM icei_38697196_coecsathesis.teams WHERE id = ?");
@@ -38,28 +52,21 @@ try {
 
   // Fetch team members excluding the adviser
   $membersStmt = $pdo->prepare("
-        SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname, team_members.role, user_id
-        FROM icei_38697196_coecsathesis.team_members 
-        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
+        SELECT users.id as user_id, CONCAT(users.first_name, ' ', users.last_name) AS fullname, team_members.role
+        FROM icei_38697196_coecsathesis.team_members
+        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id
         WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role != 'Adviser'
     ");
   $membersStmt->execute([$team_id]);
   $members = $membersStmt->fetchAll(PDO::FETCH_ASSOC);
+  $totalMembers = count($members);
 
-  // Get the count of team members excluding the adviser
-  $membersCountStmt = $pdo->prepare("
-    SELECT COUNT(*) as total_members
-    FROM icei_38697196_coecsathesis.team_members
-    WHERE team_id = ? AND role != 'Adviser'
-");
-  $membersCountStmt->execute([$team_id]);
-  $totalMembers = $membersCountStmt->fetchColumn();
 
   // Fetch adviser information
   $adviserStmt = $pdo->prepare("
         SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname
-        FROM icei_38697196_coecsathesis.team_members 
-        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
+        FROM icei_38697196_coecsathesis.team_members
+        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id
         WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role = 'Adviser'
         LIMIT 1
     ");
@@ -70,998 +77,697 @@ try {
   exit;
 }
 
-define('TITLE', "Defense");
+
+// --- Fetch Rubric Group and its Items ---
+$rubricGroup = null;
+$rubricItems = [];
+$groupWeightTotal = 0; // To check if weights sum to 100
+
+if ($rubric_group_id) {
+    try {
+        // Fetch group details
+        $groupStmt = $pdo->prepare("SELECT * FROM rubric_groups WHERE id = ?");
+        $groupStmt->execute([$rubric_group_id]);
+        $rubricGroup = $groupStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($rubricGroup) {
+            // Fetch items (rubrics) in the group, ordered, with details
+            $itemsStmt = $pdo->prepare("
+                SELECT
+                    rgi.rubric_id,
+                    rgi.order_index,
+                    rgi.weight,
+                    r.name AS rubric_name,
+                    r.rubric_type,
+                    r.description AS rubric_description,
+                    r.pass_recommendation_text,
+                    r.fail_recommendation_text,
+                    r.fail_option_text,
+                    r.pass_threshold_1,
+                    r.pass_threshold_2,
+                    r.pass_threshold_3
+                FROM rubric_group_items rgi
+                JOIN rubrics r ON rgi.rubric_id = r.id
+                WHERE rgi.group_id = ? AND r.is_active = 1
+                ORDER BY rgi.order_index ASC
+            ");
+            $itemsStmt->execute([$rubric_group_id]);
+            $rubricItems = $itemsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // Fetch levels and criteria for each rubric item
+            foreach ($rubricItems as $key => $item) {
+                // Fetch Levels
+                $levelsStmt = $pdo->prepare("SELECT * FROM rubric_levels WHERE rubric_id = ? ORDER BY level_index ASC");
+                $levelsStmt->execute([$item['rubric_id']]);
+                $rubricItems[$key]['levels'] = $levelsStmt->fetchAll(PDO::FETCH_ASSOC);
+
+                // Fetch Criteria (if applicable)
+                if ($item['rubric_type'] === 'numerical' || $item['rubric_type'] === 'yesno') {
+                    $criteriaStmt = $pdo->prepare("SELECT * FROM rubric_criteria WHERE rubric_id = ? ORDER BY order_index ASC");
+                    $criteriaStmt->execute([$item['rubric_id']]);
+                    $rubricItems[$key]['criteria'] = $criteriaStmt->fetchAll(PDO::FETCH_ASSOC);
+                } else {
+                    $rubricItems[$key]['criteria'] = [];
+                }
+
+                // Sum weights for numerical rubrics
+                if ($item['rubric_type'] === 'numerical' && $item['weight'] !== null) {
+                    $groupWeightTotal += $item['weight'];
+                }
+            }
+        } else {
+            echo "<p class='text-danger'>Rubric Group not found.</p>";
+            // Handle error appropriately
+        }
+
+    } catch (PDOException $e) {
+        echo "<p class='text-danger'>Error fetching rubric group data: " . htmlspecialchars($e->getMessage()) . "</p>";
+        // Handle error appropriately
+    }
+} else {
+     echo "<p class='text-warning'>No Rubric Group ID specified.</p>";
+     // Handle error appropriately
+}
+
+
+// Fetch file_name (Keep existing logic)
+// ... (Keep your existing fetch logic for file_name) ...
+$requirementStmt = $pdo->prepare("SELECT file_name FROM icei_38697196_coecsathesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
+$requirementStmt->execute([$team_id]);
+$requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
+$fileName = $requirement['file_name'] ?? 'default.pdf'; // Provide a default or handle error
+
+
+define('TITLE', "Defense Evaluation"); // Updated Title
 include '../assets/layouts/header.php';
 
-if ($requirement) {
-  $fileName = htmlspecialchars($requirement['file_name']);
-  // You can use $fileName as needed, for example:
-  // echo "<p>File Name: {$fileName}</p>";
-} else {
-  // echo "<h1 class='text-danger text-center'>Requirement not found. <br> Returning you to Home</h1>";
-  // echo "<script>setTimeout(() => { window.location.href = '../home'; }, 3000);</script>";
-  // exit;
-    }
-    
-    ?>
-    
-    <script type="module">
-  import {
-    getDocument,
-    GlobalWorkerOptions
-  } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+?>
 
-  // Specify the worker script source
-  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
-
-  const predefinedPdfUrl = `../assets/uploads/submission/<?php echo $fileName ?>`; // Replace with your PDF URL
-
-  window.extractText = async function(pdfUrl) {
-    const filenameInput = document.getElementById('filename');
-    const output = document.getElementById('output-pdf');
-
-    try {
-      const response = await fetch(pdfUrl);
-      if (!response.ok) {
-        throw new Error('Network response was not ok');
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfData = new Uint8Array(arrayBuffer);
-
-      // Extract filename from URL
-      const filename = pdfUrl.split('/').pop();
-      filenameInput.value = `File: ${filename}`;
-
-      const pdf = await getDocument(pdfData).promise;
-      let extractedText = '';
-
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-
-        let pageText = `--- Page ${pageNum} ---\n`;
-        let lastY = null;
-
-        textContent.items.forEach(item => {
-          const currentY = item.transform[5];
-
-          if (lastY !== null && Math.abs(currentY - lastY) > 5) {
-            pageText += '\n';
-          }
-
-          pageText += item.str;
-          lastY = currentY;
-        });
-
-        extractedText += pageText + '\n\n';
-      }
-
-      output.value = extractedText.trim();
-    } catch (error) {
-      alert('Failed to load PDF file.');
-      console.error(error);
-    }
-  }
-
-  // Load the PDF on page load
-  window.addEventListener('DOMContentLoaded', () => {
-    extractText(predefinedPdfUrl);
-  });
-</script>
+<!-- ... existing PDF.js script ... -->
 <input type="hidden" id="filename">
 <input type="hidden" id="output-pdf">
 <main role="main">
-  <section class="jumbotron py-5 mb-4 jbtron">
-    <div class="container">
-        <!-- Research Title -->
-        <div class="text-center mb-4">
-            <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
-            <div class="d-flex justify-content-center gap-2 mb-4">
-                <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
-                    <i class="fas fa-file-alt me-2" style="color: inherit;"></i>Research Paper
-                </span>
-            </div>
-        </div>
+    <!-- ... existing Jumbotron section ... -->
+    <section class="jumbotron py-5 mb-4 jbtron">
+        <!-- ... keep existing team info display ... -->
+    </section>
 
-        <div class="row g-4">
-            <!-- Team Members -->
-            <div class="col-12">
-                <div class="card border-0">
-                    <div class="card-body jumbotronCard">
-                        <h5 class="card-title d-flex align-items-center mb-3">
-                            <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
-                            <span class="feature-title">Team Members</span>
-                        </h5>
-                        <div class="d-flex flex-wrap justify-content-center gap-2"> 
-                            <?php
-                            if (!empty($members)) {
-                                foreach ($members as $member) {
-                                    echo '<span class="badge px-3 py-2 rounded-pill" 
-                                          style="background-color: var(--primary-100); color: var(--main-bg-dark)">
-                                            <i class="fas fa-user me-2"></i>' 
-                                            . htmlspecialchars($member['fullname']) . 
-                                          '</span>';
-                                }
-                            } else {
-                                echo '<p class="text-muted mb-0">No members found</p>';
-                            }
-                            ?>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Adviser and Program -->
-            <div class="col-12">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body jumbotronCard">
-                                <h5 class="card-title d-flex align-items-center mb-3">
-                                    <i class="fas fa-chalkboard-teacher me-2" style="color: var(--main-primary)"></i>
-                                    <span class="feature-title">Adviser</span>
-                                </h5>
-                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
-                                    <?php echo htmlspecialchars($adviser['fullname'] ?? 'No adviser assigned'); ?>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body jumbotronCard">
-                                <h5 class="card-title d-flex align-items-center mb-3">
-                                    <i class="fas fa-graduation-cap me-2" style="color: var(--main-primary)"></i>
-                                    <span class="feature-title">Program</span>
-                                </h5>
-                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
-                                    <?php echo htmlspecialchars($team['program']); ?>
-                                </p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-</section> 
-
-  <!-- Tab navigation -->
-  <div class="container mb-4">
-    <ul class="nav nav-tabs" id="defenseContentTabs" role="tablist">
-      <li class="nav-item" role="presentation">
-        <button class="nav-link active" id="research-paper-tab" data-bs-toggle="tab" data-bs-target="#research-paper" type="button" role="tab" aria-controls="research-paper" aria-selected="true">
-          Research Paper
-        </button>
-      </li>
-      <li class="nav-item" role="presentation">
-        <button class="nav-link" id="score-sheet-tab" data-bs-toggle="tab" data-bs-target="#score-sheet-content" type="button" role="tab" aria-controls="score-sheet-content" aria-selected="false">
-          Score Sheet
-        </button>
-      </li>
-    </ul>
-  </div>
-
-  <!-- Tab content -->
-  <div class="tab-content" id="defenseContentTabsContent">
-    <!-- Research Paper Tab -->
-    <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
-      <div class="album">
-        <div class="container">
-          <!-- Toggle Buttons -->
-          <div class="toggle-container">
-            <div class="btn-group w-100" role="group" aria-label="View toggles">
-              <button type="button" class="btn toggle-btn active" data-target="pdf-section">
-                <i class="fas fa-file-pdf me-2"></i>PDF View
-              </button>
-              <button type="button" class="btn toggle-btn" data-target="ai-section">
-                <i class="fas fa-robot me-2"></i>AI Analysis
-              </button>
-            </div>
-          </div>
-
-          <!-- PDF View Section -->
-          <div class="section-toggle" id="pdf-section">
-            <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
-              <div class="panel-header">
-                <h4>PDF Document View</h4>
-                <button class="fullscreen-btn" onclick="toggleFullScreen()">
-                  <i class="fas fa-expand"></i>
-                  Full Screen
+    <!-- Tab navigation -->
+    <div class="container mb-4">
+        <ul class="nav nav-tabs" id="defenseContentTabs" role="tablist">
+            <li class="nav-item" role="presentation">
+                <button class="nav-link active" id="research-paper-tab" data-bs-toggle="tab" data-bs-target="#research-paper" type="button" role="tab" aria-controls="research-paper" aria-selected="true">
+                    Research Paper
                 </button>
-              </div>
-              <div class="panel-content">
-                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
-                  frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                </iframe>
-              </div>
-            </div>
-          </div>
-
-          <!-- AI Analysis Section -->
-          <div class="section-toggle d-none" id="ai-section">
-            <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
-              <div class="panel-header">
-                <h4>AI Evaluation Results</h4>
-              </div>
-              <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
-                <div id="ai-output"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
+            </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="score-sheet-tab" data-bs-toggle="tab" data-bs-target="#score-sheet-content" type="button" role="tab" aria-controls="score-sheet-content" aria-selected="false">
+                    Score Sheet <?php echo $rubricGroup ? '- ' . htmlspecialchars($rubricGroup['name']) : ''; ?>
+                </button>
+            </li>
+        </ul>
     </div>
 
-    <!-- Score Sheet Tab -->
-    <div class="tab-pane fade" id="score-sheet-content" role="tabpanel" aria-labelledby="score-sheet-tab">
-      <div class="album">
-        <div class="container">
-          <!-- Toggle Buttons -->
-          <div class="toggle-container">
-            <div class="btn-group w-100" role="group" aria-label="Score sheet toggles">
-              <button type="button" class="btn toggle-btn active" data-target="content-criteria">
-                <i class="fas fa-list-alt me-2"></i>Content
-              </button>
-              <button type="button" class="btn toggle-btn" data-target="organization-criteria">
-                <i class="fas fa-sitemap me-2"></i>Organization
-              </button>
-              <button type="button" class="btn toggle-btn" data-target="novelty-criteria">
-                <i class="fas fa-lightbulb me-2"></i>Novelty
-              </button>
-              <button type="button" class="btn toggle-btn" data-target="grade-summary">
-                <i class="fas fa-chart-bar me-2"></i>Summary
-              </button>
-              <button type="button" class="btn toggle-btn" data-target="evaluation">
-                <i class="fas fa-clipboard-check me-2"></i>Evaluation
-              </button>
-            </div>
-          </div>
+    <!-- Tab content -->
+    <div class="tab-content" id="defenseContentTabsContent">
+        <!-- Research Paper Tab -->
+        <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
+            <!-- ... keep existing PDF viewer and AI section ... -->
+        </div>
 
-          <!-- Content Table Section -->
-          <div class="section-toggle" id="content-criteria">
-            <div class="evaluation-table">
-              <div class="evaluation-header">
-                <h4>Content <span class="percentage">(40%)</span></h4>
-              </div>
-              <div class="evaluation-content">
-                <table id="content-table">
-                  <thead>
-                    <tr>
-                      <th class="text-center">Evaluation Area</th>
-                      <th class="text-center">Unacceptable (1-3)</th>
-                      <th class="text-center">Fairly Acceptable (3)</th> 
-                      <th class="text-center">Acceptable (4)</th>
-                      <th class="text-center">Highly Acceptable (5)</th>
-                      <th class="text-center">Rating/Score</th>
-                    </tr> 
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td><b>1. Thesis Statement / Researh Objective(s)</b></td>
-                      <td>Thesis is unclear or poorly defined. The research objectives are not clearly stated or justified.</td>
-                      <td>Thesis and objectives are vaguely stated but lack adequate justification or clarity.</td>
-                      <td>Thesis clearly stated with a reasonable justification for the research objectives.</td>
-                      <td>Thesis and objectives are clearly stated and fully justified, providing a strong foundation for the research.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td><b>2. Significance of the Study / Rationale</b></td>
-                      <td>Significance of the study are weak or missing. The connection to the research objectives is unclear.</td>
-                      <td>Score justification is provided but lacks depth or clear connection to the research objectives.</td>
-                      <td>The significance of the study is well-argued and aligned with the research objectives.</td>
-                      <td>The study's significance is compellingly argued with thorough rationale, clearly showing the research's value.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td><b>3. Extent and Sufficiency of the Literature Review and References Cited</b></td>
-                      <td>Literature review is insufficient, lacking relevant sources or proper citations.</td>
-                      <td>Literature review includes some relevant sources, but many gaps or weak citations exist.</td>
-                      <td>Literature review is comprehensive with well-chosen and sufficent sources cited.</td>
-                      <td>Literature review is exhaustive, with high-quality, relevant sources, showing thorough research and citations.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td><b>4. Appropriate Data and Methodology used</b></td>
-                      <td>Data and methodology are inapproprate or insufficient for the research objectives.</td>
-                      <td>Methodology is somewhat suitable but lacks clarity or sufficient data.</td>
-                      <td>Appropriate data and methodology are used, with a clear explanation of their relevance.</td>
-                      <td>Data and methodology are well-chosen and highly-appropriate for the research, fully supporting the objectives.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end"><b>TOTAL</b></td>
-                      <td class="text-end" id="content-score"> /20</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end"><b>PERCENTAGE</b></td>
-                      <td class="text-end" id="content-percentage"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
+        <!-- Score Sheet Tab (Dynamically Generated) -->
+        <div class="tab-pane fade" id="score-sheet-content" role="tabpanel" aria-labelledby="score-sheet-tab">
+            <div class="album">
+                <div class="container">
+                    <?php if (!empty($rubricItems)): ?>
+                        <!-- Toggle Buttons for Rubrics + Summary + Evaluation -->
+                        <div class="toggle-container mb-3">
+                            <div class="btn-group w-100 flex-wrap" role="group" aria-label="Score sheet toggles">
+                                <?php foreach ($rubricItems as $index => $item): ?>
+                                    <button type="button" class="btn toggle-btn <?php echo $index === 0 ? 'active' : ''; ?>" data-target="rubric-section-<?php echo $item['rubric_id']; ?>">
+                                        <i class="fas fa-list-alt me-2"></i><?php echo htmlspecialchars($item['rubric_name']); ?>
+                                        <?php if ($item['rubric_type'] === 'numerical' && $item['weight'] !== null): ?>
+                                            <span class="badge bg-secondary ms-1"><?php echo htmlspecialchars($item['weight']); ?>%</span>
+                                        <?php endif; ?>
+                                    </button>
+                                <?php endforeach; ?>
+                                <button type="button" class="btn toggle-btn" data-target="grade-summary">
+                                    <i class="fas fa-chart-bar me-2"></i>Summary
+                                </button>
+                                <button type="button" class="btn toggle-btn" data-target="evaluation">
+                                    <i class="fas fa-clipboard-check me-2"></i>Evaluation
+                                </button>
+                            </div>
+                        </div>
 
-          <!-- Organization Table Section -->
-          <div class="section-toggle d-none" id="organization-criteria">
-            <div class="evaluation-table">
-              <div class="evaluation-header">
-                <h4>Organization <span class="percentage">(10%)</span></h4>
-              </div>
-              <div class="evaluation-content">
-                <table class="table table-bordered table-hover" id="organization-table">
-                  <thead>
-                    <tr>
-                      <th colspan="2">Evaluation Area</th>
-                      <th>Unacceptable (1-2)</th>
-                      <th>Fairly Acceptable (3)</th>
-                      <th>Acceptable (4)</th>
-                      <th>Highly Acceptable (5)</th>
-                      <th>Rating/Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colspan="7"><i>Presentation and development of ideas are clear, logical and exhibits high standards of scholarship</i></td>
-                    </tr>
-                    <tr>
-                      <td colspan="2"><b>a. Clarity of Ideas</b></td>
-                      <td>Ideas are vague, confusing, or difficult to understand; lacks coherence.</td>
-                      <td>Ideas are presented with some clarity but may require effort to interpret.</td>
-                      <td>Ideas are mostly clear, with minor ambiguities or areas for refinement.</td>
-                      <td>Ideas are exceptionally clear, precise, and immediately understandable.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="2"><b>b. Logical Flow</b></td>
-                      <td>Lacks organization; ideas are presented in a disjointed or incoherent manner.</td>
-                      <td>Ideas follow a basic sequence but may lack smooth transitions.</td>
-                      <td>Ideas are logical and cohesive, with minor inconsistencies.</td>
-                      <td>Ideas are flawlessly organized, with smooth and seamless transitions.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="2"><b>c. Standards of Scholarship</b></td>
-                      <td>Content lacks depth, accuracy, or relevance; minimal research or evidence is used.</td>
-                      <td>Content demonstrates some depth and accuracy, with limited research or evidence.</td>
-                      <td>Content shows good research and depth, with some room for improvement.</td>
-                      <td>Content reflects outstanding depth, accuracy, and relevance, with comprehensive evidence.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="6" align="right"><b>TOTAL</b></td>
-                      <td class="text-end" id="organization-score">/15</td>
-                    <tr>
-                      <td colspan="6" class="text-end"><b>PERCENTAGE</b></td>
-                      <td class="text-end" id="organization-percentage"></td>
-                    </tr>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Novelty Table Section -->
-          <div class="section-toggle d-none" id="novelty-criteria">
-            <div class="evaluation-table">
-              <div class="evaluation-header">
-                <h4>Novelty and Impact <span class="percentage">(10%)</span></h4>
-              </div>
-              <div class="evaluation-content">
-                <table class="table table-bordered table-hover" id="novelty-table">
-                  <thead>
-                    <tr>
-                      <th class="text-center">Evaluation Area</th>
-                      <th class="text-center">Unacceptable (1-3)</th>
-                      <th class="text-center">Fairly Acceptable (3)</th>
-                      <th class="text-center">Acceptable (4)</th>
-                      <th class="text-center">Highly Acceptable (5)</th>
-                      <th class="text-center">Rating/Score</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr class="iock">
-                      <td class="fw-bold" colspan="6">Innovation, Originality, and Contribution to Knowledge (5%)</td>
-                    </tr>
-                    <tr class="iock">
-                      <td><b>a. Originality of the System and Algorithm</b></td>
-                      <td>The prototype and algorithm replicate existing solutions with no new insights or approaches.</td>
-                      <td>The prototype and algorithm show some originality but remain heavily based on existing technologies or methods.</td>
-                      <td>The prototype and algorithm introduces new concepts or approaches, offering some level of originality.</td>
-                      <td>The prototype and algorithm are highly original, introducing novel concepts, techniques, or methodologies that significantly advance the field.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr class="iock">
-                      <td><b>b. Novelty in Solving Problems or Addressing Gaps</b></td>
-                      <td>The system and algorithm do not address any significant problem or gap in the current body of knowledge.</td>
-                      <td>The system and algorithm address a problem, but the solution is not entirely new or substantial in its contribution.</td>
-                      <td>The system and algorithm address a known gap, providing a creative or valuable solution to an existing problem.</td>
-                      <td>The system and algorithm address an important gap, providing a groundbreaking solution that substantially advances knowledge or practice in the field.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr class="iock">
-                      <td><b>c. Contribution to the Existing Body of Knowledge</b></td>
-                      <td>The system and algorithm fail to add value to the current state of research or practical knowledge.</td>
-                      <td>The system and algorithm contribute moderately to the existing body of knowledge, with limited innovation or application.</td>
-                      <td>The system and algorithm contribute meaningfully advancing knowledge, or theoretically or practically, in the field.</td>
-                      <td>The system and algorithm make a significant contribution to the field, enhancing theoretical understanding or providing impactful, or practical solutions.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end fw-bold">TOTAL</td>
-                      <td class="text-end" id="iock-score"> /15</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end fw-bold">PERCENTAGE</td>
-                      <td class="text-end" id="iock-percentage"></td>
-                    </tr>
-                    <tr class="isb">
-                      <td class="fw-bold" colspan="6">Impact and Societal Benefit (5%)</td>
-                    </tr>
-                    <tr class="isb">
-                      <td><b>a. Practical Applications for Society and Community</b></td>
-                      <td>The system and algorithm have no evident real-world application or societal relevance.</td>
-                      <td>The system and algorithm have limited practical applications, impacting a small group or niche.</td>
-                      <td>The system and algorithm have clear and meaningful applications, benefitting a specific communities or sectors.</td>
-                      <td>The system and algorithm have broad, positive implications, offering scalable solutions with substantial benefits for a wide range of communities or industries.</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr class="isb">
-                      <td><b>b. Accessibilty and Inclusivity</b></td>
-                      <td>The system and algorithm are inaccessible or exclude significant groups from benefit.</td>
-                      <td>The system and algorithm provide some accessibility features, but exlude certain groups or limit their impact.</td>
-                      <td>The system and algorithm contribute accessible to a broad range of users, wih a focus on inclusivity and diverse needs.</td>
-                      <td>The system and algorithm are highly accessible, and inclusive, designed to benefit diverse user groups and address accessibility challenges</td>
-                      <td><input type="number" class="form-control" placeholder="score" min="1" max="5"></td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end fw-bold">TOTAL</td>
-                      <td class="text-end" id="isb-score"> /10</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5" class="text-end fw-bold">PERCENTAGE</td>
-                      <td class="text-end" id="isb-percentage"></td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-
-          <!-- Grade Summary Section -->
-          <div class="section-toggle d-none" id="grade-summary">
-            <div class="evaluation-table mb-4">
-              <div class="evaluation-header">
-                <h4>Grade Summary:</h4>
-              </div>
-              <div class="evaluation-content">
-                <table class="table table-bordered table-hover" id="summary-table">
-                  <thead>
-                    <th>Criteria</td>
-                    <th>Rating/Score</th>
-                  </thead>
-                  <tr>
-                    <td>Content (40%)</td>
-                    <td id="content-total"></td>
-                  </tr>
-                  <tr>
-                    <td>Organization (10%)</td>
-                    <td id="organization-total"></td>
-                  </tr>
-                  <tr>
-                    <td>Novelty and Impact (10%)</td>
-                    <td id="novelty-total"></td>
-                  </tr>
-                  <tr>
-                    <th>RESEARCH PAPER PROJECT TOTAL</th>
-                    <td id="init-total"></td>
-                  </tr>
-                </table>
-              </div>
-            </div>
-
-            <div class="evaluation-table">
-              <div class="evaluation-header">
-                <h4>Research Proposal Defense Score Sheet</h4>
-              </div>
-              <div class="evaluation-content">
-                <table class="table table-bordered table-hover" id="score-sheet">
-                  <thead>
-                    <tr>
-                      <th colspan="5">CRITERIA</th>
-                      <th colspan="2">RATING</th>
-                      <th>MAXIMUM</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <tr>
-                      <td colspan="5"><b>RESEARCH PAPER/PROJECT</b></td>
-                      <td colspan="3"><b>Group Grade</b></td>
-                    </tr>
-                    <tr>
-                      <td colspan="7"><b>Content</b></td>
-                      <td>40%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">1. Thesis statement / research objective(s) are well stated and justified</td>
-                      <td colspan="2" id="content-sheet1"></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">2. Significance of the Study/Rationale are well argued</td>
-                      <td colspan="2" id="content-sheet2"></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">3. Extent and sufficiency of Literature Review and References cited</td>
-                      <td colspan="2" id="content-sheet3"></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">4. Appropriate data and methodology used</td>
-                      <td colspan="2" id="content-sheet4"></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="7"><b>Organization</b></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">Presentation and development of ideas are <i>clear, logical</i> and <i>exhibits high standards of scholarship</i></td>
-                      <td colspan="2" id="organization-sheet1"></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="7"><b>Novelty and Impact</b></td>
-                      <td>10%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">1. The research endeavor exhibits a degree of innovation, originality, and ability to contribute to the existent body of knowledge</td>
-                      <td colspan="2" id="novelty-sheet1"></td>
-                      <td>5%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5">2. Its impact and benefit to the society or community</td>
-                      <td colspan="2" id="novelty-sheet2"></td>
-                      <td>5%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="5"><b>Subtotal – Group Grade</b></td>
-                      <td colspan="2" id="group-total"></td>
-                      <td>60%</td>
-                    </tr>
-                    <tr>
-                      <td colspan="<?php echo (5 - $totalMembers); ?>"><b>ORAL DEFENSE</b></td>
-                      <td colspan="<?php echo (11 - $totalMembers); ?>"><b>Individual Grades</b></td>
-                    </tr>
-                    <!-- Generate headers for team members -->
-                    <tr>
-                      <td><b>Presentation</b></td>
-                      <?php
-                      foreach ($members as $index => $member) {
-                        echo "<th>" . chr(65 + $index) . "</th>"; // A, B, C, etc.
-                      }
-                      ?>
-                      <td>30%</td>
-                    </tr>
-                    <!-- Then, in the subsequent rows, generate input cells for each member -->
-                    <?php
-                    $presentationCriteria = [
-                      ['Time allotted for presentation are met', '5%'],
-                      ['The visual presentation exemplified ideas, concisely and comprehensively', '5%']
-                    ];
-
-                    foreach ($presentationCriteria as $key => $criterion): ?>
-                      <tr>
-                        <td><?php echo ($key + 1) . '. ' . $criterion[0]; ?></td>
-                        <?php foreach ($members as $index => $member): ?>
-                          <td><input type="number" name="solo-<?php echo $index; ?>-pres-<?php echo $key; ?>" class="form-control" placeholder="score" min="1" max="5"></td>
+                        <!-- Rubric Sections -->
+                        <?php foreach ($rubricItems as $index => $item): ?>
+                            <div class="section-toggle <?php echo $index === 0 ? '' : 'd-none'; ?>" id="rubric-section-<?php echo $item['rubric_id']; ?>" data-rubric-id="<?php echo $item['rubric_id']; ?>" data-rubric-type="<?php echo $item['rubric_type']; ?>" data-rubric-weight="<?php echo $item['weight'] ?? ''; ?>">
+                                <div class="evaluation-table mb-4">
+                                    <div class="evaluation-header">
+                                        <h4><?php echo htmlspecialchars($item['rubric_name']); ?>
+                                            <?php if ($item['rubric_type'] === 'numerical' && $item['weight'] !== null): ?>
+                                                <span class="percentage">(<?php echo htmlspecialchars($item['weight']); ?>%)</span>
+                                            <?php endif; ?>
+                                        </h4>
+                                        <?php if ($item['rubric_description']): ?>
+                                            <p class="text-muted small"><?php echo htmlspecialchars($item['rubric_description']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                    <div class="evaluation-content">
+                                        <?php if ($item['rubric_type'] === 'numerical'): ?>
+                                            <table class="table table-bordered table-hover numerical-rubric-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 30%;">Criteria</th>
+                                                        <?php foreach ($item['levels'] as $level): ?>
+                                                            <th class="text-center">
+                                                                <?php echo htmlspecialchars($level['name']); ?><br>
+                                                                <small class="text-muted">
+                                                                    <?php
+                                                                    if ($level['is_range'] && $level['points_min'] != $level['points_max']) {
+                                                                        echo "({$level['points_min']}-{$level['points_max']} pts)";
+                                                                    } else {
+                                                                        echo "({$level['points_min']} pts)";
+                                                                    }
+                                                                    ?>
+                                                                </small>
+                                                                <?php if ($level['description']): ?>
+                                                                     <br><small class="text-muted fst-italic">(<?php echo htmlspecialchars($level['description']); ?>)</small>
+                                                                <?php endif; ?>
+                                                            </th>
+                                                        <?php endforeach; ?>
+                                                        <th style="width: 10%;" class="text-center">Score</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($item['criteria'] as $crit_index => $criterion): ?>
+                                                        <tr data-criterion-id="<?php echo $criterion['id']; ?>">
+                                                            <td><?php echo htmlspecialchars($criterion['criterion_text']); ?></td>
+                                                            <?php foreach ($item['levels'] as $level_index => $level): ?>
+                                                                <td class="text-center">
+                                                                    <input type="radio"
+                                                                           class="form-check-input criterion-level-radio"
+                                                                           name="rubric_<?php echo $item['rubric_id']; ?>_crit_<?php echo $criterion['id']; ?>"
+                                                                           value="<?php echo $level['id']; ?>"
+                                                                           data-points-min="<?php echo $level['points_min']; ?>"
+                                                                           data-points-max="<?php echo $level['points_max']; ?>"
+                                                                           data-is-range="<?php echo $level['is_range']; ?>"
+                                                                           required>
+                                                                </td>
+                                                            <?php endforeach; ?>
+                                                            <td class="text-center">
+                                                                <span class="criterion-score-display">0</span>
+                                                                <!-- Hidden input to store the calculated score for this criterion -->
+                                                                <input type="hidden" class="criterion-score-input" name="scores[<?php echo $item['rubric_id']; ?>][<?php echo $criterion['id']; ?>]" value="0">
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                                <tfoot>
+                                                    <tr>
+                                                        <th colspan="<?php echo count($item['levels']) + 1; ?>" class="text-end">Subtotal</th>
+                                                        <th class="text-center rubric-subtotal">0</th>
+                                                    </tr>
+                                                </tfoot>
+                                            </table>
+                                        <?php elseif ($item['rubric_type'] === 'yesno'): ?>
+                                             <table class="table table-bordered table-hover yesno-rubric-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th style="width: 40%;">Criteria</th>
+                                                        <th style="width: 40%;">Description</th>
+                                                        <th style="width: 20%;" class="text-center">Option</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <?php foreach ($item['criteria'] as $criterion): ?>
+                                                        <tr data-criterion-id="<?php echo $criterion['id']; ?>">
+                                                            <td><?php echo htmlspecialchars($criterion['criterion_text']); ?></td>
+                                                            <td><?php echo htmlspecialchars($criterion['criterion_detail'] ?? ''); ?></td>
+                                                            <td class="text-center">
+                                                                <select class="form-select yesno-option" name="scores[<?php echo $item['rubric_id']; ?>][<?php echo $criterion['id']; ?>]" required>
+                                                                    <option value="Yes">Yes</option>
+                                                                    <option value="No" selected>No</option>
+                                                                </select>
+                                                            </td>
+                                                        </tr>
+                                                    <?php endforeach; ?>
+                                                </tbody>
+                                            </table>
+                                        <?php elseif ($item['rubric_type'] === 'passfail'): ?>
+                                            <table class="table table-bordered table-hover passfail-rubric-table">
+                                                 <thead>
+                                                    <tr>
+                                                        <th style="width: 40%;">Recommendation</th>
+                                                        <th style="width: 60%;">Options</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <!-- Row 1: Pass Options -->
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($item['pass_recommendation_text'] ?? 'Pass Recommendation'); ?></td>
+                                                        <td>
+                                                            <?php foreach ($item['levels'] as $level): ?>
+                                                                <div class="form-check">
+                                                                    <input class="form-check-input passfail-radio" type="radio"
+                                                                           name="scores[<?php echo $item['rubric_id']; ?>][passfail]"
+                                                                           id="rubric_<?php echo $item['rubric_id']; ?>_level_<?php echo $level['id']; ?>"
+                                                                           value="pass_<?php echo $level['level_index']; ?>" required>
+                                                                    <label class="form-check-label" for="rubric_<?php echo $item['rubric_id']; ?>_level_<?php echo $level['id']; ?>">
+                                                                        <?php echo htmlspecialchars($level['description'] ?? "Pass Option {$level['level_index']}"); ?>
+                                                                    </label>
+                                                                </div>
+                                                            <?php endforeach; ?>
+                                                        </td>
+                                                    </tr>
+                                                     <!-- Row 2: Fail Option -->
+                                                    <tr>
+                                                        <td><?php echo htmlspecialchars($item['fail_recommendation_text'] ?? 'Fail Recommendation'); ?></td>
+                                                        <td>
+                                                            <div class="form-check">
+                                                                <input class="form-check-input passfail-radio" type="radio"
+                                                                       name="scores[<?php echo $item['rubric_id']; ?>][passfail]"
+                                                                       id="rubric_<?php echo $item['rubric_id']; ?>_fail"
+                                                                       value="fail" required>
+                                                                <label class="form-check-label" for="rubric_<?php echo $item['rubric_id']; ?>_fail">
+                                                                    <?php echo htmlspecialchars($item['fail_option_text'] ?? 'Fail'); ?>
+                                                                </label>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                            <!-- Pass/Fail Thresholds (Hidden, for JS reference if needed) -->
+                                            <input type="hidden" class="pass-threshold-1" value="<?php echo $item['pass_threshold_1']; ?>">
+                                            <input type="hidden" class="pass-threshold-2" value="<?php echo $item['pass_threshold_2']; ?>">
+                                            <input type="hidden" class="pass-threshold-3" value="<?php echo $item['pass_threshold_3']; ?>">
+                                        <?php else: ?>
+                                            <p>Unsupported rubric type: <?php echo htmlspecialchars($item['rubric_type']); ?></p>
+                                        <?php endif; ?>
+                                    </div>
+                                </div>
+                            </div>
                         <?php endforeach; ?>
-                        <td><?php echo $criterion[1]; ?></td>
-                      </tr>
-                    <?php endforeach; ?>
 
-                    <!-- Add other sections as needed, such as 'Question and Answer' -->
-                    <tr>
-                      <td><b>Question and Answer</b></td>
-                      <?php foreach ($members as $index => $member): ?>
-                        <th><?php echo chr(65 + $index); ?></th>
-                      <?php endforeach; ?>
-                      <td>10%</td>
-                    </tr>
+                        <!-- Grade Summary Section -->
+                        <div class="section-toggle d-none" id="grade-summary">
+                            <div class="evaluation-table mb-4">
+                                <div class="evaluation-header">
+                                    <h4>Grade Summary</h4>
+                                     <?php if (abs($groupWeightTotal - 100) > 0.01 && $groupWeightTotal > 0): ?>
+                                        <div class="alert alert-warning small">Note: Weights for numerical rubrics sum to <?php echo number_format($groupWeightTotal, 2); ?>%, not 100%. Final score will be calculated based on these weights.</div>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="evaluation-content">
+                                    <table class="table table-bordered table-hover" id="summary-table">
+                                        <thead>
+                                            <tr>
+                                                <th>Rubric</th>
+                                                <th>Type</th>
+                                                <th>Weight</th>
+                                                <th>Score / Result</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php foreach ($rubricItems as $item): ?>
+                                                <tr data-summary-rubric-id="<?php echo $item['rubric_id']; ?>">
+                                                    <td><?php echo htmlspecialchars($item['rubric_name']); ?></td>
+                                                    <td><?php echo htmlspecialchars(ucfirst($item['rubric_type'])); ?></td>
+                                                    <td><?php echo ($item['rubric_type'] === 'numerical' && $item['weight'] !== null) ? htmlspecialchars($item['weight']) . '%' : 'N/A'; ?></td>
+                                                    <td class="summary-score">Pending...</td>
+                                                </tr>
+                                            <?php endforeach; ?>
+                                        </tbody>
+                                         <tfoot>
+                                            <tr>
+                                                <th colspan="3" class="text-end">Final Weighted Score (Numerical Only)</th>
+                                                <th id="finalWeightedScore">0.00%</th>
+                                            </tr>
+                                        </tfoot>
+                                    </table>
+                                </div>
+                            </div>
+                             <!-- Individual Grades Section (Optional - Add if needed) -->
+                             <!-- You might need a separate mechanism or rubric type for individual scores -->
+                        </div>
 
-                    <?php
-                    $qaCriteria = [
-                      ['Presenter is well prepared, appeared relaxed and confident ', '10%'],
-                      ['Presenter is able to communicate effectively the ideas', '10%'],
-                      ['Exemplified mastery and reasoning ability in defending his/her proposal/section', '10%'],
-                    ];
+                        <!-- Evaluation Section -->
+                        <div class="section-toggle d-none" id="evaluation">
+                            <div class="evaluation-table">
+                                <div class="evaluation-header">
+                                    <h4>Comments and Final Evaluation</h4>
+                                </div>
+                                <div class="evaluation-content p-4">
+                                    <form id="evaluationForm" action="submit_evaluation.php" method="POST" class="evaluation-form">
+                                        <div class="form-group mb-4">
+                                            <label for="comments" class="form-label">Comments / Recommendations</label>
+                                            <textarea name="comments" id="comments" class="form-control" rows="5" placeholder="Enter your comments, evaluation and recommendations here" required></textarea>
+                                        </div>
 
-                    foreach ($qaCriteria as $key => $criterion): ?>
-                      <tr>
-                        <td><?php echo ($key + 1) . '. ' . $criterion[0]; ?></td>
-                        <?php foreach ($members as $index => $member): ?>
-                          <td><input type="number" name="solo-<?php echo $index; ?>-qa-<?php echo $key; ?>" class="form-control" placeholder="score" min="1" max="10"></td>
-                        <?php endforeach; ?>
-                        <td><?php echo $criterion[1]; ?></td>
-                      </tr>
-                    <?php endforeach; ?>
+                                        <!-- Hidden inputs -->
+                                        <input type="hidden" name="defense_schedule_id" value="<?php echo $defense_schedule_id; ?>">
+                                        <input type="hidden" name="evaluator_id" value="<?php echo $evaluator_id; ?>">
+                                        <input type="hidden" name="rubric_group_id" value="<?php echo $rubric_group_id; ?>">
+                                        <!-- Scores will be collected via JS and added dynamically or as a JSON string -->
+                                        <input type="hidden" name="evaluation_data" id="evaluationDataInput">
 
-                    <!-- Update subtotal and total rows -->
-                    <tr>
-                      <td><b>Subtotal – Individual Grade</b></td>
-                      <?php
-                      foreach ($members as $index => $member) {
-                        echo '<td id="solo-' . $index . '"></td>';
-                      }
-                      ?>
-                      <td id="subtotal-individual">/40</td>
-                    </tr>
-                    <tr>
-                      <td>
-                        <b>TOTAL</b><br>
-                        <i>(Add the group grade [60%] to the individual grades [40%])</i>
-                      </td>
-                      <?php
-                      foreach ($members as $index => $member) {
-                        echo '<td id="total-' . $index . '"></td>';
-                      }
-                      ?>
-                      <td>100%</td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
 
-          <!-- Evaluation Section -->
-          <div class="section-toggle d-none" id="evaluation">
-            <div class="evaluation-table">
-              <div class="evaluation-header">
-                <h4>Comments, Evaluation and Recommendations</h4>
-              </div>
-              <div class="evaluation-content p-4">
-                <form action="submit_evaluation.php" method="POST" class="evaluation-form">
-                  <div class="form-group mb-4">
-                    <textarea name="comments" class="form-control" rows="5" placeholder="Enter your comments, evaluation and recommendations here"></textarea>
-                  </div>
-                  
-                  <!-- Hidden inputs -->
-                  <input type="hidden" name="defense_schedule_id" value="<?php echo $schedule['id']; ?>">
-                  <input type="hidden" name="evaluator_id" value="<?php echo $_SESSION['id']; ?>">
-                  <input type="hidden" name="group_score" id="group-grade">
-                  <?php for ($i = 0; $i < $totalMembers; $i++): ?>
-                    <?php if (isset($members[$i])): ?>
-                      <input type="hidden" name="student_ids[]" value="<?php echo $members[$i]['user_id']; ?>">
+                                        <div class="d-flex justify-content-between align-items-center mt-3">
+                                            <button type="submit" class="btn btn-primary">Submit Evaluation</button>
+                                            <!-- TODO: Add logic for panelist completion count -->
+                                            <!-- <small class="text-muted">X/3 Panelist Complete</small> -->
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+
+                    <?php else: ?>
+                        <div class="alert alert-warning">No rubrics found for the selected group or the group was not specified correctly.</div>
                     <?php endif; ?>
-                    <input type="hidden" name="solo_scores[]" id="solo<?php echo $i; ?>-grade">
-                    <input type="hidden" name="total_scores[]" id="total<?php echo $i; ?>-grade">
-                  <?php endfor; ?>
-                  
-                  <div class="d-flex justify-content-between align-items-center mt-3">
-                    <button type="submit" class="btn btn-primary">Submit Evaluation</button>
-                    <small class="text-muted">/3 Panelist Complete</small>
-                  </div>
-                </form>
-              </div>
+                </div>
             </div>
-          </div>
         </div>
-      </div>
     </div>
-  </div>
-</div>
 </main>
 
 <script>
-  // filepath: /c:/xampp/htdocs/coecsathesis/decision-support/index.php
+// filepath: c:\xampp\htdocs\atlas\decision-support\index.php
 
-  document.addEventListener('DOMContentLoaded', () => {
-    const calculateSection = (inputs, maxScore, scoreElementId, percentageElementId) => {
-      let total = 0;
-      inputs.forEach(input => {
-        const val = parseInt(input.value) || 0;
-        total += val;
-      });
-      document.getElementById(scoreElementId).textContent = `${total}/${maxScore}`;
-      const percentage = (total / maxScore) * 100;
-      document.getElementById(percentageElementId).textContent = percentage.toFixed(2) + '%';
-      return percentage;
-    };
+document.addEventListener('DOMContentLoaded', () => {
+    const scoreSheetContent = document.getElementById('score-sheet-content');
+    if (!scoreSheetContent) return; // Exit if score sheet content not found
 
-    const updateTotals = () => {
-      const contentInputs = document.querySelectorAll('#content-table input[placeholder="score"]');
-      const organizationInputs = document.querySelectorAll('#organization-table input[placeholder="score"]');
-      const iockInputs = document.querySelectorAll('#novelty-table .iock input[placeholder="score"]');
-      const isbInputs = document.querySelectorAll('#novelty-table .isb input[placeholder="score"]'); // Assuming ISB is part of novelty-table
+    // --- Toggle Button Logic ---
+    const toggleBtns = document.querySelectorAll('#score-sheet-content .toggle-btn');
+    const sections = document.querySelectorAll('#score-sheet-content .section-toggle');
 
-      const contentPercentage = calculateSection(contentInputs, 20, 'content-score', 'content-percentage');
-      const organizationPercentage = calculateSection(organizationInputs, 15, 'organization-score', 'organization-percentage');
-      const iockPercentage = calculateSection(iockInputs, 15, 'iock-score', 'iock-percentage');
-      const isbPercentage = calculateSection(isbInputs, 10, 'isb-score', 'isb-percentage');
+    toggleBtns.forEach(btn => {
+        btn.addEventListener('click', function() {
+            toggleBtns.forEach(b => b.classList.remove('active'));
+            this.classList.add('active');
 
-      // Calculate total novelty as average of iock and isb
-      const noveltyPercentage = ((iockPercentage + isbPercentage) / 2).toFixed(2);
-      document.getElementById('novelty-total').textContent = `${noveltyPercentage}%`;
+            sections.forEach(section => {
+                section.classList.add('d-none');
+                section.classList.remove('d-block'); // Use d-block or similar if needed
+            });
 
-      // Calculate group total based on weights: Content (40%), Organization (10%), Novelty (10%)
-      const groupTotalPercentage = (contentPercentage * 0.4) + (organizationPercentage * 0.1) + (parseFloat(noveltyPercentage) * 0.1);
-      document.getElementById('group-total').textContent = `${groupTotalPercentage}`;
-      document.getElementById('group-grade').value = groupTotalPercentage;
-
-      // Update Grade Summary with percentages
-      document.getElementById('content-total').textContent = `${contentPercentage.toFixed(2)}%`;
-      document.getElementById('organization-total').textContent = `${organizationPercentage.toFixed(2)}%`;
-      document.getElementById('novelty-total').textContent = `${noveltyPercentage}%`;
-      document.getElementById('init-total').textContent = `${((contentPercentage  + organizationPercentage  + parseFloat(noveltyPercentage) )/3).toFixed(2)}%`;
-
-      // Calculate individual grades by summing all inputs with the same name
-      const individualGrades = {};
-      const totalMembers = <?php echo $totalMembers; ?>;
-      for (let i = 0; i < totalMembers; i++) {
-        const inputs = document.querySelectorAll(`#score-sheet input[name^="solo-${i}-"]`);
-        individualGrades[i] = Array.from(inputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-        document.getElementById(`solo-${i}`).textContent = individualGrades[i];
-        document.getElementById(`solo${i}-grade`).value = individualGrades[i];
-      } 
-
-      // Update total individual grade
-      const individualTotal = Object.values(individualGrades).reduce((sum, grade) => sum + grade, 0);
-      document.getElementById('subtotal-individual').textContent = `40/40`;
-
-      // Calculate combined total for each member
-      for (let i = 0; i < totalMembers; i++) {
-        const total = groupTotalPercentage + individualGrades[i];
-        document.getElementById(`total-${i}`).textContent = `${total.toFixed(2)}`;
-        document.getElementById(`total${i}-grade`).value = total;
-      }
-
-      // Map Content scores to Score Sheet
-      contentInputs.forEach((input, index) => {
-        const scoreCell = document.getElementById(`content-sheet${index + 1}`);
-        if (scoreCell) {
-          const value = parseInt(input.value) || 0;
-          const percentage = (value / 5) * 100;
-          const calculatedScore = (percentage / 100) * 10;
-          scoreCell.textContent = calculatedScore;
-        }
-      });
-
-      // Map Organization score to Score Sheet
-      const organizationTotalScore = Array.from(organizationInputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-      const organizationAverageScore = organizationTotalScore / organizationInputs.length;
-      const organizationCell = document.getElementById('organization-sheet1');
-      if (organizationCell) {
-        const percentage = (organizationAverageScore / 5) * 100;
-        const organizationScore = (percentage / 100) * 10;
-        organizationCell.textContent = organizationScore;
-      }
-
-      // Map Novelty scores to Score Sheet
-      // IOCK scores mapping
-      const iockTotalScore = Array.from(iockInputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-      const iockAverageScore = iockTotalScore / iockInputs.length;
-      const iockCell = document.getElementById('novelty-sheet1');
-      if (iockCell) {
-        const percentage = (iockAverageScore / 5) * 100;
-        const iockScore = (percentage / 100) * 10;
-        iockCell.textContent = iockAverageScore;
-      }
-
-      // ISB scores mapping
-      const isbTotalScore = Array.from(isbInputs).reduce((sum, input) => sum + (parseInt(input.value) || 0), 0);
-      const isbAverageScore = isbTotalScore / isbInputs.length;
-      const isbCell = document.getElementById('novelty-sheet2');
-      if (isbCell) {
-        const percentage = (isbAverageScore / 5) * 100;
-        const isbScore = (percentage / 100) * 10;
-        isbCell.textContent = isbAverageScore;
-      }
-    };
-
-    const inputs = document.querySelectorAll('input[type="number"][placeholder="score"]');
-    inputs.forEach(input => {
-      input.addEventListener('input', updateTotals);
+            const targetSection = document.getElementById(this.dataset.target);
+            if (targetSection) {
+                targetSection.classList.remove('d-none');
+                targetSection.classList.add('d-block'); // Use d-block or similar if needed
+            }
+            // Recalculate summary when switching views
+            calculateAndUpdateSummary();
+        });
     });
 
-    updateTotals();
+     // Show first rubric when score sheet tab is clicked initially
+    const scoreSheetTab = document.getElementById('score-sheet-tab');
+    if (scoreSheetTab) {
+        scoreSheetTab.addEventListener('shown.bs.tab', function() { // Use shown.bs.tab
+            const firstToggleBtn = document.querySelector('#score-sheet-content .toggle-btn');
+            if (firstToggleBtn) {
+                firstToggleBtn.click();
+            }
+            calculateAndUpdateSummary(); // Initial calculation
+        });
+    }
 
-    const numericInputs = document.querySelectorAll('input[type="number"]');
-
-    numericInputs.forEach(input => {
-      // Allow regular keyboard input. Removed keydown, paste, and drop prevention.
-
-      // Ensure values stay within min/max bounds in real-time using the input event
-      input.addEventListener('input', () => {
-        const min = 0;
-        const max = parseInt(input.getAttribute('max')) || 100;
-        let value = parseInt(input.value) || 0;
-        if (value < min) {
-          value = min;
-        } else if (value > max) {
-          value = max;
-        }
-        input.value = value;
-      });
-
-      // Custom spinner buttons (unchanged)
-      const wrapper = document.createElement('div');
-      wrapper.className = 'input-spinner-wrapper position-relative';
-      input.parentNode.insertBefore(wrapper, input);
-      wrapper.appendChild(input);
-
-      input.style.paddingRight = '20px';
-      
-      const spinnerButtons = document.createElement('div');
-      spinnerButtons.className = 'position-absolute end-0 top-50 translate-middle-y d-flex flex-column';
-      spinnerButtons.style.height = '100%';
-      
-      const upButton = document.createElement('button');
-      upButton.type = 'button';
-      upButton.className = 'btn btn-sm p-0 border-0';
-      upButton.innerHTML = '▲';
-      upButton.style.height = '50%';
-      upButton.style.fontSize = '8px';
-      upButton.style.lineHeight = '1';
-      
-      const downButton = document.createElement('button');
-      downButton.type = 'button';
-      downButton.className = 'btn btn-sm p-0 border-0';
-      downButton.innerHTML = '▼';
-      downButton.style.height = '50%';
-      downButton.style.fontSize = '8px';
-      downButton.style.lineHeight = '1';
-
-      spinnerButtons.appendChild(upButton);
-      spinnerButtons.appendChild(downButton);
-      wrapper.appendChild(spinnerButtons);
-
-      upButton.addEventListener('click', () => {
-        const max = parseInt(input.getAttribute('max')) || 100;
-        const currentValue = parseInt(input.value) || 0;
-        if (currentValue < max) {
-          input.value = currentValue + 1;
-          input.dispatchEvent(new Event('input'));
-          input.dispatchEvent(new Event('change'));
-        }
-      });
-
-      downButton.addEventListener('click', () => {
-        const min =  0;
-        const currentValue = parseInt(input.value) || 0;
-        if (currentValue > min) {
-          input.value = currentValue - 1;
-          input.dispatchEvent(new Event('input'));
-          input.dispatchEvent(new Event('change'));
-        }
-      });
+    // --- Numerical Rubric Calculation ---
+    const numericalTables = scoreSheetContent.querySelectorAll('.numerical-rubric-table');
+    numericalTables.forEach(table => {
+        const radios = table.querySelectorAll('.criterion-level-radio');
+        radios.forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.checked) {
+                    const row = this.closest('tr');
+                    const scoreDisplay = row.querySelector('.criterion-score-display');
+                    const scoreInput = row.querySelector('.criterion-score-input');
+                    let points = 0;
+                    // Use max points if range, min points otherwise (as per previous logic)
+                    if (this.dataset.isRange == 1) {
+                        points = parseInt(this.dataset.pointsMax) || 0;
+                    } else {
+                        points = parseInt(this.dataset.pointsMin) || 0;
+                    }
+                    scoreDisplay.textContent = points;
+                    scoreInput.value = points; // Store score in hidden input
+                    updateRubricSubtotal(table);
+                    calculateAndUpdateSummary(); // Update overall summary
+                }
+            });
+        });
     });
 
-    // Add form submission validation
-    const form = document.querySelector('form');
-    form.addEventListener('submit', (e) => {
-      e.preventDefault();
-      
-      // Check if all required inputs have values
-      const requiredInputs = form.querySelectorAll('input[type="number"]');
-      let isValid = true;
-      let firstInvalid = null;
-
-      requiredInputs.forEach(input => {
-        if (!input.value) {
-          isValid = false;
-          input.classList.add('is-invalid');
-          if (!firstInvalid) firstInvalid = input;
-        } else {
-          input.classList.remove('is-invalid');
+    function updateRubricSubtotal(table) {
+        let subtotal = 0;
+        table.querySelectorAll('.criterion-score-input').forEach(input => {
+            subtotal += parseInt(input.value) || 0;
+        });
+        const subtotalCell = table.querySelector('.rubric-subtotal');
+        if (subtotalCell) {
+            subtotalCell.textContent = subtotal;
         }
-      });
+    }
 
-      // Check if comments are provided
-      const comments = form.querySelector('textarea[name="comments"]');
-      if (!comments.value.trim()) {
-        isValid = false;
-        comments.classList.add('is-invalid');
-        if (!firstInvalid) firstInvalid = comments;
-      } else {
-        comments.classList.remove('is-invalid');
-      }
+    // --- Yes/No and Pass/Fail Handling (Trigger Summary Update) ---
+     const otherSelects = scoreSheetContent.querySelectorAll('.yesno-option, .passfail-radio');
+     otherSelects.forEach(input => {
+         input.addEventListener('change', calculateAndUpdateSummary);
+     });
 
-      if (!isValid) {
-        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        // Show alert
-        const alert = document.createElement('div');
-        alert.className = 'alert alert-danger alert-dismissible fade show';
-        alert.innerHTML = `
-          <strong>Error!</strong> Please fill in all required fields.
-          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        `;
-        form.insertBefore(alert, form.firstChild);
-        return; 
-      }
 
-      // Submit form using fetch
-      fetch(form.action, {
-          method: 'POST',
-          body: new FormData(form)
-      })
-      .then(response => response.json())
-      .then(data => {
-          // Show popup message using SweetAlert2 or your preferred alert library
-          if (data.status === 'success') {
-              Swal.fire({
-                  title: 'Success!',
-                  text: data.message,
-                  icon: 'success',
-                  confirmButtonText: 'OK'
-              }).then((result) => {
-                  if (result.isConfirmed) {
-                      // Redirect back to the previous page or refresh
-                      window.location.reload();
-                  }
-              });
-          } else {
-              Swal.fire({
-                  title: 'Error!',
-                  text: data.message,
-                  icon: 'error',
-                  confirmButtonText: 'OK'
-              });
-          }
-      })
-      .catch(error => {
-          Swal.fire({
-              title: 'Error!',
-              text: 'An unexpected error occurred.',
-              icon: 'error',
-              confirmButtonText: 'OK'
-          });
-      });
-    });
-  });
+    // --- Summary Calculation ---
+    function calculateAndUpdateSummary() {
+        console.log("Calculating summary...");
+        let finalWeightedScore = 0;
+        let totalWeightApplied = 0;
 
-  document.addEventListener('DOMContentLoaded', function() {
-  const toggleBtns = document.querySelectorAll('.toggle-btn');
-  const sections = document.querySelectorAll('.section-toggle');
+        scoreSheetContent.querySelectorAll('.section-toggle[data-rubric-id]').forEach(section => {
+            const rubricId = section.dataset.rubricId;
+            const rubricType = section.dataset.rubricType;
+            const weight = parseFloat(section.dataset.rubricWeight) || 0;
+            const summaryRow = document.querySelector(`#summary-table tr[data-summary-rubric-id="${rubricId}"]`);
+            const summaryScoreCell = summaryRow ? summaryRow.querySelector('.summary-score') : null;
 
-  toggleBtns.forEach(btn => {
-    btn.addEventListener('click', function() {
-      toggleBtns.forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
-      
-      sections.forEach(section => {
-        section.classList.add('d-none');
-        section.classList.remove('d-block');
-      });
+            if (!summaryScoreCell) return;
 
-      const targetSection = document.getElementById(this.dataset.target);
-      targetSection.classList.remove('d-none');
-      targetSection.classList.add('d-block');
-    });
-  });
+            if (rubricType === 'numerical') {
+                let maxPossibleScore = 0;
+                let currentScore = 0;
+                section.querySelectorAll('.numerical-rubric-table tbody tr').forEach(row => {
+                    const selectedRadio = row.querySelector('.criterion-level-radio:checked');
+                    let criterionMax = 0;
+                    row.querySelectorAll('.criterion-level-radio').forEach(radio => {
+                         criterionMax = Math.max(criterionMax, parseInt(radio.dataset.pointsMax) || 0);
+                    });
+                    maxPossibleScore += criterionMax;
+                    if (selectedRadio) {
+                        // Use max points if range, min otherwise
+                         let points = (selectedRadio.dataset.isRange == 1)
+                                    ? (parseInt(selectedRadio.dataset.pointsMax) || 0)
+                                    : (parseInt(selectedRadio.dataset.pointsMin) || 0);
+                        currentScore += points;
+                    }
+                });
 
-  // Show content criteria when score sheet tab is clicked
-  const scoreSheetTab = document.getElementById('score-sheet-tab');
-  if (scoreSheetTab) {
-    scoreSheetTab.addEventListener('click', function() {
-      // Simulate click on content criteria toggle button
-      const contentToggleBtn = document.querySelector('[data-target="content-criteria"]');
-      if (contentToggleBtn) {
-        contentToggleBtn.click();
-      } 
-    });
-  }
+                const percentageScore = (maxPossibleScore > 0) ? (currentScore / maxPossibleScore) * 100 : 0;
+                summaryScoreCell.textContent = `${currentScore} / ${maxPossibleScore} (${percentageScore.toFixed(2)}%)`;
+
+                if (weight > 0) {
+                    finalWeightedScore += (percentageScore / 100) * weight;
+                    totalWeightApplied += weight; // Track the total weight used in calculation
+                }
+
+            } else if (rubricType === 'yesno') {
+                const selects = section.querySelectorAll('.yesno-option');
+                const totalCriteria = selects.length;
+                let yesCount = 0;
+                selects.forEach(select => {
+                    if (select.value === 'Yes') {
+                        yesCount++;
+                    }
+                });
+                 summaryScoreCell.textContent = `${yesCount} Yes / ${totalCriteria - yesCount} No`;
+
+            } else if (rubricType === 'passfail') {
+                 const selectedRadio = section.querySelector('.passfail-radio:checked');
+                 if (selectedRadio) {
+                     const selectedValue = selectedRadio.value; // e.g., "pass_1", "fail"
+                     const label = section.querySelector(`label[for="${selectedRadio.id}"]`);
+                     summaryScoreCell.textContent = label ? label.textContent.trim() : selectedValue;
+                 } else {
+                     summaryScoreCell.textContent = 'Pending...';
+                 }
+            } else {
+                 summaryScoreCell.textContent = 'N/A';
+            }
+        });
+
+         // Display final weighted score
+         // Normalize if total weight applied is not 100 but greater than 0
+         let displayScore = finalWeightedScore;
+         // if (totalWeightApplied > 0 && Math.abs(totalWeightApplied - 100) > 0.01) {
+         //     // Optional: Normalize score as if weights did sum to 100
+         //     // displayScore = (finalWeightedScore / totalWeightApplied) * 100;
+         //     // Or just display the calculated score based on actual weights
+         // }
+
+        const finalScoreCell = document.getElementById('finalWeightedScore');
+        if (finalScoreCell) {
+            finalScoreCell.textContent = `${displayScore.toFixed(2)}%`;
+        }
+    }
+
+    // --- Form Submission ---
+    const evaluationForm = document.getElementById('evaluationForm');
+    if (evaluationForm) {
+        evaluationForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Basic validation: Check comments
+            const comments = document.getElementById('comments');
+            if (!comments.value.trim()) {
+                 showToast('Error', 'Please provide comments/recommendations.', 'error');
+                 comments.focus();
+                 // Switch to evaluation tab if not active
+                 const evalToggle = document.querySelector('.toggle-btn[data-target="evaluation"]');
+                 if (evalToggle && !evalToggle.classList.contains('active')) {
+                     evalToggle.click();
+                 }
+                 return;
+            }
+
+            // Check if all required inputs/radios/selects have values
+            let allInputsValid = true;
+            let firstInvalidElement = null;
+            scoreSheetContent.querySelectorAll('input[required], select[required]').forEach(input => {
+                if (input.type === 'radio') {
+                    const groupName = input.name;
+                    if (!evaluationForm.querySelector(`input[name="${groupName}"]:checked`)) {
+                        allInputsValid = false;
+                        if (!firstInvalidElement) firstInvalidElement = input.closest('.section-toggle');
+                    }
+                } else if (!input.value) {
+                    allInputsValid = false;
+                     if (!firstInvalidElement) firstInvalidElement = input.closest('.section-toggle');
+                }
+            });
+
+            if (!allInputsValid) {
+                 showToast('Error', 'Please complete all rubric scoring sections.', 'error');
+                 // Switch to the tab containing the first invalid element
+                 if (firstInvalidElement) {
+                     const targetId = firstInvalidElement.id;
+                     const invalidToggle = document.querySelector(`.toggle-btn[data-target="${targetId}"]`);
+                     if (invalidToggle && !invalidToggle.classList.contains('active')) {
+                         invalidToggle.click();
+                         // Try focusing the first invalid input within that section
+                         const firstInput = firstInvalidElement.querySelector('input[required], select[required]');
+                         if(firstInput) firstInput.focus();
+                     }
+                 }
+                 return;
+            }
+
+
+            // Collect evaluation data
+            const evaluationData = {};
+            scoreSheetContent.querySelectorAll('.section-toggle[data-rubric-id]').forEach(section => {
+                const rubricId = section.dataset.rubricId;
+                const rubricType = section.dataset.rubricType;
+                evaluationData[rubricId] = { type: rubricType, scores: {} };
+
+                if (rubricType === 'numerical') {
+                    section.querySelectorAll('.criterion-score-input').forEach(input => {
+                        const criterionId = input.closest('tr').dataset.criterionId;
+                        evaluationData[rubricId].scores[criterionId] = input.value;
+                    });
+                } else if (rubricType === 'yesno') {
+                     section.querySelectorAll('.yesno-option').forEach(select => {
+                        const criterionId = select.closest('tr').dataset.criterionId;
+                        evaluationData[rubricId].scores[criterionId] = select.value;
+                    });
+                } else if (rubricType === 'passfail') {
+                    const selectedRadio = section.querySelector('.passfail-radio:checked');
+                    if (selectedRadio) {
+                         evaluationData[rubricId].scores['passfail'] = selectedRadio.value;
+                    }
+                }
+            });
+
+            // Add collected data to the hidden input
+            document.getElementById('evaluationDataInput').value = JSON.stringify(evaluationData);
+
+            // Submit the form via AJAX
+            const formData = new FormData(evaluationForm);
+
+            console.log("Submitting evaluation data:", Object.fromEntries(formData));
+            // Log the detailed evaluation data separately
+            console.log("Detailed Scores JSON:", document.getElementById('evaluationDataInput').value);
+
+
+            fetch(evaluationForm.action, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    Swal.fire({
+                        title: 'Success!',
+                        text: data.message,
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            // Redirect or refresh as needed
+                            // window.location.href = '../home'; // Example redirect
+                             window.location.reload();
+                        }
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error!',
+                        text: data.message || 'Failed to submit evaluation.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Submission Error:', error);
+                Swal.fire({
+                    title: 'Error!',
+                    text: 'An unexpected error occurred during submission.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+        });
+    }
+
+    // Initial calculation on load (if the tab might be active initially)
+    if (scoreSheetTab && scoreSheetTab.classList.contains('active')) {
+         calculateAndUpdateSummary();
+    }
+
 });
+
+// --- PDF Fullscreen Logic (Keep existing) ---
+function toggleFullScreen() {
+    // ... keep existing fullscreen logic ...
+}
+
+// --- AI Module Logic (Keep existing) ---
+// ... keep existing AI module scripts and calls ...
+
 </script>
 
 <!-- AI GEMINI MODULE -->
-<!-- Main Module JS -->
-<script type="module" src="../assets/js/mainModule.js"></script>
-<!-- app.js -->
-<script type="module" src="../assets/js/app.js"></script>
+<!-- ... keep existing AI script includes ... -->
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
