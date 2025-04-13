@@ -1001,66 +1001,96 @@ function adjustMutationRate($mutationRate, $population)
     return $mutationRate;
 }
 
+function getDepartment($program) {
+    $program = (string)$program; // Force string type
+    if (stripos($program, 'Architecture') !== false) {
+        return "Architecture";
+    } elseif (stripos($program, 'Engineering') !== false) {
+        return "Engineering";
+    }
+    return "Computer Studies";
+}
+
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
 {
+    global $pdo; // needed to call getPanelistData()
     $selectedPanelists = [];
-    $teamId = null;
-    $teamExpertise = '';
-
-    // Get the current team's expertise
+    $teamData = null;
+    // Find the team based on adviser
     foreach ($GLOBALS['teams'] as $team) {
         if ($team['adviser_id'] == $adviserId) {
-            $teamId = $team['id'];
-            $teamExpertise = $team['area_of_expertise'] ?? '';
+            $teamData = $team;
             break;
         }
     }
+    if (!$teamData) {
+        // Fallback: randomly pick 3 panelists excluding the adviser
+        $remaining = array_diff(array_keys($allPanelists), [$adviserId]);
+        return array_slice($remaining, 0, 3);
+    }
+    
+    $teamProgram = (string)$teamData['program'];
+    $teamDepartment = getDepartment($teamProgram);
 
-    // Ensure teamExpertise is a string
-    $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
-
-    // First priority: Find a panelist with matching expertise
-    $expertisePanelists = [];
-    foreach ($allPanelists as $id => $info) {
-        if ($id != $adviserId) {
-            // Extract expertise from the info array safely
-            $panelistExpertise = is_array($info) ? ($info['expertise'] ?? '') : '';
-            $panelistExpertise = is_string($panelistExpertise) ? $panelistExpertise : '';
-
-            $similarity = 0;
-            if (!empty($teamExpertise) && !empty($panelistExpertise)) {
-                $similarity = similar_text($teamExpertise, $panelistExpertise) /
-                    max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
-            }
-
-            if ($similarity > 70) { // 70% similarity threshold
-                $expertisePanelists[] = $id;
-            }
+    // Candidate 0: Panelist from the exact team program (same defense title)
+    $pool0 = [];
+    foreach (array_keys($allPanelists) as $id) {
+        if ($id == $adviserId) continue;
+        $pdata = getPanelistData($pdo, $id);
+        if (strcasecmp((string)($pdata['program'] ?? ''), $teamProgram) === 0) {
+            $pool0[] = $id;
         }
     }
-
-    if (!empty($expertisePanelists)) {
-        $selectedPanelists[] = $expertisePanelists[array_rand($expertisePanelists)];
+    if (!empty($pool0)) {
+        $selectedPanelists[] = $pool0[array_rand($pool0)];
+    } else {
+        // Fallback: choose from those in the same department
+        $poolDept = [];
+        foreach (array_keys($allPanelists) as $id) {
+            if ($id == $adviserId) continue;
+            $pdata = getPanelistData($pdo, $id);
+            if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) {
+                $poolDept[] = $id;
+            }
+        }
+        $selectedPanelists[] = !empty($poolDept) ? $poolDept[array_rand($poolDept)] 
+                                                 : array_rand($allPanelists);
     }
 
-    // Select from same program preferring those with less assignments
-    if (!empty($panelistsByProgram['same'])) {
-        $sameProgram = $panelistsByProgram['same'];
-        // Filter out already selected and adviser
-        $sameProgram = array_diff($sameProgram, $selectedPanelists, [$adviserId]);
-
-        if (!empty($sameProgram)) {
-            $selectedPanelists[] = $sameProgram[array_rand($sameProgram)];
+    // Candidate 1: Panelist from the same department
+    $pool1 = [];
+    foreach (array_keys($allPanelists) as $id) {
+        if ($id == $adviserId || in_array($id, $selectedPanelists)) continue;
+        $pdata = getPanelistData($pdo, $id);
+        if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) {
+            $pool1[] = $id;
         }
     }
+    if (!empty($pool1)) {
+        $selectedPanelists[] = $pool1[array_rand($pool1)];
+    } else {
+        // Fallback: choose a remaining candidate
+        $remaining = array_diff(array_keys($allPanelists), array_merge([$adviserId], $selectedPanelists));
+        $selectedPanelists[] = !empty($remaining) ? array_rand(array_flip($remaining)) 
+                                                  : array_rand($allPanelists);
+    }
 
-    // Select remaining from different programs
-    $remaining = array_keys($allPanelists);
-    $remaining = array_diff($remaining, $selectedPanelists, [$adviserId]);
-
-    while (count($selectedPanelists) < 3 && !empty($remaining)) {
-        $selectedPanelists[] = $remaining[array_rand($remaining)];
-        $remaining = array_diff($remaining, $selectedPanelists);
+    // Candidate 2: Panelist from a different department
+    $pool2 = [];
+    foreach (array_keys($allPanelists) as $id) {
+        if ($id == $adviserId || in_array($id, $selectedPanelists)) continue;
+        $pdata = getPanelistData($pdo, $id);
+        if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) !== 0) {
+            $pool2[] = $id;
+        }
+    }
+    if (!empty($pool2)) {
+        $selectedPanelists[] = $pool2[array_rand($pool2)];
+    } else {
+        // Fallback: choose a remaining candidate
+        $remaining = array_diff(array_keys($allPanelists), array_merge([$adviserId], $selectedPanelists));
+        $selectedPanelists[] = !empty($remaining) ? array_rand(array_flip($remaining)) 
+                                                  : array_rand($allPanelists);
     }
 
     return $selectedPanelists;

@@ -13,7 +13,7 @@ if (!defined('APP_LOGO_FOOTER'))  define('APP_LOGO_FOOTER', getEnvVariable('APP_
 
 if (!defined('ALLOWED_INACTIVITY_TIME')) define('ALLOWED_INACTIVITY_TIME', time() + (int)(getEnvVariable('ALLOWED_INACTIVITY_TIME') ?? 1*60*60));
 
-if (!defined('DB_DATABASE'))        define('DB_DATABASE', getEnvVariable('DB_DATABASE') ?? 'coecsa_thesis');
+if (!defined('DB_DATABASE'))        define('DB_DATABASE', getEnvVariable('DB_DATABASE') ?? 'icei_38697196_coecsathesis');
 if (!defined('DB_HOST'))            define('DB_HOST', getEnvVariable('DB_HOST') ?? '127.0.0.1');
 if (!defined('DB_USERNAME'))        define('DB_USERNAME', getEnvVariable('DB_USERNAME') ?? 'root');
 if (!defined('DB_PASSWORD'))        define('DB_PASSWORD', getEnvVariable('DB_PASSWORD') ?? '');

@@ -1,6 +1,6 @@
 <?php
 // Include database connection
-require '../assets\setup\db.inc.php';
+require '../assets/setup/db.inc.php';
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $defense_schedule_id = $_POST['defense_schedule_id'];
@@ -17,7 +17,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // Insert data for each student
         for ($i = 0; $i < count($student_ids); $i++) {
             $stmt = $pdo->prepare("
-                INSERT INTO coecsa_thesis.evaluation_per_panel 
+                INSERT INTO icei_38697196_coecsathesis.evaluation_per_panel 
                 (defense_schedule_id, evaluator_id, student_id, group_score, solo_score, total_score, comments, created_at) 
                 VALUES (:defense_schedule_id, :evaluator_id, :student_id, :group_score, :solo_score, :total_score, :comments, NOW())
             ");

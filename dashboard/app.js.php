@@ -55,7 +55,7 @@
                                 </div>
                             `;
 
-                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'area_of_expertise','gender', 'headline', 'bio'];
+                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'program', 'area_of_expertise','gender', 'headline', 'bio'];
 
                             fieldsToShow.forEach(function(key) {
                                 var value = response.data[key] || '';
@@ -69,7 +69,40 @@
                                             <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
                                         </div>
                                     `;
-                                } else if (key === 'area_of_expertise') {
+                                } else if (key === 'program'){ 
+                                    formHtml += `
+                                    <div class="mb-3">
+            <label for="program" class="form-label">Program</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
+                    <li><div class="dropdown-divider"></div></li>
+                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
+                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
+                </ul>
+            </div>
+        </div>
+                                    `;
+                                }else if (key === 'area_of_expertise') {
                                     formHtml += `
                                         <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
                                             <label for="area_of_expertise" class="form-label">Area of Expertise</label>
@@ -517,6 +550,37 @@
                     '<div class="mb-3">' +
                     '<label for="last_name" class="form-label">Last Name</label>' +
                     '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
+                    '</div>' +
+                    // New Program field inserted before area of expertise
+                    '<div class="mb-3">' +
+                        '<label for="program" class="form-label">Program</label>' +
+                        '<div class="input-group">' +
+                            '<input type="text" class="form-control" id="program" name="program" placeholder="Enter program">' +
+                            '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
+                            '<ul class="dropdown-menu">' +
+                                '<li><h6 class="dropdown-header">Department of Architecture</h6></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>' +
+                                '<li><div class="dropdown-divider"></div></li>' +
+                                '<li><h6 class="dropdown-header">Department of Computer Studies</h6></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>' +
+                                '<li><div class="dropdown-divider"></div></li>' +
+                                '<li><h6 class="dropdown-header">Department of Engineering</h6></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>' +
+                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>' +
+                            '</ul>' +
+                        '</div>' +
                     '</div>' +
                     '<div class="mb-3 area-expertise-field" style="display:none;">' +
                     '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +

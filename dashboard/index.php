@@ -366,7 +366,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" href="https://filemanager.ai/new/#/c/185.27.134.11/icei_38697196/eyJ0IjoiZnRwIiwiYyI6eyJ2IjowLCJwIjoiNHJkTDM0aFNkUUZjZ3JMIn19" target="_blank" role="tab">
                                 <i class="fas fa-folder-open me-2"></i>Files
                             </a>
-                            <a class="nav-link my-1" href="https://web.aeonfree.com/go/login/icei_38697196" target="_blank" role="tab">
+                            <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank" role="tab">
                                 <i class="fas fa-database me-2"></i>DataBase
                             </a>
                         </div>

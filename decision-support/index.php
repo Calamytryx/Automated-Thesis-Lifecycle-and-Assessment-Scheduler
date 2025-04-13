@@ -1,33 +1,31 @@
 <?php
 // Include database connection
 require '../assets/setup/db.inc.php';
-
+$_POST['team_id']=32;
 // Retrieve team_id from POST data
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-  if (isset($_POST['team_id'])) {
-    $team_id = intval($_POST['team_id']);
-  }
-}
 
-$scheduleStmt = $pdo->prepare("SELECT id FROM coecsa_thesis.defense_schedules WHERE team_id = ?");
+    $team_id = 32;
+
+
+$scheduleStmt = $pdo->prepare("SELECT id FROM icei_38697196_coecsathesis.defense_schedules WHERE team_id = ?");
 $scheduleStmt->execute([$team_id]);
 $schedule = $scheduleStmt->fetch(PDO::FETCH_ASSOC);
 
 // Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
-$requirementStmt = $pdo->prepare("SELECT file_name FROM coecsa_thesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
+$requirementStmt = $pdo->prepare("SELECT file_name FROM icei_38697196_coecsathesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
 $requirementStmt->execute([$team_id]);
 $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
 
 try {
   // Fetch team details
-  $teamStmt = $pdo->prepare("SELECT name, program FROM coecsa_thesis.teams WHERE id = ?");
-  $researchTitleStmt = $pdo->prepare("SELECT title FROM coecsa_thesis.research_titles WHERE team_id = ?");
+  $teamStmt = $pdo->prepare("SELECT name, program FROM icei_38697196_coecsathesis.teams WHERE id = ?");
+  $researchTitleStmt = $pdo->prepare("SELECT title FROM icei_38697196_coecsathesis.research_titles WHERE team_id = ?");
 
   if (isset($team_id)) {
     $teamStmt->execute([$team_id]);
     $researchTitleStmt->execute([$team_id]);
   } else {
-    echo "<script>window.location.href = '../home/index.php;</script>";
+    // echo "<script>window.location.href = '../home/index.php;</script>";
     exit;
   }
   $team = $teamStmt->fetch(PDO::FETCH_ASSOC);
@@ -41,9 +39,9 @@ try {
   // Fetch team members excluding the adviser
   $membersStmt = $pdo->prepare("
         SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname, team_members.role, user_id
-        FROM coecsa_thesis.team_members 
-        JOIN users ON coecsa_thesis.team_members.user_id = users.id 
-        WHERE coecsa_thesis.team_members.team_id = ? AND coecsa_thesis.team_members.role != 'Adviser'
+        FROM icei_38697196_coecsathesis.team_members 
+        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
+        WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role != 'Adviser'
     ");
   $membersStmt->execute([$team_id]);
   $members = $membersStmt->fetchAll(PDO::FETCH_ASSOC);
@@ -51,7 +49,7 @@ try {
   // Get the count of team members excluding the adviser
   $membersCountStmt = $pdo->prepare("
     SELECT COUNT(*) as total_members
-    FROM coecsa_thesis.team_members
+    FROM icei_38697196_coecsathesis.team_members
     WHERE team_id = ? AND role != 'Adviser'
 ");
   $membersCountStmt->execute([$team_id]);
@@ -60,9 +58,9 @@ try {
   // Fetch adviser information
   $adviserStmt = $pdo->prepare("
         SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname
-        FROM coecsa_thesis.team_members 
-        JOIN users ON coecsa_thesis.team_members.user_id = users.id 
-        WHERE coecsa_thesis.team_members.team_id = ? AND coecsa_thesis.team_members.role = 'Adviser'
+        FROM icei_38697196_coecsathesis.team_members 
+        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
+        WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role = 'Adviser'
         LIMIT 1
     ");
   $adviserStmt->execute([$team_id]);
@@ -80,9 +78,9 @@ if ($requirement) {
   // You can use $fileName as needed, for example:
   // echo "<p>File Name: {$fileName}</p>";
 } else {
-  echo "<h1 class='text-danger text-center'>Requirement not found. <br> Returning you to Home</h1>";
-  echo "<script>setTimeout(() => { window.location.href = '../home'; }, 3000);</script>";
-  exit;
+  // echo "<h1 class='text-danger text-center'>Requirement not found. <br> Returning you to Home</h1>";
+  // echo "<script>setTimeout(() => { window.location.href = '../home'; }, 3000);</script>";
+  // exit;
     }
     
     ?>
@@ -872,174 +870,157 @@ if ($requirement) {
     updateTotals();
 
     const numericInputs = document.querySelectorAll('input[type="number"]');
-  
-  numericInputs.forEach(input => {
-    // Prevent keyboard input
-    input.addEventListener('keydown', (e) => {
-      // Allow only arrow keys, tab, and delete/backspace
-      if (!['ArrowUp', 'ArrowDown', 'Tab', 'Backspace', 'Delete'].includes(e.key)) {
-        e.preventDefault();
-      }
-    });
 
-    // Prevent paste
-    input.addEventListener('paste', (e) => {
-      e.preventDefault();
-    });
+    numericInputs.forEach(input => {
+      // Allow regular keyboard input. Removed keydown, paste, and drop prevention.
 
-    // Prevent drop
-    input.addEventListener('drop', (e) => {
-      e.preventDefault();
-    });
-
-    // Ensure values stay within min/max bounds when changed
-    input.addEventListener('change', () => {
-      const min = parseInt(input.getAttribute('min')) || 0;
-      const max = parseInt(input.getAttribute('max')) || 100;
-      let value = parseInt(input.value) || 0;
-
-      // Clamp value between min and max
-      value = Math.max(min, Math.min(max, value));
-      input.value = value;
-    });
-
-    // Add custom spinner buttons
-    const wrapper = document.createElement('div');
-    wrapper.className = 'input-spinner-wrapper position-relative';
-    input.parentNode.insertBefore(wrapper, input);
-    wrapper.appendChild(input);
-
-    // Add custom styling
-    input.style.paddingRight = '20px';
-    
-    // Create custom spinner buttons
-    const spinnerButtons = document.createElement('div');
-    spinnerButtons.className = 'position-absolute end-0 top-50 translate-middle-y d-flex flex-column';
-    spinnerButtons.style.height = '100%';
-    
-    const upButton = document.createElement('button');
-    upButton.type = 'button';
-    upButton.className = 'btn btn-sm p-0 border-0';
-    upButton.innerHTML = '▲';
-    upButton.style.height = '50%';
-    upButton.style.fontSize = '8px';
-    upButton.style.lineHeight = '1';
-    
-    const downButton = document.createElement('button');
-    downButton.type = 'button';
-    downButton.className = 'btn btn-sm p-0 border-0';
-    downButton.innerHTML = '▼';
-    downButton.style.height = '50%';
-    downButton.style.fontSize = '8px';
-    downButton.style.lineHeight = '1';
-
-    spinnerButtons.appendChild(upButton);
-    spinnerButtons.appendChild(downButton);
-    wrapper.appendChild(spinnerButtons);
-
-    // Add click handlers for custom buttons
-    upButton.addEventListener('click', () => {
-      const max = parseInt(input.getAttribute('max')) || 100;
-      const currentValue = parseInt(input.value) || 0;
-      if (currentValue < max) {
-        input.value = currentValue + 1;
-        input.dispatchEvent(new Event('input'));
-        input.dispatchEvent(new Event('change'));
-      }
-    });
-
-    downButton.addEventListener('click', () => {
-      const min = parseInt(input.getAttribute('min')) || 0;
-      const currentValue = parseInt(input.value) || 0;
-      if (currentValue > min) {
-        input.value = currentValue - 1;
-        input.dispatchEvent(new Event('input'));
-        input.dispatchEvent(new Event('change'));
-      }
-    });
-  });
-
-  // Add form submission validation
-  const form = document.querySelector('form');
-  form.addEventListener('submit', (e) => {
-    e.preventDefault();
-    
-    // Check if all required inputs have values
-    const requiredInputs = form.querySelectorAll('input[type="number"]');
-    let isValid = true;
-    let firstInvalid = null;
-
-    requiredInputs.forEach(input => {
-      if (!input.value) {
-        isValid = false;
-        input.classList.add('is-invalid');
-        if (!firstInvalid) firstInvalid = input;
-      } else {
-        input.classList.remove('is-invalid');
-      }
-    });
-
-    // Check if comments are provided
-    const comments = form.querySelector('textarea[name="comments"]');
-    if (!comments.value.trim()) {
-      isValid = false;
-      comments.classList.add('is-invalid');
-      if (!firstInvalid) firstInvalid = comments;
-    } else {
-      comments.classList.remove('is-invalid');
-    }
-
-    if (!isValid) {
-      firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      // Show alert
-      const alert = document.createElement('div');
-      alert.className = 'alert alert-danger alert-dismissible fade show';
-      alert.innerHTML = `
-        <strong>Error!</strong> Please fill in all required fields.
-        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-      `;
-      form.insertBefore(alert, form.firstChild);
-      return; 
-    }
-
-    // Submit form using fetch
-    fetch(form.action, {
-        method: 'POST',
-        body: new FormData(form)
-    })
-    .then(response => response.json())
-    .then(data => {
-        // Show popup message using SweetAlert2 or your preferred alert library
-        if (data.status === 'success') {
-            Swal.fire({
-                title: 'Success!',
-                text: data.message,
-                icon: 'success',
-                confirmButtonText: 'OK'
-            }).then((result) => {
-                if (result.isConfirmed) {
-                    // Redirect back to the previous page or refresh
-                    window.location.reload();
-                }
-            });
-        } else {
-            Swal.fire({
-                title: 'Error!',
-                text: data.message,
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
+      // Ensure values stay within min/max bounds in real-time using the input event
+      input.addEventListener('input', () => {
+        const min = 0;
+        const max = parseInt(input.getAttribute('max')) || 100;
+        let value = parseInt(input.value) || 0;
+        if (value < min) {
+          value = min;
+        } else if (value > max) {
+          value = max;
         }
-    })
-    .catch(error => {
-        Swal.fire({
-            title: 'Error!',
-            text: 'An unexpected error occurred.',
-            icon: 'error',
-            confirmButtonText: 'OK'
-        });
+        input.value = value;
+      });
+
+      // Custom spinner buttons (unchanged)
+      const wrapper = document.createElement('div');
+      wrapper.className = 'input-spinner-wrapper position-relative';
+      input.parentNode.insertBefore(wrapper, input);
+      wrapper.appendChild(input);
+
+      input.style.paddingRight = '20px';
+      
+      const spinnerButtons = document.createElement('div');
+      spinnerButtons.className = 'position-absolute end-0 top-50 translate-middle-y d-flex flex-column';
+      spinnerButtons.style.height = '100%';
+      
+      const upButton = document.createElement('button');
+      upButton.type = 'button';
+      upButton.className = 'btn btn-sm p-0 border-0';
+      upButton.innerHTML = '▲';
+      upButton.style.height = '50%';
+      upButton.style.fontSize = '8px';
+      upButton.style.lineHeight = '1';
+      
+      const downButton = document.createElement('button');
+      downButton.type = 'button';
+      downButton.className = 'btn btn-sm p-0 border-0';
+      downButton.innerHTML = '▼';
+      downButton.style.height = '50%';
+      downButton.style.fontSize = '8px';
+      downButton.style.lineHeight = '1';
+
+      spinnerButtons.appendChild(upButton);
+      spinnerButtons.appendChild(downButton);
+      wrapper.appendChild(spinnerButtons);
+
+      upButton.addEventListener('click', () => {
+        const max = parseInt(input.getAttribute('max')) || 100;
+        const currentValue = parseInt(input.value) || 0;
+        if (currentValue < max) {
+          input.value = currentValue + 1;
+          input.dispatchEvent(new Event('input'));
+          input.dispatchEvent(new Event('change'));
+        }
+      });
+
+      downButton.addEventListener('click', () => {
+        const min =  0;
+        const currentValue = parseInt(input.value) || 0;
+        if (currentValue > min) {
+          input.value = currentValue - 1;
+          input.dispatchEvent(new Event('input'));
+          input.dispatchEvent(new Event('change'));
+        }
+      });
     });
-  });
+
+    // Add form submission validation
+    const form = document.querySelector('form');
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+      
+      // Check if all required inputs have values
+      const requiredInputs = form.querySelectorAll('input[type="number"]');
+      let isValid = true;
+      let firstInvalid = null;
+
+      requiredInputs.forEach(input => {
+        if (!input.value) {
+          isValid = false;
+          input.classList.add('is-invalid');
+          if (!firstInvalid) firstInvalid = input;
+        } else {
+          input.classList.remove('is-invalid');
+        }
+      });
+
+      // Check if comments are provided
+      const comments = form.querySelector('textarea[name="comments"]');
+      if (!comments.value.trim()) {
+        isValid = false;
+        comments.classList.add('is-invalid');
+        if (!firstInvalid) firstInvalid = comments;
+      } else {
+        comments.classList.remove('is-invalid');
+      }
+
+      if (!isValid) {
+        firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        // Show alert
+        const alert = document.createElement('div');
+        alert.className = 'alert alert-danger alert-dismissible fade show';
+        alert.innerHTML = `
+          <strong>Error!</strong> Please fill in all required fields.
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        `;
+        form.insertBefore(alert, form.firstChild);
+        return; 
+      }
+
+      // Submit form using fetch
+      fetch(form.action, {
+          method: 'POST',
+          body: new FormData(form)
+      })
+      .then(response => response.json())
+      .then(data => {
+          // Show popup message using SweetAlert2 or your preferred alert library
+          if (data.status === 'success') {
+              Swal.fire({
+                  title: 'Success!',
+                  text: data.message,
+                  icon: 'success',
+                  confirmButtonText: 'OK'
+              }).then((result) => {
+                  if (result.isConfirmed) {
+                      // Redirect back to the previous page or refresh
+                      window.location.reload();
+                  }
+              });
+          } else {
+              Swal.fire({
+                  title: 'Error!',
+                  text: data.message,
+                  icon: 'error',
+                  confirmButtonText: 'OK'
+              });
+          }
+      })
+      .catch(error => {
+          Swal.fire({
+              title: 'Error!',
+              text: 'An unexpected error occurred.',
+              icon: 'error',
+              confirmButtonText: 'OK'
+          });
+      });
+    });
   });
 
   document.addEventListener('DOMContentLoaded', function() {

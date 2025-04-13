@@ -35,7 +35,7 @@
 define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
-include '..\assets\setup\db.inc.php';
+include '../assets/setup/db.inc.php';
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -191,7 +191,7 @@ error_reporting(E_ALL);
                         </div>
                         <?php if ($_SESSION['usertype'] == 2): ?>
                             <?php
-                            $stmt = $pdo->query("SELECT id, name, due_date FROM coecsa_thesis.requirements;");
+                            $stmt = $pdo->query("SELECT id, name, due_date FROM icei_38697196_coecsathesis.requirements;");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
                             <div class="requirements-list col-sm-3 my-3">
@@ -239,9 +239,9 @@ error_reporting(E_ALL);
                                                             ds.*, 
                                                             t.name AS team_name 
                                                         FROM 
-                                                            coecsa_thesis.defense_schedules ds
+                                                            icei_38697196_coecsathesis.defense_schedules ds
                                                         JOIN 
-                                                            coecsa_thesis.teams t 
+                                                            icei_38697196_coecsathesis.teams t 
                                                         ON 
                                                             ds.team_id = t.id
                                                         WHERE 
@@ -302,8 +302,8 @@ error_reporting(E_ALL);
                             <?php
                             $stmt = $pdo->query("
                                                     SELECT r.name, r.due_date, tr.status 
-                                                    FROM coecsa_thesis.requirements r
-                                                    LEFT JOIN coecsa_thesis.team_requirements tr ON r.id = tr.requirement_id;
+                                                    FROM icei_38697196_coecsathesis.requirements r
+                                                    LEFT JOIN icei_38697196_coecsathesis.team_requirements tr ON r.id = tr.requirement_id;
                                                 ");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -616,7 +616,7 @@ include '../assets/layouts/footer.php'
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
 <?php
-$stmt = $pdo->query("SELECT title FROM coecsa_thesis.research_titles;");
+$stmt = $pdo->query("SELECT title FROM icei_38697196_coecsathesis.research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <script>

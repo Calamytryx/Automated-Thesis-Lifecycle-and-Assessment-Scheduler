@@ -1,6 +1,6 @@
 <?php
 session_start();
-include '../../assets\setup\db.inc.php'; // Make sure to include your database connection here
+include '../../assets/setup/db.inc.php'; // Make sure to include your database connection here
 
 if (isset($_POST['field'])) {
     $field = $_POST['field'];
