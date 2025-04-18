@@ -50,7 +50,7 @@ check_remember_me();
         //     });
         //     calendar.render();
         //   });
-    </script>
+    </script> 
 
     <!-- Custom styles -->
     <link rel="stylesheet" href="../assets/css/app.css">
@@ -62,6 +62,10 @@ check_remember_me();
             }
         }
     </script>
+    <?php if ($_SESSION['usertype'] == 0): ?>
+    <!-- Summernote CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+    <?php endif; ?>
 </head>
 
 <body>

@@ -74,7 +74,7 @@ function force_login($email) {
     
     $sql = "SELECT * FROM users WHERE email=?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$email]);
+    $stmt->execute([$email]); 
     $row = $stmt->fetch();
 
     if (!$row) {
@@ -134,5 +134,27 @@ function check_remember_me() {
                 return true;
             }
         }
+    }
+}
+
+/**
+ * Functions for retrieving and displaying page navigation
+ */
+
+/**
+ * Get all published pages for menu
+ * 
+ * @param PDO $pdo PDO database connection
+ * @return array Array of published pages with id, title, and slug
+ */
+function getPublishedPages($pdo) {
+    try {
+        $query = "SELECT id, title, slug FROM page_content WHERE status = 'published' ORDER BY title ASC";
+        $stmt = $pdo->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log('Error fetching published pages: ' . $e->getMessage());
+        return [];
     }
 }

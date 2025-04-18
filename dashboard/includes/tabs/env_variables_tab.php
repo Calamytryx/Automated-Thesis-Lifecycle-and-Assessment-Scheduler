@@ -137,7 +137,7 @@
                 <div class="mb-5">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0">Page Content</h4>
-                        <button class="btn feature-btn add-btn" id="addPageContent">
+                        <button class="btn feature-btn page-content-btn" id="addPageContent">
                             <i class="fas fa-plus me-2"></i>Add Page Content
                         </button>
                     </div>
@@ -403,69 +403,63 @@
             <div class="tab-pane fade" id="page-content" role="tabpanel" aria-labelledby="page-content-tab">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">Page Content</h4>
-                    <button class="btn feature-btn add-btn" id="addPageContent">
+                    <button class="btn feature-btn page-content-btn" id="addPageContentBtn">
                         <i class="fas fa-plus me-2"></i>Add Page Content
                     </button>
                 </div>
-                <div class="table-responsive">
+                <div class="table-responsive"> 
                     <table class="table table-bordered table-hover table-sm db-table">
                         <thead>
                             <tr>
-                                <th class="ps-4">Page</th>
+                                <th class="ps-4">Page Title</th>
+                                <th>Slug</th>
                                 <th>Last Updated</th>
                                 <th>Status</th>
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    Home Page
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Page ID: 1 | URL: /home | Created: 2023-01-15 | Last Modified By: Admin"></i>
-                                </td>
-                                <td>2023-05-15</td>
-                                <td><span class="badge bg-success">Published</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    About Page
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Page ID: 2 | URL: /about | Created: 2023-01-20 | Last Modified By: Admin"></i>
-                                </td>
-                                <td>2023-04-20</td>
-                                <td><span class="badge bg-success">Published</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    FAQ Page
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Page ID: 3 | URL: /faq | Created: 2023-02-05 | Last Modified By: Admin"></i>
-                                </td>
-                                <td>2023-03-10</td>
-                                <td><span class="badge bg-warning">Draft</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
+                        <tbody id="pageContentTableBody">
+                            <?php
+                            // Get all page content from database
+                            $page_content_query = "SELECT * FROM page_content ORDER BY updated_at DESC";
+                            try {
+                                $page_content_stmt = $pdo->prepare($page_content_query);
+                                $page_content_stmt->execute();
+                                $pages = $page_content_stmt->fetchAll(PDO::FETCH_ASSOC);
+                                
+                                if (count($pages) > 0) {
+                                    foreach ($pages as $page) {
+                                        $status_badge = $page['status'] === 'published' ? 'bg-success' : 'bg-warning';
+                                        echo '<tr>
+                                            <td class="ps-4 fw-medium">
+                                                ' . htmlspecialchars($page['title']) . '
+                                                <i class="fas fa-info-circle text-primary ms-2 info-icon" 
+                                                   data-bs-toggle="tooltip" 
+                                                   data-bs-placement="top" 
+                                                   title="Page ID: ' . $page['id'] . ' | URL: /' . $page['slug'] . ' | Created: ' . $page['created_at'] . '"></i>
+                                            </td>
+                                            <td>' . htmlspecialchars($page['slug']) . '</td>
+                                            <td>' . date('Y-m-d', strtotime($page['updated_at'])) . '</td>
+                                            <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>
+                                            <td class="text-center">
+                                                <button class="btn btn-sm btn-outline-primary edit-page-btn" 
+                                                        data-id="' . $page['id'] . '">
+                                                    <i class="fas fa-edit me-1"></i>Edit
+                                                </button>
+                                                <button class="btn btn-sm btn-outline-danger delete-page-btn" 
+                                                        data-id="' . $page['id'] . '">
+                                                    <i class="fas fa-trash me-1"></i>Delete
+                                                </button>
+                                            </td>
+                                        </tr>';
+                                    }
+                                } else {
+                                    echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
+                                }
+                            } catch (PDOException $e) {
+                                echo '<tr><td colspan="5" class="text-center text-danger">Error loading pages: ' . $e->getMessage() . '</td></tr>';
+                            }
+                            ?>
                         </tbody>
                     </table>
                 </div>
@@ -624,6 +618,74 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Page Content Modal -->
+<div class="modal fade" id="pageContentModal" tabindex="-1" aria-labelledby="pageContentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="pageContentModalLabel">Add Page Content</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="pageContentForm">
+                    <input type="hidden" id="page_id" name="page_id" value="">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="page_title" class="form-label">Page Title</label>
+                            <input type="text" class="form-control" id="page_title" name="title" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="page_slug" class="form-label">Page Slug</label>
+                            <div class="input-group">
+                                <span class="input-group-text">/</span>
+                                <input type="text" class="form-control" id="page_slug" name="slug" required>
+                            </div>
+                            <small class="text-muted">URL-friendly version of the title (e.g., about-us)</small>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="page_content" class="form-label">Page Content</label>
+                        <textarea id="page_content" name="content" class="form-control summernote"></textarea>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="page_status" class="form-label">Status</label>
+                            <select class="form-select" id="page_status" name="status">
+                                <option value="draft">Draft</option>
+                                <option value="published">Published</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="savePageContent">Save</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deletePageModal" tabindex="-1" aria-labelledby="deletePageModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deletePageModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this page? This action cannot be undone.</p>
+                <input type="hidden" id="delete_page_id">
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeletePage">Delete</button>
             </div>
         </div>
     </div>

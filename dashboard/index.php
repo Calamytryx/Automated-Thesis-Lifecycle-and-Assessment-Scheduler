@@ -371,6 +371,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank" role="tab">
                                 <i class="fas fa-database me-2"></i>DataBase
                             </a>
+                            <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
+                                <i class="fas fa-book me-2"></i>Guide
+                            </a>
                         </div>
                     </div>
                     <div id="mainContent">
@@ -390,6 +393,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
                             
                             <?php include 'includes/tabs/env_variables_tab.php'; ?>
+                            <?php include 'includes/tabs/guide_tab.php'; ?>
                         </div>
                     </div>
                 </div>
@@ -495,3 +499,300 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script type="module" src="../assets/js/app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <?php require 'app.js.php'; ?>
+
+<!-- Summernote JS -->
+<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
+
+<!-- Page Content Manager JS -->
+<script>
+    $(document).ready(function() {
+        // Initialize Summernote WYSIWYG editor with lite version
+        function initSummernote() {
+            if ($('.summernote').length) {
+                try {
+                    // Destroy if already initialized to prevent conflicts
+                    if ($('.summernote').summernote) {
+                        $('.summernote').summernote('destroy');
+                    }
+                    
+                    // Initialize with lite version
+                    $('.summernote').summernote({
+                        height: 300,
+                        minHeight: 150,
+                        maxHeight: 500,
+                        placeholder: 'Write your content here...',
+                        tabsize: 2,
+                        toolbar: [
+                            ['style', ['style']],
+                            ['font', ['bold', 'underline', 'clear']],
+                            ['color', ['color']],
+                            ['para', ['ul', 'ol', 'paragraph']],
+                            ['table', ['table']],
+                            ['insert', ['link', 'picture']],
+                            ['view', ['fullscreen', 'codeview', 'help']]
+                        ],
+                        callbacks: {
+                            onImageUpload: function(files) {
+                                alert('Image upload not yet implemented. Please use external image URLs.');
+                            }
+                        }
+                    });
+                } catch (e) {
+                    console.error("Error initializing Summernote:", e);
+                }
+            }
+        }
+
+        // Auto-generate slug from title
+        $('#page_title').on('keyup', function() {
+            let title = $(this).val();
+            let slug = title.toLowerCase()
+                .replace(/[^\w\s-]/g, '') // Remove special characters
+                .replace(/\s+/g, '-')     // Replace spaces with hyphens
+                .replace(/-+/g, '-');     // Replace multiple hyphens with a single hyphen
+            
+            $('#page_slug').val(slug);
+        });
+
+        // Add Page Content Button Click Handler - Use class selector for ALL page content buttons
+        $(document).on('click', '.page-content-btn', function(e) {
+            // Prevent default behavior and stop event propagation
+            e.preventDefault();
+            e.stopPropagation();
+            
+            // Reset the form
+            $('#pageContentForm')[0].reset();
+            $('#page_id').val('');
+            
+            // Update modal title
+            $('#pageContentModalLabel').text('Add Page Content');
+            
+            // Show the modal
+            $('#pageContentModal').modal('show');
+            
+            // Initialize Summernote after the modal is shown
+            $('#pageContentModal').on('shown.bs.modal', function() {
+                initSummernote();
+            });
+            
+            // Return false to prevent other handlers from executing
+            return false;
+        });
+
+        // Edit Page Button Click Handler
+        $(document).on('click', '.edit-page-btn', function(e) {
+            // Prevent default behavior and stop event propagation
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const pageId = $(this).data('id');
+            
+            // Update modal title
+            $('#pageContentModalLabel').text('Edit Page Content');
+            
+            // Fetch page details
+            $.ajax({
+                url: 'includes/page_content/get_page.php',
+                type: 'GET',
+                data: { id: pageId },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        const page = response.data;
+                        
+                        // Populate the form
+                        $('#page_id').val(page.id);
+                        $('#page_title').val(page.title);
+                        $('#page_slug').val(page.slug);
+                        $('#page_status').val(page.status);
+                        
+                        // Show the modal
+                        $('#pageContentModal').modal('show');
+                        
+                        // Initialize Summernote and set content after the modal is shown
+                        $('#pageContentModal').on('shown.bs.modal', function() {
+                            initSummernote();
+                            $('.summernote').summernote('code', page.content);
+                        });
+                    } else {
+                        showToast('Error', response.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    showToast('Error', 'Failed to load page details: ' + error, 'error');
+                }
+            });
+            
+            // Return false to prevent other handlers from executing
+            return false;
+        });
+
+        // Save Page Content Handler
+        $('#savePageContent').on('click', function() {
+            // Validate form
+            const form = $('#pageContentForm');
+            
+            if (!form[0].checkValidity()) {
+                form[0].reportValidity();
+                return;
+            }
+            
+            // Get form data
+            const pageData = {
+                page_id: $('#page_id').val(),
+                title: $('#page_title').val(),
+                slug: $('#page_slug').val(),
+                content: $('.summernote').summernote('code'),
+                status: $('#page_status').val()
+            };
+            
+            // Log the data being sent (for debugging)
+            console.log('Saving page data:', pageData);
+            
+            // Save data
+            $.ajax({
+                url: 'includes/page_content/save_page.php',
+                type: 'POST',
+                data: JSON.stringify(pageData),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Success', response.message, 'success');
+                        
+                        // Close modal and reload page to show updated data
+                        $('#pageContentModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast('Error', response.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error response:', xhr.responseText);
+                    let errorMessage = 'Failed to save page: ' + error;
+                    
+                    try {
+                        if (xhr.responseJSON && xhr.responseJSON.message) {
+                            errorMessage = xhr.responseJSON.message;
+                        } else if (xhr.responseText) {
+                            // Try to parse the response text as JSON
+                            const errorData = JSON.parse(xhr.responseText);
+                            if (errorData.message) {
+                                errorMessage = errorData.message;
+                            }
+                        }
+                    } catch (e) {
+                        console.error('Error parsing error response:', e);
+                    }
+                    
+                    showToast('Error', errorMessage, 'error');
+                }
+            });
+        });
+
+        // Delete Page Button Click Handler
+        $(document).on('click', '.delete-page-btn', function(e) {
+            // Prevent default behavior
+            e.preventDefault(); 
+            e.stopPropagation();
+            
+            const pageId = $(this).data('id');
+            $('#delete_page_id').val(pageId);
+            $('#deletePageModal').modal('show');
+            
+            // Return false to prevent other handlers from executing
+            return false;
+        });
+
+        // Confirm Delete Page Handler
+        $('#confirmDeletePage').on('click', function() {
+            const pageId = $('#delete_page_id').val();
+            
+            $.ajax({
+                url: 'includes/page_content/delete_page.php',
+                type: 'POST',
+                data: JSON.stringify({ page_id: pageId }),
+                contentType: 'application/json',
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Success', response.message, 'success');
+                        
+                        // Close modal and reload page
+                        $('#deletePageModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    } else {
+                        showToast('Error', response.message, 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    let errorMessage = 'Failed to delete page: ' + error;
+                    
+                    if (xhr.responseJSON && xhr.responseJSON.message) {
+                        errorMessage = xhr.responseJSON.message;
+                    }
+                    
+                    showToast('Error', errorMessage, 'error');
+                }
+            });
+        });
+
+        // Helper function to show toast notifications
+        function showToast(title, message, type) {
+            // Check if toastContainer exists, if not create it
+            if ($('#toastContainer').length === 0) {
+                $('body').append('<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;"></div>');
+            }
+            
+            // Create a unique ID for this toast
+            const toastId = 'toast-' + Date.now();
+            
+            // Determine the appropriate Bootstrap class based on type
+            let bgClass = 'bg-primary';
+            switch (type) {
+                case 'success':
+                    bgClass = 'bg-success';
+                    break;
+                case 'error':
+                    bgClass = 'bg-danger';
+                    break;
+                case 'warning':
+                    bgClass = 'bg-warning';
+                    break;
+                case 'info':
+                    bgClass = 'bg-info';
+                    break;
+            }
+            
+            // Create the toast HTML
+            const toastHtml = `
+                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
+                    <div class="toast-header ${bgClass} text-white">
+                        <strong class="me-auto">${title}</strong>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        ${message}
+                    </div>
+                </div>
+            `;
+            
+            // Append the toast to the container
+            $('#toastContainer').append(toastHtml);
+            
+            // Initialize and show the toast
+            const toastElement = document.getElementById(toastId);
+            const toast = new bootstrap.Toast(toastElement);
+            toast.show();
+            
+            // Remove the toast from DOM after it's hidden
+            $(toastElement).on('hidden.bs.toast', function() {
+                $(this).remove();
+            });
+        }
+    });
+</script>

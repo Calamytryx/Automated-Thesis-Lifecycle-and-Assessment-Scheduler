@@ -28,7 +28,7 @@
                     </li>
                 <?php endif; ?>
                 <!-- <?php //if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
-                    <li class="nav-item"> 
+                    <li class="nav-item">  
                     <a class="nav-link" href="../decision-support">Defense</a>
                 </li>
                 <?php //endif; ?> -->
@@ -36,6 +36,25 @@
                 <!-- <li class="nav-item">
                     <a class="nav-link" href="../contact">Contact Us</a>
                 </li> -->
+
+                <li class="nav-item dropdown">
+                    <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        Pages
+                    </a>
+                    <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="pagesDropdown">
+                        <?php
+                        // Get all published pages for the menu
+                        $pages = getPublishedPages($pdo);
+                        if (!empty($pages)) {
+                            foreach ($pages as $page) {
+                                echo '<li><a class="dropdown-item" href="../page/?slug=' . $page['slug'] . '">' . htmlspecialchars($page['title']) . '</a></li>';
+                            }
+                        } else {
+                            echo '<li><a class="dropdown-item disabled">No pages available</a></li>';
+                        }
+                        ?>
+                    </ul>
+                </li>
 
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
