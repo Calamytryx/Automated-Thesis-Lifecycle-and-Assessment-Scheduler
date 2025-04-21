@@ -56,9 +56,10 @@
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 
-<!-- Summernote -->
-<link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
+<!-- Summernote JS (only) -->
+<?php if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
 <script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.js"></script>
+<?php endif; ?>
 
 <?php if (isset($_SESSION['auth'])) { ?>
 

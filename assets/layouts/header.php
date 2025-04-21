@@ -62,9 +62,9 @@ check_remember_me();
             }
         }
     </script>
-    <?php if ($_SESSION['usertype'] == 0): ?>
-    <!-- Summernote CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.css" rel="stylesheet">
+    <?php if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
+    <!-- Summernote Lite CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-lite.min.css" rel="stylesheet">
     <?php endif; ?>
 </head>
 

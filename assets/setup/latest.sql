@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Mar 15, 2025 at 06:15 AM
+-- Generation Time: Apr 21, 2025 at 03:31 AM
 -- Server version: 10.4.28-MariaDB
 -- PHP Version: 8.2.4
 
@@ -228,6 +228,32 @@ INSERT INTO `form_assignments` (`id`, `defense_schedule_id`, `embed_link`, `is_a
 (1, 1, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdQ4FkofF2p-7IYqiBviGmhEifLmagOzA3mL7mZP06tNyqjYw/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 05:22:50', '2025-03-09 05:36:19'),
 (2, 5, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdGJjmT0gKrHNXFoTwQCQn8CUZ7TCU-xE5vR-j0PUXJx_EUmQ/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 05:23:14', '2025-03-09 15:54:57'),
 (3, 1, '<iframe src=\"https://docs.google.com/forms/d/e/1FAIpQLSdQ4FkofF2p-7IYqiBviGmhEifLmagOzA3mL7mZP06tNyqjYw/viewform?embedded=true\" width=\"640\" height=\"1000\" frameborder=\"0\" marginheight=\"0\" marginwidth=\"0\">Loading…</iframe>', 1, '2025-03-09 05:36:19', '2025-03-09 05:36:19');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_content`
+--
+
+CREATE TABLE `page_content` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `content` text DEFAULT NULL,
+  `status` enum('published','draft') NOT NULL DEFAULT 'draft',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_by` int(11) DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `page_content`
+--
+
+INSERT INTO `page_content` (`id`, `title`, `slug`, `content`, `status`, `created_at`, `updated_at`, `created_by`, `updated_by`) VALUES
+(1, 'pls work', 'pls-work', '<p>If you\'re seeing this then celebrate, it\'s now <b>working.</b></p>', 'published', '2025-04-18 19:24:53', '2025-04-21 01:57:54', 37, 37),
+(2, 'still working and improved?', 'still-working-and-improved', '<h1>Greetings Lyceans,</h1><h3>We are venom.</h3><blockquote class=\"blockquote\"><p>I do not think, therefore I do not am. - Venom</p></blockquote><p><br></p><p>&nbsp;This is a normal paragraph being tested for the features such as, <b>bold,</b>&nbsp;<u>underlined,</u>&nbsp;<i>italic, </i><span style=\"background-color: rgb(0, 255, 0);\">with higlight,</span>&nbsp;&nbsp;<br></p><hr><ul><li>In a bullet<br></li></ul><hr><ol><li>In a number</li></ol><hr><p style=\"text-align: center; \">Centered</p><hr><p style=\"text-align: left;\">Left-aligned</p><hr><p style=\"text-align: right;\">Right-aligned</p><hr><p style=\"text-align: justify;\">Justified&nbsp;Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.<br></p><hr><p style=\"text-align: justify; margin-left: 25px;\">Indented</p><hr><p style=\"text-align: justify; margin-left: 25px;\">Table</p><table class=\"table table-bordered\"><tbody><tr><td>Col1</td><td>Col2</td><td>Col3</td></tr><tr><td>Row1 C1</td><td>Row1 C2</td><td>Row1 C3</td></tr></tbody></table><hr><p style=\"text-align: justify; margin-left: 25px;\"><br></p>', 'published', '2025-04-21 02:37:06', '2025-04-21 02:37:06', 37, 37);
 
 -- --------------------------------------------------------
 
@@ -548,7 +574,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
 (0, 0, 'winstonadmin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '6703b15c765f80.83029727.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-03-11 11:49:31', '0000-00-00 00:00:00', '2025-03-11 11:49:31'),
-(37, 0, 'neilv', NULL, NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-03-15 02:43:04', NULL, '2025-03-15 02:43:04'),
+(37, 0, 'neilv', NULL, NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-04-20 18:59:54', NULL, '2025-04-20 18:59:54'),
 (38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-08 02:38:04', NULL, '2025-03-08 02:38:04'),
 (39, 1, 'student2', 'Bachelor of Science in Computer Science', NULL, NULL, 'student2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Neil', 'Vicedo', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:46:33', NULL, '2025-03-10 03:46:33'),
 (40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-11 20:44:23'),
@@ -569,7 +595,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (55, 1, 'student18', 'Bachelor of Science in Computer Science', NULL, NULL, 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'Bachelor of Science in Computer Science', NULL, NULL, 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'Bachelor of Science in Computer Science', NULL, NULL, 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-12 08:46:30', NULL, '2025-03-10 03:38:04'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-20 18:55:25', NULL, '2025-04-20 18:55:25'),
 (59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:37:10', NULL, '2025-03-10 03:37:10'),
 (60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:37:41', NULL, '2025-03-10 03:37:41'),
 (61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-10 03:47:27', NULL, '2025-03-10 03:47:27'),
@@ -670,6 +696,13 @@ ALTER TABLE `evaluation_per_panel`
 ALTER TABLE `form_assignments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `defense_schedule_id` (`defense_schedule_id`);
+
+--
+-- Indexes for table `page_content`
+--
+ALTER TABLE `page_content`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`);
 
 --
 -- Indexes for table `requirements`
@@ -807,6 +840,12 @@ ALTER TABLE `evaluation_per_panel`
 --
 ALTER TABLE `form_assignments`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `page_content`
+--
+ALTER TABLE `page_content`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `requirements`

@@ -500,13 +500,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <?php require 'app.js.php'; ?>
 
-<!-- Summernote JS -->
-<script src="https://cdn.jsdelivr.net/npm/summernote@0.8.18/dist/summernote-bs4.min.js"></script>
-
 <!-- Page Content Manager JS -->
 <script>
     $(document).ready(function() {
-        // Initialize Summernote WYSIWYG editor with lite version
+        // Improved Summernote WYSIWYG editor initialization with full features
         function initSummernote() {
             if ($('.summernote').length) {
                 try {
@@ -515,28 +512,67 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $('.summernote').summernote('destroy');
                     }
                     
-                    // Initialize with lite version
+                    // Initialize with lite version - comprehensive configuration
                     $('.summernote').summernote({
                         height: 300,
                         minHeight: 150,
-                        maxHeight: 500,
+                        maxHeight: 600,
                         placeholder: 'Write your content here...',
                         tabsize: 2,
+                        dialogsInBody: true,  // Important for modals
+                        disableDragAndDrop: false,
+                        styleTags: [
+                            'p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6',
+                            { title: 'Blockquote', tag: 'blockquote', className: 'blockquote', value: 'blockquote' },
+                            { title: 'Pre', tag: 'pre', className: 'pre', value: 'pre' }
+                        ],
                         toolbar: [
                             ['style', ['style']],
-                            ['font', ['bold', 'underline', 'clear']],
+                            ['font', ['bold', 'underline', 'italic', 'clear']],
+                            ['fontname', ['fontname']],
+                            ['fontsize', ['fontsize']],
                             ['color', ['color']],
                             ['para', ['ul', 'ol', 'paragraph']],
                             ['table', ['table']],
                             ['insert', ['link', 'picture']],
                             ['view', ['fullscreen', 'codeview', 'help']]
                         ],
+                        popover: {
+                            image: [
+                                ['image', ['resizeFull', 'resizeHalf', 'resizeQuarter', 'resizeNone']],
+                                ['float', ['floatLeft', 'floatRight', 'floatNone']],
+                                ['remove', ['removeMedia']]
+                            ],
+                            link: [
+                                ['link', ['linkDialogShow', 'unlink']]
+                            ],
+                            table: [
+                                ['add', ['addRowDown', 'addRowUp', 'addColLeft', 'addColRight']],
+                                ['delete', ['deleteRow', 'deleteCol', 'deleteTable']],
+                            ],
+                            air: [
+                                ['color', ['color']],
+                                ['font', ['bold', 'underline', 'clear']],
+                                ['para', ['ul', 'paragraph']]
+                            ]
+                        },
                         callbacks: {
+                            onInit: function() {
+                                console.log('Summernote initialized successfully');
+                            },
                             onImageUpload: function(files) {
+                                // You can implement image upload functionality here
                                 alert('Image upload not yet implemented. Please use external image URLs.');
                             }
                         }
                     });
+                    
+                    // Fix common issues with dialog buttons in Bootstrap 5
+                    $(document).on('click', '.note-modal .note-btn', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    });
+                    
                 } catch (e) {
                     console.error("Error initializing Summernote:", e);
                 }
