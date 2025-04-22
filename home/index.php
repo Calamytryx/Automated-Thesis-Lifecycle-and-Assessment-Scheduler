@@ -191,7 +191,7 @@ error_reporting(E_ALL);
                         </div>
                         <?php if ($_SESSION['usertype'] == 2): ?>
                             <?php
-                            $stmt = $pdo->query("SELECT id, name, due_date FROM icei_38697196_coecsathesis.requirements;");
+                            $stmt = $pdo->query("SELECT id, name, due_date FROM requirements;");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
                             <div class="requirements-list col-sm-3 my-3">
@@ -239,9 +239,9 @@ error_reporting(E_ALL);
                                                             ds.*, 
                                                             t.name AS team_name 
                                                         FROM 
-                                                            icei_38697196_coecsathesis.defense_schedules ds
+                                                            defense_schedules ds
                                                         JOIN 
-                                                            icei_38697196_coecsathesis.teams t 
+                                                            teams t 
                                                         ON 
                                                             ds.team_id = t.id
                                                         WHERE 
@@ -268,9 +268,11 @@ error_reporting(E_ALL);
                                                         $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                         $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                         $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
+                                                        // Assuming rubric group ID 1 is the default/relevant one for now.
+                                                        $rubric_group_id = 3; 
                                                     ?>
                                                         <li class="list-group-item defense-item" 
-                                                            onclick="redirectToDecisionSupport(<?php echo $schedule['team_id']; ?>)">
+                                                            onclick="redirectToDecisionSupport(<?php echo $schedule['id']; ?>, <?php echo $rubric_group_id; ?>)">
                                                             <div class="defense-content">
                                                                 <h6 class="team-name mb-2">
                                                                     <?php echo htmlspecialchars($schedule['team_name']); ?>
@@ -302,8 +304,8 @@ error_reporting(E_ALL);
                             <?php
                             $stmt = $pdo->query("
                                                     SELECT r.name, r.due_date, tr.status 
-                                                    FROM icei_38697196_coecsathesis.requirements r
-                                                    LEFT JOIN icei_38697196_coecsathesis.team_requirements tr ON r.id = tr.requirement_id;
+                                                    FROM requirements r
+                                                    LEFT JOIN team_requirements tr ON r.id = tr.requirement_id;
                                                 ");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -616,7 +618,7 @@ include '../assets/layouts/footer.php'
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
 <?php
-$stmt = $pdo->query("SELECT title FROM icei_38697196_coecsathesis.research_titles;");
+$stmt = $pdo->query("SELECT title FROM research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <script>
@@ -819,7 +821,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             ${req.file_name 
                                                 ? `<a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary" download>Download Submitted File</a>` 
                                                 : `
-                                                    <form id="uploadForm-${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
+                                                    <form class="upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                         <input type="hidden" name="document_name" value="${req.name}">
                                                         <input type="hidden" name="requirement_id" value="${req.id}">
                                                         <div class="mb-3">
@@ -827,6 +829,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                                             <input class="form-control" type="file" id="file-${req.id}" name="file" required>
                                                         </div>
                                                         <button type="submit" class="btn btn-primary feature-btn">Submit File</button>
+                                                        <span class="upload-status ms-2 small"></span> 
                                                     </form> 
                                                 `}
                                         </div>
@@ -853,6 +856,51 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
             }
 
         <?php } ?>
+
+        // --- AJAX submission handler for student file uploads ---
+        // Moved outside the usertype condition, uses delegation
+        $(document).on('submit', '#requirementChecklist .upload-form', function(event) {
+            console.log('Student upload form submission intercepted.'); // Added log
+            event.preventDefault(); // Prevent default form submission
+
+            var form = $(this);
+            var formData = new FormData(this);
+            var statusSpan = form.find('.upload-status');
+            var submitButton = form.find('button[type="submit"]');
+
+            statusSpan.text('Uploading...').removeClass('text-danger text-success');
+            submitButton.prop('disabled', true);
+            console.log('Initiating AJAX upload...'); // Added log
+
+            $.ajax({
+                url: form.attr('action'),
+                method: form.attr('method'),
+                data: formData,
+                processData: false, // Important for FormData
+                contentType: false, // Important for FormData
+                dataType: 'json', // Expect JSON response from upload_file.php
+                success: function(response) {
+                    console.log('AJAX upload success response:', response); // Added log
+                    if (response.success) {
+                        statusSpan.text('Upload successful! Refreshing...').addClass('text-success');
+                        // Refresh the requirements list after a short delay
+                        setTimeout(loadRequirements, 1500); 
+                    } else {
+                        statusSpan.text('Error: ' + (response.error || 'Unknown error')).addClass('text-danger');
+                        submitButton.prop('disabled', false);
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // Log the raw response text to see what the server actually sent
+                    console.log('Raw response:', jqXHR.responseText); 
+                    statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
+                    console.error("AJAX upload error:", textStatus, errorThrown, jqXHR.responseText); // Enhanced log
+                    submitButton.prop('disabled', false);
+                }
+            });
+        });
+        // --- End AJAX submission handler ---
+
 
     });
     //calendar
@@ -966,25 +1014,16 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
      * Function to redirect to decision-support with the team_id as a POST value.
      * @param {number} teamId - The ID of the team to send via POST.
      */
-    function redirectToDecisionSupport(teamId) {
-        if (!teamId) {
-            console.error('Invalid teamId. Cannot redirect.');
-            alert('Team information is missing. Cannot proceed.');
+    function redirectToDecisionSupport(scheduleId, groupId) {
+        if (!scheduleId || !groupId) {
+            console.error('Missing scheduleId or groupId for redirection.');
+            alert('Error: Cannot navigate to evaluation page. Missing information.');
             return;
         }
-
-        const form = document.createElement('form');
-        form.method = 'POST';
-        form.action = '../decision-support/';
-
-        const input = document.createElement('input');
-        input.type = 'hidden';
-        input.name = 'team_id';
-        input.value = teamId;
-
-        form.appendChild(input);
-        document.body.appendChild(form);
-        form.submit();
+        // Construct the URL with both parameters
+        const url = `../decision-support/index.php?schedule_id=${scheduleId}&group_id=${groupId}`;
+        console.log(`Redirecting to: ${url}`);
+        window.location.href = url;
     }
 
     // Select the target element (#scheduling)
@@ -1008,7 +1047,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             end: `${defense.date}T${defense.end_time}`,
                             location: defense.room,
                             eventType: 'defense',
-                            team_id: defense.team_id
+                            team_id: defense.team_id,
+                            defense_schedule_id: defense.defense_schedule_id // Pass defense_schedule_id
                         });
                     });
 
@@ -1033,14 +1073,15 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         events: events,
                         eventClick: function(info) {
                             const eventType = info.event.extendedProps.eventType;
-
                             if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                const teamId = info.event.extendedProps.team_id;
-                                if (teamId) {
-                                    redirectToDecisionSupport(teamId);
+                                const scheduleId = info.event.extendedProps.defense_schedule_id;
+                                // Assuming rubric group ID 1 is the default/relevant one for now.
+                                const groupId = 1; 
+                                if (scheduleId) {
+                                    redirectToDecisionSupport(scheduleId, groupId);
                                 } else {
-                                    console.error('team_id is undefined for this defense event.');
-                                    alert('Unable to retrieve team information for this event.');
+                                    console.error('defense_schedule_id is undefined for this defense event.');
+                                    alert('Unable to retrieve schedule information for this event.');
                                 }
                             } else {
                                 const title = info.event.title;
@@ -1092,7 +1133,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         end: `${defense.date}T${defense.end_time}`,
                                         location: defense.room,
                                         eventType: 'defense',
-                                        team_id: defense.team_id
+                                        team_id: defense.team_id,
+                                        defense_schedule_id: defense.defense_schedule_id // Pass defense_schedule_id
                                     });
                                 });
 
@@ -1117,14 +1159,15 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                     events: events,
                                     eventClick: function(info) {
                                         const eventType = info.event.extendedProps.eventType;
-
                                         if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                            const teamId = info.event.extendedProps.team_id;
-                                            if (teamId) {
-                                                redirectToDecisionSupport(teamId);
+                                            const scheduleId = info.event.extendedProps.defense_schedule_id;
+                                            // Assuming rubric group ID 1 is the default/relevant one for now.
+                                            const groupId = 1; 
+                                            if (scheduleId) {
+                                                redirectToDecisionSupport(scheduleId, groupId);
                                             } else {
-                                                console.error('team_id is undefined for this defense event.');
-                                                alert('Unable to retrieve team information for this event.');
+                                                console.error('defense_schedule_id is undefined for this defense event.');
+                                                alert('Unable to retrieve schedule information for this event.');
                                             }
                                         } else {
                                             const title = info.event.title;
@@ -1168,3 +1211,5 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         observer.observe(targetNode, config);
     }
 </script>
+</body>
+</html>

@@ -28,7 +28,7 @@
                     </li>
                 <?php endif; ?>
                 <!-- <?php //if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
-                    <li class="nav-item">  
+                    <li class="nav-item"> 
                     <a class="nav-link" href="../decision-support">Defense</a>
                 </li>
                 <?php //endif; ?> -->
