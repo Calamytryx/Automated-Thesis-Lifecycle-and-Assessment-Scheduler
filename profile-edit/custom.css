@@ -1,14 +1,201 @@
+/* Profile Edit Page Styling */
 textarea {
     min-height: 150px;
 }
+
 .edit {
     color: var(--secondary-color);
     display: flex;
     justify-content: center;
     align-items: center;
-    height: 100%; /* Ensure the element takes full height of its parent */
-    text-align: center; /* For multi-line text */
+    height: 100%;
+    text-align: center;
 }
+
 .edit:hover{
     color: var(--primary-color);
+}
+
+/* Profile Edit Page Styling - Matched to new profile design and app.css */
+.profile-edit-container {
+    background-color: var(--main-bg-light);
+    padding: 30px 0;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.edit-form-card {
+    background: var(--main-white);
+    border-radius: 8px;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.08);
+    padding: 24px;
+    margin-bottom: 20px;
+}
+
+.edit-section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--main-black);
+    margin-bottom: 24px;
+    border-bottom: 1px solid var(--neutral-200);
+    padding-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.view-profile-btn {
+    background-color: var(--neutral-100);
+    color: var(--neutral-900);
+    font-weight: 600;
+    font-size: 14px;
+    border: 1px solid var(--main-bg-dark);
+    border-radius: 4px;
+    padding: 5px 16px;
+    transition: all 0.2s ease;
+    margin-left: auto; 
+}
+
+.view-profile-btn:hover {
+    background-color: var(--neutral-200);
+    color: var(--main-bg-dark);
+    border: 1px solid var(--main-bg-dark);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.profile-image-editor {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+/* Clean profile image upload styling */
+.avatar-upload {
+    position: relative;
+    max-width: 162px;
+    margin: 0 auto 10px;
+}
+
+.avatar-preview {
+    width: 162px;
+    height: 162px;
+    position: relative;
+    border-radius: 100%;
+    overflow: hidden;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    border: 3px solid var(--main-white);
+}
+
+.avatar-preview > div {
+    width: 100%;
+    height: 100%;
+    border-radius: 100%;
+    background-size: cover;
+    background-repeat: no-repeat;
+    background-position: center;
+}
+
+/* Simple button style for edit photo - CLEAN VERSION */
+.avatar-edit {
+    text-align: center;
+    margin-top: 10px;
+}
+
+.avatar-edit input {
+    display: none;
+}
+
+.avatar-edit input + label {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    color: var(--main-primary);
+    background-color: transparent;
+    cursor: pointer;
+    font-weight: 500;
+    font-size: 14px;
+    transition: all 0.2s ease;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 4px;
+}
+
+.avatar-edit input + label:hover {
+    text-decoration: underline;
+}
+
+.avatar-edit input + label i {
+    font-size: 14px;
+    color: var(--main-primary);
+}
+
+/* Form and button styles */
+.form-auth .form-control {
+    border: 1px solid var(--main-bg-dark);
+    border-radius: 8px;
+    padding: 12px 16px;
+    transition: all 0.3s ease;
+    background-color: var(--main-white);
+}
+
+.form-auth .form-control:focus {
+    border-color: var(--main-primary);
+    box-shadow: 0 0 0 0.2rem rgba(7, 33, 230, 0.1);
+}
+
+.form-auth label {
+    font-weight: 500;
+    color: var(--main-black);
+    margin-bottom: 8px;
+}
+
+.edit-submit-btn {
+    background-color: var(--main-primary);
+    color: var(--main-white);
+    font-weight: 600;
+    border: none;
+    border-radius: 16px;
+    padding: 10px 24px;
+    transition: all 0.2s ease;
+    margin-top: 16px;
+}
+
+.edit-submit-btn:hover {
+    background-color: var(--primary-600);
+    color: var(--main-white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-submit-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.custom-control-input:checked ~ .custom-control-label::before {
+    background-color: var(--main-primary);
+    border-color: var(--main-primary);
+}
+
+/* Password section */
+.password-section {
+    margin-top: 30px;
+    padding-top: 20px;
+    border-top: 1px solid var(--neutral-200);
+}
+
+.password-title {
+    font-size: 18px;
+    font-weight: 600;
+    color: var(--main-black);
+    margin-bottom: 16px;
+}
+
+/* Media queries for responsive design */
+@media (max-width: 768px) {
+    .edit-form-card {
+        padding: 16px;
+    }
 }
