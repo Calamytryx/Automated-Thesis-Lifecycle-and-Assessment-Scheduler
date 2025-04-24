@@ -15,7 +15,7 @@
                     <th>Name</th>
                     <th>Description</th>
                     <th>Type</th>
-                    <th>Status</th>
+                   <!-- <th>Status</th> -->
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -45,7 +45,7 @@
                 <form id="rubricForm">
                     <input type="hidden" name="table" value="rubrics">
                     <input type="hidden" name="id" id="rubricId">
-                    
+
                     <!-- Basic Information -->
                     <div class="row mb-3">
                         <div class="col-md-6">
@@ -92,111 +92,71 @@
                         <div class="collapse mt-2" id="programsCollapse">
                             <div class="card card-body">
                                 <div id="programCheckboxesContainer">
-                                    <!-- Architecture -->
-                                    <h6>Department of Architecture</h6>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Architecture" id="progArch">
-                                        <label class="form-check-label" for="progArch">Bachelor of Science in Architecture</label>
-                                    </div>
-                                    <hr>
-                                    <!-- Computer Studies -->
-                                    <h6>Department of Computer Studies</h6>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Computer Science with specialization in Data Science" id="progCSDS">
-                                        <label class="form-check-label" for="progCSDS">Bachelor of Science in Computer Science with specialization in Data Science</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Computer Science with specialization in Software Engineering" id="progCSSE">
-                                        <label class="form-check-label" for="progCSSE">Bachelor of Science in Computer Science with specialization in Software Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Information Technology with specialization in Network and Information Security" id="progITNIS">
-                                        <label class="form-check-label" for="progITNIS">Bachelor of Science in Information Technology with specialization in Network and Information Security</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology" id="progITWMT">
-                                        <label class="form-check-label" for="progITWMT">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Library and Information Science" id="progBLIS">
-                                        <label class="form-check-label" for="progBLIS">Bachelor of Library and Information Science</label>
-                                    </div>
-                                    <hr>
-                                    <!-- Engineering -->
-                                    <h6>Department of Engineering</h6>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Aeronautical Engineering" id="progAeroE">
-                                        <label class="form-check-label" for="progAeroE">Bachelor of Science in Aeronautical Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management" id="progCECM">
-                                        <label class="form-check-label" for="progCECM">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering" id="progCESE">
-                                        <label class="form-check-label" for="progCESE">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering" id="progCETE">
-                                        <label class="form-check-label" for="progCETE">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Computer Engineering" id="progCpE">
-                                        <label class="form-check-label" for="progCpE">Bachelor of Science in Computer Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Engineering Technology with a major in Construction Technology and Management" id="progBETCTM">
-                                        <label class="form-check-label" for="progBETCTM">Bachelor of Engineering Technology with a major in Construction Technology and Management</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Electrical Engineering" id="progEE">
-                                        <label class="form-check-label" for="progEE">Bachelor of Science in Electrical Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Electronics Engineering" id="progECE">
-                                        <label class="form-check-label" for="progECE">Bachelor of Science in Electronics Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Industrial Engineering" id="progIE">
-                                        <label class="form-check-label" for="progIE">Bachelor of Science in Industrial Engineering</label>
-                                    </div>
-                                    <div class="form-check">
-                                        <input class="form-check-input program-checkbox" type="checkbox" value="Bachelor of Science in Mechanical Engineering" id="progME">
-                                        <label class="form-check-label" for="progME">Bachelor of Science in Mechanical Engineering</label>
-                                    </div>
+                                    <!-- Checkboxes will be loaded here dynamically -->
+                                    <p class="text-muted">Loading programs...</p>
                                 </div>
                             </div>
                         </div>
                     </div>
                     <!-- End Applicable Programs -->
 
-                    <!-- Numerical Rubric Configuration (Hidden for other types) -->
+                    <!-- Numerical Rubric Configuration -->
                     <div id="numericalConfig">
-                        <!-- Quality Criteria Controls -->
+                        <!-- Enable Individual Scoring Checkbox -->
                         <div class="row mb-3">
-                            <div class="col-md-4">
-                                <label for="qualityCriteriaCount" class="form-label">Number of Quality Levels</label>
-                                <div class="input-group">
-                                    <input type="number" class="form-control" id="qualityCriteriaCount" min="1" max="5" value="1">
-                                    <button class="btn btn-outline-secondary" type="button" id="updateQualityCriteria">Update</button>
-                                </div>
-                            </div>
-                            <div class="col-md-8">
-                                <div class="alert alert-info mt-4">
-                                    <small>Set the number and point values for quality levels (e.g., Excellent, Good, Fair).</small>
+                            <div class="col-md-12">
+                                <div class="form-check form-switch">
+                                    <input class="form-check-input" type="checkbox" id="is_individual_enabled" name="is_individual_enabled" value="1">
+                                    <label class="form-check-label" for="is_individual_enabled">Enable Individual Scoring Features</label>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Quality Criteria Configuration -->
-                        <div class="card mb-3">
-                            <div class="card-header">
-                                <h6 class="mb-0">Quality Level Configuration</h6>
+                        <!-- Max Members Input (Only shown if individual enabled) -->
+                        <div class="row mb-3" id="maxMembersConfig" style="display:none;">
+                            <div class="col-md-4">
+                                <label for="max_members" class="form-label">Max Members for Individual Scoring</label>
+                                <input type="number" class="form-control" id="max_members" name="max_members" min="1" max="10" value="5">
+                                <small class="form-text text-muted">Max columns shown during evaluation.</small>
                             </div>
-                            <div class="card-body">
-                                <div id="qualityCriteriaContainer">
-                                    <!-- Quality criteria inputs for numerical type -->
-                                    <!-- Structure will be modified by JS -->
+                        </div>
+
+                        <!-- Individual Scoring Only -->
+                        <div class="row mb-3" id="individualConfig" style="display:none;">
+                            <div class="col-md-4">
+                                <label for="max_score_per_criterion" class="form-label">Max Score per Criterion</label>
+                                <input type="number" class="form-control" id="max_score_per_criterion" name="max_score_per_criterion" min="0" value="100">
+                            </div>
+                        </div>
+
+                        <!-- Quality Criteria Controls -->
+                        <div id="qualityCriteriaControls">
+                            <!-- Quality Criteria Controls -->
+                            <div class="row mb-3">
+                                <div class="col-md-4">
+                                    <label for="qualityCriteriaCount" class="form-label">Number of Quality Levels</label>
+                                    <div class="input-group">
+                                        <input type="number" class="form-control" id="qualityCriteriaCount" min="1" max="5" value="1">
+                                        <button class="btn btn-outline-secondary" type="button" id="updateQualityCriteria">Update</button>
+                                    </div>
+                                </div>
+                                <div class="col-md-8">
+                                    <div class="alert alert-info mt-4">
+                                        <small>Set the number and point values for quality levels (e.g., Excellent, Good, Fair).</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Quality Criteria Configuration -->
+                            <div class="card mb-3">
+                                <div class="card-header">
+                                    <h6 class="mb-0">Quality Level Configuration</h6>
+                                </div>
+                                <div class="card-body">
+                                    <div id="qualityCriteriaContainer">
+                                        <!-- Quality criteria inputs for numerical type -->
+                                        <!-- Structure will be modified by JS -->
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -233,22 +193,22 @@
                                 <hr>
                                 <!-- Fail Row Config -->
                                 <div class="row mb-3">
-                                     <div class="col-md-12">
+                                    <div class="col-md-12">
                                         <label for="failRecommendationText" class="form-label">Fail Row Recommendation Text</label>
                                         <input type="text" class="form-control" id="failRecommendationText" value="System is rejected:">
                                     </div>
                                 </div>
                                 <div class="row mb-3">
-                                     <div class="col-md-12">
+                                    <div class="col-md-12">
                                         <label for="failOptionText" class="form-label">Fail Option Description</label>
                                         <textarea class="form-control" id="failOptionText" rows="2">Rejected Description</textarea>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                         <!-- Pass/Fail Thresholds -->
+                        <!-- Pass/Fail Thresholds -->
                         <div class="row mb-3" id="passThresholds">
-                             <h6 class="mb-2">Acceptability Thresholds (%)</h6>
+                            <h6 class="mb-2">Acceptability Thresholds (%)</h6>
                             <div class="col-md-4">
                                 <label for="total_pass" class="form-label">Pass (Modifier 1)</label>
                                 <input type="number" class="form-control pass-threshold" id="total_pass" name="total_pass" value="100" min="0" max="100" data-modifier="1">
@@ -291,7 +251,7 @@
                                     <tfoot id="rubricFooter" style="display:none;">
                                         <tr>
                                             <th colspan="100%" class="text-end">
-                                                Total Score: <span id="totalScoreDisplay">0</span>
+                                                Group Total Score: <span id="totalScoreDisplay">0</span>
                                                 <input type="hidden" name="max_total_score" id="maxTotalScore" value="0">
                                             </th>
                                         </tr>
@@ -331,69 +291,73 @@
 </div>
 
 <style>
-.quality-level-input {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-}
-.points-input {
-    width: 60px;
-    text-align: center;
-}
-.criterion-row {
-    margin-bottom: 10px;
-}
-.criterion-description {
-    width: 100%;
-    padding: 5px;
-    border: 1px solid #ced4da;
-    border-radius: 4px;
-}
-.score-input {
-    width: 60px;
-    text-align: center;
-}
+    .quality-level-input {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .points-input {
+        width: 60px;
+        text-align: center;
+    }
+
+    .criterion-row {
+        margin-bottom: 10px;
+    }
+
+    .criterion-description {
+        width: 100%;
+        padding: 5px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+    }
+
+    .score-input {
+        width: 60px;
+        text-align: center;
+    }
 </style>
 
 <script>
-// Initialize the rubrics table
-function loadRubrics(page = 1) {
-    $.ajax({
-        url: 'includes/tabs/get_table.php',
-        method: 'GET',
-        data: {
-            table: 'rubrics',
-            page: page
-        },
-        success: function(response) {
-            if (response.data) {
-                var tbody = $('#rubricsTableBody');
-                tbody.empty();
-                
-                if (response.data.length === 0) {
-                    tbody.html('<tr><td colspan="5">No rubrics found.</td></tr>');
-                } else {
-                    response.data.forEach(function(rubric) {
-                        let typeName = 'Unknown';
-                        switch(rubric.rubric_type) {
-                            case 'numerical': typeName = 'Numerical'; break;
-                            case 'yesno': typeName = 'Yes/No'; break;
-                            case 'passfail': typeName = 'Pass/Fail'; break;
-                        }
+    // Initialize the rubrics table
+    function loadRubrics(page = 1) {
+        $.ajax({
+            url: 'includes/tabs/get_table.php',
+            method: 'GET',
+            data: {
+                table: 'rubrics',
+                page: page
+            },
+            success: function(response) {
+                if (response.data) {
+                    var tbody = $('#rubricsTableBody');
+                    tbody.empty();
 
-                        var row = `
+                    if (response.data.length === 0) {
+                        tbody.html('<tr><td colspan="5">No rubrics found.</td></tr>');
+                    } else {
+                        response.data.forEach(function(rubric) {
+                            let typeName = 'Unknown';
+                            switch (rubric.rubric_type) {
+                                case 'numerical':
+                                    typeName = 'Numerical';
+                                    break;
+                                case 'yesno':
+                                    typeName = 'Yes/No';
+                                    break;
+                                case 'passfail':
+                                    typeName = 'Pass/Fail';
+                                    break;
+                            }
+
+                            var row = `
                             <tr>
                                 <td>${rubric.name || 'N/A'}</td>
                                 <td>${rubric.description || 'N/A'}</td>
                                 <td>${typeName}</td>
-                                <td>
-                                    <div class="form-check form-switch">
-                                        <input class="form-check-input rubric-status" type="checkbox" 
-                                               data-id="${rubric.id}" 
-                                               ${rubric.is_active == 1 ? 'checked' : ''}>
-                                    </div>
-                                </td>
+                                
                                 <td>
                                     <button class="btn btn-sm btn-primary edit-rubric-btn" data-id="${rubric.id}">
                                         <i class="fas fa-edit"></i>
@@ -404,71 +368,71 @@ function loadRubrics(page = 1) {
                                 </td>
                             </tr>
                         `;
-                        tbody.append(row);
-                    });
+                            tbody.append(row);
+                        });
+                    }
+
+                    // Update pagination
+                    updatePagination(response.total_pages, page);
+                } else {
+                    $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data.</td></tr>');
                 }
-
-                // Update pagination
-                updatePagination(response.total_pages, page);
-            } else {
-                $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data.</td></tr>');
+            },
+            error: function(xhr, status, error) {
+                $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data. Please try again.</td></tr>');
             }
-        },
-        error: function(xhr, status, error) {
-            $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data. Please try again.</td></tr>');
-        }
-    });
-}
+        });
+    }
 
-// Update pagination
-function updatePagination(totalPages, currentPage) {
-    var pagination = $('#rubricsPagination');
-    pagination.empty();
-    
-    // Previous button
-    pagination.append(`
+    // Update pagination
+    function updatePagination(totalPages, currentPage) {
+        var pagination = $('#rubricsPagination');
+        pagination.empty();
+
+        // Previous button
+        pagination.append(`
         <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
             <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
         </li>
     `);
-    
-    // Page numbers
-    for (var i = 1; i <= totalPages; i++) {
-        pagination.append(`
+
+        // Page numbers
+        for (var i = 1; i <= totalPages; i++) {
+            pagination.append(`
             <li class="page-item ${i === currentPage ? 'active' : ''}">
                 <a class="page-link" href="#" data-page="${i}">${i}</a>
             </li>
         `);
-    }
-    
-    // Next button
-    pagination.append(`
+        }
+
+        // Next button
+        pagination.append(`
         <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
             <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
         </li>
     `);
-}
+    }
 
-// Generate quality criteria inputs (Only for Numerical)
-function generateQualityCriteriaInputs() {
-    var count = parseInt($('#qualityCriteriaCount').val()) || 1;
-    var container = $('#qualityCriteriaContainer');
-    container.empty();
+    // Generate quality criteria inputs (Only for Numerical)
+    function generateQualityCriteriaInputs() {
+        var count = parseInt($('#qualityCriteriaCount').val()) || 1;
+        var container = $('#qualityCriteriaContainer');
+        container.empty();
 
-    var headerRow = $('<div class="row mb-2 align-items-center"></div>');
-    headerRow.append('<div class="col-md-3"><strong>Level Name</strong></div>');
-    headerRow.append('<div class="col-md-1 text-center"><strong>Range?</strong></div>');
-    headerRow.append('<div class="col-md-1"><strong>Min</strong></div>');
-    headerRow.append('<div class="col-md-1"><strong>Max</strong></div>');
-    headerRow.append('<div class="col-md-6"><strong>Description</strong></div>');
-    container.append(headerRow);
+        var headerRow = $('<div class="row mb-2 align-items-center"></div>');
+        headerRow.append('<div class="col-md-3"><strong>Level Name</strong></div>');
+        headerRow.append('<div class="col-md-1 text-center"><strong>Range?</strong></div>');
+        headerRow.append('<div class="col-md-1"><strong>Min</strong></div>');
+        headerRow.append('<div class="col-md-1"><strong>Max</strong></div>');
+        headerRow.append('<div class="col-md-6"><strong>Description</strong></div>');
+        container.append(headerRow);
 
-    // Add inputs for each quality level
-    for (var i = 0; i < count; i++) {
-        var levelRow = $('<div class="row mb-2 align-items-center quality-level-row"></div>');
-        var defaultPoints = Math.max(0, 5 - i); // Example default points
+        // Add inputs for each quality level
+        for (var i = 0; i < count; i++) {
+            var levelRow = $('<div class="row mb-2 align-items-center quality-level-row"></div>');
+            var defaultPoints = Math.max(0, 5 - i); // Example default points
 
-        levelRow.append(`
+            levelRow.append(`
             <div class="col-md-3">
                 <input type="text" class="form-control quality-level-input"
                        name="quality_level_name[]" value="Level ${i + 1}"
@@ -497,181 +461,239 @@ function generateQualityCriteriaInputs() {
             </div>
         `);
 
-        container.append(levelRow);
-    }
-
-    // Add event listener for range checkboxes
-    container.find('.is-range-checkbox').on('change', function() {
-        var level = $(this).data('level');
-        var maxInput = $(this).closest('.quality-level-row').find(`.points-max[data-level="${level}"]`);
-        var minInput = $(this).closest('.quality-level-row').find(`.points-min[data-level="${level}"]`);
-        if ($(this).is(':checked')) {
-            maxInput.show();
-            // Optionally ensure max >= min
-            if (parseInt(maxInput.val()) < parseInt(minInput.val())) {
-                maxInput.val(minInput.val());
-            }
-        } else {
-            maxInput.hide();
-            maxInput.val(minInput.val()); // Set max to min when not a range
-        }
-        validateLevelPoints(); // Validate points after toggling range
-    });
-
-    // Add event listener for min points input to potentially update max when not range
-     container.find('.points-min').on('input', function() {
-        var level = $(this).data('level');
-        var row = $(this).closest('.quality-level-row');
-        var isRange = row.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
-        if (!isRange) {
-            row.find(`.points-max[data-level="${level}"]`).val($(this).val());
-        }
-        validateLevelPoints(); // Validate points after changing min
-    });
-     // Add event listener for max points input to ensure max >= min
-     container.find('.points-max').on('input', function() {
-        var level = $(this).data('level');
-        var row = $(this).closest('.quality-level-row');
-        var minVal = parseInt(row.find(`.points-min[data-level="${level}"]`).val()) || 0;
-        var maxVal = parseInt($(this).val()) || 0;
-        if (maxVal < minVal) {
-            $(this).val(minVal); // Ensure max is not less than min
-        }
-        validateLevelPoints(); // Validate points after changing max
-    });
-
-    // Initial validation after generating inputs
-    validateLevelPoints();
-}
-
-// Validate point ranges for overlaps (Numerical Only)
-function validateLevelPoints() {
-    var levels = [];
-    var isValid = true;
-    var $rows = $('#qualityCriteriaContainer .quality-level-row');
-
-    // Collect level data
-    $rows.each(function(index) {
-        var $row = $(this);
-        var level = index + 1; // Assuming levels are ordered 1, 2, 3...
-        var isRange = $row.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
-        var minVal = parseInt($row.find(`.points-min[data-level="${level}"]`).val()) || 0;
-        var maxVal = isRange ? (parseInt($row.find(`.points-max[data-level="${level}"]`).val()) || minVal) : minVal;
-
-        // Ensure min <= max within the same level
-        if (minVal > maxVal) {
-            $row.find(`.points-max[data-level="${level}"]`).val(minVal);
-            maxVal = minVal; // Correct maxVal for overlap check
+            container.append(levelRow);
         }
 
-        levels.push({
-            level: level,
-            min: minVal,
-            max: maxVal,
-            $minInput: $row.find(`.points-min[data-level="${level}"]`),
-            $maxInput: $row.find(`.points-max[data-level="${level}"]`)
-        });
-    });
-
-    // Sort levels by min points (descending, as higher quality usually has higher points)
-    levels.sort((a, b) => b.min - a.min);
-
-    // Check for overlaps between adjacent sorted levels
-    for (var i = 0; i < levels.length - 1; i++) {
-        var currentLevel = levels[i];
-        var nextLevel = levels[i + 1];
-
-        // Remove previous warning styles
-        currentLevel.$minInput.removeClass('is-invalid');
-        currentLevel.$maxInput.removeClass('is-invalid');
-        nextLevel.$minInput.removeClass('is-invalid');
-        nextLevel.$maxInput.removeClass('is-invalid');
-
-        // Check if the minimum points of the current level is less than or equal to the maximum points of the next level
-        if (currentLevel.min <= nextLevel.max) {
-            isValid = false;
-            // Highlight the conflicting inputs
-            currentLevel.$minInput.addClass('is-invalid');
-            nextLevel.$maxInput.addClass('is-invalid');
-            console.warn(`Overlap detected: Level ${currentLevel.level} (min: ${currentLevel.min}) overlaps with Level ${nextLevel.level} (max: ${nextLevel.max})`);
-        }
-    }
-
-    if (!isValid) {
-        showToast('Warning', 'Point ranges overlap between quality levels. Please adjust.', 'warning');
-    }
-
-    return isValid; // Return validation status
-}
-
-// Rebuilds the preview table body based on the current rubric type
-function rebuildPreviewTable() {
-    var body = $('#rubricPreviewBody');
-    var rubricType = $('#rubric_type').val();
-    body.empty(); // Clear existing rows
-
-    if (rubricType === 'passfail') {
-        // Force exactly two rows for pass/fail
-        addCriterionRow(); // Add row 1 (Pass)
-        addCriterionRow(); // Add row 2 (Fail)
-    } else {
-        // For numerical and yes/no, add one default row
-        addCriterionRow();
-    }
-    updateTotalScoreDisplay(); // Update footer visibility
-}
-
-// Update the rubric table header based on rubric type
-function updateRubricTableHeader() {
-    var headerRow = $('#rubricHeaderRow');
-    headerRow.empty(); // Clear existing headers
-    var rubricType = $('#rubric_type').val();
-
-    if (rubricType === 'numerical') {
-        headerRow.append('<th style="width: 30%;">Criteria</th>');
-        var count = parseInt($('#qualityCriteriaCount').val()) || 1;
-        var totalWidthAvailable = 60; // % width for level columns
-        var widthPerLevel = count > 0 ? totalWidthAvailable / count : totalWidthAvailable;
-
-        for (var i = 0; i < count; i++) {
-            var level = i + 1;
-            var levelRow = $(`#qualityCriteriaContainer .quality-level-row:nth-child(${level + 1})`); // +1 to skip header row
-            var levelName = levelRow.find(`input[name="quality_level_name[]"][data-level="${level}"]`).val() || `Level ${level}`;
-            var isRange = levelRow.find(`input[name="quality_level_is_range[]"][data-level="${level}"]`).is(':checked');
-            var pointsMin = levelRow.find(`input[name="quality_level_points_min[]"][data-level="${level}"]`).val() || 0;
-            var pointsMax = levelRow.find(`input[name="quality_level_points_max[]"][data-level="${level}"]`).val() || pointsMin; // Use min if max hidden/invalid
-
-            var pointsText = "";
-            if (isRange && pointsMin !== pointsMax) {
-                // SWAPPED: Display Max first, then Min for ranges
-                pointsText = `(${pointsMax}-${pointsMin} points)`;
+        // Add event listener for range checkboxes
+        container.find('.is-range-checkbox').on('change', function() {
+            var level = $(this).data('level');
+            var maxInput = $(this).closest('.quality-level-row').find(`.points-max[data-level="${level}"]`);
+            var minInput = $(this).closest('.quality-level-row').find(`.points-min[data-level="${level}"]`);
+            if ($(this).is(':checked')) {
+                maxInput.show();
+                // Optionally ensure max >= min
+                if (parseInt(maxInput.val()) < parseInt(minInput.val())) {
+                    maxInput.val(minInput.val());
+                }
             } else {
-                pointsText = `(${pointsMin} points)`;
+                maxInput.hide();
+                maxInput.val(minInput.val()); // Set max to min when not a range
+            }
+            validateLevelPoints(); // Validate points after toggling range
+        });
+
+        // Add event listener for min points input to potentially update max when not range
+        container.find('.points-min').on('input', function() {
+            var level = $(this).data('level');
+            var row = $(this).closest('.quality-level-row');
+            var isRange = row.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
+            if (!isRange) {
+                row.find(`.points-max[data-level="${level}"]`).val($(this).val());
+            }
+            validateLevelPoints(); // Validate points after changing min
+        });
+        // Add event listener for max points input to ensure max >= min
+        container.find('.points-max').on('input', function() {
+            var level = $(this).data('level');
+            var row = $(this).closest('.quality-level-row');
+            var minVal = parseInt(row.find(`.points-min[data-level="${level}"]`).val()) || 0;
+            var maxVal = parseInt($(this).val()) || 0;
+            if (maxVal < minVal) {
+                $(this).val(minVal); // Ensure max is not less than min
+            }
+            validateLevelPoints(); // Validate points after changing max
+        });
+
+        // Initial validation after generating inputs
+        validateLevelPoints();
+    }
+
+    // Validate point ranges for overlaps (Numerical Only)
+    function validateLevelPoints() {
+        var levels = [];
+        var isValid = true;
+        var $rows = $('#qualityCriteriaContainer .quality-level-row');
+
+        // Collect level data
+        $rows.each(function(index) {
+            var $row = $(this);
+            var level = index + 1; // Assuming levels are ordered 1, 2, 3...
+            var isRange = $row.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
+            var minVal = parseInt($row.find(`.points-min[data-level="${level}"]`).val()) || 0;
+            var maxVal = isRange ? (parseInt($row.find(`.points-max[data-level="${level}"]`).val()) || minVal) : minVal;
+
+            // Ensure min <= max within the same level
+            if (minVal > maxVal) {
+                $row.find(`.points-max[data-level="${level}"]`).val(minVal);
+                maxVal = minVal; // Correct maxVal for overlap check
             }
 
-            headerRow.append(`<th style="width: ${widthPerLevel}%;">${levelName}<br>${pointsText}</th>`);
+            levels.push({
+                level: level,
+                min: minVal,
+                max: maxVal,
+                $minInput: $row.find(`.points-min[data-level="${level}"]`),
+                $maxInput: $row.find(`.points-max[data-level="${level}"]`)
+            });
+        });
+
+        // Sort levels by min points (descending, as higher quality usually has higher points)
+        levels.sort((a, b) => b.min - a.min);
+
+        // Check for overlaps between adjacent sorted levels
+        for (var i = 0; i < levels.length - 1; i++) {
+            var currentLevel = levels[i];
+            var nextLevel = levels[i + 1];
+
+            // Remove previous warning styles
+            currentLevel.$minInput.removeClass('is-invalid');
+            currentLevel.$maxInput.removeClass('is-invalid');
+            nextLevel.$minInput.removeClass('is-invalid');
+            nextLevel.$maxInput.removeClass('is-invalid');
+
+            // Check if the minimum points of the current level is less than or equal to the maximum points of the next level
+            if (currentLevel.min <= nextLevel.max) {
+                isValid = false;
+                // Highlight the conflicting inputs
+                currentLevel.$minInput.addClass('is-invalid');
+                nextLevel.$maxInput.addClass('is-invalid');
+                console.warn(`Overlap detected: Level ${currentLevel.level} (min: ${currentLevel.min}) overlaps with Level ${nextLevel.level} (max: ${nextLevel.max})`);
+            }
         }
-        headerRow.append('<th style="width: 10%;">Score</th>');
-    } else if (rubricType === 'yesno') {
-        headerRow.append('<th style="width: 40%;">Criteria</th>');
-        headerRow.append('<th style="width: 40%;">Description</th>');
-        headerRow.append('<th style="width: 20%;">Option</th>');
-    } else if (rubricType === 'passfail') {
-        headerRow.append('<th style="width: 40%;">Recommendation</th>');
-        headerRow.append('<th style="width: 60%;">Options</th>');
+
+        if (!isValid) {
+            showToast('Warning', 'Point ranges overlap between quality levels. Please adjust.', 'warning');
+        }
+
+        return isValid; // Return validation status
     }
-    rebuildPreviewTable(); // Rebuild rows to match new header
-}
 
-// Add a new criterion row to the rubric preview based on type
-function addCriterionRow() {
-    var rubricType = $('#rubric_type').val();
-    var row = $('<tr class="criterion-row"></tr>');
-    var rowCount = $('#rubricPreviewBody tr').length + 1; // For unique radio names
+    // Get the maximum possible points for a single criterion based on quality levels
+    function getMaxPoints() {
+        var maxPoints = 0;
+        // Iterate through the max point inputs in the configuration
+        $('#qualityCriteriaContainer .points-max').each(function() {
+            // Consider only visible max inputs (for ranges) or min inputs (if not range)
+            var $row = $(this).closest('.quality-level-row');
+            var level = $row.find('.points-min').data('level');
+            var isRange = $row.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
+            var pointsVal;
 
-    if (rubricType === 'numerical') {
-        var qualityCriteriaCount = parseInt($('#qualityCriteriaCount').val()) || 1;
-        row.append(`
+            if (isRange) {
+                pointsVal = parseInt($(this).val()) || 0; // Use the max value if range
+            } else {
+                // If not a range, use the min value (since max is hidden/same as min)
+                pointsVal = parseInt($row.find(`.points-min[data-level="${level}"]`).val()) || 0;
+            }
+
+            maxPoints = Math.max(maxPoints, pointsVal);
+        });
+        // Fallback if no levels defined yet
+        if ($('#qualityCriteriaContainer .quality-level-row').length === 0) {
+            return 100; // Default max if no levels configured
+        }
+        return maxPoints;
+    }
+
+    // Rebuilds the preview table body based on the current rubric type
+    function rebuildPreviewTable() {
+        var body = $('#rubricPreviewBody');
+        var rubricType = $('#rubric_type').val();
+        var individualEnabled = $('#is_individual_enabled').is(':checked');
+        body.empty(); // Clear existing rows
+
+        if (rubricType === 'passfail') {
+            // Force exactly two rows for pass/fail
+            addCriterionRow(); // Add row 1 (Pass)
+            addCriterionRow(); // Add row 2 (Fail)
+        } else {
+            // For numerical and yes/no, add one default row
+            addCriterionRow();
+        }
+        updateTotalScoreDisplay(); // Update footer visibility
+    }
+
+    // Update the rubric table header based on rubric type and individual flag
+    function updateRubricTableHeader() {
+        var headerRow = $('#rubricHeaderRow');
+        headerRow.empty(); // Clear existing headers
+        var rubricType = $('#rubric_type').val();
+        var individualEnabled = $('#is_individual_enabled').is(':checked');
+
+        // Numerical Type
+        if (rubricType === 'numerical' && individualEnabled) {
+            headerRow.append('<th>Criteria</th><th>Score</th>');
+            rebuildPreviewTable();
+            return;
+        }
+
+        if (rubricType === 'numerical') {
+            // Criteria column header
+            headerRow.append(`<th style="width: ${individualEnabled ? '40%' : '30%'};">Criteria</th>`); // Adjust width
+
+            // Quality Level Headers (Common for both group and individual numerical)
+            var count = parseInt($('#qualityCriteriaCount').val()) || 1;
+            var totalWidthAvailable = individualEnabled ? 60 : 60; // Width for quality levels
+            var widthPerLevel = count > 0 ? totalWidthAvailable / count : totalWidthAvailable;
+
+            for (var i = 0; i < count; i++) {
+                var level = i + 1;
+                var levelRow = $(`#qualityCriteriaContainer .quality-level-row:nth-child(${level + 1})`); // +1 to skip header row
+                var levelName = levelRow.find(`input[name="quality_level_name[]"][data-level="${level}"]`).val() || `Level ${level}`;
+                var isRange = levelRow.find(`input[name="quality_level_is_range[]"][data-level="${level}"]`).is(':checked');
+                var pointsMin = levelRow.find(`input[name="quality_level_points_min[]"][data-level="${level}"]`).val() || 0;
+                var pointsMax = levelRow.find(`input[name="quality_level_points_max[]"][data-level="${level}"]`).val() || pointsMin;
+
+                var pointsText = "";
+                if (isRange && pointsMin !== pointsMax) {
+                    pointsText = `(${pointsMax}-${pointsMin} points)`;
+                } else {
+                    pointsText = `(${pointsMin} points)`;
+                }
+
+                headerRow.append(`<th style="width: ${widthPerLevel}%;">${levelName}<br>${pointsText}</th>`);
+            }
+
+            // Score column header (ONLY for group scoring)
+            if (!individualEnabled) {
+                headerRow.append('<th style="width: 10%;">Score</th>');
+            }
+        } else if (rubricType === 'yesno') {
+            headerRow.append('<th style="width: 40%;">Criteria</th>');
+            headerRow.append('<th style="width: 40%;">Description</th>');
+            headerRow.append('<th style="width: 20%;">Option</th>');
+        } else if (rubricType === 'passfail') {
+            headerRow.append('<th style="width: 40%;">Recommendation</th>');
+            headerRow.append('<th style="width: 60%;">Options</th>');
+        }
+        rebuildPreviewTable(); // Rebuild rows to match new header
+    }
+
+    // Add a new criterion row to the rubric preview based on type
+    function addCriterionRow() {
+        var rubricType = $('#rubric_type').val();
+        var individualEnabled = $('#is_individual_enabled').is(':checked');
+        var row = $('<tr class="criterion-row"></tr>');
+        var rowCount = $('#rubricPreviewBody tr').length + 1; // For unique radio names
+        var maxScore = $('#max_score_per_criterion').val() || 0;
+
+        if (rubricType === 'numerical' && individualEnabled) {
+            row.append(`
+                <td><input type="text" class="form-control" name="criterion_description[]" required></td>
+                <td>
+                    <input type="number"
+                           class="form-control"
+                           name="criterion_score[]"
+                           value="0"
+                           min="0"
+                           max="${maxScore}"
+                           required>
+                </td>`);
+        } else if (rubricType === 'numerical') {
+            var qualityCriteriaCount = parseInt($('#qualityCriteriaCount').val()) || 1;
+
+            // Criterion Description Column (Common for both group and individual)
+            row.append(`
             <td>
                 <div class="d-flex justify-content-between align-items-center">
                     <input type="text" class="form-control criterion-description"
@@ -682,23 +704,36 @@ function addCriterionRow() {
                 </div>
             </td>
         `);
-        for (var i = 0; i < qualityCriteriaCount; i++) {
-            row.append(`
-                <td class="text-center">
-                    <input type="radio" name="criterion_${rowCount}_level" value="${i + 1}" class="criterion-level-radio"
-                           data-row="${rowCount}" data-level="${i + 1}">
+
+            // Quality Level Columns
+            for (var i = 0; i < qualityCriteriaCount; i++) {
+                if (individualEnabled) {
+                    // For individual scoring, add empty cells under quality levels
+                    row.append(`<td class="text-center"></td>`); // Empty cell
+                } else {
+                    // For group scoring, add the text input for level description
+                    row.append(`
+                    <td class="text-center">
+                        <input type="text" class="form-control criterion-level-input"
+                               name="criterion_${rowCount}_level_value[]" placeholder="Enter Description">
+                    </td>
+                `);
+                }
+            }
+
+            // Score Column (ONLY for group scoring)
+            if (!individualEnabled) {
+                var maxPoints = getMaxPoints(); // Get max possible points for a single criterion
+                row.append(`
+                <td>
+                    <input type="number" class="form-control score-input" name="criterion_score[]" value="0" min="0" max="${maxPoints}" data-row="${rowCount}" readonly>
                 </td>
             `);
-        }
-        var maxPoints = getMaxPoints(); // Get max possible points for a single criterion
-        row.append(`
-            <td>
-                <input type="number" class="form-control score-input" name="criterion_score[]" value="0" min="0" max="${maxPoints}" data-row="${rowCount}" readonly>
-            </td>
-        `);
-    } else if (rubricType === 'yesno') {
-        // Yes/No layout
-        row.append(`
+            }
+
+        } else if (rubricType === 'yesno') {
+            // Yes/No layout
+            row.append(`
             <td>
                  <div class="d-flex justify-content-between align-items-center">
                     <input type="text" class="form-control criterion-input"
@@ -709,12 +744,12 @@ function addCriterionRow() {
                 </div>
             </td>
         `);
-        row.append(`
+            row.append(`
             <td>
                 <input type="text" class="form-control description-input" name="criterion_detail[]" placeholder="Enter description">
             </td>
         `);
-        row.append(`
+            row.append(`
             <td class="text-center">
                 <select class="form-select yesno-option" name="criterion_yesno[]">
                     <option value="Yes">Yes</option>
@@ -722,115 +757,125 @@ function addCriterionRow() {
                 </select>
             </td>
         `);
-    } else if (rubricType === 'passfail') {
-        // Pass/Fail layout - structure depends on row number
-        var recommendationText = (rowCount === 1)
-            ? ($('#passRecommendationText').val() || 'Pass Recommendation:')
-            : ($('#failRecommendationText').val() || 'Fail Recommendation:');
+        } else if (rubricType === 'passfail') {
+            // Pass/Fail layout - structure depends on row number
+            var recommendationText = (rowCount === 1) ?
+                ($('#passRecommendationText').val() || 'Pass Recommendation:') :
+                ($('#failRecommendationText').val() || 'Fail Recommendation:');
 
-        // Column 1: Recommendation Text (Input)
-        row.append(`
+            // Column 1: Recommendation Text (Input)
+            row.append(`
             <td>
                  <input type="text" class="form-control recommendation-input"
                         name="criterion_recommendation[]" value="${recommendationText}" required>
                  <!-- No delete button for pass/fail rows -->
             </td>
         `);
-        // Column 2: Container for radio buttons - populated by updatePassFailPreviewOptions
-        row.append(`<td class="text-center passfail-options-cell" data-row="${rowCount}"></td>`);
-    }
-
-    $('#rubricPreviewBody').append(row);
-
-    // If pass/fail, immediately populate the options for the new row(s)
-    if (rubricType === 'passfail') {
-        updatePassFailPreviewOptions();
-    }
-
-    updateTotalScoreDisplay(); // Update footer visibility and score for numerical
-}
-
-// Update existing rows (Only relevant for Numerical type when quality levels change)
-function updateExistingRows() {
-     var rubricType = $('#rubric_type').val();
-     if (rubricType !== 'numerical') return; // Only needed for numerical
-
-    var rows = $('#rubricPreviewBody tr.criterion-row');
-    var qualityCriteriaCount = parseInt($('#qualityCriteriaCount').val()) || 1;
-    var maxPoints = getMaxPoints(); // Recalculate max points
-
-    rows.each(function(rowIndex) {
-        var $row = $(this);
-        var rowNum = rowIndex + 1;
-
-        // Clear existing quality level cells (keep the first and last columns)
-        $row.find('td:not(:first-child):not(:last-child)').remove();
-
-        // Add cells for each quality level
-        var scoreCell = $row.find('td:last-child');
-
-        for (var i = 0; i < qualityCriteriaCount; i++) {
-            $(`
-                <td class="text-center">
-                    <input type="radio" name="criterion_${rowNum}_level"
-                           value="${i + 1}" class="criterion-level-radio"
-                           data-row="${rowNum}" data-level="${i + 1}">
-                </td>
-            `).insertBefore(scoreCell);
+            // Column 2: Container for radio buttons - populated by updatePassFailPreviewOptions
+            row.append(`<td class="text-center passfail-options-cell" data-row="${rowCount}"></td>`);
         }
 
-        // Update max value for score input
-        scoreCell.find('input.score-input').attr('max', maxPoints).val(0); // Reset score to 0
-    });
+        $('#rubricPreviewBody').append(row);
 
-    updateTotalScoreDisplay();
-}
+        // If pass/fail, immediately populate the options for the new row(s)
+        if (rubricType === 'passfail') {
+            updatePassFailPreviewOptions();
+        }
 
-// Get the maximum points (Only for Numerical) - Updated for ranges
-function getMaxPoints() {
-    var maxPoints = 0;
-    // Iterate through the max point inputs in the configuration
-    $('#qualityCriteriaContainer .points-max').each(function() {
-        var points = parseInt($(this).val()) || 0;
-        maxPoints = Math.max(maxPoints, points);
-    });
-    return maxPoints;
-}
-
-// Update the total score display and visibility
-function updateTotalScoreDisplay() {
-    var rubricType = $('#rubric_type').val();
-    var footer = $('#rubricFooter');
-    var totalScoreDisplay = $('#totalScoreDisplay');
-    var maxTotalScoreInput = $('#maxTotalScore');
-
-    if (rubricType === 'numerical') {
-        var totalScore = 0;
-        $('input.score-input').each(function() {
-            totalScore += parseInt($(this).val()) || 0;
-        });
-        totalScoreDisplay.text(totalScore);
-        maxTotalScoreInput.val(totalScore);
-        footer.show(); // Show footer for numerical
-    } else {
-        totalScoreDisplay.text(''); // Clear display
-        maxTotalScoreInput.val(''); // Clear hidden input
-        footer.hide(); // Hide footer for non-numerical
+        updateTotalScoreDisplay(); // Update footer visibility and score for numerical
     }
-}
 
-// Generate inputs for Pass/Fail modifiers
-function generatePassFailModifierInputs() {
-    var count = parseInt($('#passModifierCount').val());
-    var container = $('#modifierInputsContainer');
-    container.empty(); // Clear previous inputs
+    // Update existing rows (Only relevant for Numerical type when quality levels change)
+    function updateExistingRows() {
+        var rubricType = $('#rubric_type').val();
+        if (rubricType !== 'numerical') return; // Only needed for numerical
 
-    // Regenerate Pass Modifier Inputs (now textareas)
-    for (var i = 1; i <= count; i++) {
-        var thresholdInput = $(`#passThresholds .pass-threshold[data-modifier="${i}"]`);
-        var thresholdLabel = $(`#passThresholds .modifier-threshold[data-modifier="${i}"] label`);
+        var individualEnabled = $('#is_individual_enabled').is(':checked');
+        var rows = $('#rubricPreviewBody tr.criterion-row');
+        var qualityCriteriaCount = parseInt($('#qualityCriteriaCount').val()) || 1;
+        var maxPoints = getMaxPoints(); // Recalculate max points
 
-        container.append(`
+        rows.each(function(rowIndex) {
+            var $row = $(this);
+            var rowNum = rowIndex + 1;
+
+            // Find the criteria cell (first cell) and score cell (last cell, only if group scoring)
+            var criteriaCell = $row.find('td:first-child');
+            var scoreCell = individualEnabled ? null : $row.find('td:last-child');
+
+            // Remove existing quality level cells (all cells between first and potential last)
+            $row.find('td').slice(1, scoreCell ? -1 : undefined).remove();
+
+            // Add new cells for each quality level
+            var insertBeforeCell = scoreCell || null; // Insert before score cell or append if no score cell
+
+            for (var i = 0; i < qualityCriteriaCount; i++) {
+                var newCell;
+                if (individualEnabled) {
+                    newCell = $('<td class="text-center"></td>'); // Empty cell for individual
+                } else {
+                    // Cell with input for group scoring
+                    newCell = $(`<td class="text-center">
+                                <input type="text" class="form-control criterion-level-input"
+                                       name="criterion_${rowNum}_level_value[]" placeholder="Enter description" required>
+                           </td>`);
+                }
+
+                if (insertBeforeCell) {
+                    newCell.insertBefore(insertBeforeCell);
+                } else {
+                    $row.append(newCell); // Append if scoreCell doesn't exist (individual scoring)
+                }
+            }
+
+            // Update max value for score input if it exists (group scoring)
+            if (scoreCell) {
+                scoreCell.find('input.score-input').attr('max', maxPoints).val(0); // Reset score to 0
+            }
+        });
+
+        updateTotalScoreDisplay();
+    }
+
+    // Update the total score display and visibility
+    function updateTotalScoreDisplay() {
+        var rubricType = $('#rubric_type').val();
+        var individualEnabled = $('#is_individual_enabled').is(':checked'); // Check if individual scoring is enabled
+        var footer = $('#rubricFooter');
+        var totalScoreDisplay = $('#totalScoreDisplay');
+        var maxTotalScoreInput = $('#maxTotalScore');
+
+        // Show footer ONLY for numerical AND group scoring
+        if (rubricType === 'numerical' && !individualEnabled) {
+            var totalScore = 0;
+            // Sum scores for group criteria (score inputs only exist in this case)
+            $('#rubricPreviewBody tr.criterion-row').each(function() {
+                totalScore += parseInt($(this).find('input.score-input').val()) || 0;
+            });
+
+            totalScoreDisplay.text(totalScore);
+            maxTotalScoreInput.val(totalScore);
+            footer.show();
+        } else {
+            // Hide footer for non-numerical types OR individual numerical scoring
+            totalScoreDisplay.text(''); // Clear display
+            maxTotalScoreInput.val(''); // Clear hidden input
+            footer.hide();
+        }
+    }
+
+    // --- MOVED Function: Generate inputs for Pass/Fail modifiers ---
+    function generatePassFailModifierInputs() {
+        var count = parseInt($('#passModifierCount').val());
+        var container = $('#modifierInputsContainer');
+        container.empty(); // Clear previous inputs
+
+        // Regenerate Pass Modifier Inputs (now textareas)
+        for (var i = 1; i <= count; i++) {
+            var thresholdInput = $(`#passThresholds .pass-threshold[data-modifier="${i}"]`);
+            var thresholdLabel = $(`#passThresholds .modifier-threshold[data-modifier="${i}"] label`);
+
+            container.append(`
             <div class="row mb-2 modifier-row">
                 <div class="col-md-12">
                     <label class="form-label">Pass Modifier ${i} Description</label>
@@ -839,542 +884,693 @@ function generatePassFailModifierInputs() {
             </div>
         `);
 
-        // Show/Hide and update label for corresponding threshold input
-        if (thresholdInput.length) {
-             $(`#passThresholds .modifier-threshold[data-modifier="${i}"]`).show();
-             // Label update logic might need adjustment if modifier text is long
-             thresholdLabel.text(`Pass Modifier ${i} (%)`);
+            // Show/Hide and update label for corresponding threshold input
+            if (thresholdInput.length) {
+                $(`#passThresholds .modifier-threshold[data-modifier="${i}"]`).show();
+                // Label update logic might need adjustment if modifier text is long
+                thresholdLabel.text(`Pass Modifier ${i} (%)`);
+            }
         }
-    }
-     // Hide unused threshold inputs
-    for (var j = count + 1; j <= 3; j++) {
-        $(`#passThresholds .modifier-threshold[data-modifier="${j}"]`).hide();
-    }
+        // Hide unused threshold inputs
+        for (var j = count + 1; j <= 3; j++) {
+            $(`#passThresholds .modifier-threshold[data-modifier="${j}"]`).hide();
+        }
 
-    updatePassFailPreviewOptions(); // Update preview after generating inputs
-}
-
-// Update radio button options in Pass/Fail preview rows
-function updatePassFailPreviewOptions() {
-    var modifierCount = parseInt($('#passModifierCount').val());
-    var failText = $('#failOptionText').val() || 'Fail Description'; // Now a description
-    var modifierTexts = {};
-
-    // Get modifier descriptions
-    for (var i = 1; i <= modifierCount; i++) {
-        modifierTexts[i] = $(`.modifier-text[data-modifier="${i}"]`).val() || `Pass Option ${i} Description`;
+        updatePassFailPreviewOptions(); // Update preview after generating inputs
     }
 
-    $('#rubricPreviewBody tr.criterion-row').each(function() {
-        var $row = $(this);
-        var optionsCell = $row.find('.passfail-options-cell');
-        if (!optionsCell.length) return; // Skip if not a pass/fail row
+    // --- MOVED Function: Update radio button options in Pass/Fail preview rows ---
+    function updatePassFailPreviewOptions() {
+        var modifierCount = parseInt($('#passModifierCount').val());
+        var failText = $('#failOptionText').val() || 'Fail Description'; // Now a description
+        var modifierTexts = {};
 
-        var rowNum = optionsCell.data('row');
-        var radioGroupName = `criterion_passfail_selection`; // Use one name for the whole rubric
-        optionsCell.empty(); // Clear existing options
+        // Get modifier descriptions
+        for (var i = 1; i <= modifierCount; i++) {
+            modifierTexts[i] = $(`.modifier-text[data-modifier="${i}"]`).val() || `Pass Option ${i} Description`;
+        }
 
-        if (rowNum === 1) { // Row 1: Pass Modifiers
-            // Add radio buttons for pass modifiers
-            for (var i = 1; i <= modifierCount; i++) {
-                optionsCell.append(`
+        $('#rubricPreviewBody tr.criterion-row').each(function() {
+            var $row = $(this);
+            var optionsCell = $row.find('.passfail-options-cell');
+            if (!optionsCell.length) return; // Skip if not a pass/fail row
+
+            var rowNum = optionsCell.data('row');
+            var radioGroupName = `criterion_passfail_selection`; // Use one name for the whole rubric
+            optionsCell.empty(); // Clear existing options
+
+            if (rowNum === 1) { // Row 1: Pass Modifiers
+                // Add radio buttons for pass modifiers
+                for (var i = 1; i <= modifierCount; i++) {
+                    optionsCell.append(`
                     <div class="form-check">
                         <input class="form-check-input passfail-radio" type="radio" name="${radioGroupName}" id="row${rowNum}_mod${i}" value="pass_${i}">
                         <label class="form-check-label text-start d-block" for="row${rowNum}_mod${i}">${modifierTexts[i]}</label>
                     </div>
                 `);
-            }
-        } else if (rowNum === 2) { // Row 2: Fail Option
-            // Add radio button for fail
-            optionsCell.append(`
+                }
+            } else if (rowNum === 2) { // Row 2: Fail Option
+                // Add radio button for fail
+                optionsCell.append(`
                 <div class="form-check">
                     <input class="form-check-input passfail-radio" type="radio" name="${radioGroupName}" id="row${rowNum}_fail" value="fail" checked> <!-- Default to fail -->
                     <label class="form-check-label text-start d-block" for="row${rowNum}_fail">${failText}</label>
                 </div>
             `);
-        }
-    });
-}
-
-// Function to load rubric data for editing
-function loadRubricForEdit(rubricId) {
-    $.ajax({
-        url: 'includes/get_rubric_details.php',
-        method: 'GET',
-        data: { id: rubricId },
-        dataType: 'json',
-        success: function(response) {
-            if (response.success && response.data) {
-                var rubric = response.data.rubric;
-                var levels = response.data.levels;
-                var criteria = response.data.criteria;
-                var programs = response.data.programs || []; // Get associated programs
-
-                // --- Populate Basic Info ---
-                $('#rubricModalTitle').text('Edit Rubric');
-                $('#rubricId').val(rubric.id);
-                $('#name').val(rubric.name);
-                $('#description').val(rubric.description);
-                $('#rubric_type').val(rubric.rubric_type);
-                $('#defense_type').val(rubric.defense_type || ''); // Populate defense type
-                $('#rubric_description').val(rubric.rubric_description || '');
-
-                // --- Populate Applicable Programs ---
-                // Uncheck all first
-                $('.program-checkbox').prop('checked', false);
-                // Check programs associated with this rubric
-                programs.forEach(function(programName) {
-                    $(`.program-checkbox[value="${programName}"]`).prop('checked', true);
-                });
-                // Ensure collapse state is reset if needed (optional)
-                $('#programsCollapse').removeClass('show');
-
-                // --- Populate Type-Specific Config ---
-                $('#rubricPreviewBody').empty(); // Clear preview
-
-                if (rubric.rubric_type === 'numerical') {
-                    $('#numericalConfig').show();
-                    $('#passFailModifierConfig').hide();
-                    $('#addCriterion').prop('disabled', false);
-
-                    // Populate Quality Levels Config
-                    var levelCount = levels ? levels.length : 0;
-                    $('#qualityCriteriaCount').val(levelCount || 1); // Set count input
-                    generateQualityCriteriaInputs(); // Generate structure
-
-                    // Fill generated structure with loaded data
-                    if (levels) {
-                        levels.forEach(function(level, index) {
-                            var levelRow = $(`#qualityCriteriaContainer .quality-level-row:nth-child(${index + 2})`); // +2 to skip header
-                            levelRow.find('.quality-level-input').val(level.name);
-                            levelRow.find('.points-min').val(level.points_min);
-                            levelRow.find('.points-max').val(level.points_max);
-                            levelRow.find('.quality-description-input').val(level.description || '');
-                            if (level.is_range == 1) {
-                                levelRow.find('.is-range-checkbox').prop('checked', true).trigger('change'); // Trigger change to show max input
-                            } else {
-                                levelRow.find('.is-range-checkbox').prop('checked', false).trigger('change');
-                            }
-                        });
-                    }
-                    updateRubricTableHeader(); // Update header based on loaded levels
-
-                    // Populate Criteria Rows (rebuildPreviewTable adds one, so remove it first if criteria exist)
-                    if (criteria && criteria.length > 0) {
-                         $('#rubricPreviewBody').empty(); // Clear the default row added by rebuild
-                         criteria.forEach(function(crit) {
-                            addCriterionRow(); // Add a blank row structure
-                            var lastRow = $('#rubricPreviewBody tr:last-child');
-                            lastRow.find('.criterion-description').val(crit.criterion_text);
-                         });
-                    }
-                    validateLevelPoints(); // Validate points after loading
-
-                } else if (rubric.rubric_type === 'yesno') {
-                    $('#numericalConfig').hide();
-                    $('#passFailModifierConfig').hide();
-                    $('#addCriterion').prop('disabled', false);
-                    updateRubricTableHeader(); // Rebuilds table with one row
-
-                     // Populate Criteria Rows
-                    if (criteria && criteria.length > 0) {
-                         $('#rubricPreviewBody').empty(); // Clear the default row
-                         criteria.forEach(function(crit) {
-                            addCriterionRow(); // Add a blank row structure
-                            var lastRow = $('#rubricPreviewBody tr:last-child');
-                            lastRow.find('.criterion-input').val(crit.criterion_text);
-                            lastRow.find('.description-input').val(crit.criterion_detail || '');
-                         });
-                    }
-
-
-                } else if (rubric.rubric_type === 'passfail') {
-                    $('#numericalConfig').hide();
-                    $('#passFailModifierConfig').show();
-                    $('#addCriterion').prop('disabled', true);
-
-                    // Populate Pass/Fail Config
-                    $('#passRecommendationText').val(rubric.pass_recommendation_text || 'System is accepted:');
-                    $('#failRecommendationText').val(rubric.fail_recommendation_text || 'System is rejected:');
-                    $('#failOptionText').val(rubric.fail_option_text || 'Rejected Description');
-
-                    var modifierCount = levels ? levels.length : 1;
-                    $('#passModifierCount').val(modifierCount);
-                    generatePassFailModifierInputs(); // Generate structure
-
-                    // Fill modifier descriptions
-                    if (levels) {
-                        levels.forEach(function(level, index) {
-                             $(`.modifier-text[data-modifier="${index + 1}"]`).val(level.description || `Modifier ${index + 1} Description`);
-                        });
-                    }
-
-                    // Populate thresholds
-                    $('#total_pass').val(rubric.pass_threshold_1 || 100);
-                    $('#minor_revision_pass').val(rubric.pass_threshold_2 || 75);
-                    $('#major_revision_pass').val(rubric.pass_threshold_3 || 65);
-
-                    updateRubricTableHeader(); // Rebuilds the 2 fixed rows
-                }
-
-                updateTotalScoreDisplay(); // Recalculate score if numerical
-                $('#rubricModal').modal('show');
-
-            } else {
-                showToast('Error', response.message || 'Could not load rubric details.', 'error');
             }
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error loading rubric:", xhr.responseText);
-            showToast('Error', 'Failed to fetch rubric details: ' + error, 'error');
-        }
-    });
-}
-
-// Function to save rubric data (Add or Edit)
-function saveRubric() {
-    // --- Add validation check before saving ---
-    var rubricType = $('#rubric_type').val();
-    if (rubricType === 'numerical' && !validateLevelPoints()) {
-        showToast('Error', 'Cannot save. Point ranges overlap between quality levels.', 'error');
-        return; // Stop saving if points overlap
-    }
-    // --- End validation check ---
-
-    var formData = new FormData($('#rubricForm')[0]); // Get basic form data
-    var rubricType = $('#rubric_type').val();
-    var rubricId = $('#rubricId').val();
-
-    // --- Collect Applicable Programs ---
-    var selectedPrograms = [];
-    $('.program-checkbox:checked').each(function() {
-        selectedPrograms.push($(this).val());
-    });
-    formData.append('programs', JSON.stringify(selectedPrograms)); // Send as JSON string
-
-    // --- Collect Defense Type ---
-    // Already included in formData by name="defense_type"
-
-    // --- Collect Numerical Levels ---
-    var levelsData = [];
-    if (rubricType === 'numerical') {
-        $('#qualityCriteriaContainer .quality-level-row').each(function(index) {
-            var level = index + 1;
-            levelsData.push({
-                level_index: level,
-                name: $(this).find('.quality-level-input').val(),
-                description: $(this).find('.quality-description-input').val(),
-                points_min: $(this).find('.points-min').val(),
-                points_max: $(this).find('.points-max').val(),
-                is_range: $(this).find('.is-range-checkbox').is(':checked') ? 1 : 0
-            });
         });
-        formData.append('levels', JSON.stringify(levelsData));
     }
 
-    // --- Collect Pass/Fail Levels (Modifiers) ---
-    if (rubricType === 'passfail') {
-         $('#modifierInputsContainer .modifier-row').each(function(index) {
-            var level = index + 1;
-            levelsData.push({
-                level_index: level,
-                name: `Modifier ${level}`,
-                description: $(this).find('.modifier-text').val(),
-            });
-        });
-        formData.append('levels', JSON.stringify(levelsData));
-        formData.append('pass_recommendation_text', $('#passRecommendationText').val());
-        formData.append('fail_recommendation_text', $('#failRecommendationText').val());
-        formData.append('fail_option_text', $('#failOptionText').val());
-    }
-
-
-    // --- Collect Criteria Rows (Numerical & Yes/No) ---
-    var criteriaData = [];
-    if (rubricType === 'numerical' || rubricType === 'yesno') {
-        $('#rubricPreviewBody tr.criterion-row').each(function(index) {
-            var criterionText = '';
-            var criterionDetail = null;
-            if (rubricType === 'numerical') {
-                criterionText = $(this).find('.criterion-description').val();
-            } else { // yesno
-                criterionText = $(this).find('.criterion-input').val();
-                criterionDetail = $(this).find('.description-input').val();
-            }
-            criteriaData.push({
-                order_index: index,
-                criterion_text: criterionText,
-                criterion_detail: criterionDetail // Will be null for numerical
-            });
-        });
-         formData.append('criteria', JSON.stringify(criteriaData));
-    }
-
-    // Determine endpoint based on whether it's an add or edit
-    var url = rubricId ? 'includes/edit_items.php' : 'includes/add_items.php';
-    if (rubricId) {
-        formData.set('id', rubricId);
-    }
-     formData.set('table', 'rubrics');
-
-    $.ajax({
-        url: url,
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                $('#rubricModal').modal('hide');
-                loadRubrics();
-                showToast('Success', 'Rubric saved successfully!', 'success');
-            } else {
-                showToast('Error', response.message || 'Failed to save rubric.', 'error');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error("AJAX Error saving rubric:", xhr.responseText);
-            showToast('Error', 'Failed to save rubric: ' + error, 'error');
-        }
-    });
-}
-
-// Function to initiate rubric deletion
-function deleteRubric(rubricId) {
-    $('#rubricToDeleteId').val(rubricId);
-    $('#rubricDeleteConfirmModal').modal('show');
-}
-
-// Event Listeners
-$(document).ready(function() {
-    // Unbind any existing click handlers to prevent duplication
-    $('.add-btn[data-table="rubrics"]').off('click');
-    $('.edit-rubric-btn').off('click');
-    $('.delete-rubric-btn').off('click');
-    $('#updateQualityCriteria').off('click');
-    $('#addCriterion').off('click');
-    $('.quality-level-input, .points-input').off('input');
-    $('.criterion-level-radio').off('change');
-    $('#saveRubric').off('click');
-    $('.rubric-status').off('change');
-    $('.delete-criterion').off('click');
-    
-    // Load rubrics on page load
-    loadRubrics();
-
-    // Handle pagination clicks
-    $('#rubricsPagination').off('click').on('click', 'a.page-link', function(e) {
-        e.preventDefault();
-        var page = $(this).data('page');
-        loadRubrics(page);
-    });
-    
-    // Handle add rubric button click - use a namespaced event to avoid conflicts
-    $(document).off('click.rubrics').on('click.rubrics', '.add-btn[data-table="rubrics"]', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        // Reset form
-        $('#rubricForm')[0].reset();
-        $('#rubricId').val('');
-        $('#rubricModalTitle').text('Add New Rubric');
-        $('#rubricPreviewBody').empty();
-        $('.program-checkbox').prop('checked', false); // Uncheck all programs
-        $('#programsCollapse').removeClass('show'); // Ensure programs are collapsed
-        $('#defense_type').val(''); // Reset defense type
-        
-        // Set default type and trigger change to set initial UI state
-        $('#rubric_type').val('numerical'); // Set default
-        $('#addCriterion').prop('disabled', false); // Ensure add button is enabled
-        $('#numericalConfig').show();
-        $('#passFailModifierConfig').hide();
-        generateQualityCriteriaInputs();
-        updateRubricTableHeader(); // This calls rebuildPreviewTable which adds 1 row
-
-        // Show the modal
-        $('#rubricModal').modal('show');
-        return false; // Important: prevent other handlers from running
-    });
-    
-    // Handle edit rubric button click - use namespaced events
-    $(document).off('click.rubricEdit').on('click.rubricEdit', '.edit-rubric-btn', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var rubricId = $(this).data('id');
-        loadRubricForEdit(rubricId);
-        return false; // Important: prevent other handlers from running
-    });
-    
-    // Handle delete rubric button click - use namespaced events
-    $(document).off('click.rubricDelete').on('click.rubricDelete', '.delete-rubric-btn', function(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        var rubricId = $(this).data('id');
-        deleteRubric(rubricId);
-        return false; // Important: prevent other handlers from running
-    });
-    
-    // Handle update quality criteria button click (Numerical Only)
-    $('#updateQualityCriteria').off('click').on('click', function() {
-        generateQualityCriteriaInputs(); // This now calls validateLevelPoints internally
-        updateRubricTableHeader();
-    });
-
-    // Handle add criterion button click (Now disabled for pass/fail)
-    $('#addCriterion').off('click').on('click', function() {
-        // Check type just in case it was re-enabled incorrectly
-        if ($('#rubric_type').val() !== 'passfail') {
-            addCriterionRow();
-        }
-    });
-
-    // Handle quality level input changes (Numerical Only)
-    $(document).off('input.rubricsQuality').on('input.rubricsQuality', '#numericalConfig .quality-level-input, #numericalConfig .points-input', function() {
-        updateRubricTableHeader();
-        validateLevelPoints(); // Validate points on any input change in the config section
-    });
-
-    // Handle criterion level radio button changes (Numerical Only) - REVISED LOGIC
-    $(document).off('change.rubricsLevel').on('change.rubricsLevel', '.criterion-level-radio', function() {
-        var rowNum = $(this).data('row'); // Changed from 'row' to 'rowNum' for clarity
-        var level = $(this).data('level');
-        var points = 0;
-
-        // Find the corresponding quality level configuration row
-        var levelConfigRow = $(`#qualityCriteriaContainer .quality-level-row:nth-child(${level + 1})`); // +1 to skip header row
-        if (levelConfigRow.length) {
-            var isRange = levelConfigRow.find(`.is-range-checkbox[data-level="${level}"]`).is(':checked');
-
-            if (isRange) {
-                // If it's a range, use the MAX points
-                points = parseInt(levelConfigRow.find(`.points-max[data-level="${level}"]`).val()) || 0;
-            } else {
-                // If it's NOT a range (single point), use the MIN points
-                points = parseInt(levelConfigRow.find(`.points-min[data-level="${level}"]`).val()) || 0;
-            }
-        }
-
-        // Update the score input for the specific row
-        $(`input.score-input[data-row="${rowNum}"]`).val(points);
-        updateTotalScoreDisplay(); // Update the total score display
-    });
-
-    // Handle save rubric button click
-    $('#saveRubric').off('click').on('click', function() {
-        saveRubric();
-    });
-
-    // Handle rubric status toggle
-    $(document).off('change.rubricStatus').on('change.rubricStatus', '.rubric-status', function() {
-        var rubricId = $(this).data('id');
-        var isActive = $(this).prop('checked');
-        
+    // Function to load rubric data for editing
+    function loadRubricForEdit(rubricId) {
         $.ajax({
-            url: 'includes/update_rubric_status.php',
-            method: 'POST',
+            url: 'includes/get_rubric_details.php',
+            method: 'GET',
             data: {
-                rubric_id: rubricId,
-                is_active: isActive ? 1 : 0
-            },
-            success: function(response) {
-                if (response.success) {
-                    // Reload to show updated status
-                    loadRubrics();
-                } else {
-                    alert('Error: ' + response.message);
-                }
-            }
-        });
-    });
-
-    // Handle delete criterion button click (Now disabled for pass/fail)
-    $(document).off('click.deleteCriterion').on('click.deleteCriterion', '.delete-criterion', function() {
-        // Check type just in case
-        if ($('#rubric_type').val() !== 'passfail') {
-            if (confirm('Are you sure you want to remove this criterion?')) {
-                $(this).closest('tr').remove();
-                updateTotalScoreDisplay();
-            }
-        }
-    });
-
-    // Handle confirm rubric delete button click
-    $(document).off('click.confirmRubricDelete').on('click.confirmRubricDelete', '#confirmRubricDelete', function() {
-        var rubricId = $('#rubricToDeleteId').val();
-        
-        $.ajax({
-            url: 'includes/delete_item.php',
-            method: 'POST',
-            data: {
-                table: 'rubrics',
                 id: rubricId
             },
+            dataType: 'json',
             success: function(response) {
-                response = JSON.parse(response);
-                if (response.success) {
-                    $('#rubricDeleteConfirmModal').modal('hide');
-                    loadRubrics();
-                    showToast('Success', 'Rubric deleted successfully', 'success');
+                if (response.success && response.data) {
+                    var rubric = response.data.rubric;
+                    var levels = response.data.levels;
+                    var criteria = response.data.criteria;
+                    var programs = response.data.programs || []; // Get associated programs
+
+                    // --- Populate Basic Info ---
+                    $('#rubricModalTitle').text('Edit Rubric');
+                    $('#rubricId').val(rubric.id);
+                    $('#name').val(rubric.name);
+                    $('#description').val(rubric.description);
+                    $('#rubric_type').val(rubric.rubric_type);
+                    $('#defense_type').val(rubric.defense_type || ''); // Populate defense type
+                    $('#rubric_description').val(rubric.rubric_description || '');
+
+                    // --- Populate Applicable Programs ---
+                    // Uncheck all first
+                    $('.program-checkbox').prop('checked', false);
+                    // Check programs associated with this rubric
+                    programs.forEach(function(programName) {
+                        $(`.program-checkbox[value="${programName}"]`).prop('checked', true);
+                    });
+                    // Ensure collapse state is reset if needed (optional)
+                    $('#programsCollapse').removeClass('show');
+
+                    // --- Populate Type-Specific Config ---
+                    $('#rubricPreviewBody').empty(); // Clear preview
+
+                    // Show/Hide config sections based on loaded type
+                    $('#numericalConfig').hide();
+                    $('#passFailModifierConfig').hide();
+                    $('#maxMembersConfig').hide();
+                    $('#addCriterion').prop('disabled', false);
+
+                    // Set the individual enabled checkbox state FIRST
+                    var individualEnabled = rubric.rubric_type === 'numerical' && rubric.is_individual_enabled;
+                    $('#is_individual_enabled').prop('checked', individualEnabled);
+
+                    if (rubric.rubric_type === 'numerical') {
+                        $('#numericalConfig').show();
+                        if (individualEnabled) {
+                            $('#maxMembersConfig').show();
+                            $('#max_members').val(rubric.max_members || 5);
+                            // --- NEW: Populate Max Score per Criterion ---
+                            $('#individualConfig').show(); // Ensure the container is visible
+                            $('#max_score_per_criterion').val(rubric.max_score_per_criterion || 100); // Set the value
+                            // --- END NEW ---
+                        }
+
+                        // Populate Quality Levels Config
+                        var levelCount = levels ? levels.length : 0;
+                        $('#qualityCriteriaCount').val(levelCount || 1); // Set count input
+                        generateQualityCriteriaInputs(); // Generate structure
+
+                        // Fill generated structure with loaded data
+                        if (levels) {
+                            levels.forEach(function(level, index) {
+                                var levelRow = $(`#qualityCriteriaContainer .quality-level-row:nth-child(${index + 2})`); // +2 to skip header
+                                levelRow.find('.quality-level-input').val(level.name);
+                                levelRow.find('.points-min').val(level.points_min);
+                                levelRow.find('.points-max').val(level.points_max);
+                                levelRow.find('.quality-description-input').val(level.description || '');
+                                if (level.is_range == 1) {
+                                    levelRow.find('.is-range-checkbox').prop('checked', true).trigger('change'); // Trigger change to show max input
+                                } else {
+                                    levelRow.find('.is-range-checkbox').prop('checked', false).trigger('change');
+                                }
+                            });
+                        }
+                        updateRubricTableHeader(); // Update header based on loaded levels AND individual flag
+
+                        // Populate Criteria Rows
+                        if (criteria && criteria.length > 0) {
+                            $('#rubricPreviewBody').empty();
+                            criteria.forEach(function(crit) {
+                                addCriterionRow(); // Adds row structure based on individualEnabled state
+                                var lastRow = $('#rubricPreviewBody tr:last-child');
+                                lastRow.find('.criterion-description').val(crit.criterion_text);
+                                lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
+                                // No need to set type selector or level inputs if individualEnabled
+                                if (!individualEnabled) {
+                                    // Populate level inputs only if group scoring
+                                    // Note: This assumes level inputs are saved/retrieved correctly.
+                                    // If `criterion_detail` stored the level input text, use it here.
+                                    // Example: Populate based on saved detail (if applicable)
+                                    // var levelInputs = lastRow.find('.criterion-level-input');
+                                    // try {
+                                    //     var details = JSON.parse(crit.criterion_detail || '[]');
+                                    //     levelInputs.each(function(idx) {
+                                    //         if (details[idx]) {
+                                    //             $(this).val(details[idx]);
+                                    //         }
+                                    //     });
+                                    // } catch (e) { console.error("Could not parse criterion detail", e); }
+                                }
+                            });
+                        }
+                        validateLevelPoints();
+
+                    } else if (rubric.rubric_type === 'yesno') {
+                        $('#numericalConfig').hide();
+                        $('#passFailModifierConfig').hide();
+                        $('#addCriterion').prop('disabled', false);
+                        updateRubricTableHeader(); // Rebuilds table with one row
+
+                        // Populate Criteria Rows
+                        if (criteria && criteria.length > 0) {
+                            $('#rubricPreviewBody').empty(); // Clear the default row
+                            criteria.forEach(function(crit) {
+                                addCriterionRow(); // Add a blank row structure
+                                var lastRow = $('#rubricPreviewBody tr:last-child');
+                                lastRow.find('.criterion-input').val(crit.criterion_text);
+                                lastRow.find('.description-input').val(crit.criterion_detail || '');
+                            });
+                        }
+
+
+                    } else if (rubric.rubric_type === 'passfail') {
+                        $('#numericalConfig').hide();
+                        $('#passFailModifierConfig').show();
+                        $('#addCriterion').prop('disabled', true);
+
+                        // Populate Pass/Fail Config
+                        $('#passRecommendationText').val(rubric.pass_recommendation_text || 'System is accepted:');
+                        $('#failRecommendationText').val(rubric.fail_recommendation_text || 'System is rejected:');
+                        $('#failOptionText').val(rubric.fail_option_text || 'Rejected Description');
+
+                        var modifierCount = levels ? levels.length : 1;
+                        $('#passModifierCount').val(modifierCount);
+                        generatePassFailModifierInputs(); // Generate structure (NOW CALLABLE)
+
+                        // Fill modifier descriptions
+                        if (levels) {
+                            levels.forEach(function(level, index) {
+                                $(`.modifier-text[data-modifier="${index + 1}"]`).val(level.description || `Modifier ${index + 1} Description`);
+                            });
+                        }
+
+                        // Populate thresholds
+                        $('#total_pass').val(rubric.pass_threshold_1 || 100);
+                        $('#minor_revision_pass').val(rubric.pass_threshold_2 || 75);
+                        $('#major_revision_pass').val(rubric.pass_threshold_3 || 65);
+
+                        updateRubricTableHeader(); // Rebuilds the 2 fixed rows
+                    }
+
+                    updateTotalScoreDisplay(); // Recalculate score if numerical
+                    $('#rubricModal').modal('show');
+
                 } else {
-                    showToast('Error', response.message || 'Unknown error occurred', 'error');
+                    showToast('Error', response.message || 'Could not load rubric details.', 'error');
                 }
             },
             error: function(xhr, status, error) {
-                console.error('AJAX Error:', xhr.responseText);
-                showToast('Error', 'Unable to delete rubric: ' + error, 'error');
+                console.error("AJAX Error loading rubric:", xhr.responseText);
+                showToast('Error', 'Failed to fetch rubric details: ' + error, 'error');
             }
         });
-    });
+    }
 
-    // Handle Rubric Type Change - MAIN UI LOGIC
-    $('#rubric_type').off('change.rubricType').on('change.rubricType', function() {
-        var type = $(this).val();
-        var addBtn = $('#addCriterion');
+    // Function to save rubric data (Add or Edit)
+    function saveRubric() {
+        // --- Add validation check before saving ---
+        var rubricType = $('#rubric_type').val();
+        if (rubricType === 'numerical' && !validateLevelPoints()) {
+            showToast('Error', 'Cannot save. Point ranges overlap between quality levels.', 'error');
+            return; // Stop saving if points overlap
+        }
+        // --- End validation check ---
 
-        // Toggle sections visibility and Add button state
-        if (type === 'numerical') {
-            $('#numericalConfig').show();
-            $('#passFailModifierConfig').hide();
-            addBtn.prop('disabled', false); // Enable add button
-            generateQualityCriteriaInputs(); // Calls validateLevelPoints internally
-        } else if (type === 'yesno') {
-            $('#numericalConfig').hide();
-            $('#passFailModifierConfig').hide();
-            addBtn.prop('disabled', false); // Enable add button
-        } else if (type === 'passfail') {
-            $('#numericalConfig').hide();
-            $('#passFailModifierConfig').show();
-            addBtn.prop('disabled', true); // Disable add button
-            generatePassFailModifierInputs();
+        var formData = new FormData($('#rubricForm')[0]); // Get basic form data
+        var rubricType = $('#rubric_type').val();
+        var rubricId = $('#rubricId').val();
+        var individualEnabled = $('#is_individual_enabled').is(':checked');
+
+        // Ensure is_individual_enabled is sent even if unchecked (value 0)
+        if (rubricType === 'numerical' && !individualEnabled) {
+            formData.append('is_individual_enabled', '0');
+        }
+        // If individual not enabled, remove max_members if it exists
+        if (rubricType !== 'numerical' || !individualEnabled) {
+            formData.delete('max_members');
         }
 
-        // Update header and rebuild table body for the new type
-        updateRubricTableHeader(); // This now calls rebuildPreviewTable
-        updateTotalScoreDisplay(); // Update footer visibility
-    });
+        // --- Collect Applicable Programs ---
+        var selectedPrograms = [];
+        $('.program-checkbox:checked').each(function() {
+            selectedPrograms.push($(this).val());
+        });
+        formData.append('programs', JSON.stringify(selectedPrograms)); // Send as JSON string
 
-    // Handle Pass/Fail Modifier Count Change
-    $('#passModifierCount').off('change.modifierCount').on('change.modifierCount', function() {
-        generatePassFailModifierInputs(); // Regenerate inputs and update preview
-    });
+        // --- Collect Defense Type ---
+        // Already included in formData by name="defense_type"
 
-     // Handle changes in dynamically generated modifier textareas and recommendation inputs
-    $(document).off('input.passFailConfig').on('input.passFailConfig',
-        '#modifierInputsContainer .modifier-text, #failOptionText, #passRecommendationText, #failRecommendationText',
-        function() {
-        // Update preview options (radio labels)
-        updatePassFailPreviewOptions();
-        // Update recommendation text in preview rows directly
-        var passRec = $('#passRecommendationText').val();
-        var failRec = $('#failRecommendationText').val();
-        $('#rubricPreviewBody tr:nth-child(1) .recommendation-input').val(passRec);
-        $('#rubricPreviewBody tr:nth-child(2) .recommendation-input').val(failRec);
-    });
+        // --- Collect Numerical Levels ---
+        var levelsData = [];
+        if (rubricType === 'numerical') {
+            $('#qualityCriteriaContainer .quality-level-row').each(function(index) {
+                var level = index + 1;
+                levelsData.push({
+                    level_index: level,
+                    name: $(this).find('.quality-level-input').val(),
+                    description: $(this).find('.quality-description-input').val(),
+                    points_min: $(this).find('.points-min').val(),
+                    points_max: $(this).find('.points-max').val(),
+                    is_range: $(this).find('.is-range-checkbox').is(':checked') ? 1 : 0
+                });
+            });
+            formData.append('levels', JSON.stringify(levelsData));
+        }
 
-    // Initial setup on document ready
-    $('#rubric_type').trigger('change.rubricType'); // Trigger change to set initial state
-});
+        // --- Collect Pass/Fail Levels (Modifiers) ---
+        if (rubricType === 'passfail') {
+            $('#modifierInputsContainer .modifier-row').each(function(index) {
+                var level = index + 1;
+                levelsData.push({
+                    level_index: level,
+                    name: `Modifier ${level}`,
+                    description: $(this).find('.modifier-text').val(),
+                });
+            });
+            formData.append('levels', JSON.stringify(levelsData));
+            formData.append('pass_recommendation_text', $('#passRecommendationText').val());
+            formData.append('fail_recommendation_text', $('#failRecommendationText').val());
+            formData.append('fail_option_text', $('#failOptionText').val());
+        }
+
+
+        // --- Collect Criteria Rows (Numerical & Yes/No) ---
+        var criteriaData = [];
+        if (rubricType === 'numerical' || rubricType === 'yesno') {
+            $('#rubricPreviewBody tr.criterion-row').each(function(index) {
+                var criterionText = '';
+                var criterionDetail = null;
+                var isIndividual = 0; // Default to Group
+                var criterionDescription = '';
+
+                if (rubricType === 'numerical') {
+
+                    criterionText = $(this).find('input[name="criterion_description[]"]').val();
+                    criterionDetail = $(this).find('.criterion-level-input').val();
+                    var criterionScore = $(this).find('input[name="criterion_score[]"]').val();
+
+                    // Only read the selector if individual scoring is enabled for the rubric
+                    if (individualEnabled) {
+                        isIndividual = 1; // Individual
+                        criterionDetail = null; // No level detail saved per criterion
+                    } else {
+                        isIndividual = 0; // Group scoring
+                    }
+                } else { // yesno
+                    criterionText = $(this).find('.criterion-input').val();
+                    criterionDetail = $(this).find('.description-input').val();
+                }
+                console.log("Criterion Text: ", criterionText);
+                console.log("Criterion Description: ", criterionDetail);
+                criteriaData.push({
+                    order_index: index,
+                    criterion_text: criterionText,
+                    criterion_detail: criterionDetail,
+                    criterion_score: criterionScore,
+                    is_individual: isIndividual // Add the flag (will be 0 if not individualEnabled or not numerical)
+                });
+            });
+            formData.append('criteria', JSON.stringify(criteriaData));
+        }
+
+        // Determine endpoint based on whether it's an add or edit
+        var url = rubricId ? 'includes/edit_items.php' : 'includes/add_items.php';
+        if (rubricId) {
+            formData.set('id', rubricId);
+        }
+        formData.set('table', 'rubrics');
+
+        $.ajax({
+            url: url,
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    $('#rubricModal').modal('hide');
+                    loadRubrics();
+                    showToast('Success', 'Rubric saved successfully!', 'success');
+                } else {
+                    showToast('Error', response.message || 'Failed to save rubric.', 'error');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error("AJAX Error saving rubric:", xhr.responseText);
+                showToast('Error', 'Failed to save rubric: ' + error, 'error');
+            }
+        });
+    }
+
+    // Function to initiate rubric deletion
+    function deleteRubric(rubricId) {
+        $('#rubricToDeleteId').val(rubricId);
+        $('#rubricDeleteConfirmModal').modal('show');
+    }
+
+    // --- UPDATED Function to load programs into checkboxes (Handles nested structure) ---
+    function loadProgramsForCheckboxes() {
+        const container = $('#programCheckboxesContainer');
+        container.html('<p class="text-muted">Loading programs...</p>'); // Show loading message
+
+        $.ajax({
+            url: 'includes/get_programs.php', // Corrected path relative to the dashboard page
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                container.empty(); // Clear loading message/previous content
+                if (response.success && response.data) {
+                    let collegeIndex = 0;
+                    for (const collegeName in response.data) {
+                        if (response.data.hasOwnProperty(collegeName)) {
+                            // Add HR if not the first college
+                            if (collegeIndex > 0) {
+                                container.append('<hr>');
+                            }
+                            container.append(`<h6>${collegeName}</h6>`); // Add college heading
+
+                            const collegeData = response.data[collegeName];
+
+                            // Check if collegeData is an array (direct programs) or object (departments)
+                            if (Array.isArray(collegeData)) {
+                                // --- College has programs directly ---
+                                collegeData.forEach(function(program) {
+                                    const checkboxId = `prog_${program.id}`;
+                                    container.append(`
+                                    <div class="form-check ms-3"> <!-- Indent programs slightly -->
+                                        <input class="form-check-input program-checkbox" type="checkbox"
+                                               value="${program.value}" id="${checkboxId}">
+                                        <label class="form-check-label" for="${checkboxId}">${program.label}</label>
+                                    </div>
+                                `);
+                                });
+                            } else if (typeof collegeData === 'object' && collegeData !== null) {
+                                // --- College has departments ---
+                                for (const departmentName in collegeData) {
+                                    if (collegeData.hasOwnProperty(departmentName)) {
+                                        // Add department subheading (optional, adjust styling as needed)
+                                        container.append(`<h7 class="ms-3 text-muted">${departmentName}</h7>`); // Use h7 or other styling
+
+                                        const programs = collegeData[departmentName];
+                                        programs.forEach(function(program) {
+                                            const checkboxId = `prog_${program.id}`;
+                                            container.append(`
+                                            <div class="form-check ms-4"> <!-- Indent programs under department -->
+                                                <input class="form-check-input program-checkbox" type="checkbox"
+                                                       value="${program.value}" id="${checkboxId}">
+                                                <label class="form-check-label" for="${checkboxId}">${program.label}</label>
+                                            </div>
+                                        `);
+                                        });
+                                    }
+                                }
+                            }
+                            collegeIndex++;
+                        }
+                    }
+                } else {
+                    container.html(`<p class="text-danger">Error loading programs: ${response.message || 'Unknown error'}</p>`);
+                }
+            },
+            error: function(xhr, status, error) {
+                container.html('<p class="text-danger">Failed to fetch programs. Please check backend script.</p>');
+                console.error("Error loading programs:", error, xhr.responseText);
+            }
+        });
+    }
+    // --- END UPDATED Function ---
+
+    // Event Listeners
+    $(document).ready(function() {
+        // Unbind any existing click handlers to prevent duplication
+        $('.add-btn[data-table="rubrics"]').off('click');
+        $('.edit-rubric-btn').off('click');
+        $('.delete-rubric-btn').off('click');
+        $('#updateQualityCriteria').off('click');
+        $('#addCriterion').off('click');
+        $('.quality-level-input, .points-input').off('input');
+        $('#saveRubric').off('click');
+        $('.rubric-status').off('change');
+        $('.delete-criterion').off('click');
+
+        // Load rubrics on page load
+        loadRubrics();
+        // --- NEW: Load programs for checkboxes ---
+        loadProgramsForCheckboxes();
+        // --- END NEW ---
+
+        // Handle pagination clicks
+        $('#rubricsPagination').off('click').on('click', 'a.page-link', function(e) {
+            e.preventDefault();
+            var page = $(this).data('page');
+            loadRubrics(page);
+        });
+
+        // Handle add rubric button click - use a namespaced event to avoid conflicts
+        $(document).off('click.rubrics').on('click.rubrics', '.add-btn[data-table="rubrics"]', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Reset form
+            $('#rubricForm')[0].reset();
+            $('#rubricId').val('');
+            $('#rubricModalTitle').text('Add New Rubric');
+            $('#rubricPreviewBody').empty();
+            $('.program-checkbox').prop('checked', false); // Uncheck all programs
+            $('#programsCollapse').removeClass('show'); // Ensure programs are collapsed
+            $('#defense_type').val(''); // Reset defense type
+
+            // Set default type and trigger change to set initial UI state
+            $('#rubric_type').val('numerical'); // Set default
+            $('#addCriterion').prop('disabled', false); // Ensure add button is enabled
+            $('#numericalConfig').show();
+            $('#passFailModifierConfig').hide();
+            generateQualityCriteriaInputs();
+            updateRubricTableHeader(); // This calls rebuildPreviewTable which adds 1 row
+
+            // Show the modal
+            $('#rubricModal').modal('show');
+            return false; // Important: prevent other handlers from running
+        });
+
+        // Handle edit rubric button click - use namespaced events
+        $(document).off('click.rubricEdit').on('click.rubricEdit', '.edit-rubric-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var rubricId = $(this).data('id');
+            loadRubricForEdit(rubricId);
+            return false; // Important: prevent other handlers from running
+        });
+
+        // Handle delete rubric button click - use namespaced events
+        $(document).off('click.rubricDelete').on('click.rubricDelete', '.delete-rubric-btn', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            var rubricId = $(this).data('id');
+            deleteRubric(rubricId);
+            return false; // Important: prevent other handlers from running
+        });
+
+        // Handle update quality criteria button click (Numerical Only)
+        $('#updateQualityCriteria').off('click').on('click', function() {
+            generateQualityCriteriaInputs(); // This now calls validateLevelPoints internally
+            updateRubricTableHeader();
+        });
+
+        // Handle add criterion button click (Now disabled for pass/fail)
+        $('#addCriterion').off('click').on('click', function() {
+            // Check type just in case it was re-enabled incorrectly
+            if ($('#rubric_type').val() !== 'passfail') {
+                addCriterionRow();
+            }
+        });
+
+        // Handle quality level input changes (Numerical Only)
+        $(document).off('input.rubricsQuality').on('input.rubricsQuality', '#numericalConfig .quality-level-input, #numericalConfig .points-input', function() {
+            updateRubricTableHeader();
+            validateLevelPoints(); // Validate points on any input change in the config section
+        });
+
+        // Handle save rubric button click
+        $('#saveRubric').off('click').on('click', function() {
+            saveRubric();
+        });
+
+        // Handle rubric status toggle
+        $(document).off('change.rubricStatus').on('change.rubricStatus', '.rubric-status', function() {
+            var $checkbox = $(this); // Reference the checkbox
+            var rubricId = $checkbox.data('id');
+            var isActive = $checkbox.prop('checked');
+            var previousState = !$checkbox.prop('checked'); // Store the state before the change
+
+            $.ajax({
+                url: 'includes/update_rubric_status.php',
+                method: 'POST',
+                data: {
+                    rubric_id: rubricId,
+                    is_active: isActive ? 1 : 0
+                },
+                dataType: 'json', // Expect JSON response
+                success: function(response) {
+                    if (response.success) {
+                        // Show success message instead of reloading the whole table
+                        showToast('Success', 'Rubric status updated successfully.', 'success');
+                        // The checkbox state remains as toggled by the user
+                    } else {
+                        // Revert the checkbox state if the update failed
+                        $checkbox.prop('checked', previousState);
+                        showToast('Error', response.message || 'Failed to update status.', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    // Revert the checkbox state on AJAX error
+                    $checkbox.prop('checked', previousState);
+                    console.error("AJAX Error updating status:", xhr.responseText);
+                    showToast('Error', 'Failed to update status: ' + error, 'error');
+                }
+            });
+        });
+
+        // Handle delete criterion button click (Now disabled for pass/fail)
+        $(document).off('click.deleteCriterion').on('click.deleteCriterion', '.delete-criterion', function() {
+            // Check type just in case
+            if ($('#rubric_type').val() !== 'passfail') {
+                if (confirm('Are you sure you want to remove this criterion?')) {
+                    $(this).closest('tr').remove();
+                    updateTotalScoreDisplay();
+                }
+            }
+        });
+
+        // Handle confirm rubric delete button click
+        $(document).off('click.confirmRubricDelete').on('click.confirmRubricDelete', '#confirmRubricDelete', function() {
+            var rubricId = $('#rubricToDeleteId').val();
+
+            $.ajax({
+                url: 'includes/delete_item.php',
+                method: 'POST',
+                data: {
+                    table: 'rubrics',
+                    id: rubricId
+                },
+                success: function(response) {
+                    response = JSON.parse(response);
+                    if (response.success) {
+                        $('#rubricDeleteConfirmModal').modal('hide');
+                        loadRubrics();
+                        showToast('Success', 'Rubric deleted successfully', 'success');
+                    } else {
+                        showToast('Error', response.message || 'Unknown error occurred', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    showToast('Error', 'Unable to delete rubric: ' + error, 'error');
+                }
+            });
+        });
+
+        // Handle Rubric Type Change - MAIN UI LOGIC
+        $('#rubric_type').off('change.rubricType').on('change.rubricType', function() {
+            var type = $(this).val();
+            var addBtn = $('#addCriterion');
+
+            // Hide all config sections initially
+            $('#numericalConfig').hide();
+            $('#passFailModifierConfig').hide();
+            // Keep individual checkbox/max members hidden until numerical is confirmed
+            $('#is_individual_enabled').prop('checked', false); // Reset checkbox
+            $('#maxMembersConfig').hide();
+
+            addBtn.prop('disabled', false); // Enable add button initially
+
+            if (type === 'numerical') {
+                $('#numericalConfig').show();
+                // Don't show maxMembersConfig yet, depends on the checkbox
+                generateQualityCriteriaInputs();
+            } else if (type === 'yesno') {
+                // No specific config section
+            } else if (type === 'passfail') {
+                $('#passFailModifierConfig').show();
+                addBtn.prop('disabled', true);
+                generatePassFailModifierInputs();
+            }
+
+            // Update header and rebuild table body for the new type
+            updateRubricTableHeader(); // Header depends on type AND individual flag state
+            updateTotalScoreDisplay();
+        }).trigger('change'); // Trigger initially to set default state
+
+        // Handle Individual Scoring Checkbox Change (within Numerical)
+        $('#is_individual_enabled').off('change.individualCheck').on('change.individualCheck', function() {
+            var individualEnabled = $(this).is(':checked');
+            $('#qualityCriteriaControls').toggle(!individualEnabled);
+            $('#individualConfig').toggle(individualEnabled);
+            if (individualEnabled) {
+                $('#maxMembersConfig').show();
+                $('#individualConfig').show(); // Show individual-specific config
+            } else {
+                $('#maxMembersConfig').hide();
+                $('#individualConfig').hide(); // Hide individual-specific config
+            }
+            // Update header and rebuild table body when this changes
+            updateRubricTableHeader(); // This will now create different rows based on the flag
+            updateTotalScoreDisplay(); // This will hide/show footer based on the flag
+        });
+
+        // Handle max score per criterion input change
+        $('#max_score_per_criterion').off('input').on('input', function() {
+            var max = $(this).val() || 0;
+            $('input[name="criterion_score[]"]').attr('max', max);
+        });
+
+        // Handle Pass/Fail Modifier Count Change
+        $('#passModifierCount').off('change.modifierCount').on('change.modifierCount', function() {
+            generatePassFailModifierInputs(); // Regenerate inputs and update preview
+        });
+
+        // Handle changes in dynamically generated modifier textareas and recommendation inputs
+        $(document).off('input.passFailConfig').on('input.passFailConfig',
+            '#modifierInputsContainer .modifier-text, #failOptionText, #passRecommendationText, #failRecommendationText',
+            function() {
+                // Update preview options (radio labels)
+                updatePassFailPreviewOptions();
+                // Update recommendation text in preview rows directly
+                var passRec = $('#passRecommendationText').val();
+                var failRec = $('#failRecommendationText').val();
+                $('#rubricPreviewBody tr:nth-child(1) .recommendation-input').val(passRec);
+                $('#rubricPreviewBody tr:nth-child(2) .recommendation-input').val(failRec);
+            });
+
+        // Initial setup on document ready - trigger type change
+        // $('#rubric_type').trigger('change.rubricType'); // Already triggered above
+    });
 </script>

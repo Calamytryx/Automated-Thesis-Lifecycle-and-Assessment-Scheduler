@@ -27,9 +27,12 @@ async function analyzeTitle(title, field, problem) {
         
         console.log("Sending similarity prompt to AI:", similarityPrompt);
         const similarityResponse = await sendMessageToModel(similarityPrompt);
-        console.log("Received similarity response:", similarityResponse);
+        console.log("aaaReceived similarity response:", similarityResponse);
         
         const [similarityScore, similarTitleMatch] = similarityResponse.split(':');
+        // console.log("Similarity Score:", similarityScore, similarTitleMatch)
+        // const scoreMatch = similarityScore.match(/\d+/);
+        // const similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
         const similarityScoreFloat = parseFloat(similarityScore.trim());
         const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
         
@@ -132,8 +135,8 @@ async function getTopThesisTopics(field) {
         console.log("Received AI response for thesis topics:", aiResponse);
         
         // Replace the default table with a Bootstrap styled table
-        let formattedResponse = marked.parse(aiResponse).replace('<table>', '<table class="table table-hover table-bordered table-striped rounded overflow-hidden">');
-        
+        let formattedResponse = aiResponse.replace('<table>', '<table class="table table-hover table-bordered table-striped rounded overflow-hidden">');
+
         // Wrap the table in a responsive div
         formattedResponse = `<div class="table-responsive">${formattedResponse}</div>`;
         

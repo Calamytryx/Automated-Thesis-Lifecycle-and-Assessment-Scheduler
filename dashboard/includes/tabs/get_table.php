@@ -9,7 +9,7 @@ if (!$table) {
     exit;
 }
 
-$allowedTables = ['users', 'thesis_topics', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations'];
+$allowedTables = ['users', 'thesis_topics', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'programs'];
 if (!in_array($table, $allowedTables)) {
     echo json_encode(['error' => 'Invalid table.']);
     exit;
@@ -18,6 +18,29 @@ if (!in_array($table, $allowedTables)) {
 $limit = 10;
 $page = isset($_GET['page']) ? (int)$_GET['page'] : 1;
 $offset = ($page - 1) * $limit;
+
+// --- add support for programs table ---
+if ($table === 'programs') {
+    $offset = ($page - 1) * $limit;
+    $stmt = $pdo->prepare("
+        SELECT id, college, department, name, specialization
+        FROM programs
+        ORDER BY id DESC
+        LIMIT :offset, :perPage
+    ");
+    $stmt->bindValue(':offset',  $offset,   PDO::PARAM_INT);
+    $stmt->bindValue(':perPage', $limit,    PDO::PARAM_INT);
+    $stmt->execute();
+    $rows  = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    $total = (int)$pdo->query("SELECT COUNT(*) FROM programs")->fetchColumn();
+
+    echo json_encode([
+        'data'         => $rows,
+        'total_pages'  => ceil($total / $limit),
+        'current_page' => $page
+    ]);
+    exit;
+}
 
 try {
     if ($table === 'defense_schedules') {

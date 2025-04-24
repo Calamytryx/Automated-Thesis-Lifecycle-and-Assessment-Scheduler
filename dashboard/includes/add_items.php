@@ -21,42 +21,70 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // --- NEW Rubric Handling ---
+    // Special handling for rubrics
     if ($table === 'rubrics') {
-        error_log("=== START ADD RUBRIC (NEW SCHEMA) ===");
-        error_log("Received POST data for rubric: " . print_r($data, true));
+        error_log("=== START ADD RUBRIC (Individual as Numerical) ===");
+        error_log("Received POST data for rubric add: " . print_r($data, true));
 
-        $pdo->beginTransaction();
         try {
-            // 1. Insert into `rubrics` table (Added defense_type)
-            $rubricSql = "INSERT INTO rubrics (name, description, rubric_type, defense_type, rubric_description,
-                                            pass_recommendation_text, fail_recommendation_text, fail_option_text,
-                                            pass_threshold_1, pass_threshold_2, pass_threshold_3, max_total_score)
-                          VALUES (:name, :description, :rubric_type, :defense_type, :rubric_description,
-                                  :pass_recommendation_text, :fail_recommendation_text, :fail_option_text,
-                                  :pass_threshold_1, :pass_threshold_2, :pass_threshold_3, :max_total_score)";
+            // Disable foreign key checks
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 0;');
+            error_log("Foreign key checks disabled.");
+
+            $pdo->beginTransaction();
+
+            // 1. Insert into the main `rubrics` table (Added is_individual_enabled, handle max_members conditionally)
+            $rubricSql = "INSERT INTO rubrics (
+                            name, description, rubric_type, is_individual_enabled, defense_type,
+                            rubric_description, pass_recommendation_text, fail_recommendation_text,
+                            fail_option_text, pass_threshold_1, pass_threshold_2, pass_threshold_3,
+                            max_total_score, max_members, created_at, updated_at
+                          ) VALUES (
+                            :name, :description, :rubric_type, :is_individual_enabled, :defense_type,
+                            :rubric_description, :pass_recommendation_text, :fail_recommendation_text,
+                            :fail_option_text, :pass_threshold_1, :pass_threshold_2, :pass_threshold_3,
+                            :max_total_score, :max_members, NOW(), NOW()
+                          )";
             $stmtRubric = $pdo->prepare($rubricSql);
 
-            // Prepare data for main rubric insert
+            $is_individual_enabled = ($data['rubric_type'] === 'numerical' && isset($data['is_individual_enabled']) && $data['is_individual_enabled'] == '1') ? 1 : 0;
+
             $rubricData = [
                 ':name' => $data['name'] ?? 'Unnamed Rubric',
                 ':description' => $data['description'] ?? '',
                 ':rubric_type' => $data['rubric_type'] ?? 'numerical',
-                ':defense_type' => empty($data['defense_type']) ? null : $data['defense_type'], // Added defense_type (allow null)
+                ':is_individual_enabled' => $is_individual_enabled, // New flag
+                ':defense_type' => empty($data['defense_type']) ? null : $data['defense_type'],
                 ':rubric_description' => $data['rubric_description'] ?? null,
-                // Pass/Fail specific fields (use null if not provided or not passfail type)
+                // Pass/Fail specific fields (null if not passfail)
                 ':pass_recommendation_text' => ($data['rubric_type'] === 'passfail') ? ($data['pass_recommendation_text'] ?? null) : null,
                 ':fail_recommendation_text' => ($data['rubric_type'] === 'passfail') ? ($data['fail_recommendation_text'] ?? null) : null,
                 ':fail_option_text' => ($data['rubric_type'] === 'passfail') ? ($data['fail_option_text'] ?? null) : null,
-                ':pass_threshold_1' => ($data['rubric_type'] === 'passfail') ? ($data['total_pass'] ?? null) : null, // Note name change total_pass -> pass_threshold_1
-                ':pass_threshold_2' => ($data['rubric_type'] === 'passfail') ? ($data['minor_revision_pass'] ?? null) : null, // Note name change minor_revision_pass -> pass_threshold_2
-                ':pass_threshold_3' => ($data['rubric_type'] === 'passfail') ? ($data['major_revision_pass'] ?? null) : null, // Note name change major_revision_pass -> pass_threshold_3
-                ':max_total_score' => ($data['rubric_type'] === 'numerical') ? ($data['max_total_score'] ?? 0) : 0 // Only relevant for numerical
+                ':pass_threshold_1' => ($data['rubric_type'] === 'passfail') ? ($data['total_pass'] ?? null) : null,
+                ':pass_threshold_2' => ($data['rubric_type'] === 'passfail') ? ($data['minor_revision_pass'] ?? null) : null,
+                ':pass_threshold_3' => ($data['rubric_type'] === 'passfail') ? ($data['major_revision_pass'] ?? null) : null,
+                // Numerical specific fields
+                ':max_total_score' => ($data['rubric_type'] === 'numerical') ? ($data['max_total_score'] ?? 0) : 0,
+                // Max members only relevant if individual scoring is enabled
+                ':max_members' => ($is_individual_enabled) ? ($data['max_members'] ?? 5) : null
             ];
 
             $stmtRubric->execute($rubricData);
             $rubricId = $pdo->lastInsertId();
-            error_log("Inserted into rubrics table. ID: " . $rubricId);
+            error_log("Inserted into rubrics table. Attempted ID: " . $rubricId);
+
+            // --- REFINED VALIDATION ---
+            // Check if lastInsertId returned a valid, positive integer ID.
+            // lastInsertId can return "0" as a string if the ID column is BIGINT and the value is 0,
+            // or false/0 if the operation failed or no ID was generated.
+            $rubricIdInt = filter_var($rubricId, FILTER_VALIDATE_INT);
+            if ($rubricIdInt === false || $rubricIdInt <= 0) {
+                 error_log("Failed to retrieve a valid positive integer ID after inserting into rubrics table. Value received: " . print_r($rubricId, true));
+                 throw new Exception("Failed to retrieve a valid ID after inserting into rubrics table.");
+            }
+            $rubricId = $rubricIdInt; // Use the validated integer ID
+            error_log("Validated Rubric ID: " . $rubricId);
+            // --- END REFINED VALIDATION ---
 
             // 2. Insert into `rubric_levels` (Numerical levels or Pass/Fail modifiers)
             if (isset($data['levels'])) {
@@ -68,7 +96,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     foreach ($levels as $level) {
                         $stmtLevel->execute([
-                            ':rubric_id' => $rubricId,
+                            ':rubric_id' => $rubricId, // Use the validated integer ID
                             ':level_index' => $level['level_index'] ?? 0,
                             ':name' => $level['name'] ?? 'Unnamed Level',
                             ':description' => $level['description'] ?? null,
@@ -87,24 +115,29 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
 
             // 3. Insert into `rubric_criteria` (Numerical or Yes/No rows)
+            // Added conditional is_individual handling for numerical type
             if (($data['rubric_type'] === 'numerical' || $data['rubric_type'] === 'yesno') && isset($data['criteria'])) {
                 $criteria = json_decode($data['criteria'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($criteria)) {
-                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index)
-                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index)";
+                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index, is_individual)
+                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index, :is_individual)";
                     $stmtCriteria = $pdo->prepare($criteriaSql);
 
                     foreach ($criteria as $criterion) {
+                        // Determine if the criterion is individual (only applicable for numerical rubrics)
+                        $criterion_is_individual = ($data['rubric_type'] === 'numerical' && $is_individual_enabled && isset($criterion['is_individual']) && $criterion['is_individual'] == '1') ? 1 : 0;
+
                         $stmtCriteria->execute([
-                            ':rubric_id' => $rubricId,
+                            ':rubric_id' => $rubricId, // Use the validated integer ID
                             ':criterion_text' => $criterion['criterion_text'] ?? 'Unnamed Criterion',
-                            ':criterion_detail' => $criterion['criterion_detail'] ?? null, // Used by Yes/No
+                            ':criterion_detail' => $criterion['criterion_detail'] ?? null, // For Yes/No description
                             ':order_index' => $criterion['order_index'] ?? 0,
+                            ':is_individual' => $criterion_is_individual // Store flag conditionally
                         ]);
                     }
-                     error_log("Inserted " . count($criteria) . " rows into rubric_criteria.");
+                    error_log("Inserted " . count($criteria) . " rows into rubric_criteria.");
                 } else {
-                     error_log("Failed to decode criteria JSON or it's not an array. Error: " . json_last_error_msg());
+                    error_log("Failed to decode criteria JSON or it's not an array. Error: " . json_last_error_msg());
                 }
             } else {
                  error_log("No 'criteria' data found in POST or type is not numerical/yesno.");
@@ -113,20 +146,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // 4. Insert into `rubric_programs`
             if (isset($data['programs'])) {
                 $programs = json_decode($data['programs'], true);
-                if (json_last_error() === JSON_ERROR_NONE && is_array($programs) && !empty($programs)) {
+                if (json_last_error() === JSON_ERROR_NONE && is_array($programs)) {
                     $programSql = "INSERT INTO rubric_programs (rubric_id, program_name) VALUES (:rubric_id, :program_name)";
                     $stmtProgram = $pdo->prepare($programSql);
                     foreach ($programs as $programName) {
-                        if (!empty($programName)) { // Ensure program name is not empty
-                            $stmtProgram->execute([
-                                ':rubric_id' => $rubricId,
-                                ':program_name' => $programName
-                            ]);
-                        }
+                        $stmtProgram->execute([
+                            ':rubric_id' => $rubricId, // Use the validated integer ID
+                            ':program_name' => $programName
+                        ]);
                     }
                     error_log("Inserted " . count($programs) . " rows into rubric_programs.");
                 } else {
-                    error_log("Failed to decode programs JSON, it's not an array, or it's empty. Error: " . json_last_error_msg());
+                    error_log("Failed to decode programs JSON or it's not an array. Error: " . json_last_error_msg());
                 }
             } else {
                 error_log("No 'programs' data found in POST.");
@@ -135,19 +166,26 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->commit();
             $response['success'] = true;
             $response['message'] = 'Rubric added successfully.';
-            error_log("=== END ADD RUBRIC (NEW SCHEMA) - SUCCESS ===");
+            error_log("=== END ADD RUBRIC (Individual as Numerical) - SUCCESS ===");
 
         } catch (Exception $e) {
-            $pdo->rollBack();
+            // Rollback transaction if started
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
             $response['message'] = 'Error adding rubric: ' . $e->getMessage();
             error_log("Error occurred, transaction rolled back: " . $e->getMessage());
-            error_log("=== END ADD RUBRIC (NEW SCHEMA) - ERROR ===");
+            error_log("=== END ADD RUBRIC (Individual as Numerical) - ERROR ===");
+        } finally {
+            // Always re-enable foreign key checks
+            $pdo->exec('SET FOREIGN_KEY_CHECKS = 1;');
+            error_log("Foreign key checks re-enabled.");
         }
 
         echo json_encode($response);
         exit; // Stop script after handling rubric
     }
-    // --- END NEW Rubric Handling ---
+    // --- END UPDATED Rubric Handling ---
 
     // Special handling for research_titles
     if ($table === 'research_titles') {

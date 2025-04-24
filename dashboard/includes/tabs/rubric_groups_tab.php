@@ -172,7 +172,7 @@ $(document).ready(function() {
          // TODO: Replace with actual AJAX call to get_available_rubrics.php
         console.log("Loading available rubrics...");
          $.ajax({
-            url: 'includes/get_available_rubrics.php', // Replace with actual endpoint
+            url: 'includes/get_available_rubrics.php', // Corrected URL
             method: 'GET',
             dataType: 'json',
             success: function(response) {
@@ -184,10 +184,14 @@ $(document).ready(function() {
                      populateAvailableRubricsDropdown();
                 } else {
                      console.warn("No available rubrics found or error loading them.");
+                     // Optionally display the message from the response
+                     if (response && response.message) {
+                         console.warn(response.message);
+                     }
                 }
             },
             error: function(xhr, status, error) {
-                console.error("Error loading available rubrics:", error);
+                console.error("Error loading available rubrics:", error, xhr.responseText); // Log responseText
                 availableRubricsSelect.empty().append('<option value="">Error loading rubrics</option>');
             }
         });
@@ -227,13 +231,11 @@ $(document).ready(function() {
         const rubricType = selectedOption.data('type');
 
         if (rubricId) {
-            // Remove placeholder if it exists
-            if (selectedRubricsList.find('.text-muted').length > 0) {
-                selectedRubricsList.empty();
-            }
+            // Remove placeholder LI specifically if it exists
+            selectedRubricsList.find('li.text-muted').remove(); // More specific removal
 
-            // Check if already added
-            if (selectedRubricsList.find(`[data-rubric-id="${rubricId}"]`).length > 0) {
+            // Check if already added (using the data attribute)
+            if (selectedRubricsList.find(`li[data-rubric-id="${rubricId}"]`).length > 0) {
                 showToast('Info', 'Rubric already added to this group.', 'warning');
                 return;
             }
@@ -314,29 +316,50 @@ $(document).ready(function() {
         const groupName = $('#groupName').val().trim();
         const groupDescription = $('#groupDescription').val().trim();
         let rubrics = [];
+        let invalidRubricFound = false; // Flag for validation
 
         if (!groupName) {
             showToast('Error', 'Group Name is required.', 'error');
             return;
         }
 
+        // --- Client-side Validation: Check if selected rubrics still exist ---
+        const validRubricIds = allRubricsData.map(r => r.id.toString()); // Get currently known valid IDs
+        // --- End Validation ---
+
         selectedRubricsList.find('li[data-rubric-id]').each(function(index) {
-            const rubricId = $(this).data('rubric-id');
+            const rubricId = $(this).data('rubric-id').toString(); // Ensure string for comparison
             const rubricType = $(this).data('rubric-type');
+            const rubricName = $(this).find('span:first').contents().filter(function() { return this.nodeType === 3; }).text().trim(); // Get rubric name from text node
+
+            // --- Client-side Validation: Check ID existence ---
+            if (!validRubricIds.includes(rubricId)) {
+                showToast('Error', `Rubric "${rubricName}" (ID: ${rubricId}) no longer exists or is inactive. Please remove it before saving.`, 'error');
+                invalidRubricFound = true;
+                return false; // Stop .each loop
+            }
+            // --- End Validation ---
+
             let weight = null;
             if (rubricType === 'numerical') {
                 weight = parseFloat($(this).find('.rubric-weight').val()) || null;
-                 // Ensure weight is null if not a valid number or zero
                 if (weight !== null && (isNaN(weight) || weight < 0)) {
                     weight = null;
                 }
             }
             rubrics.push({
-                rubric_id: rubricId,
+                rubric_id: rubricId, // Keep as string or number, backend should handle
                 order_index: index,
                 weight: weight
             });
         });
+
+        // --- Client-side Validation: Stop if invalid rubric found ---
+        if (invalidRubricFound) {
+            return;
+        }
+        // --- End Validation ---
+
 
         if (rubrics.length === 0) {
              showToast('Warning', 'Add at least one rubric to the group.', 'warning');
@@ -375,6 +398,7 @@ $(document).ready(function() {
                     showToast('Success', 'Rubric group saved successfully!', 'success');
                     rubricGroupModal.hide();
                     loadRubricGroups(); // Refresh the list
+                    loadAvailableRubrics(); // Refresh available rubrics list too
                 } else {
                     showToast('Error', response.message || 'Failed to save rubric group.', 'error');
                 }

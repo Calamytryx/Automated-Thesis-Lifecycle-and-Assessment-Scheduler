@@ -342,6 +342,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
                                 <i class="fas fa-file-alt me-2"></i>Research Titles
                             </a>
+                            <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
+                                <i class="fas fa-graduation-cap me-2"></i>Programs
+                            </a>
 
                             <!-- Defense Management -->
                             <div class="sidebar-category mb-2 mt-3">Defense Management</div>
@@ -365,7 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
                                 <i class="fas fa-cog me-2"></i>Content Management
                             </a>
-                            <a class="nav-link my-1" href="https://filemanager.ai/new/#/c/185.27.134.11/icei_38697196/eyJ0IjoiZnRwIiwiYyI6eyJ2IjowLCJwIjoiNHJkTDM0aFNkUUZjZ3JMIn19" target="_blank" role="tab">
+                            <a class="nav-link my-1" href="../files" target="_blank" role="tab">
                                 <i class="fas fa-folder-open me-2"></i>Files
                             </a>
                             <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank" role="tab">
@@ -388,6 +391,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
+
+                            <?php include 'includes/tabs/programs_tab.php'; ?>
+
                             <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
@@ -500,7 +506,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 <?php require 'app.js.php'; ?>
 
-<!-- Page Content Manager JS -->
+            
+ <!-- Page Content Manager JS -->
 <script>
     $(document).ready(function() {
         // Improved Summernote WYSIWYG editor initialization with full features

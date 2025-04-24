@@ -47,16 +47,17 @@ try {
         if ($team_id) {
             $defense_stmt = $pdo->prepare("
                 SELECT 
-                    schedule_date as date,
-                    start_time,
-                    end_time,
-                    room,
-                    team_id, -- Include team_id here
+                    ds.id as defense_schedule_id, -- Added defense schedule ID
+                    ds.schedule_date as date,
+                    ds.start_time,
+                    ds.end_time,
+                    ds.room,
+                    ds.team_id, -- Include team_id here
                     CONCAT('Defense with team: ', 
-                           (SELECT name FROM teams WHERE id = team_id)
+                           (SELECT name FROM teams WHERE id = ds.team_id)
                     ) as description
-                FROM defense_schedules 
-                WHERE team_id = ?
+                FROM defense_schedules ds -- Added alias ds
+                WHERE ds.team_id = ? -- Use alias
                 ORDER BY date, start_time
             ");
             $defense_stmt->execute([$team_id]);
@@ -66,16 +67,17 @@ try {
         // Fetch defense schedules where the user is a panelist
         $defense_stmt = $pdo->prepare("
             SELECT 
-                schedule_date as date,
-                start_time,
-                end_time,
-                room,
-                team_id, -- Include team_id here
+                ds.id as defense_schedule_id, -- Added defense schedule ID
+                ds.schedule_date as date,
+                ds.start_time,
+                ds.end_time,
+                ds.room,
+                ds.team_id, -- Include team_id here
                 CONCAT('Defense with team: ', 
-                       (SELECT name FROM teams WHERE id = team_id)
+                       (SELECT name FROM teams WHERE id = ds.team_id)
                 ) as description
-            FROM defense_schedules 
-            WHERE panelist_id = ? OR panelist_id2 = ? OR panelist_id3 = ?
+            FROM defense_schedules ds -- Added alias ds
+            WHERE ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ? -- Use alias
             ORDER BY date, start_time
         ");
         $defense_stmt->execute([$user_id, $user_id, $user_id]);
@@ -102,25 +104,6 @@ try {
         'defense_schedules' => $defense_schedules,
         'user_schedules' => $user_schedules
     ];
-
-    // Remove the single team_id from the response
-    // Each defense_schedule now contains its own team_id
-    /*
-    if ($user_type == 1) {
-        $response['team_id'] = $team_id; // Add team_id to the response for students
-    } elseif ($user_type == 2) {
-        // Fetch the team_id for the user as a panelist
-        $panelist_team_stmt = $pdo->prepare("
-            SELECT team_id 
-            FROM defense_schedules 
-            WHERE panelist_id = ? OR panelist_id2 = ? OR panelist_id3 = ?
-            LIMIT 1
-        ");
-        $panelist_team_stmt->execute([$user_id, $user_id, $user_id]);
-        $panelist_team_id = $panelist_team_stmt->fetchColumn();
-        $response['team_id'] = $panelist_team_id; // Add team_id to the response for panelists
-    }
-    */
 
     echo json_encode($response);
 } catch (PDOException $e) {

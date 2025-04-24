@@ -74,7 +74,7 @@ function force_login($email) {
     
     $sql = "SELECT * FROM users WHERE email=?";
     $stmt = $pdo->prepare($sql);
-    $stmt->execute([$email]); 
+    $stmt->execute([$email]);
     $row = $stmt->fetch();
 
     if (!$row) {

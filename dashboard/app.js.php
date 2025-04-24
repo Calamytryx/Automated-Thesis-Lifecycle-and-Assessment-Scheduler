@@ -155,6 +155,30 @@
                                     $('.is-part-time-field').hide();
                                 }
                             });
+                        } else if (table === 'programs') {
+                            var d = response.data;
+                            var html=`
+                              <input type="hidden" name="table" value="programs">
+                              <input type="hidden" name="id" value="${id}">
+                              <div class="mb-3">
+                                <label class="form-label">College</label>
+                                <input class="form-control" name="college" id="college" value="${d.college}" required>
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">Department</label>
+                                <input class="form-control" name="department" id="department" value="${d.department||''}">
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">Program Name</label>
+                                <input class="form-control" name="name" id="name" value="${d.name}" required>
+                              </div>
+                              <div class="mb-3">
+                                <label class="form-label">Parent Program ID</label>
+                                <input type="number" class="form-control" name="parent_id" id="parent_id" value="${d.parent_id||''}">
+                              </div>`;
+                            form.html(html);
+                            $('#editModal').modal('show');
+                            return;
                         } else if (table === 'thesis_topics') {
                             var formHtml = `
                             <input type="hidden" name="table" value="${table}">
@@ -520,6 +544,33 @@
                     '</div>'
                 );
                 
+                $('#addModal').modal('show');
+                return true;
+            }
+
+            // programs
+            if (table === 'programs') {
+                var form = $('#addForm');
+                form.empty();
+                form.append('<input type="hidden" name="table" value="programs">');
+                form.append(`
+                  <div class="mb-3">
+                    <label class="form-label">College</label>
+                    <input class="form-control" name="college" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Department</label>
+                    <input class="form-control" name="department">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Program Name</label>
+                    <input class="form-control" name="name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Parent Program ID</label>
+                    <input type="number" class="form-control" name="parent_id">
+                  </div>
+                `);
                 $('#addModal').modal('show');
                 return true;
             }

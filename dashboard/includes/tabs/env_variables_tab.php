@@ -407,7 +407,7 @@
                         <i class="fas fa-plus me-2"></i>Add Page Content
                     </button>
                 </div>
-                <div class="table-responsive"> 
+                <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table">
                         <thead>
                             <tr>
