@@ -595,7 +595,7 @@
                                         <td>${dateTime}</td>
                                         <td>${schedule.team_name}</td>
                                         <td>${schedule.adviser}</td>
-                                        <td>${schedule.title}</td>
+                                        <td>${schedule.thesis_title}</td> <!-- Changed from title to thesis_title -->
                                         <td>${panelists[0]}</td>
                                         <td>${panelists[1]}</td>
                                         <td>${panelists[2]}</td>
