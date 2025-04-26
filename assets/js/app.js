@@ -23,20 +23,49 @@ import { initializeChatSession, sendMessageToModel, performWebSearch } from './m
 async function analyzeTitle(title, field, problem) {
     try {
         // First prompt to check similarity
-        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${title}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response as "score(number only): 'title'".`;
+        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${title}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response strictly as "score(number only): 'title'".`;
         
         console.log("Sending similarity prompt to AI:", similarityPrompt);
         const similarityResponse = await sendMessageToModel(similarityPrompt);
-        console.log("aaaReceived similarity response:", similarityResponse);
+        console.log("Received similarity response:", similarityResponse);
         
         const [similarityScore, similarTitleMatch] = similarityResponse.split(':');
-        // console.log("Similarity Score:", similarityScore, similarTitleMatch)
-        // const scoreMatch = similarityScore.match(/\d+/);
-        // const similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
-        const similarityScoreFloat = parseFloat(similarityScore.trim());
+        console.log("Similarity Score:", similarityScore)
+        const scoreMatch = similarityScore.match(/\d+/);
+        const similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
+        // const similarityScoreFloat = parseFloat(similarityScore.trim());
         const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
+        if (similarityScoreFloat < 5) {
+            // Proceed to analyze as usual
+            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
+                Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
+                Also, assess its potential uniqueness and originality.
+                Additionally, evaluate if the research problem is feasible or if further investigation is needed to determine its feasibility.
+                If improvements are needed, suggest up to three alternative titles.
+                
+                Format the response as follows:
+                H2 Analysis of Research Title: "${title}"
+                strong Clarity: (feedback)
+                strong Specificity: (feedback)
+                strong Potential Impact: (feedback)
+                strong Uniqueness: (feedback)
+                strong Originality: (feedback)
+                strong Problem: (feedback)
+                H3 Alternative Titles:
+                1. (title 1)
+                2. (title 2)
+                3. (title 3)
+                
+                Ensure the feedback is clear, concise, and actionable. Do not use tilde or code blocks.`;
         
-        if (similarityScoreFloat < 5 || confirm(`The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+            console.log("Sending analysis prompt to AI:", analysisPrompt);
+            const aiResponse = await sendMessageToModel(analysisPrompt);
+            console.log("Received AI response:", aiResponse);
+            
+            document.getElementById('uniquenessResult').innerHTML = '<h5>AI Analysis:</h5>';
+            document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
+        } else if (confirm(`The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+            // separated the two conditions so this confirm will only show if similarity is higher than 5.
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
@@ -117,7 +146,9 @@ async function getTopThesisTopics(field) {
     try {
         // Perform a web search first
         const searchQuery = `current research areas in ${field}`;
+        console.log("Performing web search for:", searchQuery);
         const searchResults = await performWebSearch(searchQuery);
+        console.log("Web search results received:", searchResults);
 
         // Prepare the prompt with web search results
         const prompt = `Based on the following web search results about current research areas in ${field}:
@@ -136,8 +167,8 @@ async function getTopThesisTopics(field) {
         
         // Replace the default table with a Bootstrap styled table
         let formattedResponse = aiResponse.replace('<table>', '<table class="table table-hover table-bordered table-striped rounded overflow-hidden">');
-
-        // Wrap the table in a responsive div
+            
+            // Wrap the table in a responsive div
         formattedResponse = `<div class="table-responsive">${formattedResponse}</div>`;
         
         // Add a note about the nature of the topics
@@ -239,5 +270,3 @@ async function processOutputToAI() {
 document.addEventListener('DOMContentLoaded', function() {
         processOutputToAI();
 });
-
-

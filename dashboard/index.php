@@ -291,9 +291,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         const tabs = document.querySelectorAll('#v-pills-tab .nav-link');
         tabs.forEach(tab => {
             tab.addEventListener('click', function(event) {
-                // Store the ID of the clicked tab-pane
-                const clickedTabId = event.target.getAttribute('href').substring(1);
-                localStorage.setItem('activeTab', clickedTabId);
+                // Check if the clicked element is a Bootstrap pill trigger
+                if (event.target.hasAttribute('data-bs-toggle') && event.target.getAttribute('data-bs-toggle') === 'pill') {
+                    // Store the ID of the clicked tab-pane (only if it's a pill)
+                    const clickedTabId = event.target.getAttribute('href').substring(1);
+                    localStorage.setItem('activeTab', clickedTabId);
+                }
+                // For links not intended as tabs (like ../files), do nothing with localStorage
             });
         });
     });
@@ -356,6 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </a>
                             <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
                                 <i class="fas fa-th-list me-2"></i>Rubric Groups 
+                            </a>
                             <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
                                 <i class="fas fa-star me-2"></i>Evaluations
                             </a>
@@ -363,15 +368,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <i class="fas fa-tasks me-2"></i>Requirements
                             </a>
 
-                            <!-- Requirements -->
+                            <!-- Files -->
+                            <div class="sidebar-category mb-2 mt-3">File Management</div>
+                            <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
+                                <i class="fas fa-folder-open me-2"></i>Files
+                            </a>
+                            <?php 
+                            // echo "server" . $_SERVER['HTTP_HOST']; 
+                            // echo "self" . dirname($_SERVER['PHP_SELF']);
+                            ?>
+                            <!-- Settings -->
                             <div class="sidebar-category mb-2 mt-3">System</div>
                             <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
                                 <i class="fas fa-cog me-2"></i>Content Management
                             </a>
-                            <a class="nav-link my-1" href="../files" target="_blank" role="tab">
-                                <i class="fas fa-folder-open me-2"></i>Files
-                            </a>
-                            <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank" role="tab">
+                            <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank"> <!-- Removed role="tab" -->
                                 <i class="fas fa-database me-2"></i>DataBase
                             </a>
                             <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">

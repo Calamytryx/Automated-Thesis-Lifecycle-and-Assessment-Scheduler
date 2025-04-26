@@ -1,4 +1,52 @@
 <script>
+    // Add helper function to dynamically populate program dropdowns
+    function populateProgramDropdown(selectElement, selectedValue = null) {
+        selectElement.html('<option value="">Loading programs...</option>');
+        
+        $.ajax({
+            url: 'includes/get_programs_grouped.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                selectElement.empty();
+                selectElement.append('<option value="">Select Program</option>');
+                
+                if (response.success && response.programs.length > 0) {
+                    let currentCollege = null;
+                    let optgroup = null;
+                    
+                    $.each(response.programs, function(i, program) {
+                        // Create new optgroup when college changes
+                        if (program.college !== currentCollege) {
+                            currentCollege = program.college;
+                            optgroup = $('<optgroup>', { label: currentCollege });
+                            selectElement.append(optgroup);
+                        }
+                        
+                        // Add program option to current optgroup
+                        const option = $('<option>', {
+                            value: program.id,
+                            text: program.display_name
+                        });
+                        
+                        // Set selected if matches
+                        if (selectedValue !== null && selectedValue == program.id) {
+                            option.prop('selected', true);
+                        }
+                        
+                        optgroup.append(option);
+                    });
+                } else {
+                    selectElement.html('<option value="">No programs available</option>');
+                }
+            },
+            error: function() {
+                selectElement.html('<option value="">Error loading programs</option>');
+                console.error("Failed to load programs");
+            }
+        });
+    }
+
     $(document).ready(function() {
         // Create toast container if it doesn't exist
         if (!$('#toastContainer').length) {
@@ -55,7 +103,7 @@
                                 </div>
                             `;
 
-                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'program', 'area_of_expertise','gender', 'headline', 'bio'];
+                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
 
                             fieldsToShow.forEach(function(key) {
                                 var value = response.data[key] || '';
@@ -69,55 +117,6 @@
                                             <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
                                         </div>
                                     `;
-                                } else if (key === 'program'){ 
-                                    formHtml += `
-                                    <div class="mb-3">
-            <label for="program" class="form-label">Program</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                <ul class="dropdown-menu">
-                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
-                </ul>
-            </div>
-        </div>
-                                    `;
-                                }else if (key === 'area_of_expertise') {
-                                    formHtml += `
-                                        <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
-                                            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-                                            <div class="input-group">
-                                                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
-                                                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                                                <ul class="dropdown-menu">
-                                                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
-                                                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
-                                                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
-                                                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    `;
                                 } else {
                                     formHtml += `
                                         <div class="mb-3">
@@ -127,6 +126,33 @@
                                     `;
                                 }
                             });
+                            
+                            // Replace hardcoded program dropdown with select element
+                            formHtml += `
+                                <div class="mb-3">
+                                    <label for="program_id" class="form-label">Program</label>
+                                    <select class="form-select" id="program_id" name="program_id">
+                                        <option value="">Loading programs...</option>
+                                    </select>
+                                </div>
+                            `;
+                            
+                            // Area of expertise field
+                            formHtml += `
+                                <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
+                                    <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+                                    <div class="input-group">
+                                        <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                                        <ul class="dropdown-menu">
+                                            <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                                            <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                                            <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                                            <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            `;
                             
                             // Add Is Part Time radio buttons for faculty (usertype 2)
                             formHtml += `
@@ -144,6 +170,9 @@
                             `;
 
                             form.html(formHtml);
+                            
+                            // Populate the programs dropdown
+                            populateProgramDropdown($('#program_id'), response.data.program_id);
 
                             // Add event listener to show/hide area of expertise field when usertype changes
                             $('#usertype').on('change', function() {
@@ -155,106 +184,40 @@
                                     $('.is-part-time-field').hide();
                                 }
                             });
-                        } else if (table === 'programs') {
-                            var d = response.data;
-                            var html=`
-                              <input type="hidden" name="table" value="programs">
-                              <input type="hidden" name="id" value="${id}">
-                              <div class="mb-3">
-                                <label class="form-label">College</label>
-                                <input class="form-control" name="college" id="college" value="${d.college}" required>
-                              </div>
-                              <div class="mb-3">
-                                <label class="form-label">Department</label>
-                                <input class="form-control" name="department" id="department" value="${d.department||''}">
-                              </div>
-                              <div class="mb-3">
-                                <label class="form-label">Program Name</label>
-                                <input class="form-control" name="name" id="name" value="${d.name}" required>
-                              </div>
-                              <div class="mb-3">
-                                <label class="form-label">Parent Program ID</label>
-                                <input type="number" class="form-control" name="parent_id" id="parent_id" value="${d.parent_id||''}">
-                              </div>`;
-                            form.html(html);
-                            $('#editModal').modal('show');
-                            return;
-                        } else if (table === 'thesis_topics') {
-                            var formHtml = `
-                            <input type="hidden" name="table" value="${table}">
-                                <input type="hidden" name="id" value="${id}">
-                                <div class="mb-3">
-                                    <label for="topic" class="form-label">Topic</label>
-                                    <input type="text" class="form-control" id="topic" name="topic" value="${response.data.topic}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="category" class="form-label">Category</label>
-                                    <input type="text" class="form-control" id="category" name="category" value="${response.data.category}">
-                                </div>
-                            `;
-                            form.html(formHtml);
                         } else if (table === 'teams') {
                             var formHtml = `
-        <input type="hidden" name="table" value="${table}">
-        <input type="hidden" name="id" value="${id}">
-        <div class="mb-3">
-            <label for="name" class="form-label">Team Name</label>
-            <input type="text" class="form-control" id="name" name="name" value="${response.data.name}">
-        </div>
-        <div class="mb-3">
-            <label for="title" class="form-label">Research Title</label>
-            <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
-        </div>
-        <div class="mb-3">
-            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
-                </ul>
-            </div>
-        </div>
-        <div class="mb-3">
-            <label for="program" class="form-label">Program</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="program" name="program" value="${response.data.program || ''}">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                <ul class="dropdown-menu">
-                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
-                </ul>
-            </div>
-        </div>
-        <h5 class="mt-4">Team Members</h5>
-        <div id="teamMembers">
-    `;
+                            <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Team Name</label>
+                                <input type="text" class="form-control" id="name" name="name" value="${response.data.name}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Research Title</label>
+                                <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                                    <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                                    <ul class="dropdown-menu">
+                                        <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                                        <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                                        <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                                        <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="program_id" class="form-label">Program</label>
+                                <select class="form-select" id="program_id" name="program_id">
+                                    <option value="">Loading programs...</option>
+                                </select>
+                            </div>
+                            <h5 class="mt-4">Team Members</h5>
+                            <div id="teamMembers">
+                        `;
 
                             response.data.members.forEach(function(member, index) {
                                 formHtml += `
@@ -277,197 +240,260 @@
                             });
 
                             formHtml += `
-        </div>
-        <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
-    `;
-                            form.html(formHtml);
+                            </div>
+                            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+                        `;
+                        
+                        form.html(formHtml);
+                        
+                        // Populate the programs dropdown
+                        populateProgramDropdown($('#program_id'), response.data.program_id);
 
-                            // Add team member functionality
-                            $('#addTeamMember').on('click', function() {
-                                console.log('Add Team Member button clicked');
-                                addNewTeamMember();
-                            });
+                        // Add team member functionality
+                        $('#addTeamMember').on('click', function() {
+                            console.log('Add Team Member button clicked');
+                            addNewTeamMember();
+                        });
 
-                        } else if (table === 'research_titles') {
-                            var formHtml = `
-                                <input type="hidden" name="table" value="${table}">
-                                <input type="hidden" name="id" value="${id}">
-                                <div class="mb-3">
-                                    <label for="team_id" class="form-label">Team ID</label>
-                                    <input type="text" class="form-control" id="team_id" name="team_id" value="${response.data.team_id}">
-                                </div>  ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Title</label>
-                                <div class="mb-3">
-                                    <label for="title" class="form-label">Title</label>
-                                    <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
-                                </div>
-                                <div class="mb-3">
-                                    <div class="form-check">
-                                        <input class="form-check-input" type="checkbox" id="approved" name="approved" value="1" ${response.data.approved_at ? 'checked' : ''}>
-                                        <label class="form-check-label" for="approved">Approved</label>
-                                    </div>
-                                </div>
-                            `;
-                            form.html(formHtml);
-    // Duplicate teams section removed.
-                        } else if (table === 'env_variables') {
-                            var formHtml = `
-                                <input type="hidden" name="table" value="${table}">
-                                <input type="hidden" name="id" value="${id}">
-                                <div class="mb-3">
-                                    <label for="key" class="form-label">Key</label>
-                                    <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="value" class="form-label">Value</label>
-                                    <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
-                                </div>
-                            `;
-
-                            // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
-                            if (response.data.key === 'DB_PASSWORD' || response.data.key === 'MAIL_ENCRYPTION') {
-                                $('#value').val(''); // Clear the value field
-                                form.html(`
-                                <input type="hidden" name="table" value="${table}">
-                                <input type="hidden" name="id" value="${id}">
-                                <div class="mb-3">
-                                    <label for="key" class="form-label">Key</label>
-                                    <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="value" class="form-label">Value</label>
-                                    <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
-                                </div>
-                                <div class="mb-3">
-                                    <label for="old_value" class="form-label">Old Value</label>
-                                    <input type="password" class="form-control" id="old_value" name="old_value" required>
-                                </div>
-                                <div class="mb-3">
-                                    <label for="description" class="form-label">Description</label>
-                                    <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
-                                </div>
-                                
-                            `);
-                            } else {
-                                form.html(formHtml);
-                            }
-                        } else if (table === 'defense_schedules') {
-                            var formHtml = `
-                        <input type="hidden" name="table" value="${table}">
-                        <input type="hidden" name="id" value="${id}">
-                        <div class="mb-3">
-                            <label for="schedule_date" class="form-label">Schedule Date</label>
-                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required value="${response.data.schedule_date || ''}">
-                            <small class="form-text text-muted">Select date for the defense schedule.</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="start_time" class="form-label">Start Time</label>
-                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required value="${response.data.start_time || ''}"
-                                onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
-                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="end_time" class="form-label">End Time</label>
-                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required value="${response.data.end_time || ''}"
-                                onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
-                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                        </div>
-                        <div class="mb-3">
-                            <label for="room" class="form-label">Room</label>
-                            <input type="text" class="form-control" id="room" name="room" required value="${response.data.room || ''}">
-                        </div>
-                        <div class="mb-3">
-                            <label for="team_id" class="form-label">Team</label>
-                            <select class="form-select" id="team_id" name="team_id" required>
-                            <option value="">Select Team</option>
-                                ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
-                            </select>
-                        </div>
-                        <h5 class="mt-4">Panelists</h5>
-                        <div id="panelists">
-                    `;
-
-                            if (response.data.panelists) {
-                                response.data.panelists.forEach(function(panelist, index) {
-
-                                    formHtml += `
-                                <div class="mb-3 row panelist" data-user-id="${panelist.id}">
-                                    <div class="col-sm-10">
-                                        <select class="form-select" name="panelist_id[${index}]">
-                                            ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
-                                        </select>
-                                    </div>
-                                    <div class="col-sm-2">
-                                        <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-                                    </div>
-                                </div>
-                            `;
-                                    index++;
-                                });
-                            } else {
-                                console.error('Panelists data is missing in the response');
-                            }
-
-                            formHtml += `
-                        </div>
-                        <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
-                    `;
-
-                            form.html(formHtml);
-
-                            // Initialize the date picker with same options as in defense_schedules_tab.php
-                            $('.datepicker').datepicker({
-                                format: 'yyyy-mm-dd', // Match MySQL date format
-                                multidate: false,      // Single date selection for defense schedule
-                                startDate: new Date(), // Prevent selecting previous dates
-                                todayHighlight: true,  // Highlight today's date
-                                autoclose: true        // Close calendar after selection
-                            });
-
-                            // Add time picker validation
-                            $('#start_time, #end_time').on('change', function() {
-                                const startTime = $('#start_time').val();
-                                const endTime = $('#end_time').val();
-                                
-                                if (startTime && endTime && startTime >= endTime) {
-                                    showToast('Error', 'End time must be after start time', 'error');
-                                    $(this).val(''); // Clear the current field
-                                }
-                            });
-
-                            // Store staff data for addNewPanelist function
-                            window.staffData = response.staff;
-
-                            // Add panelist functionality
-                            $('#addPanelist').on('click', function() {
-                                console.log('Add Panelist button clicked');
-                                addNewPanelist(window.staffData);
-                            });
-
-                            // Remove panelist functionality
-                            $(document).on('click', '.remove-panelist', function() {
-                                $(this).closest('.panelist').remove();
-                            });
-                        } else if (table === 'rubrics') {
-                            // Don't generate form fields - they're handled in rubrics_tab.php
-                            return;
-                        }
-                        // Add more conditions for other tables as needed
+                    } else if (table === 'programs') {
+                        var d = response.data;
+                        var html=`
+                          <input type="hidden" name="table" value="programs">
+                          <input type="hidden" name="id" value="${id}">
+                          <div class="mb-3">
+                            <label class="form-label">College</label>
+                            <input class="form-control" name="college" id="college" value="${d.college}" required>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Department</label>
+                            <input class="form-control" name="department" id="department" value="${d.department||''}">
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Program Name</label>
+                            <input class="form-control" name="name" id="name" value="${d.name}" required>
+                          </div>
+                          <div class="mb-3">
+                            <label class="form-label">Parent Program ID</label>
+                            <input type="number" class="form-control" name="parent_id" id="parent_id" value="${d.parent_id||''}">
+                          </div>`;
+                        form.html(html);
                         $('#editModal').modal('show');
-                    } else {
-                        alert('Error: ' + response.message);
+                        return;
+                    } else if (table === 'thesis_topics') {
+                        var formHtml = `
+                        <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="topic" class="form-label">Topic</label>
+                                <input type="text" class="form-control" id="topic" name="topic" value="${response.data.topic}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="category" class="form-label">Category</label>
+                                <input type="text" class="form-control" id="category" name="category" value="${response.data.category}">
+                            </div>
+                        `;
+                        form.html(formHtml);
+                    } else if (table === 'research_titles') {
+                        var formHtml = `
+                            <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="team_id" class="form-label">Team ID</label>
+                                <input type="text" class="form-control" id="team_id" name="team_id" value="${response.data.team_id}">
+                            </div>  ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
+                            </div>
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="approved" name="approved" value="1" ${response.data.approved_at ? 'checked' : ''}>
+                                    <label class="form-check-label" for="approved">Approved</label>
+                                </div>
+                            </div>
+                        `;
+                        form.html(formHtml);
+                    } else if (table === 'env_variables') {
+                        var formHtml = `
+                            <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="key" class="form-label">Key</label>
+                                <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="value" class="form-label">Value</label>
+                                <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
+                            </div>
+                        `;
+
+                        // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
+                        if (response.data.key === 'DB_PASSWORD' || response.data.key === 'MAIL_ENCRYPTION') {
+                            $('#value').val(''); // Clear the value field
+                            form.html(`
+                            <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="key" class="form-label">Key</label>
+                                <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="value" class="form-label">Value</label>
+                                <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
+                            </div>
+                            <div class="mb-3">
+                                <label for="old_value" class="form-label">Old Value</label>
+                                <input type="password" class="form-control" id="old_value" name="old_value" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
+                            </div>
+                            
+                        `);
+                        } else {
+                            form.html(formHtml);
+                        }
+                    } else if (table === 'defense_schedules') {
+                        var formHtml = `
+                    <input type="hidden" name="table" value="${table}">
+                    <input type="hidden" name="id" value="${id}">
+                    <div class="mb-3">
+                        <label for="schedule_date" class="form-label">Schedule Date</label>
+                        <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required value="${response.data.schedule_date || ''}">
+                        <small class="form-text text-muted">Select date for the defense schedule.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required value="${response.data.start_time || ''}"
+                            onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                        <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_time" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required value="${response.data.end_time || ''}"
+                            onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                        <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="room" class="form-label">Room</label>
+                        <input type="text" class="form-control" id="room" name="room" required value="${response.data.room || ''}">
+                    </div>
+                    <div class="mb-3">
+                        <label for="team_id" class="form-label">Team</label>
+                        <select class="form-select" id="team_id" name="team_id" required>
+                        <option value="">Select Team</option>
+                            ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                        </select>
+                    </div>
+                    <h5 class="mt-4">Panelists</h5>
+                    <div id="panelists">
+                `;
+
+                        if (response.data.panelists) {
+                            response.data.panelists.forEach(function(panelist, index) {
+
+                                formHtml += `
+                            <div class="mb-3 row panelist" data-user-id="${panelist.id}">
+                                <div class="col-sm-10">
+                                    <select class="form-select" name="panelist_id[${index}]">
+                                        ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                                </div>
+                            </div>
+                        `;
+                                index++;
+                            });
+                        } else {
+                            console.error('Panelists data is missing in the response');
+                        }
+
+                        formHtml += `
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                `;
+
+                        form.html(formHtml);
+
+                        // Initialize the date picker with same options as in defense_schedules_tab.php
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd', // Match MySQL date format
+                            multidate: false,      // Single date selection for defense schedule
+                            startDate: new Date(), // Prevent selecting previous dates
+                            todayHighlight: true,  // Highlight today's date
+                            autoclose: true        // Close calendar after selection
+                        });
+
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function() {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
+                            
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val(''); // Clear the current field
+                            }
+                        });
+
+                        // Store staff data for addNewPanelist function
+                        window.staffData = response.staff;
+
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(window.staffData);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    } else if (table === 'requirements') { // <-- Add this block
+                        var formHtml = `
+                            <input type="hidden" name="table" value="${table}">
+                            <input type="hidden" name="id" value="${id}">
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Name</label>
+                                <input type="text" class="form-control" id="name" name="name" value="${response.data.name || ''}" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="description" class="form-label">Description</label>
+                                <textarea class="form-control" id="description" name="description" rows="3" required>${response.data.description || ''}</textarea>
+                            </div>
+                            <div class="mb-3">
+                                <label for="due_date" class="form-label">Due Date</label>
+                                <input type="date" class="form-control" id="due_date" name="due_date" value="${response.data.due_date || ''}" required>
+                            </div>
+                        `;
+                        form.html(formHtml);
+                    } else if (table === 'rubrics') {
+                        // Don't generate form fields - they're handled in rubrics_tab.php
+                        return;
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
-                    alert('Error: Unable to fetch item details - ' + error);
+                    // Add more conditions for other tables as needed
+                    $('#editModal').modal('show');
+                } else {
+                    alert('Error: ' + response.message);
                 }
-            });
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', xhr.responseText);
+                alert('Error: Unable to fetch item details - ' + error);
+            }
+        });
         });
 
         // UPDATED: Edit form submission handler with debug logs
@@ -602,36 +628,11 @@
                     '<label for="last_name" class="form-label">Last Name</label>' +
                     '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
                     '</div>' +
-                    // New Program field inserted before area of expertise
                     '<div class="mb-3">' +
-                        '<label for="program" class="form-label">Program</label>' +
-                        '<div class="input-group">' +
-                            '<input type="text" class="form-control" id="program" name="program" placeholder="Enter program">' +
-                            '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
-                            '<ul class="dropdown-menu">' +
-                                '<li><h6 class="dropdown-header">Department of Architecture</h6></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>' +
-                                '<li><div class="dropdown-divider"></div></li>' +
-                                '<li><h6 class="dropdown-header">Department of Computer Studies</h6></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>' +
-                                '<li><div class="dropdown-divider"></div></li>' +
-                                '<li><h6 class="dropdown-header">Department of Engineering</h6></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>' +
-                                '<li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>' +
-                            '</ul>' +
-                        '</div>' +
+                        '<label for="program_id" class="form-label">Program</label>' +
+                        '<select class="form-select" id="program_id" name="program_id">' +
+                            '<option value="">Loading programs...</option>' +
+                        '</select>' +
                     '</div>' +
                     '<div class="mb-3 area-expertise-field" style="display:none;">' +
                     '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
@@ -666,6 +667,9 @@
                     '<label class="form-check-label" for="addPartTime">Part Time</label>' +
                     '</div>' +
                     '</div>');
+                
+                // Populate the programs dropdown
+                populateProgramDropdown($('#program_id'));
                 
                 // Add event listener for usertype change in add form
                 $('#addForm').on('change', '#usertype', function() {
@@ -758,34 +762,10 @@
             </div>
             </div>
             <div class="mb-3">
-            <label for="program" class="form-label">Program</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="program" name="program" placeholder="Enter program">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                <ul class="dropdown-menu">
-                    <li><h6 class="dropdown-header">Department of Architecture</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Architecture">Bachelor of Science in Architecture</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Computer Studies</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Data Science">Bachelor of Science in Computer Science with specialization in Data Science</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Science with specialization in Software Engineering">Bachelor of Science in Computer Science with specialization in Software Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Network and Information Security">Bachelor of Science in Information Technology with specialization in Network and Information Security</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Information Technology with specialization in Web and Mobile Technology">Bachelor of Science in Information Technology with specialization in Web and Mobile Technology</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Library and Information Science">Bachelor of Library and Information Science</a></li>
-                    <li><div class="dropdown-divider"></div></li>
-                    <li><h6 class="dropdown-header">Department of Engineering</h6></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Aeronautical Engineering">Bachelor of Science in Aeronautical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management">Bachelor of Science in Civil Engineering with specialization in Construction Engineering & Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Structural Engineering">Bachelor of Science in Civil Engineering with specialization in Structural Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Civil Engineering with specialization in Transportation Engineering">Bachelor of Science in Civil Engineering with specialization in Transportation Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Computer Engineering">Bachelor of Science in Computer Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Engineering Technology with a major in Construction Technology and Management">Bachelor of Engineering Technology with a major in Construction Technology and Management</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electrical Engineering">Bachelor of Science in Electrical Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Electronics Engineering">Bachelor of Science in Electronics Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Industrial Engineering">Bachelor of Science in Industrial Engineering</a></li>
-                    <li><a class="dropdown-item program-option" href="#" data-value="Bachelor of Science in Mechanical Engineering">Bachelor of Science in Mechanical Engineering</a></li>
-                </ul>
-            </div>
+            <label for="program_id" class="form-label">Program</label>
+            <select class="form-select" id="program_id" name="program_id">
+                <option value="">Loading programs...</option>
+            </select>
             </div>
             <h5 class="mt-4">Team Members</h5>
             <div id="teamMembers">
@@ -853,50 +833,50 @@
                     dataType: 'json',
                     success: function(data) {
                         var formHtml = `
-                <input type="hidden" name="table" value="defense_schedules">        
-                <div class="mb-3">
-                    <label for="schedule_date" class="form-label">Schedule Date</label>
-                    <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
-                    <small class="form-text text-muted">Select date for the defense schedule.</small>
-                </div>
-                <div class="mb-3">
-                    <label for="start_time" class="form-label">Start Time</label>
-                    <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required 
-                        onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
-                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                </div>
-                <div class="mb-3">
-                    <label for="end_time" class="form-label">End Time</label>
-                    <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required
-                        onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
-                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                </div>
-                <div class="mb-3">
-                    <label for="room" class="form-label">Room</label>
-                    <input type="text" class="form-control" id="room" name="room" required>
-                </div>
-                <div class="mb-3">
-                    <label for="team_id" class="form-label">Team</label>
-                    <select class="form-select" id="team_id" name="team_id" required>
-                    <option value="">Select Team</option>
-                    ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
-                    </select>
-                </div>
-                <h5 class="mt-4">Panelists</h5>
-                <div id="panelists">
-                    <div class="mb-3 row panelist">
-                    <div class="col-sm-10">
-                        <select class="form-select" name="panelist_id[0]">
-                        <option value="">Select Panelist</option>
-                        ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                    <input type="hidden" name="table" value="${table}">        
+                    <div class="mb-3">
+                        <label for="schedule_date" class="form-label">Schedule Date</label>
+                        <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                        <small class="form-text text-muted">Select date for the defense schedule.</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="start_time" class="form-label">Start Time</label>
+                        <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required 
+                            onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                        <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="end_time" class="form-label">End Time</label>
+                        <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required
+                            onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
+                        <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                    </div>
+                    <div class="mb-3">
+                        <label for="room" class="form-label">Room</label>
+                        <input type="text" class="form-control" id="room" name="room" required>
+                    </div>
+                    <div class="mb-3">
+                        <label for="team_id" class="form-label">Team</label>
+                        <select class="form-select" id="team_id" name="team_id" required>
+                        <option value="">Select Team</option>
+                            ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
                         </select>
                     </div>
-                    <div class="col-sm-2">
-                        <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                    <h5 class="mt-4">Panelists</h5>
+                    <div id="panelists">
+                        <div class="mb-3 row panelist">
+                        <div class="col-sm-10">
+                            <select class="form-select" name="panelist_id[0]">
+                            <option value="">Select Panelist</option>
+                            ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                        </div>
+                        </div>
                     </div>
-                    </div>
-                </div>
-                <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                    <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                 `;
 
                         form.html(formHtml);
