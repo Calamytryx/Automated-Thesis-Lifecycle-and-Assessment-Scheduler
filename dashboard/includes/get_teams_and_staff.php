@@ -1,44 +1,30 @@
 <?php
-// Include database connection
-include('../../assets/setup/db.inc.php');
+require_once __DIR__ . '/../../assets/setup/db.inc.php';
+
+header('Content-Type: application/json');
 
 try {
-    // Separate queries for teams and users
-    $stmt_teams = $pdo->query("SELECT * FROM teams");
-    $teams_data = $stmt_teams->fetchAll(PDO::FETCH_ASSOC);
-    
-    $stmt_users = $pdo->prepare("SELECT * FROM users WHERE usertype = 2");
-    $stmt_users->execute();
-    $users_data = $stmt_users->fetchAll(PDO::FETCH_ASSOC);
-    
-    $data = [
-        'teams' => $teams_data,
-        'users' => $users_data
-    ];
-    
-    if ($data) {
-        $response['success'] = true;
-        $response['data'] = $data;
+    // Fetch teams
+    $teams_stmt = $pdo->query("SELECT id, name FROM teams ORDER BY name");
+    $teams = $teams_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        if (true) {
-            // Fetch teams
-            $stmt = $pdo->query("SELECT id, name FROM teams");
-            $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch staff (users with usertype 2)
+    $staff_stmt = $pdo->query("SELECT id, CONCAT(first_name, ' ', last_name) as name FROM users WHERE usertype = 2 ORDER BY name");
+    $staff = $staff_stmt->fetchAll(PDO::FETCH_ASSOC);
 
-            // Fetch all staff members
-            $stmt = $pdo->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM users WHERE usertype = 2");
-            $response['staff'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Fetch IDs of teams that already have a defense schedule
+    $scheduled_teams_stmt = $pdo->query("SELECT DISTINCT team_id FROM defense_schedules WHERE team_id IS NOT NULL");
+    $scheduled_team_ids = $scheduled_teams_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
 
-            header('Content-Type: application/json');
-            echo json_encode($response);
-        }
+    // Add has_schedule flag to teams
+    foreach ($teams as &$team) {
+        $team['has_schedule'] = in_array($team['id'], $scheduled_team_ids);
     }
+    unset($team); // Unset reference
+
+    echo json_encode(['success' => true, 'teams' => $teams, 'staff' => $staff]);
+
 } catch (PDOException $e) {
-    // Handle error
-    $response = [
-        'error' => 'Database error: ' . $e->getMessage()
-    ];
-    header('Content-Type: application/json');
-    echo json_encode($response);
+    echo json_encode(['success' => false, 'message' => 'Database error: ' . $e->getMessage()]);
 }
 ?>

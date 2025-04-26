@@ -545,17 +545,11 @@
                 };
 
                 const splitPanelists = (panelistsString) => {
-                    // Ensure the panelists are always displayed in the correct order
-                    // by using the specific panelist_id1, panelist_id2, panelist_id3 fields
-                    // instead of just splitting the string
-                    if (!panelistsString) return [null, null, null];
-                    
-                    // Split by comma, but preserve the order as they appear in the database
                     const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
                     return [
-                        panelists[0] || null,  // This corresponds to panelist_id in DB (panelist 1)
-                        panelists[1] || null,  // This corresponds to panelist_id2 in DB (panelist 2)
-                        panelists[2] || null   // This corresponds to panelist_id3 in DB (panelist 3)
+                        panelists[0] || null,
+                        panelists[1] || null,
+                        panelists[2] || null
                     ];
                 };
 
@@ -585,9 +579,6 @@
                                 const formattedEndTime = formatTime(schedule.end_time);
                                 const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
 
-                                // Make sure we're getting panelists in a consistent order from get_table.php
-                                // The get_table.php should join the panelist fields in the same order:
-                                // panelist_id, panelist_id2, panelist_id3
                                 const panelists = splitPanelists(schedule.panelists);
 
                                 tbody.innerHTML += `
@@ -595,7 +586,7 @@
                                         <td>${dateTime}</td>
                                         <td>${schedule.team_name}</td>
                                         <td>${schedule.adviser}</td>
-                                        <td>${schedule.title}</td>
+                                        <td>${schedule.thesis_title}</td>
                                         <td>${panelists[0]}</td>
                                         <td>${panelists[1]}</td>
                                         <td>${panelists[2]}</td>

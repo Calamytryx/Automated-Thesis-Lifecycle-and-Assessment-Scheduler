@@ -246,8 +246,8 @@
                         
                         form.html(formHtml);
                         
-                        // Populate the programs dropdown
-                        populateProgramDropdown($('#program_id'), response.data.program_id);
+                        // Populate the programs dropdown for the edit form, selecting the current value
+                        populateProgramDropdown($('#editForm #program_id'), response.data.program_id);
 
                         // Add team member functionality
                         $('#addTeamMember').on('click', function() {
@@ -396,17 +396,21 @@
                             ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
                         </select>
                     </div>
-                    <h5 class="mt-4">Panelists</h5>
+                    <h5 class="mt-4">Panelists (Max 3)</h5>
                     <div id="panelists">
                 `;
 
-                        if (response.data.panelists) {
+                        let panelistCount = 0; // Initialize panelist count
+                        if (response.data.panelists && Array.isArray(response.data.panelists)) {
+                            panelistCount = response.data.panelists.length; // Get initial count
                             response.data.panelists.forEach(function(panelist, index) {
-
+                                // Ensure unique indices for names
                                 formHtml += `
-                            <div class="mb-3 row panelist" data-user-id="${panelist.id}">
-                                <div class="col-sm-10">
+                            <div class="mb-3 row panelist align-items-center" data-user-id="${panelist.id}">
+                                <label class="col-sm-2 col-form-label">Panelist ${index + 1}</label>
+                                <div class="col-sm-8">
                                     <select class="form-select" name="panelist_id[${index}]">
+                                        <option value="">Select Panelist</option>
                                         ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
                                     </select>
                                 </div>
@@ -415,10 +419,9 @@
                                 </div>
                             </div>
                         `;
-                                index++;
                             });
                         } else {
-                            console.error('Panelists data is missing in the response');
+                            console.warn('Panelists data is missing or not an array in the response for edit form.');
                         }
 
                         formHtml += `
@@ -451,17 +454,36 @@
                         // Store staff data for addNewPanelist function
                         window.staffData = response.staff;
 
-                        // Add panelist functionality
+                        // Disable "Add Panelist" button initially if limit is reached
+                        if (panelistCount >= 3) {
+                            $('#addPanelist').prop('disabled', true);
+                        }
+
+                        // Add panelist functionality (uses global addNewPanelist function)
                         $('#addPanelist').on('click', function() {
-                            console.log('Add Panelist button clicked');
-                            addNewPanelist(window.staffData);
+                            console.log('Add Panelist button clicked in edit modal');
+                            addNewPanelist(window.staffData); // Call the global function
                         });
 
-                        // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function() {
+                        // Remove panelist functionality (Enable add button when removing)
+                        // Use event delegation on the form for dynamically added elements
+                        form.off('click.removePanelist').on('click.removePanelist', '.remove-panelist', function() {
                             $(this).closest('.panelist').remove();
+                            // Check count and enable button if below limit
+                            if ($('#panelists .panelist').length < 3) {
+                                $('#addPanelist').prop('disabled', false);
+                            }
+                            // Re-index remaining panelists to ensure sequential names
+                            $('#panelists .panelist').each(function(index) {
+                                $(this).find('select').attr('name', `panelist_id[${index}]`);
+                                $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
+                            });
+                            updatePanelistDropdowns(); // Update dropdowns after removal
                         });
-                    } else if (table === 'requirements') { // <-- Add this block
+
+                        // Update dropdowns initially to disable selected options in other dropdowns
+                        updatePanelistDropdowns();
+                    } else if (table === 'requirements') {
                         var formHtml = `
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
@@ -501,6 +523,32 @@
             e.preventDefault();
             console.log('DEBUG: Edit form submit event triggered');  // <-- New debug log
             var formData = new FormData(this);
+            var table = formData.get('table'); // Get table name from form data
+
+            // Add validation for defense schedule times
+            if (table === 'defense_schedules') {
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+                const minTime = '07:00';
+                const maxTime = '20:30';
+
+                if (startTime < minTime || startTime > maxTime) {
+                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (endTime < minTime || endTime > maxTime) {
+                    showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time.', 'error');
+                    return; // Prevent submission
+                }
+                // NOTE: Add server-side validation in includes/edit_items.php 
+                // to prevent rescheduling a team that already has a schedule on the selected date.
+            }
+
+
             $.ajax({
                 url: 'includes/edit_items.php', // Updated path for correct endpoint
                 method: 'POST',
@@ -775,6 +823,398 @@
         `;
                 form.append(formHtml);
 
+                // Populate the programs dropdown for the add form
+                populateProgramDropdown($('#addForm #program_id'));
+
+                // Add team member functionality
+                $('#addTeamMember').on('click', function() {
+                    console.log('Add Team Member button clicked');
+                    addNewTeamMember();
+                });
+            } else if (table === 'env_variables') {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Key</label>' +
+                    '<input type="text" class="form-control" id="key" name="key" required>' +
+                    '</div>' +
+                    '<label for="name" class="form-label">Value</label>' +
+                    '<input type="text" class="form-control" id="value" name="value" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="created_by" class="form-label">Description</label>' +
+                    '<input type="text" class="form-control" id="Description" name="description" required>' +
+                    '</div>');
+            } else if (table === 'requirements') {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="due_date" class="form-label">Due Date</label>' +
+                    '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
+                    '</div>');
+            } else if (table === 'evaluations') {
+                form.append('<div class="mb-3">' +
+                    '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
+                    '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
+                    '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="total_score" class="form-label">Total Score</label>' +
+                    '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="comments" class="form-label">Comments</label>' +
+                    '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="recommendation" class="form-label">Recommendation</label>' +
+                    '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
+                    '</div>');
+            } else if (table === 'defense_schedules') {
+                $.ajax({
+                    url: 'includes/get_teams_and_staff.php', // Endpoint to fetch teams and staff
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var formHtml = `
+                            <input type="hidden" name="table" value="${table}">
+                            <div class="mb-3">
+                                <label for="schedule_date" class="form-label">Schedule Date</label>
+                                <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                                <small class="form-text text-muted">Select date for the defense schedule.</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="start_time" class="form-label">Start Time</label>
+                                <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required>
+                                <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="end_time" class="form-label">End Time</label>
+                                <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required>
+                                <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                            </div>
+                            <div class="mb-3">
+                                <label for="room" class="form-label">Room</label>
+                                <input type="text" class="form-control" id="room" name="room" required>
+                            </div>
+                            <div class="mb-3">
+                                <label for="team_id" class="form-label">Team</label>
+                                <select class="form-select" id="team_id" name="team_id" required>
+                                    <option value="">Select Team</option>
+                                    ${data.teams.map(team => `
+                                        <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
+                                            ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
+                                        </option>
+                                    `).join('')}
+                                </select>
+                            </div>
+                            <h5 class="mt-4">Panelists</h5>
+                            <div id="panelists">
+                                <div class="mb-3 row panelist">
+                                    <div class="col-sm-10">
+                                        <select class="form-select" name="panelist_id[0]">
+                                            <option value="">Select Panelist</option>
+                                            ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                                        </select>
+                                    </div>
+                                    <div class="col-sm-2">
+                                        <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                        `;
+
+                        form.html(formHtml);
+
+                        // Initialize the date picker
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd',
+                            multidate: false,
+                            startDate: new Date(),
+                            todayHighlight: true,
+                            autoclose: true
+                        });
+
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(data.staff);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
+                    }
+                });
+            } else {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>');
+            }
+
+            // Show the modal for tables other than rubrics
+            $('#addModal').modal('show');
+        });
+
+        // 
+        // Add button functionality
+        $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
+            e.preventDefault();
+            
+            var table = $(this).data('table');
+            console.log('Main app: Add button clicked for table:', table);
+            
+            // Special handling for rubrics
+            if (table === 'rubrics') {
+                console.log('Main app: Delegating rubric add to rubrics_tab.php handler');
+                // Let the dedicated handler in rubrics_tab.php handle this
+                return true; // Allow event to bubble to other handlers
+            }
+            
+            // Special handling for thesis_topics
+            if (table === 'thesis_topics') {
+                console.log('Main app: Processing thesis topic add');
+                // For thesis topics, we'll let the main handler show the add modal,
+                // and the thesis_topics_tab.php handler will populate it
+                var form = $('#addForm');
+                form.empty();
+                form.append('<input type="hidden" name="table" value="' + table + '">');
+                
+                form.append('<div class="mb-3">' +
+                    '<label for="topic" class="form-label">Topic</label>' +
+                    '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="category" class="form-label">Category</label>' +
+                    '<input type="text" class="form-control" id="category" name="category" required>' +
+                    '</div>'
+                );
+                
+                $('#addModal').modal('show');
+                return true;
+            }
+
+            // programs
+            if (table === 'programs') {
+                var form = $('#addForm');
+                form.empty();
+                form.append('<input type="hidden" name="table" value="programs">');
+                form.append(`
+                  <div class="mb-3">
+                    <label class="form-label">College</label>
+                    <input class="form-control" name="college" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Department</label>
+                    <input class="form-control" name="department">
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Program Name</label>
+                    <input class="form-control" name="name" required>
+                  </div>
+                  <div class="mb-3">
+                    <label class="form-label">Parent Program ID</label>
+                    <input type="number" class="form-control" name="parent_id">
+                  </div>
+                `);
+                $('#addModal').modal('show');
+                return true;
+            }
+            
+            // Standard handling for all other tables
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="' + table + '">');
+
+            // Generate form fields based on table
+            if (table === 'users') {
+                form.append('<div class="mb-3">' +
+                    '<label for="username" class="form-label">Username</label>' +
+                    '<input type="text" class="form-control" id="username" name="username" placeholder="20xx-2-xxxxx" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="email" class="form-label">Email</label>' +
+                    '<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="password" class="form-label">Password</label>' +
+                    '<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="first_name" class="form-label">First Name</label>' +
+                    '<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter first name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="last_name" class="form-label">Last Name</label>' +
+                    '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                        '<label for="program_id" class="form-label">Program</label>' +
+                        '<select class="form-select" id="program_id" name="program_id">' +
+                            '<option value="">Loading programs...</option>' +
+                        '</select>' +
+                    '</div>' +
+                    '<div class="mb-3 area-expertise-field" style="display:none;">' +
+                    '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
+                    '<div class="input-group">' +
+                        '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">' +
+                        '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
+                        '<ul class="dropdown-menu">' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>' +
+                            '<li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>' +
+                        '</ul>' +
+                    '</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="usertype" class="form-label">User Type</label>' +
+                    '<select class="form-select" id="usertype" name="usertype" required>' +
+                    '<option value="" disabled selected>Select User Type</option>' +
+                    '<option value="0">Admin</option>' +
+                    '<option value="1">Student</option>' +
+                    '<option value="2">Faculty</option>' +
+                    '</select>' +
+                    '</div>' +
+                    '<div class="mb-3 is-part-time-field" style="display:none;">' +
+                    '<label class="form-label">Is Part Time</label>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
+                    '<label class="form-check-label" for="addFullTime">Full Time</label>' +
+                    '</div>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
+                    '<label class="form-check-label" for="addPartTime">Part Time</label>' +
+                    '</div>' +
+                    '</div>');
+                
+                // Populate the programs dropdown
+                populateProgramDropdown($('#program_id'));
+                
+                // Add event listener for usertype change in add form
+                $('#addForm').on('change', '#usertype', function() {
+                    if ($(this).val() == 2) {
+                        $('.area-expertise-field').show();
+                        $('.is-part-time-field').show();
+                    } else {
+                        $('.area-expertise-field').hide();
+                        $('.is-part-time-field').hide();
+                    }
+                });
+            } else if (table === 'thesis_topics') {
+                form.append('<div class="mb-3">' +
+                    '<label for="topic" class="form-label">Topic</label>' +
+                    '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="category" class="form-label">Category</label>' +
+                    '<input type="text" class="form-control" id="category" name="category" required>' +
+                    '</div>'
+                );
+            } else if (table === 'research_titles') {
+                // Fetch teams data to populate the dropdown
+                $.ajax({
+                    url: 'includes/get_teams_and_staff.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function(data) {
+                        var formHtml = `
+                            <div class="mb-3">
+                                <label for="team_id" class="form-label">Team Name</label>
+                                <select class="form-select" id="team_id" name="team_id" required>
+                                    <option value="">Select Team</option>
+                                    ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                                </select>
+                            </div>
+                            <div class="mb-3">
+                                <label for="title" class="form-label">Title</label>
+                                <input type="text" class="form-control" id="title" name="title" required>
+                            </div>
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="approved" name="approved">
+                                <label class="form-check-label" for="approved">Approved</label>
+                            </div>
+                        `;
+                        $('#addForm').append(formHtml);
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams data', 'error');
+                        // Fallback to simple input field if AJAX fails
+                        form.append('<div class="mb-3">' +
+                            '<label for="team_id" class="form-label">Team ID</label>' +
+                            '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
+                            '</div>' +
+                            '<div class="mb-3">' +
+                            '<label for="title" class="form-label">Title</label>' +
+                            '<input type="text" class="form-control" id="title" name="title" required>' +
+                            '</div>' +
+                            '<div class="mb-3 form-check">' +
+                            '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
+                            '<label class="form-check-label" for="approved">Approved</label>' +
+                            '</div>');
+                    }
+                });
+            } else if (table === 'teams') {
+                var formHtml = `
+            <div class="mb-3">
+            <label for="name" class="form-label">Team Name</label>
+            <input type="text" class="form-control" id="name" name="name" required>
+            </div>
+            <div class="mb-3">
+            <label for="title" class="form-label">Research Title</label>
+            <input type="text" class="form-control" id="title" name="title" required>
+            </div>
+            <div class="mb-3">
+            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+            <div class="input-group">
+                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
+                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                <ul class="dropdown-menu">
+                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                </ul>
+            </div>
+            </div>
+            <div class="mb-3">
+            <label for="program_id" class="form-label">Program</label>
+            <select class="form-select" id="program_id" name="program_id">
+                <option value="">Loading programs...</option>
+            </select>
+            </div>
+            <h5 class="mt-4">Team Members</h5>
+            <div id="teamMembers">
+            <!-- Team members will be added here -->
+            </div>
+            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+        `;
+                form.append(formHtml);
+
+                // Populate the programs dropdown for the add form
+                populateProgramDropdown($('#addForm #program_id'));
+
                 // Add team member functionality
                 $('#addTeamMember').on('click', function() {
                     console.log('Add Team Member button clicked');
@@ -859,10 +1299,14 @@
                         <label for="team_id" class="form-label">Team</label>
                         <select class="form-select" id="team_id" name="team_id" required>
                         <option value="">Select Team</option>
-                            ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                            ${data.teams.map(team => `
+                                <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
+                                    ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
+                                </option>
+                            `).join('')}
                         </select>
                     </div>
-                    <h5 class="mt-4">Panelists</h5>
+                    <h5 class="mt-4">Panelists (Max 3)</h5>
                     <div id="panelists">
                         <div class="mb-3 row panelist">
                         <div class="col-sm-10">
@@ -910,7 +1354,7 @@
                             addNewPanelist(window.staffData);
                         });
 
-                        // Remove panelist functionality
+                        // Remove panelist functionality (Enable add button when removing)
                         $(document).on('click', '.remove-panelist', function() {
                             $(this).closest('.panelist').remove();
                         });
@@ -930,7 +1374,6 @@
             $('#addModal').modal('show');
         });
 
-        // Add item button functionality
         $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
             e.preventDefault();
             console.log('Add item button clicked');
@@ -972,6 +1415,29 @@
                 formData.delete('new_username[]');
                 formData.delete('new_role[]');
             }
+
+            // Add validation for defense schedule times
+            if (table === 'defense_schedules') {
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+                const minTime = '07:00';
+                const maxTime = '20:30';
+
+                if (startTime < minTime || startTime > maxTime) {
+                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (endTime < minTime || endTime > maxTime) {
+                    showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time.', 'error');
+                    return; // Prevent submission
+                }
+                // NOTE: Add server-side validation in includes/add_items.php 
+                // to prevent scheduling a team that already has a schedule on the selected date.
+            }
             
             $.ajax({
                 url: 'includes/add_items.php',
@@ -1009,7 +1475,7 @@
             
             // Special handling for rubrics
             if (table === 'rubrics') {
-                console.log('Main app: Delegating rubric delete to rubrics_tab.php handler');
+('Main app: Delegating rubric delete to rubrics_tab.php handler');
                 // Let the delete-rubric-btn handler in rubrics_tab.php handle this
                 $('.delete-rubric-btn[data-id="' + id + '"]').trigger('click');
                 return true; // Allow event to bubble to other handlers
@@ -1349,7 +1815,36 @@
         });
     });
 
+    function updatePanelistDropdowns() {
+        // Collect all selected panelist IDs
+        var selectedIds = [];
+        $('#panelists .panelist select').each(function() {
+            var val = $(this).val();
+            if (val) selectedIds.push(val);
+        });
+
+        $('#panelists .panelist select').each(function() {
+            var $select = $(this);
+            var currentVal = $select.val();
+            $select.find('option').each(function() {
+                var $opt = $(this);
+                if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
+                    $opt.prop('disabled', true);
+                } else {
+                    $opt.prop('disabled', false);
+                }
+            });
+        });
+    }
+
     function addNewPanelist(staff) {
+        // Check current number of panelists
+        var currentPanelistCount = $('#panelists .panelist').length;
+        if (currentPanelistCount >= 3) {
+            showToast('Warning', 'Maximum of 3 panelists allowed.', 'warning');
+            return; // Stop if limit is reached
+        }
+
         // Determine the next index based on existing panelists
         var currentIndices = $('#panelists .panelist select').map(function() {
             var name = $(this).attr('name');
@@ -1374,6 +1869,13 @@
 
         $('#panelists').append(newPanelistHtml);
         console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
+
+        // Disable button if limit is now reached
+        if ($('#panelists .panelist').length >= 3) {
+            $('#addPanelist').prop('disabled', true);
+        }
+        // Update dropdowns to enforce unique selection
+        updatePanelistDropdowns();
     }
 
     // Optionally, update existing panelist entries to have unique indices
@@ -1558,6 +2060,7 @@
 <div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
+
             <form id="bulkAddForm">
                 <div class="modal-header bg-info text-white">
                     <h5 class="modal-title" id="bulkAddModalLabel">Bulk Add Users</h5>
@@ -1577,16 +2080,7 @@
                     <hr>
                     <!-- Table for manual data input -->
                     <div class="table-responsive">
-                        <table class="table table-bordered" id="bulkAddTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name <small>(format: Lastname, Firstname [no middle])</small></th>
-                                    <th>Program</th>
-                                    <th>No Username <br><small>(if checked, a username will be auto-generated)</small></th>
-                                </tr>
-                            </thead>
-                            <tbody>
+                        <table class="table table-bordered" id="bulkAddTable<tbody>
                                 <!-- one sample row -->
                                 <tr>
                                     <td><input type="text" class="form-control" name="users[0][id]"></td>

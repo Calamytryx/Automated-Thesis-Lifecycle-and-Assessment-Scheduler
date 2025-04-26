@@ -25,25 +25,51 @@ try {
 
     // Main execution
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-        // Clear previous schedules to avoid duplicates
-        clearPreviousSchedules($pdo);
+        // Validate required inputs
+        if (!validateInputs()) {
+            throw new Exception("Please check all required fields are filled correctly");
+        }
 
-        // Get the selected program for filtering
-        $selectedProgram = '';
-        $selectedProgram = (isset($_POST['program']) && trim($_POST['program']) !== '')
-            ? trim($_POST['program'])
-            : ((isset($_POST['selectedProgram']) && trim($_POST['selectedProgram']) !== '')
-                ? trim($_POST['selectedProgram'])
-                : '');
+        // Get the selected program(s) for filtering - now supports multiple programs
+        $selectedPrograms = [];
+        if (isset($_POST['program']) && !empty($_POST['program'])) {
+            if (is_array($_POST['program'])) {
+                $selectedPrograms = array_filter($_POST['program'], function($p) { return !empty(trim($p)); });
+            } else {
+                $selectedPrograms = [trim($_POST['program'])];
+            }
+        } elseif (isset($_POST['selectedProgram']) && !empty($_POST['selectedProgram'])) {
+            if (is_array($_POST['selectedProgram'])) {
+                $selectedPrograms = array_filter($_POST['selectedProgram'], function($p) { return !empty(trim($p)); });
+            } else {
+                $selectedPrograms = [trim($_POST['selectedProgram'])];
+            }
+        }
 
-        $teams = fetchTeams($pdo, $selectedProgram);
+        // Check for teams that already have schedules
+        $scheduledTeams = checkExistingSchedules($pdo, $selectedPrograms);
+        
+        // If there are scheduled teams and overwrite confirmation is not received
+        if (!empty($scheduledTeams) && (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true')) {
+            $teamNames = getTeamNames($pdo, array_keys($scheduledTeams));
+            // FIX: Don't use return, actually echo the JSON response and exit
+            echo json_encode([
+                'success' => false,
+                'requireConfirmation' => true,
+                'message' => 'The following teams already have schedules and will be overwritten:',
+                'scheduledTeams' => $teamNames
+            ]);
+            exit; // Make sure we exit after sending the response
+        }
+
+        $teams = fetchTeams($pdo, $selectedPrograms);
         $panelists = fetchPanelists($pdo);
         $duration = $_POST['timeDuration'];
-        // Convert to integer
-        if (!is_numeric($duration) || intval($duration) <= 0) {
-            throw new Exception("Invalid duration. It must be a positive integer.");
+        // Convert to a proper number
+        if (!is_numeric($duration) || floatval($duration) <= 0) {
+            throw new Exception("Invalid duration. It must be a positive number.");
         }
-        $duration = intval($duration);
+        $duration = floatval($duration);
         // FIX: Set duration to a global variable so functions use it instead of $_POST
         $GLOBALS['timeDuration'] = $duration;
 
@@ -56,6 +82,11 @@ try {
         // Validate input parameters
         if (empty($teams) || empty($panelists)) {
             throw new Exception("No teams or panelists available for scheduling");
+        }
+
+        // If confirmed, now remove existing schedules for the affected teams
+        if (!empty($scheduledTeams)) {
+            removeExistingSchedules($pdo, array_keys($scheduledTeams));
         }
 
         // Optimize parameters for better performance-quality balance
@@ -87,6 +118,7 @@ try {
                 'conflictCounts' => DefenseSchedule::$averageConflictCounts,
                 'fitnessScores' => DefenseSchedule::$averageFitnessScores,
                 'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
+                'overwrittenTeams' => !empty($scheduledTeams) ? count($scheduledTeams) : 0,
                 'message' => 'Schedule generated and saved successfully'
             ];
 
@@ -105,9 +137,113 @@ try {
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
-function fetchTeams($pdo, $program = '')
+// New function to validate all inputs
+function validateInputs() {
+    // Check for required fields
+    $requiredFields = ['timeDuration', 'rooms', 'timeSlots', 'days'];
+    foreach ($requiredFields as $field) {
+        if (!isset($_POST[$field]) || empty($_POST[$field])) {
+            error_log("Missing required field: " . $field);
+            return false;
+        }
+    }
+    
+    // Validate time duration is a positive number
+    if (!is_numeric($_POST['timeDuration']) || floatval($_POST['timeDuration']) <= 0) {
+        error_log("Invalid time duration: " . $_POST['timeDuration']);
+        return false;
+    }
+    
+    // Validate rooms array
+    if (!is_array($_POST['rooms']) || empty($_POST['rooms'])) {
+        error_log("Invalid rooms array");
+        return false;
+    }
+    
+    // Validate timeSlots array
+    if (!is_array($_POST['timeSlots']) || empty($_POST['timeSlots'])) {
+        error_log("Invalid timeSlots array");
+        return false;
+    }
+    
+    // Validate days array
+    if (!is_array($_POST['days']) || empty($_POST['days'])) {
+        error_log("Invalid days array");
+        return false;
+    }
+    
+    return true;
+}
+
+// New function to check existing schedules instead of clearing them
+function checkExistingSchedules($pdo, $programs = []) {
+    try {
+        $query = "SELECT ds.*, t.name AS team_name 
+                 FROM defense_schedules ds
+                 JOIN teams t ON ds.team_id = t.id
+                 WHERE ds.status = 'scheduled'";
+
+        $params = [];
+        if (!empty($programs)) {
+            $placeholders = implode(',', array_fill(0, count($programs), '?'));
+            $query .= " AND t.program IN ($placeholders)";
+            $params = $programs;
+        }
+
+        $stmt = $pdo->prepare($query);
+        $stmt->execute($params);
+        
+        $scheduledTeams = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $scheduledTeams[$row['team_id']] = $row;
+        }
+        
+        error_log("Found " . count($scheduledTeams) . " teams with existing schedules");
+        return $scheduledTeams;
+    } catch (PDOException $e) {
+        error_log("Error checking existing schedules: " . $e->getMessage());
+        return [];
+    }
+}
+
+// Function to get team names from team IDs
+function getTeamNames($pdo, $teamIds) {
+    if (empty($teamIds)) return [];
+    
+    try {
+        $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
+        $stmt = $pdo->prepare("SELECT id, name FROM teams WHERE id IN ($placeholders)");
+        $stmt->execute($teamIds);
+        
+        $teams = [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $teams[$row['id']] = $row['name'];
+        }
+        return $teams;
+    } catch (PDOException $e) {
+        error_log("Error fetching team names: " . $e->getMessage());
+        return [];
+    }
+}
+
+// Function to remove existing schedules for specific teams
+function removeExistingSchedules($pdo, $teamIds) {
+    if (empty($teamIds)) return;
+    
+    try {
+        $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
+        $stmt = $pdo->prepare("DELETE FROM defense_schedules WHERE team_id IN ($placeholders) AND status = 'scheduled'");
+        $stmt->execute($teamIds);
+        error_log("Removed schedules for " . count($teamIds) . " teams");
+    } catch (PDOException $e) {
+        error_log("Error removing existing schedules: " . $e->getMessage());
+    }
+}
+
+// Update fetchTeams to handle multiple programs
+function fetchTeams($pdo, $programs = [])
 {
-    if (empty(trim($program))) {
+    if (empty($programs)) {
         $stmt = $pdo->query("
             SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
             FROM teams t
@@ -115,16 +251,17 @@ function fetchTeams($pdo, $program = '')
             WHERE tm.role = 'adviser'
         ");
     } else {
+        $placeholders = implode(',', array_fill(0, count($programs), '?'));
         $stmt = $pdo->prepare("
             SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id
-            WHERE tm.role = 'adviser' AND t.program = ?
+            WHERE tm.role = 'adviser' AND t.program IN ($placeholders)
         ");
-        $stmt->execute([trim($program)]);
+        $stmt->execute($programs);
     }
     $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    error_log("Fetched " . count($teams) . " teams for program: " . ($program ?: 'All Programs'));
+    error_log("Fetched " . count($teams) . " teams for programs: " . (!empty($programs) ? implode(", ", $programs) : 'All Programs'));
     return $teams;
 }
 
@@ -1132,43 +1269,3 @@ function getAvailableTimeSlot($schedule, $days, $timeSlots, $duration, $rooms)
     }
     return $availableSlots ? $availableSlots[array_rand($availableSlots)] : null;
 }
-
-function getTeamMembersForScheduling($pdo, $team_id, $return_type = 'array')
-{
-    $query = "SELECT u.id, u.first_name, u.last_name, tm.role 
-              FROM team_members tm 
-              JOIN users u ON tm.user_id = u.id 
-              WHERE tm.team_id = :team_id";
-
-    try {
-        $stmt = $pdo->prepare($query);
-        $stmt->execute(['team_id' => $team_id]);
-        $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-        if ($return_type === 'array') {
-            return $members;
-        } else {
-            return implode(', ', array_map(function ($member) {
-                return $member['first_name'] . ' ' . $member['last_name'];
-            }, $members));
-        }
-    } catch (PDOException $e) {
-        error_log("Error in getTeamMembersForScheduling: " . $e->getMessage());
-        return ($return_type === 'array') ? [] : '';
-    }
-}
-
-// Add function to clear previous schedules
-function clearPreviousSchedules($pdo)
-{
-    try {
-        $stmt = $pdo->prepare("DELETE FROM defense_schedules WHERE status = 'scheduled'");
-        $stmt->execute();
-        error_log("Previous schedules cleared");
-    } catch (PDOException $e) {
-        error_log("Error clearing previous schedules: " . $e->getMessage());
-    }
-}
-
-// Initialize the tracking variable
-$lastAssignedPanelists = [];
