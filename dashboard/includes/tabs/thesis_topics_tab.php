@@ -59,7 +59,7 @@
 
                                         // If there is a specialization, append it to the display text
                                         if (!empty($program['specialization'])) {
-                                            $displayText .= ' with specialization in ' . htmlspecialchars($program['specialization']) . '';
+                                            $displayText .= ' - ' . htmlspecialchars($program['specialization']) . '';
                                             // Optionally, you could change the value here if needed, e.g.:
                                             // $optionValue = htmlspecialchars($program['name'] . ' - ' . $program['specialization']);
                                         }

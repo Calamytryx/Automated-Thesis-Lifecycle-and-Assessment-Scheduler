@@ -412,7 +412,7 @@ error_reporting(E_ALL);
 
                                                 // If there is a specialization, append it to the display text
                                                 if (!empty($program['specialization'])) {
-                                                    $displayText .= ' with specialization in ' . htmlspecialchars($program['specialization']) . '';
+                                                    $displayText .= ' - ' . htmlspecialchars($program['specialization']) . '';
                                                 }
 
                                                 // Output the option tag
