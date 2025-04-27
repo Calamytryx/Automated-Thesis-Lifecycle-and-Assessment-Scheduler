@@ -303,11 +303,12 @@
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
                             <div class="mb-3">
-                                <label for="team_id" class="form-label">Team ID</label>
-                                <input type="text" class="form-control" id="team_id" name="team_id" value="${response.data.team_id}">
-                            </div>  ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
-                            <div class="mb-3">
-                                <label for="title" class="form-label">Title</label>
+                                <label for="team_id" class="form-label">Team</label>
+                                <select class="form-select" id="team_id" name="team_id" required>
+                                    <option value="">Select Team</option>
+                                    ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
+                                </select>
+                            </div>
                             <div class="mb-3">
                                 <label for="title" class="form-label">Title</label>
                                 <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
@@ -908,12 +909,8 @@
                             <div class="mb-3">
                                 <label for="team_id" class="form-label">Team</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
-                                    <option value="">Select Team</option>
-                                    ${data.teams.map(team => `
-                                        <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
-                                            ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
-                                        </option>
-                                    `).join('')}
+                                <option value="">Select Team</option>
+                                    ${data.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
                                 </select>
                             </div>
                             <h5 class="mt-4">Panelists (Max 3)</h5>
@@ -931,7 +928,7 @@
                                 <div class="col-sm-8">
                                     <select class="form-select" name="panelist_id[${index}]">
                                         <option value="">Select Panelist</option>
-                                        ${data.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
+                                        ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
                                     </select>
                                 </div>
                                 <div class="col-sm-2">
@@ -1327,12 +1324,8 @@
                             <div class="mb-3">
                                 <label for="team_id" class="form-label">Team</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
-                                    <option value="">Select Team</option>
-                                    ${data.teams.map(team => `
-                                        <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
-                                            ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
-                                        </option>
-                                    `).join('')}
+                                <option value="">Select Team</option>
+                                    ${data.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
                                 </select>
                             </div>
                             <h5 class="mt-4">Panelists (Max 3)</h5>
@@ -1364,7 +1357,7 @@
                         }
 
                         formHtml += `
-                    </div>
+</div>
                     <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                 `;
 
@@ -1839,396 +1832,1346 @@
                                 <div class="col-sm-2">
                                     <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
                                 </div>
-                            </div>
-                        </div>
-                        <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
-                    `;
+</div>
+         </div>
+</div>
+                    <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                `;
 
-                    form.html(formHtml);
+                        form.html(formHtml);
 
-                    // Initialize the date picker with same options as in defense_schedules_tab.php
-                    $('.datepicker').datepicker({
-                        format: 'yyyy-mm-dd', // Match MySQL date format
-                        multidate: false,      // Single date selection for defense schedule
-                        startDate: new Date(), // Prevent selecting previous dates
-                        todayHighlight: true,  // Highlight today's date
-                        autoclose: true        // Close calendar after selection
-                    });
+                        // Initialize the date picker with same options as in defense_schedules_tab.php
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd', // Match MySQL date format
+                            multidate: false,      // Single date selection for defense schedule
+                            startDate: new Date(), // Prevent selecting previous dates
+                            todayHighlight: true,  // Highlight today's date
+                            autoclose: true        // Close calendar after selection
+                        });
 
-                    // Add time picker validation
-                    $('#start_time, #end_time').on('change', function() {
-                        const startTime = $('#start_time').val();
-                        const endTime = $('#end_time').val();
-                        
-                        if (startTime && endTime && startTime >= endTime) {
-                            showToast('Error', 'End time must be after start time', 'error');
-                            $(this).val(''); // Clear the current field
-                        }
-                    });
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function() {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
+                            
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val(''); // Clear the current field
+                            }
+                        });
 
-                    // Store staff data for addNewPanelist function
-                    window.staffData = data.staff;
+                        // Store staff data for addNewPanelist function
+                        window.staffData = data.staff;
 
-                    // Add panelist functionality
-                    $('#addPanelist').on('click', function() {
-                        console.log('Add Panelist button clicked');
-                        addNewPanelist(window.staffData);
-                    });
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(window.staffData);
+                        });
 
-                    // Remove panelist functionality
-                    $(document).on('click', '.remove-panelist', function() {
-                        $(this).closest('.panelist').remove();
-                    });
-                },
-                error: function() {
-                    showToast('Error', 'Unable to fetch teams and staff data', 'error');
-                }
-            });
-        } else {
-            form.append('<div class="mb-3">' +
-                '<label for="name" class="form-label">Name</label>' +
-                '<input type="text" class="form-control" id="name" name="name" required>' +
-                '</div>');
-        }
-
-        // Show the modal for tables other than rubrics
-        $('#addModal').modal('show');
-    });
-
-    // NEW: Add bulk row functionality
-    $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function(){
-        let count = parseInt($('#rowCountInput').val()) || 1;
-        for (let i = 0; i < count; i++) {
-            var rowCount = $('#bulkAddTable tbody tr').length;
-            var newRow = `
-              <tr>
-                <td><input type="text" class="form-control" name="users[${rowCount}][id]"></td>
-                <td><input type="text" class="form-control" name="users[${rowCount}][name]"></td>
-                <td><input type="text" class="form-control" name="users[${rowCount}][program]"></td>
-                <td class="text-center">
-                  <input type="checkbox" name="users[${rowCount}][no_username]">
-                </td>
-              </tr>
-            `;
-            $('#bulkAddTable tbody').append(newRow);
-        }
-    });
-
-    // When the Bulk Add Modal is shown, insert the CSV download link if not already present
-    $('#bulkAddModal').on('shown.bs.modal', function() {
-        if (!$(this).find('#downloadCsvTemplate').length) {
-            $(this).find('.modal-body').prepend(`
-                <div class="mb-3">
-                    <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
-                </div>
-            `);
-        }
-    });
-
-    // Update Bulk Add Users CSV download handler
-    $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) { 
-        e.preventDefault();        
-        const csvContent = 'ID,Name,Program,No Username\n';
-        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = 'users_template.csv';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
-    });
-
-    // NEW: Bulk Add Teams functionality
-    $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
-        e.preventDefault();
-        console.log('Bulk Add Teams button clicked');
-        $('#bulkAddTeamsModal').modal('show');
-    });
-
-    $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function(){
-        let count = parseInt($('#teamsRowCountInput').val()) || 1;
-        for (let i = 0; i < count; i++) {
-            var rowCount = $('#bulkAddTeamsTable tbody tr').length;
-            var newRow = `
-              <tr>
-                <td><input type="text" class="form-control" name="teams[${rowCount}][name]"></td>
-                <td><input type="text" class="form-control" name="teams[${rowCount}][title]"></td>
-                <td><input type="text" class="form-control" name="teams[${rowCount}][area_of_expertise]"></td>
-                <td><input type="text" class="form-control" name="teams[${rowCount}][program]"></td>
-              </tr>
-            `;
-            $('#bulkAddTeamsTable tbody').append(newRow);
-        }
-    });
-
-    $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e){
-        e.preventDefault();
-        console.log('Bulk Add Teams form submitted');
-        
-        var form = $('#bulkAddTeamsForm');
-        var formData = new FormData(form[0]);
-        
-        // If pasted bulk text is provided, append it
-        var bulkText = $('#bulkTeamsTextInput').val().trim();
-        if(bulkText !== ""){
-            formData.append('bulk_teams', bulkText);
-        }
-        
-        $.ajax({
-            url: 'includes/bulk_add_teams.php',
-            method: 'POST',
-            data: formData,
-            processData: false,
-            contentType: false,
-            dataType: 'json',
-            success: function(response) {
-                console.log('Bulk add teams response:', response);
-                if (response.success) {
-                    showToast('Success', 'Teams added successfully', 'success');
-                    $('#bulkAddTeamsModal').modal('hide');
-                    setTimeout(function() {
-                        location.reload();
-                    }, 2000);
-                } else {
-                    // More descriptive error message
-                    showToast('Error', response.message || 'Failed to add teams. Please check your data and try again.', 'error');
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('AJAX Error:', xhr.responseText);
-                // User-friendly error message
-                let errorMessage = 'Unable to process your request. Please try again later.';
-                try {
-                    const response = JSON.parse(xhr.responseText);
-                    if (response && response.message) {
-                        errorMessage = response.message;
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
                     }
-                } catch (e) {
-                    console.error('Error parsing response:', e);
-                }
-                showToast('Error', errorMessage, 'error');
-            }
-        });
-    });
-
-    // Event handler for preset buttons in area of expertise fields
-    $(document).on('click', '.area-option', function(e) {
-        e.preventDefault();
-        var presetValue = $(this).data('value');
-        $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
-    });
-
-    // Event handler for preset buttons in program fields
-    $(document).on('click', '.program-option', function(e) {
-        e.preventDefault();
-        var presetValue = $(this).data('value');
-        $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
-    });
-
-    const sidebarContainer = $('#sidebarContainer');
-    const mainContent = $('#mainContent');
-    const toggleButton = $('#toggleSidebar');
-
-    toggleButton.on('click', function() {
-        sidebarContainer.toggleClass('collapsed');
-        mainContent.toggleClass('expanded');
-        toggleButton.toggleClass('collapsed');
-        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
-    });
-
-    // Check localStorage for saved sidebar state on page load
-    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-    if (sidebarCollapsed) {
-        sidebarContainer.addClass('collapsed');
-        mainContent.addClass('expanded');
-        toggleButton.addClass('collapsed');
-    }
-
-    // Handle window resize
-    $(window).on('resize', function() {
-        if (window.innerWidth <= 768) {
-            mainContent.addClass('expanded');
-        } else {
-            if (!sidebarContainer.hasClass('collapsed')) {
-                mainContent.removeClass('expanded');
-            }
-        }
-    });
-});
-
-function updatePanelistDropdowns() {
-    // Collect all selected panelist IDs
-    var selectedIds = [];
-    $('#panelists .panelist select').each(function() {
-        var val = $(this).val();
-        if (val) selectedIds.push(val);
-    });
-
-    $('#panelists .panelist select').each(function() {
-        var $select = $(this);
-        var currentVal = $select.val();
-        $select.find('option').each(function() {
-            var $opt = $(this);
-            if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
-                $opt.prop('disabled', true);
+                });
             } else {
-                $opt.prop('disabled', false);
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>');
             }
+
+            // Show the modal for tables other than rubrics
+            $('#addModal').modal('show');
         });
-    });
-}
 
-function addNewPanelist(staff) {
-    // Check current number of panelists
-    var currentPanelistCount = $('#panelists .panelist').length;
-    if (currentPanelistCount >= 3) {
-        showToast('Warning', 'Maximum of 3 panelists allowed.', 'warning');
-        return; // Stop if limit is reached
-    }
+        $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
+            e.preventDefault();
+            console.log('Add item button clicked');
+            
+            var form = $('#addForm');
+            var table = form.find('input[name="table"]').val();
+            var formData = new FormData(form[0]); // moved initialization here
+            
+            // Add validation for defense schedule times
+            if (table === 'defense_schedules') {
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+                const minTime = '07:00';
+                const maxTime = '20:30';
 
-    // Determine the next index based on existing panelists
-    var currentIndices = $('#panelists .panelist select').map(function() {
-        var name = $(this).attr('name');
-        var match = name.match(/\[(\d+)\]/);
-        return match ? parseInt(match[1], 10) : -1;
-    }).get();
-    var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
-
-    var newPanelistHtml = `
-    <div class="mb-3 row panelist">
-        <div class="col-sm-10">
-            <select class="form-select" name="panelist_id[${nextIndex}]">
-                <option value="">Select a panelist</option>
-                ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
-            </select>
-        </div>
-        <div class="col-sm-2">
-            <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-        </div>
-    </div>
-`;
-
-    $('#panelists').append(newPanelistHtml);
-    console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
-
-    // Disable button if limit is now reached
-    if ($('#panelists .panelist').length >= 3) {
-        $('#addPanelist').prop('disabled', true);
-    }
-    // Update dropdowns to enforce unique selection
-    updatePanelistDropdowns();
-}
-
-// Optionally, update existing panelist entries to have unique indices
-$(document).ready(function() {
-    $('#panelists .panelist').each(function(index) {
-        $(this).find('select').attr('name', `panelist_id[${index}]`);
-    });
-});
-
-// Define addNewTeamMember function globally
-function addNewTeamMember() {
-    $.ajax({
-        url: 'includes/get_users.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(users) {
-            var newMemberHtml = `
-            <div class="mb-3 row team-member">
-                <div class="col-sm-5">
-                    <select class="form-select user-select" name="new_user_id[]" style="display:block;">
-                        <option value="">Select a user</option>
-                        ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
-                    </select>
-                    <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
-                    <a href="#" class="toggle-input">Switch to manual</a>
-                </div>
-                <div class="col-sm-5">
-                    <select class="form-select role-select" name="new_role[]">
-                        <option value="adviser">Adviser</option>
-                        <option value="leader">Leader</option>
-                        <option value="member">Member</option>
-                    </select>
-                </div>
-                <div class="col-sm-2">
-                    <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
-                </div>
-            </div>
-            `;
-            $('#teamMembers').append(newMemberHtml);
-            $('#teamMembers .toggle-input').last().on('click', function(e) {
-                e.preventDefault();
-                var $select = $(this).siblings('.user-select');
-                var $input = $(this).siblings('.new-username-input');
-                if ($select.is(':visible')) {
-                    $select.hide();
-                    $input.show();
-                    $(this).text('Switch to select');
-                } else {
-                    $input.hide();
-                    $select.show();
-                    $(this).text('Switch to manual');
+                if (startTime < minTime || startTime > maxTime) {
+                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
                 }
-            });
-        },
-        error: function(jqXHR, textStatus, errorThrown) {
-            alert('Error loading users');
-        }
-    });
-}
-
-// Remove team member functionality
-$(document).on('click', '.remove-member', function() {
-    var teamMember = $(this).closest('.team-member');
-    var userId = teamMember.data('user-id');
-    var teamId = $('input[name="id"]').val();
-    if (userId && teamId) {
-        if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+                if (endTime < minTime || endTime > maxTime) {
+                                       showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time.', 'error');
+                    return; // Prevent submission
+                }
+                // NOTE: Add server-side validation in includes/add_items.php 
+                // to prevent scheduling a team that already has a schedule on the selected date.
+            }
+            
             $.ajax({
-                url: 'includes/remove_team_member.php',
+                url: 'includes/add_items.php',
                 method: 'POST',
-                data: {
-                    user_id: userId,
-                    team_id: teamId
-                },
+                data: formData,
+                processData: false,
+                contentType: false,
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        teamMember.remove();
-                        alert('Team member removed successfully');
+                        showToast('Success', 'Added successfully', 'success');
+                        $('#addModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
                     } else {
-                        alert('Error: ' + response.message);
+                        // Improved error message display
+                        showToast('Error', response.message || 'An unknown error occurred', 'error');
                     }
                 },
-                error: function() {
-                    alert('Error: Unable to remove team member');
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    // More user-friendly error message
+                    let errorMessage = 'Unable to process your request. Please try again later.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMessage = response.message;
+                        }
+                    } catch (e) {
+                        // If parsing fails, stick with generic message but log the real error
+                        console.error('Error parsing response:', e);
+                    }
+                    showToast('Error', errorMessage, 'error');
+                }
+            }); // Close $.ajax call
+    }); // Close $(document).on('click', '#addItem', ...) handler
+
+    // NEW: Connect the saveChanges button to trigger the edit form submission
+    $(document).on('click', '#saveChanges', function(){
+        console.log('DEBUG: Save changes button clicked, triggering edit form submission');
+        $('#editForm').submit();
+    });
+
+    // Add button functionality
+    $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
+        e.preventDefault();
+        
+        var table = $(this).data('table');
+        console.log('Main app: Add button clicked for table:', table);
+        
+        // Special handling for rubrics
+        if (table === 'rubrics') {
+            console.log('Main app: Delegating rubric add to rubrics_tab.php handler');
+            // Let the dedicated handler in rubrics_tab.php handle this
+            return true; // Allow event to bubble to other handlers
+        }
+        
+        // Special handling for thesis_topics
+        if (table === 'thesis_topics') {
+            console.log('Main app: Processing thesis topic add');
+            // For thesis topics, we'll let the main handler show the add modal,
+            // and the thesis_topics_tab.php handler will populate it
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="' + table + '">');
+            
+            form.append('<div class="mb-3">' +
+                '<label for="topic" class="form-label">Topic</label>' +
+                '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="category" class="form-label">Category</label>' +
+                '<input type="text" class="form-control" id="category" name="category" required>' +
+                '</div>'
+            );
+            
+            $('#addModal').modal('show');
+            return true;
+        }
+
+        // programs
+        if (table === 'programs') {
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="programs">');
+            form.append(`
+              <div class="mb-3">
+            <label class="form-label">College</label>
+            <input class="form-control" name="college" required>
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input class="form-control" name="department">
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Program Name</label>
+            <input class="form-control" name="name" required>
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Specialization</label>
+            <input type="text" class="form-control" name="specialization">
+              </div>
+            `);
+            $('#addModal').modal('show');
+            return true;
+        }
+        
+        // Standard handling for all other tables
+        var form = $('#addForm');
+        form.empty();
+        form.append('<input type="hidden" name="table" value="' + table + '">');
+
+        // Generate form fields based on table
+        if (table === 'users') {
+            form.append('<div class="mb-3">' +
+                '<label for="username" class="form-label">Username</label>' +
+                '<input type="text" class="form-control" id="username" name="username" placeholder="20xx-2-xxxxx" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="email" class="form-label">Email</label>' +
+                '<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="password" class="form-label">Password</label>' +
+                '<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="first_name" class="form-label">First Name</label>' +
+                '<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter first name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="last_name" class="form-label">Last Name</label>' +
+                '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                    '<label for="program_id" class="form-label">Program</label>' +
+                    '<select class="form-select" id="program_id" name="program_id">' +
+                        '<option value="">Loading programs...</option>' +
+                    '</select>' +
+                '</div>' +
+                '<div class="mb-3 area-expertise-field" style="display:none;">' +
+                '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
+                '<div class="input-group">' +
+                    '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">' +
+                    '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
+                    '<ul class="dropdown-menu">' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>' +
+                    '</ul>' +
+                '</div>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="usertype" class="form-label">User Type</label>' +
+                '<select class="form-select" id="usertype" name="usertype" required>' +
+                '<option value="" disabled selected>Select User Type</option>' +
+                '<option value="0">Admin</option>' +
+                '<option value="1">Student</option>' +
+                '<option value="2">Faculty</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="mb-3 is-part-time-field" style="display:none;">' +
+                '<label class="form-label">Is Part Time</label>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
+                '<label class="form-check-label" for="addFullTime">Full Time</label>' +
+                '</div>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
+                '<label class="form-check-label" for="addPartTime">Part Time</label>' +
+                '</div>' +
+                '</div>');
+            
+            // Populate the programs dropdown
+            populateProgramDropdown($('#program_id'));
+            
+            // Add event listener for usertype change in add form
+            $('#addForm').on('change', '#usertype', function() {
+                if ($(this).val() == 2) {
+                    $('.area-expertise-field').show();
+                    $('.is-part-time-field').show();
+                } else {
+                    $('.area-expertise-field').hide();
+                    $('.is-part-time-field').hide();
                 }
             });
-        }
-    } else {
-        // If it's a new member (not yet saved to database), just remove from form
-        teamMember.remove();
-    }
-});
+        } else if (table === 'thesis_topics') {
+            form.append('<div class="mb-3">' +
+                '<label for="topic" class="form-label">Topic</label>' +
+                '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="category" class="form-label">Category</label>' +
+                '<input type="text" class="form-control" id="category" name="category" required>' +
+                '</div>'
+            );
+        } else if (table === 'research_titles') {
+            // Fetch teams data to populate the dropdown
+            $.ajax({
+                url: 'includes/get_teams_and_staff.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var formHtml = `
+                        <div class="mb-3">
+                            <label for="team_id" class="form-label">Team Name</label>
+                            <select class="form-select" id="team_id" name="team_id" required>
+                                <option value="">Select Team</option>
+                                ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="approved" name="approved">
+                            <label class="form-check-label" for="approved">Approved</label>
+                        </div>
+                    `;
+                    $('#addForm').append(formHtml);
+                },
+                error: function() {
+                    showToast('Error', 'Unable to fetch teams data', 'error');
+                    // Fallback to simple input field if AJAX fails
+                    form.append('<div class="mb-3">' +
+                        '<label for="team_id" class="form-label">Team ID</label>' +
+                        '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
+                        '</div>' +
+                        '<div class="mb-3">' +
+                        '<label for="title" class="form-label">Title</label>' +
+                        '<input type="text" class="form-control" id="title" name="title" required>' +
+                        '</div>' +
+                        '<div class="mb-3 form-check">' +
+                        '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
+                        '<label class="form-check-label" for="approved">Approved</label>' +
+                        '</div>');
+                }
+            });
+        } else if (table === 'teams') {
+            var formHtml = `
+        <div class="mb-3">
+        <label for="name" class="form-label">Team Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+        <label for="title" class="form-label">Research Title</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+        <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+            </ul>
+        </div>
+        </div>
+        <div class="mb-3">
+        <label for="program_id" class="form-label">Program</label>
+        <select class="form-select" id="program_id" name="program_id">
+            <option value="">Loading programs...</option>
+        </select>
+        </div>
+        <h5 class="mt-4">Team Members</h5>
+        <div id="teamMembers">
+        <!-- Team members will be added here -->
+        </div>
+        <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+    `;
+            form.append(formHtml);
 
-// Helper function for showing toasts
-function showToast(title, message, type = 'success') {
-    // Create toast container if it doesn't exist
-    if (!$('#toastContainer').length) {
-        $('body').append(`
+            // Populate the programs dropdown for the add form
+            populateProgramDropdown($('#addForm #program_id'));
+
+            // Add team member functionality
+            $('#addTeamMember').on('click', function() {
+                console.log('Add Team Member button clicked');
+                addNewTeamMember();
+            });
+        } else if (table === 'env_variables') {
+            form.append('<div class="mb-3">' +
+                '<label for="name" class="form-label">Key</label>' +
+                '<input type="text" class="form-control" id="key" name="key" required>' +
+                '</div>' +
+                '<label for="name" class="form-label">Value</label>' +
+                '<input type="text" class="form-control" id="value" name="value" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="created_by" class="form-label">Description</label>' +
+                '<input type="text" class="form-control" id="Description" name="description" required>' +
+                '</div>');
+        } else if (table === 'requirements') {
+            form.append('<div class="mb-3">' +
+                '<label for="name" class="form-label">Name</label>' +
+                '<input type="text" class="form-control" id="name" name="name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="due_date" class="form-label">Due Date</label>' +
+                '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
+                '</div>');
+        } else if (table === 'evaluations') {
+            form.append('<div class="mb-3">' +
+                '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
+                '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
+                '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="total_score" class="form-label">Total Score</label>' +
+                '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="comments" class="form-label">Comments</label>' +
+                '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="recommendation" class="form-label">Recommendation</label>' +
+                '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
+                '</div>');
+        } else if (table === 'defense_schedules') {
+            $.ajax({
+                url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var formHtml = `
+                        <input type="hidden" name="table" value="${table}">
+                        <div class="mb-3">
+                            <label for="schedule_date" class="form-label">Schedule Date</label>
+                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                            <small class="form-text text-muted">Select date for the defense schedule.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required>
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required>
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room" class="form-label">Room</label>
+                            <input type="text" class="form-control" id="room" name="room" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="team_id" class="form-label">Team</label>
+                            <select class="form-select" id="team_id" name="team_id" required>
+                                <option value="">Select Team</option>
+                                ${data.teams.map(team => `
+                                    <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
+                                        ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <h5 class="mt-4">Panelists (Max 3)</h5>
+                        <div id="panelists">
+                            <div class="mb-3 row panelist">
+                                <div class="col-sm-10">
+                                    <select class="form-select" name="panelist_id[0]">
+                                        <option value="">Select Panelist</option>
+                                        ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+            </div>
+         </div>
+                    <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                `;
+
+                        form.html(formHtml);
+
+                        // Initialize the date picker with same options as in defense_schedules_tab.php
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd', // Match MySQL date format
+                            multidate: false,      // Single date selection for defense schedule
+                            startDate: new Date(), // Prevent selecting previous dates
+                            todayHighlight: true,  // Highlight today's date
+                            autoclose: true        // Close calendar after selection
+                        });
+
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function() {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
+                            
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val(''); // Clear the current field
+                            }
+                        });
+
+                        // Store staff data for addNewPanelist function
+                        window.staffData = data.staff;
+
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(window.staffData);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
+                    }
+                });
+            } else {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>');
+            }
+
+            // Show the modal for tables other than rubrics
+            $('#addModal').modal('show');
+        });
+
+        $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
+            e.preventDefault();
+            console.log('Add item button clicked');
+            
+            var form = $('#addForm');
+            var table = form.find('input[name="table"]').val();
+            var formData = new FormData(form[0]); // moved initialization here
+            
+            // Add validation for defense schedule times
+            if (table === 'defense_schedules') {
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+                const minTime = '07:00';
+                const maxTime = '20:30';
+
+                if (startTime < minTime || startTime > maxTime) {
+                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (endTime < minTime || endTime > maxTime) {
+                                       showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return; // Prevent submission
+                }
+                if (startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time.', 'error');
+                    return; // Prevent submission
+                }
+                // NOTE: Add server-side validation in includes/add_items.php 
+                // to prevent scheduling a team that already has a schedule on the selected date.
+            }
+            
+            $.ajax({
+                url: 'includes/add_items.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Success', 'Added successfully', 'success');
+                        $('#addModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // Improved error message display
+                        showToast('Error', response.message || 'An unknown error occurred', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    // More user-friendly error message
+                    let errorMessage = 'Unable to process your request. Please try again later.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMessage = response.message;
+                        }
+                    } catch (e) {
+                        // If parsing fails, stick with generic message but log the real error
+                        console.error('Error parsing response:', e);
+                    }
+                    showToast('Error', errorMessage, 'error');
+                }
+            }); // Close $.ajax call
+    }); // Close $(document).on('click', '#addItem', ...) handler
+
+    // NEW: Connect the saveChanges button to trigger the edit form submission
+    $(document).on('click', '#saveChanges', function(){
+        console.log('DEBUG: Save changes button clicked, triggering edit form submission');
+        $('#editForm').submit();
+    });
+
+    // Add button functionality
+    $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
+        e.preventDefault();
+        
+        var table = $(this).data('table');
+        console.log('Main app: Add button clicked for table:', table);
+        
+        // Special handling for rubrics
+        if (table === 'rubrics') {
+            console.log('Main app: Delegating rubric add to rubrics_tab.php handler');
+            // Let the dedicated handler in rubrics_tab.php handle this
+            return true; // Allow event to bubble to other handlers
+        }
+        
+        // Special handling for thesis_topics
+        if (table === 'thesis_topics') {
+            console.log('Main app: Processing thesis topic add');
+            // For thesis topics, we'll let the main handler show the add modal,
+            // and the thesis_topics_tab.php handler will populate it
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="' + table + '">');
+            
+            form.append('<div class="mb-3">' +
+                '<label for="topic" class="form-label">Topic</label>' +
+                '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="category" class="form-label">Category</label>' +
+                '<input type="text" class="form-control" id="category" name="category" required>' +
+                '</div>'
+            );
+            
+            $('#addModal').modal('show');
+            return true;
+        }
+
+        // programs
+        if (table === 'programs') {
+            var form = $('#addForm');
+            form.empty();
+            form.append('<input type="hidden" name="table" value="programs">');
+            form.append(`
+              <div class="mb-3">
+            <label class="form-label">College</label>
+            <input class="form-control" name="college" required>
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Department</label>
+            <input class="form-control" name="department">
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Program Name</label>
+            <input class="form-control" name="name" required>
+              </div>
+              <div class="mb-3">
+            <label class="form-label">Specialization</label>
+            <input type="text" class="form-control" name="specialization">
+              </div>
+            `);
+            $('#addModal').modal('show');
+            return true;
+        }
+        
+        // Standard handling for all other tables
+        var form = $('#addForm');
+        form.empty();
+        form.append('<input type="hidden" name="table" value="' + table + '">');
+
+        // Generate form fields based on table
+        if (table === 'users') {
+            form.append('<div class="mb-3">' +
+                '<label for="username" class="form-label">Username</label>' +
+                '<input type="text" class="form-control" id="username" name="username" placeholder="20xx-2-xxxxx" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="email" class="form-label">Email</label>' +
+                '<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="password" class="form-label">Password</label>' +
+                '<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="first_name" class="form-label">First Name</label>' +
+                '<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter first name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="last_name" class="form-label">Last Name</label>' +
+                '<input type="text" class="form-control" id="last_name" name="last_name" placeholder="Enter last name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                    '<label for="program_id" class="form-label">Program</label>' +
+                    '<select class="form-select" id="program_id" name="program_id">' +
+                        '<option value="">Loading programs...</option>' +
+                    '</select>' +
+                '</div>' +
+                '<div class="mb-3 area-expertise-field" style="display:none;">' +
+                '<label for="area_of_expertise" class="form-label">Area of Expertise</label>' +
+                '<div class="input-group">' +
+                    '<input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">' +
+                    '<button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>' +
+                    '<ul class="dropdown-menu">' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>' +
+                        '<li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>' +
+                    '</ul>' +
+                '</div>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="usertype" class="form-label">User Type</label>' +
+                '<select class="form-select" id="usertype" name="usertype" required>' +
+                '<option value="" disabled selected>Select User Type</option>' +
+                '<option value="0">Admin</option>' +
+                '<option value="1">Student</option>' +
+                '<option value="2">Faculty</option>' +
+                '</select>' +
+                '</div>' +
+                '<div class="mb-3 is-part-time-field" style="display:none;">' +
+                '<label class="form-label">Is Part Time</label>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
+                '<label class="form-check-label" for="addFullTime">Full Time</label>' +
+                '</div>' +
+                '<div class="form-check">' +
+                '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
+                '<label class="form-check-label" for="addPartTime">Part Time</label>' +
+                '</div>' +
+                '</div>');
+            
+            // Populate the programs dropdown
+            populateProgramDropdown($('#program_id'));
+            
+            // Add event listener for usertype change in add form
+            $('#addForm').on('change', '#usertype', function() {
+                if ($(this).val() == 2) {
+                    $('.area-expertise-field').show();
+                    $('.is-part-time-field').show();
+                } else {
+                    $('.area-expertise-field').hide();
+                    $('.is-part-time-field').hide();
+                }
+            });
+        } else if (table === 'thesis_topics') {
+            form.append('<div class="mb-3">' +
+                '<label for="topic" class="form-label">Topic</label>' +
+                '<input type="text" class="form-control" id="topic" name="topic" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="category" class="form-label">Category</label>' +
+                '<input type="text" class="form-control" id="category" name="category" required>' +
+                '</div>'
+            );
+        } else if (table === 'research_titles') {
+            // Fetch teams data to populate the dropdown
+            $.ajax({
+                url: 'includes/get_teams_and_staff.php',
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var formHtml = `
+                        <div class="mb-3">
+                            <label for="team_id" class="form-label">Team Name</label>
+                            <select class="form-select" id="team_id" name="team_id" required>
+                                <option value="">Select Team</option>
+                                ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="title" class="form-label">Title</label>
+                            <input type="text" class="form-control" id="title" name="title" required>
+                        </div>
+                        <div class="mb-3 form-check">
+                            <input type="checkbox" class="form-check-input" id="approved" name="approved">
+                            <label class="form-check-label" for="approved">Approved</label>
+                        </div>
+                    `;
+                    $('#addForm').append(formHtml);
+                },
+                error: function() {
+                    showToast('Error', 'Unable to fetch teams data', 'error');
+                    // Fallback to simple input field if AJAX fails
+                    form.append('<div class="mb-3">' +
+                        '<label for="team_id" class="form-label">Team ID</label>' +
+                        '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
+                        '</div>' +
+                        '<div class="mb-3">' +
+                        '<label for="title" class="form-label">Title</label>' +
+                        '<input type="text" class="form-control" id="title" name="title" required>' +
+                        '</div>' +
+                        '<div class="mb-3 form-check">' +
+                        '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
+                        '<label class="form-check-label" for="approved">Approved</label>' +
+                        '</div>');
+                }
+            });
+        } else if (table === 'teams') {
+            var formHtml = `
+        <div class="mb-3">
+        <label for="name" class="form-label">Team Name</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+        </div>
+        <div class="mb-3">
+        <label for="title" class="form-label">Research Title</label>
+        <input type="text" class="form-control" id="title" name="title" required>
+        </div>
+        <div class="mb-3">
+        <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+        <div class="input-group">
+            <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+            </ul>
+        </div>
+        </div>
+        <div class="mb-3">
+        <label for="program_id" class="form-label">Program</label>
+        <select class="form-select" id="program_id" name="program_id">
+            <option value="">Loading programs...</option>
+        </select>
+        </div>
+        <h5 class="mt-4">Team Members</h5>
+        <div id="teamMembers">
+        <!-- Team members will be added here -->
+        </div>
+        <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+    `;
+            form.append(formHtml);
+
+            // Populate the programs dropdown for the add form
+            populateProgramDropdown($('#addForm #program_id'));
+
+            // Add team member functionality
+            $('#addTeamMember').on('click', function() {
+                console.log('Add Team Member button clicked');
+                addNewTeamMember();
+            });
+        } else if (table === 'env_variables') {
+            form.append('<div class="mb-3">' +
+                '<label for="name" class="form-label">Key</label>' +
+                '<input type="text" class="form-control" id="key" name="key" required>' +
+                '</div>' +
+                '<label for="name" class="form-label">Value</label>' +
+                '<input type="text" class="form-control" id="value" name="value" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="created_by" class="form-label">Description</label>' +
+                '<input type="text" class="form-control" id="Description" name="description" required>' +
+                '</div>');
+        } else if (table === 'requirements') {
+            form.append('<div class="mb-3">' +
+                '<label for="name" class="form-label">Name</label>' +
+                '<input type="text" class="form-control" id="name" name="name" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="description" class="form-label">Description</label>' +
+                '<textarea class="form-control" id="description" name="description" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="due_date" class="form-label">Due Date</label>' +
+                '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
+                '</div>');
+        } else if (table === 'evaluations') {
+            form.append('<div class="mb-3">' +
+                '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
+                '<input type="number" class="form-control" id="defense_schedule_id" name="defense_schedule_id" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="evaluator_id" class="form-label">Evaluator ID</label>' +
+                '<input type="number" class="form-control" id="evaluator_id" name="evaluator_id" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="total_score" class="form-label">Total Score</label>' +
+                '<input type="number" step="0.01" class="form-control" id="total_score" name="total_score" required>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="comments" class="form-label">Comments</label>' +
+                '<textarea class="form-control" id="comments" name="comments" rows="3" required></textarea>' +
+                '</div>' +
+                '<div class="mb-3">' +
+                '<label for="recommendation" class="form-label">Recommendation</label>' +
+                '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
+                '</div>');
+        } else if (table === 'defense_schedules') {
+            $.ajax({
+                url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
+                method: 'GET',
+                dataType: 'json',
+                success: function(data) {
+                    var formHtml = `
+                        <input type="hidden" name="table" value="${table}">
+                        <div class="mb-3">
+                            <label for="schedule_date" class="form-label">Schedule Date</label>
+                            <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                            <small class="form-text text-muted">Select date for the defense schedule.</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="start_time" class="form-label">Start Time</label>
+                            <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required>
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="end_time" class="form-label">End Time</label>
+                            <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required>
+                            <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                        </div>
+                        <div class="mb-3">
+                            <label for="room" class="form-label">Room</label>
+                            <input type="text" class="form-control" id="room" name="room" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="team_id" class="form-label">Team</label>
+                            <select class="form-select" id="team_id" name="team_id" required>
+                                <option value="">Select Team</option>
+                                ${data.teams.map(team => `
+                                    <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
+                                        ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
+                                    </option>
+                                `).join('')}
+                            </select>
+                        </div>
+                        <h5 class="mt-4">Panelists (Max 3)</h5>
+                        <div id="panelists">
+                            <div class="mb-3 row panelist">
+                                <div class="col-sm-10">
+                                    <select class="form-select" name="panelist_id[0]">
+                                        <option value="">Select Panelist</option>
+                                        ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                            </div>
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                `;
+
+                        form.html(formHtml);
+
+                        // Initialize the date picker with same options as in defense_schedules_tab.php
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd', // Match MySQL date format
+                            multidate: false,      // Single date selection for defense schedule
+                            startDate: new Date(), // Prevent selecting previous dates
+                            todayHighlight: true,  // Highlight today's date
+                            autoclose: true        // Close calendar after selection
+                        });
+
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function() {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
+                            
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val(''); // Clear the current field
+                            }
+                        });
+
+                        // Store staff data for addNewPanelist function
+                        window.staffData = data.staff;
+
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function() {
+                            console.log('Add Panelist button clicked');
+                            addNewPanelist(window.staffData);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function() {
+                            $(this).closest('.panelist').remove();
+                        });
+                    },
+                    error: function() {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
+                    }
+                });
+            } else {
+                form.append('<div class="mb-3">' +
+                    '<label for="name" class="form-label">Name</label>' +
+                    '<input type="text" class="form-control" id="name" name="name" required>' +
+                    '</div>');
+            }
+
+            // Show the modal for tables other than rubrics
+            $('#addModal').modal('show');
+        });
+
+        // NEW: Add bulk row functionality
+        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function(){
+            let count = parseInt($('#rowCountInput').val()) || 1;
+            for (let i = 0; i < count; i++) {
+                var rowCount = $('#bulkAddTable tbody tr').length;
+                var newRow = `
+                  <tr>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][id]"></td>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][name]"></td>
+                    <td><input type="text" class="form-control" name="users[${rowCount}][program]"></td>
+                    <td class="text-center">
+                      <input type="checkbox" name="users[${rowCount}][no_username]">
+                    </td>
+                  </tr>
+                `;
+                $('#bulkAddTable tbody').append(newRow);
+            }
+        });
+
+        // When the Bulk Add Modal is shown, insert the CSV download link if not already present
+        $('#bulkAddModal').on('shown.bs.modal', function() {
+                       if (!$(this).find('#downloadCsvTemplate').length) {
+                $(this).find('.modal-body').prepend(`
+                    <div class="mb-3">
+                        <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                    </div>
+                `);
+            }
+        });
+
+        // Update Bulk Add Users CSV download handler
+        $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate', function(e) { 
+            e.preventDefault();        
+            const csvContent = 'ID,Name,Program,No Username\\n';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // NEW: Bulk Add Teams functionality
+        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Teams button clicked');
+            $('#bulkAddTeamsModal').modal('show');
+        });
+
+        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function(){
+            let count = parseInt($('#teamsRowCountInput').val()) || 1;
+            for (let i = 0; i < count; i++) {
+                var rowCount = $('#bulkAddTeamsTable tbody tr').length;
+                var newRow = `
+                  <tr>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][name]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][title]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][area_of_expertise]"></td>
+                    <td><input type="text" class="form-control" name="teams[${rowCount}][program]"></td>
+                  </tr>
+                `;
+                $('#bulkAddTeamsTable tbody').append(newRow);
+            }
+        });
+
+        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e){
+            e.preventDefault();
+            console.log('Bulk Add Teams form submitted');
+            
+            var form = $('#bulkAddTeamsForm');
+            var formData = new FormData(form[0]);
+            
+            // If pasted bulk text is provided, append it
+            var bulkText = $('#bulkTeamsTextInput').val().trim();
+            if(bulkText !== ""){
+                formData.append('bulk_teams', bulkText);
+            }
+            
+            $.ajax({
+                url: 'includes/bulk_add_teams.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast('Success', 'Teams added successfully', 'success');
+                        $('#bulkAddTeamsModal').modal('hide');
+                        setTimeout(function() {
+                            location.reload();
+                        }, 2000);
+                    } else {
+                        // More descriptive error message
+                        showToast('Error', response.message || 'Failed to add teams. Please check your data and try again.', 'error');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    // User-friendly error message
+                    let errorMessage = 'Unable to process your request. Please try again later.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMessage = response.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+                    showToast('Error', errorMessage, 'error');
+                }
+            });
+        });
+
+        // Event handler for preset buttons in area of expertise fields
+        $(document).on('click', '.area-option', function(e) {
+            e.preventDefault();
+            var presetValue = $(this).data('value');
+            $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
+        });
+
+        // Event handler for preset buttons in program fields
+        $(document).on('click', '.program-option', function(e) {
+            e.preventDefault();
+            var presetValue = $(this).data('value');
+            $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
+        });
+
+        const sidebarContainer = $('#sidebarContainer');
+        const mainContent = $('#mainContent');
+        const toggleButton = $('#toggleSidebar');
+
+        toggleButton.on('click', function() {
+            sidebarContainer.toggleClass('collapsed');
+            mainContent.toggleClass('expanded');
+            toggleButton.toggleClass('collapsed');
+            localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+        });
+
+        // Check localStorage for saved sidebar state on page load
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (sidebarCollapsed) {
+            sidebarContainer.addClass('collapsed');
+            mainContent.addClass('expanded');
+            toggleButton.addClass('collapsed');
+        }
+
+        // Handle window resize
+        $(window).on('resize', function() {
+            if (window.innerWidth <= 768) {
+                mainContent.addClass('expanded');
+            } else {
+                if (!sidebarContainer.hasClass('collapsed')) {
+                    mainContent.removeClass('expanded');
+                }
+            }
+        });
+    });
+
+    function updatePanelistDropdowns() {
+        // Collect all selected panelist IDs
+        var selectedIds = [];
+        $('#panelists .panelist select').each(function() {
+            var val = $(this).val();
+            if (val) selectedIds.push(val);
+        });
+
+        $('#panelists .panelist select').each(function() {
+            var $select = $(this);
+            var currentVal = $select.val();
+            $select.find('option').each(function() {
+                var $opt = $(this);
+                if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
+                    $opt.prop('disabled', true);
+                } else {
+                    $opt.prop('disabled', false);
+                }
+            });
+        });
+    }
+
+    function addNewPanelist(staff) {
+        // Check current number of panelists
+        var currentPanelistCount = $('#panelists .panelist').length;
+        if (currentPanelistCount >= 3) {
+            showToast('Warning', 'Maximum of 3 panelists allowed.', 'warning');
+            return; // Stop if limit is reached
+        }
+
+        // Determine the next index based on existing panelists
+        var currentIndices = $('#panelists .panelist select').map(function() {
+            var name = $(this).attr('name');
+            var match = name.match(/\[(\d+)\]/);
+            return match ? parseInt(match[1], 10) : -1;
+        }).get();
+        var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
+
+        var newPanelistHtml = `
+        <div class="mb-3 row panelist">
+            <div class="col-sm-10">
+                <select class="form-select" name="panelist_id[${nextIndex}]">
+                    <option value="">Select a panelist</option>
+                    ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+            </div>
+        </div>
+`;
+
+        $('#panelists').append(newPanelistHtml);
+        console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
+
+        // Disable button if limit is now reached
+        if ($('#panelists .panelist').length >= 3) {
+            $('#addPanelist').prop('disabled', true);
+        }
+        // Update dropdowns to enforce unique selection
+        updatePanelistDropdowns();
+    }
+
+    // Optionally, update existing panelist entries to have unique indices
+    $(document).ready(function() {
+        $('#panelists .panelist').each(function(index) {
+            $(this).find('select').attr('name', `panelist_id[${index}]`);
+        });
+    });
+
+    // Define addNewTeamMember function globally
+    function addNewTeamMember() {
+        $.ajax({
+            url: 'includes/get_users.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(users) {
+                var newMemberHtml = `
+                <div class="mb-3 row team-member">
+                    <div class="col-sm-5">
+                        <select class="form-select user-select" name="new_user_id[]" style="display:block;">
+                            <option value="">Select a user</option>
+                            ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
+                        </select>
+                        <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
+                        <a href="#" class="toggle-input">Switch to manual</a>
+                    </div>
+                    <div class="col-sm-5">
+                        <select class="form-select role-select" name="new_role[]">
+                            <option value="adviser">Adviser</option>
+                            <option value="leader">Leader</option>
+                            <option value="member">Member</option>
+                        </select>
+                    </div>
+                    <div class="col-sm-2">
+                        <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
+                    </div>
+                </div>
+                `;
+                $('#teamMembers').append(newMemberHtml);
+                $('#teamMembers .toggle-input').last().on('click', function(e) {
+                    e.preventDefault();
+                    var $select = $(this).siblings('.user-select');
+                    var $input = $(this).siblings('.new-username-input');
+                    if ($select.is(':visible')) {
+                        $select.hide();
+                        $input.show();
+                        $(this).text('Switch to select');
+                    } else {
+                        $input.hide();
+                        $select.show();
+                        $(this).text('Switch to manual');
+                    }
+                });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                alert('Error loading users');
+            }
+        });
+    }
+
+    // Remove team member functionality
+    $(document).on('click', '.remove-member', function() {
+        var teamMember = $(this).closest('.team-member');
+        var userId = teamMember.data('user-id');
+        var teamId = $('input[name="id"]').val();
+        if (userId && teamId) {
+            if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+                $.ajax({
+                    url: 'includes/remove_team_member.php',
+                    method: 'POST',
+                    data: {
+                        user_id: userId,
+                        team_id: teamId
+                    },
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.success) {
+                            teamMember.remove();
+                            alert('Team member removed successfully');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
+                    },
+                    error: function() {
+                        alert('Error: Unable to remove team member');
+                    }
+                });
+            }
+        } else {
+            // If it's a new member (not yet saved to database), just remove from form
+            teamMember.remove();
+        }
+    });
+
+    // Helper function for showing toasts
+    function showToast(title, message, type = 'success') {
+        // Create toast container if it doesn't exist
+        if (!$('#toastContainer').length) {
+            $('body').append(`
     <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
     </div>
 `);
 
-    }
+        }
 
-    // Generate unique ID for the toast
-    const toastId = 'toast-' + Date.now();
+        // Generate unique ID for the toast
+        const toastId = 'toast-' + Date.now();
 
-    // Create toast HTML with more prominent styling
-    const toast = `
+        // Create toast HTML with more prominent styling
+        const toast = `
 <div id="${toastId}" class="toast align-items-center border-0" 
     role="alert" 
     aria-live="assertive" 
@@ -2243,22 +3186,22 @@ function showToast(title, message, type = 'success') {
 </div>
 `;
 
-    // Add toast to container
-    $('#toastContainer').append(toast);
+        // Add toast to container
+        $('#toastContainer').append(toast);
 
-    // Initialize and show the toast with modified options
-    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-        autohide: true,
-        delay: 3000,
-        animation: true
-    });
-    toastElement.show();
+        // Initialize and show the toast with modified options
+        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+            autohide: true,
+            delay: 3000,
+            animation: true
+        });
+        toastElement.show();
 
-    // Remove toast element after it's hidden
-    $(`#${toastId}`).on('hidden.bs.toast', function() {
-        $(this).remove();
-    });
-}
+        // Remove toast element after it's hidden
+        $(`#${toastId}`).on('hidden.bs.toast', function() {
+            $(this).remove();
+        });
+    }
 </script>
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
