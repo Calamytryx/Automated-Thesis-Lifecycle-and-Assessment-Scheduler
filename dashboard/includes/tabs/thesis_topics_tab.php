@@ -20,17 +20,61 @@
                         <label for="thesisField" class="form-label">Field of study:</label>
                         <select id="thesisField" class="form-select">
                             <option value="">Select a field</option>
-                            <option value="Architecture">Architecture</option>
-                            <option value="Computer Science">Computer Science</option>
-                            <option value="Information Technology">Information Technology</option>
-                            <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-                            <option value="Civil Engineering">Civil Engineering</option>
-                            <option value="Computer Engineering">Computer Engineering</option>
-                            <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
-                            <option value="Electrical Engineering">Electrical Engineering</option>
-                            <option value="Electronics Engineering">Electronics Engineering</option>
-                            <option value="Industrial Engineering">Industrial Engineering</option>
-                            <option value="Mechanical Engineering">Mechanical Engineering</option>
+                            <?php
+                            // Assuming $conn is your database connection object (e.g., PDO or mysqli)
+                            // Include your database connection file if necessary
+                            require_once '../assets/setup/db.inc.php'; // Adjust path as needed
+
+                            try {
+                                // Check if $conn is initialized, otherwise try to connect
+                                if (!isset($pdo)) {
+                                     // Replace with your actual connection logic if not already connected
+                                     // Example using PDO:
+                                     // $dsn = 'mysql:host=localhost;dbname=your_db_name;charset=utf8mb4';
+                                     // $username = 'your_username';
+                                     // $password = 'your_password';
+                                     // $options = [ PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION, PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC ];
+                                     // $conn = new PDO($dsn, $username, $password, $options);
+
+                                     // For this example, let's assume connection is handled elsewhere or throw error
+                                     throw new Exception("Database connection not available.");
+                                }
+
+
+                                $stmt = $pdo->query("SELECT college, name, specialization FROM programs ORDER BY college, name");
+                                $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                $groupedPrograms = [];
+                                foreach ($programs as $program) {
+                                    $groupedPrograms[$program['college']][] = $program;
+                                }
+
+                                foreach ($groupedPrograms as $college => $collegePrograms) {
+                                    echo '<optgroup label="' . htmlspecialchars($college) . '">';
+                                    foreach ($collegePrograms as $program) {
+                                        // Use the program name as the base display text
+                                        $displayText = htmlspecialchars($program['name']);
+                                        // Use the program name as the default value
+                                        $optionValue = htmlspecialchars($program['name']);
+
+                                        // If there is a specialization, append it to the display text
+                                        if (!empty($program['specialization'])) {
+                                            $displayText .= ' with specialization in ' . htmlspecialchars($program['specialization']) . '';
+                                            // Optionally, you could change the value here if needed, e.g.:
+                                            // $optionValue = htmlspecialchars($program['name'] . ' - ' . $program['specialization']);
+                                        }
+
+                                        // Output the option tag
+                                        echo '<option value="' . $optionValue . '">' . $displayText . '</option>';
+                                    }
+                                    echo '</optgroup>';
+                                }
+                            } catch (Exception $e) {
+                                // Log error or display a user-friendly message
+                                error_log("Error fetching programs: " . $e->getMessage());
+                                echo '<option value="" disabled>Error loading programs</option>';
+                            }
+                            ?>
                         </select>
                     </div>
                     <button id="getTopicsBtn" class="btn feature-btn">Get Latest Topics</button>

@@ -382,17 +382,50 @@ error_reporting(E_ALL);
                                 <label for="thesisField" class="form-label fw-semibold mb-2">Select your field of study:</label>
                                 <select id="thesisField" class="form-select form-select-lg shadow-sm">
                                     <option value="">Choose a field</option>
-                                    <option value="Architecture">Architecture</option>
-                                    <option value="Computer Science">Computer Science</option>
-                                    <option value="Information Technology">Information Technology</option>
-                                    <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-                                    <option value="Civil Engineering">Civil Engineering</option>
-                                    <option value="Computer Engineering">Computer Engineering</option>
-                                    <option value="Engineering Technology with a major in Construction Technology and Management">Engineering Technology (Construction Technology and Management)</option>
-                                    <option value="Electrical Engineering">Electrical Engineering</option>
-                                    <option value="Electronics Engineering">Electronics Engineering</option>
-                                    <option value="Industrial Engineering">Industrial Engineering</option>
-                                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                                    <?php
+                                    // Assuming $conn is your database connection object (e.g., PDO or mysqli)
+                                    // Include your database connection file if necessary
+                                    // require_once '../assets/setup/db.inc.php'; // Already included at the top of the file
+
+                                    try {
+                                        // Check if $pdo is initialized
+                                        if (!isset($pdo)) {
+                                            // Connection is likely handled elsewhere, or throw error
+                                            throw new Exception("Database connection not available.");
+                                        }
+
+                                        $stmt = $pdo->query("SELECT college, name, specialization FROM programs ORDER BY college, name");
+                                        $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+                                        $groupedPrograms = [];
+                                        foreach ($programs as $program) {
+                                            $groupedPrograms[$program['college']][] = $program;
+                                        }
+
+                                        foreach ($groupedPrograms as $college => $collegePrograms) {
+                                            echo '<optgroup label="' . htmlspecialchars($college) . '">';
+                                            foreach ($collegePrograms as $program) {
+                                                // Use the program name as the base display text
+                                                $displayText = htmlspecialchars($program['name']);
+                                                // Use the program name as the default value
+                                                $optionValue = htmlspecialchars($program['name']);
+
+                                                // If there is a specialization, append it to the display text
+                                                if (!empty($program['specialization'])) {
+                                                    $displayText .= ' with specialization in ' . htmlspecialchars($program['specialization']) . '';
+                                                }
+
+                                                // Output the option tag
+                                                echo '<option value="' . $optionValue . '">' . $displayText . '</option>';
+                                            }
+                                            echo '</optgroup>';
+                                        }
+                                    } catch (Exception $e) {
+                                        // Log error or display a user-friendly message
+                                        error_log("Error fetching programs: " . $e->getMessage());
+                                        echo '<option value="" disabled>Error loading programs</option>';
+                                    }
+                                    ?>
                                 </select>
                             </div>
                         </div>
