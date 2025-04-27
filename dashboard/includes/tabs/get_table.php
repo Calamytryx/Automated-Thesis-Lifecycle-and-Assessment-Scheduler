@@ -85,16 +85,17 @@ try {
             t.name,
             rt.title AS research_title,
             GROUP_CONCAT(
-                DISTINCT CASE 
-                    WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name)
-                END 
-                ORDER BY tm.id SEPARATOR ', '
+            DISTINCT CASE 
+                WHEN u.usertype != 2 AND u.usertype != 0 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') -- Include role for non-adviser, non-admin members
+                WHEN u.usertype = 0 THEN CONCAT(u.first_name, ' ', u.last_name) -- Include admins without role if needed, or remove this line if admins should be excluded entirely
+            END 
+            ORDER BY tm.id SEPARATOR ', '
             ) AS team_members,
             GROUP_CONCAT(
-                DISTINCT CASE 
-                    WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name)
-                END 
-                ORDER BY tm.id SEPARATOR ', '
+            DISTINCT CASE 
+                WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name)
+            END 
+            ORDER BY tm.id SEPARATOR ', '
             ) AS adviser
         FROM 
             teams t

@@ -58,6 +58,7 @@
                         <th>Name</th>
                         <th>Research Title</th>
                         <th>Adviser</th>
+                        <th>Leader</th>
                         <th>Members</th>
                         <th>Action</th>
                     </tr>
@@ -218,19 +219,68 @@
                     if (data.data.length === 0) {
                         tbody.innerHTML = `
                             <tr>
-                                <td colspan="5" class="text-center">No matching teams found</td>
+                                <td colspan="6" class="text-center">No matching teams found</td>
                             </tr>
                         `;
                         return;
                     }
                     
                     data.data.forEach(team => {
+                        // Process team members based on the structure from the likely updated SQL query
+                        let adviser = team.adviser || ''; // Directly use the adviser string if provided
+                        let leader = '';
+                        let members = [];
+
+                        // Check if team_members string exists and process it
+                        if (team.team_members && typeof team.team_members === 'string') {
+                            const memberParts = team.team_members.split(', ');
+                            memberParts.forEach(part => {
+                                // Match names followed by (Role) or just names
+                                const matchWithRole = part.match(/^(.*?)\s\((.*?)\)$/i);
+                                let memberName = part.trim();
+                                let role = '';
+
+                                if (matchWithRole) {
+                                    memberName = matchWithRole[1].trim();
+                                    role = matchWithRole[2].trim().toLowerCase();
+                                }
+
+                                if (role === 'leader') {
+                                    leader = memberName;
+                                } else {
+                                    // Assume others are members if not explicitly leader
+                                    // Extract surname for sorting
+                                    const nameParts = memberName.split(' ');
+                                    const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : memberName;
+                                    members.push({
+                                        name: memberName,
+                                        surname: surname
+                                    });
+                                }
+                            });
+                        } else {
+                             // Fallback or specific handling if team_members is not a string or missing
+                             // This might depend on how the PHP handles teams with no members
+                             console.log('Team members data is not in the expected string format:', team.team_members);
+                        }
+                        
+                        // Sort members by surname
+                        members.sort((a, b) => a.surname.localeCompare(b.surname));
+                        
+                        // Format members as bulleted list
+                        const membersHtml = members.length > 0 
+                            ? '<ul class="mb-0 ps-3">' + 
+                              members.map(m => `<li>${m.name}</li>`).join('') +
+                              '</ul>'
+                            : '';
+                        
                         tbody.innerHTML += `
                             <tr>
                                 <td>${team.name}</td>
-                                <td>${team.research_title}</td>
-                                <td>${team.adviser}</td>
-                                <td>${team.team_members}</td>
+                                <td>${team.research_title || ''}</td>
+                                <td>${adviser}</td>
+                                <td>${leader}</td>
+                                <td>${membersHtml}</td>
                                 <td class="action-buttons">
                                     <div class="d-flex gap-2 justify-content-center">
                                         <button class="btn btn-sm edit-btn" data-table="teams" data-id="${team.id}">
