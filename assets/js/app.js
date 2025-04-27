@@ -146,9 +146,7 @@ async function getTopThesisTopics(field) {
     try {
         // Perform a web search first
         const searchQuery = `current research areas in ${field}`;
-        console.log("Performing web search for:", searchQuery);
         const searchResults = await performWebSearch(searchQuery);
-        console.log("Web search results received:", searchResults);
 
         // Prepare the prompt with web search results
         const prompt = `Based on the following web search results about current research areas in ${field}:
@@ -167,8 +165,8 @@ async function getTopThesisTopics(field) {
         
         // Replace the default table with a Bootstrap styled table
         let formattedResponse = aiResponse.replace('<table>', '<table class="table table-hover table-bordered table-striped rounded overflow-hidden">');
-            
-            // Wrap the table in a responsive div
+
+        // Wrap the table in a responsive div
         formattedResponse = `<div class="table-responsive">${formattedResponse}</div>`;
         
         // Add a note about the nature of the topics
