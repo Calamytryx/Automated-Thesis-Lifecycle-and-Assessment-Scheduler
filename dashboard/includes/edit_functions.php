@@ -73,10 +73,17 @@ function updateThesisTopic($pdo, $id, $topic, $description, $category, $suggeste
 }
 
 // Function to update research title
-function updateResearchTitle($pdo, $id, $title, $user_id, $status, $uniqueness_score, $feedback) {
-    $sql = "UPDATE research_titles SET title = ?, user_id = ?, status = ?, uniqueness_score = ?, feedback = ? WHERE id = ?";
+function updateResearchTitle($pdo, $id, $title, $team_id, $program, $approved_at, $defended_at) {
+    $sql = "UPDATE research_titles 
+            SET title = ?, 
+                team_id = ?, 
+                program = ?, 
+                approved_at = ?, 
+                defended_at = ?, 
+                updated_at = CURRENT_TIMESTAMP 
+            WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$title, $user_id, $status, $uniqueness_score, $feedback, $id]);
+    return $stmt->execute([$title, $team_id, $program, $approved_at, $defended_at, $id]);
 }
 
 // Function to update defense schedule

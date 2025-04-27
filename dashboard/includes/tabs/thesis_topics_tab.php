@@ -96,16 +96,43 @@
                 </div>
                 <select class="form-select mb-2 mb-md-0" id="topicCategoryFilter" style="width: 180px;">
                     <option value="">All Categories</option>
-                    <option value="Architecture">Architecture</option>
-                    <option value="Computer Science">Computer Science</option>
-                    <option value="Information Technology">Information Technology</option>
-                    <option value="Aeronautical Engineering">Aeronautical Engineering</option>
-                    <option value="Civil Engineering">Civil Engineering</option>
-                    <option value="Computer Engineering">Computer Engineering</option>
-                    <option value="Electrical Engineering">Electrical Engineering</option>
-                    <option value="Electronics Engineering">Electronics Engineering</option>
-                    <option value="Industrial Engineering">Industrial Engineering</option>
-                    <option value="Mechanical Engineering">Mechanical Engineering</option>
+                    <?php
+                    // Reuse the existing $pdo connection and grouped programs logic
+                    // Ensure $pdo is available and the previous query succeeded
+                    if (isset($groupedPrograms) && !empty($groupedPrograms)) {
+                        foreach ($groupedPrograms as $college => $collegePrograms) {
+                            echo '<optgroup label="' . htmlspecialchars($college) . '">';
+                            foreach ($collegePrograms as $program) {
+                                // Use the program name as the base display text and value
+                                $displayText = htmlspecialchars($program['name']);
+                                $optionValue = htmlspecialchars($program['name']);
+
+                                // If there is a specialization, append it to the display text
+                                // Keep the value as just the program name for simpler filtering,
+                                // or adjust if filtering by specialization is needed.
+                                if (!empty($program['specialization'])) {
+                                    $displayText .= ' - ' . htmlspecialchars($program['specialization']);
+                                    // If you want the value to include specialization:
+                                    // $optionValue = htmlspecialchars($program['name'] . ' - ' . $program['specialization']);
+                                }
+
+                                // Output the option tag
+                                echo '<option value="' . $optionValue . '">' . $displayText . '</option>';
+                            }
+                            echo '</optgroup>';
+                        }
+                    } else {
+                        // Fallback or error message if programs couldn't be loaded
+                        // This might happen if the DB connection failed earlier
+                        echo '<option value="" disabled>Error loading categories</option>';
+                        // You might want to log this error as well if it reaches here unexpectedly
+                        if (!isset($pdo)) {
+                             error_log("Database connection not available for category filter.");
+                        } else if (empty($groupedPrograms)) {
+                             error_log("Program data was empty for category filter.");
+                        }
+                    }
+                    ?>
                 </select>
                 <select class="form-select mb-2 mb-md-0" id="topicSortSelect" style="width: 180px;">
                     <option value="id:desc">Default (Newest First)</option>

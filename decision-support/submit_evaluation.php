@@ -12,13 +12,25 @@ $response = ['status' => 'error', 'message' => 'Invalid request.'];
 $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    // Gather inputs
-    $defense_schedule_id   = filter_input(INPUT_POST, 'defense_schedule_id', FILTER_VALIDATE_INT);
-    $evaluator_id          = $_SESSION['id'] ?? null;
-    $rubric_group_id       = filter_input(INPUT_POST, 'rubric_group_id', FILTER_VALIDATE_INT);
-    $comments              = filter_input(INPUT_POST, 'comments', FILTER_UNSAFE_RAW);
-    $comments              = htmlspecialchars($comments, ENT_QUOTES, 'UTF-8');
-    $evaluation_data_json  = $_POST['evaluation_data'] ?? null;
+    // --- NEW: Read JSON input ---
+    $json_input = file_get_contents('php://input');
+    $input_data = json_decode($json_input, true);
+
+    if (json_last_error() !== JSON_ERROR_NONE) {
+        $response['message'] = 'Invalid JSON input.';
+        echo json_encode($response);
+        exit;
+    }
+    // --- END NEW ---
+
+    // --- MODIFIED: Gather inputs from decoded JSON ---
+    $defense_schedule_id   = filter_var($input_data['defense_schedule_id'] ?? null, FILTER_VALIDATE_INT);
+    $evaluator_id          = $_SESSION['id'] ?? null; // Keep session ID
+    $rubric_group_id       = filter_var($input_data['rubric_group_id'] ?? null, FILTER_VALIDATE_INT);
+    $comments_raw          = $input_data['comments'] ?? '';
+    $comments              = htmlspecialchars($comments_raw, ENT_QUOTES, 'UTF-8');
+    $evaluation_data_json  = $input_data['evaluation_data'] ?? null; // This is already a JSON string within the main JSON
+    // --- END MODIFIED ---
 
     // Validate required params
     if (!$defense_schedule_id || !$evaluator_id || !$rubric_group_id || $evaluation_data_json === null) {
@@ -33,7 +45,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         exit;
     }
 
-    // Decode evaluation data
+    // Decode evaluation data (This was already a string within the JSON, so decode it now)
     $evaluation_data = json_decode($evaluation_data_json, true);
     if (json_last_error() !== JSON_ERROR_NONE || !is_array($evaluation_data)) {
         $response['message'] = 'Invalid evaluation data format.';
@@ -149,7 +161,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             }
         }
 
-        // 3. Update existing evaluation_per_panel rows
+        // 3. Update existing evaluation_per_panel rows and build student->evaluation_id map
         $selectStmt = $pdo->prepare(
             "SELECT id, student_id FROM evaluation_per_panel
              WHERE defense_schedule_id = :ds_id AND evaluator_id = :eval_id"
@@ -160,9 +172,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         ]);
         $existing = $selectStmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $evaluationIds = [];
+        $studentEvaluationMap = []; // Map student_id => evaluation_per_panel.id
+        $allEvaluationIds = []; // Store all relevant evaluation_per_panel IDs for detail deletion
+
         foreach ($existing as $row) {
-            $eid = $row['id'];
+            $eid = (int)$row['id'];
             $sid = (int)$row['student_id'];
             $solo = $soloScores[$sid] ?? 0.0;
             $total = $totalWeightedScore + $solo;
@@ -184,10 +198,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':id'          => $eid
             ]);
 
-            $evaluationIds[] = $eid;
+            $studentEvaluationMap[$sid] = $eid; // Map student to their evaluation ID
+            $allEvaluationIds[] = $eid;
         }
 
-        // 4. Insert new rows for remaining students
+        // 4. Insert new rows for remaining students and add to map
         $existingStudents = array_column($existing, 'student_id');
         foreach ($studentIds as $sid) {
             if (in_array($sid, $existingStudents, true)) continue;
@@ -212,22 +227,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 ':total_score' => $total
             ]);
 
-            $evaluationIds[] = $pdo->lastInsertId();
+            $newEvaluationId = (int)$pdo->lastInsertId();
+            $studentEvaluationMap[$sid] = $newEvaluationId; // Map new student to their evaluation ID
+            $allEvaluationIds[] = $newEvaluationId;
         }
 
-        // 5. Delete existing details and re-insert
-        $delDetails = $pdo->prepare("DELETE FROM evaluation_details WHERE evaluation_id = ?");
-        foreach ($evaluationIds as $eid) {
-            $delDetails->execute([$eid]);
+        // Ensure we have at least one evaluation ID if students exist
+        $firstEvaluationId = !empty($allEvaluationIds) ? $allEvaluationIds[0] : null;
+        if ($firstEvaluationId === null && !empty($studentIds)) {
+             throw new Exception("Failed to get a valid evaluation ID for details insertion.");
         }
+
+
+        // 5. Delete existing details and re-insert
+        if (!empty($allEvaluationIds)) {
+            $placeholders = implode(',', array_fill(0, count($allEvaluationIds), '?'));
+            $delDetails = $pdo->prepare("DELETE FROM evaluation_details WHERE evaluation_id IN ($placeholders)");
+            $delDetails->execute($allEvaluationIds);
+        }
+
 
         $detailStmt = $pdo->prepare(
             "INSERT INTO evaluation_details
                 (evaluation_id, rubric_id, criterion_id,
-                 student_id, score, selected_option, created_at, updated_at)
+                 student_id, score, selected_option, comment, created_at, updated_at)
              VALUES
                 (:eval_id, :rubric_id, :crit_id,
-                 :student_id, :score, :option, NOW(), NOW())"
+                 :student_id, :score, :option, :comment, NOW(), NOW())"
         );
 
         foreach ($evaluation_data as $rid => $data) {
@@ -236,37 +262,44 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $meta = $rubricDetails[$rid];
             $type = $meta['rubric_type'];
             $is_ind = $meta['is_individual_enabled'];
-            
+
+            // Determine the base evaluation_id (use first student's ID for group-level entries)
+            $baseEvalId = $firstEvaluationId;
+
             if ($type === 'passfail' && array_key_exists('selected_option', $data)) {
                 $selected = (string)$data['selected_option'];
                 $detailStmt->execute([
-                    ':eval_id'     => $evaluationIds[0],
+                    ':eval_id'     => $baseEvalId, // Group level
                     ':rubric_id'   => $rid,
                     ':crit_id'     => null,
                     ':student_id'  => null,
                     ':score'       => null,
-                    ':option'      => $selected
+                    ':option'      => $selected,
+                    ':comment'     => null // Add comment column
                 ]);
                 continue; // skip other processing
             }
             if ($type === 'yesno' && isset($data['options']) && is_array($data['options'])) {
                 $opts = $data['options'];
-        
+
                 // Individual‑enabled: one yes/no per student per criterion
-                if (! empty($meta['is_individual_enabled'])) {
+                if ($is_ind) {
                     foreach ($opts as $critId => $stuMap) {
                         foreach ($stuMap as $stuId => $val) {
+                            $stuId = (int)$stuId;
+                            $currentEvalId = $studentEvaluationMap[$stuId] ?? $baseEvalId; // Use specific student's eval ID
                             $detailStmt->execute([
-                                ':eval_id'    => $evaluationIds[0],
+                                ':eval_id'    => $currentEvalId,
                                 ':rubric_id'  => $rid,
                                 ':crit_id'    => (int)$critId,
-                                ':student_id'=> (int)$stuId,
+                                ':student_id'=> $stuId,
                                 ':score'      => null,
-                                ':option'     => (string)$val
+                                ':option'     => (string)$val,
+                                ':comment'    => null // Add comment column
                             ]);
                         }
                     }
-                } 
+                }
                 // Group Yes/No: one yes/no per criterion
                 else {
                     foreach ($opts as $critId => $groupArr) {
@@ -274,12 +307,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                              ? (string)$groupArr['group']
                              : null;
                         $detailStmt->execute([
-                            ':eval_id'    => $evaluationIds[0],
+                            ':eval_id'    => $baseEvalId, // Group level
                             ':rubric_id'  => $rid,
                             ':crit_id'    => (int)$critId,
                             ':student_id'=> null,
                             ':score'      => null,
-                            ':option'     => $sel
+                            ':option'     => $sel,
+                            ':comment'    => null // Add comment column
                         ]);
                     }
                 }
@@ -289,39 +323,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 foreach ($data['scores'] as $critId => $val) {
                     $critId = (int)$critId;
 
-                    
-
                     if ($type === 'numerical' && $is_ind && is_array($val)) {
+                        // Individual numerical scores
                         foreach ($val as $sid => $sval) {
+                            $sid = (int)$sid;
+                            $currentEvalId = $studentEvaluationMap[$sid] ?? $baseEvalId; // Use specific student's eval ID
                             $detailStmt->execute([
-                                ':eval_id'    => $evaluationIds[0],
+                                ':eval_id'    => $currentEvalId,
                                 ':rubric_id'  => $rid,
                                 ':crit_id'    => $critId,
-                                ':student_id'=> (int)$sid,
+                                ':student_id'=> $sid,
                                 ':score'      => filter_var($sval, FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE),
-                                ':option'     => null
+                                ':option'     => null,
+                                ':comment'    => null // Add comment column
                             ]);
                         }
-                    } else {
-                        $score = null;
-                        $option = null;
-                        $studentId = null;
-
-                        if ($type === 'numerical') {
-                            $score = is_array($val)
-                                ? filter_var($val['group'], FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE)
-                                : filter_var($val, FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE);
-                        } elseif ($type === 'yesno' || $type === 'passfail') {
-                            $option = (string)$val;
-                        }
+                    } elseif ($type === 'numerical' && !$is_ind) {
+                         // Group numerical score
+                        $score = is_array($val)
+                            ? filter_var($val['group'], FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE)
+                            : filter_var($val, FILTER_VALIDATE_FLOAT, FILTER_NULL_ON_FAILURE);
 
                         $detailStmt->execute([
-                            ':eval_id'    => $evaluationIds[0],
+                            ':eval_id'    => $baseEvalId, // Group level
                             ':rubric_id'  => $rid,
                             ':crit_id'    => $critId,
-                            ':student_id'=> $studentId,
+                            ':student_id'=> null,
                             ':score'      => $score,
-                            ':option'     => $option
+                            ':option'     => null,
+                            ':comment'    => null // Add comment column
                         ]);
                     }
                 }

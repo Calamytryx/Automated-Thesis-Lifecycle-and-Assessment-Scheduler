@@ -57,6 +57,7 @@
                     <tr>
                         <th>Name</th>
                         <th>Research Title</th>
+                        <th>Program</th>
                         <th>Adviser</th>
                         <th>Leader</th>
                         <th>Members</th>
@@ -177,7 +178,7 @@
                             tbody.innerHTML += `
                                 <tr>
                                     <td>${team.name}</td>
-                                    <td>${team.program}</td>
+                                    <td>${team.program || 'N/A'}</td>
                                 </tr>
                             `;
                         });
@@ -278,6 +279,7 @@
                             <tr>
                                 <td>${team.name}</td>
                                 <td>${team.research_title || ''}</td>
+                                <td>${team.program || 'N/A'}</td>
                                 <td>${adviser}</td>
                                 <td>${leader}</td>
                                 <td>${membersHtml}</td>

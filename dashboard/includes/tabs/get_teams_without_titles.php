@@ -3,7 +3,7 @@ require_once '../../../assets/setup/db.inc.php';
 header('Content-Type: application/json');
 
 try {
-    $sql = "SELECT t.id, t.name, t.program 
+    $sql = "SELECT *
             FROM teams t 
             LEFT JOIN research_titles rt ON t.id = rt.team_id 
             WHERE rt.id IS NULL 

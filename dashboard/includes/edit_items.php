@@ -6,6 +6,20 @@ header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
+// At the beginning of the file, after starting the session and including required files:
+require_once '../../assets/includes/auth_functions.php';
+
+// Current user info
+$userId = $_SESSION['id'] ?? 0;
+$usertype = $_SESSION['usertype'] ?? -1;
+
+// For admin users who aren't superadmin, get their college for validation
+$userCollege = null;
+if ($usertype == 0 && $userId != 0) {
+    $userCollege = get_user_college($pdo, $userId);
+}
+
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $table = $_POST['table'] ?? null;
     $id = $_POST['id'] ?? null;
@@ -27,7 +41,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Special handling for programs
+    // Inside form processing logic (before updating an item)
+    // For programs
+    if ($table === 'programs' && $usertype == 0 && $userId != 0 && $userCollege) {
+        // First check if the program being edited belongs to the admin's college
+        $stmtCheck = $pdo->prepare("SELECT college FROM programs WHERE id = :id");
+        $stmtCheck->execute([':id' => $id]);
+        $currentCollege = $stmtCheck->fetchColumn();
+        
+        if ($currentCollege != $userCollege) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'You can only edit programs from your own college.'
+            ]);
+            exit;
+        }
+        
+        // Also ensure they're not changing the college to something else
+        if (isset($data['college']) && $data['college'] != $userCollege) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'You cannot change the college of a program.'
+            ]);
+            exit;
+        }
+    }
+
+    // Special handling for programs update (moved from generic handler)
     if ($table === 'programs') {
         try {
             // Prepare the SQL update statement
@@ -35,7 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     college = :college,
                                     department = :department,
                                     name = :name,
-                                    specialization = :specialization
+                                    specialization = :specialization,
+                                    updated_at = NOW()
                                  WHERE id = :id";
             $stmtProgram = $pdo->prepare($programUpdateSql);
 
@@ -68,10 +109,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                  }
             }
         }
-
-        // Send the JSON response and stop the script
         echo json_encode($response);
-        exit;
+        exit; // Stop script after handling program
     }
 
     // --- UPDATED Rubric Handling ---
@@ -384,10 +423,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         echo json_encode($response);
-        exit;
+        exit; // Stop script after handling team
     }
 
-    // Special handling for users (same fix as in add_items.php)
+    // Special handling for users
     if ($table === 'users') {
         // Fix for program_id field - rename it to match the database column name
         if (isset($data['program_id'])) {
@@ -437,20 +476,60 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['success'] = true;
         $response['message'] = "User updated successfully.";
         echo json_encode($response);
-        exit;
+        exit; // Stop script after handling user
     }
 
-    // For other tables, use the generic handler (ensure edit_functions.php is updated if needed)
+    // Special handling for research_titles BEFORE calling generic handler
+    if ($table === 'research_titles') {
+        // Map program_id to program if it exists (shouldn't if JS is correct, but as fallback)
+        if (isset($data['program_id'])) {
+            $data['program'] = $data['program_id'];
+            unset($data['program_id']);
+        }
+        
+        // Handle the 'approved_at' timestamp based on checkbox value
+        if (isset($data['approved_at'])) {
+            if ($data['approved_at'] == '1') { // Checkbox was checked
+                // Set to current timestamp only if it's not already set
+                $stmtCheck = $pdo->prepare("SELECT approved_at FROM research_titles WHERE id = ?");
+                $stmtCheck->execute([$id]);
+                $currentApprovedAt = $stmtCheck->fetchColumn();
+                if ($currentApprovedAt === null) {
+                    $data['approved_at'] = date('Y-m-d H:i:s'); // Set current timestamp
+                } else {
+                    // Already approved, keep existing timestamp - remove from $data to avoid overwrite
+                    unset($data['approved_at']); 
+                }
+            } else { // Checkbox was unchecked (value '0' or not present)
+                $data['approved_at'] = null; // Set to NULL
+            }
+        } else {
+             // If key isn't even set (e.g., form issue), assume unchecking
+             $data['approved_at'] = null;
+        }
+
+        // Remove team_id if present, as it shouldn't be editable directly here
+        unset($data['team_id']); 
+    }
+
+    // For other tables (and now research_titles after preprocessing), use the generic handler
     require_once __DIR__ . '/edit_functions.php'; // Make sure this file exists and functions are correct
 
     // Check if handleEditSubmission exists and call it
     if (function_exists('handleEditSubmission')) {
-        $result = handleEditSubmission($pdo, $table, $id, $data); // Pass $data instead of $_POST
+        // The $data array now has the correct 'program' key for research_titles
+        $result = handleEditSubmission($pdo, $table, $id, $data); 
         if ($result !== false) {
             $response['success'] = true;
             $response['message'] = ucfirst($table) . ' updated successfully.';
         } else {
-            $response['message'] = ucfirst($table) . ' update failed.';
+            // Check if a specific message was set in handleEditSubmission
+            if (isset($GLOBALS['edit_error_message'])) {
+                 $response['message'] = $GLOBALS['edit_error_message'];
+                 unset($GLOBALS['edit_error_message']); // Clear global message
+            } else {
+                 $response['message'] = ucfirst($table) . ' update failed. Check logs for details.';
+            }
         }
     } else {
         $response['message'] = 'Update handler function not found.';

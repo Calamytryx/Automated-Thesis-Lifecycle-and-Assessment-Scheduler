@@ -430,7 +430,11 @@
         // Add inputs for each quality level
         for (var i = 0; i < count; i++) {
             var levelRow = $('<div class="row mb-2 align-items-center quality-level-row"></div>');
-            var defaultPoints = Math.max(0, 5 - i); // Example default points
+            // --- MODIFIED: Calculate default points based on position ---
+            // Example: If count is 5, levels get defaults 5, 4, 3, 2, 1
+            // If count is 3, levels get defaults 3, 2, 1
+            var defaultPoints = Math.max(1, count - i); // Ensure points are at least 1
+            // --- END MODIFIED ---
 
             levelRow.append(`
             <div class="col-md-3">
@@ -451,7 +455,7 @@
             <div class="col-md-1">
                 <input type="number" class="form-control points-input points-max"
                        name="quality_level_points_max[]" value="${defaultPoints}" min="0" max="100"
-                       data-level="${i + 1}" style="display: none;"> <!-- Initially hidden -->
+                       data-level="${i + 1}" style="display: none;"> <!-- Initially hidden, default value same as min -->
             </div>
             <div class="col-md-6">
                 <input type="text" class="form-control quality-description-input"
@@ -878,8 +882,8 @@
             container.append(`
             <div class="row mb-2 modifier-row">
                 <div class="col-md-12">
-                    <label class="form-label">Pass Modifier ${i} Description</label>
-                    <textarea class="form-control modifier-text" data-modifier="${i}" rows="2">Modifier ${i} Description</textarea>
+                    <label class="form-label">Pass Option ${i} Description</label> <!-- Changed Label -->
+                    <textarea class="form-control modifier-text" data-modifier="${i}" rows="2" placeholder="Enter description for pass option ${i}"></textarea> <!-- Changed Placeholder, removed default value -->
                 </div>
             </div>
         `);
@@ -888,13 +892,13 @@
             if (thresholdInput.length) {
                 $(`#passThresholds .modifier-threshold[data-modifier="${i}"]`).show();
                 // Label update logic might need adjustment if modifier text is long
-                thresholdLabel.text(`Pass Modifier ${i} (%)`);
+                thresholdLabel.text(`Pass Option ${i} Threshold (%)`); // Changed Label
             }
         }
         // Hide unused threshold inputs
         for (var j = count + 1; j <= 3; j++) {
             $(`#passThresholds .modifier-threshold[data-modifier="${j}"]`).hide();
-        }
+        } 
 
         updatePassFailPreviewOptions(); // Update preview after generating inputs
     }
@@ -907,7 +911,8 @@
 
         // Get modifier descriptions
         for (var i = 1; i <= modifierCount; i++) {
-            modifierTexts[i] = $(`.modifier-text[data-modifier="${i}"]`).val() || `Pass Option ${i} Description`;
+            // Use placeholder if textarea is empty
+            modifierTexts[i] = $(`.modifier-text[data-modifier="${i}"]`).val() || `(Description for Pass Option ${i})`; // Changed fallback
         }
 
         $('#rubricPreviewBody tr.criterion-row').each(function() {
@@ -925,7 +930,7 @@
                     optionsCell.append(`
                     <div class="form-check">
                         <input class="form-check-input passfail-radio" type="radio" name="${radioGroupName}" id="row${rowNum}_mod${i}" value="pass_${i}">
-                        <label class="form-check-label text-start d-block" for="row${rowNum}_mod${i}">${modifierTexts[i]}</label>
+                        <label class="form-check-label text-start d-block" for="row${rowNum}_mod${i}">${modifierTexts[i]}</label> <!-- Use description directly -->
                     </div>
                 `);
                 }
@@ -934,7 +939,7 @@
                 optionsCell.append(`
                 <div class="form-check">
                     <input class="form-check-input passfail-radio" type="radio" name="${radioGroupName}" id="row${rowNum}_fail" value="fail" checked> <!-- Default to fail -->
-                    <label class="form-check-label text-start d-block" for="row${rowNum}_fail">${failText}</label>
+                    <label class="form-check-label text-start d-block" for="row${rowNum}_fail">${failText}</label> <!-- Use fail description directly -->
                 </div>
             `);
             }
@@ -977,6 +982,7 @@
                     $('#programsCollapse').removeClass('show');
 
                     // --- Populate Type-Specific Config ---
+                    // Reset all config sections
                     $('#rubricPreviewBody').empty(); // Clear preview
 
                     // Show/Hide config sections based on loaded type
@@ -1028,24 +1034,36 @@
                             criteria.forEach(function(crit) {
                                 addCriterionRow(); // Adds row structure based on individualEnabled state
                                 var lastRow = $('#rubricPreviewBody tr:last-child');
-                                lastRow.find('.criterion-description').val(crit.criterion_text);
+
+                                // --- MODIFIED: Use correct selector for individual description ---
+                                if (individualEnabled) {
+                                    lastRow.find('input[name="criterion_description[]"]').val(crit.criterion_text);
+                                } else {
+                                    lastRow.find('.criterion-description').val(crit.criterion_text);
+                                }
+                                // --- END MODIFIED ---
+
                                 lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
-                                // No need to set type selector or level inputs if individualEnabled
+
+                                // --- MODIFIED: Uncomment and refine level input population ---
                                 if (!individualEnabled) {
                                     // Populate level inputs only if group scoring
-                                    // Note: This assumes level inputs are saved/retrieved correctly.
-                                    // If `criterion_detail` stored the level input text, use it here.
-                                    // Example: Populate based on saved detail (if applicable)
-                                    // var levelInputs = lastRow.find('.criterion-level-input');
-                                    // try {
-                                    //     var details = JSON.parse(crit.criterion_detail || '[]');
-                                    //     levelInputs.each(function(idx) {
-                                    //         if (details[idx]) {
-                                    //             $(this).val(details[idx]);
-                                    //         }
-                                    //     });
-                                    // } catch (e) { console.error("Could not parse criterion detail", e); }
+                                    var levelInputs = lastRow.find('.criterion-level-input');
+                                    try {
+                                        // Assuming crit.criterion_detail stores a JSON array of level descriptions
+                                        var details = JSON.parse(crit.criterion_detail || '[]');
+                                        levelInputs.each(function(idx) {
+                                            if (details[idx] !== undefined) { // Check if index exists
+                                                $(this).val(details[idx]);
+                                            }
+                                        });
+                                    } catch (e) {
+                                        console.error("Could not parse criterion detail JSON:", crit.criterion_detail, e);
+                                        // Optionally clear inputs or show an error
+                                        levelInputs.val('');
+                                    }
                                 }
+                                // --- END MODIFIED ---
                             });
                         }
                         validateLevelPoints();
@@ -1062,8 +1080,8 @@
                             criteria.forEach(function(crit) {
                                 addCriterionRow(); // Add a blank row structure
                                 var lastRow = $('#rubricPreviewBody tr:last-child');
-                                lastRow.find('.criterion-input').val(crit.criterion_text);
-                                lastRow.find('.description-input').val(crit.criterion_detail || '');
+                                lastRow.find('.criterion-input').val(crit.criterion_text); // Correct selector for yes/no
+                                lastRow.find('.description-input').val(crit.criterion_detail || ''); // Correct selector for yes/no
                             });
                         }
 
@@ -1094,7 +1112,8 @@
                         $('#minor_revision_pass').val(rubric.pass_threshold_2 || 75);
                         $('#major_revision_pass').val(rubric.pass_threshold_3 || 65);
 
-                        updateRubricTableHeader(); // Rebuilds the 2 fixed rows
+                        updatePassFailPreviewOptions(); // Update preview with loaded descriptions
+                        // updateRubricTableHeader(); // Rebuilds the 2 fixed rows - called by generatePassFailModifierInputs -> updatePassFailPreviewOptions
                     }
 
                     updateTotalScoreDisplay(); // Recalculate score if numerical
@@ -1168,8 +1187,8 @@
                 var level = index + 1;
                 levelsData.push({
                     level_index: level,
-                    name: `Modifier ${level}`,
-                    description: $(this).find('.modifier-text').val(),
+                    name: `Pass Option ${level}`, // Internal name can still be descriptive
+                    description: $(this).find('.modifier-text').val(), // Get description from textarea
                 });
             });
             formData.append('levels', JSON.stringify(levelsData));
@@ -1186,33 +1205,44 @@
                 var criterionText = '';
                 var criterionDetail = null;
                 var isIndividual = 0; // Default to Group
-                var criterionDescription = '';
+                var criterionScore = null; // Initialize score
 
                 if (rubricType === 'numerical') {
-
+                    // --- MODIFIED: Get text using name selector for consistency ---
                     criterionText = $(this).find('input[name="criterion_description[]"]').val();
-                    criterionDetail = $(this).find('.criterion-level-input').val();
-                    var criterionScore = $(this).find('input[name="criterion_score[]"]').val();
+                    // --- END MODIFIED ---
 
-                    // Only read the selector if individual scoring is enabled for the rubric
                     if (individualEnabled) {
                         isIndividual = 1; // Individual
                         criterionDetail = null; // No level detail saved per criterion
+                        criterionScore = $(this).find('input[name="criterion_score[]"]').val(); // Get score for individual
                     } else {
                         isIndividual = 0; // Group scoring
+                        // Collect level descriptions for group scoring
+                        var levelValues = [];
+                        $(this).find('.criterion-level-input').each(function() {
+                            levelValues.push($(this).val());
+                        });
+                        criterionDetail = JSON.stringify(levelValues); // Store as JSON string
+                        criterionScore = $(this).find('input.score-input').val(); // Get score for group (readonly)
                     }
                 } else { // yesno
                     criterionText = $(this).find('.criterion-input').val();
                     criterionDetail = $(this).find('.description-input').val();
+                    // criterionScore remains null for yes/no
                 }
-                console.log("Criterion Text: ", criterionText);
-                console.log("Criterion Description: ", criterionDetail);
+
+                // console.log("Criterion Text: ", criterionText);
+                // console.log("Criterion Detail: ", criterionDetail);
+                // console.log("Criterion Score: ", criterionScore);
+                // console.log("Is Individual: ", isIndividual);
+
                 criteriaData.push({
                     order_index: index,
                     criterion_text: criterionText,
                     criterion_detail: criterionDetail,
-                    criterion_score: criterionScore,
-                    is_individual: isIndividual // Add the flag (will be 0 if not individualEnabled or not numerical)
+                    criterion_score: criterionScore, // Send score (null for yes/no)
+                    is_individual: isIndividual
                 });
             });
             formData.append('criteria', JSON.stringify(criteriaData));
@@ -1254,7 +1284,7 @@
         $('#rubricDeleteConfirmModal').modal('show');
     }
 
-    // --- UPDATED Function to load programs into checkboxes (Handles nested structure) ---
+    // --- UPDATED Function: Load programs into checkboxes (Handles nested structure) ---
     function loadProgramsForCheckboxes() {
         const container = $('#programCheckboxesContainer');
         container.html('<p class="text-muted">Loading programs...</p>'); // Show loading message

@@ -6,6 +6,19 @@ header('Content-Type: application/json');
 
 $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
+// At the beginning of the file, after starting the session and including required files:
+require_once '../../assets/includes/auth_functions.php';
+
+// Current user info
+$userId = $_SESSION['id'] ?? 0;
+$usertype = $_SESSION['usertype'] ?? -1;
+
+// For admin users who aren't superadmin, get their college for validation
+$userCollege = null;
+if ($usertype == 0 && $userId != 0) {
+    $userCollege = get_user_college($pdo, $userId);
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $table = $_POST['table'] ?? null;
 
@@ -19,6 +32,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['message'] = 'Invalid table specified.';
         echo json_encode($response);
         exit;
+    }
+
+    // Inside form processing logic (before inserting a new item)
+    // For programs
+    if ($table === 'programs' && $usertype == 0 && $userId != 0 && $userCollege) {
+        // If non-super admin is adding a program, ensure it's for their college
+        if (isset($data['college']) && $data['college'] != $userCollege) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'You can only add programs for your own college.'
+            ]);
+            exit;
+        }
     }
 
     if ($table === 'programs') {
@@ -240,6 +266,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Special handling for teams
+    if ($table === 'teams' && $usertype == 0 && $userId != 0 && $userCollege) {
+        // Check if the program belongs to the admin's college
+        $stmtCheck = $pdo->prepare("SELECT college FROM programs WHERE id = :program_id");
+        $stmtCheck->execute([':program_id' => $data['program'] ?? $data['program_id'] ?? 0]);
+        $programCollege = $stmtCheck->fetchColumn();
+        
+        if ($programCollege && $programCollege != $userCollege) {
+            echo json_encode([
+                'success' => false, 
+                'message' => 'You can only add teams for programs in your own college.'
+            ]);
+            exit;
+        }
+    }
+
     if ($table === 'teams') {
         $pdo->beginTransaction();
         try {

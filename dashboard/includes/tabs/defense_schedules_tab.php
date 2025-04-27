@@ -545,18 +545,15 @@
                 };
 
                 const splitPanelists = (panelistsString) => {
-                    // Ensure the panelists are always displayed in the correct order
-                    // by using the specific panelist_id1, panelist_id2, panelist_id3 fields
-                    // instead of just splitting the string
-                    if (!panelistsString) return [null, null, null];
-                    
-                    // Split by comma, but preserve the order as they appear in the database
+                    if (!panelistsString) return ['N/A', 'N/A', 'N/A']; // Return placeholders if null/empty
+                    // Split the comma-separated string
                     const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
-                    return [
-                        panelists[0] || null,  // This corresponds to panelist_id in DB (panelist 1)
-                        panelists[1] || null,  // This corresponds to panelist_id2 in DB (panelist 2)
-                        panelists[2] || null   // This corresponds to panelist_id3 in DB (panelist 3)
-                    ];
+                    // Pad with 'N/A' if less than 3 panelists
+                    while (panelists.length < 3) {
+                        panelists.push('N/A');
+                    }
+                    // Return the first 3 panelists (or placeholders)
+                    return panelists.slice(0, 3);
                 };
 
                 const loadDefenseSchedules = (page = 1) => {
@@ -579,41 +576,42 @@
 
                             const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = '';
-                            data.data.forEach(schedule => {
-                                const formattedDate = formatDate(schedule.schedule_date);
-                                const formattedStartTime = formatTime(schedule.start_time);
-                                const formattedEndTime = formatTime(schedule.end_time);
-                                const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
+                            if (data.data.length === 0) { // Added check for empty data array
+                                tbody.innerHTML = `<tr><td colspan="9" class="text-center">No defense schedules found.</td></tr>`;
+                            } else {
+                                data.data.forEach(schedule => {
+                                    const formattedDate = formatDate(schedule.schedule_date);
+                                    const formattedStartTime = formatTime(schedule.start_time);
+                                    const formattedEndTime = formatTime(schedule.end_time);
+                                    const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
 
-                                // Make sure we're getting panelists in a consistent order from get_table.php
-                                // The get_table.php should join the panelist fields in the same order:
-                                // panelist_id, panelist_id2, panelist_id3
-                                const panelists = splitPanelists(schedule.panelists);
+                                    // Use the splitPanelists function
+                                    const panelists = splitPanelists(schedule.panelists);
 
-                                tbody.innerHTML += `
-                                    <tr>
-                                        <td>${dateTime}</td>
-                                        <td>${schedule.team_name}</td>
-                                        <td>${schedule.adviser}</td>
-                                        <td>${schedule.thesis_title}</td> <!-- Changed from title to thesis_title -->
-                                        <td>${panelists[0]}</td>
-                                        <td>${panelists[1]}</td>
-                                        <td>${panelists[2]}</td>
-                                        <td>${schedule.room}</td>
-                                        
-                                        <td class="action-buttons">
-                                            <div class="d-flex gap-2 justify-content-center">
-                                                <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">
-                                                    <i class="fas fa-edit me-1"></i>Edit
-                                                </button>
-                                                <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">
-                                                    <i class="fas fa-trash-alt me-1"></i>Delete
-                                                </button>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                `;
-                            });
+                                    tbody.innerHTML += `
+                                        <tr>
+                                            <td>${dateTime}</td>
+                                            <td>${schedule.team_name || 'N/A'}</td>
+                                            <td>${schedule.adviser || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${schedule.thesis_title || 'N/A'}</td>
+                                            <td>${panelists[0] || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${panelists[1] || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${panelists[2] || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${schedule.room || 'N/A'}</td>
+                                            <td class="action-buttons">
+                                                <div class="d-flex gap-2 justify-content-center">
+                                                    <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">
+                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    </button>
+                                                    <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">
+                                                        <i class="fas fa-trash-alt me-1"></i>Delete
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    `;
+                                });
+                            }
 
                             const pagination = document.querySelector('#def-nav .pagination');
                             pagination.innerHTML = '';
@@ -645,6 +643,10 @@
                         .catch(error => {
                             console.error('Fetch Error:', error);
                             document.getElementById('scheduleGenerationStatus').innerText = `Fetch Error: ${error.message}`;
+                            const tbody = document.querySelector('#def-table tbody'); // Ensure tbody is selected here too
+                            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading schedule data: ${error.message}</td></tr>`;
+                            const pagination = document.querySelector('#def-nav .pagination');
+                            pagination.innerHTML = ''; // Clear pagination on error
                         });
                 };
 

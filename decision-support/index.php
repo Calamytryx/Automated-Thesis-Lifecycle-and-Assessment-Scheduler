@@ -202,7 +202,7 @@ try {
         }
 
         // Sort the $rubrics_in_group array by the stored order_index
-        uasort($rubrics_in_group, function ($a, $b) {
+        uasort($rubrics_in_group, function($a, $b) {
             return ($a['order_index'] ?? 999) <=> ($b['order_index'] ?? 999);
         });
 
@@ -218,69 +218,70 @@ try {
         LEFT JOIN evaluation_details ed ON epp.id = ed.evaluation_id
         WHERE epp.defense_schedule_id = :schedule_id AND epp.evaluator_id = :evaluator_id
     ");
-    $stmt_existing_eval->execute([':schedule_id' => $schedule_id, ':evaluator_id' => $evaluator_id]);
-    $existing_raw = $stmt_existing_eval->fetchAll(PDO::FETCH_ASSOC);
-    error_log("DS-Index: Fetched " . count($existing_raw) . " rows for existing evaluation data.");
+     $stmt_existing_eval->execute([':schedule_id' => $schedule_id, ':evaluator_id' => $evaluator_id]);
+     $existing_raw = $stmt_existing_eval->fetchAll(PDO::FETCH_ASSOC);
+     error_log("DS-Index: Fetched " . count($existing_raw) . " rows for existing evaluation data.");
 
-    if (!empty($existing_raw)) {
-        $existing_evaluation = [
-            'evaluation_id' => $existing_raw[0]['evaluation_id'],
-            'comments' => $existing_raw[0]['comments'],
-            'details' => []
-        ];
-        foreach ($existing_raw as $detail) {
-            if ($detail['rubric_id'] === null) {
-                error_log("DS-Index: Warning - Skipping existing evaluation detail with null rubric_id.");
-                continue;
-            }
-            $r_id = $detail['rubric_id'];
-            $c_id = $detail['criterion_id'];
-            $s_id = $detail['student_id'];
-            $score = $detail['score'];
-            $option = $detail['selected_option'];
+     if (!empty($existing_raw)) {
+         $existing_evaluation = [
+             'evaluation_id' => $existing_raw[0]['evaluation_id'],
+             'comments' => $existing_raw[0]['comments'],
+             'details' => []
+         ];
+         foreach ($existing_raw as $detail) {
+             if ($detail['rubric_id'] === null) {
+                 error_log("DS-Index: Warning - Skipping existing evaluation detail with null rubric_id.");
+                 continue;
+             }
+             $r_id = $detail['rubric_id'];
+             $c_id = $detail['criterion_id'];
+             $s_id = $detail['student_id'];
+             $score = $detail['score'];
+             $option = $detail['selected_option'];
 
-            if (!isset($existing_evaluation['details'][$r_id])) {
-                $existing_evaluation['details'][$r_id] = [];
-            }
-            $current_rubric = $rubrics_in_group[$r_id] ?? null;
-            if (!$current_rubric) {
-                error_log("DS-Index: Warning - Found existing evaluation detail for rubric ID {$r_id}, but rubric info not loaded. Skipping detail processing.");
-                continue;
-            }
-            if ($c_id !== null) {
-                if ($s_id !== null) {
-                    if (!isset($existing_evaluation['details'][$r_id][$c_id])) $existing_evaluation['details'][$r_id][$c_id] = [];
-                    $existing_evaluation['details'][$r_id][$c_id][$s_id] = $score ?? $option;
-                } else {
-                    $existing_evaluation['details'][$r_id][$c_id]['group'] = $score ?? $option;
-                }
-            } else {
-                $existing_evaluation['details'][$r_id]['overall'] = $option;
-            }
-        }
-        error_log("DS-Index: Processed existing evaluation data.");
-    } else {
-        error_log("DS-Index: No existing evaluation found for this schedule/evaluator.");
-    }
+             if (!isset($existing_evaluation['details'][$r_id])) {
+                 $existing_evaluation['details'][$r_id] = [];
+             }
+             $current_rubric = $rubrics_in_group[$r_id] ?? null;
+             if (!$current_rubric) {
+                 error_log("DS-Index: Warning - Found existing evaluation detail for rubric ID {$r_id}, but rubric info not loaded. Skipping detail processing.");
+                 continue;
+             }
+             if ($c_id !== null) {
+                 if ($s_id !== null) {
+                     if (!isset($existing_evaluation['details'][$r_id][$c_id])) $existing_evaluation['details'][$r_id][$c_id] = [];
+                     $existing_evaluation['details'][$r_id][$c_id][$s_id] = $score ?? $option;
+                 } else {
+                     $existing_evaluation['details'][$r_id][$c_id]['group'] = $score ?? $option;
+                 }
+             } else {
+                 $existing_evaluation['details'][$r_id]['overall'] = $option;
+             }
+         }
+         error_log("DS-Index: Processed existing evaluation data.");
+     } else {
+         error_log("DS-Index: No existing evaluation found for this schedule/evaluator.");
+     }
+
 } catch (PDOException $e) {
     $error_ref = $error_ref_prefix . time();
     error_log($error_ref . " - PDO Database Error: " . $e->getMessage() . " | SQLSTATE: " . $e->getCode() . " | Trace: " . $e->getTraceAsString());
 
     $errorMessage = "Database Error: Could not retrieve evaluation details. Please contact support. Error Ref: " . $error_ref;
     if ($e->getCode() == '42S22' || str_contains($e->getMessage(), '1054')) {
-        if (str_contains($e->getMessage(), 'ed.rubric_id') || str_contains($e->getMessage(), 'evaluation_details.rubric_id')) {
-            $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'rubric_id' column. Please update the database schema.";
-        } elseif (str_contains($e->getMessage(), 'ed.criterion_id')) {
-            $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'criterion_id' column. Please update the database schema.";
-        } elseif (str_contains($e->getMessage(), 'ed.student_id')) {
-            $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'student_id' column. Please update the database schema.";
-        } elseif (str_contains($e->getMessage(), 'ed.score')) {
-            $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'score' column. Please update the database schema.";
-        } elseif (str_contains($e->getMessage(), 'ed.selected_option')) {
-            $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'selected_option' column. Please update the database schema.";
-        } else {
-            $errorMessage = "Database Schema Error: A required column is missing in the database. Details: " . htmlspecialchars($e->getMessage()) . " Please contact support. Error Ref: " . $error_ref;
-        }
+         if (str_contains($e->getMessage(), 'ed.rubric_id') || str_contains($e->getMessage(), 'evaluation_details.rubric_id')) {
+              $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'rubric_id' column. Please update the database schema.";
+         } elseif (str_contains($e->getMessage(), 'ed.criterion_id')) {
+              $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'criterion_id' column. Please update the database schema.";
+         } elseif (str_contains($e->getMessage(), 'ed.student_id')) {
+              $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'student_id' column. Please update the database schema.";
+         } elseif (str_contains($e->getMessage(), 'ed.score')) {
+              $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'score' column. Please update the database schema.";
+         } elseif (str_contains($e->getMessage(), 'ed.selected_option')) {
+              $errorMessage = "Database Schema Error: The 'evaluation_details' table is missing the required 'selected_option' column. Please update the database schema.";
+         } else {
+             $errorMessage = "Database Schema Error: A required column is missing in the database. Details: " . htmlspecialchars($e->getMessage()) . " Please contact support. Error Ref: " . $error_ref;
+         }
     } else {
         $errorMessage = "Database Error: Could not retrieve evaluation details. Details: " . htmlspecialchars($e->getMessage()) . " (Code: " . htmlspecialchars($e->getCode()) . "). Please contact support if the issue persists. Error Ref: " . $error_ref;
     }
@@ -288,6 +289,7 @@ try {
     echo "<div class='container mt-5'><div class='alert alert-danger'>{$errorMessage}</div></div>";
     include '../assets/layouts/footer.php';
     exit;
+
 } catch (Exception $e) {
     $error_ref = $error_ref_prefix . time();
     error_log($error_ref . " - Application Error: " . $e->getMessage() . " | Trace: " . $e->getTraceAsString());
@@ -298,15 +300,14 @@ try {
 }
 
 // --- Helper Function to Render Numerical Rubric ---
-function render_numerical_rubric($rubric, $students, $existing_details)
-{
+function render_numerical_rubric($rubric, $students, $existing_details) {
     $rubric_id = $rubric['id'];
     $levels = $rubric['levels'] ?? [];
     $criteria = $rubric['criteria'] ?? [];
     $is_individual_rubric = !empty($rubric['is_individual_enabled']); // Check if the rubric supports individual scoring at all
     $flag = isset($rubric['is_individual_enabled'])
-        ? (int)$rubric['is_individual_enabled']
-        : 0;
+                ? (int)$rubric['is_individual_enabled']
+                : 0;
 
     echo '<script>';
     echo '  console.log("is_individual_enabled:", ' . $flag . ');';
@@ -317,9 +318,24 @@ function render_numerical_rubric($rubric, $students, $existing_details)
         return "<p class='text-danger'>Cannot render rubric: Missing criteria or quality levels.</p>";
     }
 
-    usort($levels, function ($a, $b) {
+    // --- MODIFICATION START: Add original index before sorting levels ---
+    $levels_with_original_index = [];
+    foreach ($levels as $original_index => $level_data) {
+        // Ensure level_index exists, otherwise use original_index as fallback
+        if (!isset($level_data['level_index'])) {
+             $level_data['level_index'] = $original_index + 1; // Assuming 1-based index if missing
+             error_log("DS-Index: RENDER WARNING - Missing 'level_index' for level in rubric ID {$rubric_id}. Using array index + 1 as fallback.");
+        }
+        $level_data['original_index'] = $level_data['level_index'] - 1; // Store 0-based index matching saved JSON array
+        $levels_with_original_index[] = $level_data;
+    }
+
+    // Sort levels by min points (descending)
+    usort($levels_with_original_index, function($a, $b) {
         return ($b['points_min'] ?? 0) <=> ($a['points_min'] ?? 0);
     });
+    // --- MODIFICATION END ---
+
 
     $html = '<div class="table-responsive"><table class="table table-bordered table-hover rubric-table numerical-rubric">';
     $html .= '<thead><tr>';
@@ -334,7 +350,9 @@ function render_numerical_rubric($rubric, $students, $existing_details)
             $student_count++;
         }
     } else {
-        foreach ($levels as $level) {
+        // --- MODIFICATION: Use sorted levels array for headers ---
+        foreach ($levels_with_original_index as $level) {
+        // --- END MODIFICATION ---
             $level_name = htmlspecialchars($level['name']);
             $points_min = $level['points_min'] ?? 0;
             $points_max = $level['points_max'] ?? $points_min;
@@ -351,22 +369,36 @@ function render_numerical_rubric($rubric, $students, $existing_details)
     foreach ($criteria as $index => $criterion) {
         $criterion_id = $criterion['id'];
         $criterion_text = htmlspecialchars($criterion['criterion_text']);
-        $criterion_detail = htmlspecialchars($criterion['criterion_detail']);
+        // --- MODIFICATION: Decode criterion_detail JSON ---
+        $criterion_detail_json = $criterion['criterion_detail'];
+        $criterion_details_array = json_decode($criterion_detail_json, true);
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            $criterion_details_array = []; // Fallback to empty array on error
+            error_log("DS-Index: RENDER WARNING - Failed to decode criterion_detail JSON for criterion ID {$criterion_id}: " . json_last_error_msg() . " | JSON: " . $criterion_detail_json);
+        }
+        // --- END MODIFICATION ---
         $is_individual_criterion = $is_individual_rubric && !empty($criterion['is_individual']);
 
         $html .= '<tr data-criterion-id="' . $criterion_id . '" data-is-individual="' . ($is_individual_criterion ? '1' : '0') . '">';
         $html .= '<td>' . $criterion_text . '</td>';
 
         if ($is_individual_criterion) {
-            // pre‐compute overall min/max from levels
-            $level_points_min = 0;
-            $level_points_max = 0;
-            foreach ($levels as $lvl) {
+            $rubric['levels'] = $levels_with_original_index; // Use the sorted levels with original index for individual rubrics
+            // pre‐compute overall min/max from levels for this criterion
+            $level_points_min = PHP_INT_MAX;
+            $level_points_max = PHP_INT_MIN;
+            foreach ($levels_with_original_index as $lvl) {
                 $min = $lvl['points_min'] ?? 0;
                 $max = $lvl['points_max'] ?? $min;
                 $level_points_min = min($level_points_min, $min);
                 $level_points_max = max($level_points_max, $max);
             }
+            // Handle case where no levels defined min/max properly
+            if ($level_points_min === PHP_INT_MAX) $level_points_min = 0;
+            if ($level_points_max === PHP_INT_MIN) $level_points_max = 0;
+
+            // *** NEW: Adjust min if min equals max ***
+            $input_min_value = ($level_points_min == $level_points_max) ? 0 : $level_points_min;
 
             $student_count = 0;
             foreach ($students as $student) {
@@ -379,53 +411,65 @@ function render_numerical_rubric($rubric, $students, $existing_details)
                 $html .= '<td class="text-center student-score-cell">';
                 $html .=    '<input
                                     type="number"
-                                    class="entered-score criterion-score-input"
+                                    class="entered-score criterion-score-input form-control form-control-sm"
                                     name="' . $input_name . '"
                                     id="r' . $rubric_id . 'c' . $criterion_id . 's' . $student_id . '"
                                     value="' . htmlspecialchars($existing_score, ENT_QUOTES) . '"
-                                    min="' . $level_points_min . '"
+                                    min="' . $input_min_value . '"
                                     max="' . $level_points_max . '"
                                     data-rubric-id="' . $rubric_id . '"
                                     data-criterion-id="' . $criterion_id . '"
                                     data-student-id="' . $student_id . '"
-                                    onchange="updateIndividualTotalScore(' . $rubric_id . ')"
-                                    oninput="updateIndividualTotalScore(' . $rubric_id . ')"
-                              >';
-                $html .= '</td>';
-            }
+                                >'; // Close input tag
+                $html .= '</td>'; // Close td tag
+            } // Close foreach ($students as $student)
         } else {
             $input_name = "score[{$rubric_id}][{$criterion_id}][group]";
             $existing_score = $existing_details[$criterion_id]['group'] ?? null;
 
-            foreach ($levels as $level) {
-                // Set default minimum to 0
-                // if points_min and points_max are not the same, then set the minimum level_points to the assigned minimum
-                $level_points = 0;
-                $level_points_max = $level['points_max'] ?? $points_min;
-                if ($level['points_min'] != $level['points_max']) {
-                    $level_points = $level['points_min'] ?? 0;
-                }
+            // Determine overall min/max for the group input
+            $group_min_score = PHP_INT_MAX;
+            $group_max_score = PHP_INT_MIN;
+            // --- MODIFICATION: Use sorted levels array for min/max calculation ---
+            foreach ($levels_with_original_index as $level) {
+            // --- END MODIFICATION ---
+                $min = $level['points_min'] ?? 0;
+                $max = $level['points_max'] ?? $min;
+                $group_min_score = min($group_min_score, $min);
+                $group_max_score = max($group_max_score, $max);
+            }
+            // Handle case where no levels defined min/max properly
+            if ($group_min_score === PHP_INT_MAX) $group_min_score = 0;
+            if ($group_max_score === PHP_INT_MIN) $group_max_score = 0;
 
+            // --- MODIFICATION: Use sorted levels array and display specific detail ---
+            foreach ($levels_with_original_index as $level) { // Use the sorted array with original index
                 $level_id = $level['id'];
-                $is_checked = ($existing_score !== null && $existing_score == $level_points);
-                $html .= '<td class="text-left level-cell">';
-                $html .= $criterion_detail;
+                $original_level_index = $level['original_index']; // Get the original 0-based index
 
+                $html .= '<td class="text-left level-cell">';
+                // Fetch the description from the decoded array using the original index
+                $detail_text = isset($criterion_details_array[$original_level_index])
+                               ? htmlspecialchars($criterion_details_array[$original_level_index])
+                               : ''; // Fallback if index doesn't exist or detail wasn't an array
+                $html .= $detail_text;
                 $html .= '</td>';
             }
+            // --- END MODIFICATION ---
+
             $html .= '<td class="text-center score-cell group-score-display" style="font-weight: bold;">';
-            $html .= '<input type="number" class="entered-score " 
-                             name="' . $input_name . '" 
-                             id="r' . $rubric_id . 'c' . $criterion_id . 'g_l' . $level_id . '" 
-                             value="' . ($existing_score ?? 0) . '"
-                             min="' . $level_points . '"
-                             max="' . $level_points_max . '"
-                             onchange="updateGroupTotalScore(' . $rubric_id . ')"
-                             oninput="updateGroupTotalScore(' . $rubric_id . ')"
-                             data-rubric-id="' . $rubric_id . '"
-                             data-criterion-id="' . $criterion_id . '"
-                                
-                             ' . ($is_checked ? 'checked' : '') . '>';
+            $html .= '<input type="number" class="entered-score form-control form-control-sm"
+                             name="' . $input_name . '"
+                             id="r'.$rubric_id.'c'.$criterion_id.'g_score"
+                             value="' . htmlspecialchars($existing_score ?? '', ENT_QUOTES) . '"
+                             min="' . $group_min_score . '"
+                             max="' . $group_max_score . '"
+                             onchange="updateGroupTotalScore('.$rubric_id.')"
+                             oninput="updateGroupTotalScore('.$rubric_id.')"
+                             data-rubric-id="'.$rubric_id.'"
+                             data-criterion-id="'.$criterion_id.'"
+                             required
+                             >'; // Added required and form-control classes
             $html .= '</td>';
         }
 
@@ -435,13 +479,13 @@ function render_numerical_rubric($rubric, $students, $existing_details)
     $html .= '</tbody>';
     $html .= '</table></div>';
 
-    $html .= '<div class="text-right mt-3">Group Score: <span id="r' . $rubric_id . 'group-score-total">0</span></div>';
+    // Display total score area (can be updated by JS)
+    $html .= '<div class="text-right mt-3">Group Score: <span id="r' . $rubric_id . 'group-score-total">0</span></div>'; // Keep this for JS updates
 
     return $html;
 }
 
-function render_yes_no_rubric($rubric, $students, $existing_details)
-{
+function render_yes_no_rubric($rubric, $students, $existing_details) {
     $rubric_id = $rubric['id'];
     $is_individual_rubric = !empty($rubric['is_individual_enabled']);
     $max_members = $rubric['max_members'] ?? count($students);
@@ -469,15 +513,15 @@ function render_yes_no_rubric($rubric, $students, $existing_details)
         foreach ($students as $stu) {
             if ($count++ >= $max_members) break;
             $html .= '<th class="text-center">'
-                . htmlspecialchars($stu['first_name']) . '<br>'
-                . htmlspecialchars($stu['last_name'])
-                . '</th>';
+                  . htmlspecialchars($stu['first_name']) . '<br>'
+                  . htmlspecialchars($stu['last_name'])
+                  . '</th>';
         }
     } else {
         foreach ($options as $opt) {
             $html .= '<th class="text-center">'
-                . $opt['label']
-                . '</th>';
+                  . $opt['label']
+                  . '</th>';
         }
         $html .= '<th class="text-center">Selection</th>';
     }
@@ -490,9 +534,9 @@ function render_yes_no_rubric($rubric, $students, $existing_details)
         $crit_text = htmlspecialchars($criterion['criterion_text']);
         $is_indiv  = $is_individual_rubric && !empty($criterion['is_individual']);
 
-        $html .= '<tr data-criterion-id="' . $crit_id . '"'
-            . ' data-is-individual="' . ($is_indiv ? 1 : 0) . '">';
-        $html .= '<td>' . $crit_text . '</td>';
+        $html .= '<tr data-criterion-id="'.$crit_id.'"'
+               . ' data-is-individual="'.($is_indiv?1:0).'">';
+        $html .= '<td>'.$crit_text.'</td>';
 
         if ($is_indiv) {
             // Individual cells: one Yes/No per student
@@ -508,21 +552,22 @@ function render_yes_no_rubric($rubric, $students, $existing_details)
                 foreach ($options as $opt) {
                     $cid = "r{$rubric_id}c{$crit_id}s{$stu_id}{$opt['key']}";
                     $checked = ($existing !== null && (int)$existing === $opt['value'])
-                        ? 'checked' : '';
-                    $html .= '<input type="radio" class="btn-check"'
-                        .  ' name="' . $field . '" id="' . $cid . '"'
-                        .  ' value="' . $opt['value'] . '" autocomplete="off" '
-                        .  $checked . '>';
-                    $html .= '<label class="btn btn-outline-primary" for="' . $cid . '">'
-                        .  $opt['label']
-                        .  '</label>';
+                             ? 'checked' : '';
+                    $html .= '<input type="radio" class="btn-check yesno-option" required' // Added required
+                          .  ' name="'.$field.'" id="'.$cid.'"'
+                          .  ' value="'.$opt['value'].'" autocomplete="off" '
+                          .  $checked . '>';
+                    $html .= '<label class="btn btn-outline-primary" for="'.$cid.'">'
+                          .  $opt['label']
+                          .  '</label>';
                 }
                 $html .= '</div>';
-                $html .= '<div class="mt-1" style="font-weight:bold;">'
-                    . 'Selected: '
-                    . (($existing === null) ? '-'
-                        : (($existing == 1) ? 'Yes' : 'No'))
-                    . '</div>';
+                // Removed the display div as the button group shows the selection
+                // $html .= '<div class="mt-1" style="font-weight:bold;">'
+                //       . 'Selected: '
+                //       . (($existing === null) ? '-'
+                //          : (($existing==1)?'Yes':'No'))
+                //       . '</div>';
                 $html .= '</td>';
             }
         } else {
@@ -533,22 +578,22 @@ function render_yes_no_rubric($rubric, $students, $existing_details)
             foreach ($options as $opt) {
                 $cid     = "r{$rubric_id}c{$crit_id}g{$opt['key']}";
                 $checked = ($existing !== null && (int)$existing === $opt['value'])
-                    ? 'checked' : '';
+                         ? 'checked' : '';
                 $html .= '<td class="text-center">';
-                $html .= '<input type="radio" name="' . $field . '" id="' . $cid . '"'
-                    .  ' value="' . $opt['value'] . '" '
-                    .  $checked
-                    .  ' onchange="updateGroupSelection(' . $rubric_id . ');">';
-                $html .= '<label for="' . $cid . '">' . $opt['label'] . '</label>';
+                $html .= '<input type="radio" class="form-check-input yesno-option" required' // Added required
+                      .  ' name="'.$field.'" id="'.$cid.'"'
+                      .  ' value="'.$opt['value'].'" '
+                      .  $checked
+                      .  ' onchange="updateGroupSelection('.$rubric_id.');">'; // Keep JS hook if needed
+                $html .= '<label class="form-check-label ms-1" for="'.$cid.'">'.$opt['label'].'</label>'; // Added ms-1 for spacing
                 $html .= '</td>';
             }
 
-            // Display the group’s current choice
-            $html .= '<td class="text-center" style="font-weight:bold;">'
-                . 'Selected: '
-                . (($existing === null) ? '-'
-                    : (($existing == 1) ? 'Yes' : 'No'))
-                . '</td>';
+            // Display the group’s current choice (optional, can be removed if redundant)
+            $html .= '<td class="text-center group-selection-display" style="font-weight:bold;">'
+                  . (($existing === null) ? '-'
+                     : (($existing==1)? 'Yes' : 'No'))
+                  . '</td>';
         }
 
         $html .= '</tr>';
@@ -557,16 +602,15 @@ function render_yes_no_rubric($rubric, $students, $existing_details)
     $html .= '</tbody></table></div>';
 
     // (Optional) a place to show overall yes% or whatever logic you like:
-    $html .= '<div class="text-right mt-2">'
-        .   'Overall Yes: <span id="r' . $rubric_id . '-overall">0%</span>'
-        . '</div>';
+    // $html .= '<div class="text-right mt-2">'
+    //       .   'Overall Yes: <span id="r'.$rubric_id.'-overall">0%</span>'
+    //       . '</div>';
 
     return $html;
 }
 
 // --- NEW Helper Function to Render Pass/Fail Rubric ---
-function render_passfail_rubric($rubric, $existing_details)
-{
+function render_passfail_rubric($rubric, $existing_details) {
     $rubric_id = $rubric['id'];
     $levels = $rubric['levels'] ?? []; // These are the pass options
     // Get recommendation texts and fail option text from the main rubric data
@@ -595,26 +639,26 @@ function render_passfail_rubric($rubric, $existing_details)
     $html .= '<tr>';
     $html .= '<td>' . htmlspecialchars($pass_recommendation_text) . '</td>';
     $html .= '<td class="passfail-options-cell">';
-    $html .= '<div class="d-flex flex-wrap gap-3">'; // Use flexbox for layout
+    $html .= '<div class="d-flex flex-column gap-2">'; // Changed to flex-column for better vertical stacking
 
     // Sort levels (pass options) by level_index
-    usort($levels, function ($a, $b) {
+    usort($levels, function($a, $b) {
         return ($a['level_index'] ?? 0) <=> ($b['level_index'] ?? 0);
     });
 
     foreach ($levels as $level) {
         $level_index = $level['level_index']; // Use level_index as the value
-        $level_name = htmlspecialchars($level['name'] ?? 'Pass Option'); // Use level name as label
-        $level_description = htmlspecialchars($level['description'] ?? ''); // Optional description
+        // --- MODIFIED: Use description as the primary label text ---
+        $level_description = htmlspecialchars($level['description'] ?? "Pass Option {$level_index}"); // Use description, fallback to generic
+        // --- END MODIFIED ---
         $checked = ($existing_option !== null && $existing_option == $level_index) ? ' checked' : '';
 
         $html .= '<div class="form-check">';
         $html .= '<input class="form-check-input passfail-option" type="radio" name="' . $radio_group_name . '" id="r' . $rubric_id . '_l' . $level_index . '" value="' . $level_index . '"' . $checked . ' required>'; // Added required class
         $html .= '<label class="form-check-label" for="r' . $rubric_id . '_l' . $level_index . '">';
-        $html .= $level_name;
-        if ($level_description) {
-            $html .= ' <small class="text-muted">(' . $level_description . ')</small>';
-        }
+        // --- MODIFIED: Display description directly ---
+        $html .= $level_description;
+        // --- END MODIFIED ---
         $html .= '</label>';
         $html .= '</div>';
     }
@@ -650,467 +694,551 @@ include '../assets/layouts/header.php';
 
 <!-- PDF.js Integration (from Old Logic) -->
 <script type="module">
-    import {
-        getDocument,
-        GlobalWorkerOptions
-    } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
-    GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
+  import { getDocument, GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
+  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
 
-    const predefinedPdfUrl = `../assets/uploads/submission/<?php echo htmlspecialchars($pdf_file_name ?? ''); ?>`;
-    const outputPdfTextarea = document.getElementById('output-pdf'); // Hidden textarea for AI
+  const predefinedPdfUrl = `../assets/uploads/submission/<?php echo htmlspecialchars($pdf_file_name ?? ''); ?>`;
+  const outputPdfTextarea = document.getElementById('output-pdf'); // Hidden textarea for AI
 
-    window.extractText = async function(pdfUrl) {
-        if (!pdfUrl || !outputPdfTextarea) {
-            console.warn("PDF URL or output element not available for text extraction.");
-            return;
-        }
-        try {
-            const response = await fetch(pdfUrl);
-            if (!response.ok) throw new Error('Network response was not ok');
-            const arrayBuffer = await response.arrayBuffer();
-            const pdfData = new Uint8Array(arrayBuffer);
-            const pdf = await getDocument(pdfData).promise;
-            let extractedText = '';
-            for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-                const page = await pdf.getPage(pageNum);
-                const textContent = await page.getTextContent();
-                let pageText = `--- Page ${pageNum} ---\n`;
-                let lastY = null;
-                textContent.items.forEach(item => {
-                    const currentY = item.transform[5];
-                    if (lastY !== null && Math.abs(currentY - lastY) > 5) pageText += '\n';
-                    pageText += item.str;
-                    lastY = currentY;
-                });
-                extractedText += pageText + '\n\n';
-            }
-            outputPdfTextarea.value = extractedText.trim();
-            console.log("PDF text extracted for AI analysis.");
-            if (typeof window.initiateAiAnalysis === 'function') {
-                window.initiateAiAnalysis();
-            }
-        } catch (error) {
-            console.error('Failed to load or extract text from PDF:', error);
-        }
+  window.extractText = async function(pdfUrl) {
+    if (!pdfUrl || !outputPdfTextarea) {
+        console.warn("PDF URL or output element not available for text extraction.");
+        return;
     }
+    try {
+      const response = await fetch(pdfUrl);
+      if (!response.ok) throw new Error('Network response was not ok');
+      const arrayBuffer = await response.arrayBuffer();
+      const pdfData = new Uint8Array(arrayBuffer);
+      const pdf = await getDocument(pdfData).promise;
+      let extractedText = '';
+      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let pageText = `--- Page ${pageNum} ---\n`;
+        let lastY = null;
+        textContent.items.forEach(item => {
+          const currentY = item.transform[5];
+          if (lastY !== null && Math.abs(currentY - lastY) > 5) pageText += '\n';
+          pageText += item.str;
+          lastY = currentY;
+        });
+        extractedText += pageText + '\n\n';
+      }
+      outputPdfTextarea.value = extractedText.trim();
+      console.log("PDF text extracted for AI analysis.");
+      if (typeof window.initiateAiAnalysis === 'function') {
+          window.initiateAiAnalysis();
+      }
+    } catch (error) {
+      console.error('Failed to load or extract text from PDF:', error);
+    }
+  }
 
-    window.addEventListener('DOMContentLoaded', () => {
-        if (predefinedPdfUrl) {
-            extractText(predefinedPdfUrl);
-        } else {
-            console.warn("PDF URL not set, skipping text extraction.");
-        }
-    });
+  window.addEventListener('DOMContentLoaded', () => {
+    if (predefinedPdfUrl) {
+        extractText(predefinedPdfUrl);
+    } else {
+        console.warn("PDF URL not set, skipping text extraction.");
+    }
+  });
 </script>
 <textarea id="output-pdf" style="display:none;"></textarea>
 <main role="main">
-    <section class="jumbotron py-5 mb-4 jbtron">
-        <div class="container">
-            <div class="text-center mb-4">
-                <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
-                <div class="d-flex justify-content-center gap-2 mb-4">
-                    <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
-                        <i class="fas fa-users me-2" style="color: inherit;"></i><?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?>
-                    </span>
-                    <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
-                        <i class="fas fa-calendar-alt me-2" style="color: inherit;"></i><?php echo htmlspecialchars(date('M d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?>
-                    </span>
-                    <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
-                        <i class="fas fa-clock me-2" style="color: inherit;"></i><?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?>
-                    </span>
-                </div>
+  <section class="jumbotron py-5 mb-4 jbtron">
+    <div class="container">
+        <div class="text-center mb-4">
+            <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
+            <div class="d-flex justify-content-center gap-2 mb-4">
+                <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
+                    <i class="fas fa-users me-2" style="color: inherit;"></i><?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?>
+                </span>
+                 <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
+                    <i class="fas fa-calendar-alt me-2" style="color: inherit;"></i><?php echo htmlspecialchars(date('M d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?>
+                </span>
+                 <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
+                    <i class="fas fa-clock me-2" style="color: inherit;"></i><?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?>
+                </span>
             </div>
+        </div>
 
-            <div class="row g-4">
-                <div class="col-12">
-                    <div class="card border-0">
-                        <div class="card-body jumbotronCard">
-                            <h5 class="card-title d-flex align-items-center mb-3">
-                                <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
-                                <span class="feature-title">Team Members</span>
-                            </h5>
-                            <div class="d-flex flex-wrap justify-content-center gap-2">
-                                <?php if (!empty($students)): ?>
-                                    <?php foreach ($students as $student): ?>
-                                        <span class="badge px-3 py-2 rounded-pill" style="background-color: var(--primary-100); color: var(--main-bg-dark)">
-                                            <i class="fas fa-user me-2"></i><?php echo htmlspecialchars($student['fullname']); ?>
-                                        </span>
-                                    <?php endforeach; ?>
-                                <?php else: ?>
-                                    <p class="text-muted mb-0">No members found</p>
-                                <?php endif; ?>
-                            </div>
+        <div class="row g-4">
+            <div class="col-12">
+                <div class="card border-0">
+                    <div class="card-body jumbotronCard">
+                        <h5 class="card-title d-flex align-items-center mb-3">
+                            <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
+                            <span class="feature-title">Team Members</span>
+                        </h5>
+                        <div class="d-flex flex-wrap justify-content-center gap-2">
+                            <?php if (!empty($students)): ?>
+                                <?php foreach ($students as $student): ?>
+                                    <span class="badge px-3 py-2 rounded-pill" style="background-color: var(--primary-100); color: var(--main-bg-dark)">
+                                        <i class="fas fa-user me-2"></i><?php echo htmlspecialchars($student['fullname']); ?>
+                                    </span>
+                                <?php endforeach; ?>
+                            <?php else: ?>
+                                <p class="text-muted mb-0">No members found</p>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
+            </div>
 
-                <div class="col-12">
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                                <div class="card-body jumbotronCard">
-                                    <h5 class="card-title d-flex align-items-center mb-3">
-                                        <i class="fas fa-chalkboard-teacher me-2" style="color: var(--main-primary)"></i>
-                                        <span class="feature-title">Adviser</span>
-                                    </h5>
-                                    <p class="card-text mb-0" style="color: var(--main-bg-dark)">
-                                        <?php echo htmlspecialchars($adviser_name); ?>
-                                    </p>
-                                </div>
+            <div class="col-12">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
+                            <div class="card-body jumbotronCard">
+                                <h5 class="card-title d-flex align-items-center mb-3">
+                                    <i class="fas fa-chalkboard-teacher me-2" style="color: var(--main-primary)"></i>
+                                    <span class="feature-title">Adviser</span>
+                                </h5>
+                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
+                                    <?php echo htmlspecialchars($adviser_name); ?>
+                                </p>
                             </div>
                         </div>
-                        <div class="col-md-6">
-                            <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                                <div class="card-body jumbotronCard">
-                                    <h5 class="card-title d-flex align-items-center mb-3">
-                                        <i class="fas fa-graduation-cap me-2" style="color: var(--main-primary)"></i>
-                                        <span class="feature-title">Program</span>
-                                    </h5>
-                                    <p class="card-text mb-0" style="color: var(--main-bg-dark)">
-                                        <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>
-                                    </p>
-                                </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
+                            <div class="card-body jumbotronCard">
+                                <h5 class="card-title d-flex align-items-center mb-3">
+                                    <i class="fas fa-graduation-cap me-2" style="color: var(--main-primary)"></i>
+                                    <span class="feature-title">Program</span>
+                                </h5>
+                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
+                                    <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>
+                                </p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
+</section>
 
-    <div class="container mb-4">
-        <ul class="nav nav-tabs" id="defenseContentTabs" role="tablist">
-            <li class="nav-item" role="presentation">
-                <button class="nav-link active" id="research-paper-tab" data-bs-toggle="tab" data-bs-target="#research-paper" type="button" role="tab" aria-controls="research-paper" aria-selected="true">
-                    Research Paper
-                </button>
-            </li>
-            <li class="nav-item" role="presentation">
-                <button class="nav-link" id="score-sheet-tab" data-bs-toggle="tab" data-bs-target="#score-sheet-content" type="button" role="tab" aria-controls="score-sheet-content" aria-selected="false">
-                    Score Sheet
-                </button>
-            </li>
-        </ul>
+  <div class="container mb-4">
+    <ul class="nav nav-tabs" id="defenseContentTabs" role="tablist">
+      <li class="nav-item" role="presentation">
+        <button class="nav-link active" id="research-paper-tab" data-bs-toggle="tab" data-bs-target="#research-paper" type="button" role="tab" aria-controls="research-paper" aria-selected="true">
+          Research Paper
+        </button>
+      </li>
+      <li class="nav-item" role="presentation">
+        <button class="nav-link" id="score-sheet-tab" data-bs-toggle="tab" data-bs-target="#score-sheet-content" type="button" role="tab" aria-controls="score-sheet-content" aria-selected="false">
+          Score Sheet
+        </button>
+      </li>
+    </ul>
+  </div>
+
+  <div class="tab-content" id="defenseContentTabsContent">
+    <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
+      <div class="album">
+        <div class="container">
+          <div class="toggle-container">
+            <div class="btn-group w-100" role="group" aria-label="View toggles">
+              <button type="button" class="btn toggle-btn active" data-target="pdf-section">
+                <i class="fas fa-file-pdf me-2"></i>PDF View
+              </button>
+              <button type="button" class="btn toggle-btn" data-target="ai-section">
+                <i class="fas fa-robot me-2"></i>AI Analysis
+              </button>
+            </div>
+          </div>
+
+          <div class="section-toggle" id="pdf-section">
+             <?php if ($pdf_file_name): ?>
+                <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
+                  <div class="panel-header">
+                    <h4>PDF Document View</h4>
+                    <button class="fullscreen-btn" onclick="toggleFullScreen()">
+                      <i class="fas fa-expand"></i> Full Screen
+                    </button>
+                  </div>
+                  <div class="panel-content">
+                    <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo urlencode($pdf_file_name); ?>"
+                      frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
+                    </iframe>
+                  </div>
+                </div>
+             <?php else: ?>
+                <div class="alert alert-warning">PDF file requirement not found or not submitted for this team. PDF viewer unavailable.</div>
+             <?php endif; ?>
+          </div>
+
+          <div class="section-toggle d-none" id="ai-section">
+            <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
+              <div class="panel-header">
+                <h4>AI Evaluation Results</h4>
+              </div>
+              <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
+                <div id="ai-output"><p class="text-center text-muted p-3">Loading AI analysis...</p></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <div class="tab-content" id="defenseContentTabsContent">
-        <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
-            <div class="album">
-                <div class="container">
-                    <div class="toggle-container">
-                        <div class="btn-group w-100" role="group" aria-label="View toggles">
-                            <button type="button" class="btn toggle-btn active" data-target="pdf-section">
-                                <i class="fas fa-file-pdf me-2"></i>PDF View
-                            </button>
-                            <button type="button" class="btn toggle-btn" data-target="ai-section">
-                                <i class="fas fa-robot me-2"></i>AI Analysis
-                            </button>
-                        </div>
-                    </div>
+    <div class="tab-pane fade" id="score-sheet-content" role="tabpanel" aria-labelledby="score-sheet-tab">
+        <div class="container mt-4">
 
-                    <div class="section-toggle" id="pdf-section">
-                        <?php if ($pdf_file_name): ?>
-                            <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
-                                <div class="panel-header">
-                                    <h4>PDF Document View</h4>
-                                    <button class="fullscreen-btn" onclick="toggleFullScreen()">
-                                        <i class="fas fa-expand"></i> Full Screen
-                                    </button>
-                                </div>
-                                <div class="panel-content">
-                                    <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo urlencode($pdf_file_name); ?>"
-                                        frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                                    </iframe>
-                                </div>
-                            </div>
-                        <?php else: ?>
-                            <div class="alert alert-warning">PDF file requirement not found or not submitted for this team. PDF viewer unavailable.</div>
-                        <?php endif; ?>
-                    </div>
-
-                    <div class="section-toggle d-none" id="ai-section">
-                        <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
-                            <div class="panel-header">
-                                <h4>AI Evaluation Results</h4>
-                            </div>
-                            <div class="ai-analysis-container" style="height: 100%; overflow-y: auto;">
-                                <div id="ai-output">
-                                    <p class="text-center text-muted p-3">Loading AI analysis...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+            <!-- Display Rubric Group Info -->
+            <div class="mb-4 p-3 rounded" style="background-color: var(--neutral-50);">
+                <h2 class="display-7 fw-bold mb-2" style="color: var(--main-black)"><?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Evaluation Group'); ?></h2>
+                <?php if (!empty($rubric_group_details['description'])): ?>
+                    <p class="lead" style="color: var(--neutral-700);"><?php echo htmlspecialchars($rubric_group_details['description']); ?></p>
+                <?php endif; ?>
             </div>
-        </div>
 
-        <div class="tab-pane fade" id="score-sheet-content" role="tabpanel" aria-labelledby="score-sheet-tab">
-            <div class="container mt-4">
+            <!-- Evaluation Form -->
+            <form id="evaluationForm">
+                <input type="hidden" name="defense_schedule_id" value="<?php echo $schedule_id; ?>">
+                <input type="hidden" name="rubric_group_id" value="<?php echo $group_id; ?>">
 
-                <!-- Display Rubric Group Info -->
-                <div class="mb-4 p-3 rounded" style="background-color: var(--neutral-50);">
-                    <h2 class="display-7 fw-bold mb-2" style="color: var(--main-black)"><?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Evaluation Group'); ?></h2>
-                    <?php if (!empty($rubric_group_details['description'])): ?>
-                        <p class="lead" style="color: var(--neutral-700);"><?php echo htmlspecialchars($rubric_group_details['description']); ?></p>
-                    <?php endif; ?>
-                </div>
-
-                <!-- Evaluation Form -->
-                <form id="evaluationForm">
-                    <input type="hidden" name="defense_schedule_id" value="<?php echo $schedule_id; ?>">
-                    <input type="hidden" name="rubric_group_id" value="<?php echo $group_id; ?>">
-
-                    <?php
-                    if (empty($rubrics_in_group)) {
-                        error_log("DS-Index: Rendering check - \$rubrics_in_group is EMPTY. Displaying 'No active rubrics' message.");
-                        error_log("DS-Index: Final state of \$rubrics_in_group before render: " . print_r($rubrics_in_group, true));
-                    } else {
-                        error_log("DS-Index: Rendering check - \$rubrics_in_group is NOT empty. Proceeding to render rubrics.");
-                    }
-                    ?>
-                    <?php if (empty($rubrics_in_group)): ?>
-                        <div class="alert alert-warning">
-                            No active rubrics found for this evaluation group
-                            <strong><?php echo htmlspecialchars($rubric_group_details['name']); ?></strong>
-                            (Group ID: <?php echo $group_id; ?>).<br>
-                            Rubric IDs associated: <?php echo implode(', ', $rubric_ids ?: ['none']); ?>.
-                        </div>
-                    <?php else: ?>
-                        <?php foreach ($rubrics_in_group as $rubric_id => $rubric): // This loop now iterates in the correct order 
-                        ?>
-                            <!-- Rubric Card -->
-                            <div class="card mb-4 rubric-card" data-rubric-id="<?php echo $rubric_id; ?>" data-rubric-type="<?php echo $rubric['rubric_type']; ?>">
-                                <div class="card-header d-flex justify-content-between align-items-center">
-                                    <div>
-                                        <h5><?php echo htmlspecialchars($rubric['name']); ?></h5>
-                                        <?php if (!empty($rubric['description'])): ?>
-                                            <small class="text-muted"><?php echo htmlspecialchars($rubric['description']); ?></small>
-                                        <?php endif; ?>
-                                    </div>
-                                    <?php if (isset($rubric['weight']) && $rubric['weight'] !== null): ?>
-                                        <span class="badge bg-secondary">Weight: <?php echo htmlspecialchars(number_format($rubric['weight'], 2)); ?>%</span>
+                <?php
+                if (empty($rubrics_in_group)) {
+                    error_log("DS-Index: Rendering check - \$rubrics_in_group is EMPTY. Displaying 'No active rubrics' message.");
+                    error_log("DS-Index: Final state of \$rubrics_in_group before render: " . print_r($rubrics_in_group, true));
+                } else {
+                    error_log("DS-Index: Rendering check - \$rubrics_in_group is NOT empty. Proceeding to render rubrics.");
+                }
+                ?>
+                <?php if (empty($rubrics_in_group)): ?>
+                    <div class="alert alert-warning">
+                        No active rubrics found for this evaluation group
+                        <strong><?php echo htmlspecialchars($rubric_group_details['name']); ?></strong>
+                        (Group ID: <?php echo $group_id; ?>).<br>
+                        Rubric IDs associated: <?php echo implode(', ', $rubric_ids ?: ['none']); ?>.
+                    </div>
+                <?php else: ?>
+                    <?php foreach ($rubrics_in_group as $rubric_id => $rubric): // This loop now iterates in the correct order ?>
+                        <!-- Rubric Card -->
+                        <div class="card mb-4 rubric-card" data-rubric-id="<?php echo $rubric_id; ?>" data-rubric-type="<?php echo $rubric['rubric_type']; ?>">
+                            <div class="card-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5><?php echo htmlspecialchars($rubric['name']); ?></h5>
+                                    <?php if (!empty($rubric['description'])): ?>
+                                        <small class="text-muted"><?php echo htmlspecialchars($rubric['description']); ?></small>
                                     <?php endif; ?>
                                 </div>
-                                <div class="card-body">
-                                    <?php
-                                    $existing_details = $existing_evaluation['details'][$rubric_id] ?? [];
-                                    if ($rubric['rubric_type'] === 'numerical') {
-                                        if (empty($rubric['criteria']) || empty($rubric['levels'])) {
-                                            $error_message = "DS-Index: RENDER ERROR - Skipping render for numerical rubric ID {$rubric_id}";
-                                            if (empty($rubric['criteria']) && empty($rubric['levels'])) {
-                                                echo "<script>console.log('$error_message - Both criteria and levels are empty.');</script>";
-                                                echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing both criteria and levels). Please check rubric setup in the dashboard.</p>";
-                                            } else if (empty($rubric['criteria'])) {
-                                                echo "<script>console.log('$error_message - Criteria is empty.');</script>";
-                                                echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing criteria). Please check rubric setup in the dashboard.</p>";
-                                            } else {
-                                                echo "<script>console.log('$error_message - Levels is empty.');</script>";
-                                                echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing levels). Please check rubric setup in the dashboard.</p>";
-                                            }
-                                        } else {
-                                            echo render_numerical_rubric($rubric, $students, $existing_details);
-                                        }
-                                    } elseif ($rubric['rubric_type'] === 'yesno') {
-                                        if (empty($rubric['criteria'])) {
-                                            echo "<script>console.log('DS-Index: RENDER ERROR - Skipping render for yes/no rubric ID {$rubric_id} - criteria is empty.');</script>";
+                                <?php if (isset($rubric['weight']) && $rubric['weight'] !== null): ?>
+                                    <span class="badge bg-secondary">Weight: <?php echo htmlspecialchars(number_format($rubric['weight'], 2)); ?>%</span>
+                                <?php endif; ?>
+                            </div>
+                            <div class="card-body">
+                                <?php
+                                $existing_details = $existing_evaluation['details'][$rubric_id] ?? [];
+                                if ($rubric['rubric_type'] === 'numerical') {
+                                    if (empty($rubric['criteria']) || empty($rubric['levels'])) {
+                                        $error_message = "DS-Index: RENDER ERROR - Skipping render for numerical rubric ID {$rubric_id}";
+                                        if (empty($rubric['criteria']) && empty($rubric['levels'])) {
+                                            echo "<script>console.log('$error_message - Both criteria and levels are empty.');</script>";
+                                            echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing both criteria and levels). Please check rubric setup in the dashboard.</p>";
+                                        } else if (empty($rubric['criteria'])) {
+                                            echo "<script>console.log('$error_message - Criteria is empty.');</script>";
                                             echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing criteria). Please check rubric setup in the dashboard.</p>";
                                         } else {
-                                            echo render_yes_no_rubric($rubric, $students, $existing_details);
+                                            echo "<script>console.log('$error_message - Levels is empty.');</script>";
+                                            echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing levels). Please check rubric setup in the dashboard.</p>";
                                         }
-                                    } elseif ($rubric['rubric_type'] === 'passfail') {
-                                        if (empty($rubric['levels'])) {
-                                            echo "<script>console.log('DS-Index: RENDER ERROR - Skipping render for pass/fail rubric ID {$rubric_id} - levels is empty.');</script>";
-                                            echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing pass/fail options). Please check rubric setup in the dashboard.</p>";
-                                        } else {
-                                            echo render_passfail_rubric($rubric, $existing_details);
-                                        }
+                                    } else {
+                                        echo render_numerical_rubric($rubric, $students, $existing_details);
                                     }
-                                    ?>
-                                </div>
-                            </div> <!-- End Rubric Card -->
-                        <?php endforeach; ?>
-                    <?php endif; ?>
+                                } elseif ($rubric['rubric_type'] === 'yesno') {
+                                    if (empty($rubric['criteria'])) {
+                                        echo "<script>console.log('DS-Index: RENDER ERROR - Skipping render for yes/no rubric ID {$rubric_id} - criteria is empty.');</script>";
+                                        echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing criteria). Please check rubric setup in the dashboard.</p>";
+                                    } else {
+                                        echo render_yes_no_rubric($rubric, $students, $existing_details);
+                                    }
+                                } elseif ($rubric['rubric_type'] === 'passfail') {
+                                    if (empty($rubric['levels'])) {
+                                        echo "<script>console.log('DS-Index: RENDER ERROR - Skipping render for pass/fail rubric ID {$rubric_id} - levels is empty.');</script>";
+                                        echo "<p class='text-danger'>Error: Cannot display rubric '{$rubric['name']}' (ID: {$rubric_id}) - configuration incomplete (missing pass/fail options). Please check rubric setup in the dashboard.</p>";
+                                    } else {
+                                        echo render_passfail_rubric($rubric, $existing_details);
+                                    }
+                                }
+                                ?>
+                            </div>
+                        </div> <!-- End Rubric Card -->
+                    <?php endforeach; ?>
+                <?php endif; ?>
 
-                    <!-- Overall Comments Section -->
-                    <div class="mb-3">
-                        <label for="comments" class="form-label">Overall Comments for <?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Group'); ?></label>
-                        <textarea class="form-control" id="comments" name="comments" rows="4"><?php echo htmlspecialchars($existing_evaluation['comments'] ?? ''); ?></textarea>
-                        <small class="form-text text-muted">Provide overall feedback, strengths, weaknesses, and recommendations based on the rubrics above.</small>
+                <!-- Overall Comments Section -->
+                <div class="mb-3">
+                    <label for="comments" class="form-label">Overall Comments for <?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Group'); ?></label>
+                    <textarea class="form-control" id="comments" name="comments" rows="4"><?php echo htmlspecialchars($existing_evaluation['comments'] ?? ''); ?></textarea>
+                    <small class="form-text text-muted">Provide overall feedback, strengths, weaknesses, and recommendations based on the rubrics above.</small>
+                </div>
+
+                <!-- Submit Button -->
+                <?php if (!empty($rubrics_in_group)): ?>
+                    <div class="text-center mb-5">
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Evaluation</button>
                     </div>
+                <?php endif; ?>
+                <div id="formStatus" class="mt-3"></div>
 
-                    <!-- Submit Button -->
-                    <?php if (!empty($rubrics_in_group)): ?>
-                        <div class="text-center mb-5">
-                            <button type="submit" class="btn btn-primary btn-lg">Submit Evaluation</button>
-                        </div>
-                    <?php endif; ?>
-                    <div id="formStatus" class="mt-3"></div>
-
-                </form>
-            </div>
+            </form>
         </div>
     </div>
+  </div>
 </main>
 
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <!-- Keep jQuery for now if other parts rely on it -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const toggleBtns = document.querySelectorAll('.toggle-btn');
-        const sections = document.querySelectorAll('.section-toggle');
+document.addEventListener('DOMContentLoaded', function() {
+  const toggleBtns = document.querySelectorAll('.toggle-btn');
+  const sections = document.querySelectorAll('.section-toggle');
+  const evaluationForm = document.getElementById('evaluationForm');
+  const formStatusDiv = document.getElementById('formStatus');
 
-        toggleBtns.forEach(btn => {
-            btn.addEventListener('click', function() {
-                const parentGroup = this.closest('.btn-group');
-                if (!parentGroup) return;
+  toggleBtns.forEach(btn => {
+    btn.addEventListener('click', function() {
+      const parentGroup = this.closest('.btn-group');
+      if (!parentGroup) return;
 
-                parentGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
-                this.classList.add('active');
+      parentGroup.querySelectorAll('.toggle-btn').forEach(b => b.classList.remove('active'));
+      this.classList.add('active');
 
-                const targetId = this.dataset.target;
-                parentGroup.closest('.container').querySelectorAll('.section-toggle').forEach(section => {
-                    if (section.closest('.tab-pane') === this.closest('.tab-pane')) {
-                        section.classList.add('d-none');
-                        section.classList.remove('d-block');
-                    }
-                });
+      const targetId = this.dataset.target;
+      // Find sections only within the same tab pane as the button
+      const currentTabPane = this.closest('.tab-pane');
+      if (currentTabPane) {
+          currentTabPane.querySelectorAll('.section-toggle').forEach(section => {
+              section.classList.add('d-none');
+              section.classList.remove('d-block');
+          });
+      }
 
-                const targetSection = document.getElementById(targetId);
-                if (targetSection) {
-                    targetSection.classList.remove('d-none');
-                    targetSection.classList.add('d-block');
-                }
-            });
-        });
-
-        const researchTab = document.getElementById('research-paper-tab');
-        const scoreSheetTab = document.getElementById('score-sheet-tab');
-
-        if (researchTab) {
-            researchTab.addEventListener('shown.bs.tab', function() {
-                const pdfToggleBtn = document.querySelector('#research-paper .toggle-btn[data-target="pdf-section"]');
-                if (pdfToggleBtn) pdfToggleBtn.click();
-            });
-        }
+      const targetSection = document.getElementById(targetId);
+      if (targetSection) {
+          targetSection.classList.remove('d-none');
+          targetSection.classList.add('d-block');
+      }
     });
+  });
 
-
+  const researchTab = document.getElementById('research-paper-tab');
+  if (researchTab) {
+      researchTab.addEventListener('shown.bs.tab', function() {
+          const pdfToggleBtn = document.querySelector('#research-paper .toggle-btn[data-target="pdf-section"]');
+          if (pdfToggleBtn) pdfToggleBtn.click();
+      });
+  }
 
     // -------------------------------------------------------------------
-    // FOR DISPLAY OF GROUP SCORE DATA
+    // FOR DISPLAY OF GROUP SCORE DATA (Numerical)
     // -------------------------------------------------------------------
-    function updateGroupTotalScore(rubric_id) {
+    window.updateGroupTotalScore = function(rubric_id) {
         let total = 0;
-        document.querySelectorAll('input[id^="r' + rubric_id + '"]').forEach(input => {
+        // Select only number inputs associated with the specific rubric's group score
+        document.querySelectorAll(`#evaluationForm input[type="number"][data-rubric-id="${rubric_id}"][name*="[group]"]`).forEach(input => {
             let val = parseFloat(input.value);
             if (!isNaN(val)) {
                 total += val;
             }
         });
-        document.getElementById('r' + rubric_id + 'group-score-total').textContent = total;
+        const totalSpan = document.getElementById(`r${rubric_id}group-score-total`);
+        if (totalSpan) {
+            totalSpan.textContent = total;
+        }
     }
 
-    function toggleFullScreen() {
+    // -------------------------------------------------------------------
+    // FOR DISPLAY OF GROUP SELECTION DATA (Yes/No)
+    // -------------------------------------------------------------------
+    window.updateGroupSelection = function(rubric_id) {
+        // Find all group radio buttons for this rubric and update their corresponding display cell
+        document.querySelectorAll(`#evaluationForm input[type="radio"][data-rubric-id="${rubric_id}"][name*="[group]"]`).forEach(radio => {
+            const displayCell = radio.closest('tr').querySelector('.group-selection-display');
+            if (displayCell) {
+                const checkedRadio = radio.closest('tr').querySelector(`input[name="${radio.name}"]:checked`);
+                if (checkedRadio) {
+                    displayCell.textContent = checkedRadio.value === '1' ? 'Yes' : 'No';
+                } else {
+                    displayCell.textContent = '-';
+                }
+            }
+        });
+    }
+
+    // -------------------------------------------------------------------
+    // FOR DISPLAY OF INDIVIDUAL SCORE DATA (Numerical) - Optional, if needed
+    // -------------------------------------------------------------------
+    window.updateIndividualTotalScore = function(rubric_id) {
+        // Placeholder: Add logic here if you need to calculate/display totals for individual scores
+        console.log("Individual score updated for rubric:", rubric_id);
+    }
+
+
+    // -------------------------------------------------------------------
+    // PDF Fullscreen Toggle
+    // -------------------------------------------------------------------
+    window.toggleFullScreen = function() {
         const iframe = document.getElementById('pdf');
         if (!iframe) return;
         if (iframe.requestFullscreen) {
             iframe.requestFullscreen();
-        } else if (iframe.mozRequestFullScreen) {
+        } else if (iframe.mozRequestFullScreen) { /* Firefox */
             iframe.mozRequestFullScreen();
-        } else if (iframe.webkitRequestFullscreen) {
+        } else if (iframe.webkitRequestFullscreen) { /* Chrome, Safari & Opera */
             iframe.webkitRequestFullscreen();
-        } else if (iframe.msRequestFullscreen) {
+        } else if (iframe.msRequestFullscreen) { /* IE/Edge */
             iframe.msRequestFullscreen();
         }
     }
 
     // -------------------------------------------------------------------
-    // LIMITS THE ENTERED SCORE ON THE SCORE COLLUMN IN NUMERIC (and some other category i guess) CRITERIA
+    // LIMITS THE ENTERED SCORE ON THE SCORE COLUMN IN NUMERIC CRITERIA
     // -------------------------------------------------------------------
-    document.querySelectorAll('.entered-score').forEach(input => {
-        input.addEventListener('input', function() {
-            const min = parseInt(this.min);
-            const max = parseInt(this.max);
-            let value = parseInt(this.value);
+    evaluationForm.querySelectorAll('.entered-score').forEach(input => {
+        const validateValue = (eventSource) => {
+            const element = input; // Use 'input' from the outer scope closure
+            const minAttr = element.min;
+            const maxAttr = element.max;
+            const currentValue = element.value;
 
-            if (isNaN(value)) return;
+            // Only proceed if min/max attributes are present and valid numbers
+            if (minAttr === '' || maxAttr === '') return; // Skip if attributes missing
 
-            if (value < min) this.value = min;
-            if (value > max) this.value = max;
-        });
+            const parsedMin = parseFloat(minAttr);
+            const parsedMax = parseFloat(maxAttr);
+
+            if (isNaN(parsedMin) || isNaN(parsedMax)) {
+                console.error(`Validation Error (ID: ${element.id}): Could not parse min (${minAttr}) or max (${maxAttr}) attributes.`);
+                return; // Skip if attributes are not numbers
+            }
+
+            // Determine the effective minimum value
+            // Use strict equality check, assuming points are typically integers or simple decimals
+            let effectiveMin = parsedMin;
+            if (parsedMin === parsedMax) {
+                effectiveMin = 0;
+                // console.log(`${eventSource} Event (ID: ${element.id}): min (${parsedMin}) equals max (${parsedMax}). Effective min set to 0.`);
+            }
+
+            // Handle the current value
+            if (currentValue === '') {
+                // Allow empty value during input; validation occurs on submit or blur potentially
+                return;
+            }
+
+            let value = parseFloat(currentValue);
+
+            if (isNaN(value)) {
+                // If the value is not a number (and not empty), clear it on blur
+                if (eventSource === 'Blur') {
+                     // console.log(`${eventSource} Event (ID: ${element.id}): Invalid non-empty value "${currentValue}". Clearing.`);
+                     element.value = '';
+                }
+                return; // Stop validation if value is not a number
+            }
+
+            // Validate against the effective minimum and the parsed maximum
+            let correctedValue = value; // Start with the current parsed value
+
+            if (value < effectiveMin) {
+                // console.log(`${eventSource} Event (ID: ${element.id}): Value ${value} < effectiveMin ${effectiveMin}. Correcting to ${effectiveMin}.`);
+                correctedValue = effectiveMin;
+            } else if (value > parsedMax) {
+                // console.log(`${eventSource} Event (ID: ${element.id}): Value ${value} > parsedMax ${parsedMax}. Correcting to ${parsedMax}.`);
+                correctedValue = parsedMax;
+            }
+
+            // Update the input field only if the value was corrected or if reformatting is desired (e.g., removing leading zeros)
+            // Use toString() to avoid potential floating point representation issues when setting the value back
+            if (correctedValue !== value || element.value !== correctedValue.toString()) {
+                 element.value = correctedValue.toString();
+            }
+        };
+
+        // Validate on input event
+        input.addEventListener('input', () => validateValue('Input'));
+
+        // Validate and potentially clear invalid input on blur event
+        input.addEventListener('blur', () => validateValue('Blur'));
     });
 
-    $(document).ready(function() {
-        // not to be used na, since the radio button is removed and replaced with input text, tackling the change on the group-score-display wont work now
-        $(document).on('change', '.criterion-level-radio-group', function() {
-            var score = $(this).val();
-            $(this).closest('tr').find('.group-score-display').text(score);
-        });
-
-        $(document).on('change', '.criterion-level-radio-individual', function() {
-            var score = $(this).val();
-            $(this).closest('.student-score-cell').find('.individual-score-display').text('Score: ' + score);
-        });
-
-        $('#evaluationForm').on('submit', function(e) {
+    // -------------------------------------------------------------------
+    // FORM SUBMISSION LOGIC (Using Fetch API)
+    // -------------------------------------------------------------------
+    if (evaluationForm) {
+        evaluationForm.addEventListener('submit', function(e) {
             e.preventDefault();
+            formStatusDiv.innerHTML = ''; // Clear previous status
 
             // --- Form Validation ---
             var isValid = true;
-            $(this).find('input[required]').each(function() {
-                var $input = $(this);
-                var isRadio = $input.attr('type') === 'radio';
-                var isNumber = $input.attr('type') === 'number';
-                var groupName = $input.attr('name');
+            var firstInvalidElement = null;
+
+            // Remove previous invalid states
+            evaluationForm.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+
+            evaluationForm.querySelectorAll('input[required], select[required], textarea[required]').forEach(input => {
+                var isRadio = input.type === 'radio';
+                var isNumber = input.type === 'number';
+                var groupName = input.name;
+                var needsValidation = true;
 
                 if (isRadio) {
-                    // For radio groups (like pass/fail), check if at least one is selected within the group
-                    if (groupName && !$(`input[name="${groupName}"]:checked`).length) {
-                        isValid = false;
-                        // Add invalid class to all radios in the group for visual feedback
-                        $(`input[name="${groupName}"]`).addClass('is-invalid');
-                        // Find the closest card header to show the error context
-                        var cardHeader = $input.closest('.rubric-card').find('.card-header h5').text();
-                        console.warn("Validation Error: No option selected for", cardHeader || groupName);
+                    // Check radio groups only once per group
+                    if (groupName && evaluationForm.querySelector(`input[name="${groupName}"]`)._validated) {
+                        needsValidation = false;
                     } else if (groupName) {
-                        // Remove invalid class if one is selected
-                        $(`input[name="${groupName}"]`).removeClass('is-invalid');
+                        const groupRadios = evaluationForm.querySelectorAll(`input[name="${groupName}"]`);
+                        if (!evaluationForm.querySelector(`input[name="${groupName}"]:checked`)) {
+                            isValid = false;
+                            groupRadios.forEach(radio => {
+                                radio.classList.add('is-invalid');
+                                if (!firstInvalidElement) firstInvalidElement = radio;
+                            });
+                            var cardHeader = input.closest('.rubric-card')?.querySelector('.card-header h5')?.textContent;
+                            console.warn("Validation Error: No option selected for", cardHeader || groupName);
+                        }
+                        // Mark group as validated
+                        groupRadios.forEach(radio => radio._validated = true);
                     }
                 } else if (isNumber) {
-                    // For number inputs, check if value is present and a valid number
-                    if ($input.val() === '' || isNaN(parseFloat($input.val()))) { // Check for empty string explicitly
+                    // Check for empty string OR non-numeric value (after trying parseFloat)
+                    if (input.value.trim() === '' || isNaN(parseFloat(input.value))) {
                         isValid = false;
-                        $input.addClass('is-invalid');
-                        var cardHeader = $input.closest('.rubric-card').find('.card-header h5').text();
-                        var criterionText = $input.closest('tr').find('td:first').text();
-                        console.warn("Validation Error: Invalid or empty score in", cardHeader, "for criterion:", criterionText || $input.attr('name'));
-                    } else {
-                        $input.removeClass('is-invalid');
+                        input.classList.add('is-invalid');
+                        if (!firstInvalidElement) firstInvalidElement = input;
+                        var cardHeader = input.closest('.rubric-card')?.querySelector('.card-header h5')?.textContent;
+                        var criterionText = input.closest('tr')?.querySelector('td:first-child')?.textContent;
+                        console.warn("Validation Error: Invalid or empty score in", cardHeader || 'Unknown Rubric', "for criterion:", criterionText || input.name);
                     }
                 } else {
-                    // For other required inputs (if any)
-                    if (!$input.val()) {
+                    // For other required inputs (like comments, though not currently marked required)
+                    if (!input.value.trim()) {
                         isValid = false;
-                        $input.addClass('is-invalid');
-                    } else {
-                        $input.removeClass('is-invalid');
+                        input.classList.add('is-invalid');
+                        if (!firstInvalidElement) firstInvalidElement = input;
                     }
                 }
             });
 
+            // Reset validation markers for next time
+            evaluationForm.querySelectorAll('input[type="radio"]').forEach(radio => delete radio._validated);
+
 
             if (!isValid) {
-                $('#formStatus').html('<div class="alert alert-danger">Please fill in all required score fields or make a selection for each rubric.</div>');
-                // Scroll to the first invalid field (optional)
-                var firstInvalid = $(this).find('.is-invalid').first();
-                if (firstInvalid.length) {
-                    $('html, body').animate({
-                        scrollTop: firstInvalid.offset().top - 100 // Adjust offset as needed
-                    }, 500);
-                    firstInvalid.focus(); // Focus the first invalid element
+                formStatusDiv.innerHTML = '<div class="alert alert-danger">Please fill in all required score fields or make a selection for each rubric.</div>';
+                if (firstInvalidElement) {
+                    // Scroll to the first invalid field
+                    firstInvalidElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    // Try focusing, might not work on all elements (like hidden radios)
+                    try { firstInvalidElement.focus(); } catch (err) {}
                 }
                 Swal.fire({
                     title: 'Incomplete Evaluation',
@@ -1122,157 +1250,146 @@ include '../assets/layouts/header.php';
             // --- End Form Validation ---
 
 
-            $('#formStatus').html('<div class="spinner-border spinner-border-sm" role="status"><span class="visually-hidden">Loading...</span></div> Submitting...');
+            formStatusDiv.innerHTML = '<div class="d-flex align-items-center"><div class="spinner-border spinner-border-sm me-2" role="status"><span class="visually-hidden">Loading...</span></div> Submitting...</div>';
 
+            // --- Data Collection ---
             var evaluationData = {};
-
-            $('.rubric-card').each(function() {
-                var rubricId = $(this).data('rubric-id');
-                var rubricType = $(this).data('rubric-type');
-                var rubricResult = {}; // Use a generic container for the result of this rubric
+            document.querySelectorAll('.rubric-card').forEach(card => {
+                var rubricId = card.dataset.rubricId;
+                var rubricType = card.dataset.rubricType;
+                var rubricResult = {};
 
                 if (rubricType === 'numerical') {
-                    var scores = {}; // Store numerical scores here
-                    $(this).find('tbody tr[data-criterion-id]').each(function() {
-                        var criterionId = $(this).data('criterion-id');
-                        var isIndividualCriterion = $(this).data('is-individual') == '1';
+                    var scores = {};
+                    card.querySelectorAll('tbody tr[data-criterion-id]').forEach(row => {
+                        var criterionId = row.dataset.criterionId;
+                        var isIndividualCriterion = row.dataset.isIndividual == '1';
 
                         if (isIndividualCriterion) {
-                            // Find individual score inputs (assuming class 'criterion-score-input')
-                            $(this).find('.criterion-score-input').each(function() {
-                                var studentId = $(this).data('student-id');
-                                var score = $(this).val();
-                                if (studentId !== undefined && score !== '') { // Check if studentId is valid and score is not empty
-                                    if (!scores[criterionId]) {
-                                        scores[criterionId] = {};
-                                    }
+                            row.querySelectorAll('.criterion-score-input').forEach(input => {
+                                var studentId = input.dataset.studentId;
+                                var score = input.value;
+                                if (studentId !== undefined && score.trim() !== '') {
+                                    if (!scores[criterionId]) scores[criterionId] = {};
                                     scores[criterionId][studentId] = score;
                                 }
                             });
                         } else {
-                            // Find group score input (assuming class 'entered-score' within the group row)
-                            var scoreInput = $(this).find('.entered-score'); // More specific selector might be needed if structure varies
-                            if (scoreInput.length > 0) {
-                                var score = scoreInput.val();
-                                if (score !== '') { // Check if score is not empty
-                                    // Store under 'group' key for this criterion
-                                    scores[criterionId] = {
-                                        'group': score
-                                    };
-                                }
+                            var scoreInput = row.querySelector('.entered-score'); // Assuming one score input per group row
+                            if (scoreInput && scoreInput.value.trim() !== '') {
+                                scores[criterionId] = { 'group': scoreInput.value };
                             }
                         }
                     });
                     if (Object.keys(scores).length > 0) {
-                        rubricResult = {
-                            scores: scores
-                        }; // Store numerical scores under 'scores' key
+                        rubricResult = { scores: scores };
                     }
                 } else if (rubricType === 'yesno') {
-                    var options = {}; // Store yes/no options here
-                    $(this).find('tbody tr[data-criterion-id]').each(function() {
-                        var criterionId = $(this).data('criterion-id');
-                        var isIndividualCriterion = $(this).data('is-individual') == '1';
-                        var inputNameBase = `score[${rubricId}][${criterionId}]`;
+                    var options = {};
+                    card.querySelectorAll('tbody tr[data-criterion-id]').forEach(row => {
+                        var criterionId = row.dataset.criterionId;
+                        var isIndividualCriterion = row.dataset.isIndividual == '1';
 
                         if (isIndividualCriterion) {
-                            $(this).find('input[type="radio"]:checked').each(function() {
-                                var nameMatch = $(this).attr('name').match(/\[(\d+)\]$/); // Extract student ID
+                            row.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+                                var nameMatch = radio.name.match(/\[(\d+)\]$/); // Extract student ID
                                 if (nameMatch && nameMatch[1]) {
                                     var studentId = nameMatch[1];
-                                    var value = $(this).val();
-                                    if (!options[criterionId]) {
-                                        options[criterionId] = {};
-                                    }
-                                    options[criterionId][studentId] = value;
+                                    if (!options[criterionId]) options[criterionId] = {};
+                                    options[criterionId][studentId] = radio.value;
                                 }
                             });
                         } else {
-                            // Group selection
-                            var groupInputName = `${inputNameBase}[group]`;
-                            var checkedValue = $(`input[name="${groupInputName}"]:checked`).val();
-                            if (checkedValue !== undefined) {
-                                options[criterionId] = {
-                                    'group': checkedValue
-                                };
+                            var groupInputName = `score[${rubricId}][${criterionId}][group]`;
+                            var checkedRadio = evaluationForm.querySelector(`input[name="${groupInputName}"]:checked`);
+                            if (checkedRadio) {
+                                options[criterionId] = { 'group': checkedRadio.value };
                             }
                         }
                     });
                     if (Object.keys(options).length > 0) {
-                        rubricResult = {
-                            options: options
-                        }; // Store yes/no options under 'options' key
+                        rubricResult = { options: options };
                     }
                 } else if (rubricType === 'passfail') {
-                    // Find the checked radio button for this rubric
-                    var selectedOption = $(this).find(`input[name="selected_option[${rubricId}]"]:checked`).val();
-                    if (selectedOption !== undefined) {
-                        // Store the single selected value under 'selected_option' key
-                        rubricResult = {
-                            selected_option: selectedOption
-                        };
+                    var selectedOption = evaluationForm.querySelector(`input[name="selected_option[${rubricId}]"]:checked`);
+                    if (selectedOption) {
+                        rubricResult = { selected_option: selectedOption.value };
                     } else {
-                        console.warn("No option selected for Pass/Fail rubric:", rubricId);
-                        // This case should be caught by validation, but good to have a fallback log
+                        console.warn("No option selected for Pass/Fail rubric:", rubricId); // Should be caught by validation
                     }
                 }
 
-                // Add the result for this rubric to the main evaluationData object
                 if (Object.keys(rubricResult).length > 0) {
                     evaluationData[rubricId] = rubricResult;
                 }
             });
 
-            var comments = $('#comments').val();
+            var comments = document.getElementById('comments').value;
 
-            var formData = {
-                defense_schedule_id: $('input[name="defense_schedule_id"]').val(),
-                rubric_group_id: $('input[name="rubric_group_id"]').val(),
+            // Prepare data payload as a JavaScript object
+            var payload = {
+                defense_schedule_id: evaluationForm.querySelector('input[name="defense_schedule_id"]').value,
+                rubric_group_id: evaluationForm.querySelector('input[name="rubric_group_id"]').value,
                 comments: comments,
-                evaluation_data: JSON.stringify(evaluationData) // Send structured data as JSON string
+                evaluation_data: JSON.stringify(evaluationData) // Send structured data as JSON string within the main payload
             };
 
-            console.log("Submitting Data:", JSON.stringify(formData, null, 2)); // Pretty print for debugging
+            console.log("Submitting Data (Payload):", JSON.stringify(payload, null, 2));
 
-            $.ajax({
-                url: 'submit_evaluation.php',
+            // --- Submit using Fetch API ---
+            fetch('submit_evaluation.php', {
                 method: 'POST',
-                data: formData,
-                dataType: 'json',
-                success: function(response) {
-                    console.log("Submission Response:", response);
-                    if (response.success) {
-                        $('#formStatus').html('<div class="alert alert-success">Evaluation submitted successfully!</div>');
-                        Swal.fire({
-                            title: 'Success!',
-                            text: 'Your evaluation has been submitted.',
-                            icon: 'success',
-                            timer: 2000,
-                            showConfirmButton: false
-                        });
-                        // Optionally disable form or redirect
-                        // $('#evaluationForm :input').prop('disabled', true);
-                    } else {
-                        $('#formStatus').html('<div class="alert alert-danger">Error submitting evaluation: ' + (response.message || 'Unknown error') + '</div>');
-                        Swal.fire({
-                            title: 'Error!',
-                            text: 'Could not submit evaluation: ' + (response.message || 'Unknown error'),
-                            icon: 'error'
-                        });
-                    }
+                headers: {
+                    'Content-Type': 'application/json', // Indicate we're sending JSON
+                    'Accept': 'application/json' // Indicate we expect JSON back
                 },
-                error: function(xhr, status, error) {
-                    console.error("Submission Error:", xhr.responseText);
-                    $('#formStatus').html('<div class="alert alert-danger">An unexpected error occurred. Please try again. (' + status + ': ' + error + ')</div>');
-                    Swal.fire({
-                        title: 'Error!',
-                        text: 'An unexpected error occurred during submission. Check console for details.',
-                        icon: 'error'
+                body: JSON.stringify(payload) // Send the whole payload as a JSON string
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Try to get text for more detailed error, otherwise use statusText
+                    return response.text().then(text => {
+                        throw new Error(`HTTP error ${response.status} (${response.statusText}): ${text || 'Server error'}`);
                     });
                 }
+                return response.json(); // Parse JSON body if response is OK
+            })
+            .then(result => {
+                console.log('Submission response:', result); // Log the result
+
+                // **** CORRECTED LOGIC ****
+                // Check the 'status' field in the JSON response
+                if (result.status === 'success') {
+                    formStatusDiv.innerHTML = `<div class="alert alert-success">Evaluation submitted successfully! ${result.message || ''}</div>`;
+                    Swal.fire({
+                        title: 'Success!',
+                        text: result.message || 'Your evaluation has been submitted.',
+                        icon: 'success', // Use success icon
+                        timer: 2500,
+                        showConfirmButton: false
+                    });
+                    // Optionally disable form fields after successful submission
+                    // evaluationForm.querySelectorAll('input, textarea, button').forEach(el => el.disabled = true);
+                } else {
+                    // Handle application-level errors reported by the backend (where status is not 'success')
+                    throw new Error(result.message || 'An unknown error occurred during submission.');
+                }
+                // **** END CORRECTED LOGIC ****
+            })
+            .catch(error => {
+                // Handle fetch errors, network errors, or errors thrown from .then() blocks
+                console.error('Submission Error:', error);
+                formStatusDiv.innerHTML = `<div class="alert alert-danger">Error submitting evaluation: ${error.message}</div>`;
+                Swal.fire({
+                    title: 'Error!',
+                    text: `Could not submit evaluation: ${error.message}`,
+                    icon: 'error' // Use error icon
+                });
             });
         });
-    });
+    } // end if(evaluationForm)
+
+}); // end DOMContentLoaded
 </script>
 
 <script type="module" src="../assets/js/mainModule.js"></script>

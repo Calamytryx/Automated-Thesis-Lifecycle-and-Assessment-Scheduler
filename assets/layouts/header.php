@@ -1,7 +1,7 @@
 <?php
-
-session_start();
-
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 require '../assets/setup/env.php';
 require '../assets/setup/db.inc.php';
 require '../assets/includes/auth_functions.php';

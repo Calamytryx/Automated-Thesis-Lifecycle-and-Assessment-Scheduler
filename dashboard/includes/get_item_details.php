@@ -51,7 +51,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $response['data'] = $data;
                 if ($table === 'programs') {
                     // Fetch all programs
-                    $stmt = $pdo->query("SELECT id, name FROM programs");
+                    $stmt = $pdo->query("SELECT * FROM programs");
                     $response['programs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'users') {
                     // Fetch user roles
@@ -102,8 +102,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt->execute([$id]);
                     $researchTitle = $stmt->fetchColumn();
 
+                    // Fetch program as text (already stored as text in teams table)
                     $response['data']['members'] = $members;
                     $response['data']['title'] = $researchTitle;
+                    $response['data']['program_teams'] = $data['program']; // program is stored as text
                 } else if ($table === 'rubrics') {
                     try {
                         // Get basic rubric info
