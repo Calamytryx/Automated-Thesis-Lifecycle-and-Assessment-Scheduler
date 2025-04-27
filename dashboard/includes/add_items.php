@@ -198,37 +198,86 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($table === 'teams') {
         $pdo->beginTransaction();
         try {
+            // Fix for program_id field - rename it to match the database column name
+            if (isset($data['program_id'])) {
+                $data['program'] = $data['program_id']; // Map program_id from form to program in database
+                unset($data['program_id']); // Remove the original key
+            }
+            
+            // Ensure program has a value to avoid NULL constraint errors
+            if (!isset($data['program']) || $data['program'] === '') {
+                $data['program'] = 'Unspecified'; // Default value for required field
+            }
+            
             $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
             $stmt->execute([
                 'name' => $data['name'],
                 'area_of_expertise' => $data['area_of_expertise'] ?? null,
-                'program' => $data['program'] ?? null
+                'program' => $data['program']
             ]);
 
             $teamId = $pdo->lastInsertId();
+            
+            // Use title if provided, otherwise use team name
+            $title = !empty($data['title']) ? $data['title'] : $data['name'];
 
             $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
             $stmt->execute([
                 'id' => $teamId,
                 'team_id' => $teamId,
-                'title' => $data['name']
+                'title' => $title
             ]);
 
+            // Improved team member handling with better error messages
             if (isset($data['members']) && !empty($data['members'])) {
                 $members = $data['members'];
                 if (is_string($members)) {
                     $members = json_decode($members, true);
+                    if (json_last_error() !== JSON_ERROR_NONE) {
+                        throw new Exception('Invalid team members data structure: ' . json_last_error_msg());
+                    }
                 }
 
                 if (is_array($members)) {
                     foreach ($members as $member) {
                         if (isset($member['id']) && isset($member['role'])) {
+                            try {
+                                $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                                $stmt->execute([
+                                    'team_id' => $teamId,
+                                    'user_id' => $member['id'],
+                                    'role' => $member['role']
+                                ]);
+                            } catch (PDOException $memberError) {
+                                // Log the specific error for each member but continue adding others
+                                error_log("Error adding team member (ID: {$member['id']}): " . $memberError->getMessage());
+                            }
+                        } else {
+                            error_log("Missing required fields for team member: " . print_r($member, true));
+                        }
+                    }
+                }
+            }
+
+            // Also handle new member inputs from form
+            if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
+                $newUserIds = $data['new_user_id'];
+                $newRoles = isset($data['new_role']) ? $data['new_role'] : [];
+                
+                for ($i = 0; $i < count($newUserIds); $i++) {
+                    $userId = $newUserIds[$i];
+                    $role = isset($newRoles[$i]) ? $newRoles[$i] : 'member';
+                    
+                    if (!empty($userId)) {
+                        try {
                             $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
                             $stmt->execute([
                                 'team_id' => $teamId,
-                                'user_id' => $member['id'],
-                                'role' => $member['role']
+                                'user_id' => $userId,
+                                'role' => $role
                             ]);
+                        } catch (PDOException $memberError) {
+                            error_log("Error adding new team member (ID: {$userId}): " . $memberError->getMessage());
                         }
                     }
                 }
@@ -239,7 +288,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['message'] = 'Team added successfully.';
         } catch (Exception $e) {
             $pdo->rollBack();
-            $response['message'] = 'Error adding team: ' . $e->getMessage();
+            
+            // Provide user-friendly error message
+            if ($e instanceof PDOException && $e->getCode() == '23000') {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    $response['message'] = "Error: This team name is already in use. Please choose a different name.";
+                } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
+                    $response['message'] = "Error: One of the selected team members or program doesn't exist.";
+                } else if (strpos($e->getMessage(), 'Column \'program\' cannot be null') !== false) {
+                    $response['message'] = "Error: Program field cannot be empty. Please select a program.";
+                } else {
+                    $response['message'] = "Error: Database constraint violation. Please check your input values.";
+                }
+            } else {
+                $response['message'] = 'Error adding team: ' . $e->getMessage();
+            }
+            error_log('Error adding team: ' . $e->getMessage());
         }
 
         echo json_encode($response);
@@ -250,6 +314,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($table === 'users') {
         if (isset($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        }
+        
+        // Fix for program_id field - rename it to match the database column name
+        if (isset($data['program_id'])) {
+            $data['program'] = $data['program_id']; // Map program_id from form to program in database
+            unset($data['program_id']); // Remove the original key
         }
     }
 
@@ -270,7 +340,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['success'] = true;
         $response['message'] = ucfirst($table) . ' added successfully.';
     } catch (Exception $e) {
-        $response['message'] = 'Error adding ' . $table . ': ' . $e->getMessage();
+        $errorCode = $e->getCode();
+        
+        // Provide user-friendly messages for common errors
+        if ($errorCode == 23000) { // Integrity constraint violation
+            if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                if ($table === 'users' && strpos($e->getMessage(), 'username') !== false) {
+                    $response['message'] = 'This username already exists. Please choose a different username.';
+                } else if ($table === 'users' && strpos($e->getMessage(), 'email') !== false) {
+                    $response['message'] = 'This email address is already registered. Please use a different email.';
+                } else if ($table === 'teams' && strpos($e->getMessage(), 'name') !== false) {
+                    $response['message'] = 'A team with this name already exists. Please choose a different team name.';
+                } else {
+                    $response['message'] = 'This record already exists. Please check your input for duplicates.';
+                }
+            } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
+                $response['message'] = 'Error: Invalid reference to another record. Please ensure all related items exist.';
+            } else {
+                $response['message'] = 'Database constraint violation. Please check your input values.';
+            }
+        } else {
+            // For other types of errors, provide a generic message
+            $response['message'] = 'Error adding ' . $table . '. Please check your input and try again.';
+        }
+        
+        // Log the actual error for troubleshooting
+        error_log('Database error in add_items.php: ' . $e->getMessage());
     }
 
     echo json_encode($response);

@@ -193,6 +193,206 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     // --- END UPDATED Rubric Handling ---
 
+    // Special handling for teams
+    if ($table === 'teams') {
+        $pdo->beginTransaction();
+        try {
+            // Fix for program_id field - rename it to match the database column name
+            if (isset($data['program_id'])) {
+                $data['program'] = $data['program_id']; // Map program_id from form to program in database
+                unset($data['program_id']); // Remove the original key
+            }
+            
+            // Ensure program has a value to avoid NULL constraint errors
+            if (!isset($data['program']) || $data['program'] === '') {
+                $data['program'] = 'Unspecified'; // Default value for required field
+            }
+            
+            // Update the teams table
+            $teamUpdateSql = "UPDATE teams SET 
+                             name = :name, 
+                             area_of_expertise = :area_of_expertise, 
+                             program = :program 
+                             WHERE id = :id";
+            $stmtTeam = $pdo->prepare($teamUpdateSql);
+            $teamData = [
+                ':id' => $id,
+                ':name' => $data['name'],
+                ':area_of_expertise' => $data['area_of_expertise'] ?? null,
+                ':program' => $data['program']
+            ];
+            $stmtTeam->execute($teamData);
+            
+            // Update research title if provided
+            if (isset($data['title']) && !empty(trim($data['title']))) {
+                $stmtTitle = $pdo->prepare("UPDATE research_titles SET title = :title WHERE team_id = :team_id");
+                $stmtTitle->execute([
+                    ':title' => $data['title'],
+                    ':team_id' => $id
+                ]);
+            }
+            
+            // Get all current members in the team
+            $stmtGetAllMembers = $pdo->prepare("SELECT user_id, role FROM team_members WHERE team_id = :team_id");
+            $stmtGetAllMembers->execute([':team_id' => $id]);
+            $existingMembers = $stmtGetAllMembers->fetchAll(PDO::FETCH_ASSOC);
+            $existingMemberIds = array_column($existingMembers, 'user_id');
+            
+            // Collect the members that should remain from the form submission
+            $membersToKeep = [];
+            
+            // Process existing member roles from the form
+            if (isset($data['member_ids']) && is_array($data['member_ids'])) {
+                $memberIds = $data['member_ids'];
+                $memberRoles = isset($data['member_role']) ? $data['member_role'] : [];
+                
+                for ($i = 0; $i < count($memberIds); $i++) {
+                    $userId = $memberIds[$i];
+                    $role = isset($memberRoles[$i]) ? $memberRoles[$i] : null;
+                    
+                    if ($userId && $role) {
+                        $membersToKeep[] = $userId;
+                        
+                        // Update role if it has changed
+                        $stmtUpdateRole = $pdo->prepare("UPDATE team_members 
+                                                       SET role = :role 
+                                                       WHERE team_id = :team_id AND user_id = :user_id");
+                        $stmtUpdateRole->execute([
+                            ':role' => $role,
+                            ':team_id' => $id,
+                            ':user_id' => $userId
+                        ]);
+                        
+                        error_log("Updated team member (ID: {$userId}) role to: {$role}");
+                    }
+                }
+            }
+            
+            // Find members to remove (in existing but not in membersToKeep)
+            $membersToRemove = array_diff($existingMemberIds, $membersToKeep);
+            
+            // Remove members that should no longer be in the team
+            if (!empty($membersToRemove)) {
+                $placeholders = implode(',', array_fill(0, count($membersToRemove), '?'));
+                $stmtRemoveMembers = $pdo->prepare("DELETE FROM team_members WHERE team_id = ? AND user_id IN ($placeholders)");
+                
+                // First parameter is team_id, followed by each user_id
+                $params = array_merge([$id], $membersToRemove);
+                $stmtRemoveMembers->execute($params);
+                
+                error_log("Removed members from team $id: " . implode(", ", $membersToRemove));
+            }
+            
+            // Add new members if any
+            if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
+                $newUserIds = $data['new_user_id'];
+                $newRoles = isset($data['new_role']) ? $data['new_role'] : [];
+                
+                for ($i = 0; $i < count($newUserIds); $i++) {
+                    $userId = $newUserIds[$i];
+                    $role = isset($newRoles[$i]) ? $newRoles[$i] : 'member';
+                    
+                    if (!empty($userId)) {
+                        // Check if this member already exists in the team (shouldn't be needed but just in case)
+                        $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM team_members WHERE team_id = ? AND user_id = ?");
+                        $stmtCheck->execute([$id, $userId]);
+                        $exists = $stmtCheck->fetchColumn();
+                        
+                        if (!$exists) {
+                            // Add new member
+                            $stmtAddMember = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)");
+                            $stmtAddMember->execute([$id, $userId, $role]);
+                            
+                            error_log("Added new member to team $id: User ID $userId with role $role");
+                        } else {
+                            // Update role if member already exists
+                            $stmtUpdateRole = $pdo->prepare("UPDATE team_members SET role = ? WHERE team_id = ? AND user_id = ?");
+                            $stmtUpdateRole->execute([$role, $id, $userId]);
+                            
+                            error_log("Updated existing member in team $id: User ID $userId with role $role");
+                        }
+                    }
+                }
+            }
+            
+            $pdo->commit();
+            $response['success'] = true;
+            $response['message'] = "Team updated successfully.";
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            
+            // Provide user-friendly error message
+            if ($e->getCode() == '23000') {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    $response['message'] = "Error: This team name is already in use. Please choose a different name.";
+                } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
+                    $response['message'] = "Error: One of the selected team members or program doesn't exist.";
+                } else {
+                    $response['message'] = "Error: Database constraint violation. Please check your input values.";
+                }
+            } else {
+                $response['message'] = "Error updating team: " . $e->getMessage();
+            }
+            error_log("Error updating team: " . $e->getMessage());
+        }
+        
+        echo json_encode($response);
+        exit;
+    }
+
+    // Special handling for users (same fix as in add_items.php)
+    if ($table === 'users') {
+        // Fix for program_id field - rename it to match the database column name
+        if (isset($data['program_id'])) {
+            $data['program'] = $data['program_id']; // Map program_id from form to program in database
+            unset($data['program_id']); // Remove the original key
+        }
+        
+        // Ensure program has a value to avoid NULL constraint errors
+        if (!isset($data['program']) || $data['program'] === '') {
+            $data['program'] = 'Unspecified'; // Default value for required field
+        }
+        
+        // Update the users table
+        $userUpdateSql = "UPDATE users SET 
+                         username = :username, 
+                         email = :email, 
+                         program = :program 
+                         WHERE id = :id";
+        $stmtUser = $pdo->prepare($userUpdateSql);
+        $userData = [
+            ':id' => $id,
+            ':username' => $data['username'],
+            ':email' => $data['email'],
+            ':program' => $data['program']
+        ];
+        $stmtUser->execute($userData);
+        
+        // Update user roles if provided
+        if (isset($data['role']) && is_array($data['role'])) {
+            $roleIdInputs = isset($_POST['role_ids']) ? $_POST['role_ids'] : [];
+            $roles = $data['role'];
+            
+            for ($i = 0; $i < count($roles); $i++) {
+                $roleId = $roleIdInputs[$i] ?? null;
+                $role = $roles[$i];
+                
+                if ($roleId && $role) {
+                    $stmtUpdateRole = $pdo->prepare("UPDATE user_roles SET role = :role WHERE id = :id");
+                    $stmtUpdateRole->execute([
+                        ':role' => $role,
+                        ':id' => $roleId
+                    ]);
+                }
+            }
+        }
+        
+        $response['success'] = true;
+        $response['message'] = "User updated successfully.";
+        echo json_encode($response);
+        exit;
+    }
+
     // For other tables, use the generic handler (ensure edit_functions.php is updated if needed)
     require_once __DIR__ . '/edit_functions.php'; // Make sure this file exists and functions are correct
 
