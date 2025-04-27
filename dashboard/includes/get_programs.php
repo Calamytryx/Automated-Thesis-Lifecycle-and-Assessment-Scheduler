@@ -34,7 +34,7 @@ try {
         // Construct the full program name
         $fullName = $row['name'];
         if (!empty($row['specialization'])) {
-            $fullName .= ' with specialization in ' . $row['specialization'];
+            $fullName .= ' - ' . $row['specialization'];
         }
 
         // Store program details temporarily, including department for later processing
