@@ -46,11 +46,45 @@
           return;
         }
 
-        // Populate table rows
+        // Group programs by college
+        const programsByCollege = {};
         data.data.forEach(program => {
-          tableBody.innerHTML += `
-            <tr>
-              <td>${program.college}</td>
+          const college = program.college || 'Other';
+          if (!programsByCollege[college]) {
+            programsByCollege[college] = [];
+          }
+          programsByCollege[college].push(program);
+        });
+
+        // Populate table with colleges as collapsible groups
+        Object.keys(programsByCollege).sort().forEach((college, index) => {
+          // Create a unique ID for this college group
+          const collegeId = `college-${index}-${college.replace(/\s+/g, '-').toLowerCase()}`;
+          
+          // Add college header row with collapse/expand functionality
+          const programs = programsByCollege[college];
+          const collegeRow = document.createElement('tr');
+          collegeRow.className = 'college-header';
+          collegeRow.innerHTML = `
+            <td colspan="5" class="bg-light">
+              <div class="d-flex align-items-center college-header-content" 
+                   data-college-id="${collegeId}" role="button" style="cursor: pointer;">
+                <i class="fas fa-caret-down toggle-icon me-2"></i>
+                <i class="fas fa-university me-2"></i>
+                <strong>${college}</strong>
+                <span class="ms-2 badge bg-secondary">${programs.length} program(s)</span>
+              </div>
+            </td>
+          `;
+          tableBody.appendChild(collegeRow);
+
+          // Add individual program rows under this college
+          programs.forEach(program => {
+            const programRow = document.createElement('tr');
+            programRow.className = `program-row ${collegeId}`;
+            programRow.dataset.collegeGroup = collegeId; // Add data attribute for grouping
+            programRow.innerHTML = `
+              <td class="ps-4">-</td>
               <td>${program.department || ''}</td>
               <td>${program.name}</td>
               <td>${program.specialization || ''}</td>
@@ -64,8 +98,9 @@
                   </button>
                 </div>
               </td>
-            </tr>
-          `;
+            `;
+            tableBody.appendChild(programRow);
+          });
         });
 
         // Build pagination
@@ -93,12 +128,74 @@
       .catch(error => console.error('Error loading programs:', error));
   };
 
+  // Replace the toggle event listener with a better version
+  document.addEventListener('click', function(e) {
+    if (e.target.closest('.college-header-content')) {
+      const header = e.target.closest('.college-header-content');
+      const collegeId = header.dataset.collegeId;
+      const icon = header.querySelector('.toggle-icon');
+      
+      // Get all program rows for this college
+      const programRows = document.querySelectorAll(`tr[data-college-group="${collegeId}"]`);
+      
+      // Check if rows are currently visible
+      const isVisible = !programRows[0]?.classList.contains('d-none');
+      
+      // Toggle visibility of program rows
+      programRows.forEach(row => {
+        if (isVisible) {
+          row.classList.add('d-none');
+          icon.classList.remove('fa-caret-down');
+          icon.classList.add('fa-caret-right');
+        } else {
+          row.classList.remove('d-none');
+          icon.classList.remove('fa-caret-right');
+          icon.classList.add('fa-caret-down');
+        }
+      });
+    }
+  });
+
   // Event listener for pagination
   document.querySelector('#programs-pagination').addEventListener('click', (event) => {
     if (event.target.tagName === 'A') {
       const page = parseInt(event.target.getAttribute('data-page'));
       if (!isNaN(page)) {
         loadPrograms(page);
+      }
+    }
+  });
+
+  // Add event listener for delete buttons
+  document.addEventListener('click', function(e) {
+    if (e.target && e.target.closest('.delete-btn')) {
+      const button = e.target.closest('.delete-btn');
+      const table = button.getAttribute('data-table');
+      const id = button.getAttribute('data-id');
+      
+      if (confirm('Are you sure you want to delete this program?')) {
+        const formData = new FormData();
+        formData.append('table', table);
+        formData.append('id', id);
+        
+        fetch('includes/delete_item.php', {
+          method: 'POST',
+          body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+          if (data.success) {
+            // Reload the programs table to reflect the deletion
+            loadPrograms();
+          } else {
+            alert('Error deleting program: ' + (data.message || 'Unknown error'));
+            console.error('Delete error:', data);
+          }
+        })
+        .catch(error => {
+          console.error('Error during delete operation:', error);
+          alert('An error occurred during delete. Check console for details.');
+        });
       }
     }
   });

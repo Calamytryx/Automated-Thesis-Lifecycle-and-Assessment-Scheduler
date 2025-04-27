@@ -23,6 +23,7 @@
  * - requirements
  * - evaluations
  * - env_variables
+ * - programs
  * 
  * Functionality:
  * - Validates the table name against a list of allowed tables.
@@ -42,7 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $table = $_POST['table'];
     
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
     
     if (!in_array($table, $allowedTables)) {
         echo json_encode(['success' => false, 'message' => 'Invalid table']);

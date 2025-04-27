@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This script retrieves item details from a specified table in the database.
  * 
@@ -34,8 +35,8 @@ $response = ['success' => false, 'message' => '', 'data' => []];
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $table = $_POST['table'];
-    
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables'];
+
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
 
     if (!in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table';
@@ -44,12 +45,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt = $pdo->prepare("SELECT * FROM $table WHERE id = :id");
             $stmt->execute(['id' => $id]);
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
-            
+
             if ($data) {
                 $response['success'] = true;
                 $response['data'] = $data;
-
-                if ($table === 'defense_schedules') {
+                if ($table === 'programs') {
+                    // Fetch all programs
+                    $stmt = $pdo->query("SELECT id, name FROM programs");
+                    $response['programs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } else if ($table === 'users') {
+                    // Fetch user roles
+                    $stmt = $pdo->query("SELECT id, name FROM user_roles");
+                    $response['roles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } else if ($table === 'thesis_topics') {
+                    // Fetch thesis topics
+                    $stmt = $pdo->query("SELECT id, title FROM thesis_topics");
+                    $response['topics'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                } else if ($table === 'defense_schedules') {
                     // Fetch teams
                     $stmt = $pdo->query("SELECT id, name FROM teams");
                     $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -98,18 +110,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $stmt = $pdo->prepare("SELECT * FROM rubrics WHERE id = ?");
                         $stmt->execute([$id]);
                         $data = $stmt->fetch(PDO::FETCH_ASSOC);
-                        
+
                         if ($data) {
                             // Get quality criteria
                             $stmt = $pdo->prepare("SELECT * FROM rubric_quality_criteria WHERE rubric_id = ? ORDER BY quality_level");
                             $stmt->execute([$id]);
                             $data['quality_criteria'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            
+
                             // Get rubric rows
                             $stmt = $pdo->prepare("SELECT * FROM rubric_rows WHERE rubric_id = ? ORDER BY order_index");
                             $stmt->execute([$id]);
                             $data['rows'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            
+
                             $response['success'] = true;
                             $response['data'] = $data;
                         } else {

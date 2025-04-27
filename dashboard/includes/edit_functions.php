@@ -1,52 +1,55 @@
 <?php
 /**
- * 
+ *
  * This file contains functions to update various entities in the database.
- * 
+ *
  * Functions:
- * 
+ *
  * - updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype)
  *   Updates user information in the database.
- * 
+ *
  * - updateThesisTopic($pdo, $id, $topic, $description, $category, $suggested_by)
  *   Updates thesis topic information in the database.
- * 
+ *
  * - updateResearchTitle($pdo, $id, $title, $user_id, $status, $uniqueness_score, $feedback)
  *   Updates research title information in the database.
- * 
+ *
  * - updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_date, $start_time, $end_time, $room, $status)
  *   Updates defense schedule information in the database.
- * 
+ *
  * - updateTeam($pdo, $id, $name, $title, $members)
  *   Updates team information and its members in the database.
- * 
+ *
  * - updateRequirement($pdo, $id, $name, $description, $due_date)
  *   Updates requirement information in the database.
- * 
+ *
  * - updateEvaluation($pdo, $id, $defense_schedule_id, $evaluator_id, $total_score, $comments, $recommendation)
  *   Updates evaluation information in the database.
- * 
+ *
  * - updateEnvVariable($pdo, $id, $key, $value, $description)
  *   Updates environment variable information in the database.
- * 
+ *
  * - updateUserSchedule($pdo, $id, $user_id, $day_of_week, $start_time, $end_time, $class_name)
  *   Updates user schedule information in the database.
- * 
+ *
+ * - updateProgram($pdo, $id, $college, $department, $name, $specialization)
+ *   Updates program information in the database.
+ *
  * - handleEditSubmission($pdo)
  *   Handles form submissions and routes to the appropriate update function based on the table specified in the POST request.
- * 
+ *
  * - getUserType($usertype)
  *   Returns the user type as a string based on the usertype integer.
- * 
+ *
  * - getDefenseScheduleInfo($pdo, $defense_schedule_id)
  *   Retrieves and formats defense schedule information.
- * 
+ *
  * - getUserName($pdo, $user_id)
  *   Retrieves the full name of a user based on their user ID.
- * 
+ *
  * - getRubricName($pdo, $rubric_id)
  *   Retrieves the name of a rubric based on its ID.
- * 
+ *
  * - getTeamMembersForEdit($pdo, $team_id, $format = 'html')
  *   Retrieves team members for editing, formatted as HTML or an array.
  */
@@ -157,39 +160,50 @@ function updateUserSchedule($pdo, $id, $user_id, $day_of_week, $start_time, $end
     return $stmt->execute([$user_id, $day_of_week, $start_time, $end_time, $class_name, $id]);
 }
 
+// Function to update program information
+function updateProgram($pdo, $id, $college, $department, $name, $specialization) {
+    $sql = "UPDATE programs SET college = ?, department = ?, name = ?, specialization = ? WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    // Handle potentially null values for department and specialization
+    $department = empty($department) ? null : $department;
+    $specialization = empty($specialization) ? null : $specialization;
+    return $stmt->execute([$college, $department, $name, $specialization, $id]);
+}
+
+
 // Generic function to handle form submissions and update database
 function handleEditSubmission($pdo, $table, $id, $data) {
     // If no fields to update return false
     if (empty($data)) {
         return false;
     }
-    
+
     // For teams table, handle special processing
     if ($table === 'teams') {
         // Extract title to update research_titles separately
         $teamTitle = isset($data['title']) ? $data['title'] : null;
-        
+
         // Extract existing member roles if present
         $memberRoles = isset($data['member_role']) && is_array($data['member_role']) ? $data['member_role'] : [];
-        
+
         // Extract new member data if present
         $newUserIds = isset($data['new_user_id']) && is_array($data['new_user_id']) ? $data['new_user_id'] : [];
         $newUsernames = isset($data['new_username']) && is_array($data['new_username']) ? $data['new_username'] : [];
         $newRoles = isset($data['new_role']) && is_array($data['new_role']) ? $data['new_role'] : [];
-        
+
         // Filter out all member-related and title fields from data
         $cleanData = [];
         foreach ($data as $key => $value) {
-            if (strpos($key, 'member_') === false && 
-                strpos($key, 'new_') === false && 
+            if (strpos($key, 'member_') === false &&
+                strpos($key, 'new_') === false &&
                 $key !== 'title') {
                 $cleanData[$key] = $value;
             }
         }
-        
+
         try {
             $pdo->beginTransaction();
-            
+
             // 1. Update team basic info
             if (!empty($cleanData)) {
                 $fields = array_keys($cleanData);
@@ -203,21 +217,21 @@ function handleEditSubmission($pdo, $table, $id, $data) {
                 $cleanData['id'] = $id;
                 $stmt->execute($cleanData);
             }
-            
+
             // 2. Update research title if provided
             if ($teamTitle !== null) {
                 $sqlTitle = "UPDATE `research_titles` SET `title` = :title WHERE `team_id` = :id";
                 $stmtTitle = $pdo->prepare($sqlTitle);
                 $stmtTitle->execute(['title' => $teamTitle, 'id' => $id]);
             }
-            
+
             // 3. Update existing team members' roles
             if (!empty($memberRoles)) {
                 $sql = "SELECT `id`, `user_id`, `role` FROM `team_members` WHERE `team_id` = ?";
                 $stmt = $pdo->prepare($sql);
                 $stmt->execute([$id]);
                 $currentMembers = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                
+
                 foreach ($currentMembers as $index => $member) {
                     if (isset($memberRoles[$index])) {
                         $sql = "UPDATE `team_members` SET `role` = ? WHERE `id` = ?";
@@ -226,11 +240,11 @@ function handleEditSubmission($pdo, $table, $id, $data) {
                     }
                 }
             }
-            
+
             // 4. Add new members to team
             for ($i = 0; $i < count($newRoles); $i++) {
                 $userId = null;
-                
+
                 // If new_user_id is provided, use it directly
                 if (!empty($newUserIds[$i])) {
                     $userId = $newUserIds[$i];
@@ -244,7 +258,7 @@ function handleEditSubmission($pdo, $table, $id, $data) {
                         $userId = $result['id'];
                     }
                 }
-                
+
                 // If we have a user ID and role, add to team_members
                 if ($userId && !empty($newRoles[$i])) {
                     $sql = "INSERT INTO team_members (team_id, user_id, role) VALUES (?, ?, ?)";
@@ -252,38 +266,49 @@ function handleEditSubmission($pdo, $table, $id, $data) {
                     $stmt->execute([$id, $userId, $newRoles[$i]]);
                 }
             }
-            
+
             $pdo->commit();
             return true;
-        } 
+        }
         catch (PDOException $e) {
             $pdo->rollBack();
             error_log("Error updating team: " . $e->getMessage());
             return false;
         }
     }
-    
+    // Handle programs table
+    elseif ($table === 'programs') {
+        // Extract program fields
+        $college = $data['college'] ?? null;
+        $department = $data['department'] ?? null;
+        $name = $data['name'] ?? null;
+        $specialization = $data['specialization'] ?? null;
+
+        // Call the specific update function
+        return updateProgram($pdo, $id, $college, $department, $name, $specialization);
+    }
+
     // Special handling for defense_schedules table
     if ($table === 'defense_schedules' && isset($data['panelist_id']) && is_array($data['panelist_id'])) {
         // Map panelist array indices to specific columns
         $panelistIds = $data['panelist_id'];
-        
+
         // Remove the array from data to avoid JSON conversion
         unset($data['panelist_id']);
-        
+
         // Map the first three panelists to their respective columns
         if (isset($panelistIds[0])) {
             $data['panelist_id'] = $panelistIds[0];
         }
-        
+
         if (isset($panelistIds[1])) {
             $data['panelist_id2'] = $panelistIds[1];
         }
-        
+
         if (isset($panelistIds[2])) {
             $data['panelist_id3'] = $panelistIds[2];
         }
-    } 
+    }
     // Process other arrays normally
     else {
         foreach ($data as $key => $value) {
@@ -293,7 +318,7 @@ function handleEditSubmission($pdo, $table, $id, $data) {
             }
         }
     }
-    
+
     // Build the SET clause dynamically using the POST keys
     $fields = array_keys($data);
     $setParts = [];
@@ -324,10 +349,10 @@ function getDefenseScheduleInfo($pdo, $defense_schedule_id) {
     $stmt = $pdo->prepare("SELECT schedule_date, start_time, room FROM defense_schedules WHERE id = ?");
     $stmt->execute([$defense_schedule_id]);
     $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($schedule) {
-        return date('Y-m-d', strtotime($schedule['schedule_date'])) . ' ' . 
-               date('H:i', strtotime($schedule['start_time'])) . ' - ' . 
+        return date('Y-m-d', strtotime($schedule['schedule_date'])) . ' ' .
+               date('H:i', strtotime($schedule['start_time'])) . ' - ' .
                $schedule['room'];
     }
     return 'N/A';
@@ -337,7 +362,7 @@ function getUserName($pdo, $user_id) {
     $stmt = $pdo->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
     $stmt->execute([$user_id]);
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($user) {
         return $user['first_name'] . ' ' . $user['last_name'];
     }
@@ -348,7 +373,7 @@ function getRubricName($pdo, $rubric_id) {
     $stmt = $pdo->prepare("SELECT name FROM rubrics WHERE id = ?");
     $stmt->execute([$rubric_id]);
     $rubric = $stmt->fetch(PDO::FETCH_ASSOC);
-    
+
     if ($rubric) {
         return $rubric['name'];
     }
@@ -359,7 +384,7 @@ function getTeamMembersForEdit($pdo, $team_id, $format = 'html') {
     $stmt = $pdo->prepare("SELECT u.id, u.first_name, u.last_name, tm.role FROM team_members tm JOIN users u ON tm.user_id = u.id WHERE tm.team_id = ? ORDER BY FIELD(tm.role, 'adviser', 'leader', 'member')");
     $stmt->execute([$team_id]);
     $members = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     if ($format === 'html') {
         $output = '';
         foreach ($members as $member) {
@@ -385,7 +410,7 @@ function getTeamMembersForEdit($pdo, $team_id, $format = 'html') {
 
 function fetchAllDefenseSchedules($pdo) {
     $stmt = $pdo->prepare("
-        SELECT 
+        SELECT
     ds.id,
     ds.schedule_date,
     ds.start_time,
@@ -394,17 +419,17 @@ function fetchAllDefenseSchedules($pdo) {
     t.name AS team_name,
     rt.title AS thesis_title,
     GROUP_CONCAT(
-        DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name) 
+        DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name)
         ORDER BY tm.id SEPARATOR ', '
     ) AS team_members,
     GROUP_CONCAT(
-        DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name) 
+        DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
         ORDER BY FIELD(ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
     ) AS panelists,
-    (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name) 
-     FROM team_members tm_adviser 
-     JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id 
-     WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser' 
+    (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
+     FROM team_members tm_adviser
+     JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
+     WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser'
      ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
 FROM defense_schedules ds
 JOIN teams t ON ds.team_id = t.id
@@ -419,3 +444,4 @@ ORDER BY ds.schedule_date, ds.start_time;
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+

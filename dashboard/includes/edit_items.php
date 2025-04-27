@@ -14,7 +14,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table'], $data['id']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -23,6 +23,53 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
     if (!$id) {
         $response['message'] = 'Item ID not provided.';
+        echo json_encode($response);
+        exit;
+    }
+
+    // Special handling for programs
+    if ($table === 'programs') {
+        try {
+            // Prepare the SQL update statement
+            $programUpdateSql = "UPDATE programs SET
+                                    college = :college,
+                                    department = :department,
+                                    name = :name,
+                                    specialization = :specialization
+                                 WHERE id = :id";
+            $stmtProgram = $pdo->prepare($programUpdateSql);
+
+            // Prepare data for the update
+            $programData = [
+                ':id' => $id,
+                ':college' => $data['college'] ?? null, // Allow null if not provided or empty
+                ':department' => $data['department'] ?? null, // Allow null
+                ':name' => $data['name'] ?? 'Unnamed Program', // Default if name is missing
+                ':specialization' => $data['specialization'] ?? null // Allow null
+            ];
+
+            // Execute the update
+            $stmtProgram->execute($programData);
+
+            $response['success'] = true;
+            $response['message'] = "Program updated successfully.";
+            error_log("Program with ID: $id updated successfully.");
+
+        } catch (PDOException $e) {
+            $response['message'] = "Error updating program: " . $e->getMessage();
+            // Log the detailed error for debugging
+            error_log("Error updating program (ID: $id): " . $e->getMessage());
+            // Optionally check for specific error codes like duplicate entries if 'name' needs to be unique
+            if ($e->getCode() == '23000') { // Integrity constraint violation
+                 if (strpos(strtolower($e->getMessage()), 'duplicate entry') !== false) {
+                     $response['message'] = "Error: A program with this name might already exist.";
+                 } else {
+                     $response['message'] = "Error: Database constraint violation. Please check your input.";
+                 }
+            }
+        }
+
+        // Send the JSON response and stop the script
         echo json_encode($response);
         exit;
     }

@@ -13,7 +13,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -21,8 +21,54 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
-    // Special handling for rubrics
-    if ($table === 'rubrics') {
+    if ($table === 'programs') {
+        // Extract data for programs table
+        $college = $data['college'] ?? null;
+        $department = $data['department'] ?? null;
+        $name = $data['name'] ?? null;
+        $specialization = $data['specialization'] ?? null;
+
+        // Basic validation for required fields
+        if (empty($college) || empty($name)) {
+            $response['message'] = 'College and Program Name are required fields.';
+            echo json_encode($response);
+            exit;
+        }
+
+        try {
+            $sql = "INSERT INTO programs (college, department, name, specialization)
+                    VALUES (:college, :department, :name, :specialization)";
+            $stmt = $pdo->prepare($sql);
+
+            $stmt->execute([
+                ':college' => $college,
+                ':department' => $department, // Allow null
+                ':name' => $name,
+                ':specialization' => $specialization // Allow null
+            ]);
+
+            $response['success'] = true;
+            $response['message'] = 'Program added successfully.';
+
+        } catch (PDOException $e) {
+            // Handle potential database errors (e.g., duplicate entry if name should be unique)
+            if ($e->getCode() == '23000') { // Integrity constraint violation
+                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                     // Assuming a unique constraint might exist on (college, name) or just name
+                     $response['message'] = 'A program with this name might already exist.';
+                 } else {
+                     $response['message'] = 'Database constraint violation. Please check your input values.';
+                 }
+            } else {
+                $response['message'] = 'Error adding program: ' . $e->getMessage();
+            }
+            error_log('Error adding program: ' . $e->getMessage());
+        }
+
+        echo json_encode($response);
+        exit; // Stop script after handling program
+
+    } else if ($table === 'rubrics') { // Special handling for rubrics
         error_log("=== START ADD RUBRIC (Individual as Numerical) ===");
         error_log("Received POST data for rubric add: " . print_r($data, true));
 
@@ -79,8 +125,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // or false/0 if the operation failed or no ID was generated.
             $rubricIdInt = filter_var($rubricId, FILTER_VALIDATE_INT);
             if ($rubricIdInt === false || $rubricIdInt <= 0) {
-                 error_log("Failed to retrieve a valid positive integer ID after inserting into rubrics table. Value received: " . print_r($rubricId, true));
-                 throw new Exception("Failed to retrieve a valid ID after inserting into rubrics table.");
+                error_log("Failed to retrieve a valid positive integer ID after inserting into rubrics table. Value received: " . print_r($rubricId, true));
+                throw new Exception("Failed to retrieve a valid ID after inserting into rubrics table.");
             }
             $rubricId = $rubricIdInt; // Use the validated integer ID
             error_log("Validated Rubric ID: " . $rubricId);
@@ -111,7 +157,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     error_log("Failed to decode levels JSON or it's not an array. Error: " . json_last_error_msg());
                 }
             } else {
-                 error_log("No 'levels' data found in POST.");
+                error_log("No 'levels' data found in POST.");
             }
 
             // 3. Insert into `rubric_criteria` (Numerical or Yes/No rows)
@@ -140,7 +186,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     error_log("Failed to decode criteria JSON or it's not an array. Error: " . json_last_error_msg());
                 }
             } else {
-                 error_log("No 'criteria' data found in POST or type is not numerical/yesno.");
+                error_log("No 'criteria' data found in POST or type is not numerical/yesno.");
             }
 
             // 4. Insert into `rubric_programs`
@@ -167,7 +213,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['success'] = true;
             $response['message'] = 'Rubric added successfully.';
             error_log("=== END ADD RUBRIC (Individual as Numerical) - SUCCESS ===");
-
         } catch (Exception $e) {
             // Rollback transaction if started
             if ($pdo->inTransaction()) {
@@ -203,12 +248,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $data['program'] = $data['program_id']; // Map program_id from form to program in database
                 unset($data['program_id']); // Remove the original key
             }
-            
+
             // Ensure program has a value to avoid NULL constraint errors
             if (!isset($data['program']) || $data['program'] === '') {
                 $data['program'] = 'Unspecified'; // Default value for required field
             }
-            
+
             $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
             $stmt->execute([
                 'name' => $data['name'],
@@ -217,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
 
             $teamId = $pdo->lastInsertId();
-            
+
             // Use title if provided, otherwise use team name
             $title = !empty($data['title']) ? $data['title'] : $data['name'];
 
@@ -263,11 +308,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
                 $newUserIds = $data['new_user_id'];
                 $newRoles = isset($data['new_role']) ? $data['new_role'] : [];
-                
+
                 for ($i = 0; $i < count($newUserIds); $i++) {
                     $userId = $newUserIds[$i];
                     $role = isset($newRoles[$i]) ? $newRoles[$i] : 'member';
-                    
+
                     if (!empty($userId)) {
                         try {
                             $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
@@ -288,7 +333,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $response['message'] = 'Team added successfully.';
         } catch (Exception $e) {
             $pdo->rollBack();
-            
+
             // Provide user-friendly error message
             if ($e instanceof PDOException && $e->getCode() == '23000') {
                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
@@ -315,7 +360,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if (isset($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
-        
+
         // Fix for program_id field - rename it to match the database column name
         if (isset($data['program_id'])) {
             $data['program'] = $data['program_id']; // Map program_id from form to program in database
@@ -341,7 +386,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $response['message'] = ucfirst($table) . ' added successfully.';
     } catch (Exception $e) {
         $errorCode = $e->getCode();
-        
+
         // Provide user-friendly messages for common errors
         if ($errorCode == 23000) { // Integrity constraint violation
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
@@ -363,7 +408,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // For other types of errors, provide a generic message
             $response['message'] = 'Error adding ' . $table . '. Please check your input and try again.';
         }
-        
+
         // Log the actual error for troubleshooting
         error_log('Database error in add_items.php: ' . $e->getMessage());
     }
@@ -373,4 +418,3 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $response['message'] = 'Invalid request method.';
     echo json_encode($response);
 }
-?>

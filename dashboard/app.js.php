@@ -263,19 +263,19 @@
                           <input type="hidden" name="id" value="${id}">
                           <div class="mb-3">
                             <label class="form-label">College</label>
-                            <input class="form-control" name="college" id="college" value="${d.college}" required>
+                            <input class="form-control" name="college" id="college" value="${d.college || ''}" required>
                           </div>
                           <div class="mb-3">
                             <label class="form-label">Department</label>
-                            <input class="form-control" name="department" id="department" value="${d.department||''}">
+                            <input class="form-control" name="department" id="department" value="${d.department || ''}">
                           </div>
                           <div class="mb-3">
                             <label class="form-label">Program Name</label>
-                            <input class="form-control" name="name" id="name" value="${d.name}" required>
+                            <input class="form-control" name="name" id="name" value="${d.name || ''}" required>
                           </div>
                           <div class="mb-3">
-                            <label class="form-label">Parent Program ID</label>
-                            <input type="number" class="form-control" name="parent_id" id="parent_id" value="${d.parent_id||''}">
+                            <label class="form-label">Specialization</label>
+                            <input class="form-control" name="specialization" id="specialization" value="${d.specialization || ''}">
                           </div>`;
                         form.html(html);
                         $('#editModal').modal('show');
@@ -642,8 +642,8 @@
                     <input class="form-control" name="name" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Parent Program ID</label>
-                    <input type="number" class="form-control" name="parent_id">
+                    <label class="form-label">Specialization</label>
+                    <input type="text" class="form-control" name="specialization">
                   </div>
                 `);
                 $('#addModal').modal('show');
@@ -1061,8 +1061,8 @@
                     <input class="form-control" name="name" required>
                   </div>
                   <div class="mb-3">
-                    <label class="form-label">Parent Program ID</label>
-                    <input type="number" class="form-control" name="parent_id">
+                    <label class="form-label">Specialization</label>
+                    <input type="text" class="form-control" name="specialization">
                   </div>
                 `);
                 $('#addModal').modal('show');
@@ -1541,20 +1541,20 @@
             form.append('<input type="hidden" name="table" value="programs">');
             form.append(`
               <div class="mb-3">
-                <label class="form-label">College</label>
-                <input class="form-control" name="college" required>
+            <label class="form-label">College</label>
+            <input class="form-control" name="college" required>
               </div>
               <div class="mb-3">
-                <label class="form-label">Department</label>
-                <input class="form-control" name="department">
+            <label class="form-label">Department</label>
+            <input class="form-control" name="department">
               </div>
               <div class="mb-3">
-                <label class="form-label">Program Name</label>
-                <input class="form-control" name="name" required>
+            <label class="form-label">Program Name</label>
+            <input class="form-control" name="name" required>
               </div>
               <div class="mb-3">
-                <label class="form-label">Parent Program ID</label>
-                <input type="number" class="form-control" name="parent_id">
+            <label class="form-label">Specialization</label>
+            <input type="text" class="form-control" name="specialization">
               </div>
             `);
             $('#addModal').modal('show');
