@@ -776,5 +776,29 @@
                 detailModal.show();
             });
         });
+
+        // Handle password field display in the edit modal
+        const cmsModalElement = document.getElementById('editModal');
+        if (cmsModalElement) {
+            cmsModalElement.addEventListener('shown.bs.modal', function () {
+                const keyInput = cmsModalElement.querySelector('input[name="key"]');
+                const valueInput = cmsModalElement.querySelector('input[name="value"]');
+                const tableInput = cmsModalElement.querySelector('input[name="table"]');
+
+                // Check if it's the env_variables form and the inputs exist
+                if (tableInput && tableInput.value === 'env_variables' && keyInput && valueInput) {
+                    // Check if the key contains 'PASSWORD'
+                    if (keyInput.value.toUpperCase().includes('PASSWORD')) {
+                        valueInput.setAttribute('type', 'password');
+                        // Optional: Clear the value or set placeholder if desired for security
+                        valueInput.value = ''; 
+                        valueInput.placeholder = 'Enter new password or leave blank to keep unchanged';
+                    } else {
+                        // Ensure it's text for non-password fields
+                        valueInput.setAttribute('type', 'text');
+                    }
+                }
+            });
+        }
     });
 </script>
