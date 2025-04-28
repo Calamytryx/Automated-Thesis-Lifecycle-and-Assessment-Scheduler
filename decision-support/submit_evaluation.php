@@ -77,10 +77,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $pdo->beginTransaction();
     try {
         // Fetch rubric weights
-        $weightsStmt = $pdo->prepare(
-            "SELECT rubric_id, weight FROM rubric_group_items WHERE group_id = ?"
-        );
-        $weightsStmt->execute([$rubric_group_id]);
+        $weightsStmt = $pdo->prepare("
+            SELECT rgi.rubric_id, rgi.weight
+            FROM rubric_group_items rgi
+            JOIN rubric_programs rp ON rgi.rubric_id = rp.rubric_id
+            JOIN teams t ON rp.program_name = t.program
+            WHERE rgi.group_id = ? AND t.id = ?
+        ");
+        $weightsStmt->execute([$rubric_group_id, $team_id]);
         $rubricWeights = [];
         while ($row = $weightsStmt->fetch(PDO::FETCH_ASSOC)) {
             $rubricWeights[$row['rubric_id']] = floatval($row['weight']) / 100;

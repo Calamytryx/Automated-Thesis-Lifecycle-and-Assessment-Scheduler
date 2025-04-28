@@ -235,20 +235,42 @@ error_reporting(E_ALL);
                                     </div>
 
                                     <?php
-                                    $stmt = $pdo->query("SELECT 
-                                                            ds.*, 
-                                                            t.name AS team_name 
-                                                        FROM 
-                                                            icei_38697196_coecsathesis.defense_schedules ds
-                                                        JOIN 
-                                                            icei_38697196_coecsathesis.teams t 
-                                                        ON 
-                                                            ds.team_id = t.id
-                                                        WHERE 
-                                                            ds.panelist_id = {$_SESSION['id']} 
-                                                            OR ds.panelist_id2 = {$_SESSION['id']} 
-                                                            OR ds.panelist_id3 = {$_SESSION['id']};
-                                                        ");
+                                    // Updated query to fetch rubric_group_id
+                                    $userId = $_SESSION['id'];
+                                    $query = "SELECT
+                                                ds.id AS schedule_id,
+                                                ds.schedule_date,
+                                                ds.start_time,
+                                                ds.end_time,
+                                                ds.room,
+                                                t.name AS team_name,
+                                                t.program AS team_program,
+                                                (
+                                                    SELECT rgi.group_id
+                                                    FROM rubric_programs rp
+                                                    JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
+                                                    WHERE rp.program_name = t.program
+                                                    -- GROUP BY rp.program_name -- Removed for debugging
+                                                    -- HAVING COUNT(DISTINCT rgi.group_id) = 1 -- Removed for debugging
+                                                    LIMIT 1 -- Added for debugging: Get *any* group ID if one exists
+                                                ) AS rubric_group_id
+                                            FROM
+                                                icei_38697196_coecsathesis.defense_schedules ds
+                                            JOIN
+                                                icei_38697196_coecsathesis.teams t ON ds.team_id = t.id
+                                            WHERE
+                                                ds.panelist_id = :user_id1 -- Changed placeholder
+                                                OR ds.panelist_id2 = :user_id2 -- Changed placeholder
+                                                OR ds.panelist_id3 = :user_id3 -- Changed placeholder
+                                            ORDER BY
+                                                ds.schedule_date, ds.start_time";
+                                    $stmt = $pdo->prepare($query);
+                                    // Pass the same user ID for all three placeholders
+                                    $stmt->execute([
+                                        'user_id1' => $userId,
+                                        'user_id2' => $userId,
+                                        'user_id3' => $userId
+                                    ]);
                                     $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
                                     <div class="accordion-item shadow-sm mt-2">
@@ -264,15 +286,25 @@ error_reporting(E_ALL);
                                                      aria-labelledby="headingDefenses" data-bs-parent="#requirementsAccordion">
                                             <div class="accordion-body custom-scrollbar">
                                                 <ul class="list-group">
-                                                    <?php foreach ($schedules as $schedule): 
+                                                    <?php foreach ($schedules as $schedule):
                                                         $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                         $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                         $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
-                                                        // Assuming rubric group ID 1 is the default/relevant one for now.
-                                                        $rubric_group_id = 3; 
+                                                        $rubric_group_id = $schedule['rubric_group_id']; // Fetched from query, might be null
+                                                        $schedule_id = $schedule['schedule_id'];
+
+                                                        // Determine if the item should be clickable
+                                                        $onclick_attr = '';
+                                                        $item_class = 'list-group-item defense-item';
+                                                        $disabled_message = '';
+                                                        if ($rubric_group_id !== null) {
+                                                            $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
+                                                        } else {
+                                                            $item_class .= ' disabled'; // Add a class for styling disabled items
+                                                            $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
+                                                        }
                                                     ?>
-                                                        <li class="list-group-item defense-item" 
-                                                            onclick="redirectToDecisionSupport(<?php echo $schedule['id']; ?>, <?php echo $rubric_group_id; ?>)">
+                                                        <li class="<?php echo $item_class; ?>" <?php echo $onclick_attr; ?>>
                                                             <div class="defense-content">
                                                                 <h6 class="team-name mb-2">
                                                                     <?php echo htmlspecialchars($schedule['team_name']); ?>
@@ -291,6 +323,7 @@ error_reporting(E_ALL);
                                                                         <?php echo htmlspecialchars($schedule['room']); ?>
                                                                     </div>
                                                                 </div>
+                                                                <?php echo $disabled_message; // Display message if disabled ?>
                                                             </div>
                                                         </li>
                                                     <?php endforeach; ?>
@@ -931,7 +964,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     // Log the raw response text to see what the server actually sent
                     console.log('Raw response:', jqXHR.responseText); 
                     statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
-                    console.error("AJAX upload error:", textStatus, errorThrown, jqXHR.responseText); // Enhanced log
+                    console.error("AJAX upload error:", textStatus, errorThrown);
                     submitButton.prop('disabled', false);
                 }
             });
@@ -1085,7 +1118,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             location: defense.room,
                             eventType: 'defense',
                             team_id: defense.team_id,
-                            defense_schedule_id: defense.defense_schedule_id // Pass defense_schedule_id
+                            defense_schedule_id: defense.defense_schedule_id, // Pass defense_schedule_id
+                            rubric_group_id: defense.rubric_group_id // *** ADD THIS LINE ***
                         });
                     });
 
@@ -1112,13 +1146,13 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             const eventType = info.event.extendedProps.eventType;
                             if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
                                 const scheduleId = info.event.extendedProps.defense_schedule_id;
-                                // Assuming rubric group ID 1 is the default/relevant one for now.
-                                const groupId = 1; 
-                                if (scheduleId) {
+                                const groupId = info.event.extendedProps.rubric_group_id; // Should now have the value
+
+                                if (scheduleId && groupId) {
                                     redirectToDecisionSupport(scheduleId, groupId);
                                 } else {
-                                    console.error('defense_schedule_id is undefined for this defense event.');
-                                    alert('Unable to retrieve schedule information for this event.');
+                                    console.error('defense_schedule_id or rubric_group_id is undefined/null for this defense event.', info.event.extendedProps);
+                                    alert('Unable to navigate to evaluation. Schedule or rubric group information is missing.');
                                 }
                             } else {
                                 const title = info.event.title;
@@ -1171,7 +1205,8 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         location: defense.room,
                                         eventType: 'defense',
                                         team_id: defense.team_id,
-                                        defense_schedule_id: defense.defense_schedule_id // Pass defense_schedule_id
+                                        defense_schedule_id: defense.defense_schedule_id, // Pass defense_schedule_id
+                                        rubric_group_id: defense.rubric_group_id // *** ADD THIS LINE ***
                                     });
                                 });
 
@@ -1198,13 +1233,13 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         const eventType = info.event.extendedProps.eventType;
                                         if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
                                             const scheduleId = info.event.extendedProps.defense_schedule_id;
-                                            // Assuming rubric group ID 1 is the default/relevant one for now.
-                                            const groupId = 1; 
-                                            if (scheduleId) {
+                                            const groupId = info.event.extendedProps.rubric_group_id; // Should now have the value
+
+                                            if (scheduleId && groupId) {
                                                 redirectToDecisionSupport(scheduleId, groupId);
                                             } else {
-                                                console.error('defense_schedule_id is undefined for this defense event.');
-                                                alert('Unable to retrieve schedule information for this event.');
+                                                console.error('defense_schedule_id or rubric_group_id is undefined/null for this defense event.', info.event.extendedProps);
+                                                alert('Unable to navigate to evaluation. Schedule or rubric group information is missing.');
                                             }
                                         } else {
                                             const title = info.event.title;

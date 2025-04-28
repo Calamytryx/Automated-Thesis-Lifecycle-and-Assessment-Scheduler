@@ -67,18 +67,30 @@ try {
         // Fetch defense schedules where the user is a panelist
         $defense_stmt = $pdo->prepare("
             SELECT 
-                ds.id as defense_schedule_id, -- Added defense schedule ID
+                ds.id as defense_schedule_id,
                 ds.schedule_date as date,
                 ds.start_time,
                 ds.end_time,
                 ds.room,
-                ds.team_id, -- Include team_id here
-                CONCAT('Defense with team: ', 
-                       (SELECT name FROM teams WHERE id = ds.team_id)
-                ) as description
-            FROM defense_schedules ds -- Added alias ds
-            WHERE ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ? -- Use alias
-            ORDER BY date, start_time
+                ds.team_id,
+                CONCAT('Defense with team: ', t.name) as description,
+                (
+                    SELECT rgi.group_id
+                    FROM rubric_programs rp
+                    JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
+                    WHERE rp.program_name = t.program
+                    GROUP BY rgi.group_id
+                    HAVING COUNT(DISTINCT rp.rubric_id) = (
+                        SELECT COUNT(DISTINCT rp_inner.rubric_id)
+                        FROM rubric_programs rp_inner
+                        WHERE rp_inner.program_name = t.program
+                    )
+                    LIMIT 1
+                ) AS rubric_group_id
+            FROM defense_schedules ds
+            JOIN teams t ON ds.team_id = t.id
+            WHERE ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?
+            ORDER BY ds.schedule_date, ds.start_time
         ");
         $defense_stmt->execute([$user_id, $user_id, $user_id]);
         $defense_schedules = $defense_stmt->fetchAll(PDO::FETCH_ASSOC);
