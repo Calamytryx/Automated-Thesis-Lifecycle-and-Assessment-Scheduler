@@ -166,39 +166,39 @@
     }
   });
 
-  // Add event listener for delete buttons
-  document.addEventListener('click', function(e) {
-    if (e.target && e.target.closest('.delete-btn')) {
-      const button = e.target.closest('.delete-btn');
-      const table = button.getAttribute('data-table');
-      const id = button.getAttribute('data-id');
+  // // Add event listener for delete buttons
+  // document.addEventListener('click', function(e) {
+  //   if (e.target && e.target.closest('.delete-btn')) {
+  //     const button = e.target.closest('.delete-btn');
+  //     const table = button.getAttribute('data-table');
+  //     const id = button.getAttribute('data-id');
       
-      if (confirm('Are you sure you want to delete this program?')) {
-        const formData = new FormData();
-        formData.append('table', table);
-        formData.append('id', id);
+  //     if (confirm('Are you sure you want to delete this program?')) {
+  //       const formData = new FormData();
+  //       formData.append('table', table);
+  //       formData.append('id', id);
         
-        fetch('includes/delete_item.php', {
-          method: 'POST',
-          body: formData
-        })
-        .then(response => response.json())
-        .then(data => {
-          if (data.success) {
-            // Reload the programs table to reflect the deletion
-            loadPrograms();
-          } else {
-            alert('Error deleting program: ' + (data.message || 'Unknown error'));
-            console.error('Delete error:', data);
-          }
-        })
-        .catch(error => {
-          console.error('Error during delete operation:', error);
-          alert('An error occurred during delete. Check console for details.');
-        });
-      }
-    }
-  });
+  //       fetch('includes/delete_item.php', {
+  //         method: 'POST',
+  //         body: formData
+  //       })
+  //       .then(response => response.json())
+  //       .then(data => {
+  //         if (data.success) {
+  //           // Reload the programs table to reflect the deletion
+  //           loadPrograms();
+  //         } else {
+  //           alert('Error deleting program: ' + (data.message || 'Unknown error'));
+  //           console.error('Delete error:', data);
+  //         }
+  //       })
+  //       .catch(error => {
+  //         console.error('Error during delete operation:', error);
+  //         alert('An error occurred during delete. Check console for details.');
+  //       });
+  //     }
+  //   }
+  // });
 
   // Initial load
   loadPrograms();

@@ -531,7 +531,7 @@
         });
 
         // UPDATED: Edit form submission handler with debug logs
-        $(document).on('submit', '#editForm', function(e) {
+        $(document).off('submit.editForm').on('submit.editForm', '#editForm', function(e) {
             e.preventDefault();
             console.log('DEBUG: Edit form submit event triggered');  // <-- New debug log
             var formData = new FormData(this);
@@ -587,8 +587,8 @@
             }); // Close $.ajax call
         }); // Close $(document).on('submit', '#editForm', ...) handler
 
-        // NEW: Connect the saveChanges button to trigger the edit form submission
-        $(document).on('click', '#saveChanges', function(){
+        // Connect the saveEdit button to trigger the edit form submission
+        $(document).off('click.saveEdit').on('click.saveEdit', '#saveEdit', function(){
             console.log('DEBUG: Save changes button clicked, triggering edit form submission');
             $('#editForm').submit();
         });

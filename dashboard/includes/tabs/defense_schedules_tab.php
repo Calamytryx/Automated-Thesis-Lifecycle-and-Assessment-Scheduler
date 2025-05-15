@@ -430,35 +430,6 @@
                     ?>
                     <div>Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
                     <div id="scheduleGenerationStatus" class="mt-2"></div> <!-- Moved status element here -->
-                    <script>
-                        // Use the global validateInputs function in saveSchedulerSettings click handler
-                        document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
-                            // Call the global updateTeamCount function with validateInputs as callback
-                            updateTeamCount(function() {
-                                validateInputs();
-                                if (!document.getElementById('saveSchedulerSettings').disabled) {
-                                    document.getElementById('generateSchedule').disabled = false;
-                                    $('#schedulerSettingsModal').modal('hide');
-
-                                    // Update the generationSetting display
-                                    const settingsOutput = "Rooms: " + document.getElementById("rooms").value + "<br>" +
-                                        "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
-                                        "Start Time: " + document.getElementById("startTime").value + "<br>" +
-                                        "End Time: " + document.getElementById("endTime").value + "<br>" +
-                                        "Days: " + document.getElementById("days").value + "<br>" +
-                                        "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
-                                    document.getElementById("generationSetting").innerHTML = settingsOutput;
-
-                                } else {
-                                    document.getElementById('generateSchedule').disabled = true;
-                                    // Do not close the modal if settings are invalid
-                                }
-                            });
-                        });
-
-                        // Remove the separate saveSchedulerSettings listener that updated generationSetting display
-                        // as it's now integrated into the main save button listener.
-                    </script>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" id="saveSchedulerSettings">Save Settings</button>
@@ -485,19 +456,44 @@
             $totalScheds = 0;
         }
         ?>
-        <script>
-            let totalScheds = <?php echo $totalScheds; ?>;
+<script>
+                        // USE THIS SCRIPT
+                        let totalScheds = <?php echo $totalScheds; ?>;
+                        // Use the global validateInputs function in saveSchedulerSettings click handler
+                        document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
+                            // Call the global updateTeamCount function with validateInputs as callback
+                            updateTeamCount(function() {
+                                validateInputs(); // This will enable/disable saveButton
+                                const saveButtonInstance = document.getElementById('saveSchedulerSettings'); // Re-fetch to get current state
+                                const generateScheduleButton = document.getElementById('generateSchedule');
+                                
+                                if (!saveButtonInstance.disabled) { // Check if save button is NOT disabled (i.e., settings are valid)
+                                     // Enable generate schedule button
+                                     console.log("Settings are valid");
+                                    if(generateScheduleButton) {
+                                        generateScheduleButton.disabled = false;
+                                        console.log("enabling generate schedule button")
+                                    }
+                                    $('#schedulerSettingsModal').modal('hide'); // Close the modal
 
-            document.getElementById("saveSchedulerSettings").addEventListener("click", function() {
-                const settingsOutput = "Rooms: " + document.getElementById("rooms").value + "<br>" +
-                    "Time Duration: " + document.getElementById("timeDuration").value + " hours<br>" +
-                    "Start Time: " + document.getElementById("startTime").value + "<br>" +
-                    "End Time: " + document.getElementById("endTime").value + "<br>" +
-                    "Days: " + document.getElementById("days").value + "<br>" +
-                    "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
-                document.getElementById("generationSetting").innerHTML = settingsOutput;
-            });
-        </script>
+                                    // Update the generationSetting display
+                                    const settingsOutput = "Rooms: " + (document.getElementById("rooms").value || "N/A") + "<br>" +
+                                        "Time Duration: " + (document.getElementById("timeDuration").value || "N/A") + " hours<br>" +
+                                        "Start Time: " + (document.getElementById("startTime").value || "N/A") + "<br>" +
+                                        "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
+                                        "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
+                                        "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
+                                    document.getElementById("generationSetting").innerHTML = settingsOutput;
+
+                                } else { // Settings are invalid
+                                    if(generateScheduleButton) {
+                                        generateScheduleButton.disabled = true;
+                                    }
+                                    // Do not close the modal if settings are invalid
+                                }
+                            });
+                        });
+                    </script>
 
         <span id="scheduleGenerationStatusSpan" class="ml-2"></span>
     </div>
