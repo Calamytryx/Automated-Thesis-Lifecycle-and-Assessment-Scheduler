@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: sql302.iceiy.com
--- Generation Time: Apr 26, 2025 at 09:27 AM
+-- Generation Time: Jun 11, 2025 at 10:34 AM
 -- Server version: 10.6.19-MariaDB
 -- PHP Version: 7.2.22
 
@@ -36,7 +36,7 @@ CREATE TABLE `auth_tokens` (
   `token` longtext NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `expires_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `auth_tokens`
@@ -68,7 +68,7 @@ CREATE TABLE `default_schedules` (
   `class_name` varchar(45) NOT NULL,
   `start_time` varchar(45) NOT NULL,
   `end_time` varchar(45) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -80,7 +80,7 @@ CREATE TABLE `defense_panelists` (
   `id` int(11) UNSIGNED NOT NULL,
   `defense_id` int(11) UNSIGNED NOT NULL,
   `panelist_id` int(11) UNSIGNED DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -100,23 +100,7 @@ CREATE TABLE `defense_schedules` (
   `room` varchar(50) DEFAULT NULL,
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Dumping data for table `defense_schedules`
---
-
-INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`) VALUES
-(42, 1, 58, 59, 60, '2025-04-26', '14:00:00', '16:00:00', 'Defense Room 1', 'scheduled', '2025-04-25 16:12:31'),
-(43, 29, 175, 145, NULL, '2025-04-29', '02:00:00', '04:00:00', 'S303', 'scheduled', '2025-04-25 16:14:39'),
-(44, 27, 59, 60, 0, '2025-04-30', '04:00:00', '05:00:00', 'S103', 'scheduled', '2025-04-25 16:16:06'),
-(45, 1, 58, 59, 60, '2025-04-26', '13:00:00', '15:00:00', 'Defense Room 1', 'scheduled', '2025-04-25 16:21:55'),
-(46, 30, 58, 60, 0, '2025-05-18', '08:00:00', '09:00:00', 'Winston Agustin??? From where?', 'scheduled', '2025-04-25 16:23:22'),
-(47, 28, 66, 0, 0, '2025-05-29', '04:00:00', '06:30:00', 'S103', 'scheduled', '2025-04-25 16:26:16'),
-(51, 26, 174, NULL, NULL, '2025-04-30', '03:30:00', '05:30:00', '\") DROP TABLE defense_schedules', 'scheduled', '2025-04-25 16:30:46'),
-(52, 33, 60, 62, 61, '2025-04-26', '13:00:00', '14:00:00', 'Defense Room 1', 'scheduled', '2025-04-25 17:19:48'),
-(60, 1, 145, NULL, NULL, '2025-04-26', '14:00:00', '17:00:00', '', 'scheduled', '2025-04-26 06:22:26'),
-(63, 1, 58, NULL, NULL, '2025-04-26', '14:00:00', '18:00:00', '', 'scheduled', '2025-04-26 06:24:00');
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -129,7 +113,7 @@ CREATE TABLE `env_variables` (
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,
   `description` text DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `env_variables`
@@ -166,7 +150,7 @@ CREATE TABLE `evaluations` (
   `yes_no` enum('yes','no') DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -185,7 +169,7 @@ CREATE TABLE `evaluation_details` (
   `comment` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `evaluation_details`
@@ -218,7 +202,23 @@ INSERT INTO `evaluation_details` (`id`, `evaluation_id`, `rubric_id`, `criterion
 (2026, 74, 49, 221, 142, 0, NULL, NULL, '2025-04-22 16:17:49', '2025-04-22 16:17:49'),
 (2027, 74, 49, 222, 122, 0, NULL, NULL, '2025-04-22 16:17:49', '2025-04-22 16:17:49'),
 (2028, 74, 49, 222, 141, 0, NULL, NULL, '2025-04-22 16:17:49', '2025-04-22 16:17:49'),
-(2029, 74, 49, 222, 142, 0, NULL, NULL, '2025-04-22 16:17:49', '2025-04-22 16:17:49');
+(2029, 74, 49, 222, 142, 0, NULL, NULL, '2025-04-22 16:17:49', '2025-04-22 16:17:49'),
+(2046, 77, 42, 258, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2047, 77, 42, 259, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2048, 77, 42, 260, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2049, 77, 42, 261, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2050, 77, 42, 262, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2051, 77, 42, 263, NULL, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2052, 77, 45, 255, 38, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2053, 78, 45, 255, 40, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2054, 79, 45, 255, 41, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2055, 77, 45, 256, 38, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2056, 78, 45, 256, 40, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2057, 79, 45, 256, 41, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2058, 77, 45, 257, 38, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2059, 78, 45, 257, 40, 10, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2060, 79, 45, 257, 41, 3, NULL, NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37'),
+(2061, 77, 47, NULL, NULL, NULL, '1', NULL, '2025-04-27 23:07:37', '2025-04-27 23:07:37');
 
 -- --------------------------------------------------------
 
@@ -236,8 +236,8 @@ CREATE TABLE `evaluation_per_panel` (
   `total_score` float DEFAULT NULL,
   `comments` text DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT '0000-00-00 00:00:00'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `evaluation_per_panel`
@@ -253,7 +253,10 @@ INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`,
 (52, 1, 59, 41, 51.3333, 5, 56.3333, 'panget mo ilano', '2025-03-08 02:37:46', '0000-00-00 00:00:00'),
 (74, 17, 58, 122, 30, 20, 50, 'qwe', '2025-04-22 03:25:44', '2025-04-22 16:17:49'),
 (75, 17, 58, 142, 30, 20, 50, 'qwe', '2025-04-22 03:25:44', '2025-04-22 16:17:49'),
-(76, 17, 58, 141, 30, 20, 50, 'qwe', '2025-04-22 03:25:44', '2025-04-22 16:17:49');
+(76, 17, 58, 141, 30, 20, 50, 'qwe', '2025-04-22 03:25:44', '2025-04-22 16:17:49'),
+(77, 45, 58, 38, 60, 40, 100, '', '2025-04-27 23:07:08', '2025-04-27 23:07:37'),
+(78, 45, 58, 40, 60, 40, 100, '', '2025-04-27 23:07:08', '2025-04-27 23:07:37'),
+(79, 45, 58, 41, 60, 30.6667, 90.6667, '', '2025-04-27 23:07:08', '2025-04-27 23:07:37');
 
 -- --------------------------------------------------------
 
@@ -268,7 +271,34 @@ CREATE TABLE `form_assignments` (
   `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merged_evaluations`
+--
+
+CREATE TABLE `merged_evaluations` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED DEFAULT NULL,
+  `evaluator_id` int(11) UNSIGNED DEFAULT NULL,
+  `student_id` int(11) UNSIGNED DEFAULT NULL,
+  `group_score` float DEFAULT NULL,
+  `solo_score` float DEFAULT NULL,
+  `total_score` float DEFAULT NULL,
+  `pass_fail_status` enum('pass','fail') DEFAULT NULL,
+  `recommendation` enum('pass','fail','revise minor','revise major') DEFAULT NULL,
+  `yes_no` enum('yes','no') DEFAULT NULL,
+  `rubric_id` int(11) UNSIGNED DEFAULT NULL,
+  `criterion_id` int(11) UNSIGNED DEFAULT NULL,
+  `score` float DEFAULT NULL,
+  `selected_option` varchar(50) DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  `detail_comment` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -307,70 +337,71 @@ CREATE TABLE `programs` (
   `college` varchar(255) NOT NULL,
   `department` varchar(255) DEFAULT NULL,
   `name` varchar(255) NOT NULL,
-  `specialization` varchar(255) DEFAULT NULL
-) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+  `specialization` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `programs`
 --
 
-INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`) VALUES
-(58, 'College of Allied Medical Sciences', NULL, 'BS Medical Technology', NULL),
-(59, 'College of Allied Medical Sciences', NULL, 'BS Pharmacy', NULL),
-(60, 'College of Allied Medical Sciences', NULL, 'BS Radiologic Technology', NULL),
-(61, 'College of Allied Medical Sciences', NULL, 'BS Biology', NULL),
-(62, 'College of Liberal Arts and Education', NULL, 'Bachelor of Arts in Communication', NULL),
-(63, 'College of Liberal Arts and Education', NULL, 'AB Foreign Service', NULL),
-(64, 'College of Liberal Arts and Education', NULL, 'AB Legal Studies', NULL),
-(65, 'College of Liberal Arts and Education', NULL, 'Bachelor of Early Childhood Education', NULL),
-(66, 'College of Liberal Arts and Education', NULL, 'Bachelor in Secondary Education', NULL),
-(67, 'College of Liberal Arts and Education', NULL, 'BS Psychology', NULL),
-(68, 'College of Business Administration', NULL, 'BS Accountancy', NULL),
-(69, 'College of Business Administration', NULL, 'BS Business Administration', 'Human Resource Development Management'),
-(70, 'College of Business Administration', NULL, 'BS Business Administration', 'Management Accounting'),
-(71, 'College of Business Administration', NULL, 'BS Business Administration', 'Marketing Management'),
-(72, 'College of Business Administration', NULL, 'BS Business Administration', 'Operations Management'),
-(73, 'College of Business Administration', NULL, 'BS Customs Administration', NULL),
-(74, 'College of Business Administration', NULL, 'BS Entrepreneurship', 'Aesthetics Industry Management'),
-(75, 'College of Business Administration', NULL, 'BS Real Estate Management', NULL),
-(76, 'College of Engineering, Computer Studies and Architecture', 'Architecture', 'Bachelor of Science in Architecture (Arch)', NULL),
-(77, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Data Science'),
-(78, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Software Engineering'),
-(79, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Network and Information Security'),
-(80, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Web and Mobile Technology'),
-(81, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Library and Information Science', NULL),
-(82, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Aeronautical Engineering', NULL),
-(83, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Construction Engineering & Management'),
-(84, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Structural Engineering'),
-(85, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Transportation Engineering'),
-(86, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Computer Engineering', NULL),
-(87, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Engineering Technology', 'Construction Technology and Management'),
-(88, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Electrical Engineering', NULL),
-(89, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Electronics Engineering', NULL),
-(90, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Industrial Engineering', NULL),
-(91, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Mechanical Engineering', NULL),
-(92, 'College of Fine Arts and Design', NULL, 'Bachelor of Fine Arts', NULL),
-(93, 'College of Fine Arts and Design', NULL, 'Bachelor of Multimedia Arts', NULL),
-(94, 'College of Fine Arts and Design', NULL, 'Bachelor in Photography', NULL),
-(95, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', NULL),
-(96, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', 'Health and Wellness'),
-(97, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Culinary Arts'),
-(98, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Hotel Services'),
-(99, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Culinary Arts and Kitchen Operations'),
-(100, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Hotel and Restaurant Administration'),
-(101, 'College of International Tourism and Hospitality Management', NULL, 'BS Nutrition and Dietetics', NULL),
-(102, 'College of Nursing', NULL, 'BS Nursing', NULL),
-(103, 'College of Law', NULL, 'Juris Doctor', NULL),
-(104, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master of Arts in Education', 'Educational Management'),
-(105, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Business Administration', NULL),
-(106, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Hospitality Management', NULL),
-(107, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Travel and Tourism Management', NULL),
-(108, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Public Administration', NULL),
-(109, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Business Management', NULL),
-(110, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Public Policy and Management', NULL),
-(111, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Hospitality Management', NULL),
-(112, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Tourism Management', NULL),
-(113, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in English Language', NULL);
+INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`, `updated_at`) VALUES
+(58, 'College of Allied Medical Sciences', NULL, 'BS Medical Technology', NULL, '2025-04-29 09:02:55'),
+(59, 'College of Allied Medical Sciences', 'wuvwuv', 'BS Pharmacy', '', '2025-04-29 13:34:25'),
+(60, 'College of Allied Medical Sciences', NULL, 'BS Radiologic Technology', NULL, '2025-04-29 09:02:55'),
+(61, 'College of Allied Medical Sciences', NULL, 'BS Biology', NULL, '2025-04-29 09:02:55'),
+(62, 'College of Liberal Arts and Education', NULL, 'Bachelor of Arts in Communication', NULL, '2025-04-29 09:02:55'),
+(63, 'College of Liberal Arts and Education', NULL, 'AB Foreign Service', NULL, '2025-04-29 09:02:55'),
+(64, 'College of Liberal Arts and Education', NULL, 'AB Legal Studies', NULL, '2025-04-29 09:02:55'),
+(65, 'College of Liberal Arts and Education', NULL, 'Bachelor of Early Childhood Education', NULL, '2025-04-29 09:02:55'),
+(66, 'College of Liberal Arts and Education', NULL, 'Bachelor in Secondary Education', NULL, '2025-04-29 09:02:55'),
+(67, 'College of Liberal Arts and Education', NULL, 'BS Psychology', NULL, '2025-04-29 09:02:55'),
+(68, 'College of Business Administration', NULL, 'BS Accountancy', NULL, '2025-04-29 09:02:55'),
+(69, 'College of Business Administration', NULL, 'BS Business Administration', 'Human Resource Development Management', '2025-04-29 09:02:55'),
+(70, 'College of Business Administration', NULL, 'BS Business Administration', 'Management Accounting', '2025-04-29 09:02:55'),
+(71, 'College of Business Administration', NULL, 'BS Business Administration', 'Marketing Management', '2025-04-29 09:02:55'),
+(72, 'College of Business Administration', NULL, 'BS Business Administration', 'Operations Management', '2025-04-29 09:02:55'),
+(73, 'College of Business Administration', NULL, 'BS Customs Administration', NULL, '2025-04-29 09:02:55'),
+(74, 'College of Business Administration', NULL, 'BS Entrepreneurship', 'Aesthetics Industry Management', '2025-04-29 09:02:55'),
+(75, 'College of Business Administration', NULL, 'BS Real Estate Management', NULL, '2025-04-29 09:02:55'),
+(76, 'College of Engineering, Computer Studies and Architecture', 'Architecture', 'Bachelor of Science in Architecture (Arch)', NULL, '2025-04-29 09:02:55'),
+(77, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Data Science', '2025-04-29 09:02:55'),
+(78, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Software Engineering', '2025-04-29 09:02:55'),
+(79, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Network and Information Security', '2025-04-29 09:02:55'),
+(80, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Web and Mobile Technology', '2025-04-29 09:02:55'),
+(81, 'College of Engineering, Computer Studies and Architecture', 'Computer Studies', 'Bachelor of Library and Information Science', NULL, '2025-04-29 09:02:55'),
+(82, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Aeronautical Engineering', NULL, '2025-04-29 09:02:55'),
+(83, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Construction Engineering & Management', '2025-04-29 09:02:55'),
+(84, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Structural Engineering', '2025-04-29 09:02:55'),
+(85, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Transportation Engineering', '2025-04-29 09:02:55'),
+(86, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Computer Engineering', NULL, '2025-04-29 09:02:55'),
+(87, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Engineering Technology', 'Construction Technology and Management', '2025-04-29 09:02:55'),
+(88, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Electrical Engineering', NULL, '2025-04-29 09:02:55'),
+(89, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Electronics Engineering', NULL, '2025-04-29 09:02:55'),
+(90, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Industrial Engineering', NULL, '2025-04-29 09:02:55'),
+(91, 'College of Engineering, Computer Studies and Architecture', 'Engineering', 'Bachelor of Science in Mechanical Engineering', NULL, '2025-04-29 09:02:55'),
+(92, 'College of Fine Arts and Design', NULL, 'Bachelor of Fine Arts', NULL, '2025-04-29 09:02:55'),
+(93, 'College of Fine Arts and Design', NULL, 'Bachelor of Multimedia Arts', NULL, '2025-04-29 09:02:55'),
+(94, 'College of Fine Arts and Design', NULL, 'Bachelor in Photography', NULL, '2025-04-29 09:02:55'),
+(95, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', NULL, '2025-04-29 09:02:55'),
+(96, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', 'Health and Wellness', '2025-04-29 09:02:55'),
+(97, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Culinary Arts', '2025-04-29 09:02:55'),
+(98, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Hotel Services', '2025-04-29 09:02:55'),
+(99, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Culinary Arts and Kitchen Operations', '2025-04-29 09:02:55'),
+(100, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Hotel and Restaurant Administration', '2025-04-29 09:02:55'),
+(101, 'College of International Tourism and Hospitality Management', NULL, 'BS Nutrition and Dietetics', NULL, '2025-04-29 09:02:55'),
+(102, 'College of Nursing', NULL, 'BS Nursing', NULL, '2025-04-29 09:02:55'),
+(103, 'College of Law', NULL, 'Juris Doctor', NULL, '2025-04-29 09:02:55'),
+(104, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master of Arts in Education', 'Educational Management', '2025-04-29 09:02:55'),
+(105, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Business Administration', NULL, '2025-04-29 09:02:55'),
+(106, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Hospitality Management', NULL, '2025-04-29 09:02:55'),
+(107, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Travel and Tourism Management', NULL, '2025-04-29 09:02:55'),
+(108, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Public Administration', NULL, '2025-04-29 09:02:55'),
+(109, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Business Management', NULL, '2025-04-29 09:02:55'),
+(110, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Public Policy and Management', NULL, '2025-04-29 09:02:55'),
+(111, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Hospitality Management', NULL, '2025-04-29 09:02:55'),
+(112, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Tourism Management', NULL, '2025-04-29 09:02:55'),
+(113, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in English Language', NULL, '2025-04-29 09:02:55');
 
 -- --------------------------------------------------------
 
@@ -384,7 +415,7 @@ CREATE TABLE `requirements` (
   `description` text DEFAULT NULL,
   `due_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `requirements`
@@ -395,10 +426,9 @@ INSERT INTO `requirements` (`id`, `name`, `description`, `due_date`, `created_at
 (2, 'Chapter 2', '', '2024-10-31', '2024-11-11 10:52:54'),
 (3, 'Chapter 3', '', '2024-11-30', '2024-11-11 10:52:41'),
 (4, 'Endorsement Letter', '', '2024-11-30', '2024-11-11 10:51:55'),
-(5, 'Book bind Copy', '', '2024-12-04', '2024-11-11 10:52:22'),
+(5, 'Final Manuscript', 'Also used for Research Repository (DO NOT REMOVE)', '2024-12-04', '2024-11-11 10:52:22'),
 (41, 'grading sheet', 'grades', '2024-12-13', '2024-12-11 04:12:01'),
-(43, 'imrad', '', '0000-00-00', '2025-04-25 03:40:35'),
-(44, '', '', '0000-00-00', '2025-04-25 12:15:05');
+(43, 'imrad', '', '0000-00-00', '2025-04-25 03:40:35');
 
 -- --------------------------------------------------------
 
@@ -410,70 +440,61 @@ CREATE TABLE `research_titles` (
   `id` int(11) UNSIGNED NOT NULL,
   `team_id` int(11) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL,
+  `program` varchar(255) DEFAULT NULL,
   `approved_at` timestamp NULL DEFAULT NULL,
   `defended_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `research_titles`
 --
 
-INSERT INTO `research_titles` (`id`, `team_id`, `title`, `approved_at`, `defended_at`, `created_at`, `updated_at`) VALUES
-(2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', '2024-11-16 02:30:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:46:52'),
-(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', NULL, NULL, '2024-10-13 07:15:44', '2024-12-17 08:11:15'),
-(4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', '2024-11-18 06:00:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
-(5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', '2024-11-19 07:30:00', NULL, '2024-10-13 07:15:44', '2025-04-23 14:33:52'),
-(12, 12, 'KONTAK', NULL, NULL, '2025-04-02 03:19:35', '2025-04-02 03:20:39'),
-(13, 13, 'JEEPOINT', NULL, NULL, '2025-04-02 03:32:21', '2025-04-02 03:32:34'),
-(20, 19, 'GIG-A-FIND', NULL, NULL, '2025-04-11 03:43:37', '2025-04-11 03:43:37'),
-(21, 20, 'TherapEase', NULL, NULL, '2025-04-11 03:44:05', '2025-04-11 03:44:05'),
-(22, 21, 'Blaze Rider', NULL, NULL, '2025-04-11 03:53:05', '2025-04-11 03:53:05'),
-(23, 22, 'CoralIS', NULL, NULL, '2025-04-11 03:53:36', '2025-04-11 03:53:36'),
-(24, 23, 'ReLuto', NULL, NULL, '2025-04-11 03:54:10', '2025-04-11 03:54:10'),
-(25, 24, 'CRAMS', NULL, NULL, '2025-04-11 03:55:24', '2025-04-11 03:55:24'),
-(26, 25, 'CYBEREUM', NULL, NULL, '2025-04-11 03:56:19', '2025-04-11 03:56:19'),
-(27, 26, 'GIG-A-FIND:', NULL, NULL, '2025-04-11 04:05:01', '2025-04-11 04:05:01'),
-(28, 27, 'TherapEase', NULL, NULL, '2025-04-11 04:05:54', '2025-04-11 04:05:54'),
-(29, 28, 'Blaze Rider', NULL, NULL, '2025-04-11 04:06:21', '2025-04-11 04:06:21'),
-(30, 29, 'CYBEREUM', NULL, NULL, '2025-04-11 04:07:15', '2025-04-11 04:07:15'),
-(31, 30, 'CoralIS', NULL, NULL, '2025-04-11 04:07:40', '2025-04-11 04:07:40'),
-(32, 31, 'ReLuto', NULL, NULL, '2025-04-11 04:08:16', '2025-04-11 04:08:16'),
-(33, 32, 'CRAMS', NULL, NULL, '2025-04-11 04:08:40', '2025-04-11 04:08:40'),
-(34, 33, 'The Influence of Corporate Social Responsibility Programs of a Legacy Brand in Tagaytay City Towards Customer Loyalty', NULL, NULL, '2025-04-22 01:17:51', '2025-04-22 01:17:51'),
-(35, 34, 'The Influence of Fear-of-Missing-Out (FOMO) Behavior to Purchase Decision on Technology-Related Products: Basis for Developing Marketing Strategies', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(36, 35, 'The Influence of Social Media Content Strategies on College Students\' Perception of Brand Image in a Private University in General Trias, Cavite', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(37, 36, 'Private Universities  Digital Advertising Practices on Senior High School Student Preference in Selected Cities in Cavite: A Basis for Improvement', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(38, 37, 'The Effect of Hyper-Personalization on Privacy Concerns in Social Commerce Among Residents of Selected Barangay in Dasmari as, Cavite', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(39, 38, 'Influence of Eco-conscious Branding on University Students  Cosmetics Purchasing Decisions in Selected Universities in Dasmari as, Cavite', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(40, 39, 'Effect of Viral Video Meme Marketing on Consumer Engagement Among Generation Z in a Selected University in Cavite', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(41, 40, 'The Correlation Between Display Advertisement and Consumer Purchase Intentions Towards Jollibee Among Students of Selected Universities in Cavite', NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
-(42, 42, 'T1', NULL, NULL, '2025-04-23 14:35:15', '2025-04-23 14:35:15'),
-(43, 43, 'title', NULL, NULL, '2025-04-23 14:36:41', '2025-04-25 06:32:16'),
-(44, 44, 'TESTTESTSETE', NULL, NULL, '2025-04-23 15:00:56', '2025-04-23 15:00:56'),
-(45, 45, 'TESTTESTSETE', NULL, NULL, '2025-04-23 15:01:02', '2025-04-23 15:01:02'),
-(46, 46, 'TESTTESTSETE', NULL, NULL, '2025-04-23 15:02:33', '2025-04-23 15:02:33'),
-(47, 47, 'TESTTESTSETE', NULL, NULL, '2025-04-23 15:05:41', '2025-04-23 15:05:41'),
-(48, 48, 'TESTSETESTSE', NULL, NULL, '2025-04-23 15:07:18', '2025-04-23 15:07:18'),
-(49, 43, 'title', NULL, NULL, '2025-04-23 15:18:07', '2025-04-25 06:32:16'),
-(50, 50, 'Mycelium', NULL, NULL, '2025-04-24 02:47:28', '2025-04-24 02:47:28'),
-(51, 51, '', NULL, NULL, '2025-04-25 10:07:53', '2025-04-25 10:07:53'),
-(52, 52, '', NULL, NULL, '2025-04-25 10:20:35', '2025-04-25 10:20:35'),
-(53, 53, 'NannyHub', NULL, NULL, '2025-04-25 15:07:34', '2025-04-25 15:07:34'),
-(54, 54, 'NannyHub', NULL, NULL, '2025-04-25 15:08:45', '2025-04-25 15:08:45'),
-(55, 55, 'NannyHub', NULL, NULL, '2025-04-25 15:09:15', '2025-04-25 15:09:15'),
-(56, 56, 'NannyHub', NULL, NULL, '2025-04-25 15:09:54', '2025-04-25 15:09:54'),
-(57, 57, 'NannyHub', NULL, NULL, '2025-04-25 15:10:32', '2025-04-25 15:10:32'),
-(58, 58, 'NannyHub', NULL, NULL, '2025-04-25 15:13:39', '2025-04-25 15:13:39'),
-(59, 59, 'NannyHub', NULL, NULL, '2025-04-25 15:13:56', '2025-04-25 15:13:56'),
-(60, 60, '', NULL, NULL, '2025-04-25 15:14:08', '2025-04-25 15:14:08'),
-(61, 61, 'NannyHubdfh', NULL, NULL, '2025-04-25 15:15:46', '2025-04-25 15:21:49'),
-(62, 1, '', NULL, NULL, '2025-04-26 06:26:00', '2025-04-26 06:26:00'),
-(63, 63, 'shamwow', NULL, NULL, '2025-04-26 06:29:25', '2025-04-26 06:31:42'),
-(64, 64, 'Shamwow', NULL, NULL, '2025-04-26 06:32:10', '2025-04-26 06:32:10'),
-(65, 65, 'Shamwow', NULL, NULL, '2025-04-26 06:33:41', '2025-04-26 06:33:41'),
-(66, 66, 'Shamwow', NULL, NULL, '2025-04-26 06:34:14', '2025-04-26 06:34:14');
+INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at`, `defended_at`, `created_at`, `updated_at`) VALUES
+(2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', 'Master in Business Administration', '2024-11-16 02:30:00', NULL, '2024-10-13 07:15:44', '2025-04-27 08:41:47'),
+(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', 'Juris Doctor', NULL, NULL, '2024-10-13 07:15:44', '2025-04-27 08:50:59'),
+(4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', NULL, '2024-11-18 06:00:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
+(5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', NULL, '2024-11-19 07:30:00', NULL, '2024-10-13 07:15:44', '2025-04-23 14:33:52'),
+(27, 26, 'GIG-A-FIND:', NULL, NULL, NULL, '2025-04-11 04:05:01', '2025-04-11 04:05:01'),
+(28, 27, 'TherapEase', NULL, NULL, NULL, '2025-04-11 04:05:54', '2025-04-11 04:05:54'),
+(29, 28, 'Blaze Rider', NULL, NULL, NULL, '2025-04-11 04:06:21', '2025-04-11 04:06:21'),
+(30, 29, 'CYBEREUM', NULL, NULL, NULL, '2025-04-11 04:07:15', '2025-04-11 04:07:15'),
+(31, 30, 'CoralIS', NULL, NULL, NULL, '2025-04-11 04:07:40', '2025-04-11 04:07:40'),
+(32, 31, 'ReLuto', NULL, NULL, NULL, '2025-04-11 04:08:16', '2025-04-11 04:08:16'),
+(33, 32, 'CRAMS', NULL, NULL, NULL, '2025-04-11 04:08:40', '2025-04-11 04:08:40'),
+(34, 33, 'The Influence of Corporate Social Responsibility Programs of a Legacy Brand in Tagaytay City Towards Customer Loyalty', NULL, NULL, NULL, '2025-04-22 01:17:51', '2025-04-22 01:17:51'),
+(35, 34, 'The Influence of Fear-of-Missing-Out (FOMO) Behavior to Purchase Decision on Technology-Related Products: Basis for Developing Marketing Strategies', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(36, 35, 'The Influence of Social Media Content Strategies on College Students\' Perception of Brand Image in a Private University in General Trias, Cavite', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(37, 36, 'Private Universities  Digital Advertising Practices on Senior High School Student Preference in Selected Cities in Cavite: A Basis for Improvement', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(38, 37, 'The Effect of Hyper-Personalization on Privacy Concerns in Social Commerce Among Residents of Selected Barangay in Dasmari as, Cavite', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(39, 38, 'Influence of Eco-conscious Branding on University Students  Cosmetics Purchasing Decisions in Selected Universities in Dasmari as, Cavite', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(40, 39, 'Effect of Viral Video Meme Marketing on Consumer Engagement Among Generation Z in a Selected University in Cavite', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(41, 40, 'The Correlation Between Display Advertisement and Consumer Purchase Intentions Towards Jollibee Among Students of Selected Universities in Cavite', NULL, NULL, NULL, '2025-04-22 01:18:47', '2025-04-22 01:18:47'),
+(42, 42, 'T1', NULL, NULL, NULL, '2025-04-23 14:35:15', '2025-04-23 14:35:15'),
+(43, 43, 'title', NULL, NULL, NULL, '2025-04-23 14:36:41', '2025-04-25 06:32:16'),
+(44, 44, 'TESTTESTSETE', NULL, NULL, NULL, '2025-04-23 15:00:56', '2025-04-23 15:00:56'),
+(45, 45, 'TESTTESTSETE', NULL, NULL, NULL, '2025-04-23 15:01:02', '2025-04-23 15:01:02'),
+(46, 46, 'TESTTESTSETE', NULL, NULL, NULL, '2025-04-23 15:02:33', '2025-04-23 15:02:33'),
+(47, 47, 'TESTTESTSETE', NULL, NULL, NULL, '2025-04-23 15:05:41', '2025-04-23 15:05:41'),
+(48, 48, 'TESTSETESTSE', NULL, NULL, NULL, '2025-04-23 15:07:18', '2025-04-23 15:07:18'),
+(49, 43, 'title', NULL, NULL, NULL, '2025-04-23 15:18:07', '2025-04-25 06:32:16'),
+(50, 50, 'Mycelium', NULL, NULL, NULL, '2025-04-24 02:47:28', '2025-04-24 02:47:28'),
+(53, 53, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:07:34', '2025-04-25 15:07:34'),
+(54, 54, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:08:45', '2025-04-25 15:08:45'),
+(55, 55, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:09:15', '2025-04-25 15:09:15'),
+(56, 56, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:09:54', '2025-04-25 15:09:54'),
+(57, 57, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:10:32', '2025-04-25 15:10:32'),
+(58, 58, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:13:39', '2025-04-25 15:13:39'),
+(59, 59, 'NannyHub', NULL, NULL, NULL, '2025-04-25 15:13:56', '2025-04-25 15:13:56'),
+(60, 60, '', NULL, NULL, NULL, '2025-04-25 15:14:08', '2025-04-25 15:14:08'),
+(61, 61, 'NannyHubdfh', NULL, NULL, NULL, '2025-04-25 15:15:46', '2025-04-25 15:21:49'),
+(62, 1, 'aaaaaaaaaa', NULL, NULL, NULL, '2025-04-26 06:26:00', '2025-04-27 14:30:43'),
+(63, 63, 'shamwow', NULL, NULL, NULL, '2025-04-26 06:29:25', '2025-04-26 06:31:42'),
+(64, 64, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:32:10', '2025-04-26 06:32:10'),
+(65, 65, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:33:41', '2025-04-26 06:33:41'),
+(66, 66, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:34:14', '2025-04-26 06:34:14'),
+(67, 67, 'a', NULL, NULL, NULL, '2025-04-27 00:30:22', '2025-04-27 00:30:22');
 
 -- --------------------------------------------------------
 
@@ -509,12 +530,11 @@ CREATE TABLE `rubrics` (
 
 INSERT INTO `rubrics` (`id`, `name`, `description`, `rubric_type`, `is_individual_enabled`, `defense_type`, `rubric_description`, `pass_recommendation_text`, `fail_recommendation_text`, `fail_option_text`, `pass_threshold_1`, `pass_threshold_2`, `pass_threshold_3`, `max_total_score`, `max_members`, `is_active`, `created_at`, `updated_at`, `max_score_per_criterion`) VALUES
 (41, 'rubric  name', 'desc', 'yesno', 0, NULL, 'desc', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-17 13:19:21', '2025-04-23 14:45:02', 100),
-(42, 'Written Manuscript', 'Group Grade', 'numerical', 0, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-18 11:28:12', '2025-04-22 02:39:35', 100),
-(45, 'Oral Defense ', 'Individual Grade', 'numerical', 1, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 09:55:14', '2025-04-23 14:46:13', 100),
-(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', '81.00', '80.00', '70.00', 0, NULL, 1, '2025-04-21 17:13:58', '2025-04-21 17:36:55', 100),
+(42, 'Written Manuscript', 'Group Grade', 'numerical', 0, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-18 11:28:12', '2025-04-27 23:31:58', 100),
+(45, 'Oral Defense ', 'Individual Grade', 'numerical', 1, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 09:55:14', '2025-04-27 23:32:08', 100),
+(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', '81.00', '80.00', '70.00', 0, NULL, 1, '2025-04-21 17:13:58', '2025-04-27 23:32:20', 100),
 (48, 'Written Manuscript Proposal', 'Group Grade', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-21 19:39:59', '2025-04-22 15:04:55', 100),
-(49, 'Oral Defense Proposal', 'Individual Grade ', 'numerical', 1, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 19:45:28', '2025-04-22 15:14:22', 100),
-(50, '', '', 'numerical', 0, NULL, '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-25 12:07:31', '2025-04-25 12:07:31', 100);
+(49, 'Oral Defense Proposal', 'Individual Grade ', 'numerical', 1, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 19:45:28', '2025-04-22 15:14:22', 100);
 
 -- --------------------------------------------------------
 
@@ -541,23 +561,24 @@ INSERT INTO `rubric_criteria` (`id`, `rubric_id`, `criterion_text`, `criterion_d
 (1, 16, 'a', NULL, 0, 0, '2025-04-13 15:35:33', '2025-04-13 15:35:33'),
 (15, 40, 'a', NULL, 0, 0, '2025-04-17 13:13:37', '2025-04-17 13:13:37'),
 (16, 40, 'b', NULL, 1, 0, '2025-04-17 13:13:37', '2025-04-17 13:13:37'),
-(212, 42, 'Clarity of Research Problem and Objectives ', '10%', 0, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
-(213, 42, 'Extent of Review of Related Literature ', '10%', 1, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
-(214, 42, 'Appropriateness of Methodology ', '10%', 2, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
-(215, 42, 'Data Presentation and Depth of Analysis', '10%', 3, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
-(216, 42, 'Logic of Conclusion and Recommendations ', '10%', 4, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
-(217, 42, 'Order and neatness of the manuscript ', '10%', 5, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
 (218, 48, '', '', 0, 0, '2025-04-22 15:04:55', '2025-04-22 15:04:55'),
 (220, 49, 'Clarity and mastery in the presentation', NULL, 0, 1, '2025-04-22 15:14:22', '2025-04-22 15:14:22'),
 (221, 49, 'Articulate response to the inquiries', NULL, 1, 1, '2025-04-22 15:14:22', '2025-04-22 15:14:22'),
 (222, 49, 'Proper demeanor and dress code', NULL, 2, 1, '2025-04-22 15:14:22', '2025-04-22 15:14:22'),
 (225, 41, 'hello', 'hello hello', 0, 0, '2025-04-23 14:45:02', '2025-04-23 14:45:02'),
 (226, 41, 'hi', '', 1, 0, '2025-04-23 14:45:02', '2025-04-23 14:45:02'),
-(227, 45, '1', NULL, 0, 1, '2025-04-23 14:46:13', '2025-04-23 14:46:13'),
-(228, 45, '2', NULL, 1, 1, '2025-04-23 14:46:13', '2025-04-23 14:46:13'),
-(229, 45, '3', NULL, 2, 1, '2025-04-23 14:46:13', '2025-04-23 14:46:13'),
 (230, 50, '', '', 0, 0, '2025-04-25 12:07:31', '2025-04-25 12:07:31'),
-(232, 51, '', '', 0, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20');
+(232, 51, '', '', 0, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
+(233, 52, 'a', 'a', 0, 0, '2025-04-27 08:51:47', '2025-04-27 08:51:47'),
+(264, 42, 'Clarity of Research Problem and Objectives', '[\"10%\"]', 0, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(265, 42, 'Extent of Review of Related Literature', '[\"10%\"]', 1, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(266, 42, 'Appropriateness of Methodology', '[\"10%\"]', 2, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(267, 42, 'Data Presentation and Depth of Analysis', '[\"10% \"]', 3, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(268, 42, 'Logic of Conclusion and Recommendations', '[\"10%\"]', 4, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(269, 42, 'Order and neatness of the manuscript', '[\"10%\"]', 5, 0, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(270, 45, 'Clarity and mastery in the presentation', NULL, 0, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08'),
+(271, 45, 'Articulate response to the inquiries', NULL, 1, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08'),
+(272, 45, 'Proper demeanor and dress code', NULL, 2, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08');
 
 -- --------------------------------------------------------
 
@@ -588,7 +609,7 @@ INSERT INTO `rubric_groups` (`id`, `name`, `description`, `created_at`, `updated
 --
 
 CREATE TABLE `rubric_group_items` (
-  `id` int(11) UNSIGNED NOT NULL,
+  `id` int(11) NOT NULL,
   `group_id` int(11) NOT NULL,
   `rubric_id` int(11) UNSIGNED NOT NULL,
   `order_index` int(11) NOT NULL DEFAULT 0,
@@ -639,19 +660,20 @@ INSERT INTO `rubric_levels` (`id`, `rubric_id`, `level_index`, `name`, `descript
 (123, 46, 1, 'Modifier 1', 'Modifier 1 Description', NULL, NULL, 0, '2025-04-21 13:44:35', '2025-04-21 13:44:35'),
 (124, 46, 2, 'Modifier 2', 'Modifier 2 Description', NULL, NULL, 0, '2025-04-21 13:44:35', '2025-04-21 13:44:35'),
 (125, 46, 3, 'Modifier 3', 'Modifier 3 Description', NULL, NULL, 0, '2025-04-21 13:44:35', '2025-04-21 13:44:35'),
-(147, 47, 1, 'Modifier 1', 'without revision ', NULL, NULL, 0, '2025-04-21 17:36:55', '2025-04-21 17:36:55'),
-(148, 47, 2, 'Modifier 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-04-21 17:36:55', '2025-04-21 17:36:55'),
-(149, 47, 3, 'Modifier 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-04-21 17:36:55', '2025-04-21 17:36:55'),
-(173, 42, 1, 'Written manuscript', '', 10, 10, 0, '2025-04-22 02:39:35', '2025-04-22 02:39:35'),
 (174, 48, 1, 'Written Manuscript Proposal', '', 10, 10, 0, '2025-04-22 15:04:55', '2025-04-22 15:04:55'),
 (176, 49, 1, 'Level 1', '', 10, 10, 0, '2025-04-22 15:14:22', '2025-04-22 15:14:22'),
-(177, 45, 1, 'Level 1', '', 0, 100, 1, '2025-04-23 14:46:13', '2025-04-23 14:46:13'),
 (178, 50, 1, 'Level 1', '', 5, 5, 0, '2025-04-25 12:07:31', '2025-04-25 12:07:31'),
 (183, 51, 1, 'Level 1', '', 5, 5, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
 (184, 51, 2, 'Level 2', '', 4, 4, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
 (185, 51, 3, 'Level 3', '', 3, 3, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
 (186, 51, 4, 'Level 4', '', 2, 2, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
-(187, 51, 5, 'Level 5', '', 1, 1, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20');
+(187, 51, 5, 'Level 5', '', 1, 1, 0, '2025-04-25 16:27:20', '2025-04-25 16:27:20'),
+(188, 52, 1, 'a', 'a', 5, 5, 0, '2025-04-27 08:51:47', '2025-04-27 08:51:47'),
+(207, 42, 1, 'Written manuscript', '', 0, 10, 1, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
+(208, 45, 1, 'Level 1', '', 0, 100, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08'),
+(209, 47, 1, 'Pass Option 1', 'without revision ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(210, 47, 2, 'Pass Option 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(211, 47, 3, 'Pass Option 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20');
 
 -- --------------------------------------------------------
 
@@ -669,34 +691,9 @@ CREATE TABLE `rubric_programs` (
 --
 
 INSERT INTO `rubric_programs` (`rubric_id`, `program_name`) VALUES
-(40, 'Bachelor of Library and Information Science'),
-(40, 'Bachelor of Science in Computer Science with specialization in Data Science'),
-(40, 'Bachelor of Science in Computer Science with specialization in Software Engineering'),
-(40, 'Bachelor of Science in Information Technology with specialization in Network and Information Security'),
-(40, 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology'),
-(41, 'BS Business Administration with specialization in Marketing Management'),
-(42, 'BS Business Administration with specialization in Marketing Management'),
-(45, 'Bachelor of Library and Information Science'),
-(45, 'Bachelor of Science in Computer Science with specialization in Data Science'),
-(45, 'Bachelor of Science in Computer Science with specialization in Software Engineering'),
-(45, 'Bachelor of Science in Information Technology with specialization in Network and Information Security'),
-(45, 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology'),
-(46, 'Bachelor of Library and Information Science'),
-(46, 'Bachelor of Science in Computer Science with specialization in Data Science'),
-(46, 'Bachelor of Science in Computer Science with specialization in Software Engineering'),
-(46, 'Bachelor of Science in Information Technology with specialization in Network and Information Security'),
-(46, 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology'),
-(47, 'Bachelor of Library and Information Science'),
-(47, 'Bachelor of Science in Computer Science with specialization in Data Science'),
-(47, 'Bachelor of Science in Computer Science with specialization in Software Engineering'),
-(47, 'Bachelor of Science in Information Technology with specialization in Network and Information Security'),
-(47, 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology'),
-(48, 'Bachelor of Library and Information Science'),
-(48, 'Bachelor of Science in Computer Science with specialization in Data Science'),
-(48, 'Bachelor of Science in Computer Science with specialization in Software Engineering'),
-(48, 'Bachelor of Science in Information Technology with specialization in Network and Information Security'),
-(48, 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology'),
-(51, 'BS Biology');
+(42, 'Bachelor of Science in Computer Science - Software Engineering'),
+(45, 'Bachelor of Science in Computer Science - Software Engineering'),
+(47, 'Bachelor of Science in Computer Science - Software Engineering');
 
 -- --------------------------------------------------------
 
@@ -710,19 +707,17 @@ CREATE TABLE `teams` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `program` varchar(255) NOT NULL,
   `area_of_expertise` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teams`
 --
 
 INSERT INTO `teams` (`id`, `name`, `created_at`, `program`, `area_of_expertise`) VALUES
-(1, '120ms', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science', NULL),
+(1, '120ms', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science - Software Engineering', 'webdev'),
 (2, 'Arcadia', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science', NULL),
 (3, 'Solace', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science', NULL),
 (4, 'Adapt', '2024-10-13 06:58:29', 'Bachelor of Science in Computer Science', NULL),
-(5, 'QuizScan', '2024-10-13 06:58:29', 'it', ''),
-(10, 'test', '2025-03-08 02:42:32', 'a', NULL),
 (26, 'GIG-A-FIND', '2025-04-11 04:05:01', 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology', 'Web Dev'),
 (27, 'TherapEase', '2025-04-11 04:05:54', 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology', 'Hybrid Dev'),
 (28, 'Blaze Rider', '2025-04-11 04:06:21', 'Bachelor of Science in Information Technology with specialization in Web and Mobile Technology', 'Mobile Dev'),
@@ -738,25 +733,23 @@ INSERT INTO `teams` (`id`, `name`, `created_at`, `program`, `area_of_expertise`)
 (38, 'team 2 MM304', '2025-04-22 01:18:47', 'BS Marketing Management', 'Qualitative'),
 (39, 'team 1 MM305', '2025-04-22 01:18:47', 'BS Marketing Management', 'Qualitative'),
 (40, 'team 2 MM305', '2025-04-22 01:18:47', 'BS Marketing Management', 'Qualitative'),
-(43, 'SKT', '2025-04-23 14:36:41', 'Bachelor of Science in Computer Science with specialization in Data Science', 'Hybrid Dev'),
 (44, 'T2', '2025-04-23 15:00:56', 'Bachelor of Science in Computer Science with specialization in Data Science', 'Hybrid Dev'),
 (45, 'T2', '2025-04-23 15:01:02', 'Bachelor of Science in Computer Science with specialization in Data Science', 'Hybrid Dev'),
 (46, 'T2', '2025-04-23 15:02:33', 'Bachelor of Science in Computer Science with specialization in Data Science', 'Hybrid Dev'),
 (47, 'T2', '2025-04-23 15:05:41', 'Bachelor of Science in Computer Science with specialization in Data Science', 'Hybrid Dev'),
 (48, 'T2', '2025-04-23 15:07:18', 'BSCS', 'Webdev'),
-(50, 'Mycelium', '2025-04-24 02:47:28', 'Biology', 'Biology'),
+(50, 'Mycelium', '2025-04-24 02:47:28', 'Master in Business Administration', 'Biology'),
 (51, '', '2025-04-25 10:07:53', '', ''),
 (52, '', '2025-04-25 10:20:35', '', ''),
 (53, 'NannyHub', '2025-04-25 15:07:34', 'Bachelor of Science in Computer Science with specialization in Software Engineering', 'Web Dev'),
-(54, 'NannyHub', '2025-04-25 15:08:45', 'Bachelor of Science in Architecture', 'Mobile Dev'),
 (55, 'NannyHub', '2025-04-25 15:09:15', 'Bachelor of Science in Computer Science with specialization in Software Engineering', 'Software Engineering'),
 (56, 'NannyHub', '2025-04-25 15:09:54', 'Bachelor of Science in Computer Science with specialization in Software Engineering', 'Software Engineering'),
-(57, 'NannyHub', '2025-04-25 15:10:32', 'Bachelor of Science in Computer Science with specialization in Software Engineering', 'Software Engineering'),
 (58, 'NannyHub', '2025-04-25 15:13:39', 'Bachelor of Science in Computer Science with specialization in Software Engineering', 'Software Engineering'),
 (59, 'NannyHub', '2025-04-25 15:13:56', '', ''),
 (60, '', '2025-04-25 15:14:08', '', ''),
 (65, 'Shamwow', '2025-04-26 06:33:41', 'a', 'a'),
-(66, 'Shamwow', '2025-04-26 06:34:14', 'Bachelor of Science in Architecture', 'Mobile Dev');
+(66, 'Shamwow', '2025-04-26 06:34:14', 'Bachelor of Science in Architecture', 'Mobile Dev'),
+(67, 'a', '2025-04-27 00:30:22', 'Unspecified', 'a');
 
 -- --------------------------------------------------------
 
@@ -769,7 +762,7 @@ CREATE TABLE `team_members` (
   `team_id` int(11) UNSIGNED DEFAULT NULL,
   `user_id` int(11) UNSIGNED DEFAULT NULL,
   `role` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `team_members`
@@ -792,7 +785,6 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (27, 7, 57, 'member'),
 (69, 1, 58, 'adviser'),
 (70, 1, 38, 'leader'),
-(71, 1, 39, 'member'),
 (72, 1, 40, 'member'),
 (74, 1, 41, 'member'),
 (76, 2, 42, 'leader'),
@@ -923,12 +915,14 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 (217, 50, 215, 'member'),
 (218, 50, 66, 'adviser'),
 (219, 54, 51, 'leader'),
-(220, 57, 51, 'leader'),
 (221, 61, 53, 'member'),
 (222, 61, 52, 'member'),
 (223, 61, 54, 'member'),
 (224, 63, 56, 'adviser'),
-(225, 64, 37, 'adviser');
+(225, 64, 37, 'adviser'),
+(238, 57, 62, 'adviser'),
+(242, 57, 50, 'leader'),
+(243, 57, 54, 'member');
 
 -- --------------------------------------------------------
 
@@ -945,20 +939,17 @@ CREATE TABLE `team_requirements` (
   `feedback` text DEFAULT NULL,
   `file_name` varchar(255) DEFAULT NULL,
   `feedback_file` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `team_requirements`
 --
 
 INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `submitted_at`, `feedback`, `file_name`, `feedback_file`) VALUES
-(6, 1, 5, 'submitted', '2024-12-08 10:48:34', '', '120ms-BookbindCopy-20241208.pdf', ''),
-(7, 1, 1, 'submitted', '2024-12-10 08:24:13', 'check note', '120ms-Chapter1-20241210.pdf', ''),
-(8, 4, 5, 'submitted', '2024-12-11 01:52:20', '', 'Adapt-BookbindCopy-20241211.pdf', NULL),
-(9, 12, 5, 'submitted', '2025-04-02 03:53:53', '', 'Team1-BookbindCopy-20250402.pdf', NULL),
 (13, 32, 1, 'submitted', '2025-04-21 18:43:33', NULL, '32_1_1745261013_120ms-BookbindCopy-20241208.pdf', NULL),
 (14, 32, 5, 'submitted', '2025-04-21 18:43:48', NULL, '32_5_1745261028_120ms-BookbindCopy-20241208.pdf', NULL),
-(15, 32, 2, 'submitted', '2025-04-22 06:50:40', NULL, '32_2_1745304640_32_1_1745261013_120ms-BookbindCopy-20241208.pdf', NULL);
+(15, 32, 2, 'submitted', '2025-04-22 06:50:40', NULL, '32_2_1745304640_32_1_1745261013_120ms-BookbindCopy-20241208.pdf', NULL),
+(16, 1, 5, 'approved', '2025-05-13 10:04:22', 'ok na', '1_5_1747130662_NEW_FORMAT.pdf', '');
 
 -- --------------------------------------------------------
 
@@ -972,41 +963,35 @@ CREATE TABLE `thesis_topics` (
   `description` text DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `thesis_topics`
 --
 
 INSERT INTO `thesis_topics` (`id`, `topic`, `description`, `category`, `created_at`) VALUES
-(2, 'Sustainable Design and Construction', 'Exploring environmentally friendly materials, energy-efficient building technologies, and sustainable building practices. Reduced environmental impact, improved resource efficiency, and healthier built environments.', 'Architecture', '2024-11-18 07:26:43'),
-(3, 'Digital Fabrication and Parametric Design', 'Investigating the use of computational design tools and advanced manufacturing technologies for architectural production. Enhanced design efficiency, increased design complexity, and the exploration of novel architectural forms and materials.', 'Architecture', '2024-11-18 08:57:37'),
-(4, 'Adaptive Reuse and Urban Regeneration', 'Researching strategies for revitalizing existing structures and neighborhoods, focusing on sustainability and community engagement. Preservation of historical assets, economic growth in urban areas, and improved quality of life for residents.', 'Architecture', '2024-11-18 08:57:40'),
-(5, 'Disaster-Resilient Design and Construction', 'Developing building designs and construction methods to withstand extreme weather events and natural hazards. Protection of human life and property, reduced economic losses due to natural disasters, and increased societal resilience.', 'Architecture', '2024-11-18 08:57:44'),
-(6, 'Affordable and Inclusive Housing', 'Exploring innovative design and construction approaches to create affordable and accessible housing for diverse populations. Improved living conditions for marginalized communities and the advancement of social equity.', 'Architecture', '2024-11-18 08:57:52'),
-(7, 'Accessibility and Universal Design', 'Researching principles of universal design to create buildings and spaces that are usable and accessible to everyone, regardless of ability. Enhanced inclusivity and equity, increased accessibility for people with disabilities, and improved usability for all.', 'Architecture', '2024-11-18 08:57:56'),
-(8, 'Architectural History and Theory', 'Analyzing and interpreting the historical evolution of architecture and its theoretical underpinnings. A deeper understanding of architectural history, enhanced design knowledge, and informed decision-making in design practice.', 'Architecture', '2024-11-18 08:58:00'),
-(9, 'Community-Based Design and Participation', 'Investigating the process of engaging local communities in architectural design and decision-making. Enhanced community ownership and engagement, creation of buildings and spaces that meet local needs, and promotion of social inclusiveness.', 'Architecture', '2024-11-18 08:58:04'),
-(11, 'Smart and Interactive Buildings', 'Exploring the integration of technology to create intelligent buildings that respond to user needs and optimize performance. Enhanced energy efficiency, improved comfort, and increased security.', 'Architecture', '2024-11-18 08:58:49'),
-(12, 'Architectural Tectonics & Materiality', 'Exploring the structural and material aspects of building design, emphasizing the relationship between form and material. Improves structural integrity, enables innovative design, advances material science.', 'Architecture', '2024-11-18 08:59:22'),
-(13, 'Artificial Intelligence and Machine Learning', 'Developing and applying AI algorithms to solve complex problems. Advancements in automation, decision-making, and problem-solving across various industries.', 'Computer Science', '2024-11-18 08:59:39'),
-(14, 'Data Science and Big Data Analytics', 'Extracting knowledge and insights from large and complex datasets. Improved decision-making in business, healthcare, and scientific research.', 'Computer Science', '2024-11-18 08:59:42'),
-(15, 'Cybersecurity and Network Security', 'Protecting computer systems and networks from unauthorized access and cyber threats. Enhanced security and protection of sensitive data and infrastructure.', 'Computer Science', '2024-11-18 08:59:45'),
-(16, 'Cloud Computing and Distributed Systems', 'Developing and managing scalable and reliable cloud-based systems. Enabling efficient resource utilization and accessibility of computing resources.', 'Computer Science', '2024-11-18 08:59:48'),
-(17, 'Software Engineering and Development', 'Improving software development methodologies and processes. Increased efficiency and quality of software development.', 'Computer Science', '2024-11-18 08:59:51'),
-(18, 'Human-Computer Interaction (HCI)', 'Designing and evaluating user interfaces and interactions. Improved user experience and accessibility of technology.', 'Computer Science', '2024-11-18 08:59:56'),
-(19, 'Theoretical Computer Science', 'Exploring the foundations of computation and algorithms. Development of novel computational approaches and algorithms.', 'Computer Science', '2024-11-18 09:00:06'),
-(20, 'Cybersecurity and Privacy', 'Exploring methods for enhancing data security, privacy protection, and mitigating cyber threats in various IT systems and applications. Improved data protection, reduced risks from cyberattacks, enhanced user trust in online systems.', 'Information Technology', '2024-12-11 03:52:59'),
-(21, 'Ethical and Societal Implications of IT', 'Focuses on the moral, social, and cultural impacts of technology advancement. ', 'Information Technology', '2024-12-18 08:59:46'),
-(25, 'Thermofluids and Heat Transfer', 'Study of heat transfer phenomena and fluid dynamics for efficient thermal management in systems. Enhanced energy efficiency, reduced waste, and optimized system performance.', 'Mechanical Engineering', '2025-04-24 02:19:42'),
-(26, '', ' ', '', '2025-04-25 10:32:28'),
-(27, 'Sustainable Building Design', 'Focuses on environmentally responsible and resource-efficient building practices. Reduces environmental impact, lowers energy consumption, and promotes healthier living environments.', '', '2025-04-25 10:42:50'),
-(28, 'Artificial Intelligence and Machine Learning', 'Development of intelligent systems, machine learning algorithms, and neural networks for various applications. Automation, improved decision-making, and innovative solutions across industries.', 'Computer Science', '2025-04-25 15:25:14'),
-(29, 'Artificial Intelligence and Machine Learning', 'Development of intelligent systems, algorithms, and models that can learn, reason, and solve problems autonomously. Advancements in automation, decision-making, healthcare, and various industries through intelligent systems.', 'Computer Science', '2025-04-25 15:25:40'),
-(30, 'Cybersecurity and Information Assurance12', 'Protecting computer systems, networks, and data from cyber threats, ensuring data privacy, and developing secure communication protocols. Safeguarding sensitive information, protecting critical infrastructure, and maintaining trust in digital systems.', 'Computer Science', '2025-04-25 15:26:39'),
-(31, 'Artificial Intelligence and Machine Learning', 'lorem', 'Computer Science', '2025-04-25 15:27:16'),
-(32, 'Cybersecurity and Information Assurance12', ' lorem', 'CompSci', '2025-04-25 15:28:45'),
-(33, 'Artificial Intelligence and Machine Learning', 'Development of intelligent systems and algorithms that can learn from data, solve problems, and make decisions. Automation of tasks, improved decision-making, and advancements in healthcare, finance, and other industries.', 'Computer Science', '2025-04-25 15:31:41');
+(1, 'International Market Entry Strategies', 'Analysis of strategies used by hospitality firms when entering new international markets. Better understanding of market entry risks and opportunities for expansion.', 'Master in International Hospitality Management', '2025-05-13 09:16:49'),
+(2, 'Production engineering', ' product design and development', 'Bachelor of Science in Industrial Engineering', '2025-05-13 09:28:19');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `uploaded_files`
+--
+
+CREATE TABLE `uploaded_files` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `filepath` varchar(512) NOT NULL,
+  `filesize` int(11) NOT NULL,
+  `filetype` varchar(50) NOT NULL,
+  `uploaded_by` int(10) UNSIGNED NOT NULL,
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `description` text DEFAULT NULL,
+  `college_name` varchar(255) DEFAULT NULL,
+  `program_id` int(11) DEFAULT NULL,
+  `team_id` int(11) UNSIGNED DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1034,18 +1019,18 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL,
   `last_login_at` timestamp NULL DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
-(0, 0, 'Admin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-04-26 12:33:34', '0000-00-00 00:00:00', '2025-04-26 12:33:34'),
-(37, 0, 'neilv', NULL, NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-04-25 18:07:44', NULL, '2025-04-25 18:07:44'),
-(38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winstonini', 'Paganini', 'm', 'Student Headline', 'This is a student bio.', '67fc6b9c8052d9.27463503.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-25 17:09:36', NULL, '2025-04-25 17:08:38'),
+(0, 0, 'Admin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-05-13 08:58:54', '0000-00-00 00:00:00', '2025-05-13 08:58:54'),
+(37, 0, 'neilv', 'Bachelor of Science in Industrial Engineering', NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-06-11 14:21:28', NULL, '2025-06-11 14:21:28'),
+(38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$FwRMim1ZTijICfN7cNJ/f.1G6pLLXZIV3/fBfXerZGyplkP4gtCae', 'Winstonini', 'Paganini', 'm', 'Student Headline', 'This is a student bio.', '67fc6b9c8052d9.27463503.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-13 09:01:06', NULL, '2025-05-13 09:01:06'),
 (39, 1, 'student', 'Bachelor of Science in Computer Science', '', 0, 'student@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Juan', 'Delacruz', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-11 14:47:33', NULL, '2025-04-11 14:47:33'),
-(40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-11 20:44:23'),
+(40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-01 06:07:17', NULL, '2025-05-01 06:07:17'),
 (41, 1, 'student4', 'Bachelor of Science in Computer Science', NULL, NULL, 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Ivan Kerwin', 'Ilano', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-18 00:55:49', NULL, '2025-04-18 00:55:49'),
 (42, 1, 'student5', 'Bachelor of Science in Computer Science', NULL, NULL, 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Linus Karl', 'Sambile', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-12 02:14:10', NULL, '2025-04-12 02:14:10'),
 (43, 1, 'student6', 'Bachelor of Science in Computer Science', NULL, NULL, 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Yusuf', 'Mirasol', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 17:18:56'),
@@ -1063,7 +1048,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (55, 1, 'student18', 'Bachelor of Science in Computer Science', NULL, NULL, 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'Bachelor of Science in Computer Science', NULL, NULL, 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'Bachelor of Science in Computer Science', NULL, NULL, 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-25 17:08:21', NULL, '2025-04-25 17:08:21'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-02 14:27:56', NULL, '2025-06-02 14:27:56'),
 (59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-18 00:54:16', NULL, '2025-04-18 00:54:16'),
 (60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-12 03:53:44', NULL, '2025-04-12 03:53:44'),
 (61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-26 06:56:06', NULL, '2025-03-26 06:56:06'),
@@ -1192,14 +1177,9 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (211, 1, '123', 'IT', NULL, NULL, '123@lpunetwork.edu.ph', '$2y$10$CWom67tSl3wT8uv5rDdRjeDfojEbNrIGCYZgAGpESTy2f/jKyh6zK', 'Lompot', 'Lompot', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-23 14:52:16', NULL, NULL),
 (212, 1, '456', 'Comsci', NULL, NULL, '456@lpunetwork.edu.ph', '$2y$10$0MtGfu2y.g/JBIK1U76tsej4FtF0uu8sDwssMdbgKCSyKbgKO8E..', 'Elijah', 'Elijah', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-23 14:52:16', NULL, NULL),
 (213, 1, '789', 'IT', NULL, NULL, '789@lpunetwork.edu.ph', '$2y$10$NmAY4W0tEPOyIGBHz.EVNeVwwm4rFpgeiTxMeuzBleuuYjx2tpEaO', 'Ryan', 'Jepard', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-23 14:52:17', NULL, NULL),
-(214, 1, '2021-2-99999', 'ABMMA', '', 0, '2021-2-99999@lpunetwork.com', '$2y$10$m0r/bAvhfyKgBiMUsCpR2OYy/jJ/qvwVQqMdR8UY7kDhekpMl82z6', 'again22', 'hello', '', '', '', '_defaultUser.png', NULL, NULL, '2025-04-24 02:18:52', NULL, NULL),
 (215, 1, '2017-2-02440', 'Biology', '', 0, 'elisa.lorenzana@lpunetwork.edu.ph', '$2y$10$NWGBvk/AgNniFjsxjm2MnuxPQo4xUthSPnAK7WF/cfvb/9DbfavR.', 'Elisa', 'Lorenzana', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-24 02:41:46', NULL, NULL),
-(226, 1, 'admin\' OR \'1\'=\'1', 'Bachelor of Science in Architecture', '', 0, 'test@email.com', '$2y$10$AVthdDkhMwWXieRcBV9ueupcVX9hv3RKRJv8DlIYTea90ZCsRhpJi', 'test', 'tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:41:02', NULL, NULL),
 (235, 1, 'tester1tester1', 'BS Architecture', NULL, NULL, 'tester1tester1@lpunetwork.edu.ph', '$2y$10$ZG8unX8yVYD6NFYJ7eUVWuf5oTphYZYCkku747kOWDL/aRQXbzO.u', 'Tester1', 'Tester1', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:51:22', NULL, NULL),
-(237, 1, 'testingtester', 'BS Arch', NULL, NULL, 'testingtester@lpunetwork.com', '$2y$10$ClFUoRRfBoW0kOoWbdWi4OhXcVKdj9hTRDb8gY2rEBggZftwFRP1C', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL),
-(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL),
-(242, 0, 'testertester', 'BS Arch', '', 0, 'testertester@lpunetwork.com', '$2y$10$88j7iO9.lKfkyD2ck5/OE.JpT/F2Aqk0PKaIz7iw.ZX71K2PK5O1.', 'Tester', 'Tester', '', '', '', '_defaultUser.png', NULL, NULL, '2025-04-25 15:03:06', NULL, NULL),
-(251, 1, '1', 'Bachelor of Science in Architecture', '', 0, 'email@email.com', '$2y$10$1/ThEKd6X3754ru2.IB.pu5IvaNwXqC1yld4yNHiey3UAa1QaDR6K', '1', '1', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-26 06:44:21', NULL, NULL);
+(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1214,31 +1194,7 @@ CREATE TABLE `user_schedules` (
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
   `class_name` varchar(255) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
---
--- Table structure for table `uploaded_files`
---
-
-CREATE TABLE uploaded_files (
-    id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
-    filename VARCHAR(255) NOT NULL,
-    filepath VARCHAR(512) NOT NULL,
-    filesize INT NOT NULL,
-    filetype VARCHAR(50) NOT NULL,
-    uploaded_by INT UNSIGNED NOT NULL,
-    uploaded_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    description TEXT NULL,
-    college_name VARCHAR(255) NULL,
-    program_id INT(11) NULL,
-    team_id INT(11) UNSIGNED NULL,
-    INDEX idx_college (college_name),
-    INDEX idx_program (program_id),
-    INDEX idx_team (team_id),
-    FOREIGN KEY (uploaded_by) REFERENCES users(id) ON DELETE CASCADE,
-    FOREIGN KEY (program_id) REFERENCES programs(id) ON DELETE SET NULL,
-    FOREIGN KEY (team_id) REFERENCES teams(id) ON DELETE SET NULL
-) ENGINE=InnoDB;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexes for dumped tables
@@ -1315,6 +1271,17 @@ ALTER TABLE `evaluation_per_panel`
 ALTER TABLE `form_assignments`
   ADD PRIMARY KEY (`id`),
   ADD KEY `defense_schedule_id` (`defense_schedule_id`);
+
+--
+-- Indexes for table `merged_evaluations`
+--
+ALTER TABLE `merged_evaluations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`),
+  ADD KEY `evaluator_id` (`evaluator_id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `rubric_id` (`rubric_id`),
+  ADD KEY `criterion_id` (`criterion_id`);
 
 --
 -- Indexes for table `page_content`
@@ -1414,6 +1381,16 @@ ALTER TABLE `thesis_topics`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `uploaded_files`
+--
+ALTER TABLE `uploaded_files`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_college` (`college_name`),
+  ADD KEY `idx_program` (`program_id`),
+  ADD KEY `idx_team` (`team_id`),
+  ADD KEY `uploaded_by` (`uploaded_by`);
+
+--
 -- Indexes for table `users`
 --
 ALTER TABLE `users`
@@ -1437,7 +1414,7 @@ ALTER TABLE `user_schedules`
 -- AUTO_INCREMENT for table `auth_tokens`
 --
 ALTER TABLE `auth_tokens`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=125;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126;
 
 --
 -- AUTO_INCREMENT for table `defense_panelists`
@@ -1449,7 +1426,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=65;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1467,19 +1444,25 @@ ALTER TABLE `evaluations`
 -- AUTO_INCREMENT for table `evaluation_details`
 --
 ALTER TABLE `evaluation_details`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2030;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2062;
 
 --
 -- AUTO_INCREMENT for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=77;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=80;
 
 --
 -- AUTO_INCREMENT for table `form_assignments`
 --
 ALTER TABLE `form_assignments`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `merged_evaluations`
+--
+ALTER TABLE `merged_evaluations`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `page_content`
@@ -1491,7 +1474,7 @@ ALTER TABLE `page_content`
 -- AUTO_INCREMENT for table `programs`
 --
 ALTER TABLE `programs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=114;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=115;
 
 --
 -- AUTO_INCREMENT for table `requirements`
@@ -1503,19 +1486,19 @@ ALTER TABLE `requirements`
 -- AUTO_INCREMENT for table `research_titles`
 --
 ALTER TABLE `research_titles`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `rubrics`
 --
 ALTER TABLE `rubrics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=52;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=53;
 
 --
 -- AUTO_INCREMENT for table `rubric_criteria`
 --
 ALTER TABLE `rubric_criteria`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=233;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=273;
 
 --
 -- AUTO_INCREMENT for table `rubric_groups`
@@ -1533,37 +1516,43 @@ ALTER TABLE `rubric_group_items`
 -- AUTO_INCREMENT for table `rubric_levels`
 --
 ALTER TABLE `rubric_levels`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=188;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=212;
 
 --
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=67;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `team_members`
 --
 ALTER TABLE `team_members`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=226;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=247;
 
 --
 -- AUTO_INCREMENT for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `thesis_topics`
 --
 ALTER TABLE `thesis_topics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=35;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
+-- AUTO_INCREMENT for table `uploaded_files`
+--
+ALTER TABLE `uploaded_files`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=256;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=258;
 
 --
 -- AUTO_INCREMENT for table `user_schedules`
@@ -1599,63 +1588,10 @@ ALTER TABLE `evaluations`
   ADD CONSTRAINT `evaluations_ibfk_2` FOREIGN KEY (`evaluator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `evaluation_details`
---
-ALTER TABLE `evaluation_details`
-  ADD CONSTRAINT `evaluation_details_ibfk_2` FOREIGN KEY (`criterion_id`) REFERENCES `rubric_criteria` (`id`) ON DELETE SET NULL,
-  ADD CONSTRAINT `fk_evaluation_details_per_panel` FOREIGN KEY (`evaluation_id`) REFERENCES `evaluation_per_panel` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `fk_evaluation_details_rubric` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE SET NULL ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_evaluation_details_student` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
-
---
 -- Constraints for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
   ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Constraints for table `form_assignments`
---
-ALTER TABLE `form_assignments`
-  ADD CONSTRAINT `form_assignments_ibfk_1` FOREIGN KEY (`defense_schedule_id`) REFERENCES `defense_schedules` (`id`) ON DELETE CASCADE ON UPDATE NO ACTION;
-
---
--- Constraints for table `research_titles`
---
-ALTER TABLE `research_titles`
-  ADD CONSTRAINT `research_titles_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`);
-
---
--- Constraints for table `rubric_criteria`
---
-ALTER TABLE `rubric_criteria`
-  ADD CONSTRAINT `fk_rubric_criteria_rubric_id` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `rubric_group_items`
---
-ALTER TABLE `rubric_group_items`
-  ADD CONSTRAINT `fk_rubric_group_items_group` FOREIGN KEY (`group_id`) REFERENCES `rubric_groups` (`id`) ON DELETE CASCADE ON UPDATE CASCADE,
-  ADD CONSTRAINT `fk_rubric_group_items_rubric` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `rubric_levels`
---
-ALTER TABLE `rubric_levels`
-  ADD CONSTRAINT `fk_rubric_levels_rubric_id` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `rubric_programs`
---
-ALTER TABLE `rubric_programs`
-  ADD CONSTRAINT `fk_rubric_programs_rubric_id` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE ON UPDATE CASCADE;
-
---
--- Constraints for table `team_requirements`
---
-ALTER TABLE `team_requirements`
-  ADD CONSTRAINT `team_requirements_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_requirements_ibfk_2` FOREIGN KEY (`requirement_id`) REFERENCES `requirements` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
