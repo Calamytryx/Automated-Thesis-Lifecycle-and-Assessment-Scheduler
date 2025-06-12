@@ -368,8 +368,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php if ($_SESSION['usertype'] == 0): ?>
                 <!-- Admin dashboard content -->
                 <div class="row g-0">
-                    <div id="sidebarContainer">
-                        <div class="d-flex align-items-center mt-3 pb-3 sidebar-header">
+                    <div id="sidebarContainer">                        <div class="d-flex align-items-center mt-3 pb-3 sidebar-header">
                             <div class="lh-100 d-flex justify-content-between w-100">
                                 <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
                                 <button id="toggleSidebar" class="btn btn-link">
@@ -379,69 +378,119 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                         <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <!-- Dashboard Overview -->
-                            <div class="sidebar-category mb-2">Dashboard</div>
-                            <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
-                                <i class="fas fa-home me-2"></i>Overview
-                            </a>
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                        <i class="fas fa-home me-2"></i>Overview
+                                    </a>
+                                </div>
+                            </div>
 
                             <!-- User Management -->
-                            <div class="sidebar-category mb-2 mt-3">User Management</div>
-                            <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
-                                <i class="fas fa-users me-2"></i>Users
-                            </a>
-                            <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
-                                <i class="fas fa-user-friends me-2"></i>Teams
-                            </a>
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-user-shield me-2"></i>User Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                                        <i class="fas fa-users me-2"></i>Users
+                                    </a>
+                                    <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
+                                        <i class="fas fa-user-friends me-2"></i>Teams
+                                    </a>
+                                </div>
+                            </div>
 
                             <!-- Thesis Management -->
-                            <div class="sidebar-category mb-2 mt-3">Thesis Management</div>
-                            <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">
-                                <i class="fas fa-book me-2"></i>Thesis Topics
-                            </a>
-                            <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
-                                <i class="fas fa-file-alt me-2"></i>Research Titles
-                            </a>
-                            <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
-                                <i class="fas fa-graduation-cap me-2"></i>Programs
-                            </a>
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-book-open me-2"></i>Thesis Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">
+                                        <i class="fas fa-book me-2"></i>Thesis Topics
+                                    </a>
+                                    <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
+                                        <i class="fas fa-file-alt me-2"></i>Research Titles
+                                    </a>
+                                    <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
+                                        <i class="fas fa-graduation-cap me-2"></i>Programs
+                                    </a>
+                                </div>
+                            </div>
 
                             <!-- Defense Management -->
-                            <div class="sidebar-category mb-2 mt-3">Defense Management</div>
-                            <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
-                                <i class="fas fa-calendar-alt me-2"></i>Defense Schedules
-                            </a>
-                            <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
-                                <i class="fas fa-list-alt me-2"></i>Rubrics
-                            </a>
-                            <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
-                                <i class="fas fa-th-list me-2"></i>Rubric Groups 
-                            </a>
-                            <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
-                                <i class="fas fa-star me-2"></i>Evaluations
-                            </a>
-                            <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
-                                <i class="fas fa-tasks me-2"></i>Requirements
-                            </a>
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-gavel me-2"></i>Defense Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
+                                        <i class="fas fa-calendar-alt me-2"></i>Defense Schedules
+                                    </a>
+                                    <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
+                                        <i class="fas fa-list-alt me-2"></i>Rubrics
+                                    </a>
+                                    <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
+                                        <i class="fas fa-th-list me-2"></i>Rubric Groups 
+                                    </a>
+                                    <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
+                                        <i class="fas fa-star me-2"></i>Evaluations
+                                    </a>
+                                    <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
+                                        <i class="fas fa-tasks me-2"></i>Requirements
+                                    </a>
+                                </div>
+                            </div>
 
                             <!-- Files -->
-                            <div class="sidebar-category mb-2 mt-3">File Management</div>
-                            <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
-                                <i class="fas fa-folder-open me-2"></i>Files
-                            </a>
-                            <?php 
-                            // echo "server" . $_SERVER['HTTP_HOST']; 
-                            // echo "self" . dirname($_SERVER['PHP_SELF']);
-                            ?>
-                            <!-- Settings -->
-                            <div class="sidebar-category mb-2 mt-3">System</div>
-                            <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
-                                <i class="fas fa-cog me-2"></i>Content Management
-                            </a>
-                            <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank"> <!-- Removed role="tab" -->
-                                <i class="fas fa-database me-2"></i>DataBase
-                            </a>
-                            <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
-                                <i class="fas fa-book me-2"></i>Guide
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-folder me-2"></i>File Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
+                                        <i class="fas fa-folder-open me-2"></i>Files
+                                    </a>
+                                </div>
+                            </div>
+                              <!-- Settings -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    <i class="fas fa-cogs me-2"></i>System
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
+                                        <i class="fas fa-cog me-2"></i>Content Management
+                                    </a>
+                                    <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank"> <!-- Removed role="tab" -->
+                                        <i class="fas fa-database me-2"></i>DataBase
+                                    </a>
+                                    <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
+                                        <i class="fas fa-book me-2"></i>Guide
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- User Profile Section at bottom -->
+                        <div class="profile-footer">
+                            <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                <img src="<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                            <?php else: ?>
+                                <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                            <?php endif; ?>
+                            
+                            <div class="user-info">
+                                <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                            </div>
+                            
+                            <a href="../logout/" class="logout-btn">
+                                <i class="fas fa-sign-out-alt"></i>
                             </a>
                         </div>
                     </div>
@@ -580,18 +629,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         // IMPORTANT FIX: The sidebar toggle was being attached multiple times in app.js.php
         // causing the toggle to be ineffective. This script removes all click handlers
         // and establishes a single handler with proper functionality.
-        
-        // Remove all click handlers from the toggle button first
-        $('#toggleSidebar').off('click');
-        
-        // Add a single click handler
+          // Remove all click handlers from the toggle button first        $('#toggleSidebar').off('click');
+          // Add a single click handler
         $('#toggleSidebar').on('click', function(e) {
             e.preventDefault();
-            console.log('Toggle button clicked - fixed handler');
+            e.stopPropagation(); // Prevent event bubbling
             
             $('#sidebarContainer').toggleClass('collapsed');
             $('#mainContent').toggleClass('expanded');
             $(this).toggleClass('collapsed');
+            
+            // Update icon rotation
+            if ($('#sidebarContainer').hasClass('collapsed')) {
+                $(this).find('i').addClass('fa-rotate-180');
+            } else {
+                $(this).find('i').removeClass('fa-rotate-180');
+            }
             
             // Save state to localStorage
             localStorage.setItem('sidebarCollapsed', $('#sidebarContainer').hasClass('collapsed'));
@@ -603,6 +656,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $('#sidebarContainer').addClass('collapsed');
             $('#mainContent').addClass('expanded');
             $('#toggleSidebar').addClass('collapsed');
+            $('#toggleSidebar').find('i').addClass('fa-rotate-180');
         }
         
         console.log('Sidebar toggle functionality reset successfully');
