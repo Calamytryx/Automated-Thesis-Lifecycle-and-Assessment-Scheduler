@@ -9,9 +9,9 @@ $rest_of_name = substr($app_name, 1);
 
 <div class="login-wrapper position-relative min-vh-100">
     <div class="container position-relative">
-        <div class="row min-vh-100 align-items-center justify-content-center justify-content-lg-end">
+        <div class="row min-vh-100 align-items-center justify-content-center justify-content-lg">
             <div class="col-12 col-sm-8 col-md-6 col-lg-5 col-xl-4 py-4">
-                <div class="card shadow-lg p-4 login-card" style="max-width: 400px; width: 100%;">
+                <div class="card shadow-lg p-4 login-card" style="max-width: 600px; width: 100%;">
                     <div class="card-body">
                         <!-- Logo -->
                         <div class="text-center mb-4">

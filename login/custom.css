@@ -44,11 +44,11 @@
 }
 .btn-primary {
     border: none;
-    border-radius: 10px;
+    border-radius: 4px;
     padding: 12px;
     font-size: 1.2rem;
     margin-top: 20px;
-    background-color: var(--main-primary);
+    background-color: var(--black-500);
 }
 .btn-primary:hover{
     background-color: var(--main-accent);
@@ -65,15 +65,15 @@
 }
 
 #username, #password{
-    background-color: var(--main-bg-light);
-    border: solid 1px var(--main-bg-dark);
+    background-color: var(--neutral-50);
+    border: solid 1px var(--neutral-500);
     padding: 12px;
 }
 
 .login-card{
     background-color: var(--main-bg-light);
-    border: solid 1px var(--main-bg-dark);
-    border-radius: 10px;
+    border: solid 1px var(--neutral-300);
+    border-radius: 12px;
 }
 
 .login-wrapper {

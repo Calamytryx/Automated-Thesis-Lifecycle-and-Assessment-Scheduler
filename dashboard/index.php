@@ -575,6 +575,39 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
  <!-- Page Content Manager JS -->
 <script>
+    // Reset sidebar functionality to fix toggle issue
+    $(document).ready(function() {
+        // IMPORTANT FIX: The sidebar toggle was being attached multiple times in app.js.php
+        // causing the toggle to be ineffective. This script removes all click handlers
+        // and establishes a single handler with proper functionality.
+        
+        // Remove all click handlers from the toggle button first
+        $('#toggleSidebar').off('click');
+        
+        // Add a single click handler
+        $('#toggleSidebar').on('click', function(e) {
+            e.preventDefault();
+            console.log('Toggle button clicked - fixed handler');
+            
+            $('#sidebarContainer').toggleClass('collapsed');
+            $('#mainContent').toggleClass('expanded');
+            $(this).toggleClass('collapsed');
+            
+            // Save state to localStorage
+            localStorage.setItem('sidebarCollapsed', $('#sidebarContainer').hasClass('collapsed'));
+        });
+        
+        // Check localStorage for saved sidebar state on page load
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+        if (sidebarCollapsed) {
+            $('#sidebarContainer').addClass('collapsed');
+            $('#mainContent').addClass('expanded');
+            $('#toggleSidebar').addClass('collapsed');
+        }
+        
+        console.log('Sidebar toggle functionality reset successfully');
+    });
+    
     $(document).ready(function() {
         // Improved Summernote WYSIWYG editor initialization with full features
         function initSummernote() {
