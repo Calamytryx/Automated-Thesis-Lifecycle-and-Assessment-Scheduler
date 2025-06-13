@@ -358,33 +358,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     });
 </script>
 
-<main role="main" class="container"> 
+<main role="main" class="container-fluid"> 
     <div class="row">
         <!-- <div class="col-sm-3">
             <?php //include('../assets/layouts/profile-card.php'); 
             ?>
         </div> -->
-        <div class="col-sm-12">
+        <div class="col-sm-12 p-0">
             <?php if ($_SESSION['usertype'] == 0): ?>
                 <!-- Admin dashboard content -->
-                <div class="row g-0">
-                    <div id="sidebarContainer">                        <div class="d-flex align-items-center mt-3 pb-3 sidebar-header">
-                            <div class="lh-100 d-flex justify-content-between w-100">
-                                <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
-                                <button id="toggleSidebar" class="btn btn-link">
-                                    <i class="fas fa-chevron-left"></i>
-                                </button>
-                            </div>
-                        </div>
+                <div class="row g-0">                    <div id="sidebarContainer">
+                        <div class="sidebar-header d-flex justify-content-end align-items-center">
+                            <button id="toggleSidebar" class="btn btn-link">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </div>                        
                         <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <!-- Dashboard Overview -->
                             <div class="sidebar-section">
-                                <div class="sidebar-category">
-                                    <i class="fas fa-tachometer-alt me-2"></i>Dashboard
+                                <div class="sidebar-category d-flex justify-content-between align-items-center">
+                                    <span class="category-text">Dashboard</span>
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
-                                        <i class="fas fa-home me-2"></i>Overview
+                                        <i class="bi bi-house me-2 hollow"></i>
+                                        <i class="bi bi-house-fill me-2 filled"></i>
+                                        Overview
                                     </a>
                                 </div>
                             </div>
@@ -392,14 +391,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <!-- User Management -->
                             <div class="sidebar-section">
                                 <div class="sidebar-category">
-                                    <i class="fas fa-user-shield me-2"></i>User Management
+                                    User Management
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
-                                        <i class="fas fa-users me-2"></i>Users
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Users
                                     </a>
                                     <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
-                                        <i class="fas fa-user-friends me-2"></i>Teams
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
                                     </a>
                                 </div>
                             </div>
@@ -407,17 +408,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <!-- Thesis Management -->
                             <div class="sidebar-section">
                                 <div class="sidebar-category">
-                                    <i class="fas fa-book-open me-2"></i>Thesis Management
+                                    Thesis Management
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false">
-                                        <i class="fas fa-book me-2"></i>Thesis Topics
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Thesis Topics
                                     </a>
                                     <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
-                                        <i class="fas fa-file-alt me-2"></i>Research Titles
+                                        <i class="bi bi-file-text me-2 hollow"></i>
+                                        <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
                                     </a>
                                     <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
-                                        <i class="fas fa-graduation-cap me-2"></i>Programs
+                                        <i class="bi bi-mortarboard me-2 hollow"></i>
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
                                     </a>
                                 </div>
                             </div>
@@ -425,23 +429,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <!-- Defense Management -->
                             <div class="sidebar-section">
                                 <div class="sidebar-category">
-                                    <i class="fas fa-gavel me-2"></i>Defense Management
+                                    Defense Management
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
-                                        <i class="fas fa-calendar-alt me-2"></i>Defense Schedules
+                                        <i class="bi bi-calendar-event me-2 hollow"></i>
+                                        <i class="bi bi-calendar-event-fill me-2 filled"></i>Defense Schedules
                                     </a>
                                     <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
-                                        <i class="fas fa-list-alt me-2"></i>Rubrics
+                                        <i class="bi bi-list-check me-2 hollow"></i>
+                                        <i class="bi bi-list-check me-2 filled"></i>Rubrics
                                     </a>
                                     <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
-                                        <i class="fas fa-th-list me-2"></i>Rubric Groups 
+                                        <i class="bi bi-list-columns me-2 hollow"></i>
+                                        <i class="bi bi-list-columns-reverse me-2 filled"></i>Rubric Groups 
                                     </a>
                                     <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
-                                        <i class="fas fa-star me-2"></i>Evaluations
+                                        <i class="bi bi-star me-2 hollow"></i>
+                                        <i class="bi bi-star-fill me-2 filled"></i>Evaluations
                                     </a>
                                     <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
-                                        <i class="fas fa-tasks me-2"></i>Requirements
+                                        <i class="bi bi-check-square me-2 hollow"></i>
+                                        <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
                                 </div>
                             </div>
@@ -449,28 +458,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <!-- Files -->
                             <div class="sidebar-section">
                                 <div class="sidebar-category">
-                                    <i class="fas fa-folder me-2"></i>File Management
+                                    File Management
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
-                                        <i class="fas fa-folder-open me-2"></i>Files
+                                        <i class="bi bi-folder2-open me-2 hollow"></i>
+                                        <i class="bi bi-folder2-open me-2 filled"></i>Files
                                     </a>
                                 </div>
                             </div>
                               <!-- Settings -->
                             <div class="sidebar-section">
                                 <div class="sidebar-category">
-                                    <i class="fas fa-cogs me-2"></i>System
+                                    System
                                 </div>
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
-                                        <i class="fas fa-cog me-2"></i>Content Management
+                                        <i class="bi bi-gear me-2 hollow"></i>
+                                        <i class="bi bi-gear-fill me-2 filled"></i>Content Management
                                     </a>
                                     <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank"> <!-- Removed role="tab" -->
-                                        <i class="fas fa-database me-2"></i>DataBase
+                                        <i class="bi bi-database me-2 hollow"></i>
+                                        <i class="bi bi-database-fill me-2 filled"></i>DataBase
                                     </a>
                                     <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
-                                        <i class="fas fa-book me-2"></i>Guide
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
                                     </a>
                                 </div>
                             </div>
@@ -490,7 +503,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             </div>
                             
                             <a href="../logout/" class="logout-btn">
-                                <i class="fas fa-sign-out-alt"></i>
+                                <i class="bi bi-box-arrow-right"></i>
                             </a>
                         </div>
                     </div>
@@ -637,13 +650,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $('#sidebarContainer').toggleClass('collapsed');
             $('#mainContent').toggleClass('expanded');
-            $(this).toggleClass('collapsed');
-            
-            // Update icon rotation
+            $(this).toggleClass('collapsed');            // Update icon rotation
             if ($('#sidebarContainer').hasClass('collapsed')) {
-                $(this).find('i').addClass('fa-rotate-180');
+                $(this).find('i').css('transform', 'rotate(180deg)');
+                $('body').addClass('has-collapsed-sidebar');
             } else {
-                $(this).find('i').removeClass('fa-rotate-180');
+                $(this).find('i').css('transform', 'rotate(0deg)');
+                $('body').removeClass('has-collapsed-sidebar');
             }
             
             // Save state to localStorage
@@ -651,12 +664,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         });
         
         // Check localStorage for saved sidebar state on page load
-        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        if (sidebarCollapsed) {
+        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';        if (sidebarCollapsed) {
             $('#sidebarContainer').addClass('collapsed');
             $('#mainContent').addClass('expanded');
             $('#toggleSidebar').addClass('collapsed');
-            $('#toggleSidebar').find('i').addClass('fa-rotate-180');
+            $('#toggleSidebar').find('i').css('transform', 'rotate(180deg)');
+            $('body').addClass('has-collapsed-sidebar');
         }
         
         console.log('Sidebar toggle functionality reset successfully');
@@ -664,14 +677,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     
     $(document).ready(function() {
         // Improved Summernote WYSIWYG editor initialization with full features
-        function initSummernote() {
+        function initSummernote() { 
             if ($('.summernote').length) {
                 try {
                     // Destroy if already initialized to prevent conflicts
                     if ($('.summernote').summernote) {
                         $('.summernote').summernote('destroy');
                     }
-                    
+                     
                     // Initialize with lite version - comprehensive configuration
                     $('.summernote').summernote({
                         height: 300,

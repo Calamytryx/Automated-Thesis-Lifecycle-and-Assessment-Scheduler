@@ -229,7 +229,7 @@ a.visited{
 }
 .navbar{
     background-color: var(--main-bg-light) !important;
-    border-bottom: solid 1px var(--main-bg-dark);
+    border-bottom: solid 1px var(--neutral-300);
     transition: background-color 0.3s ease;
 }
 

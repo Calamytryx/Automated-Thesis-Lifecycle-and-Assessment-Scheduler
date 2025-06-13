@@ -26,11 +26,12 @@ check_remember_me();
     <meta name="author" content="<?php echo APP_OWNER;  ?>">
 
     <title><?php echo TITLE . ' | ' . APP_NAME; ?></title>
-    <link rel="icon" type="image/png" href="../assets/images/favicon.png">
-
-    <!-- Bootstrap CSS -->
+    <link rel="icon" type="image/png" href="../assets/images/favicon.png">    <!-- Bootstrap CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.5/dist/css/bootstrap.min.css" rel="stylesheet">
 
+    <!-- Bootstrap Icons -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+    
     <!-- Font Awesome -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" rel="stylesheet">
     <!-- FullCalendar JS -->

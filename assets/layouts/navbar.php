@@ -1,6 +1,6 @@
-<nav class="navbar navbar-expand-md bg-main shadow-sm p-2">
+<nav class="navbar navbar-expand-md bg-main py-2">
 
-    <div class="container">
+    <div class="container-fluid px-4">
         <a class="navbar-brand" href="../home">
 
             <img src="../assets/images/<?php echo APP_LOGO_NAVBAR; ?>" alt="" width="88" height="10%" class="10%">
