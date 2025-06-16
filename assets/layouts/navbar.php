@@ -10,8 +10,30 @@
         </a>
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
             <span class="navbar-toggler-icon"></span>
-        </button>
-
+        </button>        
+        <div class="user-type-pill">
+            <?php
+            $userTypeClass = '';
+            $userTypeText = '';
+            
+            if ($_SESSION['usertype'] == 0) {
+                $userTypeClass = 'bg-danger';
+                $userTypeText = 'Administrator';
+            } elseif ($_SESSION['usertype'] == 1) {
+                $userTypeClass = 'bg-primary';
+                $userTypeText = 'Student';
+            } elseif ($_SESSION['usertype'] == 2) {
+                $userTypeClass = 'bg-success';
+                $userTypeText = 'Faculty';
+            } else {
+                $userTypeClass = 'bg-secondary';
+                $userTypeText = 'User';
+            }
+            ?>
+            <span class="badge rounded-pill <?php echo $userTypeClass; ?> px-3 py-2" style="font-size: 0.8rem; font-weight: 500;">
+                <?php echo $userTypeText; ?>
+            </span>
+        </div>
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
@@ -53,22 +75,8 @@
                             echo '<li><a class="dropdown-item disabled">No pages available</a></li>';
                         }
                         ?>
-                    </ul>
-                </li>
-
-                <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img class="navbar-img" src="../assets/uploads/users/<?php echo $_SESSION['profile_image'] ?>" alt="Profile">
-                    </a>
-                    <ul class="dropdown-menu dropdown-menu-end p-2 nav-dropdown" aria-labelledby="navbarDropdown" id="nav-ul">
-                        <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-user me-2"></i> Profile</a></li>
-                        <!-- <li><a class="dropdown-item" href="../profile-edit"><i class="fas fa-pencil-alt me-2"></i> Edit Profile</a></li> -->
-                        <li>
-                            <hr class="dropdown-divider">
-                        </li>
-                        <li><a class="dropdown-item" href="../logout"><i class="fas fa-sign-out-alt me-2"></i> Logout</a></li>
-                    </ul>
-                </li>
+                    </ul>                </li>
+                <!-- Profile and logout moved to sidebar -->
             </ul>
         </div>
     </div>

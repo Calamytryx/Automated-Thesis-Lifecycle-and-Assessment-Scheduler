@@ -487,23 +487,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                 </div>
                             </div>
-                        </div>
-                        
-                        <!-- User Profile Section at bottom -->
+                        </div>                        <!-- User Profile Section at bottom -->
                         <div class="profile-footer">
-                            <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-                                <img src="<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
-                            <?php else: ?>
-                                <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
-                            <?php endif; ?>
+                            <a href="../profile" class="profile-container" title="View Profile" style="text-decoration: none; color: inherit;">
+                                <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                    <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                                <?php else: ?>
+                                    <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                                <?php endif; ?>
+                                
+                                <div class="user-info">
+                                    <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                    <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                </div>
+                            </a>
                             
-                            <div class="user-info">
-                                <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
-                            </div>
-                            
-                            <a href="../logout/" class="logout-btn">
-                                <i class="bi bi-box-arrow-right"></i>
+                            <a href="../logout/" class="logout-btn" title="Logout">
+                                <i class="bi bi-power"></i>
                             </a>
                         </div>
                     </div>

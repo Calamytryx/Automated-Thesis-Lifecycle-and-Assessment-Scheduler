@@ -129,6 +129,7 @@ body {
 
 .sidebar-section {
     margin-bottom: 8px; 
+    border-bottom: 1px solid var(--neutral-300);
 }
 
 /* Category headers */
@@ -143,7 +144,6 @@ body {
     /* text-transform: uppercase; */
     letter-spacing: 0.5px;
     background-color: transparent;
-    border-bottom: 1px solid var(--neutral-300);
     cursor: default;
 }
 
@@ -275,7 +275,6 @@ body {
 .profile-footer {
     display: flex;
     align-items: center;
-    padding: 8px 1.5rem; /* px-4 equivalent */
     margin-top: auto;
     border-top: 1px solid var(--neutral-300);
     position: sticky;
@@ -284,6 +283,21 @@ body {
     width: 100%;
     flex-shrink: 0;
     z-index: 10;
+}
+
+.profile-container {
+    display: flex;
+    align-items: center;
+    padding: 8px 1.5rem;
+    flex-grow: 1;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    text-decoration: none;
+}
+
+.profile-container:hover {
+    background-color: var(--neutral-100);
+    text-decoration: none;
 }
 
 .profile-footer img {
@@ -312,6 +326,23 @@ body {
     font-size: 0.7rem;
     color: #777;
     margin: 0;
+}
+
+.profile-footer .logout-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--neutral-700);
+    font-size: 1rem;
+    padding: 8px 1.5rem;
+    height: 100%;
+    border-left: 1px solid var(--neutral-300);
+    transition: all 0.3s ease;
+}
+
+.profile-footer .logout-btn:hover {
+    color: var(--main-primary);
+    background-color: var(--neutral-100);
 }
 
 /* Override Bootstrap margin classes on nav links */
@@ -375,14 +406,19 @@ body {
         cursor: pointer;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         transform: translateY(-50%) scale(1.05);
-    }
-
-    .profile-footer {
+    }    .profile-footer {
         position: fixed;
         bottom: 0;
         left: 0;
         width: 100%;
-    }    #mainContent {
+        display: flex;
+    }
+    
+    .profile-container {
+        flex-grow: 1;
+    }
+    
+    #mainContent {
         width: 100% !important;
         padding-left: 1.5rem; /* px-4 equivalent */
         padding-right: 1.5rem; /* px-4 equivalent */
@@ -422,4 +458,9 @@ body.has-collapsed-sidebar #mainContent {
 /* For button always on top */
 #toggleSidebar {
     isolation: isolate; 
+}
+
+.profile-container:hover .user-name {
+    text-decoration: underline;
+    color: var(--main-primary);
 }

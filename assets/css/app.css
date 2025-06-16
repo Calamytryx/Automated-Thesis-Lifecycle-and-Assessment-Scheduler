@@ -1989,3 +1989,21 @@ color: #444 !important;
 .bg-danger {
     background-color: #dc3545 !important;
 }
+
+/* User Type Pill Styles */
+.user-type-pill {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1030;
+    font-weight: 500;
+}
+
+@media (max-width: 768px) {
+    .user-type-pill {
+        position: absolute;
+        top: 15px;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+}
