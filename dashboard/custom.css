@@ -22,6 +22,132 @@ body {
     background-color: var(--primary-400);
 }   */
 
+/* Requirements progress section styling */
+.content-container h2.fs-1 {
+    font-size: 2.5rem;
+    text-transform: lowercase;
+    color: #333;
+    font-weight: 600;
+}
+
+/* New requirements title styling */
+.requirements-title {
+    font-size: 3rem;
+    text-transform: lowercase;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 0;
+}
+
+/* Box container for search and team count */
+.box-container {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    padding: 10px 0;
+}
+
+/* Team count pill styling */
+.content-container .badge.bg-light {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-weight: 500;
+    background-color: var(--black-50) !important; 
+    color: var(--black-500); 
+}
+
+/* Search bar container styling */
+.content-container .input-group {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 50px;
+    overflow: hidden;
+    margin-top: 15px;
+    border: 1px solid var(--neutral-700); 
+    background-color: var(--white-500); 
+}
+
+.content-container .input-group .form-control,
+.content-container .input-group .input-group-text {
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background-color: var(--white-500); 
+}
+
+.content-container .input-group .input-group-text {
+    background-color: var(--white-500); 
+}
+
+.content-container .input-group .form-control {
+    padding-left: 0;
+    background-color: var(--white-500); 
+}
+
+.content-container .input-group .form-control:focus {
+    box-shadow: none;
+    background-color: var(--white-500); 
+}
+
+/* Category titles styling */
+.content-container h3 {
+    font-size: 1.25rem;
+    font-weight: 400;
+    color: #555;
+    margin-bottom: 0;
+    border-bottom: none;
+    padding-bottom: 0;
+}
+
+/* Make only "Completed" title bold */
+.content-container h3.title-bold {
+    font-weight: 700;
+}
+
+/* Stats count styling */
+.content-container .display-4 {
+    font-size: 3.5rem;
+    font-weight: 500; 
+}
+
+/* View per requirement link styling */
+#viewRequirementsLink {
+    color: var(--main-black);
+    font-size: 1.25rem; 
+    font-weight: 500;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+}
+
+#viewRequirementsLink:hover {
+    color: var(--main-primary);
+    transform: translateX(5px);
+}
+
+#viewRequirementsLink .bi {
+    transition: transform 0.2s ease;
+    font-size: 1.25rem; 
+}
+
+#viewRequirementsLink:hover .bi {
+    transform: translateX(3px);
+}
+
+/* Header container with border bottom */
+.header-container {
+    border-bottom: 1px solid var(--neutral-300);
+    padding-bottom: 20px;
+    margin-bottom: 20px;
+}
+
+/* Requirements row container */
+.req-prog-row-con {
+    border-bottom: 1px solid var(--neutral-300);
+}
+
 #sidebarContainer {
     position: relative;
     width: 250px; 
@@ -68,9 +194,12 @@ body {
     flex: 1;
     transition: all 0.3s ease;
     margin-left: 0;
-    padding-left: 1.5rem; /* px-4 equivalent */
-    padding-right: 1.5rem; /* px-4 equivalent */
+    padding: 1rem 5rem; 
     width: calc(100% - 250px);
+    height: 100vh;
+    overflow-y: auto; 
+    position: relative; 
+    background-color: var(--neutral-100); 
 }
 
 #mainContent.expanded {
@@ -417,18 +546,22 @@ body {
     .profile-container {
         flex-grow: 1;
     }
-    
     #mainContent {
         width: 100% !important;
-        padding-left: 1.5rem; /* px-4 equivalent */
-        padding-right: 1.5rem; /* px-4 equivalent */
+        padding: 0.5rem 1.5rem; 
         margin-top: 1rem;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding-bottom: 70px; 
+        background-color: var(--neutral-50);
     }
-      #mainContent.expanded {
+    
+    #mainContent.expanded {
         width: 100% !important;
         margin-top: 0;
         margin-left: 0; 
-        padding-left: 60px; /* Add padding instead of margin to accommodate the toggle button */
+        padding-left: 70px;
+        height: 100vh;
     }
     
     /* Sidebar items are still full-width on mobile */
@@ -443,7 +576,7 @@ body {
 
 #sidebarContainer.collapsed #toggleSidebar:hover i {
     color: var(--main-primary); 
-}
+} 
 
 /* Any potential background elements in the collapsed sidebar are transparent */
 #sidebarContainer.collapsed * {
@@ -463,4 +596,123 @@ body.has-collapsed-sidebar #mainContent {
 .profile-container:hover .user-name {
     text-decoration: underline;
     color: var(--main-primary);
+}
+
+#v-pills-tabContent {
+    padding-bottom: 2rem; 
+    min-height: calc(100vh - 2rem); 
+    max-width: 1320px;
+    margin: 0 auto; 
+}
+
+/* Make sure tab content maintains proper spacing */
+.tab-content > .tab-pane {
+    padding-top: 1rem;
+    background-color: transparent; 
+    padding: 0.5rem 0; 
+    margin-bottom: 1rem;
+}
+
+/* Tab pane header styling */
+.tab-pane h2, 
+.tab-pane h3, 
+.tab-pane h4, 
+.tab-pane .page-header {
+    margin-bottom: 1rem;
+    color: var(--main-black);
+    font-weight: 600;
+    /* border-bottom: 1px solid var(--neutral-200); */
+    padding-bottom: 0.5rem;
+}
+
+/* Add container-like responsive behavior */
+@media (min-width: 1400px) {
+    #v-pills-tabContent {
+        max-width: 1320px;
+    }
+}
+
+@media (min-width: 1200px) and (max-width: 1399px) {
+    #v-pills-tabContent {
+        max-width: 1140px;
+    }
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    #v-pills-tabContent {
+        max-width: 960px;
+    }
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    #v-pills-tabContent {
+        max-width: 720px;
+    }
+}
+
+/* Improve spacing between elements in tab content */
+.tab-pane .row {
+    margin-bottom: 1rem;
+}
+
+/* Add subtle transitions for better UX */
+.tab-pane {
+    transition: all 0.3s ease;
+}
+
+/* Update tables to have better spacing within content container */
+.db-table-container {
+    margin-bottom: 2rem;
+    overflow-x: auto;
+    background-color: transparent;
+}
+
+/* Custom scrollbar styling for mainContent */
+#mainContent::-webkit-scrollbar {
+    width: 8px;
+}
+
+#mainContent::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+}
+
+#mainContent::-webkit-scrollbar-thumb {
+    background-color: var(--neutral-300);
+    border-radius: 4px;
+}
+
+#mainContent::-webkit-scrollbar-thumb:hover {
+    background-color: var(--neutral-400);
+}
+
+/* Ensure footer doesn't interfere with scrollable content */
+footer {
+    position: relative;
+    z-index: 10;
+}
+
+.req-prog-row-con{
+    border-bottom: 1px solid var(--neutral-300);
+}
+
+/* Completion status items hover effect */
+.completion-status-item {
+    transition: transform 0.2s ease, opacity 0.2s ease;
+    border-radius: 8px;
+    padding: 10px;
+}
+
+.completion-status-item:hover {
+    transform: translateY(-3px);
+    background-color: var(--neutral-100);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+}
+
+.completion-status-item:active {
+    transform: translateY(0);
+}
+
+/* Custom cursor for clickable items */
+.completion-status-item {
+    cursor: pointer;
 }

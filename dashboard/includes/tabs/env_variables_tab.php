@@ -1,7 +1,7 @@
 <!-- Environment Variables Tab -->
 <div class="tab-pane fade" id="env-variables" role="tabpanel"
     aria-labelledby="env-variables-tab">
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
         <div class="row mb-4">
             <div class="col-12">

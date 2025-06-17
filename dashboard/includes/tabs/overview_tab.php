@@ -154,310 +154,212 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
 
 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
     <div class="container-fluid my-3">
-        <!-- User Statistics Section -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-4 ">User Statistics</h4>
-            </div>
-            <div class="col-sm-6 col-xl-3 mb-3">
-                <div class="card bg-primary text-white h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-normal mb-2">Total Users</h6>
-                                <h2 class="mb-0"><?php echo $totalUsers; ?></h2>
-                            </div>
-                            <div class="fs-1 opacity-75">
-                                <i class="bi bi-people-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-3 mb-3"> 
-                <div class="card bg-success text-white h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-normal mb-2">Admins</h6>
-                                <h2 class="mb-0"><?php echo $totalAdmins; ?></h2>
-                            </div>
-                            <div class="fs-1 opacity-75">
-                                <i class="bi bi-person-badge"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-3 mb-3">
-                <div class="card bg-info text-white h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-normal mb-2">Students</h6>
-                                <h2 class="mb-0"><?php echo $totalStudents; ?></h2>
-                            </div>
-                            <div class="fs-1 opacity-75">
-                                <i class="bi bi-mortarboard-fill"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="col-sm-6 col-xl-3 mb-3">
-                <div class="card bg-warning text-white h-100">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div>
-                                <h6 class="fw-normal mb-2">Staff</h6>
-                                <h2 class="mb-0"><?php echo $totalStaff; ?></h2>
-                            </div>
-                            <div class="fs-1 opacity-75">
-                                <i class="bi bi-person-workspace"></i>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            <hr class="border-dark my-4">
-        </div>
-
         <!-- Requirements Completion Graph -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-4">Teams Requirements Progress</h4>
-            </div>
-            
-            <!-- Overall Team Completion Status -->
-            <div class="col-lg-12 mb-4">
-                <div class="card border-0 shadow-sm team-card" data-bs-toggle="modal" data-bs-target="#teamsModal" data-requirement-id="overall">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Team Completion Status</h5>
-                        <div class="text-muted">Total Teams: <strong><?php echo $totalTeams; ?></strong></div>
-                    </div>
-                    <div class="card-body">
-                        <div class="row align-items-center">
-                            <div class="col-md-6">
-                                <div class="chart-container position-relative" style="height:200px; width:200px; margin:auto;">
-                                    <canvas id="teamCompletionChart"></canvas>
+        <div class="content-container mb-4">
+            <div class="row">
+                <!-- Two-container layout: Title on left, count+search on right -->
+                <div class="col-12 header-container">
+                    <div class="row">
+                        <!-- Left container with title -->
+                        <div class="col-lg-6 mb-3 mb-lg-0">
+                            <h2 class="requirements-title fw-medium">
+                                requirements<br>progress
+                            </h2>
+                        </div>
+                        
+                        <!-- Right container with team count and search -->
+                        <div class="col-lg-6">
+                            <div class="box-container">
+                                <div class="d-flex justify-content-end">
+                                    <span class="badge bg-light text-dark rounded-pill px-3 py-2">Total Teams: <?php echo $totalTeams; ?></span>
                                 </div>
-                            </div>
-                            <div class="col-md-6">
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div><i class="bi bi-check-circle-fill text-success me-2"></i> All Requirements Completed:</div>
-                                    <span class="badge bg-success rounded-pill"><?php echo $fullCompletionCount; ?></span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center mb-2">
-                                    <div><i class="bi bi-clock-fill text-warning me-2"></i> Partial Completion:</div>
-                                    <span class="badge bg-warning rounded-pill"><?php echo $partialCompletionCount; ?></span>
-                                </div>
-                                <div class="d-flex justify-content-between align-items-center">
-                                    <div><i class="bi bi-x-circle-fill text-danger me-2"></i> No Requirements Completed:</div>
-                                    <span class="badge bg-danger rounded-pill"><?php echo $noCompletionCount; ?></span>
+                                <div class="input-group">
+                                    <span class="input-group-text border-0">
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-0" id="searchTeams" placeholder="Search Teams">
                                 </div>
                             </div>
                         </div>
-                        <div class="small text-muted text-center mt-3">
-                            Click to see detailed team completion status
+                    </div>
+                </div>
+                
+                <div class="col-12 mt-4">
+                    <div class="row req-prog-row-con">
+                        <!-- Completed - with bold title -->
+                        <div class="col-md-4 mb-4">
+                            <h3 class="title-bold">Completed</h3>
+                            <div class="d-flex align-items-center mt-3 completion-status-item" data-status="completed" style="cursor: pointer;">
+                                <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
+                                    <i class="bi bi-check-lg text-white fs-4"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h2 class="mb-0 display-4"><?php echo $fullCompletionCount; ?></h2>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Partial - regular title -->
+                        <div class="col-md-4 mb-4">
+                            <h3>Partial</h3>
+                            <div class="d-flex align-items-center mt-3 completion-status-item" data-status="partial" style="cursor: pointer;">
+                                <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
+                                    <i class="bi bi-circle-half text-white fs-4"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h2 class="mb-0 display-4"><?php echo $partialCompletionCount; ?></h2>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- None - regular title -->
+                        <div class="col-md-4 mb-4">
+                            <h3>None</h3>
+                            <div class="d-flex align-items-center mt-3 completion-status-item" data-status="none" style="cursor: pointer;">
+                                <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
+                                    <i class="bi bi-x-lg text-white fs-4"></i>
+                                </div>
+                                <div class="ms-3">
+                                    <h2 class="mb-0 display-4"><?php echo $noCompletionCount; ?></h2>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Collapsible Requirements Section -->
-            <div class="col-12">
-                <button class="btn btn-link text-decoration-none d-flex align-items-center p-0" 
-                        type="button" 
-                        data-bs-toggle="collapse" 
-                        data-bs-target="#requirementsCollapse" 
-                        aria-expanded="false" 
-                        aria-controls="requirementsCollapse"
-                        id="toggleRequirementsBtn">
-                    <span class="me-2">View All Requirements Progress</span>
-                    <i class="bi bi-chevron-down toggle-icon"></i>
-                </button>
-            </div>
-
-            <!-- Individual Requirements Progress (Collapsible) -->
-            <div class="collapse" id="requirementsCollapse">
-                <div class="row">
-                    <?php foreach ($requirementStats as $reqId => $stat): ?>
-                    <div class="col-md-6 col-lg-4 mb-4">
-                        <div class="card border-0 shadow-sm h-100 team-card" data-bs-toggle="modal" data-bs-target="#teamsModal" data-requirement-id="<?php echo $reqId; ?>">
-                            <div class="card-header bg-white border-0">
-                                <h5 class="card-title mb-0"><?php echo htmlspecialchars($stat['name']); ?></h5>
-                            </div>
-                            <div class="card-body">
-                                <div class="d-flex align-items-center mb-3">
-                                    <div class="flex-grow-1">
-                                        <div class="progress" style="height: 18px;">
-                                            <div class="progress-bar bg-success" role="progressbar" 
-                                                style="width: <?php echo $stat['percentage']; ?>%;" 
-                                                aria-valuenow="<?php echo $stat['percentage']; ?>" 
-                                                aria-valuemin="0" 
-                                                aria-valuemax="100">
-                                                <?php echo $stat['percentage']; ?>%
-                                            </div>
-                                        </div>
-                                    </div>
-                                    <div class="ms-3">
-                                        <span class="badge bg-success rounded-pill">
-                                            <?php echo $stat['completed']; ?>/<?php echo $totalTeams; ?>
-                                        </span>
-                                    </div>
-                                </div>
-                                
-                                <div class="d-flex justify-content-between small">
-                                    <div>
-                                        <i class="bi bi-check-circle-fill text-success me-1"></i>
-                                        <span>Completed: <strong><?php echo $stat['completed']; ?></strong></span>
-                                    </div>
-                                    <div>
-                                        <i class="bi bi-clock-fill text-warning me-1"></i>
-                                        <span>Pending: <strong><?php echo $stat['pending']; ?></strong></span>
-                                    </div>
-                                    <div>
-                                        <i class="bi bi-x-circle-fill text-danger me-1"></i>
-                                        <span>Missing: <strong><?php echo $stat['missing']; ?></strong></span>
-                                    </div>
-                                </div>
-                                <div class="small text-muted text-center mt-2">
-                                    Click to see teams
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <?php endforeach; ?>
+                
+                <div class="col-12 d-flex justify-content-end mt-3">
+                    <a href="#" class="text-decoration-none d-flex align-items-center" id="viewRequirementsLink">
+                        view per requirement 
+                        <i class="bi bi-arrow-right ms-2"></i>
+                    </a>
                 </div>
             </div>
-            <hr class="border-dark my-4">
         </div>
 
         <!-- Defense Schedules Section -->
-        <div class="row">
-            <div class="col-12">
-                <h4 class="mb-4">Defense Schedules</h4>
-            </div>
-            
-            <!-- Upcoming Defenses -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Upcoming Defenses</h5>
-                        <span class="badge bg-primary rounded-pill"><?php echo $upcomingDefenses; ?></span>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        // Fetch upcoming defenses with team information
-                        $upcomingDefensesListStmt = $pdo->prepare("
-                            SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
-                                   t.id as team_id, t.name as team_name
-                            FROM defense_schedules ds
-                            JOIN teams t ON ds.team_id = t.id
-                            WHERE ds.schedule_date >= CURDATE()
-                            ORDER BY ds.schedule_date ASC, ds.start_time ASC
-                            LIMIT 10
-                        ");
-                        $upcomingDefensesListStmt->execute();
-                        $upcomingDefensesList = $upcomingDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
-                        ?>
-                        
-                        <?php if (count($upcomingDefensesList) > 0): ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Group Name</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($upcomingDefensesList as $defense): ?>
-                                    <tr class="defense-row" style="cursor: pointer;" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#defenseDetailsModal" 
-                                        data-team-id="<?php echo $defense['team_id']; ?>">
-                                        <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
-                                        <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+        <div class="content-container">
+            <div class="row">
+                <div class="col-12">
+                    <h4 class="mb-4">Defense Schedules</h4>
+                </div>
+                
+                <!-- Upcoming Defenses -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Upcoming Defenses</h5>
+                            <span class="badge bg-primary rounded-pill"><?php echo $upcomingDefenses; ?></span>
                         </div>
-                        <?php else: ?>
-                            <p class="text-center text-muted">No upcoming defenses scheduled.</p>
-                        <?php endif; ?>
-                        
-                        <?php if (count($upcomingDefensesList) < $upcomingDefenses): ?>
-                            <div class="text-center mt-3">
-                                <a href="defense_schedules.php" class="btn btn-sm btn-outline-primary">View All Upcoming Defenses</a>
+                        <div class="card-body">
+                            <?php
+                            // Fetch upcoming defenses with team information
+                            $upcomingDefensesListStmt = $pdo->prepare("
+                                SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
+                                      t.id as team_id, t.name as team_name
+                                FROM defense_schedules ds
+                                JOIN teams t ON ds.team_id = t.id
+                                WHERE ds.schedule_date >= CURDATE()
+                                ORDER BY ds.schedule_date ASC, ds.start_time ASC
+                                LIMIT 10
+                            ");
+                            $upcomingDefensesListStmt->execute();
+                            $upcomingDefensesList = $upcomingDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+                            
+                            <?php if (count($upcomingDefensesList) > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Group Name</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($upcomingDefensesList as $defense): ?>
+                                        <tr class="defense-row" style="cursor: pointer;" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#defenseDetailsModal" 
+                                            data-team-id="<?php echo $defense['team_id']; ?>">
+                                            <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
+                                            <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
+                                            <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <p class="text-center text-muted">No upcoming defenses scheduled.</p>
+                            <?php endif; ?>
+                            
+                            <?php if (count($upcomingDefensesList) < $upcomingDefenses): ?>
+                                <div class="text-center mt-3">
+                                    <a href="defense_schedules.php" class="btn btn-sm btn-outline-primary">View All Upcoming Defenses</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
-            </div>
-            
-            <!-- Past Defenses -->
-            <div class="col-lg-6 mb-4">
-                <div class="card border-0 shadow-sm h-100">
-                    <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">Past Defenses</h5>
-                        <span class="badge bg-secondary rounded-pill"><?php echo $pastDefenses; ?></span>
-                    </div>
-                    <div class="card-body">
-                        <?php
-                        // Fetch past defenses with team information
-                        $pastDefensesListStmt = $pdo->prepare("
-                            SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
-                                   t.id as team_id, t.name as team_name
-                            FROM defense_schedules ds
-                            JOIN teams t ON ds.team_id = t.id
-                            WHERE ds.schedule_date < CURDATE()
-                            ORDER BY ds.schedule_date DESC, ds.start_time ASC
-                            LIMIT 10
-                        ");
-                        $pastDefensesListStmt->execute();
-                        $pastDefensesList = $pastDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
-                        ?>
-                        
-                        <?php if (count($pastDefensesList) > 0): ?>
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead>
-                                    <tr>
-                                        <th>Group Name</th>
-                                        <th>Date</th>
-                                        <th>Time</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php foreach ($pastDefensesList as $defense): ?>
-                                    <tr class="defense-row" style="cursor: pointer;" 
-                                        data-bs-toggle="modal" 
-                                        data-bs-target="#defenseDetailsModal" 
-                                        data-team-id="<?php echo $defense['team_id']; ?>">
-                                        <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
-                                        <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
-                                    </tr>
-                                    <?php endforeach; ?>
-                                </tbody>
-                            </table>
+                
+                <!-- Past Defenses -->
+                <div class="col-lg-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+                            <h5 class="card-title mb-0">Past Defenses</h5>
+                            <span class="badge bg-secondary rounded-pill"><?php echo $pastDefenses; ?></span>
                         </div>
-                        <?php else: ?>
-                            <p class="text-center text-muted">No past defenses found.</p>
-                        <?php endif; ?>
-                        
-                        <?php if (count($pastDefensesList) < $pastDefenses): ?>
-                            <div class="text-center mt-3">
-                                <a href="defense_schedules.php" class="btn btn-sm btn-outline-secondary">View All Past Defenses</a>
+                        <div class="card-body">
+                            <?php
+                            // Fetch past defenses with team information
+                            $pastDefensesListStmt = $pdo->prepare("
+                                SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
+                                      t.id as team_id, t.name as team_name
+                                FROM defense_schedules ds
+                                JOIN teams t ON ds.team_id = t.id
+                                WHERE ds.schedule_date < CURDATE()
+                                ORDER BY ds.schedule_date DESC, ds.start_time ASC
+                                LIMIT 10
+                            ");
+                            $pastDefensesListStmt->execute();
+                            $pastDefensesList = $pastDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
+                            ?>
+                            
+                            <?php if (count($pastDefensesList) > 0): ?>
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Group Name</th>
+                                            <th>Date</th>
+                                            <th>Time</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <?php foreach ($pastDefensesList as $defense): ?>
+                                        <tr class="defense-row" style="cursor: pointer;" 
+                                            data-bs-toggle="modal" 
+                                            data-bs-target="#defenseDetailsModal" 
+                                            data-team-id="<?php echo $defense['team_id']; ?>">
+                                            <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
+                                            <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
+                                            <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                    </tbody>
+                                </table>
                             </div>
-                        <?php endif; ?>
+                            <?php else: ?>
+                                <p class="text-center text-muted">No past defenses found.</p>
+                            <?php endif; ?>
+                            
+                            <?php if (count($pastDefensesList) < $pastDefenses): ?>
+                                <div class="text-center mt-3">
+                                    <a href="defense_schedules.php" class="btn btn-sm btn-outline-secondary">View All Past Defenses</a>
+                                </div>
+                            <?php endif; ?>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -518,29 +420,26 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
-    // Set up chart data for teams' completion status
-    const ctx = document.getElementById('teamCompletionChart').getContext('2d');
-    const teamCompletionChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: {
-            labels: ['Completed All', 'Partial Completion', 'No Completion'],
-            datasets: [{
-                data: [<?php echo $fullCompletionCount; ?>, <?php echo $partialCompletionCount; ?>, <?php echo $noCompletionCount; ?>],
-                backgroundColor: ['#28a745', '#ffc107', '#dc3545'],
-                hoverOffset: 4
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            plugins: {
-                legend: {
-                    display: false
-                }
-            },
-            cutout: '70%'
-        }
-    });
+    // Handle team search functionality
+    const searchInput = document.getElementById('searchTeams');
+    if (searchInput) {
+        searchInput.addEventListener('input', function() {
+            // You can implement the search functionality here
+            // For example, filter teams based on the search input
+            const searchText = this.value.toLowerCase();
+            // Add search implementation based on your requirements
+        });
+    }
+    
+    // Make "view per requirement" link work
+    const viewRequirementsLink = document.getElementById('viewRequirementsLink');
+    if (viewRequirementsLink) {
+        viewRequirementsLink.addEventListener('click', function(e) {
+            e.preventDefault();
+            // Navigate to the requirements page or show the requirements modal
+            window.location.href = 'requirements.php';
+        });
+    }
     
     // Store requirement details for modal
     const requirementDetails = <?php echo $teamRequirementJson; ?>;
@@ -548,100 +447,169 @@ document.addEventListener('DOMContentLoaded', function() {
     // Overall team completion details
     const teamCompletionDetails = <?php echo json_encode($teamCompletion); ?>;
     
-    // Handle opening modal with team details
-    const teamsModal = document.getElementById('teamsModal');
-    teamsModal.addEventListener('show.bs.modal', function(event) {
-        const button = event.relatedTarget;
-        const requirementId = button.getAttribute('data-requirement-id');
-        const modalTitle = teamsModal.querySelector('.modal-title');
+    // Add click event handlers for completion status items
+    const completionStatusItems = document.querySelectorAll('.completion-status-item');
+    completionStatusItems.forEach(item => {
+        item.addEventListener('click', function() {
+            const status = this.getAttribute('data-status');
+            showTeamsWithStatus(status);
+        });
+    });
+    
+    // Function to show teams based on completion status
+    function showTeamsWithStatus(status) {
+        const teamsModal = new bootstrap.Modal(document.getElementById('teamsModal'));
+        const modalTitle = document.getElementById('teamsModalLabel');
         const modalContent = document.getElementById('modalContent');
         
-        if (requirementId === 'overall') {
-            // Show overall team completion status
-            modalTitle.textContent = 'Overall Team Completion Status';
-            
-            let fullCompletionTeams = [];
-            let partialCompletionTeams = [];
-            let noCompletionTeams = [];
-            
-            // Group teams by completion status
-            Object.entries(teamCompletionDetails).forEach(([teamId, data]) => {
-                if (data.completion_percentage === 100) {
-                    fullCompletionTeams.push(data);
-                } else if (data.completion_percentage > 0) {
-                    partialCompletionTeams.push(data);
-                } else {
-                    noCompletionTeams.push(data);
-                }
-            });
-            
-            // Generate modal content
+        let fullCompletionTeams = [];
+        let partialCompletionTeams = [];
+        let noCompletionTeams = [];
+        
+        // Group teams by completion status
+        Object.entries(teamCompletionDetails).forEach(([teamId, data]) => {
+            if (data.completion_percentage === 100) {
+                fullCompletionTeams.push(data);
+            } else if (data.completion_percentage > 0) {
+                partialCompletionTeams.push(data);
+            } else {
+                noCompletionTeams.push(data);
+            }
+        });
+        
+        // Prepare modal content based on status
+        if (status === 'completed') {
+            modalTitle.textContent = 'Teams with All Requirements Completed';
             modalContent.innerHTML = `
                 <div class="row">
-                    <div class="col-12 mb-4">
-                        <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Teams with All Requirements Completed (${fullCompletionTeams.length})</h5>
+                    <div class="col-12">
+                        <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Completed Teams (${fullCompletionTeams.length})</h5>
                         ${generateTeamList(fullCompletionTeams, true)}
                     </div>
-                    
-                    <div class="col-12 mb-4">
-                        <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Teams with Partial Completion (${partialCompletionTeams.length})</h5>
+                </div>
+            `;
+        } else if (status === 'partial') {
+            modalTitle.textContent = 'Teams with Partial Completion';
+            modalContent.innerHTML = `
+                <div class="row">
+                    <div class="col-12">
+                        <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Partial Completion Teams (${partialCompletionTeams.length})</h5>
                         ${generateTeamList(partialCompletionTeams, false)}
                     </div>
-                    
+                </div>
+            `;
+        } else if (status === 'none') {
+            modalTitle.textContent = 'Teams with No Requirements Completed';
+            modalContent.innerHTML = `
+                <div class="row">
                     <div class="col-12">
-                        <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Teams with No Requirements Completed (${noCompletionTeams.length})</h5>
+                        <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Teams with No Completion (${noCompletionTeams.length})</h5>
                         ${generateTeamList(noCompletionTeams, false)}
                     </div>
                 </div>
             `;
-        } else {
-            // Show specific requirement details
-            const requirement = document.querySelector(`.card[data-requirement-id="${requirementId}"] .card-title`).textContent;
-            modalTitle.textContent = `Teams Status for: ${requirement}`;
+        }
+        
+        teamsModal.show();
+    }
+    
+    // Handle opening modal with team details
+    const teamsModal = document.getElementById('teamsModal');
+    teamsModal.addEventListener('show.bs.modal', function(event) {
+        const button = event.relatedTarget;
+        // Only process if this is triggered by a button with data-requirement-id
+        if (button && button.hasAttribute('data-requirement-id')) {
+            const requirementId = button.getAttribute('data-requirement-id');
+            const modalTitle = teamsModal.querySelector('.modal-title');
+            const modalContent = document.getElementById('modalContent');
             
-            const completedTeams = requirementDetails[requirementId].completed;
-            const pendingTeams = requirementDetails[requirementId].pending;
-            const missingTeams = requirementDetails[requirementId].missing;
-            
-            modalContent.innerHTML = `
-                <div class="row">
-                    <div class="col-12 mb-4">
-                        <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Completed Teams (${completedTeams.length})</h5>
-                        <ul class="list-group">
-                            ${completedTeams.length ? completedTeams.map(team => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    ${team.name}
-                                    <span class="badge bg-success rounded-pill">Completed</span>
-                                </li>
-                            `).join('') : '<li class="list-group-item">No teams have completed this requirement</li>'}
-                        </ul>
+            if (requirementId === 'overall') {
+                // Show overall team completion status
+                modalTitle.textContent = 'Overall Team Completion Status';
+                
+                let fullCompletionTeams = [];
+                let partialCompletionTeams = [];
+                let noCompletionTeams = [];
+                
+                // Group teams by completion status
+                Object.entries(teamCompletionDetails).forEach(([teamId, data]) => {
+                    if (data.completion_percentage === 100) {
+                        fullCompletionTeams.push(data);
+                    } else if (data.completion_percentage > 0) {
+                        partialCompletionTeams.push(data);
+                    } else {
+                        noCompletionTeams.push(data);
+                    }
+                });
+                
+                // Generate modal content
+                modalContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Teams with All Requirements Completed (${fullCompletionTeams.length})</h5>
+                            ${generateTeamList(fullCompletionTeams, true)}
+                        </div>
+                        
+                        <div class="col-12 mb-4">
+                            <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Teams with Partial Completion (${partialCompletionTeams.length})</h5>
+                            ${generateTeamList(partialCompletionTeams, false)}
+                        </div>
+                        
+                        <div class="col-12">
+                            <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Teams with No Requirements Completed (${noCompletionTeams.length})</h5>
+                            ${generateTeamList(noCompletionTeams, false)}
+                        </div>
                     </div>
-                    
-                    <div class="col-12 mb-4">
-                        <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Pending Teams (${pendingTeams.length})</h5>
-                        <ul class="list-group">
-                            ${pendingTeams.length ? pendingTeams.map(team => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    ${team.name}
-                                    <span class="badge bg-warning rounded-pill">Pending</span>
-                                </li>
-                            `).join('') : '<li class="list-group-item">No teams have pending submissions</li>'}
-                        </ul>
+                `;
+            } else {
+                // Show specific requirement details
+                const requirement = document.querySelector(`.card[data-requirement-id="${requirementId}"] .card-title`).textContent;
+                modalTitle.textContent = `Teams Status for: ${requirement}`;
+                
+                const completedTeams = requirementDetails[requirementId].completed;
+                const pendingTeams = requirementDetails[requirementId].pending;
+                const missingTeams = requirementDetails[requirementId].missing;
+                
+                modalContent.innerHTML = `
+                    <div class="row">
+                        <div class="col-12 mb-4">
+                            <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Completed Teams (${completedTeams.length})</h5>
+                            <ul class="list-group">
+                                ${completedTeams.length ? completedTeams.map(team => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${team.name}
+                                        <span class="badge bg-success rounded-pill">Completed</span>
+                                    </li>
+                                `).join('') : '<li class="list-group-item">No teams have completed this requirement</li>'}
+                            </ul>
+                        </div>
+                        
+                        <div class="col-12 mb-4">
+                            <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Pending Teams (${pendingTeams.length})</h5>
+                            <ul class="list-group">
+                                ${pendingTeams.length ? pendingTeams.map(team => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${team.name}
+                                        <span class="badge bg-warning rounded-pill">Pending</span>
+                                    </li>
+                                `).join('') : '<li class="list-group-item">No teams have pending submissions</li>'}
+                            </ul>
+                        </div>
+                        
+                        <div class="col-12">
+                            <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Missing Teams (${missingTeams.length})</h5>
+                            <ul class="list-group">
+                                ${missingTeams.length ? missingTeams.map(team => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${team.name}
+                                        <span class="badge bg-danger rounded-pill">Missing</span>
+                                    </li>
+                                `).join('') : '<li class="list-group-item">No teams are missing this requirement</li>'}
+                            </ul>
+                        </div>
                     </div>
-                    
-                    <div class="col-12">
-                        <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Missing Teams (${missingTeams.length})</h5>
-                        <ul class="list-group">
-                            ${missingTeams.length ? missingTeams.map(team => `
-                                <li class="list-group-item d-flex justify-content-between align-items-center">
-                                    ${team.name}
-                                    <span class="badge bg-danger rounded-pill">Missing</span>
-                                </li>
-                            `).join('') : '<li class="list-group-item">No teams are missing this requirement</li>'}
-                        </ul>
-                    </div>
-                </div>
-            `;
+                `;
+            }
         }
     });
     
@@ -677,36 +645,6 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '</ul>';
         return html;
     }
-    
-    // Make cards look clickable
-    document.querySelectorAll('.team-card').forEach(card => {
-        card.style.cursor = 'pointer';
-        card.addEventListener('mouseover', function() {
-            this.style.transform = 'translateY(-5px)';
-            this.style.transition = 'transform 0.3s ease';
-            this.style.boxShadow = '0 10px 20px rgba(0,0,0,0.1)';
-        });
-        card.addEventListener('mouseout', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = '0 0.125rem 0.25rem rgba(0,0,0,0.075)';
-        });
-    });
-    
-    // Toggle icon rotation for requirements collapse
-    const toggleBtn = document.getElementById('toggleRequirementsBtn');
-    const toggleIcon = toggleBtn.querySelector('.toggle-icon');
-    
-    document.getElementById('requirementsCollapse').addEventListener('show.bs.collapse', function () {
-        toggleIcon.classList.remove('bi-chevron-down');
-        toggleIcon.classList.add('bi-chevron-up');
-        toggleBtn.querySelector('span').textContent = 'Hide Requirements Progress';
-    });
-    
-    document.getElementById('requirementsCollapse').addEventListener('hide.bs.collapse', function () {
-        toggleIcon.classList.remove('bi-chevron-up');
-        toggleIcon.classList.add('bi-chevron-down');
-        toggleBtn.querySelector('span').textContent = 'View All Requirements Progress';
-    });
 
     // Handle defense details modal
     const defenseDetailsModal = document.getElementById('defenseDetailsModal');

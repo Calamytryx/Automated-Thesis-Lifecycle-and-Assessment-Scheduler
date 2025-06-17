@@ -1,5 +1,5 @@
 <div class="tab-pane fade" id="guide" role="tabpanel" aria-labelledby="guide-tab">
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 ">
         <h2 class="mb-4">Dashboard Guide</h2>
         <p class="text-muted">This section provides a detailed manual and guide for all the tabs in the dashboard. Follow the steps below to operate each tab effectively.</p>
 

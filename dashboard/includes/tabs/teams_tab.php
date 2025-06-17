@@ -1,6 +1,6 @@
 <!-- Teams Tab -->
 <div class="tab-pane fade" id="teams" role="tabpanel" aria-labelledby="teams-tab">
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
         <div class="row mb-4">
             <div class="col-12">

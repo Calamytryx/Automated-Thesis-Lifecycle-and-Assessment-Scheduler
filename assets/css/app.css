@@ -1978,16 +1978,16 @@ color: #444 !important;
 }
 
 .bg-success {
-    background-color: #28a745 !important;
+    background-color: #3BE495 !important;
 }
 
 .bg-warning {
-    background-color: #19b15d !important;
-    width: 100% !important;
+    background-color: #F1C95D !important;
+    /* width: 100% !important; */
 }
 
 .bg-danger {
-    background-color: #dc3545 !important;
+    background-color: #E06161 !important;
 }
 
 /* User Type Pill Styles */
@@ -2006,4 +2006,11 @@ color: #444 !important;
         left: 50%;
         transform: translateX(-50%);
     }
+}
+
+.content-container{
+    padding: 3rem !important;
+    border: solid 1px var(--neutral-300);
+    border-radius: 6px;
+    background-color: var(--white-50);
 }

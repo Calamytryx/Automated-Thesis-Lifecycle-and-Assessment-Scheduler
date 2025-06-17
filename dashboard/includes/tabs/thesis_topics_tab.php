@@ -1,6 +1,6 @@
 <!-- Thesis Topics Tab -->
 <div class="tab-pane fade" id="thesis-topics" role="tabpanel" aria-labelledby="thesis-topics-tab">
-    <div class="container-fluid py-4">
+    <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
         <div class="row mb-4">
             <div class="col-12">

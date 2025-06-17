@@ -358,21 +358,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     });
 </script>
 
-<main role="main" class="container-fluid"> 
+<main role="main" class="container-fluid p-0"> 
     <div class="row">
         <!-- <div class="col-sm-3">
             <?php //include('../assets/layouts/profile-card.php'); 
             ?>
         </div> -->
         <div class="col-sm-12 p-0">
-            <?php if ($_SESSION['usertype'] == 0): ?>
-                <!-- Admin dashboard content -->
-                <div class="row g-0">                    <div id="sidebarContainer">
+            <?php if ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
+                <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
                         <div class="sidebar-header d-flex justify-content-end align-items-center">
                             <button id="toggleSidebar" class="btn btn-link">
                                 <i class="bi bi-chevron-left"></i>
                             </button>
-                        </div>                        
+                        </div>
                         <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <!-- Dashboard Overview -->
                             <div class="sidebar-section">
@@ -506,8 +505,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <i class="bi bi-power"></i>
                             </a>
                         </div>
-                    </div>
-                    <div id="mainContent">
+                    </div>                    <div id="mainContent">
                         <div class="tab-content" id="v-pills-tabContent">
                             <?php include 'includes/tabs/overview_tab.php'; ?>
 
@@ -587,7 +585,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </form>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer"> 
                 <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal">Close</button>
                 <button type="button" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
             </div>

@@ -1,6 +1,6 @@
 <!-- Programs Tab -->
 <div class="tab-pane fade" id="programs" role="tabpanel" aria-labelledby="programs-tab">
-  <div class="container-fluid py-4">
+  <div class="container-fluid py-4 content-container">
     <div class="d-flex justify-content-between mb-3">
       <h3>Programs</h3>
       <button class="btn feature-btn add-btn" data-table="programs">
