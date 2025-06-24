@@ -948,6 +948,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             });
         });
 
+        // Handle View All Defense Schedules button click
+        $(document).on('click', '#viewAllDefensesBtn', function(e) {
+            e.preventDefault();
+            
+            // Activate the defense schedules tab
+            $('#defense-schedules-tab').tab('show');
+            
+            // Wait for tab transition to complete before scrolling
+            setTimeout(function() {
+                // Scroll to defense schedules section if needed
+                $('html, body').animate({
+                    scrollTop: $('#defense-schedules').offset().top - 100
+                }, 300);
+            }, 300);
+        });
+
         // Helper function to show toast notifications
         function showToast(title, message, type) {
             // Check if toastContainer exists, if not create it

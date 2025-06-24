@@ -234,136 +234,119 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                     </a>
                 </div>
             </div>
-        </div>
-
-        <!-- Defense Schedules Section -->
+        </div>        <!-- Defense Schedules Section -->
         <div class="content-container">
             <div class="row">
-                <div class="col-12">
-                    <h4 class="mb-4">Defense Schedules</h4>
-                </div>
-                
-                <!-- Upcoming Defenses -->
-                <div class="col-lg-6 mb-4">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Upcoming Defenses</h5>
-                            <span class="badge bg-primary rounded-pill"><?php echo $upcomingDefenses; ?></span>
+                <!-- Two-container layout: Title on left, date pill on right -->
+                <div class="col-12 header-container">
+                    <div class="row">
+                        <!-- Left container with title -->
+                        <div class="col-lg-6 mb-3 mb-lg-0">
+                            <h2 class="requirements-title fw-medium">
+                                defense<br>schedules
+                            </h2>
                         </div>
-                        <div class="card-body">
-                            <?php
-                            // Fetch upcoming defenses with team information
-                            $upcomingDefensesListStmt = $pdo->prepare("
-                                SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
-                                      t.id as team_id, t.name as team_name
-                                FROM defense_schedules ds
-                                JOIN teams t ON ds.team_id = t.id
-                                WHERE ds.schedule_date >= CURDATE()
-                                ORDER BY ds.schedule_date ASC, ds.start_time ASC
-                                LIMIT 10
-                            ");
-                            $upcomingDefensesListStmt->execute();
-                            $upcomingDefensesList = $upcomingDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
-                            ?>
-                            
-                            <?php if (count($upcomingDefensesList) > 0): ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Group Name</th>
-                                            <th>Date</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($upcomingDefensesList as $defense): ?>
-                                        <tr class="defense-row" style="cursor: pointer;" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#defenseDetailsModal" 
-                                            data-team-id="<?php echo $defense['team_id']; ?>">
-                                            <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
-                                            <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
-                                            <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
-                            </div>
-                            <?php else: ?>
-                                <p class="text-center text-muted">No upcoming defenses scheduled.</p>
-                            <?php endif; ?>
-                            
-                            <?php if (count($upcomingDefensesList) < $upcomingDefenses): ?>
-                                <div class="text-center mt-3">
-                                    <a href="defense_schedules.php" class="btn btn-sm btn-outline-primary">View All Upcoming Defenses</a>
+                        
+                        <!-- Right container with current date -->
+                        <div class="col-lg-6">
+                            <div class="box-container">
+                                <div class="d-flex justify-content-end">
+                                    <span class="badge bg-light text-dark rounded-pill px-3 py-2">Today: <?php echo date('F d, Y'); ?></span>
                                 </div>
-                            <?php endif; ?>
+                            </div>
                         </div>
                     </div>
                 </div>
-                
-                <!-- Past Defenses -->
-                <div class="col-lg-6 mb-4">
-                    <div class="card border-0 shadow-sm h-100">
-                        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
-                            <h5 class="card-title mb-0">Past Defenses</h5>
-                            <span class="badge bg-secondary rounded-pill"><?php echo $pastDefenses; ?></span>
-                        </div>
-                        <div class="card-body">
-                            <?php
-                            // Fetch past defenses with team information
-                            $pastDefensesListStmt = $pdo->prepare("
-                                SELECT ds.id, ds.schedule_date, ds.start_time, ds.end_time, 
-                                      t.id as team_id, t.name as team_name
-                                FROM defense_schedules ds
-                                JOIN teams t ON ds.team_id = t.id
-                                WHERE ds.schedule_date < CURDATE()
-                                ORDER BY ds.schedule_date DESC, ds.start_time ASC
-                                LIMIT 10
-                            ");
-                            $pastDefensesListStmt->execute();
-                            $pastDefensesList = $pastDefensesListStmt->fetchAll(PDO::FETCH_ASSOC);
-                            ?>
-                            
-                            <?php if (count($pastDefensesList) > 0): ?>
-                            <div class="table-responsive">
-                                <table class="table table-hover">
-                                    <thead>
-                                        <tr>
-                                            <th>Group Name</th>
-                                            <th>Date</th>
-                                            <th>Time</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        <?php foreach ($pastDefensesList as $defense): ?>
-                                        <tr class="defense-row" style="cursor: pointer;" 
-                                            data-bs-toggle="modal" 
-                                            data-bs-target="#defenseDetailsModal" 
-                                            data-team-id="<?php echo $defense['team_id']; ?>">
-                                            <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
-                                            <td><?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?></td>
-                                            <td><?php echo date('h:i A', strtotime($defense['start_time'])); ?></td>
-                                        </tr>
-                                        <?php endforeach; ?>
-                                    </tbody>
-                                </table>
+                  <!-- Defense schedules content -->
+                <div class="col-12 mt-4">
+                    <div class="row">                        <!-- Defense Schedule Table -->                        <div class="col-12 mb-4">
+                            <div class="defense-table-container">
+                                <!-- No padding or shadow here -->
+                                    <?php
+                                    // Fetch upcoming and today's defenses with team information and research titles
+                                    $defensesListStmt = $pdo->prepare("
+                                        SELECT 
+                                            ds.id, 
+                                            ds.schedule_date, 
+                                            ds.start_time, 
+                                            ds.end_time, 
+                                            t.id as team_id, 
+                                            t.name as team_name,
+                                            rt.title as research_title,
+                                            CASE 
+                                                WHEN ds.schedule_date = CURDATE() AND TIME(NOW()) BETWEEN ds.start_time AND ds.end_time THEN 'ongoing'
+                                                ELSE 'scheduled'
+                                            END as status,
+                                            CASE 
+                                                WHEN ds.schedule_date = CURDATE() THEN 'today'
+                                                WHEN ds.schedule_date > CURDATE() THEN 'upcoming'
+                                            END as date_category
+                                        FROM defense_schedules ds
+                                        JOIN teams t ON ds.team_id = t.id
+                                        LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                        WHERE ds.schedule_date >= CURDATE()
+                                        ORDER BY ds.schedule_date ASC, ds.start_time ASC
+                                        LIMIT 15
+                                    ");
+                                    $defensesListStmt->execute();
+                                    $defensesList = $defensesListStmt->fetchAll(PDO::FETCH_ASSOC);
+                                    ?>
+                                      <?php if (count($defensesList) > 0): ?>
+                                    <div class="table-responsive">
+                                        <table class="table table-hover defense-schedule-table">
+                                            <thead>
+                                                <tr>
+                                                    <th>Date Category</th>
+                                                    <th>Team</th>
+                                                    <th>Research Title</th>
+                                                    <th>Schedule</th>
+                                                    <th>Status</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <?php foreach ($defensesList as $defense): ?>
+                                                <tr class="defense-row" style="cursor: pointer;" 
+                                                    data-bs-toggle="modal" 
+                                                    data-bs-target="#defenseDetailsModal" 
+                                                    data-team-id="<?php echo $defense['team_id']; ?>">
+                                                    <td>
+                                                        <span class="badge rounded-pill <?php echo $defense['date_category'] === 'today' ? 'bg-danger' : 'bg-primary'; ?>">
+                                                            <?php echo ucfirst($defense['date_category']); ?>
+                                                        </span>
+                                                    </td>
+                                                    <td><?php echo htmlspecialchars($defense['team_name']); ?></td>
+                                                    <td class="text-truncate" style="max-width: 300px;"><?php echo htmlspecialchars($defense['research_title'] ?? 'No title assigned'); ?></td>
+                                                    <td>
+                                                        <?php echo date('M d, Y', strtotime($defense['schedule_date'])); ?>
+                                                        <br>
+                                                        <small class="text-muted">
+                                                            <?php echo date('h:i A', strtotime($defense['start_time'])); ?> - 
+                                                            <?php echo date('h:i A', strtotime($defense['end_time'])); ?>
+                                                        </small>
+                                                    </td>
+                                                    <td>
+                                                        <span class="badge rounded-pill <?php echo $defense['status'] === 'ongoing' ? 'bg-success' : 'bg-secondary'; ?>">
+                                                            <?php echo ucfirst($defense['status']); ?>
+                                                        </span>
+                                                    </td>
+                                                </tr>
+                                                <?php endforeach; ?>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                    <?php else: ?>
+                                        <p class="text-center text-muted">No upcoming defenses scheduled.</p>
+                                    <?php endif; ?>
+                                      <?php if (count($defensesList) < ($upcomingDefenses + $defensesToday)): ?>
+                                        <div class="defense-view-all-btn">
+                                            <a href="#defense-schedules" class="btn btn-sm btn-outline-primary" id="viewAllDefensesBtn">View All Defense Schedules</a>
+                                        </div>
+                                    <?php endif; ?>
                             </div>
-                            <?php else: ?>
-                                <p class="text-center text-muted">No past defenses found.</p>
-                            <?php endif; ?>
-                            
-                            <?php if (count($pastDefensesList) < $pastDefenses): ?>
-                                <div class="text-center mt-3">
-                                    <a href="defense_schedules.php" class="btn btn-sm btn-outline-secondary">View All Past Defenses</a>
-                                </div>
-                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>        </div>
     </div>
 </div>
 

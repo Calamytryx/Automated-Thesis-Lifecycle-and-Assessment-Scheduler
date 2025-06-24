@@ -40,6 +40,16 @@ body {
     margin-bottom: 0;
 }
 
+/* Defense schedules title styling - matches requirements title */
+.content-container h2.requirements-title {
+    font-size: 3rem;
+    text-transform: lowercase;
+    color: #333;
+    font-weight: 500;
+    line-height: 1.1;
+    margin-bottom: 0;
+}
+
 /* Box container for search and team count */
 .box-container {
     height: 100%;
@@ -605,7 +615,6 @@ body.has-collapsed-sidebar #mainContent {
     margin: 0 auto; 
 }
 
-/* Make sure tab content maintains proper spacing */
 .tab-content > .tab-pane {
     padding-top: 1rem;
     background-color: transparent; 
@@ -625,7 +634,6 @@ body.has-collapsed-sidebar #mainContent {
     padding-bottom: 0.5rem;
 }
 
-/* Add container-like responsive behavior */
 @media (min-width: 1400px) {
     #v-pills-tabContent {
         max-width: 1320px;
@@ -650,17 +658,14 @@ body.has-collapsed-sidebar #mainContent {
     }
 }
 
-/* Improve spacing between elements in tab content */
 .tab-pane .row {
     margin-bottom: 1rem;
 }
 
-/* Add subtle transitions for better UX */
 .tab-pane {
     transition: all 0.3s ease;
 }
 
-/* Update tables to have better spacing within content container */
 .db-table-container {
     margin-bottom: 2rem;
     overflow-x: auto;
@@ -685,7 +690,6 @@ body.has-collapsed-sidebar #mainContent {
     background-color: var(--neutral-400);
 }
 
-/* Ensure footer doesn't interfere with scrollable content */
 footer {
     position: relative;
     z-index: 10;
@@ -695,7 +699,6 @@ footer {
     border-bottom: 1px solid var(--neutral-300);
 }
 
-/* Completion status items hover effect */
 .completion-status-item {
     transition: transform 0.2s ease, opacity 0.2s ease;
     border-radius: 8px;
@@ -712,7 +715,109 @@ footer {
     transform: translateY(0);
 }
 
-/* Custom cursor for clickable items */
 .completion-status-item {
     cursor: pointer;
+}
+
+.content-container .date-pill {
+    font-size: 0.9rem;
+    padding: 8px 16px;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    font-weight: 500;
+}
+
+.defense-schedule-table {
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    overflow: hidden;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    margin-bottom: 0;
+    background-color: var(--white-50);
+    min-width: 800px; /* Forces horizontal scroll on smaller screens */
+}
+
+.defense-schedule-table th {
+    color: var(--main-bg-dark);
+    text-align: left;
+    padding: 16px 20px;
+    white-space: nowrap;
+    background-color: var(--white-50);
+    border: none;
+    font-weight: 600;
+}
+
+.defense-schedule-table th:not(:first-child) {
+    border-left: none;
+}
+
+.defense-schedule-table thead tr th {
+    border-bottom: 1px solid var(--neutral-300);
+}
+ 
+.defense-schedule-table thead tr th:first-child {
+    border-top-left-radius: 4px;
+} 
+ 
+.defense-schedule-table thead tr th:last-child {
+    border-top-right-radius: 4px;
+}
+ 
+.defense-schedule-table td {
+    padding: 14px 20px;
+    vertical-align: middle;
+    word-wrap: break-word;
+    background-color: var(--white-50);
+    border: none;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.defense-schedule-table td:first-child {
+    border-left: none;
+}
+
+.defense-schedule-table tbody tr {
+    background-color: var(--white-50); 
+    transition: all 0.3s ease;
+    border-bottom: 1px solid var(--neutral-100);
+}
+
+.defense-schedule-table tbody tr:hover {  
+    transform: translateY(0);
+    box-shadow: none;
+    cursor: pointer;
+    background-color: var(--neutral-100);
+} 
+
+.defense-schedule-table tbody tr:hover td {
+    background-color: var(--neutral-100);
+}
+
+.defense-table-container {
+    width: 100%;
+    background-color: transparent;
+    margin: 0;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+}
+
+.defense-table-container .table-responsive {
+    margin-bottom: 0;
+    border-radius: 4px;
+    overflow-x: auto;
+    padding: 0;
+    width: 100%;
+}
+
+.defense-view-all-btn {
+    padding: 15px;
+    background-color: var(--white-50);
+    border-top: none;
+    text-align: center;
+    margin-top: 0;
+    border-radius: 0 0 4px 4px;
 }

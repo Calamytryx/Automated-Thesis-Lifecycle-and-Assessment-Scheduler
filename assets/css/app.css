@@ -444,67 +444,79 @@ border-top: solid 1px var(--main-bg-dark);
 } */
 
 .db-table {
-    border-radius: 10px;
+    border: 1px solid var(--neutral-300);
     border-collapse: separate;
     border-spacing: 0;
-    border: 1px solid var(--neutral-200);
     width: 100%;
     overflow: hidden;
+    border-radius: 4px;
 }
 
 .db-table th {
-    background-color: var(--main-bg-dark);
-    color: var(--main-bg-light);
+    color: var(--main-bg-dark);
     text-align: left;
-    padding: 12px 16px;
+    padding: 16px 20px;
     white-space: nowrap;
-    border-bottom: 1px solid var(--neutral-200);
-    border-right: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--neutral-300);
+    background-color: var(--white-50);
+    border: none;
+    font-weight: 600;
+}
+
+.db-table th:not(:first-child) {
+    border-left: none;
+}
+
+.db-table thead tr th {
+    border-bottom: 1px solid var(--neutral-300);
 }
  
 .db-table thead tr th:first-child {
-    border-top-left-radius: 10px;
+    border-top-left-radius: 4px;
 } 
  
 .db-table thead tr th:last-child {
-    border-top-right-radius: 10px;
+    border-top-right-radius: 4px;
 }
  
 .db-table td {
-    padding: 8px 12px;
+    padding: 14px 20px;
     vertical-align: middle;
-    border-bottom: 1px solid var(--neutral-200);
-    border-right: 1px solid var(--neutral-200);
     word-wrap: break-word;
-    background-color: var(--main-white);
+    background-color: var(--white-50);
+    border: none;
+    max-width: 200px;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .db-table tbody tr {
-    background-color: var(--neutral-100); 
-    border-radius: 5px;
+    background-color: var(--white-50); 
     transition: all 0.3s ease;
+    border-bottom: 2px solid var(--neutral-100);
 }
 
 
 .db-table tbody tr:hover td:first-child {
-    border-top-left-radius: 5px;
-    border-bottom-left-radius: 5px;
+    border-radius: 0;
+    border-left: none;
 }
 
 .db-table tbody tr:hover td:last-child {
-    border-top-right-radius: 5px;
-    border-bottom-right-radius: 5px;
+    border-radius: 0;
+    border-right: none;
 }
 
  
 .db-table tbody tr:hover {  
-    transform: translateY(-4px);
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.267);
+    transform: translateY(0);
+    box-shadow: none;
     cursor: pointer;
+    background-color: var(--neutral-100);
 } 
 
 .db-table tbody tr:hover td {
-    background-color: var(--neutral-50);
+    background-color: var(--neutral-100);
 }
 
 /* Edit button */
@@ -574,10 +586,18 @@ border-top: solid 1px var(--main-bg-dark);
     }
     
     .db-table td {
-        padding: 6px 8px;
+        padding: 10px 12px;
         max-width: 120px;
     }
-} 
+}
+
+/* Handle long text in table */
+.db-table td.text-truncate {
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
 
 /* Add Button Styling */
 .feature-btn.add-btn {
@@ -696,14 +716,14 @@ border-top: solid 1px var(--main-bg-dark);
 }
 
 .pagination .page-link:hover {
-    background-color: var(--secondary-300); 
+    background-color: var(--neutral-200); 
     color: var(--main-bg-dark);
 }
 
 .pagination .page-item.active .page-link {
-    background-color: var(--main-accent); 
-    color: var(--main-bg-dark); 
-    border-color: var(--main-accent); 
+    background-color: var(--neutral-800); 
+    color: var(--main-bg-light); 
+    border-color: transparent; 
 }
 
 .pagination .page-item.disabled .page-link {
