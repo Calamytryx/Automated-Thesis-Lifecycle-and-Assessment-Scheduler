@@ -72,10 +72,10 @@ body {
 /* Search bar container styling */
 .content-container .input-group {
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    border-radius: 50px;
+    border-radius: 8px;
     overflow: hidden;
     margin-top: 15px;
-    border: 1px solid var(--neutral-700); 
+    border: 1px solid var(--neutral-300); 
     background-color: var(--white-500); 
 }
 
@@ -100,6 +100,83 @@ body {
     box-shadow: none;
     background-color: var(--white-500); 
 }
+
+/* Users tab search bar styling - matches overview design */
+.users-search-container .input-group {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-300); 
+    background-color: var(--white-500); 
+}
+
+.users-search-container .input-group .form-control,
+.users-search-container .input-group .input-group-text {
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background-color: var(--white-500); 
+}
+
+.users-search-container .input-group .input-group-text {
+    background-color: var(--white-500); 
+}
+
+.users-search-container .input-group .form-control {
+    padding-left: 0;
+    background-color: var(--white-500); 
+}
+
+.users-search-container .input-group .form-control:focus {
+    box-shadow: none;
+    background-color: var(--white-500); 
+}
+
+/* Users tab components styling - matches search design */
+.users-tab-controls .form-select {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    border: 1px solid var(--neutral-300);
+    background-color: var(--white-500);
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+}
+
+.users-tab-controls .form-select:focus {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-color: var(--neutral-300);
+    background-color: var(--white-500);
+}
+
+.users-tab-controls .btn.feature-btn {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    border: 1px solid var(--neutral-300);
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    height: auto;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.users-tab-controls .btn.feature-btn:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.users-tab-controls .btn.feature-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.users-tab-controls .btn.feature-btn i {
+    font-size: 1rem;
+}
+
+
 
 /* Category titles styling */
 .content-container h3 {
