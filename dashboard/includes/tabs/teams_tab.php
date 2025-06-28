@@ -3,81 +3,97 @@
     <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
         <div class="row mb-4">
-            <div class="col-12">
+            <div class="col-8 col-md-9">
                 <h3 class="mb-2">Team Management</h3>
                 <p class="text-muted">Manage research teams, advisers, and team members</p>
             </div>
-        </div>
-        
-        <div class="alert alert-warning mb-4 warning-table" role="alert">
-            <h5 class="alert-heading"><i class="fas fa-exclamation-triangle me-2"></i>Teams Without Research Titles</h5>
-            <p>The following teams do not have assigned research titles. Please add titles for these teams in <span class="text-danger">Research Titles Tab</span>.</p>
-            <div class="table-responsive">
-                <table class="table table-sm table-warning table-bordered mb-0">
-                    <thead>
-                        <tr>
-                            <th>Team Name</th>
-                            <th>Program</th>
-                        </tr>
-                    </thead>
-                    <tbody id="teams-no-title-body">
-                        <!-- Teams with no title will be loaded via JavaScript -->
-                    </tbody>
-                </table>
+            <div class="col-4 col-md-3 text-end">
+                <button type="button" class="btn btn-warning btn-sm position-relative" id="warningTeamsBtn" style="display: none;" title="Teams without research titles" data-bs-toggle="tooltip" data-bs-placement="left">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="warningTeamsCount">0</span>
+                </button>
             </div>
-            <div id="no-title-teams-message" class="text-center py-2">Loading...</div>
         </div>
         
-        <div class="d-flex justify-content-end align-items-center mb-4 flex-wrap">
-            <div class="d-flex justify-content-end align-items-center flex-wrap gap-2">
-                <div class="input-group mb-2 mb-md-0" style="width: 250px;">
-                    <input type="text" class="form-control" id="teamSearchInput" placeholder="Search teams...">
-                    <button class="btn btn-outline-secondary" type="button" id="teamSearchButton">
-                        <i class="fas fa-search"></i>
-                    </button>
+        <!-- Team Management Controls -->
+        <div class="row">
+            <div class="col-12">
+                <!-- Mobile-first responsive layout -->
+                <div class="user-controls-container p-0">
+                    <!-- Search and Filter Row -->
+                    <div class="row g-2 mb-3 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-4">
+                            <!-- Search container -->
+                            <div class="users-search-container">
+                                <div class="input-group user-control-height m-0">
+                                    <span class="input-group-text border-0"> 
+                                        <i class="bi bi-search"></i>
+                                    </span>
+                                    <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search teams...">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="col-12 col-md-3 col-lg-3">
+                            <!-- Sort Dropdown -->
+                            <select class="form-select user-control-height" id="teamSortSelect">
+                                <option value="id:desc">Default (Newest First)</option>
+                                <option value="id:asc">Default (Oldest First)</option>
+                                <option value="name:asc">Team Name (A-Z)</option>
+                                <option value="name:desc">Team Name (Z-A)</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 col-md-5 col-lg-5">
+                            <!-- Action buttons container -->
+                            <div class="d-flex gap-2">
+                                <button class="btn feature-btn bulk-add-btn user-control-height flex-fill" data-table="teams" id="bulkAddTeamsBtn">
+                                    <i class="fas fa-upload me-1 d-none d-lg-inline"></i>
+                                    <span class="d-none d-lg-inline">Bulk Add Teams</span>
+                                    <span class="d-lg-none">Bulk Add</span>
+                                </button>
+                                <button class="btn feature-btn add-btn user-control-height flex-fill" data-table="teams" id="addTeamBtn">
+                                    <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
+                                    <span class="d-none d-lg-inline">Add Team</span>
+                                    <span class="d-lg-none">Add</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
-                <select class="form-select mb-2 mb-md-0" id="teamSortSelect" style="width: 180px;">
-                    <option value="id:desc">Default (Newest First)</option>
-                    <option value="id:asc">Default (Oldest First)</option>
-                    <option value="name:asc">Team Name (A-Z)</option>
-                    <option value="name:desc">Team Name (Z-A)</option>
-                </select>
-                <button class="btn feature-btn bulk-add-teams-btn" data-table="teams">
-                    <i class="fas fa-upload me-2"></i>Bulk Add Teams
-                </button>
-                <button class="btn feature-btn add-btn" data-table="teams">
-                    <i class="fas fa-plus me-2"></i>Add Team
-                </button>
             </div>
         </div>
         
-        <div class="table-responsive db-table-container">
-            <table class="table table-bordered table-hover table-sm db-table" id="teams-table">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Research Title</th>
-                        <th>Program</th>
-                        <th>Adviser</th>
-                        <th>Leader</th>
-                        <th>Members</th>
-                        <th>Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <!-- Data will be dynamically populated by AJAX -->
-                </tbody>
-            </table>
+        <!-- Team Management Content -->
+        <div class="row">
+            <div class="col-12">
+                <!-- Teams table that displays all teams with search and sorting -->
+                <div class="table-responsive">
+                    <table class="table table-bordered table-hover table-sm db-table" id="teams-table" data-table="teams">
+                        <thead>
+                            <tr>
+                                <th class="d-none d-md-table-cell">Team Name</th>
+                                <th class="d-table-cell d-md-none">Team</th>
+                                <th class="d-none d-lg-table-cell">Research Title</th>
+                                <th class="d-none d-sm-table-cell">Program</th>
+                                <th class="d-none d-md-table-cell">Adviser</th>
+                                <th class="d-none d-lg-table-cell">Leader</th>
+                                <th class="d-none d-xl-table-cell">Members</th>
+                                <th class="text-center">Action</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+                <nav aria-label="Page navigation">
+                    <ul class="pagination justify-content-center flex-wrap mt-2" id="teamsPagination"><!-- Teams pagination --></ul>
+                </nav>
+            </div>
         </div>
-        <nav aria-label="Page navigation" id="pagination">
-            <ul class="pagination justify-content-center">
-                <!-- Pagination links will be dynamically populated by AJAX -->
-            </ul>
-        </nav>
     </div>
 </div>
 
-<!-- New: Bulk Add Teams Modal -->
+<!-- Bulk Add Teams Modal -->
 <div class="modal fade" id="bulkAddTeamsModal" tabindex="-1" aria-labelledby="bulkAddTeamsModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
@@ -87,66 +103,60 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- NEW: Radio buttons to choose add method -->
+                    <!-- Upload Method Selection -->
                     <div class="mb-3">
-                        <label class="form-label">Select Method:</label>
+                        <label class="form-label">Upload Method</label>
                         <div>
-                            <input type="radio" name="bulkTeamsMethod" id="methodFile" value="file" checked>
-                            <label for="methodFile">CSV File</label>
-                            <input type="radio" name="bulkTeamsMethod" id="methodPaste" value="paste" class="ms-3">
-                            <label for="methodPaste">Paste CSV Data</label>
-                            <input type="radio" name="bulkTeamsMethod" id="methodForm" value="form" class="ms-3">
-                            <label for="methodForm">Input Form</label>
+                            <label class="me-3">
+                                <input type="radio" name="teams_upload_method" value="file" checked> CSV File
+                            </label>
+                            <label class="me-3">
+                                <input type="radio" name="teams_upload_method" value="paste"> Paste Text
+                            </label>
+                            <label>
+                                <input type="radio" name="teams_upload_method" value="form"> Manual Form
+                            </label>
                         </div>
                     </div>
-
-                    <!-- CSV File Section -->
-                    <div id="bulkTeamsFileSection" class="mb-3">
+                    <div class="mb-3">
                         <label for="bulkTeamsFileInput" class="form-label">Upload Excel/CSV File</label>
                         <input type="file" class="form-control" id="bulkTeamsFileInput" name="bulkTeamsFile" accept=".csv, .xls, .xlsx">
                     </div>
-
-                    <!-- Paste CSV Data Section -->
-                    <div id="bulkTeamsPasteSection" class="mb-3" style="display:none;">
-                        <label for="bulkTeamsTextInput" class="form-label">Paste CSV Data</label>
+                    <div class="mb-3">
+                        <label for="bulkTeamsTextInput" class="form-label">Paste Bulk Data</label>
                         <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5" placeholder="Team Name, Research Title, Area of Expertise, Program, Members (optional)"></textarea>
                     </div>
-
-                    <!-- Input Form Section -->
-                    <div id="bulkTeamsFormSection" style="display:none;">
-                        <div class="table-responsive">
-                            <table class="table table-bordered" id="bulkAddTeamsTable">
-                                <thead>
-                                    <tr>
-                                        <th>Team Name</th>
-                                        <th>Research Title</th>
-                                        <th>Area of Expertise</th>
-                                        <th>Program</th>
-                                        <th>Members <small>(username:role;...)</small></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr>
-                                        <td><input type="text" class="form-control" name="teams[0][name]"></td>
-                                        <td><input type="text" class="form-control" name="teams[0][title]"></td>
-                                        <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
-                                        <td><input type="text" class="form-control" name="teams[0][program]"></td>
-                                        <td><input type="text" class="form-control" name="teams[0][members]" placeholder="optional"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered" id="bulkAddTeamsTable">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th>Research Title <small>(optional)</small></th>
+                                    <th>Area of Expertise</th>
+                                    <th>Program</th>
+                                    <th>Members <small>(optional, comma-separated)</small></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td><input type="text" class="form-control" name="teams[0][name]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][research_title]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][program]"></td>
+                                    <td><input type="text" class="form-control" name="teams[0][members]"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <!-- Number input to add multiple rows -->
                         <div class="mb-3">
-                            <label for="teamsRowCountInput" class="form-label">Add Rows: </label>
-                            <input type="number" id="teamsRowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
-                            <button type="button" class="btn btn-secondary" id="addBulkTeamsRow">Add Rows</button>
+                            <label for="teamRowCountInput" class="form-label">Add Rows: </label>
+                            <input type="number" id="teamRowCountInput" class="form-control" style="width:100px; display:inline-block" min="1" value="1">
+                            <button type="button" class="btn btn-secondary" id="addBulkTeamRow">Add Rows</button>
                         </div>
                     </div>
-
                     <hr>
-                    <!-- CSV Template Download Link -->
                     <div class="mb-3">
-                        <a href="#" id="downloadCsvTemplateTeams" class="btn btn-sm btn-secondary">Download CSV Template</a>
+                        <a href="#" id="downloadTeamsCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
                     </div>
                 </div>
                 <div class="modal-footer">
@@ -158,8 +168,42 @@
     </div>
 </div>
 
+<!-- Warning Modal for Teams Without Titles -->
+<div class="modal fade" id="teamsWarningModal" tabindex="-1" aria-labelledby="teamsWarningModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="teamsWarningModalLabel">
+                    <i class="fas fa-exclamation-triangle me-2"></i>Teams Without Research Titles
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-3">The following teams do not have assigned research titles. Please add titles for these teams in the <span class="text-danger fw-bold">Research Titles Tab</span>.</p>
+                <div class="table-responsive">
+                    <table class="table table-sm table-warning table-bordered mb-0">
+                        <thead>
+                            <tr>
+                                <th>Team Name</th>
+                                <th>Program</th>
+                            </tr>
+                        </thead>
+                        <tbody id="teams-no-title-body">
+                            <!-- Teams with no title will be loaded via JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+                <div id="no-title-teams-message" class="text-center py-2" style="display: none;">All teams have research titles assigned.</div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
-    document.addEventListener('DOMContentLoaded', function () {
+    document.addEventListener('DOMContentLoaded', function() {
         // Function to load teams without research titles
         const loadTeamsWithoutTitles = () => {
             fetch('includes/tabs/get_teams_without_titles.php')
@@ -167,13 +211,22 @@
                 .then(data => {
                     const tbody = document.getElementById('teams-no-title-body');
                     const messageDiv = document.getElementById('no-title-teams-message');
+                    const warningBtn = document.getElementById('warningTeamsBtn');
+                    const warningCount = document.getElementById('warningTeamsCount');
                     
                     tbody.innerHTML = '';
                     
                     if (data.length === 0) {
-                        messageDiv.textContent = 'No teams without research titles found.';
+                        // Hide warning button when no teams without titles
+                        warningBtn.style.display = 'none';
                         messageDiv.style.display = 'block';
+                        messageDiv.textContent = 'All teams have research titles assigned.';
                     } else {
+                        // Show warning button with count
+                        warningBtn.style.display = 'inline-flex';
+                        warningCount.textContent = data.length;
+                        
+                        // Populate table in modal
                         data.forEach(team => {
                             tbody.innerHTML += `
                                 <tr>
@@ -187,8 +240,8 @@
                 })
                 .catch(error => {
                     console.error('Error fetching teams without titles:', error);
-                    document.getElementById('no-title-teams-message').textContent = 
-                        'Error loading data. Please try again later.';
+                    // Hide warning button on error
+                    document.getElementById('warningTeamsBtn').style.display = 'none';
                 });
         };
 
@@ -220,28 +273,37 @@
                     if (data.data.length === 0) {
                         tbody.innerHTML = `
                             <tr>
-                                <td colspan="6" class="text-center">No matching teams found</td>
+                                <td colspan="8" class="text-center py-4">
+                                    <div class="text-muted">
+                                        <i class="fas fa-search fs-1 d-block mb-2"></i>
+                                        <p class="mb-0">No teams found matching your search criteria.</p>
+                                    </div>
+                                </td>
                             </tr>
                         `;
+                        
+                        // Clear pagination
+                        document.getElementById('teamsPagination').innerHTML = '';
                         return;
                     }
+
+                    // Clear any existing dropdowns
+                    document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
                     
                     data.data.forEach(team => {
-                        // Process team members based on the structure from the likely updated SQL query
-                        let adviser = team.adviser || ''; // Directly use the adviser string if provided
+                        // Process team members
+                        let adviser = team.adviser || ''; 
                         let leader = '';
                         let members = [];
 
-                        // Check if team_members string exists and process it
                         if (team.team_members && typeof team.team_members === 'string') {
                             const memberParts = team.team_members.split(', ');
                             memberParts.forEach(part => {
-                                // Match names followed by (Role) or just names
                                 const matchWithRole = part.match(/^(.*?)\s\((.*?)\)$/i);
                                 let memberName = part.trim();
                                 let role = '';
 
-                                if (matchWithRole) {
+                                if (matchWithRole) { 
                                     memberName = matchWithRole[1].trim();
                                     role = matchWithRole[2].trim().toLowerCase();
                                 }
@@ -249,8 +311,6 @@
                                 if (role === 'leader') {
                                     leader = memberName;
                                 } else {
-                                    // Assume others are members if not explicitly leader
-                                    // Extract surname for sorting
                                     const nameParts = memberName.split(' ');
                                     const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : memberName;
                                     members.push({
@@ -259,141 +319,383 @@
                                     });
                                 }
                             });
-                        } else {
-                             // Fallback or specific handling if team_members is not a string or missing
-                             // This might depend on how the PHP handles teams with no members
-                             console.log('Team members data is not in the expected string format:', team.team_members);
                         }
                         
-                        // Sort members by surname
                         members.sort((a, b) => a.surname.localeCompare(b.surname));
                         
-                        // Format members as bulleted list
                         const membersHtml = members.length > 0 
-                            ? '<ul class="mb-0 ps-3">' + 
+                            ? '<ul class="mb-0 ps-3 small">' + 
                               members.map(m => `<li>${m.name}</li>`).join('') +
                               '</ul>'
-                            : '';
+                            : '<span class="text-muted">No members</span>';
                         
                         tbody.innerHTML += `
                             <tr>
-                                <td>${team.name}</td>
-                                <td>${team.research_title || ''}</td>
-                                <td>${team.program || 'N/A'}</td>
-                                <td>${adviser}</td>
-                                <td>${leader}</td>
-                                <td>${membersHtml}</td>
-                                <td class="action-buttons">
-                                    <div class="d-flex gap-2 justify-content-center">
-                                        <button class="btn btn-sm edit-btn" data-table="teams" data-id="${team.id}">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                        <button class="btn btn-sm delete-btn" data-table="teams" data-id="${team.id}">
-                                            <i class="fas fa-trash-alt me-1"></i>Delete
-                                        </button>
-                                    </div>
+                                <td class="d-none d-md-table-cell">${team.name}</td>
+                                <td class="d-table-cell d-md-none">
+                                    <div class="fw-semibold">${team.name}</div>
+                                    <div class="text-muted small">${team.program || 'N/A'}</div>
+                                </td>
+                                <td class="d-none d-lg-table-cell text-truncate" style="max-width: 200px;" title="${team.research_title || 'No title assigned'}">${team.research_title || '<span class="text-muted">No title</span>'}</td>
+                                <td class="d-none d-sm-table-cell">${team.program || 'N/A'}</td>
+                                <td class="d-none d-md-table-cell">${adviser || '<span class="text-muted">No adviser</span>'}</td>
+                                <td class="d-none d-lg-table-cell">${leader || '<span class="text-muted">No leader</span>'}</td>
+                                <td class="d-none d-xl-table-cell">${membersHtml}</td>
+                                <td class="action-buttons text-center">
+                                    <button class="meatball-btn" data-team-id="${team.id}" aria-label="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
                                 </td>
                             </tr>
                         `;
+                        
+                        // Create dropdown portal outside table
+                        const dropdownPortal = document.createElement('div');
+                        dropdownPortal.className = 'meatball-dropdown-portal';
+                        dropdownPortal.id = `dropdown-${team.id}`;
+                        console.log('Creating dropdown portal for team:', team.id);
+                        dropdownPortal.style.cssText = `
+                            position: fixed;
+                            background: white;
+                            border: 1px solid #dee2e6;
+                            border-radius: 6px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            z-index: 9999;
+                            min-width: 120px;
+                            padding: 4px 0;
+                            display: none;
+                        `;
+                        dropdownPortal.innerHTML = `
+                            <button class="meatball-dropdown-item edit-item edit-btn" data-table="teams" data-id="${team.id}">
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </button>
+                            <button class="meatball-dropdown-item delete-item delete-btn" data-table="teams" data-id="${team.id}">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete
+                            </button>
+                        `;
+                        document.body.appendChild(dropdownPortal);
                     });
 
                     // Update Pagination
-                    const pagination = document.querySelector('#teams .pagination');
+                    const pagination = document.getElementById('teamsPagination');
                     pagination.innerHTML = '';
 
-                    // Previous Button
-                    pagination.innerHTML += `
-                        <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
-                        </li>
-                    `;
-
-                    // Page Numbers
-                    for (let i = 1; i <= data.total_pages; i++) {
+                    if (data.total_pages > 1) {
+                        // Previous Button
                         pagination.innerHTML += `
-                            <li class="page-item ${page === i ? 'active' : ''}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
+                                    <span aria-hidden="true">&laquo;</span>
+                                </a>
+                            </li>
+                        `;
+
+                        // Page Numbers with ellipsis
+                        const startPage = Math.max(1, page - 2);
+                        const endPage = Math.min(data.total_pages, page + 2);
+
+                        if (startPage > 1) {
+                            pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                            if (startPage > 2) {
+                                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                            }
+                        }
+
+                        for (let i = startPage; i <= endPage; i++) {
+                            pagination.innerHTML += `
+                                <li class="page-item ${page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+                        }
+
+                        if (endPage < data.total_pages) {
+                            if (endPage < data.total_pages - 1) {
+                                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                            }
+                            pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${data.total_pages}">${data.total_pages}</a></li>`;
+                        }
+
+                        // Next Button
+                        pagination.innerHTML += `
+                            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
+                                    <span aria-hidden="true">&raquo;</span>
+                                </a>
                             </li>
                         `;
                     }
-
-                    // Next Button
-                    pagination.innerHTML += `
-                        <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
-                        </li>
-                    `;
                 })
                 .catch(error => {
                     console.error('Error loading teams:', error);
                 });
         };
 
-        // Initial Load
+        // Function to get current filters
+        const getCurrentFilters = () => {
+            return {
+                search: document.getElementById('teamSearchInput').value,
+                sort: document.getElementById('teamSortSelect').value
+            };
+        };
+
+        // Function to reload current view
+        const reloadCurrentView = (page = 1) => {
+            const filters = getCurrentFilters();
+            loadTeams(page, filters.search, filters.sort);
+        };
+
+        // Initialize on page load
         loadTeamsWithoutTitles();
         loadTeams(1, '', 'id:desc');
 
-        // Handle Search Button Click
-        document.getElementById('teamSearchButton').addEventListener('click', function() {
-            const searchTerm = document.getElementById('teamSearchInput').value;
-            const sortValue = document.getElementById('teamSortSelect').value;
-            loadTeams(1, searchTerm, sortValue);
+        // Initialize Bootstrap tooltips
+        const tooltipTriggerList = document.querySelectorAll('[data-bs-toggle="tooltip"]');
+        const tooltipList = [...tooltipTriggerList].map(tooltipTriggerEl => new bootstrap.Tooltip(tooltipTriggerEl));
+
+        // Handle search input with debouncing
+        let searchTimeout;
+        document.getElementById('teamSearchInput').addEventListener('input', function() {
+            clearTimeout(searchTimeout);
+            searchTimeout = setTimeout(() => {
+                reloadCurrentView(1);
+            }, 300);
         });
 
-        // Handle Search on Enter Key
-        document.getElementById('teamSearchInput').addEventListener('keyup', function(e) {
-            if (e.key === 'Enter') {
-                const searchTerm = this.value;
-                const sortValue = document.getElementById('teamSortSelect').value;
-                loadTeams(1, searchTerm, sortValue);
-            }
-        });
-
-        // Handle Sort Dropdown Change
+        // Handle sort dropdown change
         document.getElementById('teamSortSelect').addEventListener('change', function() {
-            const searchTerm = document.getElementById('teamSearchInput').value;
-            const sortValue = this.value;
-            loadTeams(1, searchTerm, sortValue);
+            reloadCurrentView(1);
         });
 
-        // Handle Pagination Clicks
-        document.querySelector('#teams .pagination').addEventListener('click', function(e) {
+        // Handle pagination clicks
+        document.getElementById('teamsPagination').addEventListener('click', function(e) {
             e.preventDefault();
             if (e.target.tagName === 'A') {
                 const page = parseInt(e.target.getAttribute('data-page'));
                 if (!isNaN(page)) {
-                    const searchTerm = document.getElementById('teamSearchInput').value;
-                    const sortValue = document.getElementById('teamSortSelect').value;
-                    loadTeams(page, searchTerm, sortValue);
+                    reloadCurrentView(page);
                 }
             }
         });
+
+        // Function to initialize teams tab
+        const initializeTeamsTab = () => {
+            console.log('Initializing teams tab...');
+            const teamsTab = document.getElementById('teams');
+            if (teamsTab && (teamsTab.classList.contains('active') || teamsTab.classList.contains('show'))) {
+                loadTeamsWithoutTitles();
+                reloadCurrentView(1);
+            }
+        };
 
         // Initialize when the teams tab becomes visible
         document.querySelectorAll('#v-pills-tab .nav-link').forEach(tab => {
             tab.addEventListener('shown.bs.tab', function(e) {
                 if (e.target.id === 'teams-tab') {
-                    loadTeamsWithoutTitles();
-                    const searchTerm = document.getElementById('teamSearchInput').value;
-                    const sortValue = document.getElementById('teamSortSelect').value;
-                    loadTeams(1, searchTerm, sortValue);
+                    initializeTeamsTab();
                 }
             });
         });
 
-        // NEW: Toggle sections based on selected radio button method
-        $(document).ready(function() {
-            $('input[name="bulkTeamsMethod"]').on('change', function() {
-                var method = $(this).val();
-                $('#bulkTeamsFileSection, #bulkTeamsPasteSection, #bulkTeamsFormSection').hide();
-                if (method === 'file') {
-                    $('#bulkTeamsFileSection').show();
-                } else if (method === 'paste') {
-                    $('#bulkTeamsPasteSection').show();
-                } else if (method === 'form') {
-                    $('#bulkTeamsFormSection').show();
+        // Call initialization function on page load with multiple attempts
+        setTimeout(initializeTeamsTab, 100);
+        setTimeout(initializeTeamsTab, 500);
+        setTimeout(initializeTeamsTab, 1000);
+
+        // Add event listeners for bulk add teams button
+        document.getElementById('bulkAddTeamsBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Teams button clicked');
+            const modal = new bootstrap.Modal(document.getElementById('bulkAddTeamsModal'));
+            modal.show();
+        });
+
+        // Add event listener for warning teams button
+        document.getElementById('warningTeamsBtn').addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('Warning Teams button clicked');
+            const modal = new bootstrap.Modal(document.getElementById('teamsWarningModal'));
+            modal.show();
+        });
+
+        // Add event listeners for upload method radio buttons
+        document.querySelectorAll('input[name="teams_upload_method"]').forEach(radio => {
+            radio.addEventListener('change', updateTeamsUploadMethodVisibility);
+        });
+
+        function updateTeamsUploadMethodVisibility() {
+            const selected = document.querySelector('input[name="teams_upload_method"]:checked').value;
+            const fileInputDiv = document.getElementById('bulkTeamsFileInput').closest('.mb-3');
+            const textInputDiv = document.getElementById('bulkTeamsTextInput').closest('.mb-3');
+            const manualFormDiv = document.getElementById('bulkAddTeamsTable').closest('.table-responsive');
+            
+            // Hide all sections first
+            fileInputDiv.style.display = 'none';
+            textInputDiv.style.display = 'none';
+            manualFormDiv.style.display = 'none';
+            
+            if (selected === 'file') {
+                fileInputDiv.style.display = 'block';
+            } else if (selected === 'paste') {
+                textInputDiv.style.display = 'block';
+            } else { // selected === 'form'
+                manualFormDiv.style.display = 'block';
+            }
+        }
+
+        // Run on DOM load
+        updateTeamsUploadMethodVisibility();
+
+        // Add bulk teams row functionality
+        document.getElementById('addBulkTeamRow').addEventListener('click', function() {
+            const count = parseInt(document.getElementById('teamRowCountInput').value) || 1;
+            const tbody = document.querySelector('#bulkAddTeamsTable tbody');
+            const currentRowCount = tbody.children.length;
+            
+            for (let i = 0; i < count; i++) {
+                const newRowIndex = currentRowCount + i;
+                const newRow = document.createElement('tr');
+                newRow.innerHTML = `
+                    <td><input type="text" class="form-control" name="teams[${newRowIndex}][name]"></td>
+                    <td><input type="text" class="form-control" name="teams[${newRowIndex}][research_title]"></td>
+                    <td><input type="text" class="form-control" name="teams[${newRowIndex}][area_of_expertise]"></td>
+                    <td><input type="text" class="form-control" name="teams[${newRowIndex}][program]"></td>
+                    <td><input type="text" class="form-control" name="teams[${newRowIndex}][members]"></td>
+                `;
+                tbody.appendChild(newRow);
+            }
+        });
+
+        // CSV template download for teams
+        document.getElementById('downloadTeamsCsvTemplate').addEventListener('click', function(e) {
+            e.preventDefault();
+            const csvContent = 'Team Name,Research Title,Area of Expertise,Program,Members\n';
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'teams_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        });
+
+        // Bulk add teams form submission
+        document.getElementById('bulkAddTeamsForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            console.log('Bulk add teams form submitted');
+            
+            const formData = new FormData(this);
+            
+            // If pasted bulk text is provided, append it
+            const bulkText = document.getElementById('bulkTeamsTextInput').value.trim();
+            if (bulkText !== "") {
+                formData.append('bulk_teams', bulkText);
+            }
+            
+            fetch('includes/bulk_add_teams.php', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Show success message (you can implement showToast function)
+                    alert('Teams added successfully');
+                    const modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddTeamsModal'));
+                    modal.hide();
+                    setTimeout(() => {
+                        location.reload();
+                    }, 1000);
+                } else {
+                    alert('Error: ' + (data.message || 'Failed to add teams'));
                 }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('An error occurred while adding teams');
             });
+        });
+
+        // Meatball menu functionality
+        document.addEventListener('click', function(e) {
+            // Handle meatball button clicks
+            if (e.target.closest('.meatball-btn')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const btn = e.target.closest('.meatball-btn');
+                const teamId = btn.getAttribute('data-team-id');
+                console.log('Meatball button clicked for team:', teamId);
+                const dropdown = document.getElementById(`dropdown-${teamId}`);
+                
+                if (!dropdown) {
+                    console.error('Dropdown not found for team:', teamId);
+                    console.log('Available dropdowns:', document.querySelectorAll('.meatball-dropdown-portal'));
+                    return;
+                }
+                
+                const isCurrentlyOpen = dropdown.style.display === 'block';
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+                
+                // Toggle current dropdown
+                if (!isCurrentlyOpen) {
+                    // Position the dropdown relative to the button
+                    const btnRect = btn.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const dropdownWidth = 120;
+                    
+                    // Calculate position
+                    let left = btnRect.right - dropdownWidth;
+                    let top = btnRect.bottom + 5;
+                    
+                    // Adjust for mobile screens
+                    if (viewportWidth < 768) {
+                        // On mobile, center the dropdown below the button
+                        left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+                    }
+                    
+                    // Ensure dropdown doesn't go off-screen
+                    if (left < 10) left = 10;
+                    if (left + dropdownWidth > viewportWidth - 10) {
+                        left = viewportWidth - dropdownWidth - 10;
+                    }
+                    
+                    dropdown.style.position = 'fixed';
+                    dropdown.style.top = `${top}px`;
+                    dropdown.style.left = `${left}px`;
+                    dropdown.style.display = 'block';
+                }
+            } 
+            // Close dropdown when clicking outside
+            else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+            }
+        });
+
+        // Handle meatball dropdown item clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.meatball-dropdown-item')) {
+                const item = e.target.closest('.meatball-dropdown-item');
+                
+                // Close the dropdown
+                const dropdown = item.closest('.meatball-dropdown-portal');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+                
+                // The existing edit-btn and delete-btn event handlers will handle the action
+                // since we've preserved the same classes on the dropdown items
+            }
         });
     });
 </script>
