@@ -558,7 +558,8 @@ border-top: solid 1px var(--main-bg-dark);
 /* Action buttons styling */
 .action-buttons {
     white-space: nowrap;
-    width: 130px;
+    width: 60px;
+    text-align: center;
 }
 
 .action-buttons .btn {
@@ -571,6 +572,102 @@ border-top: solid 1px var(--main-bg-dark);
     gap: 0.35rem !important;
 }
 
+/* Meatball menu styling */
+.meatball-menu {
+    position: relative;
+    display: inline-block;
+}
+
+.meatball-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    color: var(--bs-secondary);
+}
+
+.meatball-btn:hover {
+    background-color: var(--bs-light);
+    color: var(--bs-dark);
+}
+
+.meatball-btn:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+}
+
+.meatball-btn i {
+    font-size: 16px;
+}
+
+.meatball-dropdown {
+    position: absolute;
+    top: 100%;
+    right: 0;
+    background: white;
+    border: 1px solid var(--bs-border-color);
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    min-width: 120px;
+    padding: 4px 0;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(-10px);
+    transition: all 0.2s ease;
+}
+
+.meatball-dropdown.show {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+}
+
+.meatball-dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 8px 16px;
+    color: var(--bs-body-color);
+    text-decoration: none;
+    border: none;
+    background: none;
+    width: 100%;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: background-color 0.15s ease;
+}
+
+.meatball-dropdown-item:hover {
+    background-color: var(--bs-light);
+    color: var(--bs-body-color);
+}
+
+.meatball-dropdown-item i {
+    margin-right: 8px;
+    width: 16px;
+    font-size: 14px;
+}
+
+.meatball-dropdown-item.edit-item {
+    color: var(--bs-primary);
+}
+
+.meatball-dropdown-item.delete-item {
+    color: var(--bs-danger);
+}
+
+.meatball-dropdown-item.edit-item:hover {
+    background-color: rgba(var(--bs-primary-rgb), 0.1);
+    color: var(--bs-primary);
+}
+
+.meatball-dropdown-item.delete-item:hover {
+    background-color: rgba(var(--bs-danger-rgb), 0.1);
+    color: var(--bs-danger);
+}
+
 /* Responsive action buttons */
 @media screen and (max-width: 992px) {
     .db-table-container {
@@ -578,7 +675,7 @@ border-top: solid 1px var(--main-bg-dark);
     }
     
     .action-buttons {
-        width: 120px;
+        width: 50px;
     }
     
     .action-buttons .btn {
@@ -708,8 +805,8 @@ border-top: solid 1px var(--main-bg-dark);
     align-items: center;
     width: 40px;   
     height: 40px; 
-    border-radius: 50% !important; 
-    margin: 0 10px; 
+    border-radius: 4px !important; 
+    margin: 0 1rem; 
     background-color: var(--main-white); 
     color: var(--main-bg-dark); 
     transition: all 0.3s ease; 
