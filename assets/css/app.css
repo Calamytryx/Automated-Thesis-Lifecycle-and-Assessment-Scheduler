@@ -894,15 +894,18 @@ border-top: solid 1px var(--main-bg-dark);
 
 /* Thesis Topics Tab Styling */
 .decision-tool-container {
-    background-color: var(--main-white);
-    border-radius: 10px;
+    background-color: var(--white-600) !important;
+    border-radius: 6px;
 }
 
 .decision-tool-container .card {
-    border-radius: 10px;
+    background-color: var(--main-white) !important;
+    border-radius: 6px;
+    border: 1px solid var(--neutral-300) !important;
 }
 
 .decision-tool-container .card-header {
+    background-color: var(--main-white) !important;
     padding: 1rem;
     border-top-left-radius: 10px;
     border-top-right-radius: 10px;
@@ -926,8 +929,8 @@ border-top: solid 1px var(--main-bg-dark);
 }
 
 #getTopicsBtn {
-    background-color: var(--main-primary);
-    color: var(--main-white);
+    background-color: var(--main-white);
+    color: var(--main-primary);
     padding: 0.5rem 1rem;
     border-radius: 6px;
     font-size: 0.875rem;
@@ -935,14 +938,18 @@ border-top: solid 1px var(--main-bg-dark);
     border: 1px solid var(--main-primary);
 }
 
+#getTopicsBtn i{
+    color: inherit;
+}
+
 #getTopicsBtn:hover {
-    background-color: var(--primary-600);
+    background-color: var(--white-600);
     transform: translateY(-1px);
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
 }
 
 #topicAnalysisResult {
-    background-color: var(--main-white);
+    background-color: var(--white-600);
     border-radius: 10px;
     padding: 1rem;
 }
@@ -1180,7 +1187,7 @@ border-top: solid 1px var(--main-bg-dark);
 #thesisField, #teamSelect {
     border: solid 1px var(--main-bg-dark);
     background-color: var(--main-white);
-    padding: 1rem;
+    /* padding: 1rem; */
     font-size: 1rem;
     transition: all 0.3s ease;
 }
