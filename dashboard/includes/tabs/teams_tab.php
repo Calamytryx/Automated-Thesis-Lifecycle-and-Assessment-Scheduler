@@ -622,19 +622,23 @@
 
         // Meatball menu functionality
         document.addEventListener('click', function(e) {
+            // Only handle meatball clicks if we're in the teams tab
+            const teamsTab = document.getElementById('teams');
+            if (!teamsTab || (!teamsTab.classList.contains('active') && !teamsTab.classList.contains('show'))) {
+                return;
+            }
+            
             // Handle meatball button clicks
-            if (e.target.closest('.meatball-btn')) {
+            if (e.target.closest('.meatball-btn') && e.target.closest('#teams')) {
                 e.preventDefault();
                 e.stopPropagation();
                 
                 const btn = e.target.closest('.meatball-btn');
                 const teamId = btn.getAttribute('data-team-id');
-                console.log('Meatball button clicked for team:', teamId);
                 const dropdown = document.getElementById(`dropdown-${teamId}`);
                 
                 if (!dropdown) {
                     console.error('Dropdown not found for team:', teamId);
-                    console.log('Available dropdowns:', document.querySelectorAll('.meatball-dropdown-portal'));
                     return;
                 }
                 

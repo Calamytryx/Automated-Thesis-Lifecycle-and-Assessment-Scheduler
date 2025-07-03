@@ -479,8 +479,14 @@
 
             // Meatball menu functionality
             document.addEventListener('click', function(e) {
+                // Only handle meatball clicks if we're in the users tab
+                const usersTab = document.getElementById('users');
+                if (!usersTab || (!usersTab.classList.contains('active') && !usersTab.classList.contains('show'))) {
+                    return;
+                }
+                
                 // Handle meatball button clicks
-                if (e.target.closest('.meatball-btn')) {
+                if (e.target.closest('.meatball-btn') && e.target.closest('#users')) {
                     e.preventDefault();
                     e.stopPropagation();
                     
