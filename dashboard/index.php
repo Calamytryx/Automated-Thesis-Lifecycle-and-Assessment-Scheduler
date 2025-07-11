@@ -364,7 +364,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             <?php //include('../assets/layouts/profile-card.php'); 
             ?>
         </div> -->
-        <div class="col-sm-12 p-0">
+        <div class="col-sm-12"> 
             <?php if ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
                         <div class="sidebar-header d-flex justify-content-end align-items-center">

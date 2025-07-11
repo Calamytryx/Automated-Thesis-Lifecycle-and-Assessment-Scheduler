@@ -143,42 +143,113 @@ error_reporting(E_ALL);
         }
     });
 </script>
-<main role="main" class="container">
+<main role="main" class="container-fluid p-0">
     <div class="row">
-        <div class="col-sm-3 my-3">
-            <!-- Sidebar -->
-            <div class="sidebar">
-                <!-- <div class="d-flex align-items-center p-3 my-3 sidebar-header">
-                    <img class="mr-3" src="../assets/images/logonotextwhite.png" alt="" width="48" height="48">
-                    <div class="lh-100">
-                        <h2 class="mb-0 lh-100 dashboard-title"><?php echo $_SESSION['usertype'] == 0 ? "Admin Dashboard" : "User Dashboard"; ?></h2>
-                        <small><?php echo $_SESSION['usertype'] == 0 ? "System Management" : "Welcome"; ?></small>
-                    </div>
+        <div class="col-sm-12">
+            <div class="row g-0" style="height: 100vh; overflow: hidden;">
+                <div id="homeSidebarContainer">
+            <div class="home-sidebar-header d-flex justify-content-end align-items-center">
+                <!-- <div class="home-sidebar-title">
+                    <h5 class="mb-0">Navigation</h5>
                 </div> -->
-                <div class="nav flex-column nav-pills" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <a class="nav-link my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="false">
-                        <i class="fas fa-info-circle me-2"></i>Overview
-                    </a>
-                    <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
-                        <i class="fas fa-calendar-alt me-2"></i>Calendar
-                    </a>
-                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">
-                        <i class="fas fa-lightbulb me-2"></i>Thesis Topic Decision
-                    </a>
-                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">
-                        <i class="fas fa-check-circle me-2"></i>Research Title Acceptance
-                    </a>
-                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">
-                        <i class="fas fa-tasks me-2"></i>Requirement Checker
-                    </a>
-                    <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill" href="#research-evaluation" role="tab" aria-controls="research-evaluation" aria-selected="false">
-                        <i class="fas fa-comments me-2"></i>Research Evaluation
-                    </a>
+                <button id="toggleHomeSidebar" class="btn btn-link">
+                    <i class="bi bi-chevron-left"></i>
+                </button>
+            </div>
+            <!-- Sidebar -->
+            <div class="home-sidebar">
+                <div class="nav flex-column nav-pills home-sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                    <!-- Dashboard Overview -->
+                    <div class="home-sidebar-section">
+                        <div class="home-sidebar-category">
+                            Overview
+                        </div>
+                        <div class="home-sidebar-items">
+                            <a class="nav-link my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="false">
+                                <i class="bi bi-house me-2 hollow"></i>
+                                <i class="bi bi-house-fill me-2 filled"></i>
+                                <span class="nav-text">Overview</span>
+                            </a>
+                            <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
+                                <i class="bi bi-calendar-event me-2 hollow"></i>
+                                <i class="bi bi-calendar-event-fill me-2 filled"></i>
+                                <span class="nav-text">Calendar</span>
+                            </a>
+                        </div>
+                    </div> 
+
+                    <!-- Research Management -->
+                    <div class="home-sidebar-section">
+                        <div class="home-sidebar-category">
+                            Research Management
+                        </div>
+                        <div class="home-sidebar-items">
+                            <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">
+                                <i class="bi bi-lightbulb me-2 hollow"></i>
+                                <i class="bi bi-lightbulb-fill me-2 filled"></i>
+                                <span class="nav-text">Thesis Topic Decision</span>
+                            </a>
+                            <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">
+                                <i class="bi bi-check-circle me-2 hollow"></i>
+                                <i class="bi bi-check-circle-fill me-2 filled"></i>
+                                <span class="nav-text">Research Title Acceptance</span>
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Progress Tracking -->
+                    <div class="home-sidebar-section">
+                        <div class="home-sidebar-category">
+                            Progress Tracking
+                        </div>
+                        <div class="home-sidebar-items">
+                            <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">
+                                <i class="bi bi-list-check me-2 hollow"></i>
+                                <i class="bi bi-list-check me-2 filled"></i>
+                                <span class="nav-text">Requirement Checker</span>
+                            </a>
+                            <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill" href="#research-evaluation" role="tab" aria-controls="research-evaluation" aria-selected="false">
+                                <i class="bi bi-chat-dots me-2 hollow"></i>
+                                <i class="bi bi-chat-dots-fill me-2 filled"></i>
+                                <span class="nav-text">Research Evaluation</span>
+                            </a>
+                        </div>
+                    </div>
                 </div>
+            </div>
+            
+            <!-- User Profile Section at bottom -->
+            <div class="profile-footer">
+                <a href="../profile" class="profile-container" title="View Profile" style="text-decoration: none; color: inherit;">
+                    <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                        <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                    <?php else: ?>
+                        <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                    <?php endif; ?>
+                    
+                    <div class="user-info">
+                        <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                        <p class="user-role"><?php 
+                            if ($_SESSION['usertype'] == 0) {
+                                echo "Administrator";
+                            } elseif ($_SESSION['usertype'] == 1) {
+                                echo "Student";
+                            } elseif ($_SESSION['usertype'] == 2) {
+                                echo "Faculty";
+                            } else {
+                                echo "User";
+                            }
+                        ?></p>
+                    </div>
+                </a>
+                
+                <a href="../logout/" class="logout-btn" title="Logout">
+                    <i class="bi bi-power"></i>
+                </a>
             </div>
         </div>
 
-        <div class="col-sm-9">
+        <div id="homeMainContent">
             <div class="tab-content" id="v-pills-tabContent">
                 <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
                     <div class="row"> <!-- Added a row wrapper -->
@@ -659,7 +730,7 @@ error_reporting(E_ALL);
                     <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                                <i class="fas fa-info-circle text-primary fs-4"></i>
+                                <i class="bi bi-info-circle-fill text-primary fs-4"></i>
                             </div>
                             <div>
                                 <h4 class="mb-1 feature-title">Team Overview</h4>
@@ -671,6 +742,8 @@ error_reporting(E_ALL);
                             <!-- Team overview content will be loaded here -->
                         </div>
                     </div>
+                </div>
+            </div>
                 </div>
             </div>
         </div>
@@ -694,6 +767,114 @@ $stmt = $pdo->query("SELECT title FROM research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <script>
+    // ==========================================
+    // COLLAPSIBLE SIDEBAR FUNCTIONALITY - HOME PAGE
+    // ==========================================
+    $(document).ready(function() {
+        // Initialize sidebar toggle functionality
+        initHomePageSidebar();
+    });
+
+    function initHomePageSidebar() {
+        // Remove any existing click handlers to prevent conflicts
+        $('#toggleHomeSidebar').off('click');
+        
+        // Check localStorage for saved sidebar state on page load
+        const sidebarCollapsed = localStorage.getItem('homeSidebarCollapsed') === 'true';
+        if (sidebarCollapsed) {
+            $('#homeSidebarContainer').addClass('collapsed');
+            $('#homeMainContent').addClass('expanded');
+            $('#toggleHomeSidebar').find('i').css('transform', 'rotate(180deg)');
+            $('body').addClass('home-sidebar-collapsed');
+        }
+        
+        // Handle responsive behavior
+        if ($(window).width() <= 576) {
+            // Mobile behavior
+            $('#toggleHomeSidebar').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                $('#homeSidebarContainer').toggleClass('show');
+                
+                // Add overlay for mobile when sidebar is open
+                if ($('#homeSidebarContainer').hasClass('show')) {
+                    if (!$('.home-sidebar-overlay').length) {
+                        $('<div class="home-sidebar-overlay"></div>').appendTo('body');
+                        $('.home-sidebar-overlay').on('click', function() {
+                            $('#homeSidebarContainer').removeClass('show');
+                            $(this).remove();
+                        });
+                    }
+                } else {
+                    $('.home-sidebar-overlay').remove();
+                }
+            });
+        } else {
+            // Desktop behavior
+            $('#toggleHomeSidebar').on('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                // Toggle collapsed state
+                $('#homeSidebarContainer').toggleClass('collapsed');
+                $('#homeMainContent').toggleClass('expanded');
+                
+                // Update icon rotation
+                if ($('#homeSidebarContainer').hasClass('collapsed')) {
+                    $(this).find('i').css('transform', 'rotate(180deg)');
+                    $('body').addClass('home-sidebar-collapsed');
+                } else {
+                    $(this).find('i').css('transform', 'rotate(0deg)');
+                    $('body').removeClass('home-sidebar-collapsed');
+                }
+                
+                // Save state to localStorage
+                localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
+            });
+        }
+        
+        // Handle window resize - reinitialize without infinite recursion
+        $(window).off('resize.homeSidebar').on('resize.homeSidebar', function() {
+            // Only reinitialize if we switch between mobile and desktop
+            const isMobile = $(window).width() <= 576;
+            const wasInitializedForMobile = $('#toggleHomeSidebar').data('mobile-mode') === true;
+            
+            if (isMobile !== wasInitializedForMobile) {
+                $('#toggleHomeSidebar').data('mobile-mode', isMobile);
+                initHomePageSidebar();
+            }
+        });
+        
+        // Mark current mode
+        $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 576);
+        
+        console.log('Home page sidebar toggle functionality initialized');
+    }
+
+    // Add mobile overlay styles dynamically
+    $('<style>')
+        .prop('type', 'text/css')
+        .html(`
+            .home-sidebar-overlay {
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background-color: rgba(0, 0, 0, 0.5);
+                z-index: 999;
+                display: none;
+            }
+            
+            @media (max-width: 576px) {
+                .home-sidebar-overlay {
+                    display: block;
+                }
+            }
+        `)
+        .appendTo('head');
+
     var existingTitles = "<?php echo implode(', ', $titles); ?>";
 </script>
 

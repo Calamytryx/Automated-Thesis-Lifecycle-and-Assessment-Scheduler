@@ -242,7 +242,7 @@ body {
     overflow-y: auto;
     transition: all 0.3s ease;
     background-color:  var(--main-white);
-    border-right: 1px solid var(--neutral-300);;
+    border-right: 1px solid var(--neutral-300); 
     padding: 0;
     display: flex;
     flex-direction: column;
