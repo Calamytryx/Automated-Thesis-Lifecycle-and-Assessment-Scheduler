@@ -789,26 +789,27 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         }
         
         // Handle responsive behavior
-        if ($(window).width() <= 576) {
-            // Mobile behavior
+        if ($(window).width() <= 768) {
+            // Mobile behavior - matches dashboard breakpoint
             $('#toggleHomeSidebar').on('click', function(e) {
                 e.preventDefault();
                 e.stopPropagation();
                 
-                $('#homeSidebarContainer').toggleClass('show');
+                // Toggle collapsed state on mobile
+                $('#homeSidebarContainer').toggleClass('collapsed');
+                $('#homeMainContent').toggleClass('expanded');
                 
-                // Add overlay for mobile when sidebar is open
-                if ($('#homeSidebarContainer').hasClass('show')) {
-                    if (!$('.home-sidebar-overlay').length) {
-                        $('<div class="home-sidebar-overlay"></div>').appendTo('body');
-                        $('.home-sidebar-overlay').on('click', function() {
-                            $('#homeSidebarContainer').removeClass('show');
-                            $(this).remove();
-                        });
-                    }
+                // Update icon rotation and body class
+                if ($('#homeSidebarContainer').hasClass('collapsed')) {
+                    $(this).find('i').css('transform', 'rotate(180deg)');
+                    $('body').addClass('has-collapsed-home-sidebar');
                 } else {
-                    $('.home-sidebar-overlay').remove();
+                    $(this).find('i').css('transform', 'rotate(0deg)');
+                    $('body').removeClass('has-collapsed-home-sidebar');
                 }
+                
+                // Save state to localStorage
+                localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
             });
         } else {
             // Desktop behavior
@@ -823,10 +824,10 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 // Update icon rotation
                 if ($('#homeSidebarContainer').hasClass('collapsed')) {
                     $(this).find('i').css('transform', 'rotate(180deg)');
-                    $('body').addClass('home-sidebar-collapsed');
+                    $('body').addClass('has-collapsed-home-sidebar');
                 } else {
                     $(this).find('i').css('transform', 'rotate(0deg)');
-                    $('body').removeClass('home-sidebar-collapsed');
+                    $('body').removeClass('has-collapsed-home-sidebar');
                 }
                 
                 // Save state to localStorage
@@ -837,7 +838,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         // Handle window resize - reinitialize without infinite recursion
         $(window).off('resize.homeSidebar').on('resize.homeSidebar', function() {
             // Only reinitialize if we switch between mobile and desktop
-            const isMobile = $(window).width() <= 576;
+            const isMobile = $(window).width() <= 768;
             const wasInitializedForMobile = $('#toggleHomeSidebar').data('mobile-mode') === true;
             
             if (isMobile !== wasInitializedForMobile) {
@@ -847,29 +848,23 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         });
         
         // Mark current mode
-        $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 576);
+        $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 768);
         
         console.log('Home page sidebar toggle functionality initialized');
     }
 
-    // Add mobile overlay styles dynamically
+    // Remove legacy mobile overlay styles - now using dashboard responsive approach
     $('<style>')
         .prop('type', 'text/css')
         .html(`
-            .home-sidebar-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background-color: rgba(0, 0, 0, 0.5);
-                z-index: 999;
-                display: none;
+            /* Home sidebar responsive helper styles */
+            body.has-collapsed-home-sidebar {
+                overflow-x: hidden;
             }
             
-            @media (max-width: 576px) {
-                .home-sidebar-overlay {
-                    display: block;
+            @media (max-width: 768px) { 
+                body.has-collapsed-home-sidebar #homeMainContent {
+                    padding-left: 70px;
                 }
             }
         `)

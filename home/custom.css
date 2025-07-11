@@ -377,8 +377,110 @@ body {
     padding: 1rem;
 }
 
-/* Fix for smaller screens */
+/* Responsive Design for Home Sidebar */
 @media (max-width: 768px) {
+    #homeSidebarContainer {
+        width: 100%;
+        padding-right: 0;
+        padding-left: 0;
+        transition: all 0.3s ease;
+        min-height: auto;
+        position: fixed;
+        z-index: 1040;
+        top: 0;
+        left: 0;
+        display: flex;
+        flex-direction: column;
+    }
+    
+    #homeSidebarContainer.collapsed {
+        width: 50px;
+        height: 100vh;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+    }
+
+    #homeSidebarContainer.collapsed .home-sidebar-items,
+    #homeSidebarContainer.collapsed .home-sidebar-category,
+    #homeSidebarContainer.collapsed .profile-footer,
+    #homeSidebarContainer.collapsed .home-sidebar-nav,
+    #homeSidebarContainer.collapsed .home-sidebar-title,
+    #homeSidebarContainer.collapsed .home-sidebar-header {
+        display: none;
+    }
+    
+    #homeSidebarContainer.collapsed #toggleHomeSidebar {
+        visibility: visible !important;
+        position: fixed;
+        top: 50%;
+        left: 10px;
+        transform: translateY(-50%);
+        margin: 0;
+        width: 35px;
+        height: 35px;
+        background-color: var(--main-white);
+        border: 1px solid var(--neutral-300);
+        border-radius: 4px; 
+        box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        padding: 0;
+        z-index: 9999; /* Very high z-index to ensure it's above everything */
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    
+    #homeSidebarContainer.collapsed #toggleHomeSidebar:hover {
+        color: var(--main-primary);
+        cursor: pointer;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+        transform: translateY(-50%) scale(1.05);
+    }
+    
+    .profile-footer {
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        width: 100%;
+        display: flex;
+    }
+    
+    .profile-container {
+        flex-grow: 1;
+    }
+    
+    #homeMainContent {
+        width: 100% !important;
+        padding: 0.5rem 1.5rem; 
+        margin-top: 1rem;
+        height: calc(100vh - 60px);
+        overflow-y: auto;
+        padding-bottom: 70px; 
+        background-color: var(--neutral-50, #f8f9fa);
+    }
+    
+    #homeMainContent.expanded {
+        width: 100% !important;
+        margin-top: 0;
+        margin-left: 0; 
+        padding-left: 70px;
+        height: 100vh;
+    }
+    
+    /* Home sidebar items are still full-width on mobile */
+    .home-sidebar-items {
+        padding-left: 0;
+    }
+    
+    .home-sidebar-nav .nav-link {
+        width: 100%;
+    }
+    
     .tab-pane {
         padding: 0.5rem;
     }
@@ -386,48 +488,95 @@ body {
     .home-sidebar-box {
         margin-bottom: 0.5rem;
     }
-    
-    #homeSidebarContainer {
-        width: 250px;
-    }
-    
-    #homeMainContent {
-        width: calc(100% - 250px);
-        padding: 1rem;
-    }
-    
-    #homeMainContent.expanded {
-        width: calc(100% - 60px);
+} 
+
+/* Profile hover styles for home page */
+.profile-container:hover .user-name {
+    text-decoration: underline;
+    color: var(--main-primary);
+}
+
+/* Home page tab content styling */
+#v-pills-tabContent {
+    padding-bottom: 2rem; 
+    min-height: calc(100vh - 2rem); 
+    max-width: 1320px;
+    margin: 0 auto; 
+}
+
+.tab-content > .tab-pane {
+    padding-top: 1rem;
+    background-color: transparent; 
+    padding: 0.5rem 0; 
+    margin-bottom: 1rem;
+}
+
+/* Tab pane header styling for home page */
+.tab-pane h2, 
+.tab-pane h3, 
+.tab-pane h4, 
+.tab-pane .page-header {
+    margin-bottom: 1rem;
+    color: var(--main-black);
+    font-weight: 600;
+    padding-bottom: 0.5rem;
+}
+
+/* Responsive breakpoints for home content */
+@media (min-width: 1400px) {
+    #v-pills-tabContent {
+        max-width: 1320px;
     }
 }
 
-@media (max-width: 576px) {
-    #homeSidebarContainer {
-        position: fixed;
-        z-index: 1000;
-        left: -250px;
+@media (min-width: 1200px) and (max-width: 1399px) {
+    #v-pills-tabContent {
+        max-width: 1140px;
     }
-    
-    #homeSidebarContainer.show {
-        left: 0;
+}
+
+@media (min-width: 992px) and (max-width: 1199px) {
+    #v-pills-tabContent {
+        max-width: 960px;
     }
-    
-    #homeMainContent {
-        width: 100%;
-        margin-left: 0;
+}
+
+@media (min-width: 768px) and (max-width: 991px) {
+    #v-pills-tabContent {
+        max-width: 720px;
     }
-    
-    .profile-footer {
-        position: fixed;
-        bottom: 0;
-        left: 0;
-        width: 250px;
-        z-index: 1001;
-    }
-    
-    #homeSidebarContainer.show .profile-footer {
-        left: 0;
-    }
+}
+
+.tab-pane {
+    transition: all 0.3s ease;
+}
+
+/* Custom scrollbar styling for homeMainContent */
+#homeMainContent::-webkit-scrollbar {
+    width: 8px;
+}
+
+#homeMainContent::-webkit-scrollbar-track {
+    background: var(--neutral-100, #e6e4e2);
+}
+
+#homeMainContent::-webkit-scrollbar-thumb {
+    background-color: var(--neutral-300, #c9c5bf);
+    border-radius: 4px;
+}
+
+#homeMainContent::-webkit-scrollbar-thumb:hover {
+    background-color: var(--neutral-400, #a8a29e);
+}
+
+/* For content not hidden behind the fixed toggle button */
+body.has-collapsed-home-sidebar #homeMainContent {
+    min-height: 100vh;
+}
+
+/* For button always on top */
+#toggleHomeSidebar {
+    isolation: isolate; 
 }
 
 /* ==========================================
