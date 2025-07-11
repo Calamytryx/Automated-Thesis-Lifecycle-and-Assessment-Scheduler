@@ -1,9 +1,40 @@
 <!-- Defense Schedules Tab -->
-<div class="tab-pane fade my-3" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
-    <button class="btn feature-btn add-btn" data-table="defense_schedules">
-        <i class="fas fa-plus"></i>Add Defense Schedule
-    </button>
-    <div class="d-flex align-items-center mb-3 my-3">
+<div class="tab-pane fade" id="defense-schedules" role="tabpanel" aria-labelledby="defense-schedules-tab">
+    <div class="container-fluid py-4 content-container">
+        <!-- Header with title and description -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-2">Defense Schedules Management</h3>
+                <p class="text-muted">Manage thesis defense schedules, generate automated schedules, and assign panelists to teams</p>
+            </div>
+        </div>
+
+        <!-- Defense Schedule Management Controls -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2 justify-content-end mb-3">
+                    <button class="btn feature-btn add-btn" data-table="defense_schedules">
+                        <i class="fas fa-plus me-2"></i>Add Defense Schedule
+                    </button>
+                    <button type="button" class="btn feature-btn scheduler-btn" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
+                        <i class="fas fa-cog me-2"></i>Scheduler Settings
+                    </button>
+                    <button id="generateSchedule" type="button" class="btn feature-btn generate-btn" disabled>
+                        <i class="fas fa-calendar-plus me-2"></i>Generate Defense Schedule
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings display area -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div id="generationSetting" class="bg-light p-3 rounded" style="display: none;"></div>
+                <span id="scheduleGenerationStatusSpan" class="text-muted"></span>
+            </div>
+        </div>
+
+        <!-- Modal for Scheduler Settings -->
         <div class="modal fade" id="schedulerSettingsModal" tabindex="-1" aria-labelledby="schedulerSettingsModalLabel" aria-hidden="true">
             <div class="modal-dialog">
                 <div class="modal-content">
@@ -29,7 +60,7 @@
 
                                 // Define the correctTimeDuration function in global scope
                                 function correctTimeDuration() {
-                                    if (!timeDurationInput) return; // Guard against undefined
+                                    if (!timeDurationInput) return; // Guard against undefined 
                                     
                                     let value = parseFloat(timeDurationInput.value);
                                     const minVal = parseFloat(timeDurationInput.min) || 0.25;
@@ -438,15 +469,6 @@
             </div>
         </div>
 
-        <button type="button" class="btn feature-btn scheduler-btn" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
-            <i class="fas fa-cog me-1"></i>Scheduler Settings
-        </button>
-
-        <div id="generationSetting"></div>
-
-        <button id="generateSchedule" type="button" class="btn feature-btn generate-btn" disabled>
-            <i class="fas fa-calendar-plus me-1"></i>Generate Defense Schedule
-        </button>
         <?php
         $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM defense_schedules");
         if ($stmt->execute()) {
@@ -483,7 +505,9 @@
                                         "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
                                         "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
                                         "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
-                                    document.getElementById("generationSetting").innerHTML = settingsOutput;
+                                    const generationSettingEl = document.getElementById("generationSetting");
+                                    generationSettingEl.innerHTML = settingsOutput;
+                                    generationSettingEl.style.display = 'block';
 
                                 } else { // Settings are invalid
                                     if(generateScheduleButton) {
@@ -495,9 +519,10 @@
                         });
                     </script>
 
-        <span id="scheduleGenerationStatusSpan" class="ml-2"></span>
-    </div>
-    <div class="table-responsive db-table-container" id="def-sched">
+        <!-- Defense Schedules Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive db-table-container" id="def-sched">
         <table class="table table-bordered table-hover table-sm db-table" id="def-table">
             <thead>
                 <tr>
@@ -520,6 +545,9 @@
             <ul class="pagination justify-content-center">
             </ul>
         </nav>
+                </div>
+            </div> 
+        </div>
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {

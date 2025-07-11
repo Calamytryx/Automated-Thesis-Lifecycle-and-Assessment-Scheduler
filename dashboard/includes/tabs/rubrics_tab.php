@@ -1,14 +1,29 @@
 <!-- Rubrics Tab -->
 <div class="tab-pane fade" id="rubrics" role="tabpanel">
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <h4>Rubrics Management</h4>
-        <button class="btn btn-primary add-btn" data-table="rubrics">
-            <i class="fas fa-plus"></i> Add New Rubric
-        </button>
-    </div>
+    <div class="container-fluid py-4 content-container">
+        <!-- Header with title and description -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <h3 class="mb-2">Rubrics Management</h3>
+                <p class="text-muted">Create and manage evaluation rubrics for thesis defenses, including numerical, yes/no, and pass/fail scoring systems</p>
+            </div>
+        </div>
 
-    <!-- Rubrics Table -->
-    <div class="table-responsive">
+        <!-- Rubrics Management Controls -->
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex flex-wrap gap-2 justify-content-end mb-3">
+                    <button class="btn feature-btn add-btn" data-table="rubrics">
+                        <i class="fas fa-plus me-2"></i>Add New Rubric
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rubrics Table -->
+        <div class="row">
+            <div class="col-12">
+                <div class="table-responsive db-table-container">
         <table class="table table-hover db-table">
             <thead>
                 <tr>
@@ -23,14 +38,17 @@
                 <!-- Data will be loaded dynamically -->
             </tbody>
         </table>
-    </div>
 
-    <!-- Pagination -->
-    <nav aria-label="Rubrics pagination">
-        <ul class="pagination justify-content-center" id="rubricsPagination">
-            <!-- Pagination will be loaded dynamically -->
-        </ul>
-    </nav>
+                <!-- Pagination -->
+                <nav aria-label="Rubrics pagination">
+                    <ul class="pagination justify-content-center" id="rubricsPagination">
+                        <!-- Pagination will be loaded dynamically -->
+                    </ul>
+                </nav>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 
 <!-- Add/Edit Rubric Modal -->
@@ -318,11 +336,58 @@
         width: 60px;
         text-align: center;
     }
+
+    /* Meatball menu styles */
+    .meatball-btn {
+        background: none;
+        border: none;
+        padding: 8px 12px;
+        border-radius: 6px;
+        cursor: pointer;
+        color: #6c757d;
+        transition: all 0.2s ease;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .meatball-btn:hover {
+        background-color: #f8f9fa;
+        color: #495057;
+    }
+
+    .meatball-dropdown-item {
+        display: flex;
+        align-items: center;
+        width: 100%;
+        padding: 8px 16px;
+        border: none;
+        background: none;
+        text-align: left;
+        cursor: pointer;
+        font-size: 14px;
+        color: #495057;
+        transition: background-color 0.2s ease;
+        gap: 8px;
+    }
+
+    .meatball-dropdown-item:hover {
+        background-color: #f8f9fa;
+        color: #212529;
+    }
+
+    .meatball-dropdown-item i {
+        width: 16px;
+        font-size: 12px;
+    }
 </style>
 
 <script>
     // Initialize the rubrics table
     function loadRubrics(page = 1) {
+        // Clear any existing dropdowns
+        document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
+        
         $.ajax({
             url: 'includes/tabs/get_table.php',
             method: 'GET',
@@ -357,18 +422,41 @@
                                 <td>${rubric.name || 'N/A'}</td>
                                 <td>${rubric.description || 'N/A'}</td>
                                 <td>${typeName}</td>
-                                
-                                <td>
-                                    <button class="btn btn-sm btn-primary edit-rubric-btn" data-id="${rubric.id}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-rubric-btn" data-id="${rubric.id}">
-                                        <i class="fas fa-trash"></i>
+                                <td class="action-buttons text-center">
+                                    <button class="meatball-btn" data-rubric-id="${rubric.id}" aria-label="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
                                     </button>
                                 </td>
                             </tr>
                         `;
                             tbody.append(row);
+                            
+                            // Create dropdown portal outside table
+                            const dropdownPortal = document.createElement('div');
+                            dropdownPortal.className = 'meatball-dropdown-portal';
+                            dropdownPortal.id = `rubric-dropdown-${rubric.id}`;
+                            dropdownPortal.style.cssText = `
+                                position: fixed;
+                                background: white; 
+                                border: 1px solid #dee2e6;
+                                border-radius: 6px;
+                                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                                z-index: 9999;
+                                min-width: 120px;
+                                padding: 4px 0;
+                                display: none;
+                            `;
+                            dropdownPortal.innerHTML = `
+                                <button class="meatball-dropdown-item edit-rubric-btn" data-id="${rubric.id}">
+                                    <i class="fas fa-edit"></i>
+                                    Edit
+                                </button>
+                                <button class="meatball-dropdown-item delete-rubric-btn" data-id="${rubric.id}">
+                                    <i class="fas fa-trash-alt"></i>
+                                    Delete
+                                </button>
+                            `;
+                            document.body.appendChild(dropdownPortal);
                         });
                     }
 
@@ -1602,5 +1690,87 @@
 
         // Initial setup on document ready - trigger type change
         // $('#rubric_type').trigger('change.rubricType'); // Already triggered above
+
+        // Meatball menu functionality for rubrics
+        document.addEventListener('click', function(e) {
+            // Only handle meatball clicks if we're in the rubrics tab
+            const rubricsTab = document.getElementById('rubrics');
+            if (!rubricsTab || (!rubricsTab.classList.contains('active') && !rubricsTab.classList.contains('show'))) {
+                return;
+            }
+            
+            // Handle meatball button clicks
+            if (e.target.closest('.meatball-btn') && e.target.closest('#rubrics')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const btn = e.target.closest('.meatball-btn');
+                const rubricId = btn.getAttribute('data-rubric-id');
+                const dropdown = document.getElementById(`rubric-dropdown-${rubricId}`);
+                
+                if (!dropdown) {
+                    console.error('Dropdown not found for rubric:', rubricId);
+                    return;
+                }
+                
+                const isCurrentlyOpen = dropdown.style.display === 'block';
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+                
+                // Toggle current dropdown
+                if (!isCurrentlyOpen) {
+                    // Position the dropdown relative to the button
+                    const btnRect = btn.getBoundingClientRect();
+                    const viewportWidth = window.innerWidth;
+                    const dropdownWidth = 120;
+                    
+                    // Calculate position
+                    let left = btnRect.right - dropdownWidth;
+                    let top = btnRect.bottom + 5;
+                    
+                    // Adjust for mobile screens
+                    if (viewportWidth < 768) {
+                        // On mobile, center the dropdown below the button
+                        left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+                    }
+                    
+                    // Ensure dropdown doesn't go off-screen
+                    if (left < 10) left = 10;
+                    if (left + dropdownWidth > viewportWidth - 10) {
+                        left = viewportWidth - dropdownWidth - 10;
+                    }
+                    
+                    dropdown.style.position = 'fixed';
+                    dropdown.style.top = `${top}px`;
+                    dropdown.style.left = `${left}px`;
+                    dropdown.style.display = 'block';
+                }
+            } 
+            // Close dropdown when clicking outside
+            else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+            }
+        });
+
+        // Handle meatball dropdown item clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.meatball-dropdown-item')) {
+                const item = e.target.closest('.meatball-dropdown-item');
+                
+                // Close the dropdown
+                const dropdown = item.closest('.meatball-dropdown-portal');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+                
+                // The existing edit-rubric-btn and delete-rubric-btn event handlers will handle the action
+                // since we've preserved the same classes on the dropdown items
+            }
+        });
     });
 </script>

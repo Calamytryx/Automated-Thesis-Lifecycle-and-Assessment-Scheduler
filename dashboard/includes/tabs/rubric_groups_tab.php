@@ -8,31 +8,45 @@
 ?>
 <!-- Rubric Groups Tab -->
 <div class="tab-pane fade" id="rubric-groups" role="tabpanel">
-    <div class="d-flex justify-content-between align-items-center my-3">
-        <h4>Rubric Groups Management</h4>
-        <button class="btn btn-primary" id="addRubricGroupBtn">
-            <i class="fas fa-plus"></i> Add New Group
-        </button>
-    </div>
+    <div class="container-fluid py-4 content-container" id="rubric-groups-container">
+        <!-- Header Row -->
+        <div class="row mb-4">
+            <div class="col">
+                <h3 class="mb-2">Rubric Groups Management</h3>
+                <p class="text-muted">Organize rubrics into groups for streamlined assessment management and evaluation workflows.</p>
+            </div>
+        </div>
 
-    <!-- Rubric Groups Table -->
-    <div class="table-responsive">
-        <table class="table table-hover db-table">
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Description</th>
-                    <th>Rubric Count</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="rubricGroupsTableBody">
-                <!-- Data will be loaded dynamically via JS -->
-                <tr><td colspan="4">Loading groups...</td></tr>
-            </tbody>
-        </table>
+        <!-- Action Buttons Row -->
+        <div class="row mb-3">
+            <div class="col">
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <button class="btn feature-btn rubric-group-add-btn" id="addRubricGroupBtn">
+                        <i class="fas fa-plus"></i> Add New Group
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Rubric Groups Table -->
+        <div class="table-responsive">
+            <table class="table table-hover db-table">
+                <thead>
+                    <tr> 
+                        <th>Name</th>
+                        <th>Description</th>
+                        <th>Rubric Count</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="rubricGroupsTableBody">
+                    <!-- Data will be loaded dynamically via JS -->
+                    <tr><td colspan="4">Loading groups...</td></tr>
+                </tbody>
+            </table>
+        </div>
+        <!-- No pagination for now, assuming fewer groups -->
     </div>
-    <!-- No pagination for now, assuming fewer groups -->
 </div>
 
 <!-- Add/Edit Rubric Group Modal -->
@@ -146,16 +160,40 @@ $(document).ready(function() {
                                 <td>${group.name || 'N/A'}</td>
                                 <td>${group.description || 'N/A'}</td>
                                 <td>${group.rubric_count || 0}</td>
-                                <td>
-                                    <button class="btn btn-sm btn-primary edit-group-btn" data-id="${group.id}">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-                                    <button class="btn btn-sm btn-danger delete-group-btn" data-id="${group.id}">
-                                        <i class="fas fa-trash"></i>
+                                <td class="action-buttons text-center">
+                                    <button class="meatball-btn" data-group-id="${group.id}" aria-label="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
                                     </button>
                                 </td>
                             </tr>
                         `);
+                        
+                        // Create dropdown portal outside table
+                        const dropdownPortal = document.createElement('div');
+                        dropdownPortal.className = 'meatball-dropdown-portal';
+                        dropdownPortal.id = `rubric-group-dropdown-${group.id}`;
+                        dropdownPortal.style.cssText = `
+                            position: fixed;
+                            background: white;
+                            border: 1px solid #dee2e6;
+                            border-radius: 6px;
+                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                            z-index: 9999;
+                            min-width: 120px;
+                            padding: 4px 0;
+                            display: none;
+                        `;
+                        dropdownPortal.innerHTML = `
+                            <button class="meatball-dropdown-item edit-group-btn" data-id="${group.id}">
+                                <i class="fas fa-edit"></i>
+                                Edit
+                            </button>
+                            <button class="meatball-dropdown-item delete-group-btn" data-id="${group.id}">
+                                <i class="fas fa-trash-alt"></i>
+                                Delete
+                            </button>
+                        `;
+                        document.body.appendChild(dropdownPortal);
                     });
                 } else {
                     tbody.html('<tr><td colspan="4">No rubric groups found.</td></tr>');
@@ -505,6 +543,95 @@ $(document).ready(function() {
         });
     });
 
+
+    // --- Meatball Menu Functionality ---
+    // Handle meatball button clicks specifically for rubric groups
+    document.addEventListener('click', function(e) {
+        const rubricGroupsTab = document.getElementById('rubric-groups');
+        
+        // Only handle if we're in the rubric groups tab and it's active/visible
+        if (!rubricGroupsTab || (!rubricGroupsTab.classList.contains('active') && !rubricGroupsTab.classList.contains('show'))) {
+            return;
+        }
+        
+        // Handle meatball button clicks
+        if (e.target.closest('.meatball-btn') && e.target.closest('#rubric-groups')) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const btn = e.target.closest('.meatball-btn');
+            const groupId = btn.getAttribute('data-group-id');
+            const dropdown = document.getElementById(`rubric-group-dropdown-${groupId}`);
+            
+            if (!dropdown) {
+                console.error('Dropdown not found for rubric group:', groupId);
+                return;
+            }
+            
+            const isCurrentlyOpen = dropdown.style.display === 'block';
+            
+            // Close all other dropdowns first
+            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                dd.style.display = 'none';
+            });
+            
+            // Toggle current dropdown
+            if (!isCurrentlyOpen) {
+                // Position the dropdown relative to the button
+                const btnRect = btn.getBoundingClientRect();
+                const viewportWidth = window.innerWidth;
+                const dropdownWidth = 120;
+                
+                // Calculate position
+                let left = btnRect.right - dropdownWidth;
+                let top = btnRect.bottom + 5;
+                
+                // Adjust for mobile screens
+                if (viewportWidth < 768) {
+                    // On mobile, center the dropdown below the button
+                    left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+                }
+                
+                // Ensure dropdown doesn't go off-screen
+                if (left < 10) left = 10;
+                if (left + dropdownWidth > viewportWidth - 10) {
+                    left = viewportWidth - dropdownWidth - 10;
+                }
+                
+                dropdown.style.position = 'fixed';
+                dropdown.style.top = `${top}px`;
+                dropdown.style.left = `${left}px`;
+                dropdown.style.display = 'block';
+            }
+        } 
+        // Close dropdown when clicking outside
+        else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                dd.style.display = 'none';
+            });
+        }
+    });
+
+    // Handle meatball dropdown item clicks
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.meatball-dropdown-item')) {
+            const item = e.target.closest('.meatball-dropdown-item');
+            
+            // Only handle if this is a rubric group dropdown item
+            if (!item.classList.contains('edit-group-btn') && !item.classList.contains('delete-group-btn')) {
+                return;
+            }
+            
+            // Close the dropdown
+            const dropdown = item.closest('.meatball-dropdown-portal');
+            if (dropdown) {
+                dropdown.style.display = 'none';
+            }
+            
+            // The existing edit-group-btn and delete-group-btn event handlers will handle the action
+            // since we've preserved the same classes on the dropdown items
+        }
+    });
 
     // --- Initial Load ---
     loadRubricGroups();

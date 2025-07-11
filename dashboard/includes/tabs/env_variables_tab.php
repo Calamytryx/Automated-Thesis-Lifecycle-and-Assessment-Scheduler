@@ -10,60 +10,46 @@
             </div>
         </div>
 
-        <!-- Content Management Navigation Tabs -->
+        <!-- Content Management Controls -->
         <div class="row">
             <div class="col-12">
-                <ul class="nav nav-tabs border-bottom border-dark" id="cmsContentTabs" role="tablist">
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link active" id="all-content-tab" data-bs-toggle="tab" 
-                                data-bs-target="#all-content" type="button" role="tab" 
-                                aria-controls="all-content" aria-selected="true">
-                            <i class="fas fa-th-list me-2"></i>All Content
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="system-settings-tab" data-bs-toggle="tab" 
-                                data-bs-target="#system-settings" type="button" role="tab" 
-                                aria-controls="system-settings" aria-selected="false">
-                            <i class="fas fa-cogs me-2"></i>System Settings
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="page-content-tab" data-bs-toggle="tab" 
-                                data-bs-target="#page-content" type="button" role="tab" 
-                                aria-controls="page-content" aria-selected="false">
-                            <i class="fas fa-file-alt me-2"></i>Page Content
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="announcements-tab" data-bs-toggle="tab" 
-                                data-bs-target="#announcements" type="button" role="tab" 
-                                aria-controls="announcements" aria-selected="false">
-                            <i class="fas fa-bullhorn me-2"></i>Announcements
-                        </button>
-                    </li>
-                    <li class="nav-item" role="presentation">
-                        <button class="nav-link" id="email-templates-tab" data-bs-toggle="tab" 
-                                data-bs-target="#email-templates" type="button" role="tab" 
-                                aria-controls="email-templates" aria-selected="false">
-                            <i class="fas fa-envelope me-2"></i>Email Templates
-                        </button>
-                    </li>
-                </ul>
+                <div class="user-controls-container p-0">
+                    <!-- Search and Filter Row -->
+                    <div class="row g-2 mb-3 align-items-end">
+                        <div class="col-12 col-md-4 col-lg-3">
+                            <!-- CMS Content Type Filter -->
+                            <label class="form-label text-muted small">Content Type</label>
+                            <select class="form-select user-control-height" id="cmsContentTypeSelect">
+                                <option value="all-content">All Content</option>
+                                <option value="system-settings">System Settings</option>
+                                <option value="page-content">Page Content</option>
+                            </select>
+                        </div>
+                        
+                        <div class="col-12 col-md-8 col-lg-9">
+                            <!-- Action buttons container -->
+                            <div class="d-flex gap-2 justify-content-end flex-wrap">
+                                <button class="btn feature-btn add-btn user-control-height" data-table="env_variables" id="addSettingBtn" style="display: none;">
+                                    <i class="fas fa-plus me-2"></i>Add Setting
+                                </button>
+                                <button class="btn feature-btn page-content-add-btn user-control-height" id="addPageContentBtn" style="display: none;">
+                                    <i class="fas fa-plus me-2"></i>Add Page Content
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 
-        <!-- Content Management Tab Content -->
-        <div class="tab-content pt-4" id="cmsContentTabsContent">
-            <!-- All Content Tab -->
-            <div class="tab-pane fade show active" id="all-content" role="tabpanel" aria-labelledby="all-content-tab">
+        <!-- Content Management Content -->
+        <div class="pt-4" id="cmsContentContainer">
+            <!-- All Content View (Default) -->
+            <div id="all-content-view">
                 <!-- System Settings Section -->
-                <div class="mb-5">
+                <div class="mb-5" id="system-settings-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0">System Settings</h4>
-                        <button class="btn feature-btn add-btn" data-table="env_variables">
-                            <i class="fas fa-plus me-2"></i>Add Setting
-                        </button>
                     </div>
                     <div class="table-responsive">
                         <?php 
@@ -79,7 +65,7 @@
                                     <h5 class="mb-0"><?php echo htmlspecialchars($prefix == 'ALLOWED' ? $prefix . ' Inactivity Time' : $prefix . ' Settings'); ?></h5>
                                 </div>
                                 <div class="table-responsive">
-                                    <table class="table table-bordered table-hover table-sm db-table">
+                                    <table class="table table-bordered table-hover table-sm db-table m-0">
                                         <thead>
                                             <tr>
                                                 <th class="ps-4">Name</th>
@@ -114,14 +100,11 @@
                                                     </td>
                                                     <td class="text-muted">
                                                         <?php echo !empty($variable['description']) ? htmlspecialchars($variable['description']) : '<em>No description</em>'; ?>
-                                                    </td>
-                                                    <td class="text-center">
-                                                        <button class="btn btn-sm btn-outline-primary edit-btn" 
-                                                                data-table="env_variables" 
-                                                                data-id="<?php echo $variable['id']; ?>">
-                                                            <i class="fas fa-edit me-1"></i>Edit
-                                                        </button>
-                                                    </td>
+                                                    </td>                                                <td class="text-center">
+                                                    <button class="meatball-btn" data-env-id="<?php echo $variable['id']; ?>">
+                                                        <i class="fas fa-ellipsis-v"></i>
+                                                    </button>
+                                                </td>
                                                 </tr>
                                             <?php endforeach; ?>
                                         </tbody>
@@ -134,219 +117,78 @@
                 </div>
 
                 <!-- Page Content Section -->
-                <div class="mb-5">
+                <div class="mb-5" id="page-content-section">
                     <div class="d-flex justify-content-between align-items-center mb-4">
                         <h4 class="mb-0">Page Content</h4>
-                        <button class="btn feature-btn page-content-btn" id="addPageContent">
-                            <i class="fas fa-plus me-2"></i>Add Page Content
-                        </button>
                     </div>
                     <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm db-table">
+                        <table class="table table-bordered table-hover table-sm db-table m-0">
                             <thead>
                                 <tr>
-                                    <th class="ps-4">Page</th>
+                                    <th class="ps-4">Page Title</th>
+                                    <th>Slug</th>
                                     <th>Last Updated</th>
                                     <th>Status</th>
                                     <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        Home Page
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Page ID: 1 | URL: /home | Created: 2023-01-15 | Last Modified By: Admin"></i>
-                                    </td>
-                                    <td>2023-05-15</td>
-                                    <td><span class="badge bg-success">Published</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        About Page
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Page ID: 2 | URL: /about | Created: 2023-01-20 | Last Modified By: Admin"></i>
-                                    </td>
-                                    <td>2023-04-20</td>
-                                    <td><span class="badge bg-success">Published</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        FAQ Page
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Page ID: 3 | URL: /faq | Created: 2023-02-05 | Last Modified By: Admin"></i>
-                                    </td>
-                                    <td>2023-03-10</td>
-                                    <td><span class="badge bg-warning">Draft</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <hr class="border-dark my-5">
-                </div>
-
-                <!-- Announcements Section -->
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Announcements</h4>
-                        <button class="btn feature-btn add-btn" id="addAnnouncement">
-                            <i class="fas fa-plus me-2"></i>Add Announcement
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm db-table">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">Title</th>
-                                    <th>Date</th>
-                                    <th>Target Audience</th>
-                                    <th>Status</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        Thesis Defense Schedule Released
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Announcement ID: 1 | Created: 2023-05-18 | Author: Admin | Content: The thesis defense schedule for this semester has been released. Please check your email for details."></i>
-                                    </td>
-                                    <td>2023-05-20</td>
-                                    <td>All Students</td>
-                                    <td><span class="badge bg-success">Published</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        New Rubric Guidelines
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Announcement ID: 2 | Created: 2023-05-12 | Author: Admin | Content: New rubric guidelines have been published for faculty members. Please review them before the next evaluation."></i>
-                                    </td>
-                                    <td>2023-05-15</td>
-                                    <td>Faculty</td>
-                                    <td><span class="badge bg-success">Published</span></td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <hr class="border-dark my-5">
-                </div>
-
-                <!-- Email Templates Section -->
-                <div class="mb-5">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h4 class="mb-0">Email Templates</h4>
-                        <button class="btn feature-btn add-btn" id="addEmailTemplate">
-                            <i class="fas fa-plus me-2"></i>Add Template
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm db-table">
-                            <thead>
-                                <tr>
-                                    <th class="ps-4">Template Name</th>
-                                    <th>Subject</th>
-                                    <th>Last Updated</th>
-                                    <th class="text-center">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        Welcome Email
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Template ID: 1 | Created: 2023-04-05 | Variables: {user_name}, {login_url} | Content: Welcome to the Thesis Management System, {user_name}! Your account has been created successfully."></i>
-                                    </td>
-                                    <td>Welcome to the Thesis Management System</td>
-                                    <td>2023-04-10</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
-                                <tr>
-                                    <td class="ps-4 fw-medium">
-                                        Defense Schedule Notification
-                                        <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                           data-bs-toggle="tooltip" 
-                                           data-bs-placement="top" 
-                                           title="Template ID: 2 | Created: 2023-03-20 | Variables: {user_name}, {defense_date}, {defense_time}, {defense_location} | Content: Dear {user_name}, your thesis defense has been scheduled for {defense_date} at {defense_time} in {defense_location}."></i>
-                                    </td>
-                                    <td>Your Defense Schedule Has Been Set</td>
-                                    <td>2023-03-25</td>
-                                    <td class="text-center">
-                                        <button class="btn btn-sm btn-outline-primary">
-                                            <i class="fas fa-edit me-1"></i>Edit
-                                        </button>
-                                    </td>
-                                </tr>
+                            <tbody id="pageContentTableBody">
+                                <?php
+                                // Get all page content from database
+                                $page_content_query = "SELECT * FROM page_content ORDER BY updated_at DESC";
+                                try {
+                                    $page_content_stmt = $pdo->prepare($page_content_query);
+                                    $page_content_stmt->execute();
+                                    $pages = $page_content_stmt->fetchAll(PDO::FETCH_ASSOC);
+                                    
+                                    if (count($pages) > 0) {
+                                        foreach ($pages as $page) {
+                                            $status_badge = $page['status'] === 'published' ? 'bg-success' : 'bg-warning';
+                                            echo '<tr>
+                                                <td class="ps-4 fw-medium">
+                                                    ' . htmlspecialchars($page['title']) . '
+                                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
+                                                       data-bs-toggle="tooltip" 
+                                                       data-bs-placement="top" 
+                                                       title="Page ID: ' . $page['id'] . ' | URL: /' . $page['slug'] . ' | Created: ' . $page['created_at'] . '"></i>
+                                                </td>
+                                                <td>' . htmlspecialchars($page['slug']) . '</td>
+                                                <td>' . date('Y-m-d', strtotime($page['updated_at'])) . '</td>
+                                                <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>                                        <td class="text-center">
+                                            <button class="meatball-btn" data-page-id="' . $page['id'] . '">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </td>
+                                            </tr>';
+                                        }
+                                    } else {
+                                        echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
+                                    }
+                                } catch (PDOException $e) {
+                                    echo '<tr><td colspan="5" class="text-center text-danger">Error loading pages: ' . $e->getMessage() . '</td></tr>';
+                                }
+                                ?>
                             </tbody>
                         </table>
                     </div>
                 </div>
             </div>
 
-            <!-- System Settings Tab -->
-            <div class="tab-pane fade" id="system-settings" role="tabpanel" aria-labelledby="system-settings-tab">
+            <!-- System Settings Only View -->
+            <div id="system-settings-view" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">System Settings</h4>
-                    <button class="btn feature-btn add-btn" data-table="env_variables">
-                        <i class="fas fa-plus me-2"></i>Add Setting
-                    </button>
                 </div>
 
                 <div class="table-responsive">
-                    <?php 
-                    $groupedVariables = [];
-                    foreach ($envVariables as $variable) {
-                        $prefix = explode('_', $variable['key'])[0];
-                        $groupedVariables[$prefix][] = $variable;
-                    }
-                    
-                    foreach ($groupedVariables as $prefix => $variables): ?>
+                    <!-- Same grouped variables content as above -->
+                    <?php foreach ($groupedVariables as $prefix => $variables): ?>
                         <div class="settings-group mb-4">
                             <div class="settings-group-header px-4 py-3">
                                 <h5 class="mb-0"><?php echo htmlspecialchars($prefix == 'ALLOWED' ? $prefix . ' Inactivity Time' : $prefix . ' Settings'); ?></h5>
                             </div>
                             <div class="table-responsive">
-                                <table class="table table-bordered table-hover table-sm db-table">
+                                <table class="table table-bordered table-hover table-sm db-table m-0">
                                     <thead>
                                         <tr>
                                             <th class="ps-4">Name</th>
@@ -383,10 +225,8 @@
                                                     <?php echo !empty($variable['description']) ? htmlspecialchars($variable['description']) : '<em>No description</em>'; ?>
                                                 </td>
                                                 <td class="text-center">
-                                                    <button class="btn btn-sm btn-outline-primary edit-btn" 
-                                                            data-table="env_variables" 
-                                                            data-id="<?php echo $variable['id']; ?>">
-                                                        <i class="fas fa-edit me-1"></i>Edit
+                                                    <button class="meatball-btn" data-env-id="<?php echo $variable['id']; ?>">
+                                                        <i class="fas fa-ellipsis-v"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -399,16 +239,13 @@
                 </div>
             </div>
 
-            <!-- Page Content Tab -->
-            <div class="tab-pane fade" id="page-content" role="tabpanel" aria-labelledby="page-content-tab">
+            <!-- Page Content Only View -->
+            <div id="page-content-view" style="display: none;">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h4 class="mb-0">Page Content</h4>
-                    <button class="btn feature-btn page-content-btn" id="addPageContentBtn">
-                        <i class="fas fa-plus me-2"></i>Add Page Content
-                    </button>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered table-hover table-sm db-table">
+                    <table class="table table-bordered table-hover table-sm db-table m-0">
                         <thead>
                             <tr>
                                 <th class="ps-4">Page Title</th>
@@ -418,163 +255,34 @@
                                 <th class="text-center">Actions</th>
                             </tr>
                         </thead>
-                        <tbody id="pageContentTableBody">
+                        <tbody>
+                            <!-- Same page content as above -->
                             <?php
-                            // Get all page content from database
-                            $page_content_query = "SELECT * FROM page_content ORDER BY updated_at DESC";
-                            try {
-                                $page_content_stmt = $pdo->prepare($page_content_query);
-                                $page_content_stmt->execute();
-                                $pages = $page_content_stmt->fetchAll(PDO::FETCH_ASSOC);
-                                
-                                if (count($pages) > 0) {
-                                    foreach ($pages as $page) {
-                                        $status_badge = $page['status'] === 'published' ? 'bg-success' : 'bg-warning';
-                                        echo '<tr>
-                                            <td class="ps-4 fw-medium">
-                                                ' . htmlspecialchars($page['title']) . '
-                                                <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                                   data-bs-toggle="tooltip" 
-                                                   data-bs-placement="top" 
-                                                   title="Page ID: ' . $page['id'] . ' | URL: /' . $page['slug'] . ' | Created: ' . $page['created_at'] . '"></i>
-                                            </td>
-                                            <td>' . htmlspecialchars($page['slug']) . '</td>
-                                            <td>' . date('Y-m-d', strtotime($page['updated_at'])) . '</td>
-                                            <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>
-                                            <td class="text-center">
-                                                <button class="btn btn-sm btn-outline-primary edit-page-btn" 
-                                                        data-id="' . $page['id'] . '">
-                                                    <i class="fas fa-edit me-1"></i>Edit
-                                                </button>
-                                                <button class="btn btn-sm btn-outline-danger delete-page-btn" 
-                                                        data-id="' . $page['id'] . '">
-                                                    <i class="fas fa-trash me-1"></i>Delete
-                                                </button>
-                                            </td>
-                                        </tr>';
-                                    }
-                                } else {
-                                    echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
+                            if (count($pages) > 0) {
+                                foreach ($pages as $page) {
+                                    $status_badge = $page['status'] === 'published' ? 'bg-success' : 'bg-warning';
+                                    echo '<tr>
+                                        <td class="ps-4 fw-medium">
+                                            ' . htmlspecialchars($page['title']) . '
+                                            <i class="fas fa-info-circle text-primary ms-2 info-icon" 
+                                               data-bs-toggle="tooltip" 
+                                               data-bs-placement="top" 
+                                               title="Page ID: ' . $page['id'] . ' | URL: /' . $page['slug'] . ' | Created: ' . $page['created_at'] . '"></i>
+                                        </td>
+                                        <td>' . htmlspecialchars($page['slug']) . '</td> 
+                                        <td>' . date('Y-m-d', strtotime($page['updated_at'])) . '</td>
+                                        <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>
+                                        <td class="text-center">
+                                            <button class="meatball-btn" data-page-id="' . $page['id'] . '">
+                                                <i class="fas fa-ellipsis-v"></i>
+                                            </button>
+                                        </td>
+                                    </tr>';
                                 }
-                            } catch (PDOException $e) {
-                                echo '<tr><td colspan="5" class="text-center text-danger">Error loading pages: ' . $e->getMessage() . '</td></tr>';
+                            } else {
+                                echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
                             }
                             ?>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Announcements Tab -->
-            <div class="tab-pane fade" id="announcements" role="tabpanel" aria-labelledby="announcements-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Announcements</h4>
-                    <button class="btn feature-btn add-btn" id="addAnnouncement">
-                        <i class="fas fa-plus me-2"></i>Add Announcement
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover table-sm db-table">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">Title</th>
-                                <th>Date</th>
-                                <th>Target Audience</th>
-                                <th>Status</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    Thesis Defense Schedule Released
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Announcement ID: 1 | Created: 2023-05-18 | Author: Admin | Content: The thesis defense schedule for this semester has been released. Please check your email for details."></i>
-                                </td>
-                                <td>2023-05-20</td>
-                                <td>All Students</td>
-                                <td><span class="badge bg-success">Published</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    New Rubric Guidelines
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Announcement ID: 2 | Created: 2023-05-12 | Author: Admin | Content: New rubric guidelines have been published for faculty members. Please review them before the next evaluation."></i>
-                                </td>
-                                <td>2023-05-15</td>
-                                <td>Faculty</td>
-                                <td><span class="badge bg-success">Published</span></td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <!-- Email Templates Tab -->
-            <div class="tab-pane fade" id="email-templates" role="tabpanel" aria-labelledby="email-templates-tab">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h4 class="mb-0">Email Templates</h4>
-                    <button class="btn feature-btn add-btn" id="addEmailTemplate">
-                        <i class="fas fa-plus me-2"></i>Add Template
-                    </button>
-                </div>
-                <div class="table-responsive">
-                    <table class="table table-bordered table-hover table-sm db-table">
-                        <thead>
-                            <tr>
-                                <th class="ps-4">Template Name</th>
-                                <th>Subject</th>
-                                <th>Last Updated</th>
-                                <th class="text-center">Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    Welcome Email
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Template ID: 1 | Created: 2023-04-05 | Variables: {user_name}, {login_url} | Content: Welcome to the Thesis Management System, {user_name}! Your account has been created successfully."></i>
-                                </td>
-                                <td>Welcome to the Thesis Management System</td>
-                                <td>2023-04-10</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
-                            <tr>
-                                <td class="ps-4 fw-medium">
-                                    Defense Schedule Notification
-                                    <i class="fas fa-info-circle text-primary ms-2 info-icon" 
-                                       data-bs-toggle="tooltip" 
-                                       data-bs-placement="top" 
-                                       title="Template ID: 2 | Created: 2023-03-20 | Variables: {user_name}, {defense_date}, {defense_time}, {defense_location} | Content: Dear {user_name}, your thesis defense has been scheduled for {defense_date} at {defense_time} in {defense_location}."></i>
-                                </td>
-                                <td>Your Defense Schedule Has Been Set</td>
-                                <td>2023-03-25</td>
-                                <td class="text-center">
-                                    <button class="btn btn-sm btn-outline-primary">
-                                        <i class="fas fa-edit me-1"></i>Edit
-                                    </button>
-                                </td>
-                            </tr>
                         </tbody>
                     </table>
                 </div>
@@ -800,5 +508,181 @@
                 }
             });
         }
+        
+        // --- CMS Content Type Dropdown Functionality ---
+        const cmsContentTypeSelect = document.getElementById('cmsContentTypeSelect');
+        const addSettingBtn = document.getElementById('addSettingBtn');
+        const addPageContentBtn = document.getElementById('addPageContentBtn');
+        const allContentView = document.getElementById('all-content-view');
+        const systemSettingsView = document.getElementById('system-settings-view');
+        const pageContentView = document.getElementById('page-content-view');
+
+        // Handle dropdown change
+        cmsContentTypeSelect.addEventListener('change', function() {
+            const selectedType = this.value;
+            
+            // Hide all views first
+            allContentView.style.display = 'none';
+            systemSettingsView.style.display = 'none';
+            pageContentView.style.display = 'none';
+            
+            // Hide all buttons first
+            addSettingBtn.style.display = 'none';
+            addPageContentBtn.style.display = 'none';
+            
+            // Show appropriate view and button based on selection
+            switch(selectedType) {
+                case 'all-content':
+                    allContentView.style.display = 'block';
+                    // Show both buttons for "All Content" view
+                    addSettingBtn.style.display = 'inline-flex';
+                    addPageContentBtn.style.display = 'inline-flex';
+                    break;
+                case 'system-settings':
+                    systemSettingsView.style.display = 'block';
+                    addSettingBtn.style.display = 'inline-flex';
+                    break;
+                case 'page-content':
+                    pageContentView.style.display = 'block';
+                    addPageContentBtn.style.display = 'inline-flex';
+                    break;
+            }
+        });
+
+        // Initialize default view
+        cmsContentTypeSelect.dispatchEvent(new Event('change'));
+
+        // --- Meatball Menu Functionality ---
+        // Handle meatball button clicks
+        document.addEventListener('click', function(e) {
+            // Only handle meatball clicks if we're in the env-variables tab
+            const envVariablesTab = document.getElementById('env-variables');
+            if (!envVariablesTab || (!envVariablesTab.classList.contains('active') && !envVariablesTab.classList.contains('show'))) {
+                return;
+            }
+            
+            // Handle meatball button clicks for environment variables
+            if (e.target.closest('.meatball-btn[data-env-id]')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const btn = e.target.closest('.meatball-btn');
+                const envId = btn.getAttribute('data-env-id');
+                const existingDropdown = document.getElementById(`env-dropdown-${envId}`);
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+                
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                }
+                
+                // Create new dropdown
+                const dropdownPortal = document.createElement('div');
+                dropdownPortal.className = 'meatball-dropdown-portal';
+                dropdownPortal.id = `env-dropdown-${envId}`;
+                
+                const rect = btn.getBoundingClientRect();
+                const top = rect.bottom + window.scrollY;
+                const left = rect.left + window.scrollX - 100;
+                
+                dropdownPortal.style.cssText = `
+                    position: absolute;
+                    top: ${top}px;
+                    left: ${left}px;
+                    z-index: 1000;
+                    background: white;
+                    border: 1px solid #dee2e6;
+                    border-radius: 0.375rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    min-width: 120px;
+                    padding: 4px 0;
+                    display: block;
+                `;
+                dropdownPortal.innerHTML = `
+                    <button class="meatball-dropdown-item edit-btn" data-table="env_variables" data-id="${envId}">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                `;
+                document.body.appendChild(dropdownPortal);
+            }
+            // Handle meatball button clicks for page content
+            else if (e.target.closest('.meatball-btn[data-page-id]')) {
+                e.preventDefault();
+                e.stopPropagation();
+                
+                const btn = e.target.closest('.meatball-btn');
+                const pageId = btn.getAttribute('data-page-id');
+                const existingDropdown = document.getElementById(`page-dropdown-${pageId}`);
+                
+                // Close all other dropdowns first
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+                
+                if (existingDropdown) {
+                    existingDropdown.remove();
+                }
+                
+                // Create new dropdown
+                const dropdownPortal = document.createElement('div');
+                dropdownPortal.className = 'meatball-dropdown-portal';
+                dropdownPortal.id = `page-dropdown-${pageId}`;
+                
+                const rect = btn.getBoundingClientRect();
+                const top = rect.bottom + window.scrollY;
+                const left = rect.left + window.scrollX - 100;
+                
+                dropdownPortal.style.cssText = `
+                    position: absolute;
+                    top: ${top}px;
+                    left: ${left}px;
+                    z-index: 1000;
+                    background: white;
+                    border: 1px solid #dee2e6;
+                    border-radius: 0.375rem;
+                    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+                    min-width: 120px;
+                    padding: 4px 0;
+                    display: block;
+                `;
+                dropdownPortal.innerHTML = `
+                    <button class="meatball-dropdown-item edit-page-btn" data-id="${pageId}">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                    <button class="meatball-dropdown-item delete-page-btn" data-id="${pageId}">
+                        <i class="fas fa-trash-alt"></i>
+                        Delete
+                    </button>
+                `;
+                document.body.appendChild(dropdownPortal);
+            }
+            // Close dropdown when clicking outside
+            else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                    dd.style.display = 'none';
+                });
+            }
+        });
+
+        // Handle meatball dropdown item clicks
+        document.addEventListener('click', function(e) {
+            if (e.target.closest('.meatball-dropdown-item')) {
+                const item = e.target.closest('.meatball-dropdown-item');
+                
+                // Close the dropdown
+                const dropdown = item.closest('.meatball-dropdown-portal');
+                if (dropdown) {
+                    dropdown.style.display = 'none';
+                }
+                
+                // The existing edit-btn, edit-page-btn, and delete-page-btn event handlers will handle the action
+                // since we've preserved the same classes on the dropdown items
+            }
+        });
     });
 </script>

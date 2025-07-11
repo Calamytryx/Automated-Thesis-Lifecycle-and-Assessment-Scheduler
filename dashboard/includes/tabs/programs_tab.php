@@ -1,11 +1,23 @@
 <!-- Programs Tab -->
 <div class="tab-pane fade" id="programs" role="tabpanel" aria-labelledby="programs-tab">
   <div class="container-fluid py-4 content-container">
-    <div class="d-flex justify-content-between mb-3">
-      <h3>Programs</h3>
-      <button class="btn feature-btn add-btn" data-table="programs">
-        <i class="fas fa-plus me-2"></i> Add Program
-      </button>
+    <!-- Header with title and description -->
+    <div class="row mb-4">
+      <div class="col-12">
+        <h3 class="mb-2">Programs</h3>
+        <p class="text-muted">Manage academic programs and their associated colleges</p>
+      </div>
+    </div>
+ 
+    <div class="row">
+      <div class="col-12">
+        <div class="d-flex justify-content-between mb-3">
+          <div></div>
+          <button class="btn feature-btn add-btn" data-table="programs">
+            <i class="fas fa-plus me-2"></i> Add Program
+          </button>
+        </div>
+      </div>
     </div>
 
     <div class="table-responsive db-table-container">

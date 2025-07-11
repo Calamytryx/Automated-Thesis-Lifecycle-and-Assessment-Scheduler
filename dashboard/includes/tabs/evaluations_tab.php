@@ -1,36 +1,54 @@
 <!-- Evaluations Tab -->
 <div class="tab-pane fade" id="evaluations" role="tabpanel" aria-labelledby="evaluations-tab">
-    <div class="d-flex justify-content-between align-items-center mb-3 my-3">
-        <h4 id="evaluations-view-title">Evaluator View</h4> <!-- Add a title to indicate the current view -->
-        <button type="button" class="btn btn-primary" id="change-view">
-            Switch to Student View <!-- Make button text dynamic -->
-        </button>
+    <div class="container-fluid py-4 content-container" id="evaluations-container">
+        <!-- Header Row -->
+        <div class="row mb-4">
+            <div class="col">
+                <h3 class="mb-2" id="evaluations-view-title">Evaluator View</h3>
+                <p class="text-muted" id="evaluations-view-description">View detailed evaluation results for each evaluator's assessment of students and teams.</p>
+            </div>
+        </div>
+
+        <!-- Action Buttons Row -->
+        <div class="row mb-3">
+            <div class="col">
+                <div class="d-flex flex-wrap gap-2 justify-content-end">
+                    <button type="button" class="btn feature-btn evaluations-switch-btn" id="change-view">
+                        <i class="fas fa-exchange-alt"></i> Switch to Student View
+                    </button>
+                </div>
+            </div> 
+        </div>
+
+        <!-- Evaluations Table -->
+        <div class="table-responsive">
+            <table class="table table-hover db-table" id="evaluations-table">
+                <thead>
+                    <!-- Headers will be dynamically populated via AJAX -->
+                    <tr>
+                        <!-- Default headers for evaluator view -->
+                        <th>Team Name</th>
+                        <th>Evaluator</th>
+                        <th>Student</th>
+                        <th>Group Score</th>
+                        <th>Individual Score</th>
+                        <th>Total Score</th>
+                        <th>Comments</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- Data will be dynamically populated via AJAX based on evaluation_per_panel and related tables -->
+                </tbody>
+            </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Page navigation" id="evaluations-pagination">
+            <ul class="pagination justify-content-center">
+                <!-- Pagination will be dynamically populated via AJAX -->
+            </ul>
+        </nav>
     </div>
-    <div class="table-responsive db-table-container">
-        <table class="table table-bordered table-hover table-sm db-table" id="evaluations-table">
-            <thead>
-                <!-- Headers will be dynamically populated via AJAX -->
-                <tr>
-                    <!-- Default headers for evaluator view -->
-                    <th>Team Name</th>
-                    <th>Evaluator</th>
-                    <th>Student</th>
-                    <th>Group Score</th>
-                    <th>Individual Score</th>
-                    <th>Total Score</th>
-                    <th>Comments</th>
-                </tr>
-            </thead>
-            <tbody>
-                <!-- Data will be dynamically populated via AJAX based on evaluation_per_panel and related tables -->
-            </tbody>
-        </table>
-    </div>
-    <nav aria-label="Page navigation" id="evaluations-pagination">
-        <ul class="pagination justify-content-center">
-            <!-- Pagination will be dynamically populated via AJAX -->
-        </ul>
-    </nav>
 </div>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
@@ -40,6 +58,7 @@
         const evaluationsPagination = document.querySelector('#evaluations-pagination .pagination');
         const changeViewButton = document.getElementById('change-view');
         const viewTitle = document.getElementById('evaluations-view-title');
+        const viewDescription = document.getElementById('evaluations-view-description');
 
         // Function to update table headers based on the view
         const updateTableHeaders = (view) => {
@@ -272,10 +291,12 @@
                          // Still update view title/button even if no data
                          if (view === 'student') {
                             viewTitle.textContent = 'Student View (Aggregated)';
-                            changeViewButton.textContent = 'Switch to Evaluator View';
+                            viewDescription.textContent = 'View aggregated evaluation scores and averages for each student across all evaluators.';
+                            changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Evaluator View';
                          } else {
                             viewTitle.textContent = 'Evaluator View (Detailed)';
-                            changeViewButton.textContent = 'Switch to Student View';
+                            viewDescription.textContent = 'View detailed evaluation results for each evaluator\'s assessment of students and teams.';
+                            changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Student View';
                          }
                          return; // Stop further processing in this .then block
                     }
@@ -289,10 +310,12 @@
                     // Update view title and button text
                     if (view === 'student') {
                         viewTitle.textContent = 'Student View (Aggregated)';
-                        changeViewButton.textContent = 'Switch to Evaluator View';
+                        viewDescription.textContent = 'View aggregated evaluation scores and averages for each student across all evaluators.';
+                        changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Evaluator View';
                     } else {
                         viewTitle.textContent = 'Evaluator View (Detailed)';
-                        changeViewButton.textContent = 'Switch to Student View';
+                        viewDescription.textContent = 'View detailed evaluation results for each evaluator\'s assessment of students and teams.';
+                        changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Student View';
                     }
                 })
                 .catch(error => { // Step 3: Catch any errors from fetch or .then blocks
@@ -304,10 +327,12 @@
                     // Optionally update title/button on error too
                      if (view === 'student') {
                         viewTitle.textContent = 'Student View (Error)';
-                        changeViewButton.textContent = 'Switch to Evaluator View';
+                        viewDescription.textContent = 'Unable to load student evaluation data. Please try again later.';
+                        changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Evaluator View';
                      } else {
                         viewTitle.textContent = 'Evaluator View (Error)';
-                        changeViewButton.textContent = 'Switch to Student View';
+                        viewDescription.textContent = 'Unable to load evaluator assessment data. Please try again later.';
+                        changeViewButton.innerHTML = '<i class="fas fa-exchange-alt"></i> Switch to Student View';
                      }
                 });
         }; // End of loadEvaluations function definition

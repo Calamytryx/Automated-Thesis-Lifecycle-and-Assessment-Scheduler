@@ -761,8 +761,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $('#page_slug').val(slug);
         });
 
-        // Add Page Content Button Click Handler - Use class selector for ALL page content buttons
-        $(document).on('click', '.page-content-btn', function(e) {
+        // Add Page Content Button Click Handler - Use class selector for ALL page content buttons and specific ID 
+        $(document).on('click', '.page-content-btn, #addPageContentBtn', function(e) {
             // Prevent default behavior and stop event propagation
             e.preventDefault();
             e.stopPropagation();
