@@ -102,7 +102,7 @@
                                                         <?php echo !empty($variable['description']) ? htmlspecialchars($variable['description']) : '<em>No description</em>'; ?>
                                                     </td>                                                <td class="text-center">
                                                     <button class="meatball-btn" data-env-id="<?php echo $variable['id']; ?>">
-                                                        <i class="fas fa-ellipsis-v"></i>
+                                                        <i class="fas fa-ellipsis-h"></i> 
                                                     </button>
                                                 </td>
                                                 </tr>
@@ -156,7 +156,7 @@
                                                 <td>' . date('Y-m-d', strtotime($page['updated_at'])) . '</td>
                                                 <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>                                        <td class="text-center">
                                             <button class="meatball-btn" data-page-id="' . $page['id'] . '">
-                                                <i class="fas fa-ellipsis-v"></i>
+                                                <i class="fas fa-ellipsis-h"></i>
                                             </button>
                                         </td>
                                             </tr>';
@@ -226,7 +226,7 @@
                                                 </td>
                                                 <td class="text-center">
                                                     <button class="meatball-btn" data-env-id="<?php echo $variable['id']; ?>">
-                                                        <i class="fas fa-ellipsis-v"></i>
+                                                        <i class="fas fa-ellipsis-h"></i>
                                                     </button>
                                                 </td>
                                             </tr>
@@ -274,7 +274,7 @@
                                         <td><span class="badge ' . $status_badge . '">' . ucfirst($page['status']) . '</span></td>
                                         <td class="text-center">
                                             <button class="meatball-btn" data-page-id="' . $page['id'] . '">
-                                                <i class="fas fa-ellipsis-v"></i>
+                                                <i class="fas fa-ellipsis-h"></i>
                                             </button>
                                         </td>
                                     </tr>';

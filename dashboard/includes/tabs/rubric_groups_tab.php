@@ -144,6 +144,9 @@ $(document).ready(function() {
 
     // --- Load Initial Data ---
     function loadRubricGroups() {
+        // Clear any existing dropdowns to prevent duplicates
+        document.querySelectorAll('.meatball-dropdown-portal[id^="rubric-group-dropdown-"]').forEach(portal => portal.remove());
+        
         // TODO: Replace with actual AJAX call to get_rubric_groups.php
         console.log("Loading rubric groups...");
         $.ajax({
@@ -167,33 +170,6 @@ $(document).ready(function() {
                                 </td>
                             </tr>
                         `);
-                        
-                        // Create dropdown portal outside table
-                        const dropdownPortal = document.createElement('div');
-                        dropdownPortal.className = 'meatball-dropdown-portal';
-                        dropdownPortal.id = `rubric-group-dropdown-${group.id}`;
-                        dropdownPortal.style.cssText = `
-                            position: fixed;
-                            background: white;
-                            border: 1px solid #dee2e6;
-                            border-radius: 6px;
-                            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-                            z-index: 9999;
-                            min-width: 120px;
-                            padding: 4px 0;
-                            display: none;
-                        `;
-                        dropdownPortal.innerHTML = `
-                            <button class="meatball-dropdown-item edit-group-btn" data-id="${group.id}">
-                                <i class="fas fa-edit"></i>
-                                Edit
-                            </button>
-                            <button class="meatball-dropdown-item delete-group-btn" data-id="${group.id}">
-                                <i class="fas fa-trash-alt"></i>
-                                Delete
-                            </button>
-                        `;
-                        document.body.appendChild(dropdownPortal);
                     });
                 } else {
                     tbody.html('<tr><td colspan="4">No rubric groups found.</td></tr>');
@@ -547,66 +523,79 @@ $(document).ready(function() {
     // --- Meatball Menu Functionality ---
     // Handle meatball button clicks specifically for rubric groups
     document.addEventListener('click', function(e) {
-        const rubricGroupsTab = document.getElementById('rubric-groups');
-        
-        // Only handle if we're in the rubric groups tab and it's active/visible
-        if (!rubricGroupsTab || (!rubricGroupsTab.classList.contains('active') && !rubricGroupsTab.classList.contains('show'))) {
-            return;
-        }
-        
-        // Handle meatball button clicks
-        if (e.target.closest('.meatball-btn') && e.target.closest('#rubric-groups')) {
+        // Handle meatball button clicks for rubric groups
+        if (e.target.closest('.meatball-btn[data-group-id]')) {
             e.preventDefault();
             e.stopPropagation();
             
             const btn = e.target.closest('.meatball-btn');
             const groupId = btn.getAttribute('data-group-id');
-            const dropdown = document.getElementById(`rubric-group-dropdown-${groupId}`);
-            
-            if (!dropdown) {
-                console.error('Dropdown not found for rubric group:', groupId);
-                return;
-            }
-            
-            const isCurrentlyOpen = dropdown.style.display === 'block';
+            let dropdown = document.getElementById(`rubric-group-dropdown-${groupId}`);
             
             // Close all other dropdowns first
-            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+            document.querySelectorAll('.meatball-dropdown-portal[id^="rubric-group-dropdown-"]').forEach(dd => {
                 dd.style.display = 'none';
             });
             
-            // Toggle current dropdown
-            if (!isCurrentlyOpen) {
-                // Position the dropdown relative to the button
-                const btnRect = btn.getBoundingClientRect();
-                const viewportWidth = window.innerWidth;
-                const dropdownWidth = 120;
-                
-                // Calculate position
-                let left = btnRect.right - dropdownWidth;
-                let top = btnRect.bottom + 5;
-                
-                // Adjust for mobile screens
-                if (viewportWidth < 768) {
-                    // On mobile, center the dropdown below the button
-                    left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
-                }
-                
-                // Ensure dropdown doesn't go off-screen
-                if (left < 10) left = 10;
-                if (left + dropdownWidth > viewportWidth - 10) {
-                    left = viewportWidth - dropdownWidth - 10;
-                }
-                
-                dropdown.style.position = 'fixed';
-                dropdown.style.top = `${top}px`;
-                dropdown.style.left = `${left}px`;
-                dropdown.style.display = 'block';
+            // If dropdown doesn't exist, create it
+            if (!dropdown) {
+                console.log('Creating dropdown for rubric group:', groupId);
+                dropdown = document.createElement('div');
+                dropdown.className = 'meatball-dropdown-portal';
+                dropdown.id = `rubric-group-dropdown-${groupId}`;
+                dropdown.style.cssText = `
+                    position: fixed;
+                    background: white;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                    z-index: 9999;
+                    min-width: 120px;
+                    padding: 4px 0; 
+                    display: none;
+                `;
+                dropdown.innerHTML = `
+                    <button class="meatball-dropdown-item edit-group-btn" data-id="${groupId}">
+                        <i class="fas fa-edit"></i>
+                        Edit
+                    </button>
+                    <button class="meatball-dropdown-item delete-group-btn" data-id="${groupId}">
+                        <i class="fas fa-trash-alt"></i>
+                        Delete
+                    </button>
+                `;
+                document.body.appendChild(dropdown);
             }
+            
+            // Position and show the dropdown
+            const btnRect = btn.getBoundingClientRect();
+            const viewportWidth = window.innerWidth;
+            const dropdownWidth = 120;
+            
+            // Calculate position
+            let left = btnRect.right - dropdownWidth;
+            let top = btnRect.bottom + 5;
+            
+            // Adjust for mobile screens
+            if (viewportWidth < 768) {
+                // On mobile, center the dropdown below the button
+                left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+            }
+            
+            // Ensure dropdown doesn't go off-screen
+            if (left < 10) left = 10;
+            if (left + dropdownWidth > viewportWidth - 10) {
+                left = viewportWidth - dropdownWidth - 10;
+            }
+            
+            dropdown.style.position = 'fixed';
+            dropdown.style.top = `${top}px`;
+            dropdown.style.left = `${left}px`;
+            dropdown.style.display = 'block';
         } 
-        // Close dropdown when clicking outside
-        else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
-            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+        // Close dropdown when clicking outside - only for rubric group dropdowns
+        else if (!e.target.closest('.meatball-dropdown-portal[id^="rubric-group-dropdown-"]') && !e.target.closest('.meatball-btn[data-group-id]')) {
+            document.querySelectorAll('.meatball-dropdown-portal[id^="rubric-group-dropdown-"]').forEach(dd => {
                 dd.style.display = 'none';
             });
         }
@@ -622,10 +611,16 @@ $(document).ready(function() {
                 return;
             }
             
+            const groupId = item.getAttribute('data-id');
+            console.log('Clicked dropdown item for rubric group:', groupId);
+            
             // Close the dropdown
             const dropdown = item.closest('.meatball-dropdown-portal');
             if (dropdown) {
                 dropdown.style.display = 'none';
+                console.log('Dropdown found and hidden for rubric group:', groupId);
+            } else {
+                console.log('Dropdown not found for rubric group:', groupId);
             }
             
             // The existing edit-group-btn and delete-group-btn event handlers will handle the action

@@ -650,9 +650,9 @@ border-top: solid 1px var(--main-bg-dark);
     font-size: 14px;
 }
 
-.meatball-dropdown-item.edit-item {
+/* .meatball-dropdown-item.edit-item {
     color: var(--bs-primary);
-}
+} */ 
 
 .meatball-dropdown-item.delete-item {
     color: var(--bs-danger);

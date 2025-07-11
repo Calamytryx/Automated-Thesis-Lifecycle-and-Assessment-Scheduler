@@ -26,7 +26,7 @@ body {
 .content-container h2.fs-1 {
     font-size: 2.5rem;
     text-transform: lowercase;
-    color: #333;
+    color: var(--neutral-800);
     font-weight: 600;
 }
 
@@ -34,7 +34,7 @@ body {
 .requirements-title {
     font-size: 3rem;
     text-transform: lowercase;
-    color: #333;
+    color: var(--neutral-800);
     font-weight: 500;
     line-height: 1.1;
     margin-bottom: 0;
@@ -44,7 +44,7 @@ body {
 .content-container h2.requirements-title {
     font-size: 3rem;
     text-transform: lowercase;
-    color: #333;
+    color: var(--neutral-800);
     font-weight: 500;
     line-height: 1.1;
     margin-bottom: 0;
@@ -182,7 +182,7 @@ body {
 .content-container h3 {
     font-size: 1.25rem;
     font-weight: 400;
-    color: #555;
+    color: var(--neutral-700);
     margin-bottom: 0;
     border-bottom: none;
     padding-bottom: 0;
@@ -374,7 +374,7 @@ body {
 .sidebar-nav .nav-link {
     border-radius: 0; 
     margin: 0; 
-    color: #242424;
+    color: var(--main-black);
     transition: all 0.2s ease;
     padding: 8px 1.5rem; /* px-4 equivalent */
     font-size: 0.85rem; 
@@ -540,7 +540,7 @@ body {
 
 .profile-footer .user-role {
     font-size: 0.7rem;
-    color: #777;
+    color: var(--neutral-700);
     margin: 0;
 }
 
@@ -943,7 +943,7 @@ footer {
 
 .users-tab-controls .form-select:focus {
     border-color: var(--main-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--main-primary-rgb), 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
 .feature-btn.add-btn {
@@ -1377,7 +1377,7 @@ footer {
 
 .thesis-topics-filter-controls .form-select:focus {
     border-color: var(--main-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--main-primary-rgb), 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
 .thesis-topic-title {
@@ -1397,7 +1397,7 @@ footer {
 
 .thesis-topics-tab-controls .form-select:focus {
     border-color: var(--main-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--main-primary-rgb), 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
 .thesis-topics-field-controls .form-select {
@@ -1411,7 +1411,7 @@ footer {
 
 .thesis-topics-field-controls .form-select:focus {
     border-color: var(--main-primary);
-    box-shadow: 0 0 0 0.2rem rgba(var(--main-primary-rgb), 0.25);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
 #thesisTopicDecisionToolContainer .decision-tool-container {
@@ -1512,17 +1512,17 @@ footer {
 }
 
 #rubric-groups .meatball-dropdown-item.delete-group-btn {
-    color: var(--danger-500);
+    color: var(--main-btn-del);
 }
 
 #rubric-groups .meatball-dropdown-item.edit-group-btn:hover {
-    background-color: rgba(var(--main-primary-rgb), 0.1);
+    background-color: rgba(158, 42, 47, 0.1);
     color: var(--main-primary);
 }
 
 #rubric-groups .meatball-dropdown-item.delete-group-btn:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: var(--danger-500);
+    background-color: rgba(231, 24, 24, 0.1);
+    color: var(--main-btn-del);
 }
 
 #rubric-groups .meatball-dropdown-item i {
@@ -1644,17 +1644,17 @@ footer {
 }
 
 #requirements .meatball-dropdown-item.delete-btn {
-    color: var(--danger-500);
+    color: var(--main-btn-del);
 }
 
 #requirements .meatball-dropdown-item.edit-btn:hover {
-    background-color: rgba(var(--main-primary-rgb), 0.1);
+    background-color: rgba(158, 42, 47, 0.1);
     color: var(--main-primary);
 }
 
 #requirements .meatball-dropdown-item.delete-btn:hover {
-    background-color: rgba(220, 53, 69, 0.1);
-    color: var(--danger-500);
+    background-color: rgba(231, 24, 24, 0.1);
+    color: var(--main-btn-del);
 }
 
 #requirements .meatball-dropdown-item i {
@@ -1685,7 +1685,7 @@ footer {
 #env-variables .meatball-btn {
     background: none;
     border: none;
-    color: var(--bs-secondary);
+    color: var(--neutral-600);
     cursor: pointer;
     padding: 4px 8px;
     border-radius: 4px;
@@ -1694,8 +1694,8 @@ footer {
 }
 
 #env-variables .meatball-btn:hover {
-    background-color: var(--bs-light);
-    color: var(--bs-dark);
+    background-color: var(--neutral-100);
+    color: var(--main-black);
 }
 
 #env-variables .meatball-dropdown-portal {
@@ -1714,14 +1714,14 @@ footer {
     background: none;
     border: none;
     text-align: left;
-    color: #212529;
+    color: var(--main-black);
     text-decoration: none;
     font-size: 14px;
     transition: background-color 0.15s ease-in-out;
 }
 
 #env-variables .meatball-dropdown-item:hover {
-    background-color: #f8f9fa;
+    background-color: var(--neutral-100);
 }
 
 #env-variables .meatball-dropdown-item i {
@@ -1742,6 +1742,158 @@ footer {
 }
 
 #env-variables .settings-group-header h5 {
-    color: #495057;
+    color: var(--neutral-700);
     font-weight: 600;
+}
+
+/* Guide Tab Styles */
+.guide-card {
+    transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    border: 1px solid var(--neutral-300);
+}
+
+.guide-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+    border-color: var(--main-primary);
+}
+
+.guide-card .card-body {
+    padding: 2rem 1.5rem;
+}
+
+.guide-card .fa-3x {
+    color: var(--main-primary) !important;
+}
+
+/* Guide Modal Styles */
+#guide .modal-body h6 {
+    color: var(--main-primary);
+    font-weight: 600;
+    margin-top: 1.5rem;
+    margin-bottom: 0.75rem;
+}
+
+#guide .modal-body h6:first-child {
+    margin-top: 0;
+}
+
+#guide .modal-body ul {
+    margin-bottom: 1rem;
+}
+
+#guide .modal-body ol {
+    margin-bottom: 1rem;
+}
+
+#guide .modal-body li {
+    margin-bottom: 0.25rem;
+}
+
+#guide .modal-body .alert {
+    margin-top: 1.5rem;
+    margin-bottom: 0;
+}
+
+#guide .badge {
+    font-size: 0.75rem;
+}
+
+/* Responsive Guide Cards */
+@media (max-width: 767.98px) {
+    .guide-card .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .guide-card .fa-3x {
+        font-size: 2rem !important;
+    }
+}
+
+/* Meatball button and dropdown styles */
+.meatball-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.meatball-btn:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+.meatball-dropdown-portal {
+    position: fixed;
+    background: white;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 9999;
+    min-width: 120px;
+    padding: 4px 0;
+    display: none;
+}
+
+.meatball-dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    transition: background-color 0.2s ease;
+    gap: 8px;
+}
+
+.meatball-dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+/* Delete button styles for specific tabs */
+/* Rubrics tab delete button */
+.meatball-dropdown-item.delete-rubric-btn {
+    color: var(--bs-danger);
+}
+
+.meatball-dropdown-item.delete-rubric-btn i {
+    color: inherit;
+} 
+
+/* Rubric groups tab delete button */
+.meatball-dropdown-item.delete-group-btn {
+    color: var(--bs-danger);
+}
+
+.meatball-dropdown-item.delete-group-btn i {
+    color: inherit;
+}
+
+/* Requirements tab delete button */
+.meatball-dropdown-item.delete-btn[data-table="requirements"] {
+    color: var(--bs-danger);
+}
+
+.meatball-dropdown-item.delete-btn[data-table="requirements"] i {
+    color: inherit;
+}
+
+/* Page content delete button in env variables/CMS tab */
+.meatball-dropdown-item.delete-page-btn {
+    color: var(--bs-danger);
+}
+
+.meatball-dropdown-item.delete-page-btn i {
+    color: inherit;
 }
