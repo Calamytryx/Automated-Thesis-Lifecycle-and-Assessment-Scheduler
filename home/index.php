@@ -191,7 +191,8 @@ error_reporting(E_ALL);
                         </div>
                         <?php if ($_SESSION['usertype'] == 2): ?>
                             <?php
-                            $stmt = $pdo->query("SELECT id, name, due_date FROM icei_38697196_coecsathesis.requirements;");
+                            // Local: requirements | Deployed: icei_38697196_coecsathesis.requirements
+                            $stmt = $pdo->query("SELECT id, name, due_date FROM requirements;");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
                             <div class="requirements-list col-sm-3 my-3">
@@ -255,9 +256,11 @@ error_reporting(E_ALL);
                                                     LIMIT 1 -- Added for debugging: Get *any* group ID if one exists
                                                 ) AS rubric_group_id
                                             FROM
-                                                icei_38697196_coecsathesis.defense_schedules ds
+                                                -- Local: defense_schedules | Deployed: icei_38697196_coecsathesis.defense_schedules
+                                                defense_schedules ds
                                             JOIN
-                                                icei_38697196_coecsathesis.teams t ON ds.team_id = t.id
+                                                -- Local: teams | Deployed: icei_38697196_coecsathesis.teams
+                                                teams t ON ds.team_id = t.id
                                             WHERE
                                                 ds.panelist_id = :user_id1 -- Changed placeholder
                                                 OR ds.panelist_id2 = :user_id2 -- Changed placeholder
@@ -336,9 +339,11 @@ error_reporting(E_ALL);
                         <?php elseif ($_SESSION['usertype'] == 1): ?>
                             <?php
                             $stmt = $pdo->query("
+                                                    -- Local: requirements | Deployed: icei_38697196_coecsathesis.requirements
+                                                    -- Local: team_requirements | Deployed: icei_38697196_coecsathesis.team_requirements
                                                     SELECT r.name, r.due_date, tr.status 
-                                                    FROM icei_38697196_coecsathesis.requirements r
-                                                    LEFT JOIN icei_38697196_coecsathesis.team_requirements tr ON r.id = tr.requirement_id;
+                                                    FROM requirements r
+                                                    LEFT JOIN team_requirements tr ON r.id = tr.requirement_id;
                                                 ");
                             $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
                             ?>
@@ -684,7 +689,8 @@ include '../assets/layouts/footer.php'
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
 <?php
-$stmt = $pdo->query("SELECT title FROM icei_38697196_coecsathesis.research_titles;");
+// Local: research_titles | Deployed: icei_38697196_coecsathesis.research_titles
+$stmt = $pdo->query("SELECT title FROM research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <script>

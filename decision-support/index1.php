@@ -6,19 +6,23 @@ require '../assets/setup/db.inc.php';
 
     $team_id =32;
 
-$scheduleStmt = $pdo->prepare("SELECT id FROM icei_38697196_coecsathesis.defense_schedules WHERE team_id = ?");
+// Local: defense_schedules | Deployed: icei_38697196_coecsathesis.defense_schedules
+$scheduleStmt = $pdo->prepare("SELECT id FROM defense_schedules WHERE team_id = ?");
 $scheduleStmt->execute([$team_id]);
 $schedule = $scheduleStmt->fetch(PDO::FETCH_ASSOC);
 
 // Fetch file_name from team_requirements where team_id = $team_id and requirement_id = 5
-$requirementStmt = $pdo->prepare("SELECT file_name FROM icei_38697196_coecsathesis.team_requirements WHERE team_id = ? AND requirement_id = 5");
+// Local: team_requirements | Deployed: icei_38697196_coecsathesis.team_requirements
+$requirementStmt = $pdo->prepare("SELECT file_name FROM team_requirements WHERE team_id = ? AND requirement_id = 5");
 $requirementStmt->execute([$team_id]);
 $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
 
 try {
   // Fetch team details
-  $teamStmt = $pdo->prepare("SELECT name, program FROM icei_38697196_coecsathesis.teams WHERE id = ?");
-  $researchTitleStmt = $pdo->prepare("SELECT title FROM icei_38697196_coecsathesis.research_titles WHERE team_id = ?");
+  // Local: teams | Deployed: icei_38697196_coecsathesis.teams
+  $teamStmt = $pdo->prepare("SELECT name, program FROM teams WHERE id = ?");
+  // Local: research_titles | Deployed: icei_38697196_coecsathesis.research_titles
+  $researchTitleStmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
 
   if (isset($team_id)) {
     $teamStmt->execute([$team_id]);
@@ -36,30 +40,33 @@ try {
   }
 
   // Fetch team members excluding the adviser
+  // Local: team_members | Deployed: icei_38697196_coecsathesis.team_members
   $membersStmt = $pdo->prepare("
         SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname, team_members.role, user_id
-        FROM icei_38697196_coecsathesis.team_members 
-        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
-        WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role != 'Adviser'
+        FROM team_members 
+        JOIN users ON team_members.user_id = users.id 
+        WHERE team_members.team_id = ? AND team_members.role != 'Adviser'
     ");
   $membersStmt->execute([$team_id]);
   $members = $membersStmt->fetchAll(PDO::FETCH_ASSOC);
 
   // Get the count of team members excluding the adviser
+  // Local: team_members | Deployed: icei_38697196_coecsathesis.team_members
   $membersCountStmt = $pdo->prepare("
     SELECT COUNT(*) as total_members
-    FROM icei_38697196_coecsathesis.team_members
+    FROM team_members
     WHERE team_id = ? AND role != 'Adviser'
 ");
   $membersCountStmt->execute([$team_id]);
   $totalMembers = $membersCountStmt->fetchColumn();
 
   // Fetch adviser information
+  // Local: team_members | Deployed: icei_38697196_coecsathesis.team_members
   $adviserStmt = $pdo->prepare("
         SELECT CONCAT(users.first_name, ' ', users.last_name) AS fullname
-        FROM icei_38697196_coecsathesis.team_members 
-        JOIN users ON icei_38697196_coecsathesis.team_members.user_id = users.id 
-        WHERE icei_38697196_coecsathesis.team_members.team_id = ? AND icei_38697196_coecsathesis.team_members.role = 'Adviser'
+        FROM team_members 
+        JOIN users ON team_members.user_id = users.id 
+        WHERE team_members.team_id = ? AND team_members.role = 'Adviser'
         LIMIT 1
     ");
   $adviserStmt->execute([$team_id]);
