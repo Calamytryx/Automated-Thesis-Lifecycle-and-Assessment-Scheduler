@@ -45,6 +45,234 @@ error_reporting(E_ALL);
 ?>
 
 <script>
+    // Move fetchTeamOverview to global scope
+    function fetchTeamOverview(teamId = null) {
+        const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
+        
+        fetch(url)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const teamOverviewContent = document.getElementById('teamOverviewContent');
+                    
+                    let content = '';                        // Team Selector (if multiple teams available)
+                        if (data.teams.length > 1) {
+                            content += `
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <div class="card team-selector-card">
+                                            <div class="card-body">
+                                                <h6 class="card-subtitle mb-3 text-muted">Select Team</h6>
+                                                <select id="teamSelector" class="form-select">
+                                                    ${data.teams.map(team => 
+                                                        `<option value="${team.id}" ${team.id == data.selectedTeam.id ? 'selected' : ''}>${team.name}</option>`
+                                                    ).join('')}
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        }
+
+                        // Current Team Info
+                        content += `
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card team-info-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center">
+                                                <div>
+                                                    <h5 class="card-title mb-1">${data.selectedTeam.name}</h5>
+                                                    <p class="text-muted mb-0">Team Overview</p>
+                                                </div>
+                                                <div class="text-end">
+                                                    <div class="d-flex gap-3">
+                                                        <div class="text-center">
+                                                            <div class="h4 mb-0 text-success">${data.completedCount}</div>
+                                                            <small class="text-muted">Completed</small>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div class="h4 mb-0 text-warning">${data.pendingCount}</div>
+                                                            <small class="text-muted">Pending</small>
+                                                        </div>
+                                                        <div class="text-center">
+                                                            <div class="h4 mb-0">${data.totalRequirements}</div>
+                                                            <small class="text-muted">Total</small>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                        // Progress Overview
+                        const progressPercentage = data.totalRequirements > 0 ? Math.round((data.completedCount / data.totalRequirements) * 100) : 0;
+                        content += `
+                            <div class="row mb-4">
+                                <div class="col-12">
+                                    <div class="card progress-overview-card">
+                                        <div class="card-body">
+                                            <div class="d-flex justify-content-between align-items-center mb-2">
+                                                <h6 class="card-subtitle mb-0">Overall Progress</h6>
+                                                <span class="badge bg-dark">${progressPercentage}%</span>
+                                            </div>
+                                            <div class="progress" style="height: 8px;">
+                                                <div class="progress-bar bg-success" role="progressbar" style="width: ${progressPercentage}%" aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;                        // Requirements by Category
+                        content += `
+                            <div class="row">
+                                <!-- Completed Requirements -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="card requirements-completed-card h-100">
+                                        <div class="card-header requirements-header bg-transparent pb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Completed</h6>
+                                                    <small class="text-muted">${data.completedCount} requirements</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body pt-3">
+                                            ${data.requirements.completed.length > 0 
+                                                ? data.requirements.completed.map(req => `
+                                                    <div class="d-flex align-items-center py-2 border-bottom border-light">
+                                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                                                        <span class="flex-grow-1">${req.name}</span>
+                                                    </div>
+                                                `).join('')
+                                                : '<p class="text-muted mb-0">No completed requirements yet</p>'
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Pending Requirements -->
+                                <div class="col-md-6 mb-4">
+                                    <div class="card requirements-pending-card h-100">
+                                        <div class="card-header requirements-header bg-transparent pb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Pending</h6>
+                                                    <small class="text-muted">${data.pendingCount} requirements</small>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body pt-3">
+                                            ${data.requirements.pending.length > 0 
+                                                ? data.requirements.pending.map(req => {
+                                                    const statusIcon = req.status === 'submitted' ? 'bi-hourglass-split text-info' : 
+                                                                      req.status === 'rejected' ? 'bi-x-circle-fill text-danger' : 
+                                                                      'bi-circle text-muted';
+                                                    const statusText = req.status === 'submitted' ? 'Submitted' : 
+                                                                      req.status === 'rejected' ? 'Rejected' : 
+                                                                      'Not Started';
+                                                    return `
+                                                        <div class="d-flex align-items-center py-2 border-bottom border-light">
+                                                            <i class="bi ${statusIcon} me-2"></i>
+                                                            <div class="flex-grow-1">
+                                                                <div>${req.name}</div>
+                                                                <small class="text-muted">${statusText}</small>
+                                                            </div>
+                                                        </div>
+                                                    `;
+                                                }).join('')
+                                                : '<p class="text-muted mb-0">All requirements completed!</p>'
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;                        // Defense Schedule
+                        content += `
+                            <div class="row">
+                                <div class="col-12">
+                                    <div class="card defense-schedule-card">
+                                        <div class="card-header defense-schedule-header bg-transparent pb-3">
+                                            <div class="d-flex align-items-center">
+                                                <div>
+                                                    <h6 class="mb-0">Next Defense Schedule</h6>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="card-body pt-3">
+                                            ${data.defense 
+                                                ? `
+                                                    <div class="row g-3">
+                                                        <div class="col-sm-6 col-lg-3">
+                                                            <div class="text-center p-3 bg-light rounded">
+                                                                <i class="bi bi-calendar3 text-muted mb-2 d-block"></i>
+                                                                <div class="fw-semibold">${new Date(data.defense.schedule_date).toLocaleDateString()}</div>
+                                                                <small class="text-muted">Date</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-6 col-lg-3">
+                                                            <div class="text-center p-3 bg-light rounded">
+                                                                <i class="bi bi-clock text-muted mb-2 d-block"></i>
+                                                                <div class="fw-semibold">${data.defense.start_time} - ${data.defense.end_time}</div>
+                                                                <small class="text-muted">Time</small>
+                                                            </div>
+                                                        </div>
+                                                        <div class="col-sm-6 col-lg-3">
+                                                            <div class="text-center p-3 bg-light rounded">
+                                                                <i class="bi bi-geo-alt text-muted mb-2 d-block"></i>
+                                                                <div class="fw-semibold">${data.defense.room || 'TBA'}</div>
+                                                                <small class="text-muted">Room</small>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                `
+                                                : `
+                                                    <div class="text-center py-4">
+                                                        <i class="bi bi-calendar-x text-muted mb-2" style="font-size: 2rem;"></i>
+                                                        <p class="text-muted mb-0">No defense scheduled yet</p>
+                                                    </div>
+                                                `
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+
+                    teamOverviewContent.innerHTML = content;
+                    
+                    // Add event listener for team selector after content is inserted
+                    const teamSelector = document.getElementById('teamSelector');
+                    if (teamSelector) {
+                        teamSelector.addEventListener('change', function() {
+                            fetchTeamOverview(this.value);
+                        });
+                    }
+                } else {
+                    console.error(data.message);
+                    document.getElementById('teamOverviewContent').innerHTML = `
+                        <div class="alert alert-warning" role="alert">
+                            <i class="bi bi-exclamation-triangle me-2"></i>
+                            ${data.message}
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching team overview:', error);
+                document.getElementById('teamOverviewContent').innerHTML = `
+                    <div class="alert alert-danger" role="alert">
+                        <i class="bi bi-exclamation-circle me-2"></i>
+                        Failed to load team overview. Please try again.
+                    </div>
+                `;
+            });
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
         // Check if there's a previously selected tab stored in localStorage
         const activeTab = localStorage.getItem("activeTab") || "overview";
@@ -94,52 +322,6 @@ error_reporting(E_ALL);
         // Fetch team overview content on page load if the overview tab is active
         if (activeTab === "overview") {
             fetchTeamOverview();
-        }
-
-        function fetchTeamOverview() {
-            fetch('includes/get_team_overview.php')
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const teamOverviewContent = document.getElementById('teamOverviewContent');
-                        let content = `<div class="card mb-4">
-                                            <div class="card-body">
-                                                <h5 class="card-title">Team: ${data.team.name}</h5>
-                                            </div>
-                                        </div>`;
-
-                        content += '<div class="card mb-4"><div class="card-body"><h6 class="card-title">Requirements</h6>';
-                        data.requirements.forEach(req => {
-                            const statusClass = req.status === 'approved' ? 'bg-success' : req.status === 'submitted' ? 'bg-warning' : 'bg-danger';
-                            const progressValue = req.status === 'approved' ? 100 : req.status === 'submitted' ? 50 : 0;
-                            content += `<div class="mb-3">
-                                            <label>${req.name}</label>
-                                            <div class="progress">
-                                                <div class="progress-bar ${statusClass}" role="progressbar" style="width: ${progressValue}%" aria-valuenow="${progressValue}" aria-valuemin="0" aria-valuemax="100">${req.status ? req.status : 'Not Submitted'}</div>
-                                            </div>
-                                        </div>`;
-                        });
-                        content += '</div></div>';
-
-                        if (data.defense) {
-                            content += `<div class="card mb-4">
-                                            <div class="card-body">
-                                                <h6 class="card-title">Next Defense Schedule</h6>
-                                                <p>Date: ${data.defense.schedule_date}</p>
-                                                <p>Time: ${data.defense.start_time} - ${data.defense.end_time}</p>
-                                                <p>Room: ${data.defense.room}</p>
-                                            </div>
-                                        </div>`;
-                        } else {
-                            content += '<div class="card mb-4"><div class="card-body"><h6 class="card-title">Next Defense Schedule</h6><p>No defense scheduled</p></div></div>';
-                        }
-
-                        teamOverviewContent.innerHTML = content;
-                    } else {
-                        console.error(data.message);
-                    }
-                })
-                .catch(error => console.error('Error fetching team overview:', error));
         }
     });
 </script>
@@ -727,19 +909,22 @@ error_reporting(E_ALL);
                 </div>
 
                 <div class="tab-pane fade" id="overview" role="tabpanel" aria-labelledby="overview-link">
-                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
-                        <div class="d-flex align-items-center mb-4">
-                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                                <i class="bi bi-info-circle-fill text-primary fs-4"></i>
-                            </div>
-                            <div>
-                                <h4 class="mb-1 feature-title">Team Overview</h4>
-                                <p class="text-muted mb-0">Track your requirement progress and next defense schedule</p>
+                    <div class="container-fluid py-4 content-container team-overview">
+                        <!-- Header with title and description -->
+                        <div class="row mb-4">
+                            <div class="col-12">
+                                <h3 class="mb-2">Team Overview</h3>
+                                <p class="text-muted">Track your requirement progress and next defense schedule</p>
                             </div>
                         </div>
 
-                        <div id="teamOverviewContent">
-                            <!-- Team overview content will be loaded here -->
+                        <!-- Team Overview Content -->
+                        <div class="row">
+                            <div class="col-12">
+                                <div id="teamOverviewContent">
+                                    <!-- Team overview content will be loaded here -->
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

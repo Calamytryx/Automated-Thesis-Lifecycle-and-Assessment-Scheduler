@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jul 12, 2025 at 11:25 AM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Host: sql302.iceiy.com
+-- Generation Time: Jun 11, 2025 at 10:34 AM
+-- Server version: 10.6.19-MariaDB
+-- PHP Version: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -18,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `coecsa_thesis`
+-- Database: `icei_38697196_coecsathesis`
 --
 
 -- --------------------------------------------------------
@@ -100,15 +101,6 @@ CREATE TABLE `defense_schedules` (
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `defense_schedules`
---
-
-INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`) VALUES
-(11, 2, 60, 63, 66, '2025-06-25', '10:00:00', '12:00:00', 'a', 'scheduled', '2025-06-24 15:19:25'),
-(12, 3, 59, 64, 67, '2025-06-25', '08:00:00', '10:00:00', 'a', 'scheduled', '2025-06-24 15:19:25'),
-(13, 4, 58, 176, 65, '2025-06-25', '10:00:00', '12:00:00', 'a', 'scheduled', '2025-06-24 15:19:25');
 
 -- --------------------------------------------------------
 
@@ -502,8 +494,7 @@ INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at
 (64, 64, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:32:10', '2025-04-26 06:32:10'),
 (65, 65, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:33:41', '2025-04-26 06:33:41'),
 (66, 66, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:34:14', '2025-04-26 06:34:14'),
-(67, 67, 'a', NULL, NULL, NULL, '2025-04-27 00:30:22', '2025-04-27 00:30:22'),
-(68, 68, 'dasdasda', NULL, NULL, NULL, '2025-06-28 15:32:09', '2025-06-28 15:32:09');
+(67, 67, 'a', NULL, NULL, NULL, '2025-04-27 00:30:22', '2025-04-27 00:30:22');
 
 -- --------------------------------------------------------
 
@@ -541,7 +532,7 @@ INSERT INTO `rubrics` (`id`, `name`, `description`, `rubric_type`, `is_individua
 (41, 'rubric  name', 'desc', 'yesno', 0, NULL, 'desc', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-17 13:19:21', '2025-04-23 14:45:02', 100),
 (42, 'Written Manuscript', 'Group Grade', 'numerical', 0, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-18 11:28:12', '2025-04-27 23:31:58', 100),
 (45, 'Oral Defense ', 'Individual Grade', 'numerical', 1, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 09:55:14', '2025-04-27 23:32:08', 100),
-(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', 81.00, 80.00, 70.00, 0, NULL, 1, '2025-04-21 17:13:58', '2025-07-11 08:56:37', 100),
+(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', '81.00', '80.00', '70.00', 0, NULL, 1, '2025-04-21 17:13:58', '2025-04-27 23:32:20', 100),
 (48, 'Written Manuscript Proposal', 'Group Grade', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-21 19:39:59', '2025-04-22 15:04:55', 100),
 (49, 'Oral Defense Proposal', 'Individual Grade ', 'numerical', 1, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 19:45:28', '2025-04-22 15:14:22', 100);
 
@@ -632,11 +623,11 @@ CREATE TABLE `rubric_group_items` (
 --
 
 INSERT INTO `rubric_group_items` (`id`, `group_id`, `rubric_id`, `order_index`, `weight`, `created_at`, `updated_at`) VALUES
-(31, 5, 48, 0, 60.00, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
-(32, 5, 49, 1, 40.00, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
+(31, 5, 48, 0, '60.00', '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
+(32, 5, 49, 1, '40.00', '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
 (33, 5, 47, 2, NULL, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
-(50, 3, 42, 0, 60.00, '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
-(51, 3, 45, 1, 40.00, '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
+(50, 3, 42, 0, '60.00', '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
+(51, 3, 45, 1, '40.00', '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
 (52, 3, 47, 2, NULL, '2025-04-25 03:37:48', '2025-04-25 03:37:48');
 
 -- --------------------------------------------------------
@@ -680,9 +671,9 @@ INSERT INTO `rubric_levels` (`id`, `rubric_id`, `level_index`, `name`, `descript
 (188, 52, 1, 'a', 'a', 5, 5, 0, '2025-04-27 08:51:47', '2025-04-27 08:51:47'),
 (207, 42, 1, 'Written manuscript', '', 0, 10, 1, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
 (208, 45, 1, 'Level 1', '', 0, 100, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08'),
-(212, 47, 1, 'Pass Option 1', 'without revision ', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37'),
-(213, 47, 2, 'Pass Option 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37'),
-(214, 47, 3, 'Pass Option 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37');
+(209, 47, 1, 'Pass Option 1', 'without revision ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(210, 47, 2, 'Pass Option 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(211, 47, 3, 'Pass Option 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20');
 
 -- --------------------------------------------------------
 
@@ -758,8 +749,7 @@ INSERT INTO `teams` (`id`, `name`, `created_at`, `program`, `area_of_expertise`)
 (60, '', '2025-04-25 15:14:08', '', ''),
 (65, 'Shamwow', '2025-04-26 06:33:41', 'a', 'a'),
 (66, 'Shamwow', '2025-04-26 06:34:14', 'Bachelor of Science in Architecture', 'Mobile Dev'),
-(67, 'a', '2025-04-27 00:30:22', 'Unspecified', 'a'),
-(68, 'sadadas', '2025-06-28 15:32:09', 'Bachelor of Science in Industrial Engineering', 'Software Engineering');
+(67, 'a', '2025-04-27 00:30:22', 'Unspecified', 'a');
 
 -- --------------------------------------------------------
 
@@ -981,8 +971,7 @@ CREATE TABLE `thesis_topics` (
 
 INSERT INTO `thesis_topics` (`id`, `topic`, `description`, `category`, `created_at`) VALUES
 (1, 'International Market Entry Strategies', 'Analysis of strategies used by hospitality firms when entering new international markets. Better understanding of market entry risks and opportunities for expansion.', 'Master in International Hospitality Management', '2025-05-13 09:16:49'),
-(2, 'Production engineering', ' product design and development', 'Bachelor of Science in Industrial Engineering', '2025-05-13 09:28:19'),
-(3, 'Supply Chain Optimization', 'Analysis and improvement of supply chain processes to enhance efficiency, reduce costs, and improve responsiveness. Reduced lead times, lower inventory costs, and improved customer satisfaction.', 'Bachelor of Science in Industrial Engineering', '2025-07-02 22:12:53');
+(2, 'Production engineering', ' product design and development', 'Bachelor of Science in Industrial Engineering', '2025-05-13 09:28:19');
 
 -- --------------------------------------------------------
 
@@ -1038,7 +1027,7 @@ CREATE TABLE `users` (
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
 (0, 0, 'Admin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-05-13 08:58:54', '0000-00-00 00:00:00', '2025-05-13 08:58:54'),
-(37, 0, 'neilv', 'Bachelor of Science in Industrial Engineering', NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-07-12 08:16:48', NULL, '2025-07-12 08:16:48'),
+(37, 0, 'neilv', 'Bachelor of Science in Industrial Engineering', NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-06-11 14:21:28', NULL, '2025-06-11 14:21:28'),
 (38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$FwRMim1ZTijICfN7cNJ/f.1G6pLLXZIV3/fBfXerZGyplkP4gtCae', 'Winstonini', 'Paganini', 'm', 'Student Headline', 'This is a student bio.', '67fc6b9c8052d9.27463503.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-13 09:01:06', NULL, '2025-05-13 09:01:06'),
 (39, 1, 'student', 'Bachelor of Science in Computer Science', '', 0, 'student@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Juan', 'Delacruz', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-11 14:47:33', NULL, '2025-04-11 14:47:33'),
 (40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-01 06:07:17', NULL, '2025-05-01 06:07:17'),
@@ -1059,7 +1048,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (55, 1, 'student18', 'Bachelor of Science in Computer Science', NULL, NULL, 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'Bachelor of Science in Computer Science', NULL, NULL, 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'Bachelor of Science in Computer Science', NULL, NULL, 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-12 08:17:10', NULL, '2025-07-12 08:17:10'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-02 14:27:56', NULL, '2025-06-02 14:27:56'),
 (59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-18 00:54:16', NULL, '2025-04-18 00:54:16'),
 (60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-12 03:53:44', NULL, '2025-04-12 03:53:44'),
 (61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-03-26 06:56:06', NULL, '2025-03-26 06:56:06'),
@@ -1190,14 +1179,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (213, 1, '789', 'IT', NULL, NULL, '789@lpunetwork.edu.ph', '$2y$10$NmAY4W0tEPOyIGBHz.EVNeVwwm4rFpgeiTxMeuzBleuuYjx2tpEaO', 'Ryan', 'Jepard', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-23 14:52:17', NULL, NULL),
 (215, 1, '2017-2-02440', 'Biology', '', 0, 'elisa.lorenzana@lpunetwork.edu.ph', '$2y$10$NWGBvk/AgNniFjsxjm2MnuxPQo4xUthSPnAK7WF/cfvb/9DbfavR.', 'Elisa', 'Lorenzana', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-24 02:41:46', NULL, NULL),
 (235, 1, 'tester1tester1', 'BS Architecture', NULL, NULL, 'tester1tester1@lpunetwork.edu.ph', '$2y$10$ZG8unX8yVYD6NFYJ7eUVWuf5oTphYZYCkku747kOWDL/aRQXbzO.u', 'Tester1', 'Tester1', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:51:22', NULL, NULL),
-(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL),
-(258, 0, '2021-2-01613', 'BS Accountancy', '', 0, 'test@email', '$2y$10$M6q3EnLIhRt8uWxLcAz5t.MqKAqn5FzxryEc2GLzG8PXwXv5Rba8S', 'test', 'user', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:33:13', NULL, NULL),
-(260, 2, '2021-1237', 'BS Pharmacy', '', 0, 'sadggasjda463284@email.com', '$2y$10$Hv.b3jrlvanCehIZ/UiosOB8ZPZ1qTjaE/nwEKgF.15B/A6ilmqmC', 'test', 'pass', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:35:56', NULL, NULL),
-(261, 1, '2131-3221', 'BS Biology', '', 0, 'imastudent@email.com', '$2y$10$y3q6f9ZrJr06Q/1xmt5eMOlddvCp1Z1YHJXmVA36FQIjnqIYQ.tJa', 'ima', 'student', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:36:52', NULL, NULL),
-(262, 1, '2021-12312', '', '', 0, 'imstaudent47324921y@email.com', '$2y$10$EI2.s4R.SNVJt1B0rO4n4OfDFglNajPmlDLZ123aAWIboFgTb1qn.', 'test', 'fsladsa', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:39:03', NULL, NULL),
-(263, 1, '21313213', 'Unspecified', '', 0, '3213213dsafasda', '$2y$10$jpKrtJklylGGyFDo7ZRKfO6enFJIvhqzAL6TD8JbKabX37ygS42JO', 'sfadsf', 'sdfdsfds', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-12 13:20:36', NULL, NULL),
-(264, 1, '321321', 'Bachelor of Science in Industrial Engineering', '', 0, '321332131', '$2y$10$rzCGqcNnXyNV3JoniDibguExdlkhEjFzSaPlygypAcZBkbU82yV9O', 'asdad', 'sadsda', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-12 13:22:44', NULL, NULL),
-(265, 1, '213213', 'Bachelor of Science in Industrial Engineering', '', 0, 'emailad8sa67q3u@email.com', '$2y$10$//txvMugSWLMi9B7cvEmDeDlgSesAWKQFdwCOyshb2fAx.iKdNg5a', 'saidytas8d', 'diastdas8', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-24 16:40:33', NULL, NULL);
+(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1444,7 +1426,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=14;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1504,7 +1486,7 @@ ALTER TABLE `requirements`
 -- AUTO_INCREMENT for table `research_titles`
 --
 ALTER TABLE `research_titles`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `rubrics`
@@ -1534,13 +1516,13 @@ ALTER TABLE `rubric_group_items`
 -- AUTO_INCREMENT for table `rubric_levels`
 --
 ALTER TABLE `rubric_levels`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=212;
 
 --
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `team_members`
@@ -1558,7 +1540,7 @@ ALTER TABLE `team_requirements`
 -- AUTO_INCREMENT for table `thesis_topics`
 --
 ALTER TABLE `thesis_topics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `uploaded_files`
@@ -1570,7 +1552,7 @@ ALTER TABLE `uploaded_files`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=266;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=258;
 
 --
 -- AUTO_INCREMENT for table `user_schedules`

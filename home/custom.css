@@ -139,6 +139,8 @@ body {
     overflow-y: auto; 
     position: relative; 
     background-color: var(--neutral-100, #e6e4e2); 
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
 
 #homeMainContent.expanded {
@@ -462,6 +464,8 @@ body {
         overflow-y: auto;
         padding-bottom: 70px; 
         background-color: var(--neutral-50, #f8f9fa);
+        scrollbar-width: none; /* Firefox */
+        -ms-overflow-style: none; /* Internet Explorer 10+ */
     }
     
     #homeMainContent.expanded {
@@ -551,22 +555,9 @@ body {
     transition: all 0.3s ease;
 }
 
-/* Custom scrollbar styling for homeMainContent */
+/* Hide scrollbars for homeMainContent while keeping scroll functionality */
 #homeMainContent::-webkit-scrollbar {
-    width: 8px;
-}
-
-#homeMainContent::-webkit-scrollbar-track {
-    background: var(--neutral-100, #e6e4e2);
-}
-
-#homeMainContent::-webkit-scrollbar-thumb {
-    background-color: var(--neutral-300, #c9c5bf);
-    border-radius: 4px;
-}
-
-#homeMainContent::-webkit-scrollbar-thumb:hover {
-    background-color: var(--neutral-400, #a8a29e);
+    display: none; /* Webkit browsers (Chrome, Safari, Edge) */
 }
 
 /* For content not hidden behind the fixed toggle button */
@@ -595,6 +586,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
     width: 100%;
     flex-shrink: 0;
     z-index: 10;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: hidden;
 }
 
 .profile-container {
@@ -605,6 +599,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
     cursor: pointer;
     transition: background-color 0.3s ease;
     text-decoration: none;
+    min-width: 0; /* Allows flex item to shrink below content size */
 }
 
 .profile-container:hover {
@@ -623,6 +618,8 @@ body.has-collapsed-home-sidebar #homeMainContent {
     margin-left: 10px;
     flex-grow: 1;
     overflow: hidden;
+    min-width: 0; /* Allows flex item to shrink below content size */
+    max-width: calc(100% - 60px); /* Reserve space for avatar and some margin */
 }
 
 .user-name {
@@ -638,6 +635,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
     font-size: 0.7rem;
     color: var(--neutral-700);
     margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis; 
 }
 
 .logout-btn {
@@ -689,3 +689,391 @@ body.has-collapsed-home-sidebar #homeMainContent {
     height: 24px;
 }
 */
+
+/* Team Overview Styles */
+.team-overview {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* Container responsive padding */
+.content-container.team-overview {
+    padding: 3rem 1.5rem !important;
+}
+
+@media (max-width: 768px) {
+    .content-container.team-overview {
+        padding: 1.5rem 1rem !important;
+    }
+}
+
+@media (max-width: 576px) {
+    .content-container.team-overview {
+        padding: 1rem 0.75rem !important;
+    }
+}
+
+.team-overview .card {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px;
+    transition: border-color 0.2s ease;
+}
+
+.team-overview .card:hover {
+    border-color: var(--neutral-400) !important;
+}
+
+.team-overview .card-header {
+    background: transparent;
+    border: none;
+    padding: 1.5rem 1.5rem 0.5rem;
+}
+
+.team-overview .card-body {
+    padding: 1.5rem;
+}
+
+/* Specific card styling */
+.team-overview .team-selector-card,
+.team-overview .team-info-card,
+.team-overview .progress-overview-card {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px;
+    background-color: var(--neutral-50);
+}
+
+.team-overview .requirements-completed-card,
+.team-overview .requirements-pending-card,
+.team-overview .defense-schedule-card {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px;
+    background-color: var(--neutral-50);
+}
+
+/* Header styling for requirements and defense schedule */
+.team-overview .requirements-header,
+.team-overview .defense-schedule-header {
+    border-bottom: 1px solid var(--neutral-300) !important;
+    padding: 1.5rem 1.5rem 1.5rem;
+}
+
+.team-overview .progress {
+    height: 8px;
+    border-radius: 4px;
+    background-color: var(--neutral-200);
+}
+
+.team-overview .progress-bar {
+    border-radius: 4px;
+}
+
+.team-overview .badge {
+    font-weight: 500;
+    padding: 0.5rem 0.75rem;
+    border-radius: 6px;
+}
+
+.team-overview .rounded-circle {
+    width: 40px;
+    height: 40px;
+}
+
+.team-overview .text-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+    gap: 1rem;
+}
+
+.team-overview .metric-card {
+    text-align: center;
+    padding: 1rem;
+    background: var(--neutral-50);
+    border-radius: 4px;
+    border: 1px solid var(--neutral-300);
+}
+
+.team-overview .metric-number {
+    font-size: 1.5rem;
+    font-weight: 600;
+    line-height: 1.2;
+    margin-bottom: 0.25rem;
+}
+
+.team-overview .metric-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--neutral-700);
+    font-weight: 500;
+}
+
+.team-overview .requirement-item {
+    padding: 0.75rem 0;
+    border-bottom: 1px solid var(--neutral-200);
+    display: flex;
+    align-items: center;
+    transition: background-color 0.15s ease;
+}
+
+.team-overview .requirement-item:hover {
+    background-color: var(--neutral-100);
+    margin: 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    border-radius: 4px;
+}
+
+.team-overview .requirement-item:last-child {
+    border-bottom: none;
+}
+
+.team-overview .status-indicator {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    margin-right: 0.75rem;
+    flex-shrink: 0;
+}
+
+.team-overview .status-completed {
+    background-color: var(--primary-500);
+}
+
+.team-overview .status-submitted {
+    background-color: var(--secondary-500);
+}
+
+.team-overview .status-pending {
+    background-color: var(--neutral-700);
+}
+
+.team-overview .status-rejected {
+    background-color: var(--primary-500);
+}
+
+.team-overview .defense-info-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1rem;
+}
+
+.team-overview .info-box {
+    background: var(--neutral-50);
+    border-radius: 4px;
+    padding: 1.25rem;
+    text-align: center;
+    border: 1px solid var(--neutral-300);
+}
+
+.team-overview .info-box i {
+    font-size: 1.25rem;
+    color: var(--neutral-700);
+    margin-bottom: 0.5rem;
+}
+
+.team-overview .info-value {
+    font-weight: 600;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.team-overview .info-label {
+    font-size: 0.75rem;
+    color: var(--neutral-700);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+}
+
+/* Team selector styling */
+.team-overview .form-select {
+    background-color: var(--white-50);
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.75rem 1rem;
+    font-weight: 500;
+    transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.team-overview .form-select:focus {
+    border-color: var(--primary-500);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.1);
+}
+
+/* Typography refinements */
+.team-overview h5 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+}
+
+.team-overview h6 {
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    color: var(--main-bg-dark);
+}
+
+.team-overview .card-subtitle {
+    font-weight: 500;
+    color: var(--neutral-700);
+    letter-spacing: 0.025em;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .team-overview .defense-info-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .team-overview .text-grid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    
+    /* Reduce padding on mobile */
+    .team-overview .card-header {
+        padding: 1rem 1rem 0.5rem;
+    }
+    
+    .team-overview .card-body {
+        padding: 1rem;
+    }
+    
+    /* Header styling for requirements and defense schedule on mobile */
+    .team-overview .requirements-header,
+    .team-overview .defense-schedule-header {
+        padding: 1rem 1rem 1rem;
+    }
+    
+    /* Stack team info content on mobile */
+    .team-overview .team-info-card .d-flex {
+        flex-direction: column !important;
+        align-items: flex-start !important;
+    }
+    
+    .team-overview .team-info-card .text-end {
+        text-align: left !important;
+        margin-top: 1rem;
+        width: 100%;
+    }
+    
+    .team-overview .team-info-card .d-flex.gap-3 {
+        justify-content: space-between;
+        width: 100%;
+    }
+    
+    /* Reduce font sizes on mobile */
+    .team-overview h5 {
+        font-size: 1.1rem;
+    }
+    
+    .team-overview h6 {
+        font-size: 1rem;
+    }
+    
+    .team-overview .card-subtitle {
+        font-size: 0.875rem;
+    }
+    
+    /* Adjust metric cards on mobile */
+    .team-overview .metric-card {
+        padding: 0.75rem;
+    }
+    
+    .team-overview .metric-number {
+        font-size: 1.25rem;
+    }
+    
+    .team-overview .metric-label {
+        font-size: 0.7rem;
+    }
+    
+    /* Make form select more touch-friendly */
+    .team-overview .form-select {
+        font-size: 1rem;
+        padding: 0.75rem 1rem;
+    }
+    
+    /* Adjust info boxes for mobile */
+    .team-overview .info-box {
+        padding: 1rem;
+    }
+    
+    .team-overview .info-box i {
+        font-size: 1rem;
+    }
+    
+    /* Progress bar adjustments */
+    .team-overview .progress {
+        height: 6px;
+    }
+    
+    /* Badge adjustments */
+    .team-overview .badge {
+        font-size: 0.75rem;
+        padding: 0.375rem 0.625rem;
+    }
+}
+
+/* Extra small screens (phones in portrait) */
+@media (max-width: 576px) {
+    /* Further reduce padding */
+    .team-overview .card-header {
+        padding: 0.75rem 0.75rem 0.5rem;
+    }
+    
+    .team-overview .card-body {
+        padding: 0.75rem;
+    }
+    
+    .team-overview .requirements-header,
+    .team-overview .defense-schedule-header {
+        padding: 0.75rem 0.75rem 0.75rem;
+    }
+    
+    /* Stack metrics vertically on very small screens */
+    .team-overview .team-info-card .d-flex.gap-3 {
+        flex-direction: column;
+        gap: 0.75rem !important;
+    }
+    
+    .team-overview .team-info-card .text-center {
+        text-align: left !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    
+    /* Adjust text grid for very small screens */
+    .team-overview .text-grid {
+        grid-template-columns: 1fr 1fr;
+        gap: 0.75rem;
+    }
+    
+    /* Make defense info grid single column */
+    .team-overview .defense-info-grid {
+        grid-template-columns: 1fr;
+        gap: 0.75rem;
+    }
+    
+    /* Reduce font sizes further */
+    .team-overview h5 {
+        font-size: 1rem;
+    }
+    
+    .team-overview h6 {
+        font-size: 0.9rem;
+    }
+    
+    .team-overview .h4 {
+        font-size: 1.5rem !important;
+    }
+    
+    /* Compact requirement items */
+    .team-overview .requirement-item {
+        padding: 0.5rem 0;
+    }
+    
+    .team-overview .requirement-item:hover {
+        margin: 0 -0.75rem;
+        padding-left: 0.75rem;
+        padding-right: 0.75rem;
+    }
+}
