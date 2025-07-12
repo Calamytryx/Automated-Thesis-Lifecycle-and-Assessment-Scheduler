@@ -785,42 +785,125 @@ error_reporting(E_ALL);
                             </div>
                         </div>
                         
-                        <div class="card border-0 mb-4">
-                            <form id="titleSubmissionForm" class="needs-validation">
-                                <div class="mb-4">
-                                    <label for="researchTitle" class="form-label fw-semibold">Proposed Research Title</label>
-                                    <input type="text" class="form-control form-control-lg border-0 shadow-sm rtat-input" 
-                                           id="researchTitle" name="researchTitle" 
-                                           placeholder="Enter your research title" required>
-                                </div>
-                                
-                                <div class="row g-4">
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
+                        <!-- Research Title Input Form -->
+                        <div class="card research-title-form-card mb-4">
+                            <div class="card-body">
+                                <form id="titleSubmissionForm" class="needs-validation">
+                                    <div class="mb-3">
+                                        <label for="researchTitle" class="form-label fw-semibold">Proposed Research Title</label>
+                                        <textarea class="form-control research-title-textarea" 
+                                                 id="researchTitle" name="researchTitle" 
+                                                 placeholder="Enter your research title here..." 
+                                                 rows="3" required></textarea>
+                                        <div class="form-text">Be specific and descriptive about your research focus</div>
+                                    </div>
+                                    
+                                    <div class="row g-3">
+                                        <div class="col-sm-6">
                                             <label for="researchField" class="form-label fw-semibold">Research Field</label>
-                                            <input type="text" class="form-control border-0 shadow-sm rtat-input" 
+                                            <input type="text" class="form-control research-title-input" 
                                                    id="researchField" name="researchField" 
                                                    placeholder="e.g., Computer Science" required>
                                         </div>
-                                    </div>
-                                    <div class="col-md-6">
-                                        <div class="mb-3">
+                                        <div class="col-sm-6">
                                             <label for="problem" class="form-label fw-semibold">Problem Statement</label>
-                                            <input type="text" class="form-control border-0 shadow-sm rtat-input" 
+                                            <input type="text" class="form-control research-title-input" 
                                                    id="problem" name="problem" 
                                                    placeholder="Brief description of the problem" required>
                                         </div>
                                     </div>
-                                </div>
-                                
-                                <button type="button" id="submitTitleBtn" class="btn btn-primary feature-btn px-4 py-2 mt-3">
-                                    <i class="fas fa-search me-2"></i>Check Title
-                                </button>
-                            </form>
+                                    
+                                    <div class="d-flex justify-content-between align-items-center mt-4">
+                                        <div class="research-title-status">
+                                            <small class="text-muted">Fill in all fields to analyze your title</small>
+                                        </div>
+                                        <button type="button" id="submitTitleBtn" class="btn btn-primary research-title-btn">
+                                            <i class="bi bi-search me-2"></i>Analyze Title
+                                        </button>
+                                    </div>
+                                </form>
+                            </div>
                         </div>
 
-                        <div id="uniquenessResult" class="result-section mb-4"></div>
-                        <div id="aiSuggestions" class="suggestions-section"></div>
+                        <!-- Results Section -->
+                        <div class="research-title-results">
+                            <!-- Uniqueness Analysis Card -->
+                            <div class="card research-title-result-card mb-3" id="uniquenessCard" style="display: none;">
+                                <div class="card-header">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-shield-check text-primary me-2"></i>
+                                        <h6 class="mb-0">Uniqueness Analysis</h6>
+                                    </div>
+                                </div>
+                                <div class="card-body" id="uniquenessResult">
+                                    <!-- Uniqueness results will be inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- AI Suggestions Card -->
+                            <div class="card research-title-result-card mb-3" id="suggestionsCard" style="display: none;">
+                                <div class="card-header">
+                                    <div class="d-flex align-items-center">
+                                        <i class="bi bi-lightbulb text-warning me-2"></i>
+                                        <h6 class="mb-0">AI-Powered Suggestions</h6>
+                                    </div>
+                                </div>
+                                <div class="card-body" id="aiSuggestions">
+                                    <!-- AI suggestions will be inserted here -->
+                                </div>
+                            </div>
+
+                            <!-- Empty State -->
+                            <div class="research-title-empty-state" id="emptyState">
+                                <div class="text-center py-5">
+                                    <div class="empty-state-icon mb-3">
+                                        <i class="bi bi-clipboard2-check"></i>
+                                    </div>
+                                    <h5 class="text-muted mb-2">Ready to Analyze Your Research Title</h5>
+                                    <p class="text-muted mb-0">
+                                        Complete the form above to get AI-powered analysis on title uniqueness, 
+                                        clarity, and receive suggestions for improvement.
+                                    </p>
+                                    <div class="mt-4">
+                                        <div class="row g-3 text-start">
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="bi bi-1-circle text-primary me-2 mt-1"></i>
+                                                    <div>
+                                                        <small class="fw-semibold">Uniqueness Check</small>
+                                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                                            Compare against existing research titles
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="bi bi-2-circle text-primary me-2 mt-1"></i>
+                                                    <div>
+                                                        <small class="fw-semibold">Quality Analysis</small>
+                                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                                            Evaluate clarity and specificity
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                            <div class="col-md-4">
+                                                <div class="d-flex align-items-start">
+                                                    <i class="bi bi-3-circle text-primary me-2 mt-1"></i>
+                                                    <div>
+                                                        <small class="fw-semibold">AI Suggestions</small>
+                                                        <div class="text-muted" style="font-size: 0.75rem;">
+                                                            Get recommendations for improvement
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
 

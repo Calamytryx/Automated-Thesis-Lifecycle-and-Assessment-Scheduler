@@ -35,6 +35,7 @@ async function analyzeTitle(title, field, problem) {
         const similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
         // const similarityScoreFloat = parseFloat(similarityScore.trim());
         const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
+        
         if (similarityScoreFloat < 5) {
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
@@ -62,9 +63,25 @@ async function analyzeTitle(title, field, problem) {
             const aiResponse = await sendMessageToModel(analysisPrompt);
             console.log("Received AI response:", aiResponse);
             
-            document.getElementById('uniquenessResult').innerHTML = '<h5>AI Analysis:</h5>';
+            // Update uniqueness result
+            document.getElementById('uniquenessResult').innerHTML = `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="badge bg-success me-3 px-3 py-2">
+                        <i class="bi bi-check-circle me-1"></i>
+                        Unique (${similarityScoreFloat}% similarity)
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-success">Good Uniqueness Score</div>
+                        <small class="text-muted">Your title appears to be sufficiently unique</small>
+                    </div>
+                </div>
+                ${similarTitle !== 'N/A' ? `<p class="text-muted mb-0"><strong>Most similar title:</strong> ${similarTitle}</p>` : ''}
+            `;
+            
+            // Update AI suggestions
             document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
-        } else if (confirm(`The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+            
+        } else if (confirm(`The title is similar to an existing title (${similarityScoreFloat}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
             // separated the two conditions so this confirm will only show if similarity is higher than 5.
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
@@ -92,16 +109,70 @@ async function analyzeTitle(title, field, problem) {
             const aiResponse = await sendMessageToModel(analysisPrompt);
             console.log("Received AI response:", aiResponse);
             
-            document.getElementById('uniquenessResult').innerHTML = '<h5>AI Analysis:</h5>';
+            // Update uniqueness result with warning
+            document.getElementById('uniquenessResult').innerHTML = `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="badge bg-warning text-dark me-3 px-3 py-2">
+                        <i class="bi bi-exclamation-triangle me-1"></i>
+                        Similar (${similarityScoreFloat}% similarity)
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-warning">Moderate Similarity Detected</div>
+                        <small class="text-muted">Consider revising for better uniqueness</small>
+                    </div>
+                </div>
+                <div class="alert alert-warning mb-0">
+                    <strong>Most similar title:</strong> ${similarTitle}
+                    <br><small>You may want to revise your title to improve uniqueness.</small>
+                </div>
+            `;
+            
+            // Update AI suggestions
             document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
+            
         } else {
-            document.getElementById('uniquenessResult').innerHTML = `<p>The title is similar to an existing title (${similarityScoreFloat}): '${similarTitle}'. Consider revising it for uniqueness.</p>`;
-            document.getElementById('aiSuggestions').innerHTML = '';
+            // User canceled analysis
+            document.getElementById('uniquenessResult').innerHTML = `
+                <div class="d-flex align-items-center mb-3">
+                    <div class="badge bg-danger me-3 px-3 py-2">
+                        <i class="bi bi-x-circle me-1"></i>
+                        Too Similar (${similarityScoreFloat}% similarity)
+                    </div>
+                    <div>
+                        <div class="fw-semibold text-danger">High Similarity Detected</div>
+                        <small class="text-muted">Significant revision recommended</small>
+                    </div>
+                </div>
+                <div class="alert alert-danger mb-0">
+                    <strong>Very similar to:</strong> ${similarTitle}
+                    <br><small>Please revise your title to ensure uniqueness and avoid potential issues.</small>
+                </div>
+            `;
+            
+            document.getElementById('aiSuggestions').innerHTML = `
+                <div class="text-center py-4">
+                    <i class="bi bi-lightbulb text-muted mb-3" style="font-size: 2.5rem;"></i>
+                    <h6 class="text-muted">Analysis Cancelled</h6>
+                    <p class="text-muted mb-0">Please revise your title and try again for a complete analysis.</p>
+                </div>
+            `;
         }
     } catch (error) {
         console.error('Error in analyzeTitle:', error);
-        document.getElementById('uniquenessResult').innerHTML = '<p>Error analyzing title. Please try again.</p>';
-        document.getElementById('aiSuggestions').innerHTML = '';
+        document.getElementById('uniquenessResult').innerHTML = `
+            <div class="alert alert-danger mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>Analysis Error</strong><br>
+                <small>Unable to analyze title. Please check your connection and try again.</small>
+            </div>
+        `;
+        document.getElementById('aiSuggestions').innerHTML = `
+            <div class="text-center py-4">
+                <i class="bi bi-exclamation-triangle text-danger mb-3" style="font-size: 2.5rem;"></i>
+                <h6 class="text-danger">Error Generating Suggestions</h6>
+                <p class="text-muted mb-0">Please try again later.</p>
+            </div>
+        `;
     }
 }
 
@@ -117,21 +188,140 @@ document.addEventListener('DOMContentLoaded', function() {
     if (submitTitleBtn) {
         submitTitleBtn.addEventListener('click', function() {
             console.log("Submit button clicked");
-            var title = document.getElementById('researchTitle').value;
-            var field = document.getElementById('researchField').value;
-            var problem = document.getElementById('problem').value;
+            var title = document.getElementById('researchTitle').value.trim();
+            var field = document.getElementById('researchField').value.trim();
+            var problem = document.getElementById('problem').value.trim();
+            
+            // Validate inputs
+            if (!title || !field || !problem) {
+                alert('Please fill in all fields before analyzing your title.');
+                return;
+            }
             
             console.log("Analyzing title:", title, "in field:", field + " with problem to solve of " + problem);
-            document.getElementById('uniquenessResult').innerHTML = '<p>Analyzing title...</p>';
-            document.getElementById('aiSuggestions').innerHTML = '';
+            
+            // Hide empty state and show loading
+            document.getElementById('emptyState').style.display = 'none';
+            showLoadingState();
+            
+            // Show result cards
+            document.getElementById('uniquenessCard').style.display = 'block';
+            document.getElementById('suggestionsCard').style.display = 'block';
 
             analyzeTitle(title, field, problem);
         });
+        
+        // Add input validation listeners
+        const requiredFields = ['researchTitle', 'researchField', 'problem'];
+        requiredFields.forEach(fieldId => {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.addEventListener('input', validateForm);
+            }
+        });
+    }
+    
+    // Function to validate form and update button state
+    function validateForm() {
+        const title = document.getElementById('researchTitle')?.value.trim();
+        const field = document.getElementById('researchField')?.value.trim();
+        const problem = document.getElementById('problem')?.value.trim();
+        const submitBtn = document.getElementById('submitTitleBtn');
+        const statusText = document.querySelector('.research-title-status small');
+        
+        if (title && field && problem) {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
+            }
+            if (statusText) {
+                statusText.textContent = 'Ready to analyze your research title';
+                statusText.style.color = 'var(--primary-600)';
+            }
+        } else {
+            if (submitBtn) {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
+            }
+            if (statusText) {
+                statusText.textContent = 'Fill in all fields to analyze your title';
+                statusText.style.color = 'var(--neutral-600)';
+            }
+        }
+    }
+    
+    // Function to show loading state in result cards
+    function showLoadingState() {
+        const uniquenessResult = document.getElementById('uniquenessResult');
+        const aiSuggestions = document.getElementById('aiSuggestions');
+        
+        if (uniquenessResult) {
+            uniquenessResult.innerHTML = `
+                <div class="research-title-loading">
+                    <div class="spinner-border" role="status"></div>
+                    <span>Analyzing title uniqueness...</span>
+                </div>
+            `;
+        }
+        
+        if (aiSuggestions) {
+            aiSuggestions.innerHTML = `
+                <div class="research-title-loading">
+                    <div class="spinner-border" role="status"></div>
+                    <span>Generating AI suggestions...</span>
+                </div>
+            `;
+        }
     }
 
     // Call the new AI processing function on page load
     processOutputToAI();
 });
+
+// Function to reset the research title form to empty state
+function resetResearchTitleForm() {
+    // Hide result cards
+    document.getElementById('uniquenessCard').style.display = 'none';
+    document.getElementById('suggestionsCard').style.display = 'none';
+    
+    // Show empty state
+    document.getElementById('emptyState').style.display = 'block';
+    
+    // Clear form fields
+    document.getElementById('researchTitle').value = '';
+    document.getElementById('researchField').value = '';
+    document.getElementById('problem').value = '';
+    
+    // Reset validation
+    validateForm();
+}
+
+// Add reset functionality when form is cleared
+const formFields = ['researchTitle', 'researchField', 'problem'];
+formFields.forEach(fieldId => {
+    const field = document.getElementById(fieldId);
+    if (field) {
+        field.addEventListener('input', function() {
+            // If all fields are empty, show empty state
+            const allEmpty = formFields.every(id => 
+                !document.getElementById(id)?.value.trim()
+            );
+            
+            if (allEmpty) {
+                setTimeout(() => {
+                    const cardsVisible = document.getElementById('uniquenessCard').style.display !== 'none' ||
+                                      document.getElementById('suggestionsCard').style.display !== 'none';
+                    if (cardsVisible) {
+                        resetResearchTitleForm();
+                    }
+                }, 500); // Small delay to prevent flickering while typing
+            }
+        });
+    }
+});
+
+// Call validateForm on page load to set initial state
+setTimeout(validateForm, 100);
 
 /**
  * Retrieves the top thesis topics for a given field by performing a web search and generating a table of broad research areas.
