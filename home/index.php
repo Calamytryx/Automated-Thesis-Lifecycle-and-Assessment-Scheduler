@@ -754,6 +754,88 @@ error_reporting(E_ALL);
                         });
                         modal.show();
                     }
+
+                    // Function to show evaluation modal
+                    function showEvaluationModal(row) {
+                        const teamName = row.getAttribute('data-team');
+                        const researchTitle = row.getAttribute('data-title');
+                        const studentName = row.getAttribute('data-student');
+                        const evaluatorName = row.getAttribute('data-evaluator');
+                        const comments = row.getAttribute('data-comments');
+                        const score = row.getAttribute('data-score');
+
+                        document.getElementById('evalModalTeam').textContent = teamName;
+                        document.getElementById('evalModalTitle').textContent = researchTitle;
+                        document.getElementById('evalModalEvaluator').textContent = evaluatorName;
+                        document.getElementById('evalModalComments').textContent = comments;
+                        document.getElementById('evalModalScore').textContent = score;
+
+                        // Show/hide student section based on user type
+                        const studentSection = document.getElementById('evalModalStudentSection');
+                        if (studentName && studentName !== 'null') {
+                            document.getElementById('evalModalStudent').textContent = studentName;
+                            studentSection.style.display = 'block';
+                        } else {
+                            studentSection.style.display = 'none';
+                        }
+
+                        const modal = new bootstrap.Modal(document.getElementById('evaluationModal'), {
+                            backdrop: true,
+                            keyboard: true
+                        });
+                        modal.show();
+                    }
+
+                    // Add click handlers for evaluation table rows on mobile
+                    document.addEventListener('DOMContentLoaded', function() {
+                        function addEvaluationTableEventListeners() {
+                            const evaluationRows = document.querySelectorAll('.evaluation-row');
+                            evaluationRows.forEach(row => {
+                                // Add mobile-clickable class for touch devices
+                                if (window.innerWidth < 992) { // lg breakpoint
+                                    row.classList.add('mobile-clickable');
+                                } else {
+                                    row.classList.remove('mobile-clickable');
+                                }
+                                
+                                // Remove existing listeners
+                                row.removeEventListener('click', handleEvaluationRowClick);
+                                
+                                // Add click listener for mobile screens
+                                if (window.innerWidth < 992) {
+                                    row.addEventListener('click', handleEvaluationRowClick);
+                                }
+                                
+                                // Add touch feedback for mobile
+                                row.addEventListener('touchstart', function(e) {
+                                    if (window.innerWidth < 992) {
+                                        this.classList.add('mobile-touching');
+                                    }
+                                });
+                                
+                                row.addEventListener('touchend', function(e) {
+                                    if (window.innerWidth < 992) {
+                                        this.classList.remove('mobile-touching');
+                                    }
+                                });
+                            });
+                        }
+
+                        function handleEvaluationRowClick(e) {
+                            if (window.innerWidth < 992) { // Only on mobile/tablet
+                                e.preventDefault();
+                                showEvaluationModal(this);
+                            }
+                        }
+                        
+                        // Initialize table event listeners
+                        addEvaluationTableEventListeners();
+                        
+                        // Handle window resize to update mobile state
+                        window.addEventListener('resize', function() {
+                            addEvaluationTableEventListeners();
+                        });
+                    });
                 </script>
 
                 <!-- Topic Details Modal -->
@@ -767,6 +849,46 @@ error_reporting(E_ALL);
                                 <div class="mb-3">
                                     <h6 class="text-muted mb-2">Description</h6>
                                     <p id="topicModalDescription" class="mb-0">Topic description will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Research Evaluation Details Modal -->
+                <div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="evaluationModalLabel">Evaluation Details</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                                <div class="row g-3">
+                                    <div class="col-12">
+                                        <h6 class="text-muted mb-2">Team Name</h6>
+                                        <p id="evalModalTeam" class="mb-0 fw-semibold"></p>
+                                    </div>
+                                    <div class="col-12">
+                                        <h6 class="text-muted mb-2">Research Title</h6>
+                                        <p id="evalModalTitle" class="mb-0"></p>
+                                    </div>
+                                    <div class="col-12" id="evalModalStudentSection" style="display: none;">
+                                        <h6 class="text-muted mb-2">Student Name</h6>
+                                        <p id="evalModalStudent" class="mb-0"></p>
+                                    </div>
+                                    <div class="col-12">
+                                        <h6 class="text-muted mb-2">Evaluator</h6>
+                                        <p id="evalModalEvaluator" class="mb-0"></p>
+                                    </div>
+                                    <div class="col-12">
+                                        <h6 class="text-muted mb-2">Total Score</h6>
+                                        <p id="evalModalScore" class="mb-0 fw-bold text-primary"></p>
+                                    </div>
+                                    <div class="col-12">
+                                        <h6 class="text-muted mb-2">Comments</h6>
+                                        <div id="evalModalComments" class="bg-light p-3 rounded" style="min-height: 100px; white-space: pre-line;"></div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -943,17 +1065,18 @@ error_reporting(E_ALL);
                         </div>
 
                         <div class="table-responsive">
-                            <table class="table table-hover table-bordered rounded overflow-hidden">
-                                <thead class="bg-light">
+                            <table class="table table-hover table-sm research-evaluation-table" id="researchEvaluationTable">
+                                <thead>
                                     <tr>
-                                        <th>Team Name</th>
-                                        <th>Research Title</th>
+                                        <th class="d-none d-lg-table-cell">Team Name</th>
+                                        <th class="d-table-cell d-lg-none">Evaluation</th>
+                                        <th class="d-none d-lg-table-cell">Research Title</th>
                                         <?php if ($_SESSION['usertype'] != 1): ?>
-                                            <th>Student Name</th>
+                                            <th class="d-none d-md-table-cell">Student Name</th>
                                         <?php endif; ?>
-                                        <th>Evaluator</th>
-                                        <th>Comments</th>
-                                        <th>Total Score</th>
+                                        <th class="d-none d-sm-table-cell">Evaluator</th>
+                                        <th class="d-none d-lg-table-cell">Comments</th>
+                                        <th class="d-none d-sm-table-cell">Score</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -1000,15 +1123,30 @@ error_reporting(E_ALL);
                                     
                                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
                                     ?>
-                                        <tr>
-                                            <td><?php echo htmlspecialchars($row['team_name']); ?></td>
-                                            <td><?php echo htmlspecialchars($row['research_title']); ?></td>
+                                        <tr class="evaluation-row" data-team="<?php echo htmlspecialchars($row['team_name']); ?>" 
+                                            data-title="<?php echo htmlspecialchars($row['research_title']); ?>"
                                             <?php if ($_SESSION['usertype'] != 1): ?>
-                                                <td><?php echo htmlspecialchars($row['student_name']); ?></td>
+                                                data-student="<?php echo htmlspecialchars($row['student_name']); ?>"
                                             <?php endif; ?>
-                                            <td><?php echo htmlspecialchars($row['evaluator_name']); ?></td>
-                                            <td><?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
-                                            <td><?php echo htmlspecialchars($row['total_score']); ?></td>
+                                            data-evaluator="<?php echo htmlspecialchars($row['evaluator_name']); ?>"
+                                            data-comments="<?php echo htmlspecialchars($row['comments']); ?>"
+                                            data-score="<?php echo htmlspecialchars($row['total_score']); ?>">
+                                            
+                                            <td class="d-none d-lg-table-cell"><?php echo htmlspecialchars($row['team_name']); ?></td>
+                                            <td class="d-table-cell d-lg-none">
+                                                <div class="mobile-evaluation-info">
+                                                    <strong class="d-block"><?php echo htmlspecialchars($row['team_name']); ?></strong>
+                                                    <small class="text-muted"><?php echo htmlspecialchars($row['evaluator_name']); ?></small>
+                                                    <br><small class="text-muted">Score: <?php echo htmlspecialchars($row['total_score']); ?></small>
+                                                </div>
+                                            </td>
+                                            <td class="d-none d-lg-table-cell"><?php echo htmlspecialchars($row['research_title']); ?></td>
+                                            <?php if ($_SESSION['usertype'] != 1): ?>
+                                                <td class="d-none d-md-table-cell"><?php echo htmlspecialchars($row['student_name']); ?></td>
+                                            <?php endif; ?>
+                                            <td class="d-none d-sm-table-cell"><?php echo htmlspecialchars($row['evaluator_name']); ?></td>
+                                            <td class="d-none d-lg-table-cell"><?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
+                                            <td class="d-none d-sm-table-cell"><?php echo htmlspecialchars($row['total_score']); ?></td>
                                         </tr>
                                     <?php endwhile; ?>
                                 </tbody>
@@ -1456,27 +1594,27 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         var checklistHtml = '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';       
                         response.requirements.forEach(function(req) {
                             checklistHtml += `
-                        <div class="col-12 col-lg-6">
-                            <div class="card h-100">
-                                <div class="card-body">
-                                    <div class="d-flex justify-content-between align-items-start">
-                                        <div class="requirement-content">
-                                            <label class="form-check-label" for="req${req.id}">
-                                                <strong>${req.name}</strong>
-                                                <p class="mb-1 text-muted">${req.description || 'No description provided.'}</p>
-                                                <small class="text-muted">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
+                        <div class="col-12 col-lg-6 requirement-card-wrapper">
+                            <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
+                                <div class="card-body requirement-card-body">
+                                    <div class="d-flex justify-content-between align-items-start requirement-header-section">
+                                        <div class="requirement-content requirement-info-section">
+                                            <label class="form-check-label requirement-title-label" for="req${req.id}">
+                                                <strong class="requirement-name">${req.name}</strong>
+                                                <p class="mb-1 text-muted requirement-description">${req.description || 'No description provided.'}</p>
+                                                <small class="text-muted requirement-due-date">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
                                             </label>
                                         </div>
-                                        <div class="form-check">
+                                        <div class="form-check requirement-checkbox-section">
                                             <input class="form-check-input requirement-checkbox" type="checkbox" 
                                                    value="${req.id}" id="req${req.id}" 
                                                    name="requirements[]" ${req.status !== 'pending' ? 'checked' : ''}>
                                         </div>
                                     </div>
                                     
-                                    <div class="mt-3">
-                                        <label for="status${req.id}" class="form-label">Status:</label>
-                                        <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm">
+                                    <div class="mt-3 requirement-status-section">
+                                        <label for="status${req.id}" class="form-label requirement-status-label">Status:</label>
+                                        <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm requirement-status-select">
                                             <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
                                             <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
                                             <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
@@ -1484,27 +1622,27 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         </select>
                                     </div>
                                     
-                                    <div class="mt-3">
-                                        <label for="feedback${req.id}" class="form-label">Feedback:</label>
-                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm" rows="2">${req.feedback}</textarea>
+                                    <div class="mt-3 requirement-feedback-section">
+                                        <label for="feedback${req.id}" class="form-label requirement-feedback-label">Feedback:</label>
+                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm requirement-feedback-textarea" rows="2">${req.feedback}</textarea>
                                     </div>
                                     ${req.file_name 
                                         ? `
-                                            <div class="mt-3 d-flex gap-2 flex-wrap">
-                                                <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-sm btn-secondary" download>Download File</a>
-                                                <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-sm btn-secondary">View File</a>
+                                            <div class="mt-3 d-flex gap-2 flex-wrap requirement-file-actions">
+                                                <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-sm btn-secondary requirement-download-btn" download>Download File</a>
+                                                <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-sm btn-secondary requirement-view-btn">View File</a>
                                             </div>
                                         ` 
                                         : ``
                                     }
                                     
-                                    <div class="mt-3">
-                                        <label for="feedbackFile${req.id}" class="form-label">Upload Feedback File:</label>
-                                        <input class="form-control form-control-sm" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
+                                    <div class="mt-3 requirement-upload-section">
+                                        <label for="feedbackFile${req.id}" class="form-label requirement-upload-label">Upload Feedback File:</label>
+                                        <input class="form-control form-control-sm requirement-file-input" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
                                     </div>
                                     
-                                    <div class="mt-3">
-                                        ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-sm btn-secondary" download>Download Feedback File</a>` : ''}
+                                    <div class="mt-3 requirement-feedback-file-section">
+                                        ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-sm btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` : ''}
                                     </div>
                                 </div>
                             </div>
@@ -1575,34 +1713,34 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             response.requirements.forEach(function(req) {
                                 <?php if ($role === 'leader' || $role === 'member') { ?>
                                     displayHtml += `
-                                <div class="col-md-6 mb-4">
-                                    <div class="card h-100 rounded">
-                                        <div class="card-body rct-cbody">
-                                            <h5 class="card-title rct-ctitle">${req.name}</h5>
-                                            <p class="card-text">${req.description}</p>
-                                            <p class="card-text"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
-                                            <p class="card-text"><strong>Status:</strong> ${req.status}</p>
-                                            <p class="card-text"><strong>Feedback:</strong> ${req.feedback}</p>
+                                <div class="col-md-6 mb-4 requirement-student-wrapper">
+                                    <div class="card requirement-student-card h-100 rounded" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
+                                        <div class="card-body requirement-student-body rct-cbody">
+                                            <h5 class="card-title requirement-student-title rct-ctitle">${req.name}</h5>
+                                            <p class="card-text requirement-student-description">${req.description}</p>
+                                            <p class="card-text requirement-student-due-date"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
+                                            <p class="card-text requirement-student-status"><strong>Status:</strong> ${req.status}</p>
+                                            <p class="card-text requirement-student-feedback"><strong>Feedback:</strong> ${req.feedback}</p>
                                         </div>
-                                        <div class="card-footer">
+                                        <div class="card-footer requirement-student-feedback-footer">
                                             ${req.feedback_file ? 
-                                                `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary" download>Download Feedback File</a>` 
-                                                : 'No Uploaded Feedback File'}
+                                                `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` 
+                                                : '<span class="requirement-no-feedback-file">No Uploaded Feedback File</span>'}
                                         </div> 
                                         <?php if ($role === 'leader') { ?>
-                                        <div class="card-footer rct-cfooter">
+                                        <div class="card-footer requirement-student-upload-footer rct-cfooter">
                                             ${req.file_name 
-                                                ? `<a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary" download>Download Submitted File</a>` 
+                                                ? `<a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary requirement-student-download-btn" download>Download Submitted File</a>` 
                                                 : `
-                                                    <form class="upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
+                                                    <form class="upload-form requirement-upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                         <input type="hidden" name="document_name" value="${req.name}">
                                                         <input type="hidden" name="requirement_id" value="${req.id}">
-                                                        <div class="mb-3">
-                                                            <label for="file-${req.id}" class="form-label">Upload File</label>
-                                                            <input class="form-control" type="file" id="file-${req.id}" name="file" required>
+                                                        <div class="mb-3 requirement-file-input-section">
+                                                            <label for="file-${req.id}" class="form-label requirement-file-label">Upload File</label>
+                                                            <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" required>
                                                         </div>
-                                                        <button type="submit" class="btn btn-primary feature-btn">Submit File</button>
-                                                        <span class="upload-status ms-2 small"></span> 
+                                                        <button type="submit" class="btn btn-primary feature-btn requirement-submit-btn">Submit File</button>
+                                                        <span class="upload-status requirement-upload-status ms-2 small"></span> 
                                                     </form> 
                                                 `}
                                         </div>

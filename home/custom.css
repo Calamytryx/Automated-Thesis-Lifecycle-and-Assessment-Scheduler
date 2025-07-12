@@ -1772,3 +1772,575 @@ body.has-collapsed-home-sidebar #homeMainContent {
         margin-top: 1.5rem !important;
     }
 }
+
+/* New styles below this */
+
+/* ==========================================
+   REQUIREMENT CHECKER CARDS - ADVISER/STAFF
+   ========================================== */
+
+.requirement-card-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.requirement-adviser-card {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px !important;
+    background-color: var(--neutral-50);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.requirement-adviser-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    border-color: var(--neutral-400) !important;
+    transform: translateY(-2px);
+}
+
+.requirement-card-body {
+    padding: 1.75rem;
+    background-color: var(--main-white);
+}
+
+.requirement-header-section {
+    margin-bottom: 1.25rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.requirement-info-section {
+    flex: 1;
+    margin-right: 1rem;
+}
+
+.requirement-title-label {
+    cursor: pointer;
+    margin-bottom: 0;
+}
+
+.requirement-name {
+    color: var(--main-primary);
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+    line-height: 1.3;
+}
+
+.requirement-description {
+    font-size: 0.9rem;
+    color: var(--neutral-700);
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.requirement-due-date {
+    font-size: 0.8rem;
+    color: var(--neutral-600);
+    font-weight: 500;
+    background-color: var(--neutral-100);
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    display: inline-block;
+}
+
+.requirement-checkbox-section {
+    display: flex;
+    align-items: flex-start;
+    margin-top: 0.25rem;
+}
+
+.requirement-checkbox {
+    width: 20px !important;
+    height: 20px !important;
+    border: 2px solid var(--neutral-400) !important;
+    border-radius: 4px !important;
+    background-color: var(--main-white) !important;
+}
+
+.requirement-checkbox:checked {
+    background-color: var(--main-primary) !important;
+    border-color: var(--main-primary) !important;
+}
+
+.requirement-status-section {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background-color: var(--neutral-50);
+    border-radius: 6px;
+    border: 1px solid var(--neutral-200);
+}
+
+.requirement-status-label {
+    font-weight: 600;
+    color: var(--main-bg-dark);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.requirement-status-select {
+    background-color: var(--white-50) !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 6px !important;
+    padding: 0.6rem 1rem !important;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+}
+
+.requirement-status-select:focus {
+    border-color: var(--main-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.15) !important;
+    outline: none !important;
+}
+
+.requirement-feedback-section {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    background-color: var(--neutral-50);
+    border-radius: 6px;
+    border: 1px solid var(--neutral-200);
+}
+
+.requirement-feedback-label {
+    font-weight: 600;
+    color: var(--main-bg-dark);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.requirement-feedback-textarea {
+    background-color: var(--white-50) !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9rem;
+    line-height: 1.5;
+    resize: vertical;
+    min-height: 80px;
+    transition: all 0.3s ease;
+}
+
+.requirement-feedback-textarea:focus {
+    border-color: var(--main-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.15) !important;
+    outline: none !important;
+}
+
+.requirement-file-actions {
+    padding: 1rem;
+    background-color: var(--neutral-50);
+    border-radius: 6px;
+    border: 1px solid var(--neutral-200);
+}
+
+/* ==========================================
+   REQUIREMENT CHECKER CARDS - STUDENTS
+   ========================================== */
+
+.requirement-student-wrapper {
+    margin-bottom: 1.5rem;
+}
+
+.requirement-student-card {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px !important;
+    background-color: var(--neutral-50);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    overflow: hidden;
+}
+
+.requirement-student-card:hover {
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    border-color: var(--main-primary) !important;
+    transform: translateY(-3px);
+}
+
+.requirement-student-body {
+    padding: 1.75rem;
+    background-color: var(--main-white);
+    position: relative;
+}
+
+.requirement-student-title {
+    color: var(--main-primary) !important;
+    font-size: 1.2rem !important;
+    font-weight: 700 !important;
+    margin-bottom: 1rem !important;
+    line-height: 1.3;
+    letter-spacing: -0.025em;
+}
+
+.requirement-student-description {
+    color: var(--neutral-700) !important;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 1rem !important;
+}
+
+.requirement-student-due-date {
+    font-size: 0.9rem !important;
+    margin-bottom: 0.75rem !important;
+    color: var(--neutral-800);
+}
+
+.requirement-student-due-date strong {
+    color: var(--primary-600);
+    font-weight: 600;
+}
+
+.requirement-student-status {
+    font-size: 0.9rem !important;
+    margin-bottom: 0.75rem !important;
+    color: var(--neutral-800);
+}
+
+.requirement-student-status strong {
+    color: var(--neutral-700);
+    font-weight: 600;
+}
+
+.requirement-student-feedback {
+    font-size: 0.9rem !important;
+    margin-bottom: 0 !important;
+    color: var(--neutral-800);
+    line-height: 1.5;
+}
+
+.requirement-student-feedback strong {
+    color: var(--neutral-700);
+    font-weight: 600;
+}
+
+.requirement-student-feedback-footer {
+    background-color: var(--neutral-50) !important;
+    border-top: 1px solid var(--neutral-200) !important;
+    padding: 1rem 1.75rem !important;
+    text-align: center;
+}
+
+.requirement-no-feedback-file {
+    color: var(--neutral-600);
+    font-style: italic;
+    font-size: 0.9rem;
+}
+
+.requirement-feedback-download-btn {
+    background-color: var(--neutral-600) !important;
+    border-color: var(--neutral-600) !important;
+    color: var(--main-white) !important;
+    font-size: 0.9rem !important;
+    padding: 0.6rem 1.2rem !important;
+    border-radius: 6px !important;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+.requirement-feedback-download-btn:hover {
+    background-color: var(--neutral-700) !important;
+    border-color: var(--neutral-700) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Student upload footer and form styles */
+.requirement-student-upload-footer {
+    background-color: var(--white-50) !important;
+    border-top: 1px solid var(--neutral-200) !important;
+    padding: 1.5rem 1.75rem !important;
+}
+
+.requirement-student-download-btn {
+    background-color: var(--main-primary) !important;
+    border-color: var(--main-primary) !important;
+    color: var(--main-white) !important;
+    font-size: 0.9rem !important;
+    padding: 0.7rem 1.5rem !important;
+    border-radius: 6px !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.requirement-student-download-btn:hover {
+    background-color: var(--primary-600) !important;
+    border-color: var(--primary-600) !important;
+    color: var(--main-white) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(158, 42, 47, 0.3);
+}
+
+.requirement-upload-form {
+    background-color: var(--neutral-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: 8px;
+    padding: 1.25rem;
+    margin-top: 0.5rem;
+}
+
+.requirement-file-input-section {
+    margin-bottom: 1rem;
+}
+
+.requirement-file-label {
+    font-weight: 600;
+    color: var(--main-bg-dark);
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.requirement-file-input {
+    background-color: var(--white-50) !important;
+    border: 2px solid var(--neutral-300) !important;
+    border-radius: 6px !important;
+    padding: 0.75rem 1rem !important;
+    font-size: 0.9rem;
+    transition: all 0.3s ease;
+    width: 100%;
+}
+
+.requirement-file-input:focus {
+    border-color: var(--main-primary) !important;
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.15) !important;
+    outline: none !important;
+}
+
+.requirement-file-input:hover {
+    border-color: var(--neutral-400) !important;
+}
+
+.requirement-submit-btn {
+    background-color: var(--main-primary) !important;
+    border-color: var(--main-primary) !important;
+    color: var(--main-white) !important;
+    font-size: 0.9rem !important;
+    padding: 0.7rem 1.5rem !important;
+    border-radius: 6px !important;
+    font-weight: 600;
+    transition: all 0.3s ease;
+    margin-right: 0.75rem;
+}
+
+.requirement-submit-btn:hover {
+    background-color: var(--primary-600) !important;
+    border-color: var(--primary-600) !important;
+    transform: translateY(-1px);
+    box-shadow: 0 3px 10px rgba(158, 42, 47, 0.25);
+}
+
+.requirement-submit-btn:disabled {
+    background-color: var(--neutral-400) !important;
+    border-color: var(--neutral-400) !important;
+    color: var(--neutral-600) !important;
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+}
+
+/* ==========================================
+   REQUIREMENT UPLOAD STATUS
+   ========================================== */
+
+.requirement-upload-status {
+    font-size: 0.85rem;
+    font-weight: 500;
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    transition: all 0.3s ease;
+}
+
+.requirement-upload-status.text-success {
+    background-color: rgba(40, 167, 69, 0.1);
+    color: var(--success-700) !important;
+    border: 1px solid rgba(40, 167, 69, 0.2);
+}
+
+.requirement-upload-status.text-danger {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--danger-700) !important;
+    border: 1px solid rgba(220, 53, 69, 0.2);
+}
+
+/* ==========================================
+   STATUS-BASED CARD VARIATIONS
+   ========================================== */
+
+/* Status indicators for cards based on data-status - REMOVED LEFT BORDERS */
+
+/* ==========================================
+   RESPONSIVE DESIGN FOR REQUIREMENT CARDS
+   ========================================== */
+
+@media (max-width: 768px) {
+    .requirement-card-wrapper,
+    .requirement-student-wrapper {
+        margin-bottom: 1rem;
+    }
+    
+    .requirement-card-body,
+    .requirement-student-body {
+        padding: 1.25rem;
+    }
+    
+    .requirement-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .requirement-info-section {
+        margin-right: 0;
+        margin-bottom: 1rem;
+        width: 100%;
+    }
+    
+    .requirement-checkbox-section {
+        align-self: flex-start;
+    }
+    
+    .requirement-student-upload-footer,
+    .requirement-student-feedback-footer {
+        padding: 1.25rem !important;
+    }
+    
+    .requirement-upload-form {
+        padding: 1rem;
+    }
+}
+
+/* ==========================================
+   RESEARCH EVALUATION TABLE RESPONSIVE STYLES
+   ========================================== */
+
+.research-evaluation-table {
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px !important;
+    overflow: hidden;
+    background-color: var(--main-white);
+}
+
+.research-evaluation-table thead {
+    background-color: var(--neutral-50) !important;
+    border-bottom: 1px solid var(--neutral-300) !important;
+}
+
+.research-evaluation-table thead th {
+    border: none !important;
+    padding: 1rem 0.75rem;
+    font-weight: 600;
+    color: var(--main-bg-dark);
+    font-size: 0.875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.research-evaluation-table tbody tr {
+    border: none !important;
+    border-bottom: 1px solid var(--neutral-200) !important;
+    transition: background-color 0.15s ease;
+}
+
+.research-evaluation-table tbody tr:last-child {
+    border-bottom: none !important;
+}
+
+.research-evaluation-table tbody tr:hover {
+    background-color: var(--neutral-50) !important;
+}
+
+.research-evaluation-table tbody td {
+    border: none !important;
+    padding: 0.875rem 0.75rem;
+    vertical-align: middle;
+    color: var(--main-bg-dark);
+    font-size: 0.875rem;
+}
+
+.mobile-evaluation-info {
+    line-height: 1.4;
+}
+
+.mobile-evaluation-info strong {
+    color: var(--main-primary);
+    font-size: 0.9rem;
+    margin-bottom: 0.25rem;
+}
+
+.mobile-evaluation-info small {
+    font-size: 0.8rem;
+    color: var(--neutral-600);
+}
+
+/* Mobile clickable rows */
+@media (max-width: 991.98px) {
+    .research-evaluation-table .evaluation-row.mobile-clickable {
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    
+    .research-evaluation-table .evaluation-row.mobile-clickable:hover {
+        background-color: var(--neutral-100) !important;
+        transform: scale(1.01);
+    }
+    
+    .research-evaluation-table .evaluation-row.mobile-touching {
+        background-color: var(--neutral-200) !important;
+        transform: scale(0.99);
+    }
+}
+
+/* Evaluation modal styling */
+#evaluationModal .modal-content {
+    border: 1px solid var(--neutral-300);
+    border-radius: 8px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+#evaluationModal .modal-header {
+    background-color: var(--neutral-50);
+    border-bottom: 1px solid var(--neutral-300);
+    padding: 1.25rem 1.5rem;
+}
+
+#evaluationModal .modal-title {
+    color: var(--main-bg-dark);
+    font-weight: 600;
+    font-size: 1.1rem;
+}
+
+#evaluationModal .modal-body {
+    padding: 1.5rem;
+}
+
+#evaluationModal h6 {
+    color: var(--neutral-700);
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+}
+
+#evaluationModal p {
+    color: var(--main-bg-dark);
+    line-height: 1.5;
+    font-size: 0.95rem;
+}
+
+#evalModalComments {
+    background-color: var(--neutral-50) !important;
+    border: 1px solid var(--neutral-200);
+    border-radius: 6px;
+    color: var(--main-bg-dark);
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+#evalModalScore {
+    color: var(--main-primary) !important;
+    font-size: 1.1rem;
+    font-weight: 700 !important;
+}
