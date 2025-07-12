@@ -1202,18 +1202,18 @@ border-top: solid 1px var(--main-bg-dark);
 
 /* Topics Table Styling */
 #topicsTable .table {
-    background-color: var(--main-white);
+    background-color: var(--white-50);
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 1.5rem;
+    /* margin-top: 1.5rem; */
 }
 
 #topicsTable .table thead th {
-    background-color: var(--neutral-50);
+    background-color: var(--white-50);
     color: var(--main-bg-dark);
     font-weight: 600;
     padding: 1rem;
-    border-bottom: 2px solid var(--neutral-200);
+    /* border-bottom: 2px solid var(--neutral-200); */
 }
 
 #topicsTable .table tbody td {

@@ -13,16 +13,30 @@ if (isset($_POST['field'])) {
     $topics = $stmt->fetchAll();
 
     if ($topics) {
-        echo "<table class='table table-bordered mt-4'>";
-        echo "<thead class='thead-dark'><tr><th>Topic</th><th>Description</th></tr></thead>";
+        echo "<div class='mt-4'>";
+        echo "<div class='d-md-none mb-3'>";
+        echo "<small class='text-muted'><i class='bi bi-info-circle me-1'></i>Tap any row to view full details</small>";
+        echo "</div>";
+        echo "<div class='topic-table-container'>";
+        echo "<table class='table table-hover'>";
+        echo "<thead><tr><th>Topic</th><th class='d-none d-md-table-cell'>Description</th><th class='d-md-none text-center'>Actions</th></tr></thead>";
         echo "<tbody>";
         foreach ($topics as $row) {
-            echo "<tr>";
-            echo "<td>" . htmlspecialchars($row['topic']) . "</td>";
-            echo "<td>" . htmlspecialchars($row['description']) . "</td>";
+            $topic = htmlspecialchars($row['topic']);
+            $description = htmlspecialchars($row['description']);
+            echo "<tr class='topic-row' data-topic='" . $topic . "' data-description='" . $description . "'>";
+            echo "<td class='fw-semibold'>" . $topic . "</td>";
+            echo "<td class='d-none d-md-table-cell'>" . $description . "</td>";
+            echo "<td class='d-md-none text-center'>";
+            echo "<button class='btn btn-sm btn-outline-primary view-topic-btn' data-topic='" . $topic . "' data-description='" . $description . "'>";
+            echo "<i class='bi bi-eye'></i> View";
+            echo "</button>";
+            echo "</td>";
             echo "</tr>";
         }
         echo "</tbody></table>";
+        echo "</div>";
+        echo "</div>";
     } else {
         echo "<p class='mt-4 text-warning'>No topics found for the selected field.</p>";
     }

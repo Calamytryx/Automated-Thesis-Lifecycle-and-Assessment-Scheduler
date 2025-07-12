@@ -593,11 +593,11 @@ error_reporting(E_ALL);
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
                     <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
-                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-lightbulb text-primary fs-4"></i>
-                            </div>
+                            </div> -->
                             <div>
-                                <h4 class="mb-1 feature-title">Latest Topic Trends</h4>
+                                <h4 class="mb-1 feature-title">Thesis Topic Decision Tool</h4>
                                 <p class="text-muted mb-0">Discover trending research topics in your field of study</p>
                             </div>
                         </div>
@@ -673,20 +673,112 @@ error_reporting(E_ALL);
                             if (xhr.status === 200) {
                                 // Update the table with the server response
                                 document.getElementById('topicsTable').innerHTML = xhr.responseText;
+                                
+                                // Add event listeners for responsive table interactions
+                                addTopicTableEventListeners();
                             }
                         };
 
                         // Send the selected field to the server
                         xhr.send('field=' + encodeURIComponent(selectedField));
                     });
+
+                    // Function to add event listeners for table interactions
+                    function addTopicTableEventListeners() {
+                        // Add click listeners for desktop rows (hidden description column)
+                        const topicRows = document.querySelectorAll('.topic-row');
+                        topicRows.forEach(row => {
+                            // Add mobile-clickable class for touch devices
+                            if (window.innerWidth < 768) {
+                                row.classList.add('mobile-clickable');
+                            }
+                            
+                            row.addEventListener('click', function(e) {
+                                // Only trigger on mobile/tablet (when description column is hidden)
+                                if (window.innerWidth < 768) {
+                                    e.preventDefault();
+                                    const topic = this.getAttribute('data-topic');
+                                    const description = this.getAttribute('data-description');
+                                    showTopicModal(topic, description);
+                                }
+                            });
+                            
+                            // Add touch feedback for mobile
+                            row.addEventListener('touchstart', function(e) {
+                                if (window.innerWidth < 768) {
+                                    this.style.backgroundColor = 'var(--primary-100, #cce7ff)';
+                                }
+                            });
+                            
+                            row.addEventListener('touchend', function(e) {
+                                if (window.innerWidth < 768) {
+                                    setTimeout(() => {
+                                        this.style.backgroundColor = '';
+                                    }, 150);
+                                }
+                            });
+                        });
+
+                        // Add click listeners for view buttons (mobile only)
+                        const viewButtons = document.querySelectorAll('.view-topic-btn');
+                        viewButtons.forEach(button => {
+                            button.addEventListener('click', function(e) {
+                                e.stopPropagation(); // Prevent row click
+                                const topic = this.getAttribute('data-topic');
+                                const description = this.getAttribute('data-description');
+                                showTopicModal(topic, description);
+                            });
+                        });
+                        
+                        // Handle window resize to update mobile state
+                        window.addEventListener('resize', function() {
+                            topicRows.forEach(row => {
+                                if (window.innerWidth < 768) {
+                                    row.classList.add('mobile-clickable');
+                                } else {
+                                    row.classList.remove('mobile-clickable');
+                                    row.style.backgroundColor = '';
+                                }
+                            });
+                        });
+                    }
+
+                    // Function to show topic modal
+                    function showTopicModal(topic, description) {
+                        document.getElementById('topicModalLabel').textContent = topic;
+                        document.getElementById('topicModalDescription').textContent = description;
+                        
+                        const modal = new bootstrap.Modal(document.getElementById('topicModal'), {
+                            backdrop: true,
+                            keyboard: true
+                        });
+                        modal.show();
+                    }
                 </script>
+
+                <!-- Topic Details Modal -->
+                <div class="modal fade" id="topicModal" tabindex="-1" aria-labelledby="topicModalLabel" aria-hidden="true">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="topicModalLabel">Topic Title</h5>
+                            </div>
+                            <div class="modal-body">
+                                <div class="mb-3">
+                                    <h6 class="text-muted mb-2">Description</h6>
+                                    <p id="topicModalDescription" class="mb-0">Topic description will appear here...</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
                     <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
-                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-check-circle text-primary fs-4"></i>
-                            </div>
+                            </div> -->
                             <div>
                                 <h4 class="mb-1 feature-title">Research Title Acceptance Tool</h4>
                                 <p class="text-muted mb-0">Check the uniqueness of your research title and get AI-powered suggestions</p>
@@ -735,9 +827,9 @@ error_reporting(E_ALL);
                 <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
                     <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
-                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-tasks text-primary fs-4"></i>
-                            </div>
+                            </div> -->
                             <div>
                                 <h4 class="mb-1 feature-title">Requirement Checker Tool</h4>
                                 <p class="text-muted mb-0">Track and manage your thesis requirements and submissions</p>
@@ -758,9 +850,9 @@ error_reporting(E_ALL);
                 <div class="tab-pane fade" id="research-evaluation" role="tabpanel" aria-labelledby="research-evaluation-link">
                     <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
-                            <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-comments text-primary fs-4"></i>
-                            </div>
+                            </div> -->
                             <div>
                                 <h4 class="mb-1 feature-title">Research Evaluation Comments</h4>
                                 <p class="text-muted mb-0">View evaluation feedback and comments from panelists</p>
