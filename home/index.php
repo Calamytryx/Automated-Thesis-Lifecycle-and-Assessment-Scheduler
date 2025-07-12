@@ -323,6 +323,168 @@ error_reporting(E_ALL);
         if (activeTab === "overview") {
             fetchTeamOverview();
         }
+
+        // Handle view mode switching between Dashboard and Calendar
+        document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
+            radio.addEventListener('change', function() {
+                if (this.id === 'calendar-view') {
+                    document.getElementById('dashboardView').style.display = 'none';
+                    document.getElementById('calendarView').style.display = 'block';
+                    // Initialize calendar for the overview tab when calendar view is selected
+                    setTimeout(() => {
+                        initializeOverviewCalendar();
+                    }, 100);
+                } else {
+                    document.getElementById('dashboardView').style.display = 'block';
+                    document.getElementById('calendarView').style.display = 'none';
+                }
+            });
+        });
+    });
+
+    // Function to initialize calendar in the overview tab
+    function initializeOverviewCalendar() {
+        const calendarEl = document.getElementById('calendar2');
+        if (!calendarEl) return;
+
+        // Clear any existing calendar
+        calendarEl.innerHTML = '';
+
+        // Initialize FullCalendar for the overview tab
+        const calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 'auto',
+            events: [],
+            eventClick: function(info) {
+                // Handle event click
+                console.log('Event clicked:', info.event);
+            },
+            dateClick: function(info) {
+                if (calendar.view.type === 'dayGridMonth') {
+                    calendar.changeView('timeGridDay');
+                }
+                calendar.gotoDate(info.dateStr);
+            }
+        });
+
+        // Fetch and display events
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    const events = [];
+
+                    response.defense_schedules.forEach(defense => {
+                        events.push({
+                            title: defense.description,
+                            start: `${defense.date}T${defense.start_time}`,
+                            end: `${defense.date}T${defense.end_time}`,
+                            location: defense.room,
+                            eventType: 'defense'
+                        });
+                    });
+
+                    response.user_schedules.forEach(schedule => {
+                        events.push({
+                            title: schedule.description,
+                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                            location: schedule.room,
+                            eventType: 'user'
+                        });
+                    });
+
+                    calendar.removeAllEvents();
+                    calendar.addEventSource(events);
+                }
+            }
+        });
+
+        calendar.render();
+    }
+
+    // Handle requirements team selector change
+    function handleRequirementsTeamChange() {
+        const teamSelector = document.getElementById('requirementsTeamSelector');
+        if (teamSelector) {
+            teamSelector.addEventListener('change', function() {
+                const teamId = this.value;
+                updateRequirementsList(teamId);
+            });
+        }
+    }
+
+    // Update requirements list based on selected team
+    function updateRequirementsList(teamId) {
+        const requirementsList = document.getElementById('requirementsList');
+        if (!requirementsList) return;
+
+        // Show loading state
+        requirementsList.innerHTML = '<li class="list-group-item text-center"><em>Loading...</em></li>';
+
+        // Fetch requirements for the selected team
+        fetch(`includes/get_team_requirements.php?team_id=${teamId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let listHtml = '';
+                    if (data.requirements && data.requirements.length > 0) {
+                        data.requirements.forEach(requirement => {
+                            let badgeClass = 'bg-warning';
+                            let badgeText = 'Pending';
+                            
+                            if (requirement.status === 'approved') {
+                                badgeClass = 'bg-success';
+                                badgeText = 'Approved';
+                            } else if (requirement.status === 'submitted') {
+                                badgeClass = 'bg-info';
+                                badgeText = 'Submitted';
+                            } else if (requirement.status === 'rejected') {
+                                badgeClass = 'bg-danger';
+                                badgeText = 'Rejected';
+                            }
+
+                            const dueDate = new Date(requirement.due_date).toLocaleDateString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric'
+                            });
+
+                            listHtml += `
+                                <li class="list-group-item d-flex justify-content-between align-items-center req-li">
+                                    <div>
+                                        <strong>${requirement.name}</strong>
+                                        <br>
+                                        <small class="text-muted due-date-txt">Due: ${dueDate}</small>
+                                    </div>
+                                    <span class="badge ${badgeClass} rounded-pill">${badgeText}</span>
+                                </li>
+                            `;
+                        });
+                    } else {
+                        listHtml = '<li class="list-group-item text-center text-muted"><em>No requirements found for this team</em></li>';
+                    }
+                    requirementsList.innerHTML = listHtml;
+                } else {
+                    requirementsList.innerHTML = '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching requirements:', error);
+                requirementsList.innerHTML = '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
+            });
+    }
+
+    // Initialize requirements team selector when document is ready
+    document.addEventListener("DOMContentLoaded", function() {
+        handleRequirementsTeamChange();
     });
 </script>
 <main role="main" class="container-fluid p-0">
@@ -347,15 +509,10 @@ error_reporting(E_ALL);
                             Overview
                         </div>
                         <div class="home-sidebar-items">
-                            <a class="nav-link my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="false">
+                            <a class="nav-link active my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
                                 <i class="bi bi-house me-2 hollow"></i>
                                 <i class="bi bi-house-fill me-2 filled"></i>
                                 <span class="nav-text">Overview</span>
-                            </a>
-                            <a class="nav-link active my-1" id="scheduling-link" data-bs-toggle="pill" href="#scheduling" role="tab" aria-controls="scheduling" aria-selected="false">
-                                <i class="bi bi-calendar-event me-2 hollow"></i>
-                                <i class="bi bi-calendar-event-fill me-2 filled"></i>
-                                <span class="nav-text">Calendar</span>
                             </a>
                         </div>
                     </div> 
@@ -433,231 +590,8 @@ error_reporting(E_ALL);
 
         <div id="homeMainContent">
             <div class="tab-content" id="v-pills-tabContent">
-                <div class="tab-pane fade show active" id="scheduling" role="tabpanel" aria-labelledby="scheduling-link">
-                    <div class="row"> <!-- Added a row wrapper -->
-                        <div class="col-sm-9 my-3 p-3 home-sidebar-box">
-                            <!-- <h4 class="border-bottom border-secondary pb-2 mb-0 feature-title">Schedule</h4> -->
-                            <div class="media text-muted pt-3">
-                                <!-- Calendar Div -->
-                                <div id="calendar"></div>
-                            </div>
-                        </div>
-                        <?php if ($_SESSION['usertype'] == 2): ?>
-                            <?php
-                            // Local: requirements | Deployed: icei_38697196_coecsathesis.requirements
-                            $stmt = $pdo->query("SELECT id, name, due_date FROM requirements;");
-                            $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            ?>
-                            <div class="requirements-list col-sm-3 my-3">
-                                <div class="accordion custom-accordion" id="requirementsAccordion">
-                                    <!-- Requirements Section -->
-                                    <div class="accordion-item shadow-sm">
-                                        <h2 class="accordion-header" id="headingRequirements">
-                                            <button class="accordion-button custom-accordion-btn" type="button" data-bs-toggle="collapse" 
-                                                    data-bs-target="#collapseRequirements" aria-expanded="true" 
-                                                    aria-controls="collapseRequirements">
-                                                <!-- <i class="fas fa-tasks me-2"></i> -->
-                                                Requirements
-                                            </button>
-                                        </h2>
-                                        <div id="collapseRequirements" class="accordion-collapse collapse show" 
-                                                     aria-labelledby="headingRequirements" data-bs-parent="#requirementsAccordion">
-                                            <div class="accordion-body custom-scrollbar">
-                                                <ul class="list-group">
-                                                    <?php foreach ($requirements as $requirement): ?>
-                                                        <li class="list-group-item requirement-item" onclick="redirectToRequirements()">
-                                                            <div class="d-flex justify-content-between align-items-start">
-                                                                <div>
-                                                                    <h6 class="mb-1"><?php echo htmlspecialchars($requirement['name']); ?></h6>
-                                                                    <div class="due-date">
-                                                                        <i class="far fa-calendar-alt me-1"></i>
-                                                                        <small><?php echo htmlspecialchars($requirement['due_date']); ?></small>
-                                                                    </div>
-                                                                </div>
-                                                                <span class="status-badge 
-                                                                    <?php echo isset($requirement['status']) ? 
-                                                                        'status-' . strtolower($requirement['status']) : 'status-pending'; ?>">
-                                                                    <?php echo isset($requirement['status']) ? 
-                                                                        ucfirst($requirement['status']) : 'Pending'; ?>
-                                                                </span>
-                                                            </div>
-                                                        </li>
-                                                    <?php endforeach; ?>
-                                                </ul>
-                                            </div>
-                                        </div>
-                                    </div>
-
-                                    <?php
-                                    // Updated query to fetch rubric_group_id
-                                    $userId = $_SESSION['id'];
-                                    $query = "SELECT
-                                                ds.id AS schedule_id,
-                                                ds.schedule_date,
-                                                ds.start_time,
-                                                ds.end_time,
-                                                ds.room,
-                                                t.name AS team_name,
-                                                t.program AS team_program,
-                                                (
-                                                    SELECT rgi.group_id
-                                                    FROM rubric_programs rp
-                                                    JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                    WHERE rp.program_name = t.program
-                                                    -- GROUP BY rp.program_name -- Removed for debugging
-                                                    -- HAVING COUNT(DISTINCT rgi.group_id) = 1 -- Removed for debugging
-                                                    LIMIT 1 -- Added for debugging: Get *any* group ID if one exists
-                                                ) AS rubric_group_id
-                                            FROM
-                                                -- Local: defense_schedules | Deployed: icei_38697196_coecsathesis.defense_schedules
-                                                defense_schedules ds
-                                            JOIN
-                                                -- Local: teams | Deployed: icei_38697196_coecsathesis.teams
-                                                teams t ON ds.team_id = t.id
-                                            WHERE
-                                                ds.panelist_id = :user_id1 -- Changed placeholder
-                                                OR ds.panelist_id2 = :user_id2 -- Changed placeholder
-                                                OR ds.panelist_id3 = :user_id3 -- Changed placeholder
-                                            ORDER BY
-                                                ds.schedule_date, ds.start_time";
-                                    $stmt = $pdo->prepare($query);
-                                    // Pass the same user ID for all three placeholders
-                                    $stmt->execute([
-                                        'user_id1' => $userId,
-                                        'user_id2' => $userId,
-                                        'user_id3' => $userId
-                                    ]);
-                                    $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                                    ?>
-                                    <div class="accordion-item shadow-sm mt-2">
-                                        <h2 class="accordion-header" id="headingDefenses">
-                                            <button class="accordion-button custom-accordion-btn collapsed" type="button" 
-                                                    data-bs-toggle="collapse" data-bs-target="#collapseDefenses" 
-                                                    aria-expanded="false" aria-controls="collapseDefenses">
-                                                <!-- <i class="fas fa-calendar-alt me-2"></i> -->
-                                                Defense Schedules
-                                            </button>
-                                        </h2>
-                                        <div id="collapseDefenses" class="accordion-collapse collapse" 
-                                                     aria-labelledby="headingDefenses" data-bs-parent="#requirementsAccordion">
-                                            <div class="accordion-body custom-scrollbar">
-                                                <ul class="list-group">
-                                                    <?php foreach ($schedules as $schedule):
-                                                        $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
-                                                        $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
-                                                        $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
-                                                        $rubric_group_id = $schedule['rubric_group_id']; // Fetched from query, might be null
-                                                        $schedule_id = $schedule['schedule_id'];
-
-                                                        // Determine if the item should be clickable
-                                                        $onclick_attr = '';
-                                                        $item_class = 'list-group-item defense-item';
-                                                        $disabled_message = '';
-                                                        if ($rubric_group_id !== null) {
-                                                            $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
-                                                        } else {
-                                                            $item_class .= ' disabled'; // Add a class for styling disabled items
-                                                            $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
-                                                        }
-                                                    ?>
-                                                        <li class="<?php echo $item_class; ?>" <?php echo $onclick_attr; ?>>
-                                                            <div class="defense-content">
-                                                                <h6 class="team-name mb-2">
-                                                                    <?php echo htmlspecialchars($schedule['team_name']); ?>
-                                                                </h6>
-                                                                <div class="defense-details">
-                                                                    <div class="detail-item">
-                                                                        <i class="far fa-calendar me-2"></i>
-                                                                        <?php echo htmlspecialchars($formatted_date); ?>
-                                                                    </div>
-                                                                    <div class="detail-item">
-                                                                        <i class="far fa-clock me-2"></i>
-                                                                        <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?>
-                                                                    </div>
-                                                                    <div class="detail-item">
-                                                                        <i class="fas fa-door-open me-2"></i>
-                                                                        <?php echo htmlspecialchars($schedule['room']); ?>
-                                                                    </div>
-                                                                </div>
-                                                                <?php echo $disabled_message; // Display message if disabled ?>
-                                                            </div>
-                                                        </li>
-                                                    <?php endforeach; ?>
-                                                </ul>
-                                            </div>
-                                        </div> 
-                                    </div>
-                                </div>
-                            </div>
-                        <?php elseif ($_SESSION['usertype'] == 1): ?>
-                            <?php
-                            $stmt = $pdo->query("
-                                                    -- Local: requirements | Deployed: icei_38697196_coecsathesis.requirements
-                                                    -- Local: team_requirements | Deployed: icei_38697196_coecsathesis.team_requirements
-                                                    SELECT r.name, r.due_date, tr.status 
-                                                    FROM requirements r
-                                                    LEFT JOIN team_requirements tr ON r.id = tr.requirement_id;
-                                                ");
-                            $requirements = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                            ?>
-
-                            <div class="requirements-list col-sm-3 my-3 p-3">
-                                <h4 class="pb-2 mb-0 feature-title">Requirements</h4>
-                                <ul class="list-group">
-                                    <?php foreach ($requirements as $requirement): ?>
-                                        <li class="list-group-item my-1 req-li" onclick="redirectToRequirements()">
-                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                            <br>
-                                            <small class="due-date-txt">Due Date: <?php echo htmlspecialchars($requirement['due_date']); ?></small>
-                                            <br>
-                                            <small class="status-txt">
-                                                <?php if ($requirement['status'] !== null): ?>
-                                                    Status: <?php echo ucfirst(htmlspecialchars($requirement['status'])); ?>
-                                                <?php else: ?>
-                                                    Status: Not Submitted
-                                                <?php endif; ?>
-                                            </small>
-                                        </li>
-                                    <?php endforeach; ?>
-                                </ul>
-                            </div>
-
-                        <?php else: ?>
-
-                        <?php endif; ?>
-                    </div>
-                </div>
-
-                <script>
-                    function redirectToRequirements() {
-                        // Remove active and show classes from the currently active tab and content
-                        const activeTab = document.querySelector('.nav-link.active');
-                        if (activeTab) {
-                            activeTab.classList.remove('active');
-                        }
-
-                        const activeTabPane = document.querySelector('.tab-pane.show.active');
-                        if (activeTabPane) {
-                            activeTabPane.classList.remove('show', 'active');
-                        }
-
-                        // Add active class to the "Requirement Checker" tab
-                        const requirementCheckerTab = document.getElementById('requirement-checker-link');
-                        if (requirementCheckerTab) {
-                            requirementCheckerTab.classList.add('active');
-                        }
-
-                        // Add show and active classes to the "Requirement Checker" content
-                        const requirementCheckerPane = document.getElementById('requirement-checker');
-                        if (requirementCheckerPane) {
-                            requirementCheckerPane.classList.add('show', 'active');
-                        }
-                    }
-                </script>
-
-
                 <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
-                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                    <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-lightbulb text-primary fs-4"></i>
@@ -748,7 +682,7 @@ error_reporting(E_ALL);
                 </script>
 
                 <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
-                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                    <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-check-circle text-primary fs-4"></i>
@@ -799,7 +733,7 @@ error_reporting(E_ALL);
                 </div>
 
                 <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
-                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                    <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-tasks text-primary fs-4"></i>
@@ -822,7 +756,7 @@ error_reporting(E_ALL);
                 </div>
 
                 <div class="tab-pane fade" id="research-evaluation" role="tabpanel" aria-labelledby="research-evaluation-link">
-                    <div class="my-3 p-4 home-sidebar-box rounded shadow-sm">
+                    <div class="home-sidebar-box">
                         <div class="d-flex align-items-center mb-4">
                             <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-comments text-primary fs-4"></i>
@@ -908,22 +842,249 @@ error_reporting(E_ALL);
                     </div>
                 </div>
 
-                <div class="tab-pane fade" id="overview" role="tabpanel" aria-labelledby="overview-link">
+                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-link">
                     <div class="container-fluid py-4 content-container team-overview">
-                        <!-- Header with title and description -->
+                        <!-- Header with title and sub-tabs -->
                         <div class="row mb-4">
-                            <div class="col-12">
-                                <h3 class="mb-2">Team Overview</h3>
-                                <p class="text-muted">Track your requirement progress and next defense schedule</p>
+                            <div class="col-md-8">
+                                <h3 class="mb-2">Dashboard</h3>
+                                <p class="text-muted">Track your requirement progress and defense schedule</p>
+                            </div>
+                            <div class="col-md-4 text-end">
+                                <div class="btn-group" role="group">
+                                    <input type="radio" class="btn-check" name="viewMode" id="dashboard-view" checked>
+                                    <label class="btn btn-outline-primary" for="dashboard-view">
+                                        <i class="bi bi-grid-3x3"></i> Dashboard
+                                    </label>
+                                    
+                                    <input type="radio" class="btn-check" name="viewMode" id="calendar-view">
+                                    <label class="btn btn-outline-primary" for="calendar-view">
+                                        <i class="bi bi-calendar"></i> Calendar
+                                    </label>
+                                </div>
                             </div>
                         </div>
 
-                        <!-- Team Overview Content -->
-                        <div class="row">
-                            <div class="col-12">
-                                <div id="teamOverviewContent">
-                                    <!-- Team overview content will be loaded here -->
+                        <!-- Dashboard View (Default) -->
+                        <div id="dashboardView">
+                            <div class="row">
+                                <div class="col-12">
+                                    <div id="teamOverviewContent">
+                                        <!-- Team overview content will be loaded here -->
+                                    </div>
                                 </div>
+                            </div>
+                        </div>
+
+                        <!-- Calendar View (Hidden by default) -->
+                        <div id="calendarView" style="display: none;">
+                            <div class="row">
+                                <div class="col-12 col-lg-9 mb-3">
+                                    <div class="calendar-container p-3">
+                                        <!-- Calendar Div -->
+                                        <div id="calendar2"></div>
+                                    </div>
+                                </div>
+                                <?php if ($_SESSION['usertype'] == 2): ?>
+                                    <?php
+                                    // Fetch teams for current user
+                                    $userId = $_SESSION['id'];
+                                    $userType = $_SESSION['usertype'];
+                                    
+                                    if ($userType == 1) { // Student
+                                        $teamsStmt = $pdo->prepare("SELECT t.id, t.name FROM team_members tm JOIN teams t ON tm.team_id = t.id WHERE tm.user_id = ?");
+                                        $teamsStmt->execute([$userId]);
+                                        $teams = $teamsStmt->fetchAll(PDO::FETCH_ASSOC);
+                                    } else { // Staff/Adviser
+                                        $teamsStmt = $pdo->prepare("SELECT t.id, t.name FROM team_members tm JOIN teams t ON tm.team_id = t.id WHERE tm.user_id = ? AND tm.role IN ('adviser', 'panelist')");
+                                        $teamsStmt->execute([$userId]);
+                                        $teams = $teamsStmt->fetchAll(PDO::FETCH_ASSOC);
+                                    }
+                                    
+                                    // Use first team as default if available
+                                    $selectedTeamId = !empty($teams) ? $teams[0]['id'] : null;
+                                    
+                                    // Fetch requirements for selected team
+                                    $requirements = [];
+                                    if ($selectedTeamId) {
+                                        $requirementsStmt = $pdo->prepare("
+                                            SELECT r.id, r.name, r.description, r.due_date,
+                                                   COALESCE(tr.status, 'pending') as status,
+                                                   tr.submitted_at, tr.feedback
+                                            FROM requirements r 
+                                            LEFT JOIN team_requirements tr ON r.id = tr.requirement_id AND tr.team_id = ?
+                                            ORDER BY r.due_date ASC, r.name ASC
+                                        ");
+                                        $requirementsStmt->execute([$selectedTeamId]);
+                                        $requirements = $requirementsStmt->fetchAll(PDO::FETCH_ASSOC);
+                                    }
+                                    ?>
+                                    <div class="requirements-list col-12 col-lg-3">
+                                        <div class="accordion custom-accordion" id="requirementsAccordion2">
+                                            <!-- Requirements Section -->
+                                            <div class="accordion-item">
+                                                <h2 class="accordion-header" id="headingRequirements2">
+                                                    <button class="accordion-button custom-accordion-btn" type="button" data-bs-toggle="collapse" 
+                                                            data-bs-target="#collapseRequirements2" aria-expanded="true" 
+                                                            aria-controls="collapseRequirements2">
+                                                        Requirements
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseRequirements2" class="accordion-collapse collapse show" 
+                                                             aria-labelledby="headingRequirements2" data-bs-parent="#requirementsAccordion2">
+                                                    <div class="accordion-body custom-scrollbar">
+                                                        <!-- Team Selector -->
+                                                        <?php if (count($teams) > 1): ?>
+                                                            <div class="mb-3">
+                                                                <label for="requirementsTeamSelector" class="form-label small text-muted">Select Team:</label>
+                                                                <select id="requirementsTeamSelector" class="form-select form-select-sm">
+                                                                    <?php foreach ($teams as $team): ?>
+                                                                        <option value="<?php echo $team['id']; ?>" <?php echo ($team['id'] == $selectedTeamId) ? 'selected' : ''; ?>>
+                                                                            <?php echo htmlspecialchars($team['name']); ?>
+                                                                        </option>
+                                                                    <?php endforeach; ?>
+                                                                </select>
+                                                            </div>
+                                                        <?php elseif (count($teams) == 1): ?>
+                                                            <div class="mb-3">
+                                                                <p class="small text-muted mb-2">Team: <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong></p>
+                                                            </div>
+                                                        <?php endif; ?>
+                                                        
+                                                        <!-- Requirements List -->
+                                                        <ul class="list-group" id="requirementsList">
+                                                            <?php if (empty($teams)): ?>
+                                                                <li class="list-group-item text-center text-muted">
+                                                                    <em>No teams assigned to you</em>
+                                                                </li>
+                                                            <?php elseif (!empty($requirements)): ?>
+                                                                <?php foreach ($requirements as $requirement): ?>
+                                                                    <li class="list-group-item d-flex justify-content-between align-items-center req-li">
+                                                                        <div>
+                                                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
+                                                                            <br>
+                                                                            <small class="text-muted due-date-txt">Due: <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
+                                                                        </div>
+                                                                        <?php
+                                                                        $badgeClass = 'bg-warning';
+                                                                        $badgeText = 'Pending';
+                                                                        if ($requirement['status'] === 'approved') {
+                                                                            $badgeClass = 'bg-success';
+                                                                            $badgeText = 'Approved';
+                                                                        } elseif ($requirement['status'] === 'submitted') {
+                                                                            $badgeClass = 'bg-info';
+                                                                            $badgeText = 'Submitted';
+                                                                        } elseif ($requirement['status'] === 'rejected') {
+                                                                            $badgeClass = 'bg-danger';
+                                                                            $badgeText = 'Rejected';
+                                                                        }
+                                                                        ?>
+                                                                        <span class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo $badgeText; ?></span>
+                                                                    </li>
+                                                                <?php endforeach; ?>
+                                                            <?php else: ?>
+                                                                <li class="list-group-item text-center text-muted">
+                                                                    <em>No requirements found for this team</em>
+                                                                </li>
+                                                            <?php endif; ?>
+                                                        </ul>
+                                                    </div>
+                                                </div>
+                                            </div>
+
+                                            <?php
+                                            // Defense schedules for faculty users (copied from scheduling tab)
+                                            $userId = $_SESSION['id'];
+                                            $query = "SELECT
+                                                        ds.id AS schedule_id,
+                                                        ds.schedule_date,
+                                                        ds.start_time,
+                                                        ds.end_time,
+                                                        ds.room,
+                                                        t.name AS team_name,
+                                                        t.program AS team_program,
+                                                        (
+                                                            SELECT rgi.group_id
+                                                            FROM rubric_programs rp
+                                                            JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
+                                                            WHERE rp.program_name = t.program
+                                                            LIMIT 1
+                                                        ) AS rubric_group_id
+                                                    FROM defense_schedules ds
+                                                    JOIN teams t ON ds.team_id = t.id
+                                                    WHERE
+                                                        ds.panelist_id = :user_id1
+                                                        OR ds.panelist_id2 = :user_id2
+                                                        OR ds.panelist_id3 = :user_id3
+                                                    ORDER BY
+                                                        ds.schedule_date, ds.start_time";
+                                            $stmt = $pdo->prepare($query);
+                                            $stmt->execute([
+                                                'user_id1' => $userId,
+                                                'user_id2' => $userId,
+                                                'user_id3' => $userId
+                                            ]);
+                                            $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                                            ?>
+                                            <div class="accordion-item mt-2">
+                                                <h2 class="accordion-header" id="headingDefenses2">
+                                                    <button class="accordion-button custom-accordion-btn collapsed" type="button" 
+                                                            data-bs-toggle="collapse" data-bs-target="#collapseDefenses2" 
+                                                            aria-expanded="false" aria-controls="collapseDefenses2">
+                                                        Defense Schedules
+                                                    </button>
+                                                </h2>
+                                                <div id="collapseDefenses2" class="accordion-collapse collapse" 
+                                                             aria-labelledby="headingDefenses2" data-bs-parent="#requirementsAccordion2">
+                                                    <div class="accordion-body custom-scrollbar">
+                                                        <ul class="list-group">
+                                                            <?php foreach ($schedules as $schedule):
+                                                                $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
+                                                                $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
+                                                                $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
+                                                                $rubric_group_id = $schedule['rubric_group_id'];
+                                                                $schedule_id = $schedule['schedule_id'];
+
+                                                                $onclick_attr = '';
+                                                                $item_class = 'list-group-item defense-item';
+                                                                $disabled_message = '';
+                                                                if ($rubric_group_id !== null) {
+                                                                    $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
+                                                                } else {
+                                                                    $item_class .= ' disabled';
+                                                                    $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
+                                                                }
+                                                            ?>
+                                                                <li class="<?php echo $item_class; ?>" <?php echo $onclick_attr; ?>>
+                                                                    <div class="defense-content">
+                                                                        <h6 class="team-name mb-2">
+                                                                            <?php echo htmlspecialchars($schedule['team_name']); ?>
+                                                                        </h6>
+                                                                        <div class="defense-details">
+                                                                            <div class="detail-item">
+                                                                                <i class="far fa-calendar me-2"></i>
+                                                                                <?php echo htmlspecialchars($formatted_date); ?>
+                                                                            </div>
+                                                                            <div class="detail-item">
+                                                                                <i class="far fa-clock me-2"></i>
+                                                                                <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?>
+                                                                            </div>
+                                                                            <div class="detail-item">
+                                                                                <i class="fas fa-door-open me-2"></i>
+                                                                                <?php echo htmlspecialchars($schedule['room']); ?>
+                                                                            </div>
+                                                                        </div>
+                                                                        <?php echo $disabled_message; ?>
+                                                                    </div>
+                                                                </li>
+                                                            <?php endforeach; ?>
+                                                        </ul>
+                                                    </div>
+                                                </div> 
+                                            </div>
+                                        </div>
+                                    </div>
+                                <?php endif; ?>
                             </div>
                         </div>
                     </div>
@@ -1121,7 +1282,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                         response.requirements.forEach(function(req) {
                             checklistHtml += `
                         <div class="col-12 col-lg-6">
-                            <div class="card h-100 shadow-sm">
+                            <div class="card h-100">
                                 <div class="card-body">
                                     <div class="d-flex justify-content-between align-items-start">
                                         <div class="requirement-content">
@@ -1240,7 +1401,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 <?php if ($role === 'leader' || $role === 'member') { ?>
                                     displayHtml += `
                                 <div class="col-md-6 mb-4">
-                                    <div class="card h-100 shadow-sm rounded">
+                                    <div class="card h-100 rounded">
                                         <div class="card-body rct-cbody">
                                             <h5 class="card-title rct-ctitle">${req.name}</h5>
                                             <p class="card-text">${req.description}</p>
@@ -1461,193 +1622,6 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
         const url = `../decision-support/index.php?schedule_id=${scheduleId}&group_id=${groupId}`;
         console.log(`Redirecting to: ${url}`);
         window.location.href = url;
-    }
-
-    // Select the target element (#scheduling)
-    const targetNode = document.querySelector('#scheduling');
-
-    // Initial check: run if the 'show' class is already present on page load
-    if (targetNode && targetNode.classList.contains('show')) {
-        // Fetch events and requirements via AJAX
-        $.ajax({
-            url: 'includes/get_user_schedule.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    const events = [];
-
-                    response.defense_schedules.forEach(defense => {
-                        events.push({
-                            title: defense.description,
-                            start: `${defense.date}T${defense.start_time}`,
-                            end: `${defense.date}T${defense.end_time}`,
-                            location: defense.room,
-                            eventType: 'defense',
-                            team_id: defense.team_id,
-                            defense_schedule_id: defense.defense_schedule_id, // Pass defense_schedule_id
-                            rubric_group_id: defense.rubric_group_id // *** ADD THIS LINE ***
-                        });
-                    });
-
-                    response.user_schedules.forEach(schedule => {
-                        events.push({
-                            title: schedule.description,
-                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                            location: schedule.room,
-                            eventType: 'user'
-                        });
-                    });
-
-                    const calendar = new FullCalendar.Calendar(calendarEl, {
-                        initialView: 'dayGridMonth',
-                        headerToolbar: {
-                            left: 'prev,next today',
-                            center: 'title',
-                            right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                        },
-                        height: 'auto',
-                        events: events,
-                        eventClick: function(info) {
-                            const eventType = info.event.extendedProps.eventType;
-                            if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                const scheduleId = info.event.extendedProps.defense_schedule_id;
-                                const groupId = info.event.extendedProps.rubric_group_id; // Should now have the value
-
-                                if (scheduleId && groupId) {
-                                    redirectToDecisionSupport(scheduleId, groupId);
-                                } else {
-                                    console.error('defense_schedule_id or rubric_group_id is undefined/null for this defense event.', info.event.extendedProps);
-                                    alert('Unable to navigate to evaluation. Schedule or rubric group information is missing.');
-                                }
-                            } else {
-                                const title = info.event.title;
-                                const room = info.event.extendedProps.location;
-                                alert(`Event: ${title}\nRoom: ${room}`);
-                            }
-                        },
-                        dateClick: function(info) {
-                            const currentView = calendar.view.type;
-                            if (currentView === 'dayGridMonth') {
-                                calendar.changeView('timeGridWeek');
-                            } else if (currentView === 'timeGridWeek') {
-                                calendar.changeView('timeGridDay');
-                            }
-                            calendar.gotoDate(info.dateStr);
-                        }
-                    });
-
-                    calendar.render();
-                } else {
-                    console.error('Error fetching schedules:', response.error);
-                }
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                console.error("AJAX error:", textStatus, errorThrown);
-            }
-        });
-    }
-
-    // Create an observer instance
-    const observer = new MutationObserver((mutationsList) => {
-        mutationsList.forEach((mutation) => {
-            if (mutation.type === 'attributes' && mutation.attributeName === 'class') {
-                // Trigger only when the 'show' class is added
-                if (targetNode.classList.contains('show')) {
-                    // Fetch events and requirements via AJAX
-                    $.ajax({
-                        url: 'includes/get_user_schedule.php',
-                        method: 'GET',
-                        dataType: 'json',
-                        success: function(response) {
-                            if (response.success) {
-                                const events = [];
-
-                                response.defense_schedules.forEach(defense => {
-                                    events.push({
-                                        title: defense.description,
-                                        start: `${defense.date}T${defense.start_time}`,
-                                        end: `${defense.date}T${defense.end_time}`,
-                                        location: defense.room,
-                                        eventType: 'defense',
-                                        team_id: defense.team_id,
-                                        defense_schedule_id: defense.defense_schedule_id, // Pass defense_schedule_id
-                                        rubric_group_id: defense.rubric_group_id // *** ADD THIS LINE ***
-                                    });
-                                });
-
-                                response.user_schedules.forEach(schedule => {
-                                    events.push({
-                                        title: schedule.description,
-                                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                                        location: schedule.room,
-                                        eventType: 'user'
-                                    });
-                                });
-
-                                const calendar = new FullCalendar.Calendar(calendarEl, {
-                                    initialView: 'dayGridMonth',
-                                    headerToolbar: {
-                                        left: 'prev,next today',
-                                        center: 'title',
-                                        right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                                    },
-                                    height: 'auto',
-                                    events: events,
-                                    eventClick: function(info) {
-                                        const eventType = info.event.extendedProps.eventType;
-                                        if (eventType === 'defense' && <?php echo $_SESSION['usertype']; ?> != 1) {
-                                            const scheduleId = info.event.extendedProps.defense_schedule_id;
-                                            const groupId = info.event.extendedProps.rubric_group_id; // Should now have the value
-
-                                            if (scheduleId && groupId) {
-                                                redirectToDecisionSupport(scheduleId, groupId);
-                                            } else {
-                                                console.error('defense_schedule_id or rubric_group_id is undefined/null for this defense event.', info.event.extendedProps);
-                                                alert('Unable to navigate to evaluation. Schedule or rubric group information is missing.');
-                                            }
-                                        } else {
-                                            const title = info.event.title;
-                                            const room = info.event.extendedProps.location;
-                                            alert(`Event: ${title}\nRoom: ${room}`);
-                                        }
-                                    },
-                                    dateClick: function(info) {
-                                        const currentView = calendar.view.type;
-                                        if (currentView === 'dayGridMonth') {
-                                            calendar.changeView('timeGridWeek');
-                                        } else if (currentView === 'timeGridWeek') {
-                                            calendar.changeView('timeGridDay');
-                                        }
-                                        calendar.gotoDate(info.dateStr);
-                                    }
-                                });
-
-                                calendar.render();
-                            } else {
-                                console.error('Error fetching schedules:', response.error);
-                            }
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            console.error("AJAX error:", textStatus, errorThrown);
-                        }
-                    });
-                }
-            }
-        });
-    });
-
-    // Set up the configuration for the observer: watch for attribute changes
-    const config = {
-        attributes: true, // Watch for changes to attributes
-        attributeFilter: ['class'], // Only watch changes to the 'class' attribute
-    };
-
-    // Start observing the target node
-    if (targetNode) {
-        observer.observe(targetNode, config);
     }
 </script>
 </body>

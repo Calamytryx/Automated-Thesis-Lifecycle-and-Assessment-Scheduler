@@ -153,7 +153,7 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
 ?>
 
 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
-    <div class="container-fluid my-3">
+    <div class="container-fluid p-0">
         <!-- Requirements Completion Graph -->
         <div class="content-container mb-4">
             <div class="row">

@@ -1093,12 +1093,12 @@ border-top: solid 1px var(--main-bg-dark);
     justify-content: center;
 }
 
-.home-sidebar-box{
+/* .home-sidebar-box{
     background-color: var(--main-white); 
     border: solid 1px var(--main-neutral);
     border-radius: 5px;
     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-}
+} */
 
 #titleSubmissionForm .form-control {
     padding: 0.8rem 1rem;
