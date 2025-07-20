@@ -1,13 +1,14 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.1
+-- version 4.9.0.1
 -- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1
--- Generation Time: Jul 20, 2025 at 11:58 AM
--- Server version: 10.4.28-MariaDB
--- PHP Version: 8.2.4
+-- Host: sql302.byetcluster.com
+-- Generation Time: Jul 16, 2025 at 08:23 AM
+-- Server version: 11.4.7-MariaDB
+-- PHP Version: 7.2.22
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+SET AUTOCOMMIT = 0;
 START TRANSACTION;
 SET time_zone = "+00:00";
 
@@ -18,7 +19,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `coecsa_thesis`
+-- Database: `icei_38697196_coecsathesis`
 --
 
 -- --------------------------------------------------------
@@ -100,20 +101,6 @@ CREATE TABLE `defense_schedules` (
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `defense_schedules`
---
-
-INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`) VALUES
-(38, 31, 175, 172, 66, '2025-07-25', '14:00:00', '16:00:00', 'a', 'scheduled', '2025-07-20 06:19:38'),
-(39, 30, 177, 62, 67, '2025-07-29', '16:00:00', '18:00:00', 'a', 'scheduled', '2025-07-20 06:19:38'),
-(40, 28, 173, 58, 65, '2025-07-21', '09:00:00', '11:00:00', 'a', 'scheduled', '2025-07-20 06:19:38'),
-(41, 26, 144, 174, 65, '2025-07-23', '12:00:00', '14:00:00', 'a', 'scheduled', '2025-07-20 06:19:38'),
-(42, 27, 260, 64, 67, '2025-07-23', '08:00:00', '10:00:00', 'a', 'scheduled', '2025-07-20 06:19:38'),
-(43, 29, 143, 64, 65, '2025-07-29', '16:00:00', '18:00:00', 'b', 'scheduled', '2025-07-20 06:19:38'),
-(44, 32, 145, 64, 66, '2025-07-29', '08:00:00', '10:00:00', 'b', 'scheduled', '2025-07-20 06:19:38'),
-(45, 1, 62, 61, 59, '2025-07-22', '08:00:00', '17:00:00', 'a', 'scheduled', '2025-07-20 06:25:53');
 
 -- --------------------------------------------------------
 
@@ -316,128 +303,6 @@ CREATE TABLE `merged_evaluations` (
 -- --------------------------------------------------------
 
 --
--- Table structure for table `notifications`
---
-
-CREATE TABLE `notifications` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `user_id` int(11) UNSIGNED NOT NULL,
-  `type` enum('defense_scheduled','title_approved','requirement_created','requirement_submitted','requirement_approved','requirement_rejected') NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `message` text NOT NULL,
-  `related_id` int(11) UNSIGNED DEFAULT NULL COMMENT 'ID of related entity (team_id, requirement_id, etc.)',
-  `related_type` enum('team','requirement','defense_schedule','research_title') DEFAULT NULL,
-  `is_read` tinyint(1) NOT NULL DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
---
--- Dumping data for table `notifications`
---
-
-INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `updated_at`) VALUES
-(1, 144, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:53:25'),
-(2, 129, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(3, 120, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(4, 117, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(5, 148, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(6, 135, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(7, 175, '', 'New Defense Assignment', 'You have been assigned as a panelist for ReLuto\'s defense on July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(8, 172, '', 'New Defense Assignment', 'You have been assigned as a panelist for ReLuto\'s defense on July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(9, 66, '', 'New Defense Assignment', 'You have been assigned as a panelist for ReLuto\'s defense on July 25, 2025 at 2:00 PM - 4:00 PM in a.', 38, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:35:28'),
-(10, 86, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(11, 143, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(12, 121, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(13, 128, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(14, 114, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(15, 146, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(16, 177, '', 'New Defense Assignment', 'You have been assigned as a panelist for CoralIS\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(17, 62, '', 'New Defense Assignment', 'You have been assigned as a panelist for CoralIS\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(18, 67, '', 'New Defense Assignment', 'You have been assigned as a panelist for CoralIS\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in a.', 39, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(19, 110, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:45:59'),
-(20, 83, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(21, 99, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(22, 173, '', 'New Defense Assignment', 'You have been assigned as a panelist for Blaze Rider\'s defense on July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(23, 58, '', 'New Defense Assignment', 'You have been assigned as a panelist for Blaze Rider\'s defense on July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:35:12'),
-(24, 65, '', 'New Defense Assignment', 'You have been assigned as a panelist for Blaze Rider\'s defense on July 21, 2025 at 9:00 AM - 11:00 AM in a.', 40, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(25, 93, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 12:00 PM - 2:00 PM in a.', 41, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:42:43'),
-(26, 66, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 12:00 PM - 2:00 PM in a.', 41, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:34:47'),
-(27, 144, '', 'New Defense Assignment', 'You have been assigned as a panelist for GIG-A-FIND\'s defense on July 23, 2025 at 12:00 PM - 2:00 PM in a.', 41, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:53:25'),
-(28, 174, '', 'New Defense Assignment', 'You have been assigned as a panelist for GIG-A-FIND\'s defense on July 23, 2025 at 12:00 PM - 2:00 PM in a.', 41, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(29, 65, '', 'New Defense Assignment', 'You have been assigned as a panelist for GIG-A-FIND\'s defense on July 23, 2025 at 12:00 PM - 2:00 PM in a.', 41, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(30, 106, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:23:54'),
-(31, 58, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:35:13'),
-(32, 108, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(33, 88, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(34, 105, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(35, 260, '', 'New Defense Assignment', 'You have been assigned as a panelist for TherapEase\'s defense on July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(36, 64, '', 'New Defense Assignment', 'You have been assigned as a panelist for TherapEase\'s defense on July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:22:56'),
-(37, 67, '', 'New Defense Assignment', 'You have been assigned as a panelist for TherapEase\'s defense on July 23, 2025 at 8:00 AM - 10:00 AM in a.', 42, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(38, 144, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:53:25'),
-(39, 124, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(40, 125, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(41, 126, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(42, 115, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(43, 143, '', 'New Defense Assignment', 'You have been assigned as a panelist for CYBEREUM\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(44, 64, '', 'New Defense Assignment', 'You have been assigned as a panelist for CYBEREUM\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:22:39'),
-(45, 65, '', 'New Defense Assignment', 'You have been assigned as a panelist for CYBEREUM\'s defense on July 29, 2025 at 4:00 PM - 6:00 PM in b.', 43, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(46, 59, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:20:26'),
-(47, 122, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(48, 142, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(49, 141, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(50, 145, '', 'New Defense Assignment', 'You have been assigned as a panelist for CRAMS\'s defense on July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 0, '2025-07-20 06:19:38', '2025-07-20 06:19:38'),
-(51, 64, '', 'New Defense Assignment', 'You have been assigned as a panelist for CRAMS\'s defense on July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 06:22:55'),
-(52, 66, '', 'New Defense Assignment', 'You have been assigned as a panelist for CRAMS\'s defense on July 29, 2025 at 8:00 AM - 10:00 AM in b.', 44, NULL, 1, '2025-07-20 06:19:38', '2025-07-20 08:35:33'),
-(53, 58, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 1, '2025-07-20 06:25:53', '2025-07-20 06:35:12'),
-(54, 38, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 1, '2025-07-20 06:25:53', '2025-07-20 06:33:49'),
-(55, 40, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 1, '2025-07-20 06:25:53', '2025-07-20 06:32:00'),
-(56, 41, '', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 0, '2025-07-20 06:25:53', '2025-07-20 06:25:53'),
-(57, 62, '', 'New Defense Assignment', 'You have been assigned as a panelist for 120ms\'s defense on July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 0, '2025-07-20 06:25:53', '2025-07-20 06:25:53'),
-(58, 61, '', 'New Defense Assignment', 'You have been assigned as a panelist for 120ms\'s defense on July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 0, '2025-07-20 06:25:53', '2025-07-20 06:25:53'),
-(59, 59, '', 'New Defense Assignment', 'You have been assigned as a panelist for 120ms\'s defense on July 22, 2025 at 8:00 AM - 5:00 PM in a.', 45, NULL, 0, '2025-07-20 06:25:53', '2025-07-20 06:25:53'),
-(60, 93, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'GIG-A-FIND:\' has been approved and you can now proceed with your research.', 26, NULL, 1, '2025-07-20 08:33:33', '2025-07-20 08:42:40'),
-(61, 93, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'GIG-A-FIND:\' has been approved and you can now proceed with your research.', 26, NULL, 1, '2025-07-20 08:33:33', '2025-07-20 08:42:41'),
-(62, 66, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'GIG-A-FIND:\' has been approved and you can now proceed with your research.', 26, NULL, 1, '2025-07-20 08:33:33', '2025-07-20 08:35:04'),
-(63, 66, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'GIG-A-FIND:\' has been approved and you can now proceed with your research.', 26, NULL, 1, '2025-07-20 08:33:33', '2025-07-20 08:34:33'),
-(64, 110, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 1, '2025-07-20 08:44:00', '2025-07-20 08:46:00'),
-(65, 110, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 1, '2025-07-20 08:44:00', '2025-07-20 08:45:59'),
-(66, 83, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 0, '2025-07-20 08:44:00', '2025-07-20 08:44:00'),
-(67, 83, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 0, '2025-07-20 08:44:00', '2025-07-20 08:44:00'),
-(68, 99, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 0, '2025-07-20 08:44:00', '2025-07-20 08:44:00'),
-(69, 99, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Blaze Rider\' has been approved and you can now proceed with your research.', 28, NULL, 0, '2025-07-20 08:44:00', '2025-07-20 08:44:00'),
-(70, 144, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'CYBEREUM\' has been approved and you can now proceed with your research.', 29, NULL, 1, '2025-07-20 08:51:49', '2025-07-20 08:53:24'),
-(71, 124, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'CYBEREUM\' has been approved and you can now proceed with your research.', 29, NULL, 0, '2025-07-20 08:51:49', '2025-07-20 08:51:49'),
-(72, 125, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'CYBEREUM\' has been approved and you can now proceed with your research.', 29, NULL, 0, '2025-07-20 08:51:49', '2025-07-20 08:51:49'),
-(73, 126, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'CYBEREUM\' has been approved and you can now proceed with your research.', 29, NULL, 0, '2025-07-20 08:51:49', '2025-07-20 08:51:49'),
-(74, 115, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'CYBEREUM\' has been approved and you can now proceed with your research.', 29, NULL, 0, '2025-07-20 08:51:49', '2025-07-20 08:51:49'),
-(75, 58, 'requirement_submitted', 'New Requirement Submission', 'Team \'120ms\' has submitted the requirement \'Chapter 1\'. File: 1_1_1753002319_goals.pdf', 1, NULL, 1, '2025-07-20 09:05:19', '2025-07-20 09:05:41'),
-(76, 38, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Chapter 1\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-20 09:06:02', '2025-07-20 09:06:02'),
-(77, 40, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Chapter 1\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-20 09:06:02', '2025-07-20 09:06:02'),
-(78, 41, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Chapter 1\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-20 09:06:02', '2025-07-20 09:06:02');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `notification_preferences`
---
-
-CREATE TABLE `notification_preferences` (
-  `id` int(11) UNSIGNED NOT NULL,
-  `user_id` int(11) UNSIGNED NOT NULL,
-  `defense_scheduled` tinyint(1) NOT NULL DEFAULT 1,
-  `title_approved` tinyint(1) NOT NULL DEFAULT 1,
-  `requirement_created` tinyint(1) NOT NULL DEFAULT 1,
-  `requirement_submitted` tinyint(1) NOT NULL DEFAULT 1,
-  `requirement_approved` tinyint(1) NOT NULL DEFAULT 1,
-  `requirement_rejected` tinyint(1) NOT NULL DEFAULT 1,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
 -- Table structure for table `page_content`
 --
 
@@ -588,13 +453,13 @@ CREATE TABLE `research_titles` (
 
 INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at`, `defended_at`, `created_at`, `updated_at`) VALUES
 (2, 2, ' Arcadia: A LIBRARY MANAGEMENTSYSTEMFORLPU  ACADEMICRESOURCECENTERUSINGMACHINE  LEARNINGFORTEXTCLASSIFICATIONAND  RECOMMENDATIONSYSTEMS', 'Master in Business Administration', '2024-11-16 02:30:00', NULL, '2024-10-13 07:15:44', '2025-04-27 08:41:47'),
-(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', '', '2025-07-20 06:38:12', NULL, '2024-10-13 07:15:44', '2025-07-20 06:38:12'),
+(3, 3, 'SOLACE: SMART SYMPTOM MONITORING AND AI PREDICTIVE  INTERVENTION IN PALLIATIVE AND HOSPICE CARE', 'Juris Doctor', NULL, NULL, '2024-10-13 07:15:44', '2025-04-27 08:50:59'),
 (4, 4, 'ADAPT: AI-DRIVEN CUSTOMIZABLE CHATBOT PLUGIN FOR  ENHANCED USER INTERACTION IN WEB-BASED PLATFORMS  ', NULL, '2024-11-18 06:00:00', NULL, '2024-10-13 07:15:44', '2024-12-10 22:48:08'),
 (5, 5, 'QUIZSCAN: AUTOMATED HANDWRITTEN ACTIVITY ANSWERS  RECOGNITION FOR TEACHERS USING CNN ALGORITHM', NULL, '2024-11-19 07:30:00', NULL, '2024-10-13 07:15:44', '2025-04-23 14:33:52'),
-(27, 26, 'GIG-A-FIND:', '', '2025-07-20 08:33:33', NULL, '2025-04-11 04:05:01', '2025-07-20 08:33:33'),
-(28, 27, 'TherapEase', '', '2025-07-20 08:19:56', NULL, '2025-04-11 04:05:54', '2025-07-20 08:19:56'),
-(29, 28, 'Blaze Rider', '', '2025-07-20 08:44:00', NULL, '2025-04-11 04:06:21', '2025-07-20 08:44:00'),
-(30, 29, 'CYBEREUM', '', '2025-07-20 08:51:49', NULL, '2025-04-11 04:07:15', '2025-07-20 08:51:49'),
+(27, 26, 'GIG-A-FIND:', NULL, NULL, NULL, '2025-04-11 04:05:01', '2025-04-11 04:05:01'),
+(28, 27, 'TherapEase', NULL, NULL, NULL, '2025-04-11 04:05:54', '2025-04-11 04:05:54'),
+(29, 28, 'Blaze Rider', NULL, NULL, NULL, '2025-04-11 04:06:21', '2025-04-11 04:06:21'),
+(30, 29, 'CYBEREUM', NULL, NULL, NULL, '2025-04-11 04:07:15', '2025-04-11 04:07:15'),
 (31, 30, 'CoralIS', NULL, NULL, NULL, '2025-04-11 04:07:40', '2025-04-11 04:07:40'),
 (32, 31, 'ReLuto', NULL, NULL, NULL, '2025-04-11 04:08:16', '2025-04-11 04:08:16'),
 (33, 32, 'CRAMS', NULL, NULL, NULL, '2025-04-11 04:08:40', '2025-04-11 04:08:40'),
@@ -629,8 +494,7 @@ INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at
 (64, 64, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:32:10', '2025-04-26 06:32:10'),
 (65, 65, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:33:41', '2025-04-26 06:33:41'),
 (66, 66, 'Shamwow', NULL, NULL, NULL, '2025-04-26 06:34:14', '2025-04-26 06:34:14'),
-(67, 67, 'a', NULL, NULL, NULL, '2025-04-27 00:30:22', '2025-04-27 00:30:22'),
-(68, 68, 'dasdasda', NULL, NULL, NULL, '2025-06-28 15:32:09', '2025-06-28 15:32:09');
+(67, 67, 'a', NULL, NULL, NULL, '2025-04-27 00:30:22', '2025-04-27 00:30:22');
 
 -- --------------------------------------------------------
 
@@ -668,7 +532,7 @@ INSERT INTO `rubrics` (`id`, `name`, `description`, `rubric_type`, `is_individua
 (41, 'rubric  name', 'desc', 'yesno', 0, NULL, 'desc', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-17 13:19:21', '2025-04-23 14:45:02', 100),
 (42, 'Written Manuscript', 'Group Grade', 'numerical', 0, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-18 11:28:12', '2025-04-27 23:31:58', 100),
 (45, 'Oral Defense ', 'Individual Grade', 'numerical', 1, 'Final Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 09:55:14', '2025-04-27 23:32:08', 100),
-(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', 81.00, 80.00, 70.00, 0, NULL, 1, '2025-04-21 17:13:58', '2025-07-11 08:56:37', 100),
+(47, 'FINAL RECOMMENDATION:', 'CBA ', 'passfail', 0, 'Final Defense', '', 'The manuscript is accepted: ', 'The manuscript is rejected: ', 'below 70% acceptability (refer to research adviser and for re-defense) ', '81.00', '80.00', '70.00', 0, NULL, 1, '2025-04-21 17:13:58', '2025-04-27 23:32:20', 100),
 (48, 'Written Manuscript Proposal', 'Group Grade', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-04-21 19:39:59', '2025-04-22 15:04:55', 100),
 (49, 'Oral Defense Proposal', 'Individual Grade ', 'numerical', 1, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-04-21 19:45:28', '2025-04-22 15:14:22', 100);
 
@@ -759,11 +623,11 @@ CREATE TABLE `rubric_group_items` (
 --
 
 INSERT INTO `rubric_group_items` (`id`, `group_id`, `rubric_id`, `order_index`, `weight`, `created_at`, `updated_at`) VALUES
-(31, 5, 48, 0, 60.00, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
-(32, 5, 49, 1, 40.00, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
+(31, 5, 48, 0, '60.00', '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
+(32, 5, 49, 1, '40.00', '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
 (33, 5, 47, 2, NULL, '2025-04-21 19:46:23', '2025-04-21 19:46:23'),
-(50, 3, 42, 0, 60.00, '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
-(51, 3, 45, 1, 40.00, '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
+(50, 3, 42, 0, '60.00', '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
+(51, 3, 45, 1, '40.00', '2025-04-25 03:37:48', '2025-04-25 03:37:48'),
 (52, 3, 47, 2, NULL, '2025-04-25 03:37:48', '2025-04-25 03:37:48');
 
 -- --------------------------------------------------------
@@ -807,9 +671,9 @@ INSERT INTO `rubric_levels` (`id`, `rubric_id`, `level_index`, `name`, `descript
 (188, 52, 1, 'a', 'a', 5, 5, 0, '2025-04-27 08:51:47', '2025-04-27 08:51:47'),
 (207, 42, 1, 'Written manuscript', '', 0, 10, 1, '2025-04-27 23:31:58', '2025-04-27 23:31:58'),
 (208, 45, 1, 'Level 1', '', 0, 100, 1, '2025-04-27 23:32:08', '2025-04-27 23:32:08'),
-(212, 47, 1, 'Pass Option 1', 'without revision ', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37'),
-(213, 47, 2, 'Pass Option 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37'),
-(214, 47, 3, 'Pass Option 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-07-11 08:56:37', '2025-07-11 08:56:37');
+(209, 47, 1, 'Pass Option 1', 'without revision ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(210, 47, 2, 'Pass Option 2', 'with minor revisions: at least 80% acceptability (refer to evaluation sheet)', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20'),
+(211, 47, 3, 'Pass Option 3', 'with  major revisions: at least 70% acceptability (for re-defense) ', NULL, NULL, 0, '2025-04-27 23:32:20', '2025-04-27 23:32:20');
 
 -- --------------------------------------------------------
 
@@ -885,8 +749,7 @@ INSERT INTO `teams` (`id`, `name`, `created_at`, `program`, `area_of_expertise`)
 (60, '', '2025-04-25 15:14:08', '', ''),
 (65, 'Shamwow', '2025-04-26 06:33:41', 'a', 'a'),
 (66, 'Shamwow', '2025-04-26 06:34:14', 'Bachelor of Science in Architecture', 'Mobile Dev'),
-(67, 'a', '2025-04-27 00:30:22', 'Unspecified', 'a'),
-(68, 'sadadas', '2025-06-28 15:32:09', 'Bachelor of Science in Industrial Engineering', 'Software Engineering');
+(67, 'a', '2025-04-27 00:30:22', 'Unspecified', 'a');
 
 -- --------------------------------------------------------
 
@@ -1086,10 +949,7 @@ INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `s
 (13, 32, 1, 'submitted', '2025-04-21 18:43:33', NULL, '32_1_1745261013_120ms-BookbindCopy-20241208.pdf', NULL),
 (14, 32, 5, 'submitted', '2025-04-21 18:43:48', NULL, '32_5_1745261028_120ms-BookbindCopy-20241208.pdf', NULL),
 (15, 32, 2, 'submitted', '2025-04-22 06:50:40', NULL, '32_2_1745304640_32_1_1745261013_120ms-BookbindCopy-20241208.pdf', NULL),
-(16, 1, 5, 'approved', '2025-05-13 10:04:22', 'ok na, check ulit', '1_5_1747130662_NEW_FORMAT.pdf', ''),
-(17, 2, 43, 'submitted', '2025-07-20 00:44:03', 'nice', '2_43_1752972243_goals.pdf', ''),
-(18, 1, 43, 'submitted', '2025-07-20 06:34:49', 'ok', '1_43_1752993289_goals.pdf', ''),
-(19, 1, 1, 'submitted', '2025-07-20 09:05:19', 'well done', '1_1_1753002319_goals.pdf', '');
+(16, 1, 5, 'approved', '2025-05-13 10:04:22', 'ok na', '1_5_1747130662_NEW_FORMAT.pdf', '');
 
 -- --------------------------------------------------------
 
@@ -1111,8 +971,7 @@ CREATE TABLE `thesis_topics` (
 
 INSERT INTO `thesis_topics` (`id`, `topic`, `description`, `category`, `created_at`) VALUES
 (1, 'International Market Entry Strategies', 'Analysis of strategies used by hospitality firms when entering new international markets. Better understanding of market entry risks and opportunities for expansion.', 'Master in International Hospitality Management', '2025-05-13 09:16:49'),
-(2, 'Production engineering', ' product design and development', 'Bachelor of Science in Industrial Engineering', '2025-05-13 09:28:19'),
-(3, 'Supply Chain Optimization', 'Analysis and improvement of supply chain processes to enhance efficiency, reduce costs, and improve responsiveness. Reduced lead times, lower inventory costs, and improved customer satisfaction.', 'Bachelor of Science in Industrial Engineering', '2025-07-02 22:12:53');
+(2, 'Production engineering', ' product design and development', 'Bachelor of Science in Industrial Engineering', '2025-05-13 09:28:19');
 
 -- --------------------------------------------------------
 
@@ -1167,16 +1026,16 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
-(0, 0, 'Admin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-07-20 09:03:40', '0000-00-00 00:00:00', '2025-07-20 09:03:40'),
-(37, 0, 'neilv', 'Bachelor of Science in Industrial Engineering', NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-07-20 00:22:55', NULL, '2025-07-20 00:22:55'),
-(38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$FwRMim1ZTijICfN7cNJ/f.1G6pLLXZIV3/fBfXerZGyplkP4gtCae', 'Winstonini', 'Paganini', 'm', 'Student Headline', 'This is a student bio.', '67fc6b9c8052d9.27463503.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 09:06:14', NULL, '2025-07-20 09:06:14'),
+(0, 0, 'Admin', NULL, NULL, NULL, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-05-13 08:58:54', '0000-00-00 00:00:00', '2025-05-13 08:58:54'),
+(37, 0, 'neilv', 'Bachelor of Science in Industrial Engineering', NULL, NULL, 'neilvicedo.ih@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Niall', 'V', 'o', 'Basta programmer ako', '?', '_defaultUser.png', '2024-10-08 05:14:14', '2024-10-08 05:13:14', '2025-06-28 15:58:16', NULL, '2025-06-28 15:58:16'),
+(38, 1, '2021-2-02134', 'Bachelor of Science in Computer Science', NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$FwRMim1ZTijICfN7cNJ/f.1G6pLLXZIV3/fBfXerZGyplkP4gtCae', 'Winstonini', 'Paganini', 'm', 'Student Headline', 'This is a student bio.', '67fc6b9c8052d9.27463503.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-13 09:01:06', NULL, '2025-05-13 09:01:06'),
 (39, 1, 'student', 'Bachelor of Science in Computer Science', '', 0, 'student@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Juan', 'Delacruz', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-11 14:47:33', NULL, '2025-04-11 14:47:33'),
-(40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 06:27:52', NULL, '2025-07-20 06:27:52'),
+(40, 1, 'student3', 'Bachelor of Science in Computer Science', NULL, NULL, 'student3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerald Ryan', 'Gerona', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-05-01 06:07:17', NULL, '2025-05-01 06:07:17'),
 (41, 1, 'student4', 'Bachelor of Science in Computer Science', NULL, NULL, 'student4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Ivan Kerwin', 'Ilano', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-18 00:55:49', NULL, '2025-04-18 00:55:49'),
-(42, 1, 'student5', 'Bachelor of Science in Computer Science', NULL, NULL, 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Linus Karl', 'Sambile', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 00:42:42', NULL, '2025-07-20 00:42:42'),
-(43, 1, 'student6', 'Bachelor of Science in Computer Science', NULL, NULL, 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Yusuf', 'Mirasol', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 00:46:49', NULL, '2025-07-20 00:46:49'),
+(42, 1, 'student5', 'Bachelor of Science in Computer Science', NULL, NULL, 'student5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Linus Karl', 'Sambile', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-12 02:14:10', NULL, '2025-04-12 02:14:10'),
+(43, 1, 'student6', 'Bachelor of Science in Computer Science', NULL, NULL, 'student6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Yusuf', 'Mirasol', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 17:18:56'),
 (44, 1, 'student7', 'Bachelor of Science in Computer Science', NULL, NULL, 'student7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Keith Andrei', 'Marpuri', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-11-12 17:24:45'),
-(45, 1, 'student8', 'Bachelor of Science in Computer Science', '', 0, 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Renzo', 'ViÃ±as', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 06:38:58', NULL, '2025-07-20 06:38:58'),
+(45, 1, 'student8', 'Bachelor of Science in Computer Science', '', 0, 'student8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Renzo', 'ViÃ±as', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-23 14:32:11', NULL, '2024-10-09 22:07:06'),
 (46, 1, 'student9', 'Bachelor of Science in Computer Science', NULL, NULL, 'student9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Earl Stephen', 'Tacda', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (47, 1, 'student10', 'Bachelor of Science in Computer Science', NULL, NULL, 'student10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Cassandra', 'Roxas', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (48, 1, 'student11', 'Bachelor of Science in Computer Science', NULL, NULL, 'student11@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Kedd Cyrus', 'Alegre', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-18 12:04:30', NULL, '2025-04-18 12:04:30'),
@@ -1189,22 +1048,22 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (55, 1, 'student18', 'Bachelor of Science in Computer Science', NULL, NULL, 'student18@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Joshua', 'Catampongan', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (56, 1, 'student19', 'Bachelor of Science in Computer Science', NULL, NULL, 'student19@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Nineteen', 'm', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
 (57, 1, 'student20', 'Bachelor of Science in Computer Science', NULL, NULL, 'student20@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Student', 'Twenty', 'f', 'Student Headline', 'This is a student bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
-(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 09:06:58', NULL, '2025-07-20 09:06:58'),
-(59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 06:20:22', NULL, '2025-07-20 06:20:22'),
-(60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 06:42:06', NULL, '2025-07-20 06:42:06'),
-(61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 00:14:51', NULL, '2025-07-20 00:14:51'),
-(62, 2, 'staff5', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 00:14:39', NULL, '2025-07-20 00:14:39'),
-(63, 2, 'staff6', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Delia', 'Fainsan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 00:15:00', NULL, '2025-07-20 00:15:00'),
-(64, 2, 'staff7', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elmer', 'Matel', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 06:22:26', NULL, '2025-07-20 06:22:26'),
-(65, 2, 'staff8', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Alyssa Paola', 'Pocaan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:13', NULL, '2024-10-09 22:07:06'),
-(66, 2, 'staff9', 'Bachelor of Science in Computer Engineering', 'Software Engineering', 0, 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elizabeth', 'Nsubuga', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-07-20 08:34:25', NULL, '2025-07-20 08:34:25'),
+(58, 2, 'staff1', 'Bachelor of Science in Computer Science', '', 0, 'sean.gono@lpu.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Sean Charlston', 'Gono', 'm', 'BOI', 'This is a BOI..,.', '67545c47388503.11452602.jpg', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:36:38', NULL, '2025-06-27 17:36:38'),
+(59, 2, 'staff2', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff2@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Toni', 'Granado', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:37:04', NULL, '2025-06-27 17:37:04'),
+(60, 2, 'staff3', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff3@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Jerian', 'Peren', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:38:27', NULL, '2025-06-27 17:38:27'),
+(61, 2, 'staff4', 'Bachelor of Science in Computer Science', NULL, NULL, 'staff4@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Raymund', 'Constante', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:38:46', NULL, '2025-06-27 17:38:46'),
+(62, 2, 'staff5', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff5@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Laarnie', 'Carlos', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:37:19', NULL, '2025-06-27 17:37:19'),
+(63, 2, 'staff6', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff6@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Delia', 'Fainsan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:10:45', NULL, '2024-10-09 22:07:06'),
+(64, 2, 'staff7', 'Bachelor of Science in Information Technology', NULL, NULL, 'staff7@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elmer', 'Matel', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2024-12-16 19:11:34', NULL, '2024-10-09 22:07:06'),
+(65, 2, 'staff8', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'staff8@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Alyssa Paola', 'Pocaan', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-06-27 17:39:08', NULL, '2025-06-27 17:39:08'),
+(66, 2, 'staff9', 'Bachelor of Science in Computer Engineering', 'Software Engineering', 0, 'staff9@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Elizabeth', 'Nsubuga', 'm', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-11 03:59:11', NULL, '2024-10-09 22:07:06'),
 (67, 2, 'staff10', 'Bachelor of Science in Computer Engineering', 'Software Engineering', 0, 'staff10@example.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Anabella ', 'Doctor', 'f', 'Staff Headline', 'This is a staff bio.', '_defaultUser.png', '2024-10-09 22:07:06', '2024-10-09 22:07:06', '2025-04-12 02:06:02', NULL, '2025-04-12 02:06:02'),
 (71, 1, 'ilano', NULL, NULL, NULL, 'ilano@ilano.ilano', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', '', '', NULL, '', '', '_defaultUser.png', '2024-10-27 18:12:34', '2024-10-27 18:10:53', '2024-11-11 06:39:12', NULL, '2024-10-27 18:12:43'),
 (78, 1, '2021-2-02135', 'BSIT', NULL, NULL, 'a.a@lpunetwork.ude.ph', '$2y$10$tEHacn4uVW8p3nOKcU5Dkuhwb82lFNPhLMj7dx5jqn8JseDUBi3fi', 'a a', 'a', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (79, 1, '2021-2-03212', 'b b', NULL, NULL, 'asdada@asdadsa.gg', '$2y$10$F1A0hMd4/17jslsY1A1DdeKCVAUgDMqRAtuBtClyHhKr3g0qEr/gi', 'b', 'b', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, '2025-04-07 17:40:21'),
-(80, 0, 'DCS-0002', NULL, '', 0, 'alyssa.pocaan@lpu.edu.ph', '$2y$10$39Dwj.Fb8dxWFKnxrCLyIeCmNeHCsSxNZ6jzoZ2cr9jG/2eBOZecq', 'Alyssa', 'Pocaan', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2024-10-09 22:07:06', '2025-07-20 00:17:27', NULL, '2025-07-20 00:17:27'),
+(80, 0, 'DCS-0002', NULL, '', 0, 'alyssa.pocaan@lpu.edu.ph', '$2y$10$39Dwj.Fb8dxWFKnxrCLyIeCmNeHCsSxNZ6jzoZ2cr9jG/2eBOZecq', 'Alyssa', 'Pocaan', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2024-10-09 22:07:06', '2025-04-22 02:14:00', NULL, '2025-04-11 03:25:23'),
 (82, 1, '2021-2-01217', 'BSIT', NULL, NULL, '2021-2-01217@lpunetwork.edu.ph', '$2y$10$nU2n2I45gowP8AarIfhfYuTKRhHZgBuvAacZiGO8GXS0MMzAHCVUG', 'REGIL KENT* CASTANEDA', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2024-10-09 22:07:06', '2025-04-22 02:14:00', NULL, NULL),
-(83, 1, '2021-2-00501', 'BSIT', NULL, NULL, '2021-2-00501@lpunetwork.edu.ph', '$2y$10$HWkr7kBidetWNlW74CgjcuXTYN5EaeS3/z2L.f3m4IE9koYvvrdE6', 'LEIHNARD CHRISTIAN LASACA', 'ARAGOZA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2024-10-09 22:07:06', '2025-07-20 08:46:46', NULL, '2025-07-20 08:46:46'),
+(83, 1, '2021-2-00501', 'BSIT', NULL, NULL, '2021-2-00501@lpunetwork.edu.ph', '$2y$10$HWkr7kBidetWNlW74CgjcuXTYN5EaeS3/z2L.f3m4IE9koYvvrdE6', 'LEIHNARD CHRISTIAN LASACA', 'ARAGOZA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2024-10-09 22:07:06', '2025-04-22 02:14:00', NULL, NULL),
 (84, 1, '2021-2-00091', 'BSIT', NULL, NULL, '2021-2-00091@lpunetwork.edu.ph', '$2y$10$E9QGb/AzAz93/VmTkh4Q8.A9juY9CyrO.mrkropUey2IwGHkQI3hO', 'JOHN LOUISSE PINGAD', 'ARNAN', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (85, 1, '2021-2-00944', 'BSIT', NULL, NULL, '2021-2-00944@lpunetwork.edu.ph', '$2y$10$PTzc1zaKHe5R4sjXvRPgfewY2vWVRvrJJ0HGdeg7gjz9.0jPnDVje', 'JOSHUA LUMACAD', 'BARGO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (86, 1, '2019-2-03872', 'BSIT', NULL, NULL, '2019-2-03872@lpunetwork.edu.ph', '$2y$10$eBw0a4JQTL7eSUB1cgxyDOijF0UPIUHrdFMy2AB78M.d5kP8I5JSy', 'JASON JEB BERNAL', 'BARIZO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
@@ -1214,7 +1073,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (90, 1, '2019-2-03343', 'BSIT', NULL, NULL, '2019-2-03343@lpunetwork.edu.ph', '$2y$10$KWmsqIbRO/Vz9iT7KELrJO/zqAt/99K5.OeFzGOPSSFjgV3amFUE6', 'ZHONIEL ALSOL', 'DE OCERA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (91, 1, '2021-2-00743', 'BSIT', NULL, NULL, '2021-2-00743@lpunetwork.edu.ph', '$2y$10$hCl7G3gMREWC/J69Xyl87.sPezni1p.hBOQrINyxAFxKEAdSinOi2', 'JOHN ANDREI SIMPELO', 'JOCO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (92, 1, '2021-2-00958', 'BSIT', NULL, NULL, '2021-2-00958@lpunetwork.edu.ph', '$2y$10$SjkWBUgtenIJjiAV3h0oIewDXypC4ReITX454XeFKNllmzIMlACbG', 'ANDREA DIANA MATEL', 'LINO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
-(93, 1, '2021-2-01044', 'BSIT', NULL, NULL, '2021-2-01044@lpunetwork.edu.ph', '$2y$10$icEFNyBFZYb1QsemI7Xqjebxt2a1OsRsCKhxdZ1Z5ByOb3c5uK0au', 'PATRICK GABRIEL PASCUAL', 'MALATE', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 08:36:18', NULL, '2025-07-20 08:36:18'),
+(93, 1, '2021-2-01044', 'BSIT', NULL, NULL, '2021-2-01044@lpunetwork.edu.ph', '$2y$10$icEFNyBFZYb1QsemI7Xqjebxt2a1OsRsCKhxdZ1Z5ByOb3c5uK0au', 'PATRICK GABRIEL PASCUAL', 'MALATE', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (94, 1, '2021-2-00834', 'BSIT', NULL, NULL, '2021-2-00834@lpunetwork.edu.ph', '$2y$10$vEy2rWNWnQrR2CdKO79jOOAanMA0Q2Ri.1YI7NKSbTrzQIvh43Owu', 'LITO JARDIN', 'MALIGRO JR.', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (95, 1, '2021-2-00087', 'BSIT', NULL, NULL, '2021-2-00087@lpunetwork.edu.ph', '$2y$10$aoPCriFwEfm8Idz1xlRfCug2R/hWAZwhcJJwK61ZO.izfWK/1rBp.', 'MICHELLE* BAES', 'MAYOL', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (96, 1, '2021-2-00362', 'BSIT', NULL, NULL, '2021-2-00362@lpunetwork.edu.ph', '$2y$10$XcXHYToibl6usePQl42Euu7LH4VtJGGJf3x2u8uHMEBmgIOX4YCKK', 'ART GELO CASIDSID', 'NECIA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
@@ -1226,11 +1085,11 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (103, 1, '2021-2-02166', 'BSIT', NULL, NULL, '2021-2-02166@lpunetwork.edu.ph', '$2y$10$xBtABuxCahnoD35QyTl7iO5.UruQmLNHUWC8i6iBZ18xzwSH15Oui', 'JERZE STEPHANIE MORTEGA', 'SAMONTE', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (104, 1, '2021-2-01304', 'BSIT', NULL, NULL, '2021-2-01304@lpunetwork.edu.ph', '$2y$10$SgMEWBkZDHK4M5PIvETcX.aSJbIBB64DtaPOpjSw7Bwaux0.pH.rq', 'MOREEN SANTIAGO', 'SAMPANG', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (105, 1, '2021-2-01019', 'BSIT', NULL, NULL, '2021-2-01019@lpunetwork.edu.ph', '$2y$10$JogZPA2QbhJ907crhe895eTDaec9R6UFj8WFvNPFLHLOcMpj.JHJu', 'JEREMY JUB ABAQUITA', 'SANDOVAL', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
-(106, 1, '2021-2-00021', 'BSIT', NULL, NULL, '2021-2-00021@lpunetwork.edu.ph', '$2y$10$Nqh41VoThd6VqR2EO6hQXekRZZz5d8fKHFvHBy0Z7vnnJrhrUX1ga', 'THOMAS JACOB BAUTISTA', 'TABARANZA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 08:23:29', NULL, '2025-07-20 08:23:29'),
+(106, 1, '2021-2-00021', 'BSIT', NULL, NULL, '2021-2-00021@lpunetwork.edu.ph', '$2y$10$Nqh41VoThd6VqR2EO6hQXekRZZz5d8fKHFvHBy0Z7vnnJrhrUX1ga', 'THOMAS JACOB BAUTISTA', 'TABARANZA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (107, 1, '2021-2-01191', 'BSIT', NULL, NULL, '2021-2-01191@lpunetwork.edu.ph', '$2y$10$hucdws2gWittbkjwgIVDPuibrlAACTSU4CxqRt/A/5yJrjjtgakD.', 'ALLYSA KATE SANTIAGO', 'TROMPETA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (108, 1, '2021-2-00827', 'BSIT', NULL, NULL, '2021-2-00827@lpunetwork.edu.ph', '$2y$10$w5zC6Z.Mtifb2AJLUHjx7OqcwWcU6onC..aleWrapPCFe.VtxCl0a', 'SEAN MANUEL PALACOL', 'YATER', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (109, 1, '2020-2-01334', 'BSIT', NULL, NULL, '2020-2-01334@lpunetwork.edu.ph', '$2y$10$Lg/vxhytPgVNZPhtN1XjjOYskQhVoHVbEPze6owzwyvnlS1YzJc4m', 'HANELY MORALES', 'YOO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
-(110, 2, '2019-0119F', NULL, 'Software Engineering', 0, 'amanda.menta@lpu.edu.ph', '$2y$10$SNiOswuR7UIVpUmscexWqu45HHsK4lYwhG3ueRgCCGVDjzNXxSh8G', 'Amanda', 'Menta', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 08:45:23', NULL, '2025-07-20 08:45:23'),
+(110, 2, '2019-0119F', NULL, 'Software Engineering', 0, 'amanda.menta@lpu.edu.ph', '$2y$10$SNiOswuR7UIVpUmscexWqu45HHsK4lYwhG3ueRgCCGVDjzNXxSh8G', 'Amanda', 'Menta', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (111, 1, '2021-2-02590', 'BSIT', NULL, NULL, '2021-2-02590@lpunetwork.edu.ph', '$2y$10$JIwSCmgx.5IadIGwkkICKudOjory86saKUoGzBkjk/d.ISgPbhFIa', 'VAUGHN JACOB* CAMARCE', 'BASCUGUIN', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (112, 1, '2019-2-02303', 'BSIT', NULL, NULL, '2019-2-02303@lpunetwork.edu.ph', '$2y$10$zYK8.q9lSSBMEndhboXZi.wiV.SQL/S5L/2LBobi62R1FtFYRh2Zu', 'SHANLEY LOUISSE AMON', 'BAUZON', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (113, 1, '2021-2-00326', 'BSIT', NULL, NULL, '2021-2-00326@lpunetwork.edu.ph', '$2y$10$dvvaIUx.OIus46olybdX9uUuqFpMcWVfmOwZ.UY1Z2zE6tpkCE4U6', 'MILES ANDREI LUPISAN', 'CALAZAN', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
@@ -1244,7 +1103,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (121, 1, '2021-2-01881', 'BSIT', NULL, NULL, '2021-2-01881@lpunetwork.edu.ph', '$2y$10$U/NTUFUMhDG2jwOTUlvQauOmksB3RKEa486wyozbNiXAE9elmVbPm', 'VINCE LAWRENCE N/A', 'GARGALLO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (122, 1, '2021-2-01990', 'BSIT', NULL, NULL, '2021-2-01990@lpunetwork.edu.ph', '$2y$10$XW0wQBAYgTtRSRiRMQv/9eVI.2KaBX/DVCnznrm5wJ0jf4gHcC7/O', 'MATTHEW GABRIEL ESPINEDA', 'ISABELO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-22 06:44:23', NULL, '2025-04-22 06:44:23'),
 (123, 1, '2021-2-00390', 'BSIT', NULL, NULL, '2021-2-00390@lpunetwork.edu.ph', '$2y$10$IyXXAef/bk/3rtn1llqPl.9hGKEEWf1JcIN9ORqDWH1TkLUmDKkHC', 'JOB DONES', 'JUNTURA', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
-(124, 1, '2021-2-01795', 'BSIT', NULL, NULL, '2021-2-01795@lpunetwork.edu.ph', '$2y$10$OeHujFoRGao8q.4tzhkrA.i7FMT4kAoX9thRUbAK98C7JWkQURH6S', 'JIBSON PAUL ANDAL', 'LAMBINICIO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 09:03:13', NULL, '2025-07-20 09:03:13'),
+(124, 1, '2021-2-01795', 'BSIT', NULL, NULL, '2021-2-01795@lpunetwork.edu.ph', '$2y$10$OeHujFoRGao8q.4tzhkrA.i7FMT4kAoX9thRUbAK98C7JWkQURH6S', 'JIBSON PAUL ANDAL', 'LAMBINICIO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (125, 1, '2021-2-01317', 'BSIT', NULL, NULL, '2021-2-01317@lpunetwork.edu.ph', '$2y$10$CNuw2Ay5gbi1rE4Lts6bWeLylb7zfCByTAbf6LGLKZovWy.YEIHPy', 'JOHANH STEVENSON ALVAREZ', 'LEONARDO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (126, 1, '2021-2-01578', 'BSIT', NULL, NULL, '2021-2-01578@lpunetwork.edu.ph', '$2y$10$/zF918qbmW9CIILglzs2sOOsuBzFPUrVQz7RDNDuTpzDD..HJ5.1y', 'RAFHAEL IANNY SUMADIA', 'LIM', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (127, 1, '2021-2-01916', 'BSIT', NULL, NULL, '2021-2-01916@lpunetwork.edu.ph', '$2y$10$8a7EMX3o7Mm8fqVY1HJQ7OhaKFjI2WGHo2ghlELil2NVDKmy7p3iK', 'RYAN PAUL BASAN', 'LOMONGO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
@@ -1261,10 +1120,10 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (138, 1, '2020-2-01798', 'BSIT', NULL, NULL, '2020-2-01798@lpunetwork.edu.ph', '$2y$10$9d3hOXQdTqwctzLupVrTNO.x4sPZOt7h/xYHdhQgmPjDFssMzvsea', 'KYLE PATRICK DADIVAS', 'ROBLES', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (139, 1, '2021-2-01812', 'BSIT', NULL, NULL, '2021-2-01812@lpunetwork.edu.ph', '$2y$10$gxTE.zYWW2akXCRvTf8dh.lxueO/CHJka6KOqpzAIVMylsA15zXOG', 'CARL ALCAZAR', 'ROSALES', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (140, 1, '2021-2-01552', 'BSIT', NULL, NULL, '2021-2-01552@lpunetwork.edu.ph', '$2y$10$zI/LybMEFf0.ubixpKE3h.J24eG0dAClnIVkCFnXM/jRJ6E6nshsC', 'DAVID BRYAN BALOFENOS', 'SALINO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
-(141, 1, '2019-2-03124', 'BSIT', NULL, NULL, '2019-2-03124@lpunetwork.edu.ph', '$2y$10$rYgpW/YLMzNhTsdNudw7Ge34ynotHBRKdj7VpF3oOGZpRx.Va9XNW', 'LLEAN FRANCIS RODRIGO GANZAN', 'SUMAGUE', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 06:24:35', NULL, '2025-07-20 06:24:35'),
+(141, 1, '2019-2-03124', 'BSIT', NULL, NULL, '2019-2-03124@lpunetwork.edu.ph', '$2y$10$rYgpW/YLMzNhTsdNudw7Ge34ynotHBRKdj7VpF3oOGZpRx.Va9XNW', 'LLEAN FRANCIS RODRIGO GANZAN', 'SUMAGUE', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (142, 1, '2019-2-03777', 'BSIT', NULL, NULL, '2019-2-03777@lpunetwork.edu.ph', '$2y$10$/jJBpe0YAh3h2RCp.lbaXOmuwFDPARjh8LLbtcqeO14ip6BhmtvSS', 'KHEN RYU  FELIAS', 'WOO', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:28:33', NULL, NULL),
 (143, 2, 'staff11', NULL, '', 0, 'staff11@gmail.com', '$2y$10$TyDGEa2K1c5V/Lnq1va1.Oo/azmyqldlHqeQXYsV0U.DkC2Mlfqnq', 'Joven ', 'Cajigas', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-18 00:50:14', NULL, '2025-04-18 00:50:14'),
-(144, 2, 'staff12', NULL, '', 0, 'staff12@gmail.com', '$2y$10$r2zgmUnVANVKua.dneR2bOF/cIUUtqcORuP8A8ysNSz8AjybpFbmy', 'Genson', 'Mendoza', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-07-20 08:53:12', NULL, '2025-07-20 08:53:12'),
+(144, 2, 'staff12', NULL, '', 0, 'staff12@gmail.com', '$2y$10$r2zgmUnVANVKua.dneR2bOF/cIUUtqcORuP8A8ysNSz8AjybpFbmy', 'Genson', 'Mendoza', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 00:11:40', NULL, NULL),
 (145, 2, 'staff13', NULL, 'Software Engineering', 0, 'staff13@gmail.com', '$2y$10$5Ho5cqj8U4WaItK/4RsflOoUONeO49MEWIBboUuR/zgRzP6GBOrr.', 'Leah', 'Santos', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-14 23:41:23', NULL, '2025-04-14 23:41:23'),
 (146, 1, '202020202020', 'Bachelor of Science in Information Technology with specialization in Network and Information Security', '', 0, 'test@test.test', '$2y$10$1vODdL13Goo4Yk18.IOHGe4oDA7x7oTtvm.OhrWfkOfBa.EZ9lVoq', 'Lorence', 'Olaes', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 01:58:40', NULL, NULL),
 (147, 1, 'villalon', 'Bachelor of Science in Information Technology with specialization in Network and Information Security', '', 0, 'test2@test.test', '$2y$10$Jb..OZsY7dqYYnJp4Ia3fuI2jbce666SN2SzuE.xBIiMimIwsxU62', 'ALEXANDER', 'VILLALON', NULL, NULL, NULL, '_defaultUser.png', '2025-04-11 03:24:31', '2025-04-11 03:24:31', '2025-04-12 02:48:07', NULL, NULL),
@@ -1320,14 +1179,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (213, 1, '789', 'IT', NULL, NULL, '789@lpunetwork.edu.ph', '$2y$10$NmAY4W0tEPOyIGBHz.EVNeVwwm4rFpgeiTxMeuzBleuuYjx2tpEaO', 'Ryan', 'Jepard', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-23 14:52:17', NULL, NULL),
 (215, 1, '2017-2-02440', 'Biology', '', 0, 'elisa.lorenzana@lpunetwork.edu.ph', '$2y$10$NWGBvk/AgNniFjsxjm2MnuxPQo4xUthSPnAK7WF/cfvb/9DbfavR.', 'Elisa', 'Lorenzana', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-24 02:41:46', NULL, NULL),
 (235, 1, 'tester1tester1', 'BS Architecture', NULL, NULL, 'tester1tester1@lpunetwork.edu.ph', '$2y$10$ZG8unX8yVYD6NFYJ7eUVWuf5oTphYZYCkku747kOWDL/aRQXbzO.u', 'Tester1', 'Tester1', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:51:22', NULL, NULL),
-(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL),
-(258, 0, '2021-2-01613', 'BS Accountancy', '', 0, 'test@email', '$2y$10$M6q3EnLIhRt8uWxLcAz5t.MqKAqn5FzxryEc2GLzG8PXwXv5Rba8S', 'test', 'user', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:33:13', NULL, NULL),
-(260, 2, '2021-1237', 'BS Pharmacy', '', 0, 'sadggasjda463284@email.com', '$2y$10$Hv.b3jrlvanCehIZ/UiosOB8ZPZ1qTjaE/nwEKgF.15B/A6ilmqmC', 'test', 'pass', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:35:56', NULL, NULL),
-(261, 1, '2131-3221', 'BS Biology', '', 0, 'imastudent@email.com', '$2y$10$y3q6f9ZrJr06Q/1xmt5eMOlddvCp1Z1YHJXmVA36FQIjnqIYQ.tJa', 'ima', 'student', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:36:52', NULL, NULL),
-(262, 1, '2021-12312', '', '', 0, 'imstaudent47324921y@email.com', '$2y$10$EI2.s4R.SNVJt1B0rO4n4OfDFglNajPmlDLZ123aAWIboFgTb1qn.', 'test', 'fsladsa', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-11 15:39:03', NULL, NULL),
-(263, 1, '21313213', 'Unspecified', '', 0, '3213213dsafasda', '$2y$10$jpKrtJklylGGyFDo7ZRKfO6enFJIvhqzAL6TD8JbKabX37ygS42JO', 'sfadsf', 'sdfdsfds', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-12 13:20:36', NULL, NULL),
-(264, 1, '321321', 'Bachelor of Science in Industrial Engineering', '', 0, '321332131', '$2y$10$rzCGqcNnXyNV3JoniDibguExdlkhEjFzSaPlygypAcZBkbU82yV9O', 'asdad', 'sadsda', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-12 13:22:44', NULL, NULL),
-(265, 1, '213213', 'Bachelor of Science in Industrial Engineering', '', 0, 'emailad8sa67q3u@email.com', '$2y$10$//txvMugSWLMi9B7cvEmDeDlgSesAWKQFdwCOyshb2fAx.iKdNg5a', 'saidytas8d', 'diastdas8', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-06-24 16:40:33', NULL, NULL);
+(238, 1, '2019-2-022234', 'BS Arch', NULL, NULL, '2019-2-022234@lpunetwork.com', '$2y$10$7bD3jaevz5xZWdjCFo94AO8JY.jwBl3hfqLfIEMJeKbbTJwhUkt1m', 'Testing', 'Tester', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-04-25 14:53:29', NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1430,22 +1282,6 @@ ALTER TABLE `merged_evaluations`
   ADD KEY `student_id` (`student_id`),
   ADD KEY `rubric_id` (`rubric_id`),
   ADD KEY `criterion_id` (`criterion_id`);
-
---
--- Indexes for table `notifications`
---
-ALTER TABLE `notifications`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`),
-  ADD KEY `is_read` (`is_read`),
-  ADD KEY `created_at` (`created_at`);
-
---
--- Indexes for table `notification_preferences`
---
-ALTER TABLE `notification_preferences`
-  ADD PRIMARY KEY (`id`),
-  ADD UNIQUE KEY `user_id` (`user_id`);
 
 --
 -- Indexes for table `page_content`
@@ -1590,7 +1426,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1629,18 +1465,6 @@ ALTER TABLE `merged_evaluations`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
 
 --
--- AUTO_INCREMENT for table `notifications`
---
-ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=79;
-
---
--- AUTO_INCREMENT for table `notification_preferences`
---
-ALTER TABLE `notification_preferences`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
-
---
 -- AUTO_INCREMENT for table `page_content`
 --
 ALTER TABLE `page_content`
@@ -1662,7 +1486,7 @@ ALTER TABLE `requirements`
 -- AUTO_INCREMENT for table `research_titles`
 --
 ALTER TABLE `research_titles`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=70;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `rubrics`
@@ -1692,13 +1516,13 @@ ALTER TABLE `rubric_group_items`
 -- AUTO_INCREMENT for table `rubric_levels`
 --
 ALTER TABLE `rubric_levels`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=215;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=212;
 
 --
 -- AUTO_INCREMENT for table `teams`
 --
 ALTER TABLE `teams`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=69;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `team_members`
@@ -1710,13 +1534,13 @@ ALTER TABLE `team_members`
 -- AUTO_INCREMENT for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `thesis_topics`
 --
 ALTER TABLE `thesis_topics`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `uploaded_files`
@@ -1728,7 +1552,7 @@ ALTER TABLE `uploaded_files`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=266;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=258;
 
 --
 -- AUTO_INCREMENT for table `user_schedules`
@@ -1768,18 +1592,6 @@ ALTER TABLE `evaluations`
 --
 ALTER TABLE `evaluation_per_panel`
   ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Constraints for table `notifications`
---
-ALTER TABLE `notifications`
-  ADD CONSTRAINT `notifications_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `notification_preferences`
---
-ALTER TABLE `notification_preferences`
-  ADD CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

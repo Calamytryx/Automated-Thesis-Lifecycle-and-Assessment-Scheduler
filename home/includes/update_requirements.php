@@ -79,6 +79,30 @@ try {
         $updateStmt = $pdo->prepare($updateSql);
         $updateStmt->execute($updateParams);
         $executedQueries[] = interpolateQuery($updateSql, $updateParams);
+        
+        // Send feedback notification to students if feedback was provided
+        if (!empty($feedback) && $updateStmt->rowCount() > 0) {
+            try {
+                require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
+                createRequirementFeedbackNotifications($pdo, $_SESSION['team_id'][0], $requirementId, $feedback);
+                error_log("Requirement feedback notification sent for Team ID " . $_SESSION['team_id'][0] . ", Req ID $requirementId");
+            } catch (Exception $notifException) {
+                // Don't fail the update if notification fails, just log it
+                error_log("Failed to create requirement feedback notification: " . $notifException->getMessage());
+            }
+        }
+        
+        // Send feedback notification to students if feedback was provided
+        if (!empty($feedback) && $updateStmt->rowCount() > 0) {
+            try {
+                require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
+                createRequirementFeedbackNotifications($pdo, $_SESSION['team_id'][0], $requirementId, $feedback);
+                error_log("Requirement feedback notification sent for Team ID {$_SESSION['team_id'][0]}, Req ID {$requirementId}");
+            } catch (Exception $notifException) {
+                // Don't fail the update if notification fails, just log it
+                error_log("Failed to create requirement feedback notification: " . $notifException->getMessage());
+            }
+        }
     }
 
     echo json_encode([

@@ -64,6 +64,7 @@
 <?php if (isset($_SESSION['auth'])) { ?>
 
     <script src="../assets/js/check_inactive.js"></script>
+    <script src="../assets/js/notifications.js"></script>
 
 <?php } ?>
 

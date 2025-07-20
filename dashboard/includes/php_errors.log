@@ -1,0 +1,1208 @@
+[14-Jul-2025 21:14:08 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a.b.c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-17-2025
+            [1] => 07-19-2025
+            [2] => 07-22-2025
+        )
+
+    [program] => Bachelor of Science in Computer Science
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:14:08 Asia/Manila] Found 3 teams with existing schedules
+[14-Jul-2025 21:14:27 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a.b.c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-17-2025
+            [1] => 07-19-2025
+            [2] => 07-22-2025
+        )
+
+    [program] => Bachelor of Science in Computer Science
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:14:27 Asia/Manila] Found 3 teams with existing schedules
+[14-Jul-2025 21:14:34 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a.b.c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-17-2025
+            [1] => 07-19-2025
+            [2] => 07-22-2025
+        )
+
+    [program] => Bachelor of Science in Computer Science
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:14:34 Asia/Manila] Found 3 teams with existing schedules
+[14-Jul-2025 21:14:49 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a.b.c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-17-2025
+            [1] => 07-19-2025
+            [2] => 07-22-2025
+        )
+
+    [program] => Bachelor of Science in Computer Science
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:14:50 Asia/Manila] Found 3 teams with existing schedules
+[14-Jul-2025 21:16:38 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-16-2025
+        )
+
+    [program] => Bachelor of Science in Industrial Engineering
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:16:38 Asia/Manila] Found 0 teams with existing schedules
+[14-Jul-2025 21:16:38 Asia/Manila] Fetched 0 teams for programs: Bachelor of Science in Industrial Engineering
+[14-Jul-2025 21:16:38 Asia/Manila] Error in run_scheduler.php: No teams or panelists available for scheduling
+[14-Jul-2025 21:17:51 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-16-2025
+            [1] => 07-18-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[14-Jul-2025 21:17:51 Asia/Manila] Found 0 teams with existing schedules
+[14-Jul-2025 21:17:51 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[14-Jul-2025 21:17:51 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.015927076339722 seconds
+[14-Jul-2025 21:17:51 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.54117584228516 seconds
+[14-Jul-2025 21:17:52 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 1.077789068222 seconds
+[14-Jul-2025 21:17:52 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.6031270027161 seconds
+[14-Jul-2025 21:17:53 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 2.1241009235382 seconds
+[14-Jul-2025 21:17:53 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.6536650657654 seconds
+[14-Jul-2025 21:17:54 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 3.1825580596924 seconds
+[14-Jul-2025 21:17:54 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.7029459476471 seconds
+[14-Jul-2025 21:17:55 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 4.2311320304871 seconds
+[14-Jul-2025 21:17:55 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 4.7574889659882 seconds
+[14-Jul-2025 21:17:56 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 5.2759368419647 seconds
+[14-Jul-2025 21:17:56 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 5.7908499240875 seconds
+[14-Jul-2025 21:17:57 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 6.3054709434509 seconds
+[14-Jul-2025 21:17:57 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 6.8177440166473 seconds
+[14-Jul-2025 21:17:58 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 7.3401808738708 seconds
+[14-Jul-2025 21:17:58 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 7.8460569381714 seconds
+[14-Jul-2025 21:17:59 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 8.3573739528656 seconds
+[14-Jul-2025 21:17:59 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 8.870719909668 seconds
+[14-Jul-2025 21:18:00 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 9.3787870407104 seconds
+[14-Jul-2025 21:18:01 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 9.9006490707397 seconds
+[14-Jul-2025 21:18:01 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 10.406199932098 seconds
+[14-Jul-2025 21:18:02 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 10.910876989365 seconds
+[14-Jul-2025 21:18:02 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 11.426313877106 seconds
+[14-Jul-2025 21:18:03 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 11.935050964355 seconds
+[14-Jul-2025 21:18:03 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 12.435811042786 seconds
+[14-Jul-2025 21:18:04 Asia/Manila] Genetic algorithm completed in 12.931134939194 seconds
+[14-Jul-2025 21:18:04 Asia/Manila] Missing teams detected: 32
+[14-Jul-2025 21:18:04 Asia/Manila] Creating fallback schedule for team ID: 32
+[14-Jul-2025 21:18:04 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[20-Jul-2025 08:11:37 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+            [1] => 07-24-2025
+        )
+
+    [program] => Bachelor of Science in Industrial Engineering
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 08:11:37 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 08:11:37 Asia/Manila] Fetched 0 teams for programs: Bachelor of Science in Industrial Engineering
+[20-Jul-2025 08:11:37 Asia/Manila] Error in run_scheduler.php: No teams or panelists available for scheduling
+[20-Jul-2025 08:29:09 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-25-2025
+        )
+
+    [program] => Bachelor of Science in Industrial Engineering
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 08:29:09 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 08:29:09 Asia/Manila] Fetched 0 teams for programs: Bachelor of Science in Industrial Engineering
+[20-Jul-2025 08:29:09 Asia/Manila] Error in run_scheduler.php: No teams or panelists available for scheduling
+[20-Jul-2025 08:32:00 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-25-2025
+        )
+
+    [program] => Bachelor of Science in Industrial Engineering
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 08:32:01 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 08:32:01 Asia/Manila] Fetched 0 teams for programs: Bachelor of Science in Industrial Engineering
+[20-Jul-2025 08:32:01 Asia/Manila] Error in run_scheduler.php: No teams or panelists available for scheduling
+[20-Jul-2025 08:37:05 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+            [1] => 07-24-2025
+            [2] => 07-26-2025
+            [3] => 07-29-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 08:37:05 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 08:37:08 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+            [1] => 07-24-2025
+            [2] => 07-26-2025
+            [3] => 07-29-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => true
+)
+
+[20-Jul-2025 08:37:08 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 08:37:08 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 08:37:08 Asia/Manila] Removed schedules for 7 teams
+[20-Jul-2025 08:37:08 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.03259801864624 seconds
+[20-Jul-2025 08:37:10 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 1.5129210948944 seconds
+[20-Jul-2025 08:37:11 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 3.0479440689087 seconds
+[20-Jul-2025 08:37:13 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 4.4591600894928 seconds
+[20-Jul-2025 08:37:14 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 6.2065370082855 seconds
+[20-Jul-2025 08:37:16 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 7.7850739955902 seconds
+[20-Jul-2025 08:37:18 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 9.2328460216522 seconds
+[20-Jul-2025 08:37:19 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 10.630205154419 seconds
+[20-Jul-2025 08:37:20 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 11.969408988953 seconds
+[20-Jul-2025 08:37:22 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 13.469285964966 seconds
+[20-Jul-2025 08:37:23 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 14.800891160965 seconds
+[20-Jul-2025 08:37:24 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 16.148339986801 seconds
+[20-Jul-2025 08:37:26 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 17.742177963257 seconds
+[20-Jul-2025 08:37:28 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 19.432532072067 seconds
+[20-Jul-2025 08:37:29 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 20.848102092743 seconds
+[20-Jul-2025 08:37:30 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 22.217800140381 seconds
+[20-Jul-2025 08:37:32 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 23.726740121841 seconds
+[20-Jul-2025 08:37:34 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 25.284175157547 seconds
+[20-Jul-2025 08:37:35 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 26.882161140442 seconds
+[20-Jul-2025 08:37:37 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 28.267976999283 seconds
+[20-Jul-2025 08:37:38 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 29.614220142365 seconds
+[20-Jul-2025 08:37:39 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 30.965620994568 seconds
+[20-Jul-2025 08:37:41 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 32.294391155243 seconds
+[20-Jul-2025 08:37:42 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 33.668593168259 seconds
+[20-Jul-2025 08:37:43 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 34.995978116989 seconds
+[20-Jul-2025 08:37:45 Asia/Manila] Genetic algorithm completed in 36.490079164505 seconds
+[20-Jul-2025 08:37:45 Asia/Manila] PHP Fatal error:  Cannot redeclare getTeamMembers() (previously declared in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:1050) in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 231
+[20-Jul-2025 08:52:59 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-22-2025
+            [2] => 07-23-2025
+            [3] => 07-24-2025
+            [4] => 07-25-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 08:52:59 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 08:52:59 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 08:53:00 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.043231964111328 seconds
+[20-Jul-2025 08:53:01 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 1.4740259647369 seconds
+[20-Jul-2025 08:53:03 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 2.9883790016174 seconds
+[20-Jul-2025 08:53:04 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 4.5845620632172 seconds
+[20-Jul-2025 08:53:06 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 6.0421750545502 seconds
+[20-Jul-2025 08:53:07 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 7.5269169807434 seconds
+[20-Jul-2025 08:53:09 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 9.2922880649567 seconds
+[20-Jul-2025 08:53:11 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 10.91553401947 seconds
+[20-Jul-2025 08:53:12 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 12.559911966324 seconds
+[20-Jul-2025 08:53:14 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 14.180089950562 seconds
+[20-Jul-2025 08:53:15 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 15.65863609314 seconds
+[20-Jul-2025 08:53:17 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 16.966114997864 seconds
+[20-Jul-2025 08:53:18 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 18.283699989319 seconds
+[20-Jul-2025 08:53:19 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 19.626277923584 seconds
+[20-Jul-2025 08:53:21 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 20.928145885468 seconds
+[20-Jul-2025 08:53:22 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 22.248929977417 seconds
+[20-Jul-2025 08:53:23 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 23.604786872864 seconds
+[20-Jul-2025 08:53:25 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 24.911714076996 seconds
+[20-Jul-2025 08:53:26 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 26.353144884109 seconds
+[20-Jul-2025 08:53:27 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 27.642585039139 seconds
+[20-Jul-2025 08:53:29 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 29.069832086563 seconds
+[20-Jul-2025 08:53:30 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 30.374108076096 seconds
+[20-Jul-2025 08:53:31 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 31.6337890625 seconds
+[20-Jul-2025 08:53:33 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 32.99102306366 seconds
+[20-Jul-2025 08:53:34 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 34.400355100632 seconds
+[20-Jul-2025 08:53:35 Asia/Manila] Genetic algorithm completed in 35.654875993729 seconds
+[20-Jul-2025 08:53:35 Asia/Manila] PHP Fatal error:  Cannot redeclare getTeamMembers() (previously declared in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:1050) in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 231
+[20-Jul-2025 13:44:07 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-22-2025
+            [2] => 07-23-2025
+            [3] => 07-24-2025
+            [4] => 07-25-2025
+            [5] => 07-26-2025
+        )
+
+    [program] => 
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 13:44:07 Asia/Manila] Found 3 teams with existing schedules
+[20-Jul-2025 13:44:09 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-22-2025
+            [2] => 07-23-2025
+            [3] => 07-24-2025
+            [4] => 07-25-2025
+            [5] => 07-26-2025
+        )
+
+    [program] => 
+    [confirm_overwrite] => true
+)
+
+[20-Jul-2025 13:44:09 Asia/Manila] Found 3 teams with existing schedules
+[20-Jul-2025 13:44:09 Asia/Manila] Fetched 20 teams for programs: All Programs
+[20-Jul-2025 13:44:09 Asia/Manila] Removed schedules for 3 teams
+[20-Jul-2025 13:44:09 Asia/Manila] Generation 0 completed. Best fitness: -185. Elapsed time: 0.11497902870178 seconds
+[20-Jul-2025 13:44:13 Asia/Manila] Generation 20 completed. Best fitness: -60. Elapsed time: 3.3024108409882 seconds
+[20-Jul-2025 13:44:16 Asia/Manila] Generation 40 completed. Best fitness: 20. Elapsed time: 6.552444934845 seconds
+[20-Jul-2025 13:44:19 Asia/Manila] Generation 60 completed. Best fitness: 20. Elapsed time: 9.4950039386749 seconds
+[20-Jul-2025 13:44:22 Asia/Manila] Generation 80 completed. Best fitness: 20. Elapsed time: 12.370481014252 seconds
+[20-Jul-2025 13:44:25 Asia/Manila] Generation 100 completed. Best fitness: 20. Elapsed time: 15.189836978912 seconds
+[20-Jul-2025 13:44:27 Asia/Manila] Generation 120 completed. Best fitness: 20. Elapsed time: 18.029454946518 seconds
+[20-Jul-2025 13:44:30 Asia/Manila] Generation 140 completed. Best fitness: 20. Elapsed time: 20.732118844986 seconds
+[20-Jul-2025 13:44:33 Asia/Manila] Generation 160 completed. Best fitness: 20. Elapsed time: 23.525172948837 seconds
+[20-Jul-2025 13:44:36 Asia/Manila] Generation 180 completed. Best fitness: 20. Elapsed time: 26.293506860733 seconds
+[20-Jul-2025 13:44:38 Asia/Manila] Generation 200 completed. Best fitness: 20. Elapsed time: 29.035312891006 seconds
+[20-Jul-2025 13:44:41 Asia/Manila] Generation 220 completed. Best fitness: 20. Elapsed time: 31.80113196373 seconds
+[20-Jul-2025 13:44:44 Asia/Manila] Generation 240 completed. Best fitness: 20. Elapsed time: 34.633071899414 seconds
+[20-Jul-2025 13:44:47 Asia/Manila] Generation 260 completed. Best fitness: 20. Elapsed time: 37.400177955627 seconds
+[20-Jul-2025 13:44:50 Asia/Manila] Generation 280 completed. Best fitness: 20. Elapsed time: 40.214318037033 seconds
+[20-Jul-2025 13:44:52 Asia/Manila] Generation 300 completed. Best fitness: 20. Elapsed time: 43.065428972244 seconds
+[20-Jul-2025 13:44:55 Asia/Manila] Generation 320 completed. Best fitness: 20. Elapsed time: 45.917079925537 seconds
+[20-Jul-2025 13:44:58 Asia/Manila] Generation 340 completed. Best fitness: 20. Elapsed time: 48.735160827637 seconds
+[20-Jul-2025 13:45:01 Asia/Manila] Generation 360 completed. Best fitness: 20. Elapsed time: 51.549839019775 seconds
+[20-Jul-2025 13:45:04 Asia/Manila] Generation 380 completed. Best fitness: 20. Elapsed time: 54.362210035324 seconds
+[20-Jul-2025 13:45:06 Asia/Manila] Generation 400 completed. Best fitness: 20. Elapsed time: 57.12562584877 seconds
+[20-Jul-2025 13:45:09 Asia/Manila] Generation 420 completed. Best fitness: 20. Elapsed time: 59.872575044632 seconds
+[20-Jul-2025 13:45:12 Asia/Manila] Generation 440 completed. Best fitness: 20. Elapsed time: 62.631754875183 seconds
+[20-Jul-2025 13:45:15 Asia/Manila] Generation 460 completed. Best fitness: 20. Elapsed time: 65.398861885071 seconds
+[20-Jul-2025 13:45:18 Asia/Manila] Generation 480 completed. Best fitness: 20. Elapsed time: 68.213891983032 seconds
+[20-Jul-2025 13:45:20 Asia/Manila] Genetic algorithm completed in 70.887008905411 seconds
+[20-Jul-2025 13:45:20 Asia/Manila] PHP Fatal error:  Cannot redeclare getTeamMembers() (previously declared in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:1054) in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 231
+[20-Jul-2025 13:47:22 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 13:47:22 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 13:47:22 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 13:47:22 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.016615867614746 seconds
+[20-Jul-2025 13:47:22 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.4607298374176 seconds
+[20-Jul-2025 13:47:23 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.89355993270874 seconds
+[20-Jul-2025 13:47:23 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.3090479373932 seconds
+[20-Jul-2025 13:47:24 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.7584137916565 seconds
+[20-Jul-2025 13:47:24 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.1778428554535 seconds
+[20-Jul-2025 13:47:25 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.5898189544678 seconds
+[20-Jul-2025 13:47:25 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.0303559303284 seconds
+[20-Jul-2025 13:47:25 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.4730207920074 seconds
+[20-Jul-2025 13:47:26 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 3.9160618782043 seconds
+[20-Jul-2025 13:47:26 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 4.3682198524475 seconds
+[20-Jul-2025 13:47:27 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 4.8398249149323 seconds
+[20-Jul-2025 13:47:27 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 5.3270969390869 seconds
+[20-Jul-2025 13:47:28 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 5.7620589733124 seconds
+[20-Jul-2025 13:47:28 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 6.2148687839508 seconds
+[20-Jul-2025 13:47:29 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 6.6040480136871 seconds
+[20-Jul-2025 13:47:29 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 7.0486059188843 seconds
+[20-Jul-2025 13:47:29 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 7.5159358978271 seconds
+[20-Jul-2025 13:47:30 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 7.9696669578552 seconds
+[20-Jul-2025 13:47:30 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 8.4065008163452 seconds
+[20-Jul-2025 13:47:31 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 8.8337278366089 seconds
+[20-Jul-2025 13:47:31 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 9.2488548755646 seconds
+[20-Jul-2025 13:47:32 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 9.6663010120392 seconds
+[20-Jul-2025 13:47:32 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 10.090480804443 seconds
+[20-Jul-2025 13:47:32 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 10.532317876816 seconds
+[20-Jul-2025 13:47:33 Asia/Manila] Genetic algorithm completed in 10.928930997849 seconds
+[20-Jul-2025 13:47:33 Asia/Manila] PHP Fatal error:  Cannot redeclare getTeamMembers() (previously declared in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:1054) in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 231
+[20-Jul-2025 13:49:48 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-26-2025
+        )
+
+    [program] => Bachelor of Science in Computer Science
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 13:49:48 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 13:49:48 Asia/Manila] Fetched 3 teams for programs: Bachelor of Science in Computer Science
+[20-Jul-2025 13:49:48 Asia/Manila] Generation 0 completed. Best fitness: -75. Elapsed time: 0.088289022445679 seconds
+[20-Jul-2025 13:49:50 Asia/Manila] Generation 20 completed. Best fitness: -75. Elapsed time: 1.974888086319 seconds
+[20-Jul-2025 13:49:52 Asia/Manila] Generation 40 completed. Best fitness: -75. Elapsed time: 3.8249042034149 seconds
+[20-Jul-2025 13:49:54 Asia/Manila] Generation 60 completed. Best fitness: -75. Elapsed time: 5.7460770606995 seconds
+[20-Jul-2025 13:49:56 Asia/Manila] Generation 80 completed. Best fitness: -75. Elapsed time: 7.7147340774536 seconds
+[20-Jul-2025 13:49:58 Asia/Manila] Generation 100 completed. Best fitness: -75. Elapsed time: 9.5768830776215 seconds
+[20-Jul-2025 13:49:59 Asia/Manila] Generation 120 completed. Best fitness: -75. Elapsed time: 11.49520111084 seconds
+[20-Jul-2025 13:50:01 Asia/Manila] Generation 140 completed. Best fitness: -75. Elapsed time: 13.372311115265 seconds
+[20-Jul-2025 13:50:03 Asia/Manila] Generation 160 completed. Best fitness: -75. Elapsed time: 15.37583899498 seconds
+[20-Jul-2025 13:50:05 Asia/Manila] Generation 180 completed. Best fitness: -75. Elapsed time: 17.258481025696 seconds
+[20-Jul-2025 13:50:07 Asia/Manila] Generation 200 completed. Best fitness: -75. Elapsed time: 19.158788204193 seconds
+[20-Jul-2025 13:50:09 Asia/Manila] Generation 220 completed. Best fitness: -75. Elapsed time: 21.109209060669 seconds
+[20-Jul-2025 13:50:11 Asia/Manila] Generation 240 completed. Best fitness: -75. Elapsed time: 23.027672052383 seconds
+[20-Jul-2025 13:50:13 Asia/Manila] Generation 260 completed. Best fitness: -75. Elapsed time: 24.903911113739 seconds
+[20-Jul-2025 13:50:15 Asia/Manila] Generation 280 completed. Best fitness: -75. Elapsed time: 26.72678899765 seconds
+[20-Jul-2025 13:50:17 Asia/Manila] Generation 300 completed. Best fitness: -75. Elapsed time: 28.661959171295 seconds
+[20-Jul-2025 13:50:18 Asia/Manila] Generation 320 completed. Best fitness: -75. Elapsed time: 30.489430189133 seconds
+[20-Jul-2025 13:50:20 Asia/Manila] Generation 340 completed. Best fitness: -75. Elapsed time: 32.301801204681 seconds
+[20-Jul-2025 13:50:22 Asia/Manila] Generation 360 completed. Best fitness: -75. Elapsed time: 34.158155202866 seconds
+[20-Jul-2025 13:50:24 Asia/Manila] Generation 380 completed. Best fitness: -75. Elapsed time: 36.037271022797 seconds
+[20-Jul-2025 13:50:26 Asia/Manila] Generation 400 completed. Best fitness: -75. Elapsed time: 37.939746141434 seconds
+[20-Jul-2025 13:50:28 Asia/Manila] Generation 420 completed. Best fitness: -75. Elapsed time: 39.841337203979 seconds
+[20-Jul-2025 13:50:30 Asia/Manila] Generation 440 completed. Best fitness: -75. Elapsed time: 41.88978600502 seconds
+[20-Jul-2025 13:50:32 Asia/Manila] Generation 460 completed. Best fitness: -75. Elapsed time: 43.99312210083 seconds
+[20-Jul-2025 13:50:34 Asia/Manila] Generation 480 completed. Best fitness: -75. Elapsed time: 46.028972148895 seconds
+[20-Jul-2025 13:50:36 Asia/Manila] Genetic algorithm completed in 47.840805053711 seconds
+[20-Jul-2025 13:50:36 Asia/Manila] PHP Fatal error:  Cannot redeclare getTeamMembers() (previously declared in C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php:1054) in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 231
+[20-Jul-2025 13:57:18 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 13:57:18 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 13:57:18 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 13:57:18 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.011389970779419 seconds
+[20-Jul-2025 13:57:18 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.46677398681641 seconds
+[20-Jul-2025 13:57:19 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.96202087402344 seconds
+[20-Jul-2025 13:57:19 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.4375560283661 seconds
+[20-Jul-2025 13:57:20 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.8932688236237 seconds
+[20-Jul-2025 13:57:20 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.3436558246613 seconds
+[20-Jul-2025 13:57:21 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.8107078075409 seconds
+[20-Jul-2025 13:57:21 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.257474899292 seconds
+[20-Jul-2025 13:57:21 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.7298510074615 seconds
+[20-Jul-2025 13:57:22 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 4.1617619991302 seconds
+[20-Jul-2025 13:57:22 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 4.5748808383942 seconds
+[20-Jul-2025 13:57:23 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 5.0213878154755 seconds
+[20-Jul-2025 13:57:23 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 5.49156498909 seconds
+[20-Jul-2025 13:57:24 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 5.9264879226685 seconds
+[20-Jul-2025 13:57:24 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 6.3654329776764 seconds
+[20-Jul-2025 13:57:25 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 6.7888479232788 seconds
+[20-Jul-2025 13:57:25 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 7.2447669506073 seconds
+[20-Jul-2025 13:57:25 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 7.7142648696899 seconds
+[20-Jul-2025 13:57:26 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 8.1594939231873 seconds
+[20-Jul-2025 13:57:26 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 8.5774688720703 seconds
+[20-Jul-2025 13:57:27 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 8.9945819377899 seconds
+[20-Jul-2025 13:57:27 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 9.4351789951324 seconds
+[20-Jul-2025 13:57:28 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 9.8694880008698 seconds
+[20-Jul-2025 13:57:28 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 10.287307977676 seconds
+[20-Jul-2025 13:57:28 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 10.700407028198 seconds
+[20-Jul-2025 13:57:29 Asia/Manila] Genetic algorithm completed in 11.160035848618 seconds
+[20-Jul-2025 13:57:29 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 23, team: 27
+[20-Jul-2025 13:57:29 Asia/Manila] PHP Fatal error:  Uncaught Error: Object of class PDO could not be converted to string in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php:32
+Stack trace:
+#0 C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php(32): PDOStatement->execute(Array)
+#1 C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php(609): createNotification(Object(PDO), 106, 'Defense Schedul...', 'Your team's def...', 'defense_schedul...', '23')
+#2 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(712): createDefenseScheduleNotifications(Object(PDO), '23', 27, Array, '2025-07-21', '10:00', '12:00', 'b')
+#3 C:\xampp\htdocs\coecsathesis\dashboard\includes\run_scheduler.php(112): saveScheduleToDatabase(Object(PDO), Object(DefenseSchedule))
+#4 {main}
+  thrown in C:\xampp\htdocs\coecsathesis\assets\includes\notification_functions.php on line 32
+[20-Jul-2025 14:05:20 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 14:05:20 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 14:05:20 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 14:05:20 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.011664867401123 seconds
+[20-Jul-2025 14:05:20 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.45366477966309 seconds
+[20-Jul-2025 14:05:21 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.87339091300964 seconds
+[20-Jul-2025 14:05:21 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.3283529281616 seconds
+[20-Jul-2025 14:05:22 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.7897489070892 seconds
+[20-Jul-2025 14:05:22 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.3076868057251 seconds
+[20-Jul-2025 14:05:23 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.7984108924866 seconds
+[20-Jul-2025 14:05:23 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.2400197982788 seconds
+[20-Jul-2025 14:05:24 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.6783018112183 seconds
+[20-Jul-2025 14:05:24 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 4.1750118732452 seconds
+[20-Jul-2025 14:05:25 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 4.6091499328613 seconds
+[20-Jul-2025 14:05:25 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 5.0514769554138 seconds
+[20-Jul-2025 14:05:25 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 5.4687418937683 seconds
+[20-Jul-2025 14:05:26 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 5.9245839118958 seconds
+[20-Jul-2025 14:05:26 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 6.3554828166962 seconds
+[20-Jul-2025 14:05:27 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 6.7895328998566 seconds
+[20-Jul-2025 14:05:27 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 7.2144479751587 seconds
+[20-Jul-2025 14:05:28 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 7.6933908462524 seconds
+[20-Jul-2025 14:05:28 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 8.1440567970276 seconds
+[20-Jul-2025 14:05:29 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 8.5665938854218 seconds
+[20-Jul-2025 14:05:29 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 9.0016639232635 seconds
+[20-Jul-2025 14:05:29 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 9.444638967514 seconds
+[20-Jul-2025 14:05:30 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 9.8367559909821 seconds
+[20-Jul-2025 14:05:30 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 10.247013807297 seconds
+[20-Jul-2025 14:05:31 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 10.732361793518 seconds
+[20-Jul-2025 14:05:31 Asia/Manila] Genetic algorithm completed in 11.156766891479 seconds
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 24, team: 28
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 24, Team: Blaze Rider
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 25, team: 30
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 25, Team: CoralIS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 26, team: 27
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 26, Team: TherapEase
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 27, team: 29
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 27, Team: CYBEREUM
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 28, team: 31
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 28, Team: ReLuto
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 29, team: 26
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 29, Team: GIG-A-FIND
+[20-Jul-2025 14:05:31 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:05:31 Asia/Manila] Missing teams detected: 32
+[20-Jul-2025 14:05:31 Asia/Manila] Creating fallback schedule for team ID: 32
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'notification_type' in 'where clause'
+[20-Jul-2025 14:05:31 Asia/Manila] Defense schedule notifications created for schedule ID: 30, Team: CRAMS
+[20-Jul-2025 14:05:31 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[20-Jul-2025 14:12:36 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 14:12:36 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 14:12:39 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => true
+)
+
+[20-Jul-2025 14:12:39 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 14:12:39 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 14:12:39 Asia/Manila] Removed schedules for 7 teams
+[20-Jul-2025 14:12:39 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.012540102005005 seconds
+[20-Jul-2025 14:12:39 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.47556090354919 seconds
+[20-Jul-2025 14:12:40 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.9695611000061 seconds
+[20-Jul-2025 14:12:40 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.4103329181671 seconds
+[20-Jul-2025 14:12:41 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.9412899017334 seconds
+[20-Jul-2025 14:12:41 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.4343559741974 seconds
+[20-Jul-2025 14:12:42 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.8959848880768 seconds
+[20-Jul-2025 14:12:42 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.3671200275421 seconds
+[20-Jul-2025 14:12:43 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.8155319690704 seconds
+[20-Jul-2025 14:12:43 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 4.2673790454865 seconds
+[20-Jul-2025 14:12:44 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 4.7178010940552 seconds
+[20-Jul-2025 14:12:44 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 5.1303100585938 seconds
+[20-Jul-2025 14:12:45 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 5.5461320877075 seconds
+[20-Jul-2025 14:12:45 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 5.9929149150848 seconds
+[20-Jul-2025 14:12:45 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 6.4707279205322 seconds
+[20-Jul-2025 14:12:46 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 6.8755819797516 seconds
+[20-Jul-2025 14:12:46 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 7.3280699253082 seconds
+[20-Jul-2025 14:12:47 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 7.7846279144287 seconds
+[20-Jul-2025 14:12:47 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 8.2134029865265 seconds
+[20-Jul-2025 14:12:48 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 8.6542060375214 seconds
+[20-Jul-2025 14:12:48 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 9.0914189815521 seconds
+[20-Jul-2025 14:12:48 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 9.4950420856476 seconds
+[20-Jul-2025 14:12:49 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 9.936861038208 seconds
+[20-Jul-2025 14:12:49 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 10.322077989578 seconds
+[20-Jul-2025 14:12:50 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 10.737212896347 seconds
+[20-Jul-2025 14:12:50 Asia/Manila] Genetic algorithm completed in 11.169548034668 seconds
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 31, team: 30
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 31, Team: CoralIS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 32, team: 31
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 32, Team: ReLuto
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 33, team: 26
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 33, Team: GIG-A-FIND
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 34, team: 29
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 34, Team: CYBEREUM
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 35, team: 27
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 35, Team: TherapEase
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 36, team: 28
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 36, Team: Blaze Rider
+[20-Jul-2025 14:12:50 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:12:50 Asia/Manila] Missing teams detected: 32
+[20-Jul-2025 14:12:50 Asia/Manila] Creating fallback schedule for team ID: 32
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Error creating notification: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'reference_type' in 'field list'
+[20-Jul-2025 14:12:50 Asia/Manila] Defense schedule notifications created for schedule ID: 37, Team: CRAMS
+[20-Jul-2025 14:12:50 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[20-Jul-2025 14:19:25 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-29-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 14:19:25 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 14:19:26 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-29-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => true
+)
+
+[20-Jul-2025 14:19:26 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 14:19:26 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 14:19:26 Asia/Manila] Removed schedules for 7 teams
+[20-Jul-2025 14:19:27 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.014504909515381 seconds
+[20-Jul-2025 14:19:27 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.47976589202881 seconds
+[20-Jul-2025 14:19:27 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.92243480682373 seconds
+[20-Jul-2025 14:19:28 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.4286320209503 seconds
+[20-Jul-2025 14:19:28 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.9305808544159 seconds
+[20-Jul-2025 14:19:29 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 2.4428989887238 seconds
+[20-Jul-2025 14:19:29 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.8855028152466 seconds
+[20-Jul-2025 14:19:30 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 3.3020570278168 seconds
+[20-Jul-2025 14:19:30 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.7381839752197 seconds
+[20-Jul-2025 14:19:31 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 4.1819958686829 seconds
+[20-Jul-2025 14:19:31 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 4.6219758987427 seconds
+[20-Jul-2025 14:19:32 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 5.086905002594 seconds
+[20-Jul-2025 14:19:32 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 5.5627930164337 seconds
+[20-Jul-2025 14:19:33 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 6.0298128128052 seconds
+[20-Jul-2025 14:19:33 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 6.4607439041138 seconds
+[20-Jul-2025 14:19:33 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 6.9555728435516 seconds
+[20-Jul-2025 14:19:34 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 7.4055998325348 seconds
+[20-Jul-2025 14:19:34 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 7.872279882431 seconds
+[20-Jul-2025 14:19:35 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 8.3400130271912 seconds
+[20-Jul-2025 14:19:35 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 8.7635560035706 seconds
+[20-Jul-2025 14:19:36 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 9.1881809234619 seconds
+[20-Jul-2025 14:19:36 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 9.6122479438782 seconds
+[20-Jul-2025 14:19:37 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 10.055182933807 seconds
+[20-Jul-2025 14:19:37 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 10.502745866776 seconds
+[20-Jul-2025 14:19:37 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 10.934944868088 seconds
+[20-Jul-2025 14:19:38 Asia/Manila] Genetic algorithm completed in 11.353976011276 seconds
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 38, team: 31
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 38, Team: ReLuto
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 39, team: 30
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 39, Team: CoralIS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 40, team: 28
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 40, Team: Blaze Rider
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 41, team: 26
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 41, Team: GIG-A-FIND
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 42, team: 27
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 42, Team: TherapEase
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 43, team: 29
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 43, Team: CYBEREUM
+[20-Jul-2025 14:19:38 Asia/Manila] DEFENSE SCHEDULER: Notification creation result: SUCCESS
+[20-Jul-2025 14:19:38 Asia/Manila] Missing teams detected: 32
+[20-Jul-2025 14:19:38 Asia/Manila] Creating fallback schedule for team ID: 32
+[20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 44, Team: CRAMS
+[20-Jul-2025 14:19:38 Asia/Manila] Teams scheduled: 7 out of 7 expected

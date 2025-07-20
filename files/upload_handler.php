@@ -219,6 +219,20 @@ if (move_uploaded_file($fileTmpName, $destination)) {
             $pdo->commit();
             $response['success'] = true;
             $response['message'] = 'File uploaded successfully!';
+            
+            // Create requirement upload notification
+            if ($teamId) {
+                try {
+                    // Include notification functions (fix path)
+                    require_once dirname(__DIR__) . '/assets/includes/notification_functions.php';
+                    
+                    // Create notifications for file upload
+                    createRequirementUploadNotifications($pdo, $teamId, $fileName, $description);
+                } catch (Exception $notifException) {
+                    // Don't fail the upload if notification fails, just log it
+                    error_log("Failed to create upload notification: " . $notifException->getMessage());
+                }
+            }
         } else {
             error_log("Database insert failed: " . print_r($stmt->errorInfo(), true));
             $pdo->exec('SET FOREIGN_KEY_CHECKS=1');

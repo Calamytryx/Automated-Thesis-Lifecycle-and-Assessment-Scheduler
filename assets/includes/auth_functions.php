@@ -1,4 +1,8 @@
 <?php
+// Include guard to prevent multiple inclusions
+if (!defined('AUTH_FUNCTIONS_INCLUDED')) {
+    define('AUTH_FUNCTIONS_INCLUDED', true);
+
 ob_start();
 function check_logged_in()
 {
@@ -237,3 +241,6 @@ function can_access_college($pdo, $user_id, $college)
         return false; // Deny access on database error
     }
 }
+
+} // End of include guard
+?>

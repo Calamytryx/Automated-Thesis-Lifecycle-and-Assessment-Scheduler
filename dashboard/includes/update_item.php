@@ -176,6 +176,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $stmt->execute([$schedule_date, $start_time, $end_time, $room, $team_id, $panelist_id, $panelist_id2, $panelist_id3, $id]);
                 error_log("Defense schedule updated. Affected rows: " . $stmt->rowCount());
 
+                // 🎯 CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MANUAL UPDATE
+                if ($stmt->rowCount() > 0) {
+                    require_once __DIR__ . '/../../assets/includes/notification_functions.php';
+                    
+                    $panelistIds = [$panelist_id, $panelist_id2, $panelist_id3];
+                    $startTimeFormatted = date('H:i', strtotime($start_time));
+                    $endTimeFormatted = date('H:i', strtotime($end_time));
+                    
+                    createDefenseScheduleNotifications($pdo, $id, $team_id, $panelistIds, $schedule_date, $startTimeFormatted, $endTimeFormatted, $room, true);
+                }
+
                 $result = true; // Assume success if no exception is thrown
             } elseif ($table === 'rubrics') {
                 try {
@@ -318,11 +329,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 // Handle other tables as before
                 $updateData = [];
                 $params = [];
+                $titleApproved = false; // Initialize approval status
                 foreach ($_POST as $key => $value) {
                     if ($key !== 'table' && $key !== 'id') {
-                        if ($table === 'research_titles' && $key === 'approved') {
+                if ($table === 'research_titles' && $key === 'approved_at') {
                             $updateData[] = "approved_at = ?";
-                            $params[] = $value ? date('Y-m-d H:i:s') : null;
+                            $approvalValue = $value ? date('Y-m-d H:i:s') : null;
+                            $params[] = $approvalValue;
+                            
+                            // Store approval status for notification later
+                            $titleApproved = (bool)$value;
                         } else {
                             $updateData[] = "`$key` = ?";
                             $params[] = $value;
@@ -330,7 +346,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     }
                 }
 
-                if ($table === 'research_titles' && !isset($_POST['approved'])) {
+                if ($table === 'research_titles' && !isset($_POST['approved_at'])) {
                     $updateData[] = "approved_at = ?";
                     $params[] = null;
                 }

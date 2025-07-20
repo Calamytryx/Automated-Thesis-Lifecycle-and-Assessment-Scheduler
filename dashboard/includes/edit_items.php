@@ -488,6 +488,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
         
         // Handle the 'approved_at' timestamp based on checkbox value
+        $titleWasApproved = false; // Track if title was just approved
         if (isset($data['approved_at'])) {
             if ($data['approved_at'] == '1') { // Checkbox was checked
                 // Set to current timestamp only if it's not already set
@@ -496,16 +497,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $currentApprovedAt = $stmtCheck->fetchColumn();
                 if ($currentApprovedAt === null) {
                     $data['approved_at'] = date('Y-m-d H:i:s'); // Set current timestamp
+                    $titleWasApproved = true; // Mark that title was just approved
+                    error_log("DEBUG: Title ID $id was just approved");
                 } else {
                     // Already approved, keep existing timestamp - remove from $data to avoid overwrite
                     unset($data['approved_at']); 
+                    error_log("DEBUG: Title ID $id was already approved - no notification needed");
                 }
             } else { // Checkbox was unchecked (value '0' or not present)
                 $data['approved_at'] = null; // Set to NULL
+                error_log("DEBUG: Title ID $id was unapproved");
             }
         } else {
              // If key isn't even set (e.g., form issue), assume unchecking
              $data['approved_at'] = null;
+             error_log("DEBUG: Title ID $id approval key not set");
         }
 
         // Remove team_id if present, as it shouldn't be editable directly here
@@ -522,6 +528,42 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         if ($result !== false) {
             $response['success'] = true;
             $response['message'] = ucfirst($table) . ' updated successfully.';
+            
+            // Send title approval notification if a title was just approved
+            if ($table === 'research_titles' && isset($titleWasApproved) && $titleWasApproved) {
+                error_log("DEBUG: Sending title approval notifications for title ID $id");
+                
+                // Prevent duplicate notifications using session lock
+                $lockKey = "title_approval_lock_$id";
+                if (!isset($_SESSION[$lockKey])) {
+                    $_SESSION[$lockKey] = time();
+                    
+                    // Get title and team information for notification
+                    $titleStmt = $pdo->prepare("SELECT title, team_id FROM research_titles WHERE id = ?");
+                    $titleStmt->execute([$id]);
+                    $titleInfo = $titleStmt->fetch(PDO::FETCH_ASSOC);
+                    
+                    if ($titleInfo) {
+                        error_log("DEBUG: Title info found - Title: " . $titleInfo['title'] . ", Team ID: " . $titleInfo['team_id']);
+                        // Include notification functions
+                        require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
+                        
+                        // Create title approval notifications
+                        createTitleApprovalNotifications($pdo, $titleInfo['team_id'], $titleInfo['title']);
+                        error_log("DEBUG: Title approval notifications sent successfully");
+                        
+                        // Clear the lock after 30 seconds (cleanup for future approvals)
+                        if (isset($_SESSION[$lockKey]) && (time() - $_SESSION[$lockKey]) > 30) {
+                            unset($_SESSION[$lockKey]);
+                        }
+                    } else {
+                        error_log("DEBUG: No title info found for ID: " . $id);
+                        unset($_SESSION[$lockKey]); // Clear lock if no title found
+                    }
+                } else {
+                    error_log("DEBUG: Title approval notification blocked by session lock for ID: $id");
+                }
+            }
         } else {
             // Check if a specific message was set in handleEditSubmission
             if (isset($GLOBALS['edit_error_message'])) {

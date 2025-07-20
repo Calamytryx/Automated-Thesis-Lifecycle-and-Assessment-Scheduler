@@ -178,6 +178,16 @@ try {
         $response['success'] = true;
         unset($response['error']); // Remove error key on success
         error_log("Upload Success: File '{$uniqueFileName}' uploaded for Team ID {$teamId}, Req ID {$requirementId}. DB updated.");
+        
+        // Send requirement submission notification to advisers
+        try {
+            require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
+            createRequirementSubmissionNotifications($pdo, $teamId, $requirementId, $uniqueFileName);
+            error_log("Requirement submission notification sent for Team ID {$teamId}, Req ID {$requirementId}");
+        } catch (Exception $notifException) {
+            // Don't fail the upload if notification fails, just log it
+            error_log("Failed to create requirement submission notification: " . $notifException->getMessage());
+        }
     } else {
         // This might happen if the update didn't change any rows (e.g., data was the same)
         // Or if the insert failed silently (less likely with PDO defaults)

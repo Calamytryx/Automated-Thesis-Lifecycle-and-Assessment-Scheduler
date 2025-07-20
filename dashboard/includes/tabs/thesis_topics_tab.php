@@ -13,7 +13,7 @@
         <div class="row">
             <div class="col-12">
                 <!-- Mobile-first responsive layout -->
-                <div class="thesis-topics-controls-container p-0">
+                <div class="thesis-topics-controls-container p-0 mt-3">
                     <!-- Search and Filter Row -->
                     <div class="row g-2 mb-3 align-items-end">
                         <div class="col-12 col-md-3 col-lg-3">

@@ -671,6 +671,9 @@ function saveScheduleToDatabase($pdo, $schedule)
             VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
         ");
 
+        // Include notification functions
+        require_once dirname(__DIR__) . '/../assets/includes/notification_functions.php';
+
         // First pass - schedule teams with best fitness
         foreach ($defenses as $defense) {
             // Skip if this team was already scheduled
@@ -701,6 +704,18 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $endTime->format('H:i:s'),
                 $defense['room']
             ]);
+
+            // CREATE DEFENSE SCHEDULE NOTIFICATIONS
+            $scheduleId = $pdo->lastInsertId();
+            error_log("DEFENSE SCHEDULER: About to create notifications for schedule ID: $scheduleId, team: {$defense['team_id']}");
+            
+            $notificationResult = createDefenseScheduleNotifications($pdo, $scheduleId, $defense['team_id'], [
+                $defense['panelist_ids'][0],
+                $defense['panelist_ids'][1], 
+                $defense['panelist_ids'][2]
+            ], $date, $startTime->format('H:i'), $endTime->format('H:i'), $defense['room']);
+            
+            error_log("DEFENSE SCHEDULER: Notification creation result: " . ($notificationResult ? 'SUCCESS' : 'FAILED'));
 
             // Track panelist assignments
             foreach ($defense['panelist_ids'] as $panelist_id) {
@@ -781,6 +796,14 @@ function saveScheduleToDatabase($pdo, $schedule)
                     $endTime->format('H:i:s'),
                     $teamDefense['room']
                 ]);
+
+                // CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MISSING TEAMS
+                $scheduleId = $pdo->lastInsertId();
+                createDefenseScheduleNotifications($pdo, $scheduleId, $teamDefense['team_id'], [
+                    $teamDefense['panelist_ids'][0],
+                    $teamDefense['panelist_ids'][1], 
+                    $teamDefense['panelist_ids'][2]
+                ], $date, $startTime->format('H:i'), $endTime->format('H:i'), $teamDefense['room']);
 
                 $scheduledTeams[] = $missingTeamId;
             }

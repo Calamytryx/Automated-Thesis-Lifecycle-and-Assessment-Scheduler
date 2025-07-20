@@ -2,10 +2,15 @@
 if (session_status() === PHP_SESSION_NONE) {
     session_start();
 }
-require '../assets/setup/env.php';
-require '../assets/setup/db.inc.php';
-require '../assets/includes/auth_functions.php';
-require '../assets/includes/security_functions.php';
+require_once '../assets/setup/env.php';
+require_once '../assets/setup/db.inc.php';
+require_once '../assets/includes/auth_functions.php';
+require_once '../assets/includes/security_functions.php';
+
+// Include notification functions if user is logged in
+if (isset($_SESSION['auth'])) {
+    require_once '../assets/includes/notification_functions.php';
+}
 
 if (isset($_SESSION['auth']))
     $_SESSION['expire'] = ALLOWED_INACTIVITY_TIME;

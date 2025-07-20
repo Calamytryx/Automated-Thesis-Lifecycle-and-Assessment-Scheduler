@@ -423,6 +423,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     try {
         $stmt->execute($data);
+        
+        // 🎯 CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MANUAL CREATION
+        if ($table === 'defense_schedules') {
+            require_once __DIR__ . '/../../assets/includes/notification_functions.php';
+            
+            $scheduleId = $pdo->lastInsertId();
+            $teamId = $data['team_id'];
+            $panelistIds = [$data['panelist_id'], $data['panelist_id2'], $data['panelist_id3']];
+            $scheduleDate = $data['schedule_date'];
+            $startTime = date('H:i', strtotime($data['start_time']));
+            $endTime = date('H:i', strtotime($data['end_time']));
+            $room = $data['room'];
+            
+            createDefenseScheduleNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room);
+        }
+        
         $response['success'] = true;
         $response['message'] = ucfirst($table) . ' added successfully.';
     } catch (Exception $e) {
