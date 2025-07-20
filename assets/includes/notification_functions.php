@@ -18,9 +18,10 @@ require_once __DIR__ . '/../setup/db.inc.php';
  * @param string $message Detailed message
  * @param string $type Type of notification (defense_schedule, title_approved, etc.)
  * @param int|null $reference_id ID of related entity (team_id, requirement_id, etc.)
- * @return bool Success status
+ * @param bool $returnId Whether to return the notification ID instead of boolean
+ * @return bool|int Success status or notification ID if $returnId is true
  */
-function createNotification($pdo, $user_id, $title, $message, $type, $reference_id = null) {
+function createNotification($pdo, $user_id, $title, $message, $type, $reference_id = null, $returnId = false) {
     try {
         // Check for duplicate notifications in the last 10 seconds
         $stmt = $pdo->prepare("
@@ -34,7 +35,7 @@ function createNotification($pdo, $user_id, $title, $message, $type, $reference_
         
         if ($duplicateCount > 0) {
             error_log("Duplicate notification prevented for user $user_id, type $type");
-            return true; // Consider it successful but don't create duplicate
+            return $returnId ? false : true; // Consider it successful but don't create duplicate
         }
         
         // For now, always create notifications (preferences checking can be added later)
@@ -43,7 +44,13 @@ function createNotification($pdo, $user_id, $title, $message, $type, $reference_
             (user_id, title, message, type, related_id, is_read, created_at) 
             VALUES (?, ?, ?, ?, ?, 0, NOW())
         ");
-        return $stmt->execute([$user_id, $title, $message, $type, $reference_id]);
+        $success = $stmt->execute([$user_id, $title, $message, $type, $reference_id]);
+        
+        if ($returnId && $success) {
+            return $pdo->lastInsertId();
+        }
+        
+        return $success;
         
     } catch (PDOException $e) {
         error_log("Error creating notification: " . $e->getMessage());
@@ -844,6 +851,76 @@ function createRequirementFeedbackNotifications($pdo, $teamId, $requirementId, $
         
     } catch (Exception $e) {
         error_log("Error creating requirement feedback notifications: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Create defense approval notifications for panelists
+ * @param PDO $pdo Database connection
+ * @param int $scheduleId Defense schedule ID
+ * @param int $teamId Team ID
+ * @param array $panelistIds Array of panelist IDs
+ * @param string $scheduleDate Defense date
+ * @param string $startTime Start time
+ * @param string $endTime End time
+ * @param string $room Room location
+ * @return bool Success status
+ */
+function createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room) {
+    try {
+        // Get team and research information
+        $teamStmt = $pdo->prepare("
+            SELECT t.name, t.program, rt.title as research_title
+            FROM teams t 
+            LEFT JOIN research_titles rt ON t.id = rt.team_id 
+            WHERE t.id = ?
+        ");
+        $teamStmt->execute([$teamId]);
+        $teamInfo = $teamStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$teamInfo) {
+            error_log("Team not found with ID: $teamId");
+            return false;
+        }
+        
+        $formattedDate = date('F j, Y', strtotime($scheduleDate));
+        $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
+        
+        // Create approval notifications for each panelist
+        foreach ($panelistIds as $panelistId) {
+            if ($panelistId && $panelistId !== '') {
+                $title = "Defense Schedule Approval Required";
+                $message = "You have been assigned as a panelist for {$teamInfo['name']}'s defense:\n\n" .
+                          "📅 Date: {$formattedDate}\n" .
+                          "🕒 Time: {$formattedTime}\n" .
+                          "🏢 Room: {$room}\n" .
+                          "🎓 Program: {$teamInfo['program']}\n" .
+                          "📝 Research: " . ($teamInfo['research_title'] ?? 'N/A') . "\n\n" .
+                          "Please approve or decline this assignment.";
+                
+                // Create notification with approval type and reference to defense schedule
+                $notificationId = createNotification($pdo, $panelistId, $title, $message, 'defense_approval', $scheduleId, true);
+                
+                if ($notificationId) {
+                    // Add approval actions to notification_actions table
+                    $actionStmt = $pdo->prepare("
+                        INSERT INTO notification_actions (notification_id, action_type, action_data) 
+                        VALUES (?, ?, ?)
+                    ");
+                    
+                    $actionData = json_encode(['schedule_id' => $scheduleId]);
+                    $actionStmt->execute([$notificationId, 'approve_defense', $actionData]);
+                    $actionStmt->execute([$notificationId, 'reject_defense', $actionData]);
+                }
+            }
+        }
+        
+        error_log("Defense approval notifications created for schedule ID: $scheduleId");
+        return true;
+        
+    } catch (Exception $e) {
+        error_log("Error creating defense approval notifications: " . $e->getMessage());
         return false;
     }
 }

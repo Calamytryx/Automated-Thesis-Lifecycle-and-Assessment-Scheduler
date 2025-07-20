@@ -1206,3 +1206,204 @@ Stack trace:
 [20-Jul-2025 14:19:38 Asia/Manila] Creating fallback schedule for team ID: 32
 [20-Jul-2025 14:19:38 Asia/Manila] Defense schedule notifications created for schedule ID: 44, Team: CRAMS
 [20-Jul-2025 14:19:38 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[20-Jul-2025 18:45:34 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 18:45:34 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 18:45:40 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-25-2025
+            [3] => 07-28-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => true
+)
+
+[20-Jul-2025 18:45:40 Asia/Manila] Found 7 teams with existing schedules
+[20-Jul-2025 18:45:40 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 18:45:40 Asia/Manila] Removed schedules for 7 teams
+[20-Jul-2025 18:45:40 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.012081861495972 seconds
+[20-Jul-2025 18:45:40 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.41504597663879 seconds
+[20-Jul-2025 18:45:41 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.80567097663879 seconds
+[20-Jul-2025 18:45:41 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.191577911377 seconds
+[20-Jul-2025 18:45:42 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.5742249488831 seconds
+[20-Jul-2025 18:45:42 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 1.9572858810425 seconds
+[20-Jul-2025 18:45:42 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.3309879302979 seconds
+[20-Jul-2025 18:45:43 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 2.7191050052643 seconds
+[20-Jul-2025 18:45:43 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.1007878780365 seconds
+[20-Jul-2025 18:45:44 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 3.4745938777924 seconds
+[20-Jul-2025 18:45:44 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 3.8488159179688 seconds
+[20-Jul-2025 18:45:44 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 4.2835848331451 seconds
+[20-Jul-2025 18:45:45 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 4.6674938201904 seconds
+[20-Jul-2025 18:45:45 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 5.0566558837891 seconds
+[20-Jul-2025 18:45:46 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 5.4538588523865 seconds
+[20-Jul-2025 18:45:46 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 5.8457720279694 seconds
+[20-Jul-2025 18:45:46 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 6.2187838554382 seconds
+[20-Jul-2025 18:45:47 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 6.5911829471588 seconds
+[20-Jul-2025 18:45:47 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 6.9835429191589 seconds
+[20-Jul-2025 18:45:47 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 7.3766670227051 seconds
+[20-Jul-2025 18:45:48 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 7.7575550079346 seconds
+[20-Jul-2025 18:45:48 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 8.1170859336853 seconds
+[20-Jul-2025 18:45:49 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 8.4741868972778 seconds
+[20-Jul-2025 18:45:49 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 8.8292298316956 seconds
+[20-Jul-2025 18:45:49 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 9.1834850311279 seconds
+[20-Jul-2025 18:45:50 Asia/Manila] Genetic algorithm completed in 9.5310649871826 seconds
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 46, team: 29
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 47, team: 28
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 48, team: 27
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 49, team: 31
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 50, team: 26
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 51, team: 30
+[20-Jul-2025 18:45:50 Asia/Manila] Error creating defense approval notifications: SQLSTATE[42S22]: Column not found: 1054 Unknown column 'rt.area_of_expertise' in 'field list'
+[20-Jul-2025 18:45:50 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: FAILED
+[20-Jul-2025 18:45:50 Asia/Manila] Missing teams detected: 32
+[20-Jul-2025 18:45:50 Asia/Manila] Creating fallback schedule for team ID: 32
+[20-Jul-2025 18:45:50 Asia/Manila] Defense schedule notifications created for schedule ID: 52, Team: CRAMS
+[20-Jul-2025 18:45:50 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[20-Jul-2025 20:04:52 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+            [1] => 07-23-2025
+            [2] => 07-24-2025
+            [3] => 07-26-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[20-Jul-2025 20:04:52 Asia/Manila] Found 0 teams with existing schedules
+[20-Jul-2025 20:04:52 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[20-Jul-2025 20:04:52 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.010822057723999 seconds
+[20-Jul-2025 20:04:53 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 0.39488911628723 seconds
+[20-Jul-2025 20:04:53 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 0.77538514137268 seconds
+[20-Jul-2025 20:04:53 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 1.1444451808929 seconds
+[20-Jul-2025 20:04:54 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 1.5281760692596 seconds
+[20-Jul-2025 20:04:54 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 1.9032051563263 seconds
+[20-Jul-2025 20:04:55 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 2.2773330211639 seconds
+[20-Jul-2025 20:04:55 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 2.6459209918976 seconds
+[20-Jul-2025 20:04:55 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 3.0110239982605 seconds
+[20-Jul-2025 20:04:56 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 3.3902151584625 seconds
+[20-Jul-2025 20:04:56 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 3.7607660293579 seconds
+[20-Jul-2025 20:04:56 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 4.1787750720978 seconds
+[20-Jul-2025 20:04:57 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 4.5728499889374 seconds
+[20-Jul-2025 20:04:57 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 4.9696581363678 seconds
+[20-Jul-2025 20:04:58 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 5.365406036377 seconds
+[20-Jul-2025 20:04:58 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 5.72421002388 seconds
+[20-Jul-2025 20:04:58 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 6.0941171646118 seconds
+[20-Jul-2025 20:04:59 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 6.4578289985657 seconds
+[20-Jul-2025 20:04:59 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 6.8211569786072 seconds
+[20-Jul-2025 20:04:59 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 7.1795861721039 seconds
+[20-Jul-2025 20:05:00 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 7.5461740493774 seconds
+[20-Jul-2025 20:05:00 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 7.9199860095978 seconds
+[20-Jul-2025 20:05:01 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 8.2657721042633 seconds
+[20-Jul-2025 20:05:01 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 8.6159930229187 seconds
+[20-Jul-2025 20:05:01 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 8.9691741466522 seconds
+[20-Jul-2025 20:05:02 Asia/Manila] Genetic algorithm completed in 9.3176991939545 seconds
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 53, team: 31
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 53
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 54, team: 28
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 54
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 55, team: 27
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 55
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 56, team: 29
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 56
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 57, team: 26
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 57
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 58, team: 30
+[20-Jul-2025 20:05:02 Asia/Manila] Defense approval notifications created for schedule ID: 58
+[20-Jul-2025 20:05:02 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[20-Jul-2025 20:05:02 Asia/Manila] Missing teams detected: 32
+[20-Jul-2025 20:05:02 Asia/Manila] Creating fallback schedule for team ID: 32
+[20-Jul-2025 20:05:02 Asia/Manila] Defense schedule notifications created for schedule ID: 59, Team: CRAMS
+[20-Jul-2025 20:05:02 Asia/Manila] Teams scheduled: 7 out of 7 expected

@@ -667,8 +667,8 @@ function saveScheduleToDatabase($pdo, $schedule)
 
         $stmt = $pdo->prepare("
             INSERT INTO defense_schedules 
-            (team_id, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled')
+            (team_id, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, status, approval_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', 'pending')
         ");
 
         // Include notification functions
@@ -707,15 +707,40 @@ function saveScheduleToDatabase($pdo, $schedule)
 
             // CREATE DEFENSE SCHEDULE NOTIFICATIONS
             $scheduleId = $pdo->lastInsertId();
+            
+            // CREATE PANELIST APPROVAL RECORDS
+            $approvalStmt = $pdo->prepare("
+                INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
+                VALUES (?, ?)
+            ");
+            
+            // Create approval record for each panelist
+            foreach ([$defense['panelist_ids'][0], $defense['panelist_ids'][1], $defense['panelist_ids'][2]] as $panelistId) {
+                if ($panelistId && $panelistId !== '') {
+                    $approvalStmt->execute([$scheduleId, $panelistId]);
+                }
+            }
+            
             error_log("DEFENSE SCHEDULER: About to create notifications for schedule ID: $scheduleId, team: {$defense['team_id']}");
             
-            $notificationResult = createDefenseScheduleNotifications($pdo, $scheduleId, $defense['team_id'], [
+            // Create approval notifications for panelists instead of regular notifications
+            $approvalNotificationResult = createDefenseApprovalNotifications($pdo, $scheduleId, $defense['team_id'], [
                 $defense['panelist_ids'][0],
                 $defense['panelist_ids'][1], 
                 $defense['panelist_ids'][2]
             ], $date, $startTime->format('H:i'), $endTime->format('H:i'), $defense['room']);
             
-            error_log("DEFENSE SCHEDULER: Notification creation result: " . ($notificationResult ? 'SUCCESS' : 'FAILED'));
+            // Create regular notifications for team members only
+            $teamMemberIds = getTeamMembersForNotifications($defense['team_id']);
+            $formattedDate = date('F j, Y', strtotime($date));
+            $formattedTime = date('g:i A', strtotime($startTime->format('H:i'))) . ' - ' . date('g:i A', strtotime($endTime->format('H:i')));
+            $messageForTeam = "Your team's defense has been scheduled for {$formattedDate} at {$formattedTime} in {$defense['room']}. Waiting for panelist approval.";
+            
+            foreach ($teamMemberIds as $userId) {
+                createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
+            }
+            
+            error_log("DEFENSE SCHEDULER: Approval notification creation result: " . ($approvalNotificationResult ? 'SUCCESS' : 'FAILED'));
 
             // Track panelist assignments
             foreach ($defense['panelist_ids'] as $panelist_id) {
