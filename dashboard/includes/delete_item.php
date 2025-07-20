@@ -88,6 +88,17 @@ try {
         throw new Exception("Invalid ID specified for deletion.");
     }
 
+
+    // Special file removal for requirements
+    if ($table === 'requirements') {
+        $stmt = $pdo->prepare("SELECT template_file FROM requirements WHERE id = ?");
+        $stmt->execute([$id]);
+        $file = $stmt->fetchColumn();
+        if ($file && file_exists('../uploads/requirements/' . $file)) {
+            unlink('../uploads/requirements/' . $file);
+        }
+    }
+
     // Disable foreign key checks
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0;');
 

@@ -462,7 +462,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
                                         <i class="bi bi-folder2-open me-2 hollow"></i>
-                                        <i class="bi bi-folder2-open me-2 filled"></i>Files
+                                        <i class="bi bi-folder2-open me-2 filled"></i>Research Repository
                                     </a>
                                 </div>
                             </div>
