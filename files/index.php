@@ -13,6 +13,13 @@ $sqlPrograms = "SELECT * FROM programs ORDER BY college, department, name";
 $stmtPrograms = $pdo->prepare($sqlPrograms);
 $stmtPrograms->execute();
 $programs = $stmtPrograms->fetchAll(PDO::FETCH_ASSOC);
+if ($_SESSION['usertype'] == '1') {
+    // Restrict access to students
+    // admin = 0 students = 1 staff = 2
+        echo '<div class="container mt-4"><div class="alert alert-warning">NOT AUTHORIZED, NICE TRY ASSHOLE!!!</div></div>';
+        include '../assets/layouts/footer.php';
+        header("Location: " . 'http://' . $_SERVER['HTTP_HOST'] . 'atlas/home');
+}
 
 ?>
 

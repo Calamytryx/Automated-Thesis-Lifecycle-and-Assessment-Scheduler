@@ -40,8 +40,65 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode($response);
         exit;
     }
+    
 
     // Inside form processing logic (before updating an item)
+function handleRequirementTemplateUpload($file) {
+    $uploadDir = '../uploads/requirements/';
+    
+    // Create directory if it doesn't exist
+    if (!file_exists($uploadDir)) {
+        if (!mkdir($uploadDir, 0777, true)) {
+            return ['success' => false, 'error' => 'Failed to create upload directory'];
+        }
+    }
+    
+    // Validate file
+    $allowedTypes = ['pdf', 'doc', 'docx', 'txt', 'xlsx', 'pptx'];
+    $fileInfo = pathinfo($file['name']);
+    $extension = strtolower($fileInfo['extension']);
+    
+    if (!in_array($extension, $allowedTypes)) {
+        return ['success' => false, 'error' => 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes)];
+    }
+    
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB limit
+        return ['success' => false, 'error' => 'File size too large. Maximum 10MB allowed.'];
+    }
+    
+    // Generate unique filename
+    $filename = uniqid() . '_' . time() . '.' . $extension;
+    $filepath = $uploadDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        return [
+            'success' => true,
+            'filename' => $filename,
+            'original_name' => $file['name']
+        ];
+    } else {
+        return ['success' => false, 'error' => 'Failed to upload file'];
+    }
+}
+    // Special file upload handling for requirements
+    if ($table === 'requirements' && isset($_FILES['template_file']) && $_FILES['template_file']['error'] === UPLOAD_ERR_OK) {
+        // Remove old file if exists
+        $stmt = $pdo->prepare("SELECT template_file FROM requirements WHERE id = ?");
+        $stmt->execute([$id]);
+        $oldFile = $stmt->fetchColumn();
+        if ($oldFile && file_exists('../uploads/requirements/' . $oldFile)) {
+            unlink('../uploads/requirements/' . $oldFile);
+        }
+        $uploadResult = handleRequirementTemplateUpload($_FILES['template_file']);
+        if ($uploadResult['success']) {
+            $data['template_file'] = $uploadResult['filename'];
+            $data['template_original_name'] = $uploadResult['original_name'];
+        } else {
+            $response['message'] = 'File upload failed: ' . $uploadResult['error'];
+            echo json_encode($response);
+            exit;
+        }
+    }
     // For programs
     if ($table === 'programs' && $usertype == 0 && $userId != 0 && $userCollege) {
         // First check if the program being edited belongs to the admin's college
@@ -583,5 +640,76 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 } else {
     $response['message'] = 'Invalid request method.';
     echo json_encode($response);
+}
+?>
+
+<?php
+function updateItem($pdo, $table, $id, $data) {
+    try {
+        switch ($table) {
+            // ...existing cases...
+
+            case 'requirements':
+                // Handle file upload and removal
+                $templateFile = null;
+                $templateOriginalName = null;
+                $updateTemplate = false;
+                
+                // Check if removing current template
+                if (!empty($data['remove_template'])) {
+                    // Get current file to delete it
+                    $stmt = $pdo->prepare("SELECT template_file FROM requirements WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $currentFile = $stmt->fetchColumn();
+                    
+                    if ($currentFile && file_exists('../uploads/requirements/' . $currentFile)) {
+                        unlink('../uploads/requirements/' . $currentFile);
+                    }
+                    
+                    $templateFile = null;
+                    $templateOriginalName = null;
+                    $updateTemplate = true;
+                }
+                
+                // Check if uploading new file
+                if (!empty($_FILES['template_file']['name'])) {
+                    // Delete old file if exists
+                    $stmt = $pdo->prepare("SELECT template_file FROM requirements WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $oldFile = $stmt->fetchColumn();
+                    
+                    if ($oldFile && file_exists('../uploads/requirements/' . $oldFile)) {
+                        unlink('../uploads/requirements/' . $oldFile);
+                    }
+                    
+                    $uploadResult = handleRequirementTemplateUpload($_FILES['template_file']);
+                    if ($uploadResult['success']) {
+                        $templateFile = $uploadResult['filename'];
+                        $templateOriginalName = $uploadResult['original_name'];
+                        $updateTemplate = true;
+                    } else {
+                        return ['success' => false, 'message' => $uploadResult['error']];
+                    }
+                }
+                
+                // Build SQL query
+                if ($updateTemplate) {
+                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ?, template_file = ?, template_original_name = ? WHERE id = ?";
+                    $params = [$data['name'], $data['description'], $data['due_date'], $templateFile, $templateOriginalName, $id];
+                } else {
+                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ? WHERE id = ?";
+                    $params = [$data['name'], $data['description'], $data['due_date'], $id];
+                }
+                
+                $stmt = $pdo->prepare($sql);
+                $result = $stmt->execute($params);
+                return ['success' => $result, 'message' => $result ? 'Requirement updated successfully' : 'Failed to update requirement'];
+
+            // ...existing cases...
+        }
+    } catch (Exception $e) {
+        return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+    }
+    
 }
 ?>

@@ -28,6 +28,7 @@
                         <th>Name</th>
                         <th>Description</th>
                         <th>Due Date</th>
+                        <th>Template</th>
                         <th>Action</th>
                     </tr>
                 </thead>
@@ -62,49 +63,57 @@
                     const tbody = document.querySelector('#requirements .db-table tbody');
                     tbody.innerHTML = '';
                     data.data.forEach(requirement => {
+                        // Format template column
+                        let templateCell = 'No template';
+                        if (requirement.template_file && requirement.template_original_name) {
+                            templateCell = `<a href="uploads/requirements/${requirement.template_file}" download="${requirement.template_original_name}" class="btn btn-sm btn-outline-primary">
+                                <i class="fas fa-download"></i> ${requirement.template_original_name}
+                            </a>`;
+                        }
+                        
                         tbody.innerHTML += `
-                                <tr>
-                            <td>${requirement.name}</td>
-                            <td>${requirement.description}</td>
-                            <td>${requirement.due_date}</td>
-                            <td class="action-buttons text-center">
-                                <button class="meatball-btn" data-requirement-id="${requirement.id}" aria-label="Actions">
-                                    <i class="fas fa-ellipsis-h"></i>
-                                </button>
-                            </td>
-                        </tr>
-                            `;
+                            <tr>
+                                <td>${requirement.name}</td>
+                                <td>${requirement.description}</td>
+                                <td>${requirement.due_date}</td>
+                                <td>${templateCell}</td>
+                                <td class="action-buttons text-center">
+                                    <button class="meatball-btn" data-requirement-id="${requirement.id}" aria-label="Actions">
+                                        <i class="fas fa-ellipsis-h"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        `;
                     });
 
                     // Update Pagination
                     const pagination = document.querySelector('#requirements .pagination');
                     pagination.innerHTML = '';
 
-                        // Previous Button
+                    // Previous Button
+                    pagination.innerHTML += `
+                        <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
+                        </li>
+                    `;
+
+                    // Page Numbers
+                    for (let i = 1; i <= data.total_pages; i++) {
                         pagination.innerHTML += `
-                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
+                            <li class="page-item ${page === i ? 'active' : ''}">
+                                <a class="page-link" href="#" data-page="${i}">${i}</a>
                             </li>
                         `;
+                    }
 
-                        // Page Numbers
-                        for (let i = 1; i <= data.total_pages; i++) {
-                            pagination.innerHTML += `
-                                <li class="page-item ${page === i ? 'active' : ''}">
-                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                </li>
-                            `;
-                        }
-
-                        // Next Button
-                        pagination.innerHTML += `
-                            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
-                            </li>
-                        `;
-                    });
-            };
-
+                    // Next Button
+                    pagination.innerHTML += `
+                        <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+                            <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
+                        </li>
+                    `;
+                });
+        };
 
         // Initial Load
         loadRequirements();

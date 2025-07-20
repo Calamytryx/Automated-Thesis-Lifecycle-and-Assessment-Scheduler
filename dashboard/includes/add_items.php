@@ -35,6 +35,19 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Inside form processing logic (before inserting a new item)
+
+    // Special file upload handling for requirements
+    if ($table === 'requirements' && isset($_FILES['template_file']) && $_FILES['template_file']['error'] === UPLOAD_ERR_OK) {
+        $uploadResult = handleRequirementTemplateUpload($_FILES['template_file']);
+        if ($uploadResult['success']) {
+            $data['template_file'] = $uploadResult['filename'];
+            $data['template_original_name'] = $uploadResult['original_name'];
+        } else {
+            $response['message'] = 'File upload failed: ' . $uploadResult['error'];
+            echo json_encode($response);
+            exit;
+        }
+    }
     // For programs
     if ($table === 'programs' && $usertype == 0 && $userId != 0 && $userCollege) {
         // If non-super admin is adding a program, ensure it's for their college
@@ -475,3 +488,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $response['message'] = 'Invalid request method.';
     echo json_encode($response);
 }
+
+// New file upload handling functions
+function addItem($pdo, $table, $data) {
+    try {
+        switch ($table) {
+            // ...existing cases...
+
+            case 'requirements':
+                // Handle file upload
+                $templateFile = null;
+                $templateOriginalName = null;
+                
+                if (!empty($_FILES['template_file']['name'])) {
+                    $uploadResult = handleRequirementTemplateUpload($_FILES['template_file']);
+                    if ($uploadResult['success']) {
+                        $templateFile = $uploadResult['filename'];
+                        $templateOriginalName = $uploadResult['original_name'];
+                    } else {
+                        return ['success' => false, 'message' => $uploadResult['error']];
+                    }
+                }
+                
+                $sql = "INSERT INTO requirements (name, description, due_date, template_file, template_original_name) VALUES (?, ?, ?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                $result = $stmt->execute([
+                    $data['name'],
+                    $data['description'],
+                    $data['due_date'],
+                    $templateFile,
+                    $templateOriginalName
+                ]);
+                return ['success' => $result, 'message' => $result ? 'Requirement added successfully' : 'Failed to add requirement'];
+
+            // ...existing cases...
+        }
+    } catch (Exception $e) {
+        return ['success' => false, 'message' => 'Error: ' . $e->getMessage()];
+    }
+}
+
+function handleRequirementTemplateUpload($file) {
+    $uploadDir = '../uploads/requirements/';
+    
+    // Create directory if it doesn't exist
+    if (!file_exists($uploadDir)) {
+        if (!mkdir($uploadDir, 0777, true)) {
+            return ['success' => false, 'error' => 'Failed to create upload directory'];
+        }
+    }
+    
+    // Validate file
+    $allowedTypes = ['pdf', 'doc', 'docx', 'txt', 'xlsx', 'pptx'];
+    $fileInfo = pathinfo($file['name']);
+    $extension = strtolower($fileInfo['extension']);
+    
+    if (!in_array($extension, $allowedTypes)) {
+        return ['success' => false, 'error' => 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes)];
+    }
+    
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB limit
+        return ['success' => false, 'error' => 'File size too large. Maximum 10MB allowed.'];
+    }
+    
+    // Generate unique filename
+    $filename = uniqid() . '_' . time() . '.' . $extension;
+    $filepath = $uploadDir . $filename;
+    
+    if (move_uploaded_file($file['tmp_name'], $filepath)) {
+        return [
+            'success' => true,
+            'filename' => $filename,
+            'original_name' => $file['name']
+        ];
+    } else {
+        return ['success' => false, 'error' => 'Failed to upload file'];
+    }
+}
+?>
