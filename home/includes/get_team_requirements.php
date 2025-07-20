@@ -28,9 +28,10 @@ try {
         exit;
     }
 
-    // Fetch requirements for the team
+    // Fetch requirements for the team, including template file fields
     $requirementsStmt = $pdo->prepare("
         SELECT r.id, r.name, r.description, r.due_date,
+               r.template_file, r.template_original_name,
                COALESCE(tr.status, 'pending') as status,
                tr.submitted_at, tr.feedback
         FROM requirements r 

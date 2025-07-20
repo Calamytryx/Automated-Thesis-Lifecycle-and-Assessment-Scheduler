@@ -133,7 +133,9 @@ try {
         throw new Exception('Invalid request method');
     }
 } catch (Exception $e) {
-    error_log("Error in run_scheduler.php: " . $e->getMessage());
+    error_log("ERROR IN SCHEDULER: " . $e->getMessage());
+    error_log("ERROR LOCATION: " . $e->getFile() . " line " . $e->getLine());
+    error_log("STACK TRACE: \n" . $e->getTraceAsString());
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
@@ -846,6 +848,13 @@ function saveScheduleToDatabase($pdo, $schedule)
     } catch (PDOException $e) {
         $pdo->rollBack();
         error_log("Error saving schedule to database: " . $e->getMessage());
+        error_log("Error location: " . $e->getFile() . " on line " . $e->getLine());
+        error_log("Stack trace: " . $e->getTraceAsString());
+        error_log("Failed transaction details: " . json_encode([
+            'teams_count' => count($GLOBALS['teams'] ?? []),
+            'scheduled_teams' => count($scheduledTeams ?? []),
+            'defense_count' => count($defenses ?? [])
+        ]));
         throw new Exception("Failed to save schedule: " . $e->getMessage());
     }
 }

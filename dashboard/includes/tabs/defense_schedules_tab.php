@@ -603,6 +603,12 @@
                             if (data.data.length === 0) { // Added check for empty data array
                                 tbody.innerHTML = `<tr><td colspan="9" class="text-center">No defense schedules found.</td></tr>`;
                             } else {
+                                // Sort schedules by date and start time (earliest first)
+                                data.data.sort((a, b) => {
+                                    const dateA = new Date(a.schedule_date + 'T' + a.start_time);
+                                    const dateB = new Date(b.schedule_date + 'T' + b.start_time);
+                                    return dateA - dateB;
+                                });
                                 data.data.forEach(schedule => {
                                     const formattedDate = formatDate(schedule.schedule_date);
                                     const formattedStartTime = formatTime(schedule.start_time);

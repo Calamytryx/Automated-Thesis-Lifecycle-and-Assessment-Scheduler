@@ -45,19 +45,19 @@ error_reporting(E_ALL);
 ?>
 
 <script>
-    // Move fetchTeamOverview to global scope
-    function fetchTeamOverview(teamId = null) {
-        const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
-        
-        fetch(url)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    const teamOverviewContent = document.getElementById('teamOverviewContent');
-                    
-                    let content = '';                        // Team Selector (if multiple teams available)
-                        if (data.teams.length > 1) {
-                            content += `
+// Move fetchTeamOverview to global scope
+function fetchTeamOverview(teamId = null) {
+    const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
+
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const teamOverviewContent = document.getElementById('teamOverviewContent');
+
+                let content = ''; // Team Selector (if multiple teams available)
+                if (data.teams.length > 1) {
+                    content += `
                                 <div class="row mb-4">
                                     <div class="col-12">
                                         <div class="card team-selector-card">
@@ -73,10 +73,10 @@ error_reporting(E_ALL);
                                     </div>
                                 </div>
                             `;
-                        }
+                }
 
-                        // Current Team Info
-                        content += `
+                // Current Team Info
+                content += `
                             <div class="row mb-4">
                                 <div class="col-12">
                                     <div class="card team-info-card">
@@ -109,9 +109,10 @@ error_reporting(E_ALL);
                             </div>
                         `;
 
-                        // Progress Overview
-                        const progressPercentage = data.totalRequirements > 0 ? Math.round((data.completedCount / data.totalRequirements) * 100) : 0;
-                        content += `
+                // Progress Overview
+                const progressPercentage = data.totalRequirements > 0 ? Math.round((data.completedCount / data
+                    .totalRequirements) * 100) : 0;
+                content += `
                             <div class="row mb-4">
                                 <div class="col-12">
                                     <div class="card progress-overview-card">
@@ -127,8 +128,8 @@ error_reporting(E_ALL);
                                     </div>
                                 </div>
                             </div>
-                        `;                        // Requirements by Category
-                        content += `
+                        `; // Requirements by Category
+                content += `
                             <div class="row">
                                 <!-- Completed Requirements -->
                                 <div class="col-md-6 mb-4">
@@ -191,8 +192,8 @@ error_reporting(E_ALL);
                                     </div>
                                 </div>
                             </div>
-                        `;                        // Defense Schedule
-                        content += `
+                        `; // Defense Schedule
+                content += `
                             <div class="row">
                                 <div class="col-12">
                                     <div class="card defense-schedule-card">
@@ -243,221 +244,221 @@ error_reporting(E_ALL);
                             </div>
                         `;
 
-                    teamOverviewContent.innerHTML = content;
-                    
-                    // Add event listener for team selector after content is inserted
-                    const teamSelector = document.getElementById('teamSelector');
-                    if (teamSelector) {
-                        teamSelector.addEventListener('change', function() {
-                            fetchTeamOverview(this.value);
-                        });
-                    }
-                } else {
-                    console.error(data.message);
-                    document.getElementById('teamOverviewContent').innerHTML = `
+                teamOverviewContent.innerHTML = content;
+
+                // Add event listener for team selector after content is inserted
+                const teamSelector = document.getElementById('teamSelector');
+                if (teamSelector) {
+                    teamSelector.addEventListener('change', function() {
+                        fetchTeamOverview(this.value);
+                    });
+                }
+            } else {
+                console.error(data.message);
+                document.getElementById('teamOverviewContent').innerHTML = `
                         <div class="alert alert-warning" role="alert">
                             <i class="bi bi-exclamation-triangle me-2"></i>
                             ${data.message}
                         </div>
                     `;
-                }
-            })
-            .catch(error => {
-                console.error('Error fetching team overview:', error);
-                document.getElementById('teamOverviewContent').innerHTML = `
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching team overview:', error);
+            document.getElementById('teamOverviewContent').innerHTML = `
                     <div class="alert alert-danger" role="alert">
                         <i class="bi bi-exclamation-circle me-2"></i>
                         Failed to load team overview. Please try again.
                     </div>
                 `;
-            });
+        });
+}
+
+document.addEventListener("DOMContentLoaded", function() {
+    // Check if there's a previously selected tab stored in localStorage
+    const activeTab = localStorage.getItem("activeTab") || "overview";
+
+    // Deactivate all tab-panes and nav-links
+    const allTabPanes = document.querySelectorAll('.tab-pane');
+    const allNavLinks = document.querySelectorAll('.nav-link');
+
+    allTabPanes.forEach(pane => {
+        pane.classList.remove("show", "active");
+    });
+
+    allNavLinks.forEach(link => {
+        link.classList.remove("active");
+    });
+
+    // Activate the tab and its content
+    const activeTabPane = document.getElementById(activeTab);
+    const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+
+    if (activeTabPane) {
+        activeTabPane.classList.add("show", "active");
+    } else {
+        document.getElementById('overview').classList.add("show", "active");
+    }
+    if (activeNavLink) {
+        activeNavLink.classList.add("active");
+    } else {
+        document.getElementById('overview-link').classList.add("active");
     }
 
-    document.addEventListener("DOMContentLoaded", function() {
-        // Check if there's a previously selected tab stored in localStorage
-        const activeTab = localStorage.getItem("activeTab") || "overview";
-
-        // Deactivate all tab-panes and nav-links
-        const allTabPanes = document.querySelectorAll('.tab-pane');
-        const allNavLinks = document.querySelectorAll('.nav-link');
-
-        allTabPanes.forEach(pane => {
-            pane.classList.remove("show", "active");
-        });
-
-        allNavLinks.forEach(link => {
-            link.classList.remove("active");
-        });
-
-        // Activate the tab and its content
-        const activeTabPane = document.getElementById(activeTab);
-        const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
-
-        if (activeTabPane) {
-            activeTabPane.classList.add("show", "active");
-        } else {
-            document.getElementById('overview').classList.add("show", "active");
-        }
-        if (activeNavLink) {
-            activeNavLink.classList.add("active");
-        } else {
-            document.getElementById('overview-link').classList.add("active");
-        }
-
-        // Add event listener to tabs to update localStorage when clicked
-        const tabs = document.querySelectorAll('#v-pills-tab .nav-link');
-        tabs.forEach(tab => {
-            tab.addEventListener('click', function(event) {
-                // Store the ID of the clicked tab-pane
-                const clickedTabId = event.target.getAttribute('href').substring(1);
-                localStorage.setItem('activeTab', clickedTabId);
-            });
-        });
-
-        // Load team overview content when the overview tab is clicked
-        document.getElementById('overview-link').addEventListener('click', function() {
-            fetchTeamOverview();
-        });
-
-        // Fetch team overview content on page load if the overview tab is active
-        if (activeTab === "overview") {
-            fetchTeamOverview();
-        }
-
-        // Handle view mode switching between Dashboard and Calendar
-        document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
-            radio.addEventListener('change', function() {
-                if (this.id === 'calendar-view') {
-                    document.getElementById('dashboardView').style.display = 'none';
-                    document.getElementById('calendarView').style.display = 'block';
-                    // Initialize calendar for the overview tab when calendar view is selected
-                    setTimeout(() => {
-                        initializeOverviewCalendar();
-                    }, 100);
-                } else {
-                    document.getElementById('dashboardView').style.display = 'block';
-                    document.getElementById('calendarView').style.display = 'none';
-                }
-            });
+    // Add event listener to tabs to update localStorage when clicked
+    const tabs = document.querySelectorAll('#v-pills-tab .nav-link');
+    tabs.forEach(tab => {
+        tab.addEventListener('click', function(event) {
+            // Store the ID of the clicked tab-pane
+            const clickedTabId = event.target.getAttribute('href').substring(1);
+            localStorage.setItem('activeTab', clickedTabId);
         });
     });
 
-    // Function to initialize calendar in the overview tab
-    function initializeOverviewCalendar() {
-        const calendarEl = document.getElementById('calendar2');
-        if (!calendarEl) return;
+    // Load team overview content when the overview tab is clicked
+    document.getElementById('overview-link').addEventListener('click', function() {
+        fetchTeamOverview();
+    });
 
-        // Clear any existing calendar
-        calendarEl.innerHTML = '';
-
-        // Initialize FullCalendar for the overview tab
-        const calendar = new FullCalendar.Calendar(calendarEl, {
-            initialView: 'dayGridMonth',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay'
-            },
-            height: 'auto',
-            events: [],
-            eventClick: function(info) {
-                // Handle event click
-                console.log('Event clicked:', info.event);
-            },
-            dateClick: function(info) {
-                if (calendar.view.type === 'dayGridMonth') {
-                    calendar.changeView('timeGridDay');
-                }
-                calendar.gotoDate(info.dateStr);
-            }
-        });
-
-        // Fetch and display events
-        $.ajax({
-            url: 'includes/get_user_schedule.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    const events = [];
-
-                    response.defense_schedules.forEach(defense => {
-                        events.push({
-                            title: defense.description,
-                            start: `${defense.date}T${defense.start_time}`,
-                            end: `${defense.date}T${defense.end_time}`,
-                            location: defense.room,
-                            eventType: 'defense'
-                        });
-                    });
-
-                    response.user_schedules.forEach(schedule => {
-                        events.push({
-                            title: schedule.description,
-                            start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
-                            end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
-                            location: schedule.room,
-                            eventType: 'user'
-                        });
-                    });
-
-                    calendar.removeAllEvents();
-                    calendar.addEventSource(events);
-                }
-            }
-        });
-
-        calendar.render();
+    // Fetch team overview content on page load if the overview tab is active
+    if (activeTab === "overview") {
+        fetchTeamOverview();
     }
 
-    // Handle requirements team selector change
-    function handleRequirementsTeamChange() {
-        const teamSelector = document.getElementById('requirementsTeamSelector');
-        if (teamSelector) {
-            teamSelector.addEventListener('change', function() {
-                const teamId = this.value;
-                updateRequirementsList(teamId);
-            });
+    // Handle view mode switching between Dashboard and Calendar
+    document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            if (this.id === 'calendar-view') {
+                document.getElementById('dashboardView').style.display = 'none';
+                document.getElementById('calendarView').style.display = 'block';
+                // Initialize calendar for the overview tab when calendar view is selected
+                setTimeout(() => {
+                    initializeOverviewCalendar();
+                }, 100);
+            } else {
+                document.getElementById('dashboardView').style.display = 'block';
+                document.getElementById('calendarView').style.display = 'none';
+            }
+        });
+    });
+});
+
+// Function to initialize calendar in the overview tab
+function initializeOverviewCalendar() {
+    const calendarEl = document.getElementById('calendar2');
+    if (!calendarEl) return;
+
+    // Clear any existing calendar
+    calendarEl.innerHTML = '';
+
+    // Initialize FullCalendar for the overview tab
+    const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay'
+        },
+        height: 'auto',
+        events: [],
+        eventClick: function(info) {
+            // Handle event click
+            console.log('Event clicked:', info.event);
+        },
+        dateClick: function(info) {
+            if (calendar.view.type === 'dayGridMonth') {
+                calendar.changeView('timeGridDay');
+            }
+            calendar.gotoDate(info.dateStr);
         }
+    });
+
+    // Fetch and display events
+    $.ajax({
+        url: 'includes/get_user_schedule.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                const events = [];
+
+                response.defense_schedules.forEach(defense => {
+                    events.push({
+                        title: defense.description,
+                        start: `${defense.date}T${defense.start_time}`,
+                        end: `${defense.date}T${defense.end_time}`,
+                        location: defense.room,
+                        eventType: 'defense'
+                    });
+                });
+
+                response.user_schedules.forEach(schedule => {
+                    events.push({
+                        title: schedule.description,
+                        start: `${getNextDateForDay(schedule.date)}T${schedule.start_time}`,
+                        end: `${getNextDateForDay(schedule.date)}T${schedule.end_time}`,
+                        location: schedule.room,
+                        eventType: 'user'
+                    });
+                });
+
+                calendar.removeAllEvents();
+                calendar.addEventSource(events);
+            }
+        }
+    });
+
+    calendar.render();
+}
+
+// Handle requirements team selector change
+function handleRequirementsTeamChange() {
+    const teamSelector = document.getElementById('requirementsTeamSelector');
+    if (teamSelector) {
+        teamSelector.addEventListener('change', function() {
+            const teamId = this.value;
+            updateRequirementsList(teamId);
+        });
     }
+}
 
-    // Update requirements list based on selected team
-    function updateRequirementsList(teamId) {
-        const requirementsList = document.getElementById('requirementsList');
-        if (!requirementsList) return;
+// Update requirements list based on selected team
+function updateRequirementsList(teamId) {
+    const requirementsList = document.getElementById('requirementsList');
+    if (!requirementsList) return;
 
-        // Show loading state
-        requirementsList.innerHTML = '<li class="list-group-item text-center"><em>Loading...</em></li>';
+    // Show loading state
+    requirementsList.innerHTML = '<li class="list-group-item text-center"><em>Loading...</em></li>';
 
-        // Fetch requirements for the selected team
-        fetch(`includes/get_team_requirements.php?team_id=${teamId}`)
-            .then(response => response.json())
-            .then(data => {
-                if (data.success) {
-                    let listHtml = '';
-                    if (data.requirements && data.requirements.length > 0) {
-                        data.requirements.forEach(requirement => {
-                            let badgeClass = 'bg-warning';
-                            let badgeText = 'Pending';
-                            
-                            if (requirement.status === 'approved') {
-                                badgeClass = 'bg-success';
-                                badgeText = 'Approved';
-                            } else if (requirement.status === 'submitted') {
-                                badgeClass = 'bg-info';
-                                badgeText = 'Submitted';
-                            } else if (requirement.status === 'rejected') {
-                                badgeClass = 'bg-danger';
-                                badgeText = 'Rejected';
-                            }
+    // Fetch requirements for the selected team
+    fetch(`includes/get_team_requirements.php?team_id=${teamId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let listHtml = '';
+                if (data.requirements && data.requirements.length > 0) {
+                    data.requirements.forEach(requirement => {
+                        let badgeClass = 'bg-warning';
+                        let badgeText = 'Pending';
 
-                            const dueDate = new Date(requirement.due_date).toLocaleDateString('en-US', {
-                                year: 'numeric',
-                                month: 'short',
-                                day: 'numeric'
-                            });
+                        if (requirement.status === 'approved') {
+                            badgeClass = 'bg-success';
+                            badgeText = 'Approved';
+                        } else if (requirement.status === 'submitted') {
+                            badgeClass = 'bg-info';
+                            badgeText = 'Submitted';
+                        } else if (requirement.status === 'rejected') {
+                            badgeClass = 'bg-danger';
+                            badgeText = 'Rejected';
+                        }
 
-                            listHtml += `
+                        const dueDate = new Date(requirement.due_date).toLocaleDateString('en-US', {
+                            year: 'numeric',
+                            month: 'short',
+                            day: 'numeric'
+                        });
+
+                        listHtml += `
                                 <li class="list-group-item d-flex justify-content-between align-items-center req-li">
                                     <div>
                                         <strong>${requirement.name}</strong>
@@ -467,108 +468,124 @@ error_reporting(E_ALL);
                                     <span class="badge ${badgeClass} rounded-pill">${badgeText}</span>
                                 </li>
                             `;
-                        });
-                    } else {
-                        listHtml = '<li class="list-group-item text-center text-muted"><em>No requirements found for this team</em></li>';
-                    }
-                    requirementsList.innerHTML = listHtml;
+                    });
                 } else {
-                    requirementsList.innerHTML = '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
+                    listHtml =
+                        '<li class="list-group-item text-center text-muted"><em>No requirements found for this team</em></li>';
                 }
-            })
-            .catch(error => {
-                console.error('Error fetching requirements:', error);
-                requirementsList.innerHTML = '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
-            });
-    }
+                requirementsList.innerHTML = listHtml;
+            } else {
+                requirementsList.innerHTML =
+                    '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching requirements:', error);
+            requirementsList.innerHTML =
+                '<li class="list-group-item text-center text-danger"><em>Error loading requirements</em></li>';
+        });
+}
 
-    // Initialize requirements team selector when document is ready
-    document.addEventListener("DOMContentLoaded", function() {
-        handleRequirementsTeamChange();
-    });
+// Initialize requirements team selector when document is ready
+document.addEventListener("DOMContentLoaded", function() {
+    handleRequirementsTeamChange();
+});
 </script>
 <main role="main" class="container-fluid p-0">
     <div class="row">
         <div class="col-sm-12">
             <div class="row g-0" style="height: 100vh; overflow: hidden;">
                 <div id="homeSidebarContainer">
-            <div class="home-sidebar-header d-flex justify-content-end align-items-center">
-                <!-- <div class="home-sidebar-title">
+                    <div class="home-sidebar-header d-flex justify-content-end align-items-center">
+                        <!-- <div class="home-sidebar-title">
                     <h5 class="mb-0">Navigation</h5>
                 </div> -->
-                <button id="toggleHomeSidebar" class="btn btn-link">
-                    <i class="bi bi-chevron-left"></i>
-                </button>
-            </div>
-            <!-- Sidebar -->
-            <div class="home-sidebar">
-                <div class="nav flex-column nav-pills home-sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
-                    <!-- Dashboard Overview -->
-                    <div class="home-sidebar-section">
-                        <div class="home-sidebar-category">
-                            Overview
-                        </div>
-                        <div class="home-sidebar-items">
-                            <a class="nav-link active my-1" id="overview-link" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
-                                <i class="bi bi-house me-2 hollow"></i>
-                                <i class="bi bi-house-fill me-2 filled"></i>
-                                <span class="nav-text">Overview</span>
-                            </a>
-                        </div>
-                    </div> 
+                        <button id="toggleHomeSidebar" class="btn btn-link">
+                            <i class="bi bi-chevron-left"></i>
+                        </button>
+                    </div>
+                    <!-- Sidebar -->
+                    <div class="home-sidebar">
+                        <div class="nav flex-column nav-pills home-sidebar-nav" id="v-pills-tab" role="tablist"
+                            aria-orientation="vertical">
+                            <!-- Dashboard Overview -->
+                            <div class="home-sidebar-section">
+                                <div class="home-sidebar-category">
+                                    Overview
+                                </div>
+                                <div class="home-sidebar-items">
+                                    <a class="nav-link active my-1" id="overview-link" data-bs-toggle="pill"
+                                        href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                        <i class="bi bi-house me-2 hollow"></i>
+                                        <i class="bi bi-house-fill me-2 filled"></i>
+                                        <span class="nav-text">Overview</span>
+                                    </a>
+                                </div>
+                            </div>
 
-                    <!-- Research Management -->
-                    <div class="home-sidebar-section">
-                        <div class="home-sidebar-category">
-                            Research Management
-                        </div>
-                        <div class="home-sidebar-items">
-                            <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill" href="#thesis-topic" role="tab" aria-controls="thesis-topic" aria-selected="true">
-                                <i class="bi bi-lightbulb me-2 hollow"></i>
-                                <i class="bi bi-lightbulb-fill me-2 filled"></i>
-                                <span class="nav-text">Thesis Topic Decision</span>
-                            </a>
-                            <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill" href="#research-title" role="tab" aria-controls="research-title" aria-selected="false">
-                                <i class="bi bi-check-circle me-2 hollow"></i>
-                                <i class="bi bi-check-circle-fill me-2 filled"></i>
-                                <span class="nav-text">Research Title Acceptance</span>
-                            </a>
+                            <!-- Research Management -->
+                            <div class="home-sidebar-section">
+                                <div class="home-sidebar-category">
+                                    Research Management
+                                </div>
+                                <div class="home-sidebar-items">
+                                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill"
+                                        href="#thesis-topic" role="tab" aria-controls="thesis-topic"
+                                        aria-selected="true">
+                                        <i class="bi bi-lightbulb me-2 hollow"></i>
+                                        <i class="bi bi-lightbulb-fill me-2 filled"></i>
+                                        <span class="nav-text">Thesis Topic Decision</span>
+                                    </a>
+                                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill"
+                                        href="#research-title" role="tab" aria-controls="research-title"
+                                        aria-selected="false">
+                                        <i class="bi bi-check-circle me-2 hollow"></i>
+                                        <i class="bi bi-check-circle-fill me-2 filled"></i>
+                                        <span class="nav-text">Research Title Acceptance</span>
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Progress Tracking -->
+                            <div class="home-sidebar-section">
+                                <div class="home-sidebar-category">
+                                    Progress Tracking
+                                </div>
+                                <div class="home-sidebar-items">
+                                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill"
+                                        href="#requirement-checker" role="tab" aria-controls="requirement-checker"
+                                        aria-selected="false">
+                                        <i class="bi bi-list-check me-2 hollow"></i>
+                                        <i class="bi bi-list-check me-2 filled"></i>
+                                        <span class="nav-text">Requirement Checker</span>
+                                    </a>
+                                    <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill"
+                                        href="#research-evaluation" role="tab" aria-controls="research-evaluation"
+                                        aria-selected="false">
+                                        <i class="bi bi-chat-dots me-2 hollow"></i>
+                                        <i class="bi bi-chat-dots-fill me-2 filled"></i>
+                                        <span class="nav-text">Research Evaluation</span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- Progress Tracking -->
-                    <div class="home-sidebar-section">
-                        <div class="home-sidebar-category">
-                            Progress Tracking
-                        </div>
-                        <div class="home-sidebar-items">
-                            <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill" href="#requirement-checker" role="tab" aria-controls="requirement-checker" aria-selected="false">
-                                <i class="bi bi-list-check me-2 hollow"></i>
-                                <i class="bi bi-list-check me-2 filled"></i>
-                                <span class="nav-text">Requirement Checker</span>
-                            </a>
-                            <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill" href="#research-evaluation" role="tab" aria-controls="research-evaluation" aria-selected="false">
-                                <i class="bi bi-chat-dots me-2 hollow"></i>
-                                <i class="bi bi-chat-dots-fill me-2 filled"></i>
-                                <span class="nav-text">Research Evaluation</span>
-                            </a>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <!-- User Profile Section at bottom -->
-            <div class="profile-footer">
-                <a href="../profile" class="profile-container" title="View Profile" style="text-decoration: none; color: inherit;">
-                    <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-                        <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
-                    <?php else: ?>
-                        <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
-                    <?php endif; ?>
-                    
-                    <div class="user-info">
-                        <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                        <p class="user-role"><?php 
+                    <!-- User Profile Section at bottom -->
+                    <div class="profile-footer">
+                        <a href="../profile" class="profile-container" title="View Profile"
+                            style="text-decoration: none; color: inherit;">
+                            <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                            <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>"
+                                alt="<?php echo $_SESSION['username']; ?>">
+                            <?php else: ?>
+                            <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                            <?php endif; ?>
+
+                            <div class="user-info">
+                                <p class="user-name">
+                                    <?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                <p class="user-role"><?php 
                             if ($_SESSION['usertype'] == 0) {
                                 echo "Administrator";
                             } elseif ($_SESSION['usertype'] == 1) {
@@ -579,35 +596,38 @@ error_reporting(E_ALL);
                                 echo "User";
                             }
                         ?></p>
-                    </div>
-                </a>
-                
-                <a href="../logout/" class="logout-btn" title="Logout">
-                    <i class="bi bi-power"></i>
-                </a>
-            </div>
-        </div>
+                            </div>
+                        </a>
 
-        <div id="homeMainContent">
-            <div class="tab-content" id="v-pills-tabContent">
-                <div class="tab-pane fade" id="thesis-topic" role="tabpanel" aria-labelledby="thesis-topic-link">
-                    <div class="home-sidebar-box">
-                        <div class="d-flex align-items-center mb-4">
-                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                        <a href="../logout/" class="logout-btn" title="Logout">
+                            <i class="bi bi-power"></i>
+                        </a>
+                    </div>
+                </div>
+
+                <div id="homeMainContent">
+                    <div class="tab-content" id="v-pills-tabContent">
+                        <div class="tab-pane fade" id="thesis-topic" role="tabpanel"
+                            aria-labelledby="thesis-topic-link">
+                            <div class="home-sidebar-box">
+                                <div class="d-flex align-items-center mb-4">
+                                    <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-lightbulb text-primary fs-4"></i>
                             </div> -->
-                            <div>
-                                <h4 class="mb-1 feature-title">Thesis Topic Decision Tool</h4>
-                                <p class="text-muted mb-0">Discover trending research topics in your field of study</p>
-                            </div>
-                        </div>
+                                    <div>
+                                        <h4 class="mb-1 feature-title">Thesis Topic Decision Tool</h4>
+                                        <p class="text-muted mb-0">Discover trending research topics in your field of
+                                            study</p>
+                                    </div>
+                                </div>
 
-                        <div class="card border-0 mb-4">
-                            <div class="form-group">
-                                <label for="thesisField" class="form-label fw-semibold mb-2">Select your field of study:</label>
-                                <select id="thesisField" class="form-select form-select-lg shadow-sm">
-                                    <option value="">Choose a field</option>
-                                    <?php
+                                <div class="card border-0 mb-4">
+                                    <div class="form-group">
+                                        <label for="thesisField" class="form-label fw-semibold mb-2">Select your field
+                                            of study:</label>
+                                        <select id="thesisField" class="form-select form-select-lg shadow-sm">
+                                            <option value="">Choose a field</option>
+                                            <?php
                                     // Assuming $conn is your database connection object (e.g., PDO or mysqli)
                                     // Include your database connection file if necessary
                                     // require_once '../assets/setup/db.inc.php'; // Already included at the top of the file
@@ -651,436 +671,456 @@ error_reporting(E_ALL);
                                         echo '<option value="" disabled>Error loading programs</option>';
                                     }
                                     ?>
-                                </select>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div id="topicsTable">
+                                    <!-- The filtered topics table will be loaded here -->
+                                </div>
                             </div>
                         </div>
-                        <div id="topicsTable">
-                            <!-- The filtered topics table will be loaded here -->
-                        </div>
-                    </div>
-                </div>
 
-                <script>
-                    document.getElementById('thesisField').addEventListener('change', function() {
-                        let selectedField = this.value;
+                        <script>
+                        document.getElementById('thesisField').addEventListener('change', function() {
+                            let selectedField = this.value;
 
-                        // Create an AJAX request
-                        let xhr = new XMLHttpRequest();
-                        xhr.open('POST', 'includes/get_topics.php', true);
-                        xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
+                            // Create an AJAX request
+                            let xhr = new XMLHttpRequest();
+                            xhr.open('POST', 'includes/get_topics.php', true);
+                            xhr.setRequestHeader('Content-Type', 'application/x-www-form-urlencoded');
 
-                        xhr.onload = function() {
-                            if (xhr.status === 200) {
-                                // Update the table with the server response
-                                document.getElementById('topicsTable').innerHTML = xhr.responseText;
-                                
-                                // Add event listeners for responsive table interactions
-                                addTopicTableEventListeners();
-                            }
-                        };
+                            xhr.onload = function() {
+                                if (xhr.status === 200) {
+                                    // Update the table with the server response
+                                    document.getElementById('topicsTable').innerHTML = xhr.responseText;
 
-                        // Send the selected field to the server
-                        xhr.send('field=' + encodeURIComponent(selectedField));
-                    });
+                                    // Add event listeners for responsive table interactions
+                                    addTopicTableEventListeners();
+                                }
+                            };
 
-                    // Function to add event listeners for table interactions
-                    function addTopicTableEventListeners() {
-                        // Add click listeners for desktop rows (hidden description column)
-                        const topicRows = document.querySelectorAll('.topic-row');
-                        topicRows.forEach(row => {
-                            // Add mobile-clickable class for touch devices
-                            if (window.innerWidth < 768) {
-                                row.classList.add('mobile-clickable');
-                            }
-                            
-                            row.addEventListener('click', function(e) {
-                                // Only trigger on mobile/tablet (when description column is hidden)
+                            // Send the selected field to the server
+                            xhr.send('field=' + encodeURIComponent(selectedField));
+                        });
+
+                        // Function to add event listeners for table interactions
+                        function addTopicTableEventListeners() {
+                            // Add click listeners for desktop rows (hidden description column)
+                            const topicRows = document.querySelectorAll('.topic-row');
+                            topicRows.forEach(row => {
+                                // Add mobile-clickable class for touch devices
                                 if (window.innerWidth < 768) {
-                                    e.preventDefault();
+                                    row.classList.add('mobile-clickable');
+                                }
+
+                                row.addEventListener('click', function(e) {
+                                    // Only trigger on mobile/tablet (when description column is hidden)
+                                    if (window.innerWidth < 768) {
+                                        e.preventDefault();
+                                        const topic = this.getAttribute('data-topic');
+                                        const description = this.getAttribute('data-description');
+                                        showTopicModal(topic, description);
+                                    }
+                                });
+
+                                // Add touch feedback for mobile
+                                row.addEventListener('touchstart', function(e) {
+                                    if (window.innerWidth < 768) {
+                                        this.style.backgroundColor = 'var(--primary-100, #cce7ff)';
+                                    }
+                                });
+
+                                row.addEventListener('touchend', function(e) {
+                                    if (window.innerWidth < 768) {
+                                        setTimeout(() => {
+                                            this.style.backgroundColor = '';
+                                        }, 150);
+                                    }
+                                });
+                            });
+
+                            // Add click listeners for view buttons (mobile only)
+                            const viewButtons = document.querySelectorAll('.view-topic-btn');
+                            viewButtons.forEach(button => {
+                                button.addEventListener('click', function(e) {
+                                    e.stopPropagation(); // Prevent row click
                                     const topic = this.getAttribute('data-topic');
                                     const description = this.getAttribute('data-description');
                                     showTopicModal(topic, description);
-                                }
-                            });
-                            
-                            // Add touch feedback for mobile
-                            row.addEventListener('touchstart', function(e) {
-                                if (window.innerWidth < 768) {
-                                    this.style.backgroundColor = 'var(--primary-100, #cce7ff)';
-                                }
-                            });
-                            
-                            row.addEventListener('touchend', function(e) {
-                                if (window.innerWidth < 768) {
-                                    setTimeout(() => {
-                                        this.style.backgroundColor = '';
-                                    }, 150);
-                                }
-                            });
-                        });
-
-                        // Add click listeners for view buttons (mobile only)
-                        const viewButtons = document.querySelectorAll('.view-topic-btn');
-                        viewButtons.forEach(button => {
-                            button.addEventListener('click', function(e) {
-                                e.stopPropagation(); // Prevent row click
-                                const topic = this.getAttribute('data-topic');
-                                const description = this.getAttribute('data-description');
-                                showTopicModal(topic, description);
-                            });
-                        });
-                        
-                        // Handle window resize to update mobile state
-                        window.addEventListener('resize', function() {
-                            topicRows.forEach(row => {
-                                if (window.innerWidth < 768) {
-                                    row.classList.add('mobile-clickable');
-                                } else {
-                                    row.classList.remove('mobile-clickable');
-                                    row.style.backgroundColor = '';
-                                }
-                            });
-                        });
-                    }
-
-                    // Function to show topic modal
-                    function showTopicModal(topic, description) {
-                        document.getElementById('topicModalLabel').textContent = topic;
-                        document.getElementById('topicModalDescription').textContent = description;
-                        
-                        const modal = new bootstrap.Modal(document.getElementById('topicModal'), {
-                            backdrop: true,
-                            keyboard: true
-                        });
-                        modal.show();
-                    }
-
-                    // Function to show evaluation modal
-                    function showEvaluationModal(row) {
-                        const teamName = row.getAttribute('data-team');
-                        const researchTitle = row.getAttribute('data-title');
-                        const studentName = row.getAttribute('data-student');
-                        const evaluatorName = row.getAttribute('data-evaluator');
-                        const comments = row.getAttribute('data-comments');
-                        const score = row.getAttribute('data-score');
-
-                        document.getElementById('evalModalTeam').textContent = teamName;
-                        document.getElementById('evalModalTitle').textContent = researchTitle;
-                        document.getElementById('evalModalEvaluator').textContent = evaluatorName;
-                        document.getElementById('evalModalComments').textContent = comments;
-                        document.getElementById('evalModalScore').textContent = score;
-
-                        // Show/hide student section based on user type
-                        const studentSection = document.getElementById('evalModalStudentSection');
-                        if (studentName && studentName !== 'null') {
-                            document.getElementById('evalModalStudent').textContent = studentName;
-                            studentSection.style.display = 'block';
-                        } else {
-                            studentSection.style.display = 'none';
-                        }
-
-                        const modal = new bootstrap.Modal(document.getElementById('evaluationModal'), {
-                            backdrop: true,
-                            keyboard: true
-                        });
-                        modal.show();
-                    }
-
-                    // Add click handlers for evaluation table rows on mobile
-                    document.addEventListener('DOMContentLoaded', function() {
-                        function addEvaluationTableEventListeners() {
-                            const evaluationRows = document.querySelectorAll('.evaluation-row');
-                            evaluationRows.forEach(row => {
-                                // Add mobile-clickable class for touch devices
-                                if (window.innerWidth < 992) { // lg breakpoint
-                                    row.classList.add('mobile-clickable');
-                                } else {
-                                    row.classList.remove('mobile-clickable');
-                                }
-                                
-                                // Remove existing listeners
-                                row.removeEventListener('click', handleEvaluationRowClick);
-                                
-                                // Add click listener for mobile screens
-                                if (window.innerWidth < 992) {
-                                    row.addEventListener('click', handleEvaluationRowClick);
-                                }
-                                
-                                // Add touch feedback for mobile
-                                row.addEventListener('touchstart', function(e) {
-                                    if (window.innerWidth < 992) {
-                                        this.classList.add('mobile-touching');
-                                    }
                                 });
-                                
-                                row.addEventListener('touchend', function(e) {
-                                    if (window.innerWidth < 992) {
-                                        this.classList.remove('mobile-touching');
+                            });
+
+                            // Handle window resize to update mobile state
+                            window.addEventListener('resize', function() {
+                                topicRows.forEach(row => {
+                                    if (window.innerWidth < 768) {
+                                        row.classList.add('mobile-clickable');
+                                    } else {
+                                        row.classList.remove('mobile-clickable');
+                                        row.style.backgroundColor = '';
                                     }
                                 });
                             });
                         }
 
-                        function handleEvaluationRowClick(e) {
-                            if (window.innerWidth < 992) { // Only on mobile/tablet
-                                e.preventDefault();
-                                showEvaluationModal(this);
+                        // Function to show topic modal
+                        function showTopicModal(topic, description) {
+                            document.getElementById('topicModalLabel').textContent = topic;
+                            document.getElementById('topicModalDescription').textContent = description;
+
+                            const modal = new bootstrap.Modal(document.getElementById('topicModal'), {
+                                backdrop: true,
+                                keyboard: true
+                            });
+                            modal.show();
+                        }
+
+                        // Function to show evaluation modal
+                        function showEvaluationModal(row) {
+                            const teamName = row.getAttribute('data-team');
+                            const researchTitle = row.getAttribute('data-title');
+                            const studentName = row.getAttribute('data-student');
+                            const evaluatorName = row.getAttribute('data-evaluator');
+                            const comments = row.getAttribute('data-comments');
+                            const score = row.getAttribute('data-score');
+
+                            document.getElementById('evalModalTeam').textContent = teamName;
+                            document.getElementById('evalModalTitle').textContent = researchTitle;
+                            document.getElementById('evalModalEvaluator').textContent = evaluatorName;
+                            document.getElementById('evalModalComments').textContent = comments;
+                            document.getElementById('evalModalScore').textContent = score;
+
+                            // Show/hide student section based on user type
+                            const studentSection = document.getElementById('evalModalStudentSection');
+                            if (studentName && studentName !== 'null') {
+                                document.getElementById('evalModalStudent').textContent = studentName;
+                                studentSection.style.display = 'block';
+                            } else {
+                                studentSection.style.display = 'none';
                             }
+
+                            const modal = new bootstrap.Modal(document.getElementById('evaluationModal'), {
+                                backdrop: true,
+                                keyboard: true
+                            });
+                            modal.show();
                         }
-                        
-                        // Initialize table event listeners
-                        addEvaluationTableEventListeners();
-                        
-                        // Handle window resize to update mobile state
-                        window.addEventListener('resize', function() {
+
+                        // Add click handlers for evaluation table rows on mobile
+                        document.addEventListener('DOMContentLoaded', function() {
+                            function addEvaluationTableEventListeners() {
+                                const evaluationRows = document.querySelectorAll('.evaluation-row');
+                                evaluationRows.forEach(row => {
+                                    // Add mobile-clickable class for touch devices
+                                    if (window.innerWidth < 992) { // lg breakpoint
+                                        row.classList.add('mobile-clickable');
+                                    } else {
+                                        row.classList.remove('mobile-clickable');
+                                    }
+
+                                    // Remove existing listeners
+                                    row.removeEventListener('click', handleEvaluationRowClick);
+
+                                    // Add click listener for mobile screens
+                                    if (window.innerWidth < 992) {
+                                        row.addEventListener('click', handleEvaluationRowClick);
+                                    }
+
+                                    // Add touch feedback for mobile
+                                    row.addEventListener('touchstart', function(e) {
+                                        if (window.innerWidth < 992) {
+                                            this.classList.add('mobile-touching');
+                                        }
+                                    });
+
+                                    row.addEventListener('touchend', function(e) {
+                                        if (window.innerWidth < 992) {
+                                            this.classList.remove('mobile-touching');
+                                        }
+                                    });
+                                });
+                            }
+
+                            function handleEvaluationRowClick(e) {
+                                if (window.innerWidth < 992) { // Only on mobile/tablet
+                                    e.preventDefault();
+                                    showEvaluationModal(this);
+                                }
+                            }
+
+                            // Initialize table event listeners
                             addEvaluationTableEventListeners();
+
+                            // Handle window resize to update mobile state
+                            window.addEventListener('resize', function() {
+                                addEvaluationTableEventListeners();
+                            });
                         });
-                    });
-                </script>
+                        </script>
 
-                <!-- Topic Details Modal -->
-                <div class="modal fade" id="topicModal" tabindex="-1" aria-labelledby="topicModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="topicModalLabel">Topic Title</h5>
-                            </div>
-                            <div class="modal-body">
-                                <div class="mb-3">
-                                    <h6 class="text-muted mb-2">Description</h6>
-                                    <p id="topicModalDescription" class="mb-0">Topic description will appear here...</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Research Evaluation Details Modal -->
-                <div class="modal fade" id="evaluationModal" tabindex="-1" aria-labelledby="evaluationModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg">
-                        <div class="modal-content">
-                            <div class="modal-header">
-                                <h5 class="modal-title" id="evaluationModalLabel">Evaluation Details</h5>
-                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                            </div>
-                            <div class="modal-body">
-                                <div class="row g-3">
-                                    <div class="col-12">
-                                        <h6 class="text-muted mb-2">Team Name</h6>
-                                        <p id="evalModalTeam" class="mb-0 fw-semibold"></p>
+                        <!-- Topic Details Modal -->
+                        <div class="modal fade" id="topicModal" tabindex="-1" aria-labelledby="topicModalLabel"
+                            aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="topicModalLabel">Topic Title</h5>
                                     </div>
-                                    <div class="col-12">
-                                        <h6 class="text-muted mb-2">Research Title</h6>
-                                        <p id="evalModalTitle" class="mb-0"></p>
-                                    </div>
-                                    <div class="col-12" id="evalModalStudentSection" style="display: none;">
-                                        <h6 class="text-muted mb-2">Student Name</h6>
-                                        <p id="evalModalStudent" class="mb-0"></p>
-                                    </div>
-                                    <div class="col-12">
-                                        <h6 class="text-muted mb-2">Evaluator</h6>
-                                        <p id="evalModalEvaluator" class="mb-0"></p>
-                                    </div>
-                                    <div class="col-12">
-                                        <h6 class="text-muted mb-2">Total Score</h6>
-                                        <p id="evalModalScore" class="mb-0 fw-bold text-primary"></p>
-                                    </div>
-                                    <div class="col-12">
-                                        <h6 class="text-muted mb-2">Comments</h6>
-                                        <div id="evalModalComments" class="bg-light p-3 rounded" style="min-height: 100px; white-space: pre-line;"></div>
+                                    <div class="modal-body">
+                                        <div class="mb-3">
+                                            <h6 class="text-muted mb-2">Description</h6>
+                                            <p id="topicModalDescription" class="mb-0">Topic description will appear
+                                                here...</p>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="tab-pane fade" id="research-title" role="tabpanel" aria-labelledby="research-title-link">
-                    <div class="home-sidebar-box">
-                        <div class="d-flex align-items-center mb-4">
-                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                        <!-- Research Evaluation Details Modal -->
+                        <div class="modal fade" id="evaluationModal" tabindex="-1"
+                            aria-labelledby="evaluationModalLabel" aria-hidden="true">
+                            <div class="modal-dialog modal-lg">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="evaluationModalLabel">Evaluation Details</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"
+                                            aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <div class="row g-3">
+                                            <div class="col-12">
+                                                <h6 class="text-muted mb-2">Team Name</h6>
+                                                <p id="evalModalTeam" class="mb-0 fw-semibold"></p>
+                                            </div>
+                                            <div class="col-12">
+                                                <h6 class="text-muted mb-2">Research Title</h6>
+                                                <p id="evalModalTitle" class="mb-0"></p>
+                                            </div>
+                                            <div class="col-12" id="evalModalStudentSection" style="display: none;">
+                                                <h6 class="text-muted mb-2">Student Name</h6>
+                                                <p id="evalModalStudent" class="mb-0"></p>
+                                            </div>
+                                            <div class="col-12">
+                                                <h6 class="text-muted mb-2">Evaluator</h6>
+                                                <p id="evalModalEvaluator" class="mb-0"></p>
+                                            </div>
+                                            <div class="col-12">
+                                                <h6 class="text-muted mb-2">Total Score</h6>
+                                                <p id="evalModalScore" class="mb-0 fw-bold text-primary"></p>
+                                            </div>
+                                            <div class="col-12">
+                                                <h6 class="text-muted mb-2">Comments</h6>
+                                                <div id="evalModalComments" class="bg-light p-3 rounded"
+                                                    style="min-height: 100px; white-space: pre-line;"></div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="research-title" role="tabpanel"
+                            aria-labelledby="research-title-link">
+                            <div class="home-sidebar-box">
+                                <div class="d-flex align-items-center mb-4">
+                                    <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-check-circle text-primary fs-4"></i>
                             </div> -->
-                            <div>
-                                <h4 class="mb-1 feature-title">Research Title Acceptance Tool</h4>
-                                <p class="text-muted mb-0">Check the uniqueness of your research title and get AI-powered suggestions</p>
-                            </div>
-                        </div>
-                        
-                        <!-- Research Title Input Form -->
-                        <div class="card research-title-form-card mb-4">
-                            <div class="card-body">
-                                <form id="titleSubmissionForm" class="needs-validation">
-                                    <div class="mb-3">
-                                        <label for="researchTitle" class="form-label fw-semibold">Proposed Research Title</label>
-                                        <textarea class="form-control research-title-textarea" 
-                                                 id="researchTitle" name="researchTitle" 
-                                                 placeholder="Enter your research title here..." 
-                                                 rows="3" required></textarea>
-                                        <div class="form-text">Be specific and descriptive about your research focus</div>
+                                    <div>
+                                        <h4 class="mb-1 feature-title">Research Title Acceptance Tool</h4>
+                                        <p class="text-muted mb-0">Check the uniqueness of your research title and get
+                                            AI-powered suggestions</p>
                                     </div>
-                                    
-                                    <div class="row g-3">
-                                        <div class="col-sm-6">
-                                            <label for="researchField" class="form-label fw-semibold">Research Field</label>
-                                            <input type="text" class="form-control research-title-input" 
-                                                   id="researchField" name="researchField" 
-                                                   placeholder="e.g., Computer Science" required>
-                                        </div>
-                                        <div class="col-sm-6">
-                                            <label for="problem" class="form-label fw-semibold">Problem Statement</label>
-                                            <input type="text" class="form-control research-title-input" 
-                                                   id="problem" name="problem" 
-                                                   placeholder="Brief description of the problem" required>
-                                        </div>
-                                    </div>
-                                    
-                                    <div class="d-flex justify-content-between align-items-center mt-4">
-                                        <div class="research-title-status">
-                                            <small class="text-muted">Fill in all fields to analyze your title</small>
-                                        </div>
-                                        <button type="button" id="submitTitleBtn" class="btn btn-primary research-title-btn">
-                                            <i class="bi bi-search me-2"></i>Analyze Title
-                                        </button>
-                                    </div>
-                                </form>
-                            </div>
-                        </div>
+                                </div>
 
-                        <!-- Results Section -->
-                        <div class="research-title-results">
-                            <!-- Uniqueness Analysis Card -->
-                            <div class="card research-title-result-card mb-3" id="uniquenessCard" style="display: none;">
-                                <div class="card-header">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-shield-check text-primary me-2"></i>
-                                        <h6 class="mb-0">Uniqueness Analysis</h6>
-                                    </div>
-                                </div>
-                                <div class="card-body" id="uniquenessResult">
-                                    <!-- Uniqueness results will be inserted here -->
-                                </div>
-                            </div>
+                                <!-- Research Title Input Form -->
+                                <div class="card research-title-form-card mb-4">
+                                    <div class="card-body">
+                                        <form id="titleSubmissionForm" class="needs-validation">
+                                            <div class="mb-3">
+                                                <label for="researchTitle" class="form-label fw-semibold">Proposed
+                                                    Research Title</label>
+                                                <textarea class="form-control research-title-textarea"
+                                                    id="researchTitle" name="researchTitle"
+                                                    placeholder="Enter your research title here..." rows="3"
+                                                    required></textarea>
+                                                <div class="form-text">Be specific and descriptive about your research
+                                                    focus</div>
+                                            </div>
 
-                            <!-- AI Suggestions Card -->
-                            <div class="card research-title-result-card mb-3" id="suggestionsCard" style="display: none;">
-                                <div class="card-header">
-                                    <div class="d-flex align-items-center">
-                                        <i class="bi bi-lightbulb text-warning me-2"></i>
-                                        <h6 class="mb-0">AI-Powered Suggestions</h6>
-                                    </div>
-                                </div>
-                                <div class="card-body" id="aiSuggestions">
-                                    <!-- AI suggestions will be inserted here -->
-                                </div>
-                            </div>
+                                            <div class="row g-3">
+                                                <div class="col-sm-6">
+                                                    <label for="researchField" class="form-label fw-semibold">Research
+                                                        Field</label>
+                                                    <input type="text" class="form-control research-title-input"
+                                                        id="researchField" name="researchField"
+                                                        placeholder="e.g., Computer Science" required>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label for="problem" class="form-label fw-semibold">Problem
+                                                        Statement</label>
+                                                    <input type="text" class="form-control research-title-input"
+                                                        id="problem" name="problem"
+                                                        placeholder="Brief description of the problem" required>
+                                                </div>
+                                            </div>
 
-                            <!-- Empty State -->
-                            <div class="research-title-empty-state" id="emptyState">
-                                <div class="text-center py-5">
-                                    <div class="empty-state-icon mb-3">
-                                        <i class="bi bi-clipboard2-check"></i>
+                                            <div class="d-flex justify-content-between align-items-center mt-4">
+                                                <div class="research-title-status">
+                                                    <small class="text-muted">Fill in all fields to analyze your
+                                                        title</small>
+                                                </div>
+                                                <button type="button" id="submitTitleBtn"
+                                                    class="btn btn-primary research-title-btn">
+                                                    <i class="bi bi-search me-2"></i>Analyze Title
+                                                </button>
+                                            </div>
+                                        </form>
                                     </div>
-                                    <h5 class="text-muted mb-2">Ready to Analyze Your Research Title</h5>
-                                    <p class="text-muted mb-0">
-                                        Complete the form above to get AI-powered analysis on title uniqueness, 
-                                        clarity, and receive suggestions for improvement.
-                                    </p>
-                                    <div class="mt-4">
-                                        <div class="row g-3 text-start">
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-start">
-                                                    <i class="bi bi-1-circle text-primary me-2 mt-1"></i>
-                                                    <div>
-                                                        <small class="fw-semibold">Uniqueness Check</small>
-                                                        <div class="text-muted" style="font-size: 0.75rem;">
-                                                            Compare against existing research titles
+                                </div>
+
+                                <!-- Results Section -->
+                                <div class="research-title-results">
+                                    <!-- Uniqueness Analysis Card -->
+                                    <div class="card research-title-result-card mb-3" id="uniquenessCard"
+                                        style="display: none;">
+                                        <div class="card-header">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-shield-check text-primary me-2"></i>
+                                                <h6 class="mb-0">Uniqueness Analysis</h6>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" id="uniquenessResult">
+                                            <!-- Uniqueness results will be inserted here -->
+                                        </div>
+                                    </div>
+
+                                    <!-- AI Suggestions Card -->
+                                    <div class="card research-title-result-card mb-3" id="suggestionsCard"
+                                        style="display: none;">
+                                        <div class="card-header">
+                                            <div class="d-flex align-items-center">
+                                                <i class="bi bi-lightbulb text-warning me-2"></i>
+                                                <h6 class="mb-0">AI-Powered Suggestions</h6>
+                                            </div>
+                                        </div>
+                                        <div class="card-body" id="aiSuggestions">
+                                            <!-- AI suggestions will be inserted here -->
+                                        </div>
+                                    </div>
+
+                                    <!-- Empty State -->
+                                    <div class="research-title-empty-state" id="emptyState">
+                                        <div class="text-center py-5">
+                                            <div class="empty-state-icon mb-3">
+                                                <i class="bi bi-clipboard2-check"></i>
+                                            </div>
+                                            <h5 class="text-muted mb-2">Ready to Analyze Your Research Title</h5>
+                                            <p class="text-muted mb-0">
+                                                Complete the form above to get AI-powered analysis on title uniqueness,
+                                                clarity, and receive suggestions for improvement.
+                                            </p>
+                                            <div class="mt-4">
+                                                <div class="row g-3 text-start">
+                                                    <div class="col-md-4">
+                                                        <div class="d-flex align-items-start">
+                                                            <i class="bi bi-1-circle text-primary me-2 mt-1"></i>
+                                                            <div>
+                                                                <small class="fw-semibold">Uniqueness Check</small>
+                                                                <div class="text-muted" style="font-size: 0.75rem;">
+                                                                    Compare against existing research titles
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="d-flex align-items-start">
+                                                            <i class="bi bi-2-circle text-primary me-2 mt-1"></i>
+                                                            <div>
+                                                                <small class="fw-semibold">Quality Analysis</small>
+                                                                <div class="text-muted" style="font-size: 0.75rem;">
+                                                                    Evaluate clarity and specificity
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-4">
+                                                        <div class="d-flex align-items-start">
+                                                            <i class="bi bi-3-circle text-primary me-2 mt-1"></i>
+                                                            <div>
+                                                                <small class="fw-semibold">AI Suggestions</small>
+                                                                <div class="text-muted" style="font-size: 0.75rem;">
+                                                                    Get recommendations for improvement
+                                                                </div>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
                                             </div>
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-start">
-                                                    <i class="bi bi-2-circle text-primary me-2 mt-1"></i>
-                                                    <div>
-                                                        <small class="fw-semibold">Quality Analysis</small>
-                                                        <div class="text-muted" style="font-size: 0.75rem;">
-                                                            Evaluate clarity and specificity
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-4">
-                                                <div class="d-flex align-items-start">
-                                                    <i class="bi bi-3-circle text-primary me-2 mt-1"></i>
-                                                    <div>
-                                                        <small class="fw-semibold">AI Suggestions</small>
-                                                        <div class="text-muted" style="font-size: 0.75rem;">
-                                                            Get recommendations for improvement
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
-                </div>
 
-                <div class="tab-pane fade" id="requirement-checker" role="tabpanel" aria-labelledby="requirement-checker-link">
-                    <div class="home-sidebar-box">
-                        <div class="d-flex align-items-center mb-4">
-                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                        <div class="tab-pane fade" id="requirement-checker" role="tabpanel"
+                            aria-labelledby="requirement-checker-link">
+                            <div class="home-sidebar-box">
+                                <div class="d-flex align-items-center mb-4">
+                                    <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-tasks text-primary fs-4"></i>
                             </div> -->
-                            <div>
-                                <h4 class="mb-1 feature-title">Requirement Checker Tool</h4>
-                                <p class="text-muted mb-0">Track and manage your thesis requirements and submissions</p>
-                            </div>
-                        </div>
-                        
-                        <div class="media text-muted pt-3">
-                            <div id="teamSelectorContainer" class="mb-4">
-                                <!-- The dropdown will be dynamically inserted here -->
-                            </div>
-                            <div id="requirementChecklist" class="row g-4">
-                                <!-- Checklist items will be dynamically added here in a grid -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                                    <div>
+                                        <h4 class="mb-1 feature-title">Requirement Checker Tool</h4>
+                                        <p class="text-muted mb-0">Track and manage your thesis requirements and
+                                            submissions</p>
+                                    </div>
+                                </div>
 
-                <div class="tab-pane fade" id="research-evaluation" role="tabpanel" aria-labelledby="research-evaluation-link">
-                    <div class="home-sidebar-box">
-                        <div class="d-flex align-items-center mb-4">
-                            <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
+                                <div class="media text-muted pt-3">
+                                    <div id="teamSelectorContainer" class="mb-4">
+                                        <!-- The dropdown will be dynamically inserted here -->
+                                    </div>
+                                    <div id="requirementChecklist" class="row g-4">
+                                        <!-- Checklist items will be dynamically added here in a grid -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="tab-pane fade" id="research-evaluation" role="tabpanel"
+                            aria-labelledby="research-evaluation-link">
+                            <div class="home-sidebar-box">
+                                <div class="d-flex align-items-center mb-4">
+                                    <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
                                 <i class="fas fa-comments text-primary fs-4"></i>
                             </div> -->
-                            <div>
-                                <h4 class="mb-1 feature-title">Research Evaluation Comments</h4>
-                                <p class="text-muted mb-0">View evaluation feedback and comments from panelists</p>
-                            </div>
-                        </div>
+                                    <div>
+                                        <h4 class="mb-1 feature-title">Research Evaluation Comments</h4>
+                                        <p class="text-muted mb-0">View evaluation feedback and comments from panelists
+                                        </p>
+                                    </div>
+                                </div>
 
-                        <div class="table-responsive">
-                            <table class="table table-hover table-sm research-evaluation-table" id="researchEvaluationTable">
-                                <thead>
-                                    <tr>
-                                        <th class="d-none d-lg-table-cell">Team Name</th>
-                                        <th class="d-table-cell d-lg-none">Evaluation</th>
-                                        <th class="d-none d-lg-table-cell">Research Title</th>
-                                        <?php if ($_SESSION['usertype'] != 1): ?>
-                                            <th class="d-none d-md-table-cell">Student Name</th>
-                                        <?php endif; ?>
-                                        <th class="d-none d-sm-table-cell">Evaluator</th>
-                                        <th class="d-none d-lg-table-cell">Comments</th>
-                                        <th class="d-none d-sm-table-cell">Score</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <?php
+                                <div class="table-responsive">
+                                    <table class="table table-hover table-sm research-evaluation-table"
+                                        id="researchEvaluationTable">
+                                        <thead>
+                                            <tr>
+                                                <th class="d-none d-lg-table-cell">Team Name</th>
+                                                <th class="d-table-cell d-lg-none">Evaluation</th>
+                                                <th class="d-none d-lg-table-cell">Research Title</th>
+                                                <?php if ($_SESSION['usertype'] != 1): ?>
+                                                <th class="d-none d-md-table-cell">Student Name</th>
+                                                <?php endif; ?>
+                                                <th class="d-none d-sm-table-cell">Evaluator</th>
+                                                <th class="d-none d-lg-table-cell">Comments</th>
+                                                <th class="d-none d-sm-table-cell">Score</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <?php
                                     // Different queries for students and professors
                                     if ($_SESSION['usertype'] == 1) { // Student
                                         $query = "SELECT 
@@ -1123,83 +1163,95 @@ error_reporting(E_ALL);
                                     
                                     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
                                     ?>
-                                        <tr class="evaluation-row" data-team="<?php echo htmlspecialchars($row['team_name']); ?>" 
-                                            data-title="<?php echo htmlspecialchars($row['research_title']); ?>"
-                                            <?php if ($_SESSION['usertype'] != 1): ?>
+                                            <tr class="evaluation-row"
+                                                data-team="<?php echo htmlspecialchars($row['team_name']); ?>"
+                                                data-title="<?php echo htmlspecialchars($row['research_title']); ?>"
+                                                <?php if ($_SESSION['usertype'] != 1): ?>
                                                 data-student="<?php echo htmlspecialchars($row['student_name']); ?>"
-                                            <?php endif; ?>
-                                            data-evaluator="<?php echo htmlspecialchars($row['evaluator_name']); ?>"
-                                            data-comments="<?php echo htmlspecialchars($row['comments']); ?>"
-                                            data-score="<?php echo htmlspecialchars($row['total_score']); ?>">
-                                            
-                                            <td class="d-none d-lg-table-cell"><?php echo htmlspecialchars($row['team_name']); ?></td>
-                                            <td class="d-table-cell d-lg-none">
-                                                <div class="mobile-evaluation-info">
-                                                    <strong class="d-block"><?php echo htmlspecialchars($row['team_name']); ?></strong>
-                                                    <small class="text-muted"><?php echo htmlspecialchars($row['evaluator_name']); ?></small>
-                                                    <br><small class="text-muted">Score: <?php echo htmlspecialchars($row['total_score']); ?></small>
-                                                </div>
-                                            </td>
-                                            <td class="d-none d-lg-table-cell"><?php echo htmlspecialchars($row['research_title']); ?></td>
-                                            <?php if ($_SESSION['usertype'] != 1): ?>
-                                                <td class="d-none d-md-table-cell"><?php echo htmlspecialchars($row['student_name']); ?></td>
-                                            <?php endif; ?>
-                                            <td class="d-none d-sm-table-cell"><?php echo htmlspecialchars($row['evaluator_name']); ?></td>
-                                            <td class="d-none d-lg-table-cell"><?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
-                                            <td class="d-none d-sm-table-cell"><?php echo htmlspecialchars($row['total_score']); ?></td>
-                                        </tr>
-                                    <?php endwhile; ?>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
-                </div>
+                                                <?php endif; ?>
+                                                data-evaluator="<?php echo htmlspecialchars($row['evaluator_name']); ?>"
+                                                data-comments="<?php echo htmlspecialchars($row['comments']); ?>"
+                                                data-score="<?php echo htmlspecialchars($row['total_score']); ?>">
 
-                <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-link">
-                    <div class="container-fluid py-4 content-container team-overview">
-                        <!-- Header with title and sub-tabs -->
-                        <div class="row mb-4">
-                            <div class="col-md-8">
-                                <h3 class="mb-2">Dashboard</h3>
-                                <p class="text-muted">Track your requirement progress and defense schedule</p>
-                            </div>
-                            <div class="col-md-4 text-end">
-                                <div class="btn-group" role="group">
-                                    <input type="radio" class="btn-check" name="viewMode" id="dashboard-view" checked>
-                                    <label class="btn btn-outline-primary" for="dashboard-view">
-                                        <i class="bi bi-grid-3x3"></i> Dashboard
-                                    </label>
-                                    
-                                    <input type="radio" class="btn-check" name="viewMode" id="calendar-view">
-                                    <label class="btn btn-outline-primary" for="calendar-view">
-                                        <i class="bi bi-calendar"></i> Calendar
-                                    </label>
+                                                <td class="d-none d-lg-table-cell">
+                                                    <?php echo htmlspecialchars($row['team_name']); ?></td>
+                                                <td class="d-table-cell d-lg-none">
+                                                    <div class="mobile-evaluation-info">
+                                                        <strong
+                                                            class="d-block"><?php echo htmlspecialchars($row['team_name']); ?></strong>
+                                                        <small
+                                                            class="text-muted"><?php echo htmlspecialchars($row['evaluator_name']); ?></small>
+                                                        <br><small class="text-muted">Score:
+                                                            <?php echo htmlspecialchars($row['total_score']); ?></small>
+                                                    </div>
+                                                </td>
+                                                <td class="d-none d-lg-table-cell">
+                                                    <?php echo htmlspecialchars($row['research_title']); ?></td>
+                                                <?php if ($_SESSION['usertype'] != 1): ?>
+                                                <td class="d-none d-md-table-cell">
+                                                    <?php echo htmlspecialchars($row['student_name']); ?></td>
+                                                <?php endif; ?>
+                                                <td class="d-none d-sm-table-cell">
+                                                    <?php echo htmlspecialchars($row['evaluator_name']); ?></td>
+                                                <td class="d-none d-lg-table-cell">
+                                                    <?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
+                                                <td class="d-none d-sm-table-cell">
+                                                    <?php echo htmlspecialchars($row['total_score']); ?></td>
+                                            </tr>
+                                            <?php endwhile; ?>
+                                        </tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Dashboard View (Default) -->
-                        <div id="dashboardView">
-                            <div class="row">
-                                <div class="col-12">
-                                    <div id="teamOverviewContent">
-                                        <!-- Team overview content will be loaded here -->
+                        <div class="tab-pane fade show active" id="overview" role="tabpanel"
+                            aria-labelledby="overview-link">
+                            <div class="container-fluid py-4 content-container team-overview">
+                                <!-- Header with title and sub-tabs -->
+                                <div class="row mb-4">
+                                    <div class="col-md-8">
+                                        <h3 class="mb-2">Dashboard</h3>
+                                        <p class="text-muted">Track your requirement progress and defense schedule</p>
+                                    </div>
+                                    <div class="col-md-4 text-end">
+                                        <div class="btn-group" role="group">
+                                            <input type="radio" class="btn-check" name="viewMode" id="dashboard-view"
+                                                checked>
+                                            <label class="btn btn-outline-primary" for="dashboard-view">
+                                                <i class="bi bi-grid-3x3"></i> Dashboard
+                                            </label>
+
+                                            <input type="radio" class="btn-check" name="viewMode" id="calendar-view">
+                                            <label class="btn btn-outline-primary" for="calendar-view">
+                                                <i class="bi bi-calendar"></i> Calendar
+                                            </label>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        </div>
 
-                        <!-- Calendar View (Hidden by default) -->
-                        <div id="calendarView" style="display: none;">
-                            <div class="row">
-                                <div class="col-12 col-lg-9 mb-3">
-                                    <div class="calendar-container p-3">
-                                        <!-- Calendar Div -->
-                                        <div id="calendar2"></div>
+                                <!-- Dashboard View (Default) -->
+                                <div id="dashboardView">
+                                    <div class="row">
+                                        <div class="col-12">
+                                            <div id="teamOverviewContent">
+                                                <!-- Team overview content will be loaded here -->
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                                <?php if ($_SESSION['usertype'] == 2): ?>
-                                    <?php
+
+                                <!-- Calendar View (Hidden by default) -->
+                                <div id="calendarView" style="display: none;">
+                                    <div class="row">
+                                        <div class="col-12 col-lg-9 mb-3">
+                                            <div class="calendar-container p-3">
+                                                <!-- Calendar Div -->
+                                                <div id="calendar2"></div>
+                                            </div>
+                                        </div>
+                                        <?php if ($_SESSION['usertype'] == 2): ?>
+                                        <?php
                                     // Fetch teams for current user
                                     $userId = $_SESSION['id'];
                                     $userType = $_SESSION['usertype'];
@@ -1232,53 +1284,64 @@ error_reporting(E_ALL);
                                         $requirements = $requirementsStmt->fetchAll(PDO::FETCH_ASSOC);
                                     }
                                     ?>
-                                    <div class="requirements-list col-12 col-lg-3">
-                                        <div class="accordion custom-accordion" id="requirementsAccordion2">
-                                            <!-- Requirements Section -->
-                                            <div class="accordion-item">
-                                                <h2 class="accordion-header" id="headingRequirements2">
-                                                    <button class="accordion-button custom-accordion-btn" type="button" data-bs-toggle="collapse" 
-                                                            data-bs-target="#collapseRequirements2" aria-expanded="true" 
+                                        <div class="requirements-list col-12 col-lg-3">
+                                            <div class="accordion custom-accordion" id="requirementsAccordion2">
+                                                <!-- Requirements Section -->
+                                                <div class="accordion-item">
+                                                    <h2 class="accordion-header" id="headingRequirements2">
+                                                        <button class="accordion-button custom-accordion-btn"
+                                                            type="button" data-bs-toggle="collapse"
+                                                            data-bs-target="#collapseRequirements2" aria-expanded="true"
                                                             aria-controls="collapseRequirements2">
-                                                        Requirements
-                                                    </button>
-                                                </h2>
-                                                <div id="collapseRequirements2" class="accordion-collapse collapse show" 
-                                                             aria-labelledby="headingRequirements2" data-bs-parent="#requirementsAccordion2">
-                                                    <div class="accordion-body custom-scrollbar">
-                                                        <!-- Team Selector -->
-                                                        <?php if (count($teams) > 1): ?>
+                                                            Requirements
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapseRequirements2"
+                                                        class="accordion-collapse collapse show"
+                                                        aria-labelledby="headingRequirements2"
+                                                        data-bs-parent="#requirementsAccordion2">
+                                                        <div class="accordion-body custom-scrollbar">
+                                                            <!-- Team Selector -->
+                                                            <?php if (count($teams) > 1): ?>
                                                             <div class="mb-3">
-                                                                <label for="requirementsTeamSelector" class="form-label small text-muted">Select Team:</label>
-                                                                <select id="requirementsTeamSelector" class="form-select form-select-sm">
+                                                                <label for="requirementsTeamSelector"
+                                                                    class="form-label small text-muted">Select
+                                                                    Team:</label>
+                                                                <select id="requirementsTeamSelector"
+                                                                    class="form-select form-select-sm">
                                                                     <?php foreach ($teams as $team): ?>
-                                                                        <option value="<?php echo $team['id']; ?>" <?php echo ($team['id'] == $selectedTeamId) ? 'selected' : ''; ?>>
-                                                                            <?php echo htmlspecialchars($team['name']); ?>
-                                                                        </option>
+                                                                    <option value="<?php echo $team['id']; ?>"
+                                                                        <?php echo ($team['id'] == $selectedTeamId) ? 'selected' : ''; ?>>
+                                                                        <?php echo htmlspecialchars($team['name']); ?>
+                                                                    </option>
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
-                                                        <?php elseif (count($teams) == 1): ?>
+                                                            <?php elseif (count($teams) == 1): ?>
                                                             <div class="mb-3">
-                                                                <p class="small text-muted mb-2">Team: <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong></p>
+                                                                <p class="small text-muted mb-2">Team:
+                                                                    <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong>
+                                                                </p>
                                                             </div>
-                                                        <?php endif; ?>
-                                                        
-                                                        <!-- Requirements List -->
-                                                        <ul class="list-group" id="requirementsList">
-                                                            <?php if (empty($teams)): ?>
+                                                            <?php endif; ?>
+
+                                                            <!-- Requirements List -->
+                                                            <ul class="list-group" id="requirementsList">
+                                                                <?php if (empty($teams)): ?>
                                                                 <li class="list-group-item text-center text-muted">
                                                                     <em>No teams assigned to you</em>
                                                                 </li>
-                                                            <?php elseif (!empty($requirements)): ?>
+                                                                <?php elseif (!empty($requirements)): ?>
                                                                 <?php foreach ($requirements as $requirement): ?>
-                                                                    <li class="list-group-item d-flex justify-content-between align-items-center req-li">
-                                                                        <div>
-                                                                            <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                                                            <br>
-                                                                            <small class="text-muted due-date-txt">Due: <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
-                                                                        </div>
-                                                                        <?php
+                                                                <li
+                                                                    class="list-group-item d-flex justify-content-between align-items-center req-li">
+                                                                    <div>
+                                                                        <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
+                                                                        <br>
+                                                                        <small class="text-muted due-date-txt">Due:
+                                                                            <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
+                                                                    </div>
+                                                                    <?php
                                                                         $badgeClass = 'bg-warning';
                                                                         $badgeText = 'Pending';
                                                                         if ($requirement['status'] === 'approved') {
@@ -1292,20 +1355,21 @@ error_reporting(E_ALL);
                                                                             $badgeText = 'Rejected';
                                                                         }
                                                                         ?>
-                                                                        <span class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo $badgeText; ?></span>
-                                                                    </li>
+                                                                    <span
+                                                                        class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo $badgeText; ?></span>
+                                                                </li>
                                                                 <?php endforeach; ?>
-                                                            <?php else: ?>
+                                                                <?php else: ?>
                                                                 <li class="list-group-item text-center text-muted">
                                                                     <em>No requirements found for this team</em>
                                                                 </li>
-                                                            <?php endif; ?>
-                                                        </ul>
+                                                                <?php endif; ?>
+                                                            </ul>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
 
-                                            <?php
+                                                <?php
                                             // Defense schedules for faculty users (copied from scheduling tab)
                                             $userId = $_SESSION['id'];
                                             $query = "SELECT
@@ -1339,19 +1403,21 @@ error_reporting(E_ALL);
                                             ]);
                                             $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             ?>
-                                            <div class="accordion-item mt-2">
-                                                <h2 class="accordion-header" id="headingDefenses2">
-                                                    <button class="accordion-button custom-accordion-btn collapsed" type="button" 
-                                                            data-bs-toggle="collapse" data-bs-target="#collapseDefenses2" 
-                                                            aria-expanded="false" aria-controls="collapseDefenses2">
-                                                        Defense Schedules
-                                                    </button>
-                                                </h2>
-                                                <div id="collapseDefenses2" class="accordion-collapse collapse" 
-                                                             aria-labelledby="headingDefenses2" data-bs-parent="#requirementsAccordion2">
-                                                    <div class="accordion-body custom-scrollbar">
-                                                        <ul class="list-group">
-                                                            <?php foreach ($schedules as $schedule):
+                                                <div class="accordion-item mt-2">
+                                                    <h2 class="accordion-header" id="headingDefenses2">
+                                                        <button class="accordion-button custom-accordion-btn collapsed"
+                                                            type="button" data-bs-toggle="collapse"
+                                                            data-bs-target="#collapseDefenses2" aria-expanded="false"
+                                                            aria-controls="collapseDefenses2">
+                                                            Defense Schedules
+                                                        </button>
+                                                    </h2>
+                                                    <div id="collapseDefenses2" class="accordion-collapse collapse"
+                                                        aria-labelledby="headingDefenses2"
+                                                        data-bs-parent="#requirementsAccordion2">
+                                                        <div class="accordion-body custom-scrollbar">
+                                                            <ul class="list-group">
+                                                                <?php foreach ($schedules as $schedule):
                                                                 $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                                 $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                                 $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
@@ -1368,7 +1434,8 @@ error_reporting(E_ALL);
                                                                     $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
                                                                 }
                                                             ?>
-                                                                <li class="<?php echo $item_class; ?>" <?php echo $onclick_attr; ?>>
+                                                                <li class="<?php echo $item_class; ?>"
+                                                                    <?php echo $onclick_attr; ?>>
                                                                     <div class="defense-content">
                                                                         <h6 class="team-name mb-2">
                                                                             <?php echo htmlspecialchars($schedule['team_name']); ?>
@@ -1390,19 +1457,19 @@ error_reporting(E_ALL);
                                                                         <?php echo $disabled_message; ?>
                                                                     </div>
                                                                 </li>
-                                                            <?php endforeach; ?>
-                                                        </ul>
+                                                                <?php endforeach; ?>
+                                                            </ul>
+                                                        </div>
                                                     </div>
-                                                </div> 
+                                                </div>
                                             </div>
                                         </div>
+                                        <?php endif; ?>
                                     </div>
-                                <?php endif; ?>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-            </div>
                 </div>
             </div>
         </div>
@@ -1410,14 +1477,16 @@ error_reporting(E_ALL);
 </main>
 
 <!-- Defense Approval Modal -->
-<div class="modal fade" id="defenseApprovalModal" tabindex="-1" aria-labelledby="defenseApprovalModalLabel" aria-hidden="true">
+<div class="modal fade" id="defenseApprovalModal" tabindex="-1" aria-labelledby="defenseApprovalModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header bg-primary text-white">
                 <h5 class="modal-title" id="defenseApprovalModalLabel">
                     <i class="bi bi-calendar-check me-2"></i>Defense Schedule Approval Required
                 </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                    aria-label="Close"></button>
             </div>
             <div class="modal-body" id="approvalModalBody">
                 <div class="text-center">
@@ -1448,96 +1517,96 @@ $stmt = $pdo->query("SELECT title FROM research_titles;");
 $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 ?>
 <script>
-    // ==========================================
-    // COLLAPSIBLE SIDEBAR FUNCTIONALITY - HOME PAGE
-    // ==========================================
-    $(document).ready(function() {
-        // Initialize sidebar toggle functionality
-        initHomePageSidebar();
-    });
+// ==========================================
+// COLLAPSIBLE SIDEBAR FUNCTIONALITY - HOME PAGE
+// ==========================================
+$(document).ready(function() {
+    // Initialize sidebar toggle functionality
+    initHomePageSidebar();
+});
 
-    function initHomePageSidebar() {
-        // Remove any existing click handlers to prevent conflicts
-        $('#toggleHomeSidebar').off('click');
-        
-        // Check localStorage for saved sidebar state on page load
-        const sidebarCollapsed = localStorage.getItem('homeSidebarCollapsed') === 'true';
-        if (sidebarCollapsed) {
-            $('#homeSidebarContainer').addClass('collapsed');
-            $('#homeMainContent').addClass('expanded');
-            $('#toggleHomeSidebar').find('i').css('transform', 'rotate(180deg)');
-            $('body').addClass('home-sidebar-collapsed');
-        }
-        
-        // Handle responsive behavior
-        if ($(window).width() <= 768) {
-            // Mobile behavior - matches dashboard breakpoint
-            $('#toggleHomeSidebar').on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Toggle collapsed state on mobile
-                $('#homeSidebarContainer').toggleClass('collapsed');
-                $('#homeMainContent').toggleClass('expanded');
-                
-                // Update icon rotation and body class
-                if ($('#homeSidebarContainer').hasClass('collapsed')) {
-                    $(this).find('i').css('transform', 'rotate(180deg)');
-                    $('body').addClass('has-collapsed-home-sidebar');
-                } else {
-                    $(this).find('i').css('transform', 'rotate(0deg)');
-                    $('body').removeClass('has-collapsed-home-sidebar');
-                }
-                
-                // Save state to localStorage
-                localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
-            });
-        } else {
-            // Desktop behavior
-            $('#toggleHomeSidebar').on('click', function(e) {
-                e.preventDefault();
-                e.stopPropagation();
-                
-                // Toggle collapsed state
-                $('#homeSidebarContainer').toggleClass('collapsed');
-                $('#homeMainContent').toggleClass('expanded');
-                
-                // Update icon rotation
-                if ($('#homeSidebarContainer').hasClass('collapsed')) {
-                    $(this).find('i').css('transform', 'rotate(180deg)');
-                    $('body').addClass('has-collapsed-home-sidebar');
-                } else {
-                    $(this).find('i').css('transform', 'rotate(0deg)');
-                    $('body').removeClass('has-collapsed-home-sidebar');
-                }
-                
-                // Save state to localStorage
-                localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
-            });
-        }
-        
-        // Handle window resize - reinitialize without infinite recursion
-        $(window).off('resize.homeSidebar').on('resize.homeSidebar', function() {
-            // Only reinitialize if we switch between mobile and desktop
-            const isMobile = $(window).width() <= 768;
-            const wasInitializedForMobile = $('#toggleHomeSidebar').data('mobile-mode') === true;
-            
-            if (isMobile !== wasInitializedForMobile) {
-                $('#toggleHomeSidebar').data('mobile-mode', isMobile);
-                initHomePageSidebar();
-            }
-        });
-        
-        // Mark current mode
-        $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 768);
-        
-        console.log('Home page sidebar toggle functionality initialized');
+function initHomePageSidebar() {
+    // Remove any existing click handlers to prevent conflicts
+    $('#toggleHomeSidebar').off('click');
+
+    // Check localStorage for saved sidebar state on page load
+    const sidebarCollapsed = localStorage.getItem('homeSidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        $('#homeSidebarContainer').addClass('collapsed');
+        $('#homeMainContent').addClass('expanded');
+        $('#toggleHomeSidebar').find('i').css('transform', 'rotate(180deg)');
+        $('body').addClass('home-sidebar-collapsed');
     }
 
-    // Remove legacy mobile overlay styles - now using dashboard responsive approach
-    $('<style>')
-        .prop('type', 'text/css')
-        .html(`
+    // Handle responsive behavior
+    if ($(window).width() <= 768) {
+        // Mobile behavior - matches dashboard breakpoint
+        $('#toggleHomeSidebar').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Toggle collapsed state on mobile
+            $('#homeSidebarContainer').toggleClass('collapsed');
+            $('#homeMainContent').toggleClass('expanded');
+
+            // Update icon rotation and body class
+            if ($('#homeSidebarContainer').hasClass('collapsed')) {
+                $(this).find('i').css('transform', 'rotate(180deg)');
+                $('body').addClass('has-collapsed-home-sidebar');
+            } else {
+                $(this).find('i').css('transform', 'rotate(0deg)');
+                $('body').removeClass('has-collapsed-home-sidebar');
+            }
+
+            // Save state to localStorage
+            localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
+        });
+    } else {
+        // Desktop behavior
+        $('#toggleHomeSidebar').on('click', function(e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            // Toggle collapsed state
+            $('#homeSidebarContainer').toggleClass('collapsed');
+            $('#homeMainContent').toggleClass('expanded');
+
+            // Update icon rotation
+            if ($('#homeSidebarContainer').hasClass('collapsed')) {
+                $(this).find('i').css('transform', 'rotate(180deg)');
+                $('body').addClass('has-collapsed-home-sidebar');
+            } else {
+                $(this).find('i').css('transform', 'rotate(0deg)');
+                $('body').removeClass('has-collapsed-home-sidebar');
+            }
+
+            // Save state to localStorage
+            localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
+        });
+    }
+
+    // Handle window resize - reinitialize without infinite recursion
+    $(window).off('resize.homeSidebar').on('resize.homeSidebar', function() {
+        // Only reinitialize if we switch between mobile and desktop
+        const isMobile = $(window).width() <= 768;
+        const wasInitializedForMobile = $('#toggleHomeSidebar').data('mobile-mode') === true;
+
+        if (isMobile !== wasInitializedForMobile) {
+            $('#toggleHomeSidebar').data('mobile-mode', isMobile);
+            initHomePageSidebar();
+        }
+    });
+
+    // Mark current mode
+    $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 768);
+
+    console.log('Home page sidebar toggle functionality initialized');
+}
+
+// Remove legacy mobile overlay styles - now using dashboard responsive approach
+$('<style>')
+    .prop('type', 'text/css')
+    .html(`
             /* Home sidebar responsive helper styles */
             body.has-collapsed-home-sidebar {
                 overflow-x: hidden;
@@ -1549,16 +1618,16 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                 }
             }
         `)
-        .appendTo('head');
+    .appendTo('head');
 
-    var existingTitles = "<?php echo implode(', ', $titles); ?>";
+var existingTitles = "<?php echo implode(', ', $titles); ?>";
 </script>
 
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
-    $(document).ready(function() {
-        <?php
+$(document).ready(function() {
+    <?php
         $role = isset($_SESSION['team_role']) ? $_SESSION['team_role'] : '';
         $teamId = isset($_SESSION['team_id']) ? $_SESSION['team_id'] : [];
 
@@ -1573,49 +1642,51 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     $stmt->execute();
                     $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 }
-        ?>
+            ?>
 
-                $(document).ready(function() {
-                    var teamSelectHtml = '<select id="teamSelect" class="form-select mb-3">';
-                    <?php if (!empty($teams)) { ?>
-                        <?php foreach ($teams as $team) { ?>
-                            teamSelectHtml += '<option id="team_id-<?php echo $team['id']; ?>" value="<?php echo $team['id']; ?>"><?php echo htmlspecialchars($team['name']); ?></option>';
-                        <?php } ?>
-                    <?php } else { ?>
-                        teamSelectHtml += '<option value="">No teams available</option>';
-                    <?php } ?>
-                    teamSelectHtml += '</select>';
-                    console.log(teamSelectHtml);
-                    $('#teamSelectorContainer').html(teamSelectHtml);
+    $(document).ready(function() {
+        var teamSelectHtml = '<select id="teamSelect" class="form-select mb-3">';
+        <?php if (!empty($teams)) { ?>
+        <?php foreach ($teams as $team) { ?>
+        teamSelectHtml +=
+            '<option id="team_id-<?php echo $team['id']; ?>" value="<?php echo $team['id']; ?>"><?php echo htmlspecialchars($team['name']); ?></option>';
+        <?php } ?>
+        <?php } else { ?>
+        teamSelectHtml += '<option value="">No teams available</option>';
+        <?php } ?>
+        teamSelectHtml += '</select>';
+        console.log(teamSelectHtml);
+        $('#teamSelectorContainer').html(teamSelectHtml);
 
-                    // Load initial requirements for the first team
-                    var initialTeamId = $('#teamSelect').val();
-                    if (initialTeamId) {
-                        loadRequirements(initialTeamId);
-                    }
+        // Load initial requirements for the first team
+        var initialTeamId = $('#teamSelect').val();
+        if (initialTeamId) {
+            loadRequirements(initialTeamId);
+        }
 
-                    // Reload requirements when team changes
-                    $('#teamSelect').on('change', function() {
-                        var selectedTeamId = $(this).val();
-                        loadRequirements(selectedTeamId);
-                    });
-                });
+        // Reload requirements when team changes
+        $('#teamSelect').on('change', function() {
+            var selectedTeamId = $(this).val();
+            loadRequirements(selectedTeamId);
+        });
+    });
 
-                function loadRequirements(teamId) {
-            console.log("Loading requirements for teamId:", teamId);
-            $.ajax({
-                url: 'includes/get_requirements.php',
-                method: 'GET',
-                data: {
-                    team_id: teamId
-                },
-                dataType: 'json',
-                success: function(response) {
-                    console.log("AJAX request successful. Response:", response);
-                    if (response.success) {
-                        var checklistHtml = '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';       
-                        response.requirements.forEach(function(req) {
-                            checklistHtml += `
+    function loadRequirements(teamId) {
+        console.log("Loading requirements for teamId:", teamId);
+        $.ajax({
+            url: 'includes/get_requirements.php',
+            method: 'GET',
+            data: {
+                team_id: teamId
+            },
+            dataType: 'json',
+            success: function(response) {
+                console.log("AJAX request successful. Response:", response);
+                if (response.success) {
+                    var checklistHtml =
+                        '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';
+                    response.requirements.forEach(function(req) {
+                        checklistHtml += `
                         <div class="col-12 col-lg-6 requirement-card-wrapper">
                             <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
                                 <div class="card-body requirement-card-body">
@@ -1658,6 +1729,15 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                         : ``
                                     }
                                     
+                                    ${req.template_file 
+                                        ? `
+                                            <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
+                                                <a href="/dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
+                                            </div>
+                                        ` 
+                                        : ``
+                                    }
+                                    
                                     <div class="mt-3 requirement-upload-section">
                                         <label for="feedbackFile${req.id}" class="form-label requirement-upload-label">Upload Feedback File:</label>
                                         <input class="form-control form-control-sm requirement-file-input" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
@@ -1669,72 +1749,76 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 </div>
                             </div>
                         </div>`;
-                        });
-                        checklistHtml += '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
-                        // Insert the generated HTML into the container
-                        $('#requirementChecklist').html(checklistHtml);
+                    });
+                    checklistHtml +=
+                        '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
+                    // Insert the generated HTML into the container
+                    $('#requirementChecklist').html(checklistHtml);
+                } else {
+                    $('#requirementChecklist').html('<p class="text-danger">' + response.error +
+                        '</p>');
+                    console.error('Error in response:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $('#requirementChecklist').html(
+                    '<p class="text-danger">Error loading requirements. Please refresh the page.</p>'
+                    );
+                console.error("AJAX error:", textStatus, errorThrown);
+            }
+        });
+    }
+
+
+    $(document).ready(function() {
+
+        loadRequirements();
+
+
+        $(document).on('submit', '#requirementChecklistForm', function(event) {
+            event.preventDefault();
+            var formData = new FormData(this);
+
+            $.ajax({
+                url: 'includes/update_requirements.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function(response) {
+                    console.log("Update response:", response);
+                    if (response.success) {
+                        alert("Requirements updated successfully!");
                     } else {
-                        $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                        console.error('Error in response:', response.error);
+                        alert("Error: " + response.error);
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
-                    $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
                     console.error("AJAX error:", textStatus, errorThrown);
+                    alert("An error occurred while updating requirements.");
                 }
             });
-        }
-        
-
-        $(document).ready(function() {
- 
-            loadRequirements();
-            
-
-            $(document).on('submit', '#requirementChecklistForm', function(event) {
-                event.preventDefault(); 
-                var formData = new FormData(this);
-                
-                $.ajax({
-                    url: 'includes/update_requirements.php',
-                    method: 'POST',
-                    data: formData,
-                    processData: false,
-                    contentType: false,
-                    dataType: 'json',
-                    success: function(response) {
-                        console.log("Update response:", response);
-                        if (response.success) {
-                            alert("Requirements updated successfully!");
-                        } else {
-                            alert("Error: " + response.error);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        console.error("AJAX error:", textStatus, errorThrown);
-                        alert("An error occurred while updating requirements.");
-                    }
-                });
-            });
         });
-            <?php
+    });
+    <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>
-            // console.log("Loading requirements for teamId:", teamId);
-            loadRequirements(); // Just call the function here for usertype 1
+    // console.log("Loading requirements for teamId:", teamId);
+    loadRequirements(); // Just call the function here for usertype 1
 
-            function loadRequirements() {
+    function loadRequirements() {
 
-                $.ajax({
-                    url: 'includes/get_requirements.php',
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            var displayHtml = '<div class="row">';
-                            response.requirements.forEach(function(req) {
-                                <?php if ($role === 'leader' || $role === 'member') { ?>
-                                    displayHtml += `
+        $.ajax({
+            url: 'includes/get_requirements.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    var displayHtml = '<div class="row">';
+                    response.requirements.forEach(function(req) {
+                        <?php if ($role === 'leader' || $role === 'member') { ?>
+                        displayHtml += `
                                 <div class="col-md-6 mb-4 requirement-student-wrapper">
                                     <div class="card requirement-student-card h-100 rounded" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
                                         <div class="card-body requirement-student-body rct-cbody">
@@ -1743,7 +1827,11 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                             <p class="card-text requirement-student-due-date"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
                                             <p class="card-text requirement-student-status"><strong>Status:</strong> ${req.status}</p>
                                             <p class="card-text requirement-student-feedback"><strong>Feedback:</strong> ${req.feedback}</p>
-                                        </div>
+                                        <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
+                                                <a href="../dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
+                                            </div>
+                                            </div>
+                                        
                                         <div class="card-footer requirement-student-feedback-footer">
                                             ${req.feedback_file ? 
                                                 `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` 
@@ -1770,219 +1858,226 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                     </div>
                                 </div>
                             `;
-                                <?php } ?>
-                            });
-                            displayHtml += '</div>';
-                            $('#requirementChecklist').html(displayHtml);
-                        } else {
-                            $('#requirementChecklist').html('<p class="text-danger">' + response.error + '</p>');
-                            console.error('Error fetching requirements:', response.error);
-                        }
-                    },
-                    error: function(jqXHR, textStatus, errorThrown) {
-                        $('#requirementChecklist').html('<p class="text-danger">Error loading requirements. Please refresh the page.</p>');
-                        console.error("AJAX error:", textStatus, errorThrown);
-                        console.error("Response Text:", jqXHR.responseText);
-                        console.error("Status Code:", jqXHR.status);
-                    }
-                });
+                        <?php } ?>
+                    });
+                    displayHtml += '</div>';
+                    $('#requirementChecklist').html(displayHtml);
+                } else {
+                    $('#requirementChecklist').html('<p class="text-danger">' + response.error +
+                        '</p>');
+                    console.error('Error fetching requirements:', response.error);
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                $('#requirementChecklist').html(
+                    '<p class="text-danger">Error loading requirements. Please refresh the page.</p>'
+                    );
+                console.error("AJAX error:", textStatus, errorThrown);
+                console.error("Response Text:", jqXHR.responseText);
+                console.error("Status Code:", jqXHR.status);
             }
+        });
+    }
 
-        <?php } ?>
+    <?php } ?>
 
-        // --- AJAX submission handler for student file uploads ---
-        // Moved outside the usertype condition, uses delegation
-        $(document).on('submit', '#requirementChecklist .upload-form', function(event) {
-            console.log('Student upload form submission intercepted.'); // Added log
-            event.preventDefault(); // Prevent default form submission
+    // --- AJAX submission handler for student file uploads ---
+    // Moved outside the usertype condition, uses delegation
+    $(document).on('submit', '#requirementChecklist .upload-form', function(event) {
+        console.log('Student upload form submission intercepted.'); // Added log
+        event.preventDefault(); // Prevent default form submission
 
-            var form = $(this);
-            var formData = new FormData(this);
-            var statusSpan = form.find('.upload-status');
-            var submitButton = form.find('button[type="submit"]');
+        var form = $(this);
+        var formData = new FormData(this);
+        var statusSpan = form.find('.upload-status');
+        var submitButton = form.find('button[type="submit"]');
 
-            statusSpan.text('Uploading...').removeClass('text-danger text-success');
-            submitButton.prop('disabled', true);
-            console.log('Initiating AJAX upload...'); // Added log
+        statusSpan.text('Uploading...').removeClass('text-danger text-success');
+        submitButton.prop('disabled', true);
+        console.log('Initiating AJAX upload...'); // Added log
 
-            $.ajax({
-                url: form.attr('action'),
-                method: form.attr('method'),
-                data: formData,
-                processData: false, // Important for FormData
-                contentType: false, // Important for FormData
-                dataType: 'json', // Expect JSON response from upload_file.php
-                success: function(response) {
-                    console.log('AJAX upload success response:', response); // Added log
-                    if (response.success) {
-                        statusSpan.text('Upload successful! Refreshing...').addClass('text-success');
-                        // Refresh the requirements list after a short delay
-                        setTimeout(loadRequirements, 1500); 
-                    } else {
-                        statusSpan.text('Error: ' + (response.error || 'Unknown error')).addClass('text-danger');
-                        submitButton.prop('disabled', false);
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    // Log the raw response text to see what the server actually sent
-                    console.log('Raw response:', jqXHR.responseText); 
-                    statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
-                    console.error("AJAX upload error:", textStatus, errorThrown);
+        $.ajax({
+            url: form.attr('action'),
+            method: form.attr('method'),
+            data: formData,
+            processData: false, // Important for FormData
+            contentType: false, // Important for FormData
+            dataType: 'json', // Expect JSON response from upload_file.php
+            success: function(response) {
+                console.log('AJAX upload success response:', response); // Added log
+                if (response.success) {
+                    statusSpan.text('Upload successful! Refreshing...').addClass(
+                        'text-success');
+                    // Refresh the requirements list after a short delay
+                    setTimeout(loadRequirements, 1500);
+                } else {
+                    statusSpan.text('Error: ' + (response.error || 'Unknown error'))
+                        .addClass('text-danger');
                     submitButton.prop('disabled', false);
                 }
-            });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                // Log the raw response text to see what the server actually sent
+                console.log('Raw response:', jqXHR.responseText);
+                statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
+                console.error("AJAX upload error:", textStatus, errorThrown);
+                submitButton.prop('disabled', false);
+            }
         });
-        // --- End AJAX submission handler ---
-
-
     });
-    //calendar
-    console.log('FullCalendar loaded:', typeof FullCalendar !== 'undefined');
-    $(document).ready(function() {
-        // Thesis Topic Decision Tool
-        $('#topicSuggestionForm').on('submit', function(e) {
-            e.preventDefault();
-            var field = $('#field').val();
-            // AJAX call to get topic suggestions
-            $.ajax({
-                url: 'includes/get_topic_suggestions.php',
-                method: 'POST',
-                data: {
-                    field: field
-                },
-                dataType: 'json',
-                success: function(response) {
-                    var suggestionsHtml = '<ul>';
-                    response.suggestions.forEach(function(suggestion) {
-                        suggestionsHtml += '<li>' + suggestion + '</li>';
+    // --- End AJAX submission handler ---
+
+
+});
+//calendar
+console.log('FullCalendar loaded:', typeof FullCalendar !== 'undefined');
+$(document).ready(function() {
+    // Thesis Topic Decision Tool
+    $('#topicSuggestionForm').on('submit', function(e) {
+        e.preventDefault();
+        var field = $('#field').val();
+        // AJAX call to get topic suggestions
+        $.ajax({
+            url: 'includes/get_topic_suggestions.php',
+            method: 'POST',
+            data: {
+                field: field
+            },
+            dataType: 'json',
+            success: function(response) {
+                var suggestionsHtml = '<ul>';
+                response.suggestions.forEach(function(suggestion) {
+                    suggestionsHtml += '<li>' + suggestion + '</li>';
+                });
+                suggestionsHtml += '</ul>';
+                $('#suggestedTopics').html(suggestionsHtml);
+            },
+            error: function() {
+                $('#suggestedTopics').html(
+                    '<p>Error fetching suggestions. Please try again.</p>');
+            }
+        });
+    });
+
+    // Scheduling System
+    function loadUserSchedule() {
+        $.ajax({
+            url: 'includes/get_user_schedule.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                console.log("AJAX response:", response);
+                if (response.success) {
+                    var events = [];
+                    // Add user schedules to events
+                    response.user_schedules.forEach(function(event) {
+                        events.push({
+                            title: event.description,
+                            start: event.date + 'T' + event.start_time,
+                            end: event.date + 'T' + event.end_time,
+                        });
                     });
-                    suggestionsHtml += '</ul>';
-                    $('#suggestedTopics').html(suggestionsHtml);
-                },
-                error: function() {
-                    $('#suggestedTopics').html('<p>Error fetching suggestions. Please try again.</p>');
+                    // Add defense schedules to events
+                    response.defense_schedules.forEach(function(event) {
+                        events.push({
+                            title: event.description,
+                            start: event.date + 'T' + event.start_time,
+                            end: event.date + 'T' + event.end_time,
+                        });
+                    });
+                    console.log("Events to be rendered:", events);
+                    initializeCalendar(events);
+                } else {
+                    $('#userSchedule').html('<p>Error loading schedules: ' + response.error +
+                        '</p>');
                 }
-            });
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("AJAX error:", textStatus, errorThrown);
+                $('#userSchedule').html('<p>Error loading schedules. Please try again later.</p>');
+            }
         });
-
-        // Scheduling System
-        function loadUserSchedule() {
-            $.ajax({
-                url: 'includes/get_user_schedule.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    console.log("AJAX response:", response);
-                    if (response.success) {
-                        var events = [];
-                        // Add user schedules to events
-                        response.user_schedules.forEach(function(event) {
-                            events.push({
-                                title: event.description,
-                                start: event.date + 'T' + event.start_time,
-                                end: event.date + 'T' + event.end_time,
-                            });
-                        });
-                        // Add defense schedules to events
-                        response.defense_schedules.forEach(function(event) {
-                            events.push({
-                                title: event.description,
-                                start: event.date + 'T' + event.start_time,
-                                end: event.date + 'T' + event.end_time,
-                            });
-                        });
-                        console.log("Events to be rendered:", events);
-                        initializeCalendar(events);
-                    } else {
-                        $('#userSchedule').html('<p>Error loading schedules: ' + response.error + '</p>');
-                    }
-                },
-                error: function(jqXHR, textStatus, errorThrown) {
-                    console.error("AJAX error:", textStatus, errorThrown);
-                    $('#userSchedule').html('<p>Error loading schedules. Please try again later.</p>');
-                }
-            });
-        }
-
-        function initializeCalendar(events) {
-            var calendarEl = document.getElementById('calendar');
-
-            var calendar = new FullCalendar.Calendar(calendarEl, {
-                initialView: 'dayGridMonth',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay'
-                },
-                height: 'auto', // or set a specific height like '600px'
-                events: events, // Use the dynamically loaded events
-                eventClick: function(info) {
-                    alert('Event: ' + info.event.title);
-                }
-            });
-            calendar.render();
-        }
-
-    });
-
-
-
-    const calendarEl = document.getElementById('calendar');
-
-    // Function to get the next date for a given day of the week
-    function getNextDateForDay(day) {
-        const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
-        const today = new Date();
-        const targetDayIndex = daysOfWeek.indexOf(day);
-        if (targetDayIndex === -1) {
-            return day; // Return original if invalid day
-        }
-        const resultDate = new Date(today);
-        resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
-        return resultDate.toISOString().split('T')[0];
     }
 
+    function initializeCalendar(events) {
+        var calendarEl = document.getElementById('calendar');
 
-    /**
-     * Function to redirect to decision-support with the team_id as a POST value.
-     * @param {number} teamId - The ID of the team to send via POST.
-     */
-    function redirectToDecisionSupport(scheduleId, groupId) {
-        if (!scheduleId || !groupId) {
-            console.error('Missing scheduleId or groupId for redirection.');
-            alert('Error: Cannot navigate to evaluation page. Missing information.');
-            return;
-        }
-        // Construct the URL with both parameters
-        const url = `../decision-support/index.php?schedule_id=${scheduleId}&group_id=${groupId}`;
-        console.log(`Redirecting to: ${url}`);
-        window.location.href = url;
+        var calendar = new FullCalendar.Calendar(calendarEl, {
+            initialView: 'dayGridMonth',
+            headerToolbar: {
+                left: 'prev,next today',
+                center: 'title',
+                right: 'dayGridMonth,timeGridWeek,timeGridDay'
+            },
+            height: 'auto', // or set a specific height like '600px'
+            events: events, // Use the dynamically loaded events
+            eventClick: function(info) {
+                alert('Event: ' + info.event.title);
+            }
+        });
+        calendar.render();
     }
 
-    // Defense Approval Modal System
-    $(document).ready(function() {
-        // Check for pending defense approvals on page load
-        checkPendingApprovals();
-        
-        function checkPendingApprovals() {
-            $.ajax({
-                url: '../assets/includes/get_pending_approvals.php',
-                method: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success && response.pendingApprovals.length > 0) {
-                        // Show modal for the first pending approval
-                        showApprovalModal(response.pendingApprovals[0]);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error checking pending approvals:', error);
+});
+
+
+
+const calendarEl = document.getElementById('calendar');
+
+// Function to get the next date for a given day of the week
+function getNextDateForDay(day) {
+    const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+    const today = new Date();
+    const targetDayIndex = daysOfWeek.indexOf(day);
+    if (targetDayIndex === -1) {
+        return day; // Return original if invalid day
+    }
+    const resultDate = new Date(today);
+    resultDate.setDate(today.getDate() + ((7 + targetDayIndex - today.getDay()) % 7));
+    return resultDate.toISOString().split('T')[0];
+}
+
+
+/**
+ * Function to redirect to decision-support with the team_id as a POST value.
+ * @param {number} teamId - The ID of the team to send via POST.
+ */
+function redirectToDecisionSupport(scheduleId, groupId) {
+    if (!scheduleId || !groupId) {
+        console.error('Missing scheduleId or groupId for redirection.');
+        alert('Error: Cannot navigate to evaluation page. Missing information.');
+        return;
+    }
+    // Construct the URL with both parameters
+    const url = `../decision-support/index.php?schedule_id=${scheduleId}&group_id=${groupId}`;
+    console.log(`Redirecting to: ${url}`);
+    window.location.href = url;
+}
+
+// Defense Approval Modal System
+$(document).ready(function() {
+    // Check for pending defense approvals on page load
+    checkPendingApprovals();
+
+    function checkPendingApprovals() {
+        $.ajax({
+            url: '../assets/includes/get_pending_approvals.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.pendingApprovals.length > 0) {
+                    // Show modal for the first pending approval
+                    showApprovalModal(response.pendingApprovals[0]);
                 }
-            });
-        }
-        
-        function showApprovalModal(approval) {
-            const modalBody = `
+            },
+            error: function(xhr, status, error) {
+                console.error('Error checking pending approvals:', error);
+            }
+        });
+    }
+
+    function showApprovalModal(approval) {
+        const modalBody = `
                 <div class="alert alert-info border-0 mb-4">
                     <div class="d-flex align-items-center">
                         <i class="bi bi-info-circle-fill me-2 fs-5"></i>
@@ -2041,20 +2136,20 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     </button>
                 </div>
             `;
-            
-            $('#approvalModalBody').html(modalBody);
-            $('#defenseApprovalModal').modal('show');
-        }
-        
-        // Global function for handling approval responses
-        window.respondToApproval = function(action, scheduleId) {
-            const reason = $('#rejectionReason').val().trim();
-            const actionText = action === 'approve' ? 'accepting' : 'declining';
-            
-            // Show loading state
-            const modalBody = $('#approvalModalBody');
-            const originalContent = modalBody.html();
-            modalBody.html(`
+
+        $('#approvalModalBody').html(modalBody);
+        $('#defenseApprovalModal').modal('show');
+    }
+
+    // Global function for handling approval responses
+    window.respondToApproval = function(action, scheduleId) {
+        const reason = $('#rejectionReason').val().trim();
+        const actionText = action === 'approve' ? 'accepting' : 'declining';
+
+        // Show loading state
+        const modalBody = $('#approvalModalBody');
+        const originalContent = modalBody.html();
+        modalBody.html(`
                 <div class="text-center py-4">
                     <div class="spinner-border text-primary mb-3" role="status">
                         <span class="visually-hidden">Processing...</span>
@@ -2062,20 +2157,20 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                     <p>Processing your response...</p>
                 </div>
             `);
-            
-            $.ajax({
-                url: '../assets/includes/handle_defense_approval.php',
-                method: 'POST',
-                data: {
-                    action: action,
-                    schedule_id: scheduleId,
-                    rejection_reason: reason
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        // Show success message
-                        modalBody.html(`
+
+        $.ajax({
+            url: '../assets/includes/handle_defense_approval.php',
+            method: 'POST',
+            data: {
+                action: action,
+                schedule_id: scheduleId,
+                rejection_reason: reason
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    // Show success message
+                    modalBody.html(`
                             <div class="text-center py-4">
                                 <div class="text-success mb-3">
                                     <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
@@ -2084,16 +2179,16 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 <p class="mb-0">${response.message}</p>
                             </div>
                         `);
-                        
-                        // Close modal after 3 seconds and check for more approvals
-                        setTimeout(function() {
-                            $('#defenseApprovalModal').modal('hide');
-                            checkPendingApprovals(); // Check for more pending approvals
-                        }, 3000);
-                        
-                    } else {
-                        // Show error message with retry option
-                        modalBody.html(`
+
+                    // Close modal after 3 seconds and check for more approvals
+                    setTimeout(function() {
+                        $('#defenseApprovalModal').modal('hide');
+                        checkPendingApprovals(); // Check for more pending approvals
+                    }, 3000);
+
+                } else {
+                    // Show error message with retry option
+                    modalBody.html(`
                             <div class="text-center py-4">
                                 <div class="text-danger mb-3">
                                     <i class="bi bi-exclamation-circle-fill" style="font-size: 3rem;"></i>
@@ -2105,11 +2200,11 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                                 </button>
                             </div>
                         `);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error processing approval:', error);
-                    modalBody.html(`
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error processing approval:', error);
+                modalBody.html(`
                         <div class="text-center py-4">
                             <div class="text-danger mb-3">
                                 <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
@@ -2121,10 +2216,11 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
                             </button>
                         </div>
                     `);
-                }
-            });
-        };
-    });
+            }
+        });
+    };
+});
 </script>
 </body>
+
 </html>
