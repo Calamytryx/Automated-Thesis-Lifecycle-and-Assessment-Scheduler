@@ -1671,6 +1671,13 @@ $(document).ready(function() {
             URL.revokeObjectURL(url);
         });
 
+    // NEW: Bulk Add Students functionality
+        $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add User button clicked');
+            $('#bulkAddModal').modal('show');
+        });
+    
     // NEW: Bulk Add Teams functionality
     $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
         e.preventDefault();

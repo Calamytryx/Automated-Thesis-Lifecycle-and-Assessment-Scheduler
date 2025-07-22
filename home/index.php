@@ -1818,7 +1818,7 @@ $(document).ready(function() {
                     var displayHtml = '<div class="row">';
                     response.requirements.forEach(function(req) {
                         <?php if ($role === 'leader' || $role === 'member') { ?>
-                        displayHtml += `
+                            displayHtml += `
                                 <div class="col-md-6 mb-4 requirement-student-wrapper">
                                     <div class="card requirement-student-card h-100 rounded" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
                                         <div class="card-body requirement-student-body rct-cbody">
@@ -1827,10 +1827,12 @@ $(document).ready(function() {
                                             <p class="card-text requirement-student-due-date"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
                                             <p class="card-text requirement-student-status"><strong>Status:</strong> ${req.status}</p>
                                             <p class="card-text requirement-student-feedback"><strong>Feedback:</strong> ${req.feedback}</p>
-                                        <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
-                                                <a href="../dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
-                                            </div>
-                                            </div>
+                                            ${req.template_file ? `
+                                                <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
+                                                    <a href="../dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
+                                                </div>
+                                            ` : ''}
+                                        </div>
                                         
                                         <div class="card-footer requirement-student-feedback-footer">
                                             ${req.feedback_file ? 

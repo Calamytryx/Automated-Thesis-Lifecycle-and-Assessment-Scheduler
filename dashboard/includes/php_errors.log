@@ -1617,3 +1617,482 @@ Stack trace:
 [21-Jul-2025 00:48:58 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
 [21-Jul-2025 00:48:58 Asia/Manila] Defense schedule notifications created for schedule ID: 54, Team: CRAMS
 [21-Jul-2025 00:48:58 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[21-Jul-2025 14:15:58 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 1
+    [timeSlots] => Array
+        (
+            [0] => 07:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+        )
+
+    [program] => BSCS
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 14:15:58 Asia/Manila] Found 0 teams with existing schedules
+[21-Jul-2025 14:15:58 Asia/Manila] Fetched 0 teams for programs: BSCS
+[21-Jul-2025 14:15:59 Asia/Manila] ERROR IN SCHEDULER: No teams or panelists available for scheduling
+[21-Jul-2025 14:15:59 Asia/Manila] ERROR LOCATION: D:\xampp\htdocs\dashboard\includes\run_scheduler.php line 84
+[21-Jul-2025 14:15:59 Asia/Manila] STACK TRACE: 
+#0 {main}
+[21-Jul-2025 14:18:07 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 1
+    [timeSlots] => Array
+        (
+            [0] => 07:00
+            [1] => 08:00
+            [2] => 09:00
+            [3] => 10:00
+            [4] => 11:00
+            [5] => 12:00
+            [6] => 13:00
+            [7] => 14:00
+            [8] => 15:00
+            [9] => 16:00
+            [10] => 17:00
+            [11] => 18:00
+            [12] => 19:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 14:18:07 Asia/Manila] Found 0 teams with existing schedules
+[21-Jul-2025 14:18:07 Asia/Manila] Fetched 7 teams for programs: Bachelor of Science in Information Technology with specialization in Web and Mobile Technology
+[21-Jul-2025 14:18:07 Asia/Manila] Generation 0 completed. Best fitness: -175. Elapsed time: 0.048144817352295 seconds
+[21-Jul-2025 14:18:08 Asia/Manila] Generation 20 completed. Best fitness: -175. Elapsed time: 1.6160259246826 seconds
+[21-Jul-2025 14:18:10 Asia/Manila] Generation 40 completed. Best fitness: -175. Elapsed time: 3.0605938434601 seconds
+[21-Jul-2025 14:18:11 Asia/Manila] Generation 60 completed. Best fitness: -175. Elapsed time: 4.5153739452362 seconds
+[21-Jul-2025 14:18:13 Asia/Manila] Generation 80 completed. Best fitness: -175. Elapsed time: 5.9230909347534 seconds
+[21-Jul-2025 14:18:14 Asia/Manila] Generation 100 completed. Best fitness: -175. Elapsed time: 7.3587279319763 seconds
+[21-Jul-2025 14:18:16 Asia/Manila] Generation 120 completed. Best fitness: -175. Elapsed time: 8.7935318946838 seconds
+[21-Jul-2025 14:18:17 Asia/Manila] Generation 140 completed. Best fitness: -175. Elapsed time: 10.185377836227 seconds
+[21-Jul-2025 14:18:18 Asia/Manila] Generation 160 completed. Best fitness: -175. Elapsed time: 11.582944869995 seconds
+[21-Jul-2025 14:18:20 Asia/Manila] Generation 180 completed. Best fitness: -175. Elapsed time: 12.953912973404 seconds
+[21-Jul-2025 14:18:21 Asia/Manila] Generation 200 completed. Best fitness: -175. Elapsed time: 14.329154968262 seconds
+[21-Jul-2025 14:18:22 Asia/Manila] Generation 220 completed. Best fitness: -175. Elapsed time: 15.696906805038 seconds
+[21-Jul-2025 14:18:24 Asia/Manila] Generation 240 completed. Best fitness: -175. Elapsed time: 17.066157817841 seconds
+[21-Jul-2025 14:18:25 Asia/Manila] Generation 260 completed. Best fitness: -175. Elapsed time: 18.452032804489 seconds
+[21-Jul-2025 14:18:27 Asia/Manila] Generation 280 completed. Best fitness: -175. Elapsed time: 19.823083877563 seconds
+[21-Jul-2025 14:18:28 Asia/Manila] Generation 300 completed. Best fitness: -175. Elapsed time: 21.175071001053 seconds
+[21-Jul-2025 14:18:29 Asia/Manila] Generation 320 completed. Best fitness: -175. Elapsed time: 22.53352689743 seconds
+[21-Jul-2025 14:18:31 Asia/Manila] Generation 340 completed. Best fitness: -175. Elapsed time: 23.897594928741 seconds
+[21-Jul-2025 14:18:32 Asia/Manila] Generation 360 completed. Best fitness: -175. Elapsed time: 25.241778850555 seconds
+[21-Jul-2025 14:18:33 Asia/Manila] Generation 380 completed. Best fitness: -175. Elapsed time: 26.600862979889 seconds
+[21-Jul-2025 14:18:35 Asia/Manila] Generation 400 completed. Best fitness: -175. Elapsed time: 27.952378034592 seconds
+[21-Jul-2025 14:18:36 Asia/Manila] Generation 420 completed. Best fitness: -175. Elapsed time: 29.288022994995 seconds
+[21-Jul-2025 14:18:37 Asia/Manila] Generation 440 completed. Best fitness: -175. Elapsed time: 30.627681970596 seconds
+[21-Jul-2025 14:18:39 Asia/Manila] Generation 460 completed. Best fitness: -175. Elapsed time: 31.958714008331 seconds
+[21-Jul-2025 14:18:40 Asia/Manila] Generation 480 completed. Best fitness: -175. Elapsed time: 33.294009923935 seconds
+[21-Jul-2025 14:18:41 Asia/Manila] Genetic algorithm completed in 34.586628913879 seconds
+[21-Jul-2025 14:18:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 55, team: 28
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Defense approval notifications created for schedule ID: 55
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 56, team: 31
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Defense approval notifications created for schedule ID: 56
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 57, team: 29
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Defense approval notifications created for schedule ID: 57
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 58, team: 26
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Defense approval notifications created for schedule ID: 58
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 59, team: 30
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Defense approval notifications created for schedule ID: 59
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 60, team: 27
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Defense approval notifications created for schedule ID: 60
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 14:18:42 Asia/Manila] Missing teams detected: 32
+[21-Jul-2025 14:18:42 Asia/Manila] Creating fallback schedule for team ID: 32
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 14:18:42 Asia/Manila] Defense schedule notifications created for schedule ID: 61, Team: CRAMS
+[21-Jul-2025 14:18:42 Asia/Manila] Teams scheduled: 7 out of 7 expected
+[21-Jul-2025 17:14:40 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 19:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 17:14:40 Asia/Manila] Found 0 teams with existing schedules
+[21-Jul-2025 17:14:40 Asia/Manila] Fetched 1 teams for programs: Bachelor of Science in Information Technology - Web and Mobile Technology
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 0 completed. Best fitness: 60. Elapsed time: 0.00262212753296 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 20 completed. Best fitness: 60. Elapsed time: 0.069286108017 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 40 completed. Best fitness: 60. Elapsed time: 0.130908966064 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 60 completed. Best fitness: 60. Elapsed time: 0.177566051483 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 80 completed. Best fitness: 60. Elapsed time: 0.218384981155 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 100 completed. Best fitness: 60. Elapsed time: 0.26845908165 seconds
+[21-Jul-2025 17:14:40 Asia/Manila] Generation 120 completed. Best fitness: 60. Elapsed time: 0.312827110291 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 140 completed. Best fitness: 60. Elapsed time: 0.355926990509 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 160 completed. Best fitness: 60. Elapsed time: 0.401353120804 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 180 completed. Best fitness: 60. Elapsed time: 0.445661067963 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 200 completed. Best fitness: 60. Elapsed time: 0.494223117828 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 220 completed. Best fitness: 60. Elapsed time: 0.539521932602 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 240 completed. Best fitness: 60. Elapsed time: 0.583806037903 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 260 completed. Best fitness: 60. Elapsed time: 0.641645908356 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 280 completed. Best fitness: 60. Elapsed time: 0.688630104065 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 300 completed. Best fitness: 60. Elapsed time: 0.754230976105 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 320 completed. Best fitness: 60. Elapsed time: 0.802177906036 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 340 completed. Best fitness: 60. Elapsed time: 0.850394010544 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 360 completed. Best fitness: 60. Elapsed time: 0.892534017563 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 380 completed. Best fitness: 60. Elapsed time: 0.942459106445 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 400 completed. Best fitness: 60. Elapsed time: 0.986498117447 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 420 completed. Best fitness: 60. Elapsed time: 1.03192400932 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 440 completed. Best fitness: 60. Elapsed time: 1.07366108894 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 460 completed. Best fitness: 60. Elapsed time: 1.11823892593 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Generation 480 completed. Best fitness: 60. Elapsed time: 1.16085410118 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] Genetic algorithm completed in 1.20977497101 seconds
+[21-Jul-2025 17:14:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 2, team: 1
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] Defense approval notifications created for schedule ID: 2
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] Error creating notification: SQLSTATE[23000]: Integrity constraint violation: 1062 Duplicate entry '0' for key 'PRIMARY'
+[21-Jul-2025 17:14:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[21-Jul-2025 17:14:41 Asia/Manila] Teams scheduled: 1 out of 1 expected
+[21-Jul-2025 21:17:54 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+            [2] => 19:00
+            [3] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:17:54 Asia/Manila] Found 1 teams with existing schedules
+[21-Jul-2025 21:19:52 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+            [2] => 19:00
+            [3] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:19:52 Asia/Manila] Found 1 teams with existing schedules
+[21-Jul-2025 21:19:55 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+            [2] => 19:00
+            [3] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:19:55 Asia/Manila] Found 1 teams with existing schedules
+[21-Jul-2025 21:20:01 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+            [2] => 19:00
+            [3] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:20:01 Asia/Manila] Found 1 teams with existing schedules
+[21-Jul-2025 21:20:18 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+            [2] => 19:00
+            [3] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:20:18 Asia/Manila] Found 1 teams with existing schedules
+[21-Jul-2025 21:20:35 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => L203
+        )
+
+    [timeDuration] => 0.5
+    [timeSlots] => Array
+        (
+            [0] => 18:00
+            [1] => 18:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-21-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[21-Jul-2025 21:20:35 Asia/Manila] Found 1 teams with existing schedules
+[22-Jul-2025 16:44:56 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => l
+        )
+
+    [timeDuration] => 0.25
+    [timeSlots] => Array
+        (
+            [0] => 07:00
+            [1] => 07:30
+            [2] => 08:00
+            [3] => 08:30
+            [4] => 09:00
+            [5] => 09:30
+            [6] => 10:00
+            [7] => 10:30
+            [8] => 11:00
+            [9] => 11:30
+            [10] => 12:00
+            [11] => 12:30
+            [12] => 13:00
+            [13] => 13:30
+            [14] => 14:00
+            [15] => 14:30
+            [16] => 15:00
+            [17] => 15:30
+            [18] => 16:00
+            [19] => 16:30
+            [20] => 17:00
+            [21] => 17:30
+            [22] => 18:00
+            [23] => 18:30
+            [24] => 19:00
+            [25] => 19:30
+        )
+
+    [days] => Array
+        (
+            [0] => 07-22-2025
+        )
+
+    [program] => BS Marketing Management
+    [confirm_overwrite] => false
+)
+
+[22-Jul-2025 16:44:56 Asia/Manila] Found 0 teams with existing schedules
+[22-Jul-2025 16:44:56 Asia/Manila] Fetched 8 teams for programs: BS Marketing Management
+[22-Jul-2025 16:44:57 Asia/Manila] Generation 0 completed. Best fitness: 90. Elapsed time: 0.075994968414307 seconds
+[22-Jul-2025 16:44:59 Asia/Manila] Generation 20 completed. Best fitness: 240. Elapsed time: 2.0761239528656 seconds
+[22-Jul-2025 16:45:01 Asia/Manila] Generation 40 completed. Best fitness: 280. Elapsed time: 3.9319880008698 seconds
+[22-Jul-2025 16:45:02 Asia/Manila] Generation 60 completed. Best fitness: 300. Elapsed time: 5.7286789417267 seconds
+[22-Jul-2025 16:45:04 Asia/Manila] Generation 80 completed. Best fitness: 300. Elapsed time: 7.4901459217072 seconds
+[22-Jul-2025 16:45:06 Asia/Manila] Generation 100 completed. Best fitness: 300. Elapsed time: 9.2537050247192 seconds
+[22-Jul-2025 16:45:08 Asia/Manila] Generation 120 completed. Best fitness: 300. Elapsed time: 11.038198947906 seconds
+[22-Jul-2025 16:45:09 Asia/Manila] Generation 140 completed. Best fitness: 300. Elapsed time: 12.804565906525 seconds
+[22-Jul-2025 16:45:11 Asia/Manila] Generation 160 completed. Best fitness: 300. Elapsed time: 14.567077875137 seconds
+[22-Jul-2025 16:45:13 Asia/Manila] Generation 180 completed. Best fitness: 320. Elapsed time: 16.335188865662 seconds
+[22-Jul-2025 16:45:15 Asia/Manila] Generation 200 completed. Best fitness: 320. Elapsed time: 18.085850954056 seconds
+[22-Jul-2025 16:45:16 Asia/Manila] Generation 220 completed. Best fitness: 320. Elapsed time: 19.847114086151 seconds
+[22-Jul-2025 16:45:18 Asia/Manila] Generation 240 completed. Best fitness: 320. Elapsed time: 21.610931873322 seconds
+[22-Jul-2025 16:45:20 Asia/Manila] Generation 260 completed. Best fitness: 320. Elapsed time: 23.380930900574 seconds
+[22-Jul-2025 16:45:22 Asia/Manila] Generation 280 completed. Best fitness: 320. Elapsed time: 25.145959854126 seconds
+[22-Jul-2025 16:45:24 Asia/Manila] Generation 300 completed. Best fitness: 320. Elapsed time: 26.90261387825 seconds
+[22-Jul-2025 16:45:25 Asia/Manila] Generation 320 completed. Best fitness: 320. Elapsed time: 28.660872936249 seconds
+[22-Jul-2025 16:45:27 Asia/Manila] Generation 340 completed. Best fitness: 320. Elapsed time: 30.419167995453 seconds
+[22-Jul-2025 16:45:29 Asia/Manila] Generation 360 completed. Best fitness: 320. Elapsed time: 32.193572998047 seconds
+[22-Jul-2025 16:45:31 Asia/Manila] Generation 380 completed. Best fitness: 320. Elapsed time: 33.97438788414 seconds
+[22-Jul-2025 16:45:32 Asia/Manila] Generation 400 completed. Best fitness: 320. Elapsed time: 35.721829891205 seconds
+[22-Jul-2025 16:45:34 Asia/Manila] Generation 420 completed. Best fitness: 320. Elapsed time: 37.487880945206 seconds
+[22-Jul-2025 16:45:36 Asia/Manila] Generation 440 completed. Best fitness: 320. Elapsed time: 39.259998083115 seconds
+[22-Jul-2025 16:45:38 Asia/Manila] Generation 460 completed. Best fitness: 320. Elapsed time: 41.037544965744 seconds
+[22-Jul-2025 16:45:39 Asia/Manila] Generation 480 completed. Best fitness: 320. Elapsed time: 42.814781904221 seconds
+[22-Jul-2025 16:45:41 Asia/Manila] Genetic algorithm completed in 44.499186038971 seconds
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 8, team: 33
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 8
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 9, team: 34
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 9
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 10, team: 36
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 10
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 11, team: 38
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 11
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 12, team: 35
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 12
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 13, team: 37
+[22-Jul-2025 16:45:41 Asia/Manila] Defense approval notifications created for schedule ID: 13
+[22-Jul-2025 16:45:41 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:42 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 14, team: 39
+[22-Jul-2025 16:45:42 Asia/Manila] Defense approval notifications created for schedule ID: 14
+[22-Jul-2025 16:45:42 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[22-Jul-2025 16:45:42 Asia/Manila] Missing teams detected: 40
+[22-Jul-2025 16:45:42 Asia/Manila] Creating fallback schedule for team ID: 40
+[22-Jul-2025 16:45:42 Asia/Manila] Defense schedule notifications created for schedule ID: 15, Team: team 2 MM305
+[22-Jul-2025 16:45:42 Asia/Manila] Teams scheduled: 8 out of 8 expected
