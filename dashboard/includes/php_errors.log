@@ -2096,3 +2096,81 @@ Stack trace:
 [22-Jul-2025 16:45:42 Asia/Manila] Creating fallback schedule for team ID: 40
 [22-Jul-2025 16:45:42 Asia/Manila] Defense schedule notifications created for schedule ID: 15, Team: team 2 MM305
 [22-Jul-2025 16:45:42 Asia/Manila] Teams scheduled: 8 out of 8 expected
+[23-Jul-2025 09:38:45 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 1
+    [timeSlots] => Array
+        (
+            [0] => 17:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-23-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[23-Jul-2025 09:38:46 Asia/Manila] Found 1 teams with existing schedules
+[23-Jul-2025 09:38:47 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+        )
+
+    [timeDuration] => 1
+    [timeSlots] => Array
+        (
+            [0] => 17:00
+        )
+
+    [days] => Array
+        (
+            [0] => 07-23-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => true
+)
+
+[23-Jul-2025 09:38:47 Asia/Manila] Found 1 teams with existing schedules
+[23-Jul-2025 09:38:47 Asia/Manila] Fetched 1 teams for programs: Bachelor of Science in Information Technology - Web and Mobile Technology
+[23-Jul-2025 09:38:47 Asia/Manila] Removed schedules for 1 teams
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 0 completed. Best fitness: 60. Elapsed time: 0.0049118995666504 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 20 completed. Best fitness: 60. Elapsed time: 0.083568096160889 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 40 completed. Best fitness: 60. Elapsed time: 0.134192943573 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 60 completed. Best fitness: 60. Elapsed time: 0.17891597747803 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 80 completed. Best fitness: 60. Elapsed time: 0.22451996803284 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 100 completed. Best fitness: 60. Elapsed time: 0.27233409881592 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 120 completed. Best fitness: 60. Elapsed time: 0.32289505004883 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 140 completed. Best fitness: 60. Elapsed time: 0.37371706962585 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 160 completed. Best fitness: 60. Elapsed time: 0.41643810272217 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 180 completed. Best fitness: 60. Elapsed time: 0.45604395866394 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 200 completed. Best fitness: 60. Elapsed time: 0.50224804878235 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 220 completed. Best fitness: 60. Elapsed time: 0.54546594619751 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 240 completed. Best fitness: 60. Elapsed time: 0.58543395996094 seconds
+[23-Jul-2025 09:38:47 Asia/Manila] Generation 260 completed. Best fitness: 60. Elapsed time: 0.62642908096313 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 280 completed. Best fitness: 60. Elapsed time: 0.66556811332703 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 300 completed. Best fitness: 60. Elapsed time: 0.70302391052246 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 320 completed. Best fitness: 60. Elapsed time: 0.74662590026855 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 340 completed. Best fitness: 60. Elapsed time: 0.78823590278625 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 360 completed. Best fitness: 60. Elapsed time: 0.83001899719238 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 380 completed. Best fitness: 60. Elapsed time: 0.87025189399719 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 400 completed. Best fitness: 60. Elapsed time: 0.90954899787903 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 420 completed. Best fitness: 60. Elapsed time: 0.95282006263733 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 440 completed. Best fitness: 60. Elapsed time: 0.99172401428223 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 460 completed. Best fitness: 60. Elapsed time: 1.034560918808 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Generation 480 completed. Best fitness: 60. Elapsed time: 1.0735569000244 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] Genetic algorithm completed in 1.1138999462128 seconds
+[23-Jul-2025 09:38:48 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 6, team: 1
+[23-Jul-2025 09:38:48 Asia/Manila] Defense approval notifications created for schedule ID: 6
+[23-Jul-2025 09:38:48 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[23-Jul-2025 09:38:48 Asia/Manila] Teams scheduled: 1 out of 1 expected

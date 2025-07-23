@@ -63,8 +63,11 @@ $rest_of_name = substr($app_name, 1);
                     </div>
 
                     <div class="form-group">
-                        <label for="email" >Email address</label>
-                        <input type="email" id="email" name="email" class="form-control" placeholder="Email address" required>
+                        <label for="email">Email address</label>
+                        <div class="input-group">
+                            <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required>
+                            <span class="input-group-text">@lpu.edu.ph</span>
+                        </div>
                         <sub class="text-danger">
                             <?php
                             if (isset($_SESSION['ERRORS']['emailerror']))
