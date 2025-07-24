@@ -53,10 +53,10 @@
 .btn-primary:hover{
     background-color: var(--main-accent);
 }
-.text-end a {
+/* .text-end a {
     font-size: 1rem;
     color: var(--primary-400);
-}
+} */
 .text-1{
     color: var(--primary-color);
 }
@@ -77,7 +77,7 @@
 }
 
 .login-wrapper {
-    background-image: url('../assets/images/login-bg2.png');
+    background-image: url('../assets/images/login-bg.webp');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;

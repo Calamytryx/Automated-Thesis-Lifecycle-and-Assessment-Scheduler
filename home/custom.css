@@ -2,6 +2,35 @@ html,
 body {
     overflow-x: hidden;
     /* Prevent scroll on narrow devices */
+    height: 100%;
+}
+
+body {
+    --navbar-height: 56px; /* Navbar assumed height */
+}
+
+main.container-fluid {
+    height: calc(100vh - var(--navbar-height));
+    min-height: calc(100vh - var(--navbar-height));
+    display: flex;
+    flex-direction: column;
+}
+
+.row {
+    height: 100%;
+    min-height: 100%;
+}
+
+.col-sm-12, .col-sm-3 {
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+#homeSidebarContainer, #homeMainContent {
+    height: 100%;
+    min-height: 100%;
 }
 
 .text-white-50 {
@@ -102,15 +131,24 @@ body {
 /* Home Sidebar Container */
 #homeSidebarContainer {
     position: relative;
-    width: 250px; 
-    height: 100vh;
+    width: 250px;
+    height: 100%;
+    min-height: 0;
+    max-height: 100%;
     overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
     transition: all 0.3s ease;
     background-color: var(--main-white, #f8f8f8);
     border-right: 1px solid var(--neutral-300, #c9c5bf);
     padding: 0;
     display: flex;
     flex-direction: column;
+    scrollbar-width: none; /* Firefox */
+    -ms-overflow-style: none; /* IE 10+ */
+}
+
+#homeSidebarContainer::-webkit-scrollbar {
+    display: none;
 }
 
 #homeSidebarContainer.collapsed {
@@ -130,15 +168,16 @@ body {
 
 /* Main Content Area */
 #homeMainContent {
-    flex: 1;
+    flex: 1 1 0;
     transition: all 0.3s ease;
     margin-left: 0;
-    padding: 1rem 2rem; 
+    padding: 2rem 5rem;
     width: calc(100% - 250px);
-    height: 100vh;
-    overflow-y: auto; 
-    position: relative; 
-    background-color: var(--neutral-100, #e6e4e2); 
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    position: relative;
+    background-color: var(--neutral-100, #e6e4e2);
     scrollbar-width: none; /* Firefox */
     -ms-overflow-style: none; /* Internet Explorer 10+ */
 }
@@ -170,6 +209,11 @@ body {
     padding: 15px 0 !important;
     width: 100%;
     min-height: 60px; 
+}
+
+/* Hide the user type pill when sidebar is collapsed */
+#homeSidebarContainer.collapsed .home-sidebar-role-pill {
+    display: none !important;
 }
 
 /* Toggle Button */
@@ -238,7 +282,7 @@ body {
 /* Sidebar Navigation */ 
 .home-sidebar {
     flex: 1;
-    overflow-y: auto;
+    /* overflow-y: auto; */
     /* padding: 4px 0; */
 }
 
@@ -305,7 +349,7 @@ body {
 }
 
 .home-sidebar-nav .nav-link.active {
-    background-color: var(--main-white, #f8f8f8);
+    background-color: var(--white-600, #e2e2e2);
     font-weight: 600;
     border-radius: 0;
     color: var(--main-black, #2f2f31);
@@ -356,6 +400,7 @@ body {
     border-radius: 6px;
     background-color: var(--white-50);
     margin-bottom: 1rem;
+    box-shadow: 0px 2px 5px rgb(22 22 22 / 15%);
 }
 
 /* Responsive fix for requirements section */
@@ -639,6 +684,29 @@ body.has-collapsed-home-sidebar #homeMainContent {
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis; 
+}
+
+.home-sidebar-role-pill {
+    font-size: 0.75rem;
+    font-weight: 500;
+    background: var(--main-bg-light);
+    border-radius: 12px;
+    padding: 2px 12px;
+    margin-left: 8px;
+    display: inline-block;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.08);
+    border: 1px solid;
+    transition: opacity 0.2s;
+}
+.home-sidebar-role-pill.role-prof {
+    color: #47380B;
+    background: #ffc107;
+    border-color: #ffc107;
+}
+.home-sidebar-role-pill.role-student {
+    color: #DBE2DB;
+    background: #116C06;
+    border-color: #116C06;
 }
 
 .logout-btn {

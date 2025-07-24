@@ -367,7 +367,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="col-sm-12"> 
             <?php if ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
-                        <div class="sidebar-header d-flex justify-content-end align-items-center">
+                        <div class="sidebar-header d-flex justify-content-between align-items-center">
+                            <div class="text-end d-flex align-items-center justify-content-end">
+                                <?php if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
+                                    <span class="user-role m-0 sidebar-role-pill role-admin">Administrator</span>
+                                <?php endif; ?> 
+                            </div>
                             <button id="toggleSidebar" class="btn btn-link">
                                 <i class="bi bi-chevron-left"></i>
                             </button>
@@ -379,7 +384,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <span class="category-text">Dashboard</span>
                                 </div>
                                 <div class="sidebar-items">
-                                    <a class="nav-link active my-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                    <a class="nav-link active mt-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
                                         <i class="bi bi-house me-2 hollow"></i>
                                         <i class="bi bi-house-fill me-2 filled"></i>
                                         Overview
@@ -494,13 +499,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <?php else: ?>
                                     <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
                                 <?php endif; ?>
-                                
                                 <div class="user-info">
                                     <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
                                     <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
                                 </div>
                             </a>
-                            
                             <a href="../logout/" class="logout-btn" title="Logout">
                                 <i class="bi bi-power"></i>
                             </a>

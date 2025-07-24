@@ -496,10 +496,25 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="col-sm-12">
             <div class="row g-0" style="height: 100vh; overflow: hidden;">
                 <div id="homeSidebarContainer">
-                    <div class="home-sidebar-header d-flex justify-content-end align-items-center">
-                        <!-- <div class="home-sidebar-title">
-                    <h5 class="mb-0">Navigation</h5>
-                </div> -->
+                    <div class="home-sidebar-header d-flex justify-content-between align-items-center">
+                        <div class="text-end d-flex align-items-center justify-content-end">
+                            <?php
+                                $roleText = '';
+                                $roleClass = '';
+                                if (isset($_SESSION['usertype'])) {
+                                    if ($_SESSION['usertype'] == 1) {
+                                        $roleText = 'Student';
+                                        $roleClass = 'role-student';
+                                    } elseif ($_SESSION['usertype'] == 2) {
+                                        $roleText = 'Professor';
+                                        $roleClass = 'role-prof';
+                                    }
+                                }
+                            ?>
+                            <?php if ($roleText): ?>
+                            <span class="user-role m-0 home-sidebar-role-pill <?php echo $roleClass; ?>"><?php echo $roleText; ?></span>
+                            <?php endif; ?>
+                        </div>
                         <button id="toggleHomeSidebar" class="btn btn-link">
                             <i class="bi bi-chevron-left"></i>
                         </button>
@@ -514,7 +529,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     Overview
                                 </div>
                                 <div class="home-sidebar-items">
-                                    <a class="nav-link active my-1" id="overview-link" data-bs-toggle="pill"
+                                    <a class="nav-link active mt-1" id="overview-link" data-bs-toggle="pill"
                                         href="#overview" role="tab" aria-controls="overview" aria-selected="true">
                                         <i class="bi bi-house me-2 hollow"></i>
                                         <i class="bi bi-house-fill me-2 filled"></i>
@@ -529,14 +544,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                     Research Management
                                 </div>
                                 <div class="home-sidebar-items">
-                                    <a class="nav-link my-1" id="thesis-topic-link" data-bs-toggle="pill"
+                                    <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" 
                                         href="#thesis-topic" role="tab" aria-controls="thesis-topic"
                                         aria-selected="true">
                                         <i class="bi bi-lightbulb me-2 hollow"></i>
                                         <i class="bi bi-lightbulb-fill me-2 filled"></i>
                                         <span class="nav-text">Thesis Topic Decision</span>
                                     </a>
-                                    <a class="nav-link my-1" id="research-title-link" data-bs-toggle="pill"
+                                    <a class="nav-link" id="research-title-link" data-bs-toggle="pill"
                                         href="#research-title" role="tab" aria-controls="research-title"
                                         aria-selected="false">
                                         <i class="bi bi-check-circle me-2 hollow"></i>
@@ -552,14 +567,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                     Progress Tracking
                                 </div>
                                 <div class="home-sidebar-items">
-                                    <a class="nav-link my-1" id="requirement-checker-link" data-bs-toggle="pill"
+                                    <a class="nav-link" id="requirement-checker-link" data-bs-toggle="pill"
                                         href="#requirement-checker" role="tab" aria-controls="requirement-checker"
                                         aria-selected="false">
                                         <i class="bi bi-list-check me-2 hollow"></i>
                                         <i class="bi bi-list-check me-2 filled"></i>
                                         <span class="nav-text">Requirement Checker</span>
                                     </a>
-                                    <a class="nav-link my-1" id="research-evaluation-link" data-bs-toggle="pill"
+                                    <a class="nav-link" id="research-evaluation-link" data-bs-toggle="pill"
                                         href="#research-evaluation" role="tab" aria-controls="research-evaluation"
                                         aria-selected="false">
                                         <i class="bi bi-chat-dots me-2 hollow"></i>
@@ -1215,7 +1230,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <p class="text-muted">Track your requirement progress and defense schedule</p>
                                     </div>
                                     <div class="col-md-4 text-end">
-                                        <div class="btn-group" role="group">
+                                        <div class="btn-group z-0" role="group">
                                             <input type="radio" class="btn-check" name="viewMode" id="dashboard-view"
                                                 checked>
                                             <label class="btn btn-outline-primary" for="dashboard-view">

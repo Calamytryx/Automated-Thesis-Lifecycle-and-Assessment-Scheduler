@@ -1,0 +1,50 @@
+/* Wrapper for background image and centering */
+.reset-wrapper {
+    background-image: url('../assets/images/reset-pass-bg.webp');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    min-height: 100vh;
+    width: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 0;
+}
+
+/* Card styling for reset password */
+.reset-card {
+    background-color: var(--main-bg-light);
+    border: solid 1px var(--neutral-300);
+    border-radius: 12px;
+    box-shadow: 0 0 32px rgba(0,0,0,0.12);
+    z-index: 2;
+    max-width: 480px;
+    margin: 0 auto;
+}
+
+.reset-card .card-body {
+    padding: 1.25rem 1rem;
+}
+
+.btn-primary {
+    border: none;
+    border-radius: 6px;
+    padding: 12px;
+    font-size: 0.98rem;
+    margin-top: 12px;
+    background-color: var(--black-500);
+    transition: background 0.2s;
+}
+.btn-primary:hover{
+    background-color: var(--main-accent);
+}
+
+.form-control {
+    background-color: var(--neutral-50);
+    border: solid 1px var(--neutral-500);
+    border-radius: 6px;
+    padding: 7px 9px;
+    font-size: 0.95rem;
+    margin-bottom: 12px;
+}
