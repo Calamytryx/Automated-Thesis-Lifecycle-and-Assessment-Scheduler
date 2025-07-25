@@ -1,3 +1,4 @@
+
 <?php
 define('TITLE', "Signup");
 include '../assets/layouts/header.php';
@@ -7,143 +8,132 @@ $first_letter = substr($app_name, 0, 1);
 $rest_of_name = substr($app_name, 1);
 ?>
 
-<div id="log-reg-container">
-    <div class="row g-0">
-        <div class="img-container">
-            <div class="overlay"></div>
-            <img src="../assets/images/register-bg.jpg" alt="Building">
-        </div>
-        <div class="form-container">
-
-            <form class="form-auth" action="includes/register.inc.php" method="post" enctype="multipart/form-data">
-
-                <?php insert_csrf_token(); ?>
-
-                <div class="picCard text-center">
-                    <div class="avatar-upload">
-                        <div class="avatar-preview text-center">
-                            <div id="imagePreview" style="background-image: url(../assets/uploads/users/_defaultUser.png);"></div>
+<div class="register-wrapper position-relative min-vh-100">
+    <div class="container position-relative">
+        <div class="row min-vh-100 align-items-center justify-content-center justify-content-lg">
+            <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6 py-4">
+                <div class="card shadow-lg p-4 register-card" style="max-width: 900px; width: 100%;">
+                    <div class="card-body">
+                        <div class="text-center mb-4">
+                            <img src="../assets/images/logo_full_lightbg.png" alt="Logo" class="img-fluid" style="width: 200px; height: auto;">
                         </div>
-                        <div class="avatar-edit">
-                            <input name='avatar' id="avatar" class="fas fa-pencil" type='file' />
-                            <label for="avatar"></label>
-                        </div>
+                        <form class="form-auth" action="includes/register.inc.php" method="post" enctype="multipart/form-data">
+                            <?php insert_csrf_token(); ?>
+                            <!--
+                            <div class="picCard text-center">
+                                <div class="avatar-upload">
+                                    <div class="avatar-preview text-center">
+                                        <div id="imagePreview" style="background-image: url(../assets/uploads/users/_defaultUser.png);"></div>
+                                    </div>
+                                    <div class="avatar-edit">
+                                        <input name='avatar' id="avatar" class="fas fa-pencil" type='file' />
+                                        <label for="avatar"></label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="text-center">
+                                <sub class="text-danger">
+                                    <?php
+                                    if (isset($_SESSION['ERRORS']['imageerror']))
+                                        echo $_SESSION['ERRORS']['imageerror'];
+                                    ?>
+                                </sub>
+                            </div>
+                            -->
+                            <h6 class="h3 mb-2 font-weight-normal text-muted text-center">Create an Account</h6>
+                            <div class="text-center mb-3">
+                                <small class="text-success font-weight-bold">
+                                    <?php
+                                    if (isset($_SESSION['STATUS']['signupstatus']))
+                                        echo $_SESSION['STATUS']['signupstatus'];
+                                    ?>
+                                </small>
+                            </div>
+                            <div id="mainFields">
+                                <div class="form-group">
+                                    <label for="username">Username</label>
+                                    <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
+                                    <sub class="text-danger">
+                                        <?php
+                                        if (isset($_SESSION['ERRORS']['usernameerror']))
+                                            echo $_SESSION['ERRORS']['usernameerror'];
+                                        ?>
+                                    </sub>
+                                </div>
+                                <div class="form-group">
+                                    <label for="email">Email address</label>
+                                    <div class="input-group">
+                                        <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required>
+                                        <span class="input-group-text">@lpu.edu.ph</span>
+                                    </div>
+                                    <sub class="text-danger">
+                                        <?php
+                                        if (isset($_SESSION['ERRORS']['emailerror']))
+                                            echo $_SESSION['ERRORS']['emailerror'];
+                                        ?>
+                                    </sub>
+                                </div>
+                                <div class="form-group">
+                                    <label for="password" >Password</label>
+                                    <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                                </div>
+                                <div class="form-group mb-4">
+                                    <label for="confirmpassword" >Confirm Password</label>
+                                    <input type="password" id="confirmpassword" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
+                                    <sub class="text-danger mb-4">
+                                        <?php
+                                        if (isset($_SESSION['ERRORS']['passworderror']))
+                                            echo $_SESSION['ERRORS']['passworderror'];
+                                        ?>
+                                    </sub>
+                                </div>
+                            </div>
+                            <div class="form-group text-center">
+                                <input type="checkbox" id="toggleOptional" class="custom-control-input" />
+                                <label for="toggleOptional" class="custom-control-label">Optional fields</label>
+                            </div>
+                            <div id="optionalFields" style="display:none;">
+                                <div class="form-group">
+                                    <label for="first_name" >First Name</label>
+                                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="last_name" >Last Name</label>
+                                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="headline" >Headline</label>
+                                    <input type="text" id="headline" name="headline" class="form-control" placeholder="Headline">
+                                </div>
+                                <div class="form-group">
+                                    <label for="bio" >Profile Details</label>
+                                    <textarea type="text" id="bio" name="bio" class="form-control" placeholder="Tell us about yourself..."></textarea>
+                                </div>
+                                <div class="form-group">
+                                    <label class="w-100">Gender</label>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="male" name="gender" class="custom-control-input" value="m">
+                                        <label class="custom-control-label" for="male">Male</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="female" name="gender" class="custom-control-input" value="f">
+                                        <label class="custom-control-label" for="female">Female</label>
+                                    </div>
+                                    <div class="custom-control custom-radio">
+                                        <input type="radio" id="others" name="gender" class="custom-control-input" value="o">
+                                        <label class="custom-control-label" for="others">Others</label>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn btn-lg btn-primary btn-block w-100" type="submit" name='signupsubmit'>Signup</button>
+                            <p class="mt-4 mb-3 text-muted text-center">
+                                <a href="../contact" target="_blank" class="login-register-a">Contact Us</a> |
+                                <a href="../login/" target="_blank" class="login-register-a">Already have an account? Login</a>
+                            </p>
+                        </form>
                     </div>
                 </div>
-                <div class="text-center">
-                    <sub class="text-danger">
-                        <?php
-                        if (isset($_SESSION['ERRORS']['imageerror']))
-                            echo $_SESSION['ERRORS']['imageerror'];
-                        ?>
-                    </sub>
-                </div>
-
-                <h6 class="h3 mb-2 font-weight-normal text-muted text-center">Create an Account</h6>
-
-                <div class="text-center mb-3">
-                    <small class="text-success font-weight-bold">
-                        <?php
-                        if (isset($_SESSION['STATUS']['signupstatus']))
-                            echo $_SESSION['STATUS']['signupstatus'];
-                        ?>
-                    </small>
-                </div>
-
-                <div id="mainFields">
-                    <div class="form-group">
-                        <label for="username">Username</label>
-                        <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
-                        <sub class="text-danger">
-                            <?php
-                            if (isset($_SESSION['ERRORS']['usernameerror']))
-                                echo $_SESSION['ERRORS']['usernameerror'];
-                            ?>
-                        </sub>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="email">Email address</label>
-                        <div class="input-group">
-                            <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required>
-                            <span class="input-group-text">@lpu.edu.ph</span>
-                        </div>
-                        <sub class="text-danger">
-                            <?php
-                            if (isset($_SESSION['ERRORS']['emailerror']))
-                                echo $_SESSION['ERRORS']['emailerror'];
-                            ?>
-                        </sub>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="password" >Password</label>
-                        <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
-                    </div>
-
-                    <div class="form-group mb-4">
-                        <label for="confirmpassword" >Confirm Password</label>
-                        <input type="password" id="confirmpassword" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
-                        <sub class="text-danger mb-4">
-                            <?php
-                            if (isset($_SESSION['ERRORS']['passworderror']))
-                                echo $_SESSION['ERRORS']['passworderror'];
-                            ?>
-                        </sub>
-                    </div>
-                </div>
-
-                <div class="form-group text-center">
-                    <input type="checkbox" id="toggleOptional" class="custom-control-input" />
-                    <label for="toggleOptional" class="custom-control-label">Optional fields</label>
-                </div>
-
-                <div id="optionalFields" style="display:none;">
-
-                    <div class="form-group">
-                        <label for="first_name" >First Name</label>
-                        <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="last_name" >Last Name</label>
-                        <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="headline" >Headline</label>
-                        <input type="text" id="headline" name="headline" class="form-control" placeholder="Headline">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="bio" >Profile Details</label>
-                        <textarea type="text" id="bio" name="bio" class="form-control" placeholder="Tell us about yourself..."></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="w-100">Gender</label>
-                        <div class="custom-control custom-radio">
-                            <input type="radio" id="male" name="gender" class="custom-control-input" value="m">
-                            <label class="custom-control-label" for="male">Male</label>
-                        </div>
-                        <div class="custom-control custom-radio">
-                            <input type="radio" id="female" name="gender" class="custom-control-input" value="f">
-                            <label class="custom-control-label" for="female">Female</label>
-                        </div>
-                        <div class="custom-control custom-radio">
-                            <input type="radio" id="others" name="gender" class="custom-control-input" value="o">
-                            <label class="custom-control-label" for="others">Others</label>
-                        </div>
-                    </div>
-                </div>
-
-                <button class="btn btn-lg btn-primary btn-block w-100" type="submit" name='signupsubmit'>Signup</button>
-
-                <p class="mt-4 mb-3 text-muted text-center">
-                    <a href="../contact" target="_blank">Contact Us</a> |
-                    <a href="../login/" target="_blank">Already have an account? Login</a>
-                </p>
-            </form>
+            </div>
         </div>
     </div>
 </div>
@@ -162,11 +152,9 @@ $rest_of_name = substr($app_name, 1);
             reader.readAsDataURL(input.files[0]);
         }
     }
-
     $("#avatar").change(function() {
         readURL(this);
     });
-
     $('#toggleOptional').change(function() {
         if (this.checked) {
             $('#mainFields').hide();

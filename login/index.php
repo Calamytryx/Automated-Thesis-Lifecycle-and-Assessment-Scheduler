@@ -57,7 +57,7 @@ $rest_of_name = substr($app_name, 1);
 
                             <!-- Forgot Password Link -->
                             <div class="mb-3 text-end">
-                                <a href="../reset-password/" class="text-decoration-none">Forgot password?</a>
+                                <a href="../reset-password/" class="login-register-a">Forgot password?</a>
                             </div>
 
                             <!-- Submit Button -->
@@ -72,7 +72,8 @@ $rest_of_name = substr($app_name, 1);
 
                         <!-- Footer Links -->
                         <p class="mt-4 text-muted text-center">
-                            <a href="../contact" target="_blank" class="text-decoration-none">Contact Us</a>
+                            <a href="../contact" target="_blank" class="login-register-a" rel="noopener noreferrer">Contact Us</a> | 
+                            <a href="../register-student/" target="_blank" class="login-register-a" rel="noopener noreferrer">Don't have an account? Register</a>
                         </p>
                     </div>
                 </div>

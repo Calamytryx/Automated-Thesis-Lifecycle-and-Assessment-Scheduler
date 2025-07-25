@@ -11,29 +11,7 @@
         <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="{{ __('Toggle navigation') }}">
             <span class="navbar-toggler-icon"></span>
         </button>        
-        <div class="user-type-pill">
-            <?php
-            $userTypeClass = '';
-            $userTypeText = '';
-            
-            if ($_SESSION['usertype'] == 0) {
-                $userTypeClass = 'bg-danger';
-                $userTypeText = 'Administrator';
-            } elseif ($_SESSION['usertype'] == 1) {
-                $userTypeClass = 'bg-primary';
-                $userTypeText = 'Student';
-            } elseif ($_SESSION['usertype'] == 2) {
-                $userTypeClass = 'bg-success';
-                $userTypeText = 'Faculty';
-            } else {
-                $userTypeClass = 'bg-secondary';
-                $userTypeText = 'User';
-            }
-            ?>
-            <span class="badge rounded-pill <?php echo $userTypeClass; ?> px-3 py-2" style="font-size: 0.8rem; font-weight: 500;">
-                <?php echo $userTypeText; ?>
-            </span>
-        </div>
+        <!-- User role pill moved to sidebar header -->
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
@@ -107,7 +85,20 @@
                     </div>
                 </li>
 
-                <!-- Notification JavaScript -->
+                <!-- User role pill removed from navbar, now in sidebar header -->
+                <!-- <?php if ($_SESSION['usertype'] == 0): ?>
+                    <li class="nav-item">
+                    </li>
+                <?php endif; ?> -->
+                <!-- <?php //if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
+                    <li class="nav-item"> 
+                    <a class="nav-link" href="../decision-support">Defense</a>
+                </li>
+                <?php //endif; ?> -->
+            
+                <!-- <li class="nav-item">
+                    <a class="nav-link" href="../contact">Contact Us</a> 
+                </li> -->
                 <script>
                 // Load notifications when page loads and when dropdown is opened
                 document.addEventListener('DOMContentLoaded', function() {

@@ -744,7 +744,7 @@ include '../assets/layouts/header.php';
   });
 </script>
 <textarea id="output-pdf" style="display:none;"></textarea>
-<main role="main">
+<main role="main" class="decision-support-bg">
   <section class="jumbotron py-5 mb-4 jbtron">
     <div class="container">
         <div class="text-center mb-4">
@@ -764,8 +764,8 @@ include '../assets/layouts/header.php';
 
         <div class="row g-4">
             <div class="col-12">
-                <div class="card border-0">
-                    <div class="card-body jumbotronCard">
+                <div class="card team-members-card" id="team-members-card">
+                    <div class="card-body">
                         <h5 class="card-title d-flex align-items-center mb-3">
                             <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
                             <span class="feature-title">Team Members</span>
@@ -773,7 +773,7 @@ include '../assets/layouts/header.php';
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <?php if (!empty($students)): ?>
                                 <?php foreach ($students as $student): ?>
-                                    <span class="badge px-3 py-2 rounded-pill" style="background-color: var(--primary-100); color: var(--main-bg-dark)">
+                                    <span class="badge px-3 py-2 rounded-pill team-member-item" style="background-color: var(--primary-100); color: var(--main-black)">
                                         <i class="fas fa-user me-2"></i><?php echo htmlspecialchars($student['fullname']); ?>
                                     </span>
                                 <?php endforeach; ?>
@@ -788,26 +788,26 @@ include '../assets/layouts/header.php';
             <div class="col-12">
                 <div class="row g-3">
                     <div class="col-md-6">
-                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body jumbotronCard">
+                        <div class="card adviser-card" id="adviser-card">
+                            <div class="card-body">
                                 <h5 class="card-title d-flex align-items-center mb-3">
                                     <i class="fas fa-chalkboard-teacher me-2" style="color: var(--main-primary)"></i>
                                     <span class="feature-title">Adviser</span>
                                 </h5>
-                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
+                                <p class="card-text mb-0 adviser-name" style="color: var(--main-black)">
                                     <?php echo htmlspecialchars($adviser_name); ?>
                                 </p>
                             </div>
                         </div>
                     </div>
                     <div class="col-md-6">
-                        <div class="card h-100 border-0" style="background-color: var(--neutral-50)">
-                            <div class="card-body jumbotronCard">
+                        <div class="card program-card" id="program-card">
+                            <div class="card-body">
                                 <h5 class="card-title d-flex align-items-center mb-3">
                                     <i class="fas fa-graduation-cap me-2" style="color: var(--main-primary)"></i>
                                     <span class="feature-title">Program</span>
                                 </h5>
-                                <p class="card-text mb-0" style="color: var(--main-bg-dark)">
+                                <p class="card-text mb-0 program-name" style="color: var(--main-black)">
                                     <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>
                                 </p>
                             </div>
@@ -834,7 +834,7 @@ include '../assets/layouts/header.php';
     </ul>
   </div>
 
-  <div class="tab-content" id="defenseContentTabsContent">
+  <div class="tab-content decision-support-bg" id="defenseContentTabsContent">
     <div class="tab-pane fade show active" id="research-paper" role="tabpanel" aria-labelledby="research-paper-tab">
       <div class="album">
         <div class="container">
@@ -851,17 +851,19 @@ include '../assets/layouts/header.php';
 
           <div class="section-toggle" id="pdf-section">
              <?php if ($pdf_file_name): ?>
-                <div class="card mb-4 box-shadow h-100 pdf-container" style="max-height: 90vh;">
-                  <div class="panel-header">
-                    <h4>PDF Document View</h4>
-                    <button class="fullscreen-btn" onclick="toggleFullScreen()">
-                      <i class="fas fa-expand"></i> Full Screen
-                    </button>
-                  </div>
-                  <div class="panel-content">
-                    <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo urlencode($pdf_file_name); ?>"
-                      frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                    </iframe>
+                <div class="card pdf-view-card" id="pdf-view-card">
+                  <div class="card-body">
+                    <div class="panel-header">
+                      <h4>PDF Document View</h4>
+                      <button class="fullscreen-btn" onclick="toggleFullScreen()">
+                        <i class="fas fa-expand"></i> Full Screen
+                      </button>
+                    </div>
+                    <div class="panel-content">
+                      <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo urlencode($pdf_file_name); ?>"
+                        frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
+                      </iframe>
+                    </div>
                   </div>
                 </div>
              <?php else: ?>
@@ -870,7 +872,7 @@ include '../assets/layouts/header.php';
           </div>
 
           <div class="section-toggle d-none" id="ai-section">
-            <div class="card mb-4 box-shadow h-100 ai-container" style="max-height: 90vh; overflow: hidden;">
+            <div class="card ai-analysis-card mb-4 box-shadow h-100 ai-container" id="ai-analysis-card" style="max-height: 90vh; overflow: hidden;">
               <div class="panel-header">
                 <h4>AI Evaluation Results</h4>
               </div>
