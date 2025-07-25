@@ -406,6 +406,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-people me-2 hollow"></i>
                                         <i class="bi bi-people-fill me-2 filled"></i>Teams
                                     </a>
+                                    <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
+                                        <i class="fas fa-calendar me-2"></i>Schedules
+                                    </a>
                                 </div>
                             </div>
 
@@ -514,6 +517,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                             <?php include 'includes/tabs/users_tab.php'; ?>
                             <?php include 'includes/tabs/teams_tab.php'; ?>
+                            <?php include 'includes/tabs/schedules_tab.php'; ?>
 
                             <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
                             <?php include 'includes/tabs/research_titles_tab.php'; ?>

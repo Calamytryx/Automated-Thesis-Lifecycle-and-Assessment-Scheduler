@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -433,50 +433,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['created_at'] = date('Y-m-d H:i:s');
     }
 
-    // Handle default_schedules and user_schedules tables
-    if ($table === 'default_schedules' || $table === 'user_schedules') {
-        // Validate required fields based on table type
-        if ($table === 'default_schedules') {
-            $requiredFields = ['program', 'year', 'section', 'building', 'room', 'day_of_week', 'class_name', 'start_time', 'end_time'];
-            foreach ($requiredFields as $field) {
-                if (empty($data[$field])) {
-                    $response['message'] = "Field '$field' is required.";
-                    echo json_encode($response);
-                    exit;
-                }
+    // Handle default_schedules table
+    if ($table === 'default_schedules') {
+        // Validate required fields
+        $requiredFields = ['program', 'year', 'section', 'building', 'room', 'day_of_week', 'class_name', 'start_time', 'end_time'];
+        foreach ($requiredFields as $field) {
+            if (empty($data[$field])) {
+                $response['message'] = "Field '$field' is required.";
+                echo json_encode($response);
+                exit;
             }
+        }
 
-            // Validate enum values
-            $validYears = ['1', '2', '3', '4', '5'];
-            $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            
-            if (!in_array($data['year'], $validYears)) {
-                $response['message'] = 'Invalid year value.';
-                echo json_encode($response);
-                exit;
-            }
-            
-            if (!in_array($data['day_of_week'], $validDays)) {
-                $response['message'] = 'Invalid day of week value.';
-                echo json_encode($response);
-                exit;
-            }
-        } else if ($table === 'user_schedules') {
-            $requiredFields = ['user_id', 'building', 'room', 'day_of_week', 'class_name', 'start_time', 'end_time'];
-            foreach ($requiredFields as $field) {
-                if (empty($data[$field])) {
-                    $response['message'] = "Field '$field' is required.";
-                    echo json_encode($response);
-                    exit;
-                }
-            }
-
-            $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-            if (!in_array($data['day_of_week'], $validDays)) {
-                $response['message'] = 'Invalid day of week value.';
-                echo json_encode($response);
-                exit;
-            }
+        // Validate enum values
+        $validYears = ['1', '2', '3', '4', '5'];
+        $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+        
+        if (!in_array($data['year'], $validYears)) {
+            $response['message'] = 'Invalid year value.';
+            echo json_encode($response);
+            exit;
+        }
+        
+        if (!in_array($data['day_of_week'], $validDays)) {
+            $response['message'] = 'Invalid day of week value.';
+            echo json_encode($response);
+            exit;
         }
     }
 
@@ -595,9 +577,9 @@ function handleRequirementTemplateUpload($file) {
         return ['success' => false, 'error' => 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes)];
     }
     
-    if ($file['size'] > 10 * 1024 * 1024) // 10MB limit
+    if ($file['size'] > 10 * 1024 * 1024) { // 10MB limit
         return ['success' => false, 'error' => 'File size too large. Maximum 10MB allowed.'];
-    
+    }
     
     // Generate unique filename
     $filename = uniqid() . '_' . time() . '.' . $extension;
