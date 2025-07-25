@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Jul 25, 2025 at 10:32 AM
+-- Generation Time: Jul 25, 2025 at 11:31 AM
 -- Server version: 10.4.32-MariaDB-log
 -- PHP Version: 8.3.12
 
@@ -45,25 +45,6 @@ INSERT INTO `auth_tokens` (`id`, `user_email`, `auth_type`, `selector`, `token`,
 (1, 'winstonagustin.ih@gmail.com', 'account_verify', '613f4c35ee6dac46', '$2y$10$fGDz8SdTBADhULRbmpcauORjPUc1tD.JsKCldb72Z.uQFaej5PdG.', '2025-07-22 05:07:15', '2025-07-22 21:07:15'),
 (2, 'aaa@lpunetwork.edu.ph', 'account_verify', '48b48c832e3b664f', '$2y$10$ji.QirAwmGil3ZuarXxw6.WQMcoWiqQlYGkP//soSegE2LsdYPjBC', '2025-07-23 04:51:53', '2025-07-23 05:51:53'),
 (5, 'neilvicedo@lpunetwork.edu.ph', 'account_verify', 'd39d2af98ea2eca9', '$2y$10$Uz0QqWNE4bMp33p5z1nIl.C/1sX1V46wjeMx814UBeeZwmfWfL07y', '2025-07-24 03:35:21', '2025-07-24 04:35:21');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `default_schedules`
---
-
-CREATE TABLE `default_schedules` (
-  `id` int(11) NOT NULL,
-  `program` varchar(255) NOT NULL,
-  `year` enum('1','2','3','4','5') NOT NULL,
-  `section` int(2) NOT NULL,
-  `building` varchar(45) NOT NULL,
-  `room` varchar(45) NOT NULL,
-  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
-  `class_name` varchar(45) NOT NULL,
-  `start_time` varchar(45) NOT NULL,
-  `end_time` varchar(45) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -958,6 +939,7 @@ CREATE TABLE `users` (
   `usertype` int(1) NOT NULL DEFAULT 1,
   `username` varchar(255) NOT NULL,
   `program` varchar(255) DEFAULT NULL,
+  `section` varchar(10) DEFAULT NULL,
   `area_of_expertise` varchar(255) DEFAULT NULL,
   `is_parttime` int(1) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
@@ -979,17 +961,17 @@ CREATE TABLE `users` (
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
-(0, 0, 'Admin', NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-07-25 02:51:01', '0000-00-00 00:00:00', '2025-07-25 02:51:01'),
-(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:35', NULL, '2025-07-22 19:50:35'),
-(268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:48:49', NULL, '2025-07-22 19:48:49'),
-(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:05', NULL, '2025-07-22 19:50:05'),
-(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-23 01:40:09', NULL, '2025-07-23 01:40:09'),
-(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01'),
-(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:18', NULL, '2025-07-22 19:46:18'),
-(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-21 12:07:13', NULL, '2025-07-21 12:05:22'),
-(274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11'),
-(275, 2, 'winstonadmina', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-25 10:27:32', NULL, '2025-07-22 18:54:09');
+INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `section`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
+(0, 0, 'Admin', NULL, NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-07-25 02:51:01', '0000-00-00 00:00:00', '2025-07-25 02:51:01'),
+(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:35', NULL, '2025-07-22 19:50:35'),
+(268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:48:49', NULL, '2025-07-22 19:48:49'),
+(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:05', NULL, '2025-07-22 19:50:05'),
+(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-23 01:40:09', NULL, '2025-07-23 01:40:09'),
+(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01'),
+(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', NULL, 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:18', NULL, '2025-07-22 19:46:18'),
+(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-21 12:07:13', NULL, '2025-07-21 12:05:22'),
+(274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11'),
+(275, 1, 'winstonadminaa', '', NULL, 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'ab', 'ab', '', '', '', '_defaultUser.png', NULL, NULL, '2025-07-25 10:36:09', NULL, '2025-07-22 18:54:09');
 
 -- --------------------------------------------------------
 
@@ -1016,12 +998,6 @@ CREATE TABLE `user_schedules` (
 ALTER TABLE `auth_tokens`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `id` (`id`);
-
---
--- Indexes for table `default_schedules`
---
-ALTER TABLE `default_schedules`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `defense_panelists`
