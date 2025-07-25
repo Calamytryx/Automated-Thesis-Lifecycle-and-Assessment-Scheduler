@@ -72,7 +72,7 @@ $rest_of_name = substr($app_name, 1);
 
                         <!-- Footer Links -->
                         <p class="mt-4 text-muted text-center">
-                            <a href="../contact" target="_blank" class="login-register-a" rel="noopener noreferrer">Contact Us</a> | 
+                            <a href="https://cavite.lpu.edu.ph/contact-info/" target="_blank" class="login-register-a" rel="noopener noreferrer">Contact Us</a> | 
                             <a href="../register-student/" target="_blank" class="login-register-a" rel="noopener noreferrer">Don't have an account? Register</a>
                         </p>
                     </div>

@@ -52,7 +52,7 @@ $rest_of_name = substr($app_name, 1);
                             <div id="mainFields">
                                 <div class="form-group">
                                     <label for="username">Username</label>
-                                    <input type="text" id="username" name="username" class="form-control" placeholder="Username" required autofocus>
+                                    <input type="text" id="username" name="username" class="form-control" placeholder="Username" required disabled>
                                     <sub class="text-danger">
                                         <?php
                                         if (isset($_SESSION['ERRORS']['usernameerror']))
@@ -63,7 +63,7 @@ $rest_of_name = substr($app_name, 1);
                                 <div class="form-group">
                                     <label for="email">Email address</label>
                                     <div class="input-group">
-                                        <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required>
+                                        <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
                                         <span class="input-group-text">@lpu.edu.ph</span>
                                     </div>
                                     <sub class="text-danger">
@@ -72,6 +72,25 @@ $rest_of_name = substr($app_name, 1);
                                             echo $_SESSION['ERRORS']['emailerror'];
                                         ?>
                                     </sub>
+                                </div>
+                                <script>
+                                    const usernameInput = document.getElementById('username');
+                                    const emailInput = document.getElementById('email');
+
+                                    usernameInput.addEventListener('input', () => {
+                                        emailInput.value = usernameInput.value;
+                                    });
+                                    emailInput.addEventListener('input', () => {
+                                        usernameInput.value = emailInput.value;
+                                    });
+                                </script>
+                                <div class="form-group">
+                                    <label for="first_name" >First Name</label>
+                                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
+                                </div>
+                                <div class="form-group">
+                                    <label for="last_name" >Last Name</label>
+                                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
                                 </div>
                                 <div class="form-group">
                                     <label for="password" >Password</label>
@@ -93,14 +112,6 @@ $rest_of_name = substr($app_name, 1);
                                 <label for="toggleOptional" class="custom-control-label">Optional fields</label>
                             </div>
                             <div id="optionalFields" style="display:none;">
-                                <div class="form-group">
-                                    <label for="first_name" >First Name</label>
-                                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="last_name" >Last Name</label>
-                                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
-                                </div>
                                 <div class="form-group">
                                     <label for="headline" >Headline</label>
                                     <input type="text" id="headline" name="headline" class="form-control" placeholder="Headline">
@@ -127,7 +138,7 @@ $rest_of_name = substr($app_name, 1);
                             </div>
                             <button class="btn btn-lg btn-primary btn-block w-100" type="submit" name='signupsubmit'>Signup</button>
                             <p class="mt-4 mb-3 text-muted text-center">
-                                <a href="../contact" target="_blank" class="login-register-a">Contact Us</a> |
+                                <a href="https://cavite.lpu.edu.ph/contact-info/" target="_blank" class="login-register-a">Contact Us</a> |
                                 <a href="../login/" target="_blank" class="login-register-a">Already have an account? Login</a>
                             </p>
                         </form>
