@@ -40,7 +40,7 @@ $rest_of_name = substr($app_name, 1);
                                 </sub>
                             </div>
                             -->
-                            <h6 class="h3 mb-2 font-weight-normal text-muted text-center">Create an Account</h6>
+                            <h6 class="h3 mb-2 font-weight-normal text-muted text-center">Student Registration</h6>
                             <div class="text-center mb-3">
                                 <small class="text-success font-weight-bold">
                                     <?php

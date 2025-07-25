@@ -508,8 +508,12 @@ try {
     $safeSortBy = rtrim($safeSortBy, '.');
     if (empty($safeSortBy)) $safeSortBy = 'id'; // Ensure there's always a sort column
 
-
-    $dataQuery .= " ORDER BY $safeSortBy $sortDir LIMIT $offset, $perPage";
+    // Apply LIMIT only for non-programs tables
+    if ($table !== 'programs') {
+        $dataQuery .= " ORDER BY $safeSortBy $sortDir LIMIT $offset, $perPage";
+    } else {
+        $dataQuery .= " ORDER BY $safeSortBy $sortDir";
+    }
 
     // --- Execute Count Query ---
     $countParams = [];

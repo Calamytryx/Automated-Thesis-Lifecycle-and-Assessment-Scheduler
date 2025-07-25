@@ -20,38 +20,19 @@
       </div>
     </div>
 
-    <div class="table-responsive db-table-container">
-      <table class="table table-bordered table-hover table-sm db-table">
-        <thead>
-          <tr>
-            <th>College</th>
-            <th>Department</th>
-            <th>Program</th>
-            <th>Specialization</th>
-            <th>Action</th>
-          </tr>
-        </thead>
-        <tbody id="programs-table-body">
-          <!-- Table body will be dynamically populated using JavaScript -->
-        </tbody>
-      </table>
+    <div id="programs-content">
+      <!-- Content will be dynamically populated using JavaScript -->
     </div>
-
-    <nav aria-label="Programs Page navigation">
-      <ul class="pagination justify-content-center" id="programs-pagination">
-        <!-- Pagination will be dynamically populated using JavaScript -->
-      </ul>
-    </nav>
   </div>
 </div>
 
 <script>
-  const loadPrograms = (page = 1) => {
-    fetch(`includes/tabs/get_table.php?table=programs&page=${page}`)
+  const loadPrograms = () => {
+    fetch(`includes/tabs/get_table.php?table=programs`)
       .then(response => response.json())
       .then(data => {
-        const tableBody = document.querySelector('#programs-table-body');
-        tableBody.innerHTML = '';  // Clear existing rows
+        const content = document.querySelector('#programs-content');
+        content.innerHTML = '';  // Clear existing content
 
         if (data.error) {
           console.error(data.error);
@@ -68,150 +49,99 @@
           programsByCollege[college].push(program);
         });
 
-        // Populate table with colleges as collapsible groups
+        // Create collapsible college groups
         Object.keys(programsByCollege).sort().forEach((college, index) => {
           // Create a unique ID for this college group
           const collegeId = `college-${index}-${college.replace(/\s+/g, '-').toLowerCase()}`;
           
-          // Add college header row with collapse/expand functionality
           const programs = programsByCollege[college];
-          const collegeRow = document.createElement('tr');
-          collegeRow.className = 'college-header';
-          collegeRow.innerHTML = `
-            <td colspan="5" class="bg-light">
-              <div class="d-flex align-items-center college-header-content" 
-                   data-college-id="${collegeId}" role="button" style="cursor: pointer;">
-                <i class="fas fa-caret-down toggle-icon me-2"></i>
-                <i class="fas fa-university me-2"></i>
-                <strong>${college}</strong>
-                <span class="ms-2 badge bg-secondary">${programs.length} program(s)</span>
-              </div>
-            </td>
+          
+          // Create college card
+          const collegeCard = document.createElement('div');
+          collegeCard.className = 'card mb-3';
+          
+          // College header
+          const collegeHeader = document.createElement('div');
+          collegeHeader.className = 'card-header bg-light';
+          collegeHeader.innerHTML = `
+            <div class="d-flex align-items-center college-header-content" 
+                 data-college-id="${collegeId}" role="button" style="cursor: pointer;">
+              <i class="fas fa-caret-right toggle-icon me-2"></i>
+              <i class="fas fa-university me-2"></i>
+              <strong>${college}</strong>
+              <span class="ms-2 badge bg-secondary">${programs.length} program(s)</span>
+            </div>
           `;
-          tableBody.appendChild(collegeRow);
-
-          // Add individual program rows under this college
+          
+          // Programs list
+          const programsList = document.createElement('div');
+          programsList.className = 'card-body d-none'; // Initially hidden
+          programsList.dataset.collegeGroup = collegeId;
+          
           programs.forEach(program => {
-            const programRow = document.createElement('tr');
-            programRow.className = `program-row ${collegeId}`;
-            programRow.dataset.collegeGroup = collegeId; // Add data attribute for grouping
-            programRow.innerHTML = `
-              <td class="ps-4">-</td>
-              <td>${program.department || ''}</td>
-              <td>${program.name}</td>
-              <td>${program.specialization || ''}</td>
-              <td class="action-buttons text-center">
-                <div class="d-flex gap-2 justify-content-center">
-                  <button class="btn btn-sm btn-primary edit-btn" data-table="programs" data-id="${program.id}">
-                    <i class="fas fa-edit me-1"></i> Edit
-                  </button>
-                  <button class="btn btn-sm btn-danger delete-btn" data-table="programs" data-id="${program.id}">
-                    <i class="fas fa-trash-alt me-1"></i> Delete
-                  </button>
+            const programDiv = document.createElement('div');
+            programDiv.className = 'border-bottom pb-2 mb-2';
+            programDiv.innerHTML = `
+              <div class="row align-items-center">
+                <div class="col-md-3">
+                  <strong>Department:</strong> ${program.department || 'N/A'}
                 </div>
-              </td>
+                <div class="col-md-3">
+                  <strong>Program:</strong> ${program.name}
+                </div>
+                <div class="col-md-3">
+                  <strong>Specialization:</strong> ${program.specialization || 'N/A'}
+                </div>
+                <div class="col-md-3 text-end">
+                  <div class="d-flex gap-2 justify-content-end">
+                    <button class="btn btn-sm btn-primary edit-btn" data-table="programs" data-id="${program.id}">
+                      <i class="fas fa-edit me-1"></i> Edit
+                    </button>
+                    <button class="btn btn-sm btn-danger delete-btn" data-table="programs" data-id="${program.id}">
+                      <i class="fas fa-trash-alt me-1"></i> Delete
+                    </button>
+                  </div>
+                </div>
+              </div>
             `;
-            tableBody.appendChild(programRow);
+            programsList.appendChild(programDiv);
           });
+          
+          collegeCard.appendChild(collegeHeader);
+          collegeCard.appendChild(programsList);
+          content.appendChild(collegeCard);
         });
-
-        // Build pagination
-        const pagination = document.querySelector('#programs-pagination');
-        pagination.innerHTML = '';
-
-        pagination.innerHTML += `
-          <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
-          </li>
-        `;
-        for (let i = 1; i <= data.total_pages; i++) {
-          pagination.innerHTML += `
-            <li class="page-item ${page === i ? 'active' : ''}">
-              <a class="page-link" href="#" data-page="${i}">${i}</a>
-            </li>
-          `;
-        }
-        pagination.innerHTML += `
-          <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
-          </li>
-        `;
       })
       .catch(error => console.error('Error loading programs:', error));
   };
 
-  // Replace the toggle event listener with a better version
+  // Toggle event listener for collapse functionality
   document.addEventListener('click', function(e) {
     if (e.target.closest('.college-header-content')) {
       const header = e.target.closest('.college-header-content');
       const collegeId = header.dataset.collegeId;
       const icon = header.querySelector('.toggle-icon');
       
-      // Get all program rows for this college
-      const programRows = document.querySelectorAll(`tr[data-college-group="${collegeId}"]`);
+      // Get the programs list for this college
+      const programsList = document.querySelector(`div[data-college-group="${collegeId}"]`);
       
-      // Check if rows are currently visible
-      const isVisible = !programRows[0]?.classList.contains('d-none');
+      // Check if content is currently visible
+      const isVisible = !programsList.classList.contains('d-none');
       
-      // Toggle visibility of program rows
-      programRows.forEach(row => {
-        if (isVisible) {
-          row.classList.add('d-none');
-          icon.classList.remove('fa-caret-down');
-          icon.classList.add('fa-caret-right');
-        } else {
-          row.classList.remove('d-none');
-          icon.classList.remove('fa-caret-right');
-          icon.classList.add('fa-caret-down');
-        }
-      });
-    }
-  });
-
-  // Event listener for pagination
-  document.querySelector('#programs-pagination').addEventListener('click', (event) => {
-    if (event.target.tagName === 'A') {
-      const page = parseInt(event.target.getAttribute('data-page'));
-      if (!isNaN(page)) {
-        loadPrograms(page);
+      // Toggle visibility
+      if (isVisible) {
+        programsList.classList.add('d-none');
+        icon.classList.remove('fa-caret-down');
+        icon.classList.add('fa-caret-right');
+      } else {
+        programsList.classList.remove('d-none');
+        icon.classList.remove('fa-caret-right');
+        icon.classList.add('fa-caret-down');
       }
     }
   });
 
-  // // Add event listener for delete buttons
-  // document.addEventListener('click', function(e) {
-  //   if (e.target && e.target.closest('.delete-btn')) {
-  //     const button = e.target.closest('.delete-btn');
-  //     const table = button.getAttribute('data-table');
-  //     const id = button.getAttribute('data-id');
-      
-  //     if (confirm('Are you sure you want to delete this program?')) {
-  //       const formData = new FormData();
-  //       formData.append('table', table);
-  //       formData.append('id', id);
-        
-  //       fetch('includes/delete_item.php', {
-  //         method: 'POST',
-  //         body: formData
-  //       })
-  //       .then(response => response.json())
-  //       .then(data => {
-  //         if (data.success) {
-  //           // Reload the programs table to reflect the deletion
-  //           loadPrograms();
-  //         } else {
-  //           alert('Error deleting program: ' + (data.message || 'Unknown error'));
-  //           console.error('Delete error:', data);
-  //         }
-  //       })
-  //       .catch(error => {
-  //         console.error('Error during delete operation:', error);
-  //         alert('An error occurred during delete. Check console for details.');
-  //       });
-  //     }
-  //   }
-  // });
-
   // Initial load
   loadPrograms();
+
 </script>
