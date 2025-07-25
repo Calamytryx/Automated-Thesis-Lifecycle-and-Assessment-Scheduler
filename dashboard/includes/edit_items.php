@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table'], $data['id']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -124,10 +124,9 @@ function handleRequirementTemplateUpload($file) {
         }
     }
 
-    // Special handling for programs update (moved from generic handler)
+    // Special handling for programs update
     if ($table === 'programs') {
         try {
-            // Prepare the SQL update statement
             $programUpdateSql = "UPDATE programs SET
                                     college = :college,
                                     department = :department,
@@ -137,16 +136,14 @@ function handleRequirementTemplateUpload($file) {
                                  WHERE id = :id";
             $stmtProgram = $pdo->prepare($programUpdateSql);
 
-            // Prepare data for the update
             $programData = [
                 ':id' => $id,
-                ':college' => $data['college'] ?? null, // Allow null if not provided or empty
-                ':department' => $data['department'] ?? null, // Allow null
-                ':name' => $data['name'] ?? 'Unnamed Program', // Default if name is missing
-                ':specialization' => $data['specialization'] ?? null // Allow null
+                ':college' => $data['college'] ?? null,
+                ':department' => $data['department'] ?? null,
+                ':name' => $data['name'] ?? 'Unnamed Program',
+                ':specialization' => $data['specialization'] ?? null
             ];
 
-            // Execute the update
             $stmtProgram->execute($programData);
 
             $response['success'] = true;
@@ -155,10 +152,8 @@ function handleRequirementTemplateUpload($file) {
 
         } catch (PDOException $e) {
             $response['message'] = "Error updating program: " . $e->getMessage();
-            // Log the detailed error for debugging
             error_log("Error updating program (ID: $id): " . $e->getMessage());
-            // Optionally check for specific error codes like duplicate entries if 'name' needs to be unique
-            if ($e->getCode() == '23000') { // Integrity constraint violation
+            if ($e->getCode() == '23000') {
                  if (strpos(strtolower($e->getMessage()), 'duplicate entry') !== false) {
                      $response['message'] = "Error: A program with this name might already exist.";
                  } else {
@@ -167,7 +162,7 @@ function handleRequirementTemplateUpload($file) {
             }
         }
         echo json_encode($response);
-        exit; // Stop script after handling program
+        exit;
     }
 
     // --- UPDATED Rubric Handling ---
@@ -340,15 +335,14 @@ function handleRequirementTemplateUpload($file) {
     if ($table === 'teams') {
         $pdo->beginTransaction();
         try {
-            // Fix for program_id field - rename it to match the database column name
+            // Fix for program_id field
             if (isset($data['program_id'])) {
-                $data['program'] = $data['program_id']; // Map program_id from form to program in database
-                unset($data['program_id']); // Remove the original key
+                $data['program'] = $data['program_id'];
+                unset($data['program_id']);
             }
             
-            // Ensure program has a value to avoid NULL constraint errors
             if (!isset($data['program']) || $data['program'] === '') {
-                $data['program'] = 'Unspecified'; // Default value for required field
+                $data['program'] = 'Unspecified';
             }
             
             // Update the teams table
@@ -368,7 +362,7 @@ function handleRequirementTemplateUpload($file) {
             
             // Update research title if provided
             if (isset($data['title']) && !empty(trim($data['title']))) {
-                $stmtTitle = $pdo->prepare("UPDATE research_titles SET title = :title WHERE team_id = :team_id");
+                $stmtTitle = $pdo->prepare("UPDATE research_titles SET title = :title, updated_at = NOW() WHERE team_id = :team_id");
                 $stmtTitle->execute([
                     ':title' => $data['title'],
                     ':team_id' => $id
@@ -464,7 +458,6 @@ function handleRequirementTemplateUpload($file) {
         } catch (PDOException $e) {
             $pdo->rollBack();
             
-            // Provide user-friendly error message
             if ($e->getCode() == '23000') {
                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                     $response['message'] = "Error: This team name is already in use. Please choose a different name.";
@@ -485,102 +478,65 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for users
     if ($table === 'users') {
-        // Fix for program_id field - rename it to match the database column name
+        // Hash password if provided
+        if (isset($data['password']) && !empty($data['password'])) {
+            $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
+        } else {
+            // Remove password from update if empty
+            unset($data['password']);
+        }
+
+        // Fix for program_id field
         if (isset($data['program_id'])) {
-            $data['program'] = $data['program_id']; // Map program_id from form to program in database
-            unset($data['program_id']); // Remove the original key
+            $data['program'] = $data['program_id'];
+            unset($data['program_id']);
         }
         
-        // Ensure program has a value to avoid NULL constraint errors
-        if (!isset($data['program']) || $data['program'] === '') {
-            $data['program'] = 'Unspecified'; // Default value for required field
-        }
-        
-        // Update the users table
-        $userUpdateSql = "UPDATE users SET 
-                         username = :username, 
-                         email = :email, 
-                         program = :program 
-                         WHERE id = :id";
-        $stmtUser = $pdo->prepare($userUpdateSql);
-        $userData = [
-            ':id' => $id,
-            ':username' => $data['username'],
-            ':email' => $data['email'],
-            ':program' => $data['program']
-        ];
-        $stmtUser->execute($userData);
-        
-        // Update user roles if provided
-        if (isset($data['role']) && is_array($data['role'])) {
-            $roleIdInputs = isset($_POST['role_ids']) ? $_POST['role_ids'] : [];
-            $roles = $data['role'];
-            
-            for ($i = 0; $i < count($roles); $i++) {
-                $roleId = $roleIdInputs[$i] ?? null;
-                $role = $roles[$i];
-                
-                if ($roleId && $role) {
-                    $stmtUpdateRole = $pdo->prepare("UPDATE user_roles SET role = :role WHERE id = :id");
-                    $stmtUpdateRole->execute([
-                        ':role' => $role,
-                        ':id' => $roleId
-                    ]);
-                }
-            }
-        }
-        
-        $response['success'] = true;
-        $response['message'] = "User updated successfully.";
-        echo json_encode($response);
-        exit; // Stop script after handling user
+        $data['updated_at'] = date('Y-m-d H:i:s');
     }
 
     // Special handling for research_titles BEFORE calling generic handler
     if ($table === 'research_titles') {
-        // Map program_id to program if it exists (shouldn't if JS is correct, but as fallback)
+        // Map program_id to program if it exists
         if (isset($data['program_id'])) {
             $data['program'] = $data['program_id'];
             unset($data['program_id']);
         }
         
         // Handle the 'approved_at' timestamp based on checkbox value
-        $titleWasApproved = false; // Track if title was just approved
+        $titleWasApproved = false;
         if (isset($data['approved_at'])) {
-            if ($data['approved_at'] == '1') { // Checkbox was checked
+            if ($data['approved_at'] == '1') {
                 // Set to current timestamp only if it's not already set
                 $stmtCheck = $pdo->prepare("SELECT approved_at FROM research_titles WHERE id = ?");
                 $stmtCheck->execute([$id]);
                 $currentApprovedAt = $stmtCheck->fetchColumn();
                 if ($currentApprovedAt === null) {
-                    $data['approved_at'] = date('Y-m-d H:i:s'); // Set current timestamp
-                    $titleWasApproved = true; // Mark that title was just approved
+                    $data['approved_at'] = date('Y-m-d H:i:s');
+                    $titleWasApproved = true;
                     error_log("DEBUG: Title ID $id was just approved");
                 } else {
-                    // Already approved, keep existing timestamp - remove from $data to avoid overwrite
                     unset($data['approved_at']); 
                     error_log("DEBUG: Title ID $id was already approved - no notification needed");
                 }
-            } else { // Checkbox was unchecked (value '0' or not present)
-                $data['approved_at'] = null; // Set to NULL
+            } else {
+                $data['approved_at'] = null;
                 error_log("DEBUG: Title ID $id was unapproved");
             }
         } else {
-             // If key isn't even set (e.g., form issue), assume unchecking
              $data['approved_at'] = null;
              error_log("DEBUG: Title ID $id approval key not set");
         }
 
-        // Remove team_id if present, as it shouldn't be editable directly here
+        // Remove team_id if present
         unset($data['team_id']); 
+        $data['updated_at'] = date('Y-m-d H:i:s');
     }
 
-    // For other tables (and now research_titles after preprocessing), use the generic handler
-    require_once __DIR__ . '/edit_functions.php'; // Make sure this file exists and functions are correct
+    // For other tables, use the generic handler
+    require_once __DIR__ . '/edit_functions.php';
 
-    // Check if handleEditSubmission exists and call it
     if (function_exists('handleEditSubmission')) {
-        // The $data array now has the correct 'program' key for research_titles
         $result = handleEditSubmission($pdo, $table, $id, $data); 
         if ($result !== false) {
             $response['success'] = true;
@@ -590,42 +546,36 @@ function handleRequirementTemplateUpload($file) {
             if ($table === 'research_titles' && isset($titleWasApproved) && $titleWasApproved) {
                 error_log("DEBUG: Sending title approval notifications for title ID $id");
                 
-                // Prevent duplicate notifications using session lock
                 $lockKey = "title_approval_lock_$id";
                 if (!isset($_SESSION[$lockKey])) {
                     $_SESSION[$lockKey] = time();
                     
-                    // Get title and team information for notification
                     $titleStmt = $pdo->prepare("SELECT title, team_id FROM research_titles WHERE id = ?");
                     $titleStmt->execute([$id]);
                     $titleInfo = $titleStmt->fetch(PDO::FETCH_ASSOC);
                     
                     if ($titleInfo) {
                         error_log("DEBUG: Title info found - Title: " . $titleInfo['title'] . ", Team ID: " . $titleInfo['team_id']);
-                        // Include notification functions
                         require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
                         
-                        // Create title approval notifications
                         createTitleApprovalNotifications($pdo, $titleInfo['team_id'], $titleInfo['title']);
                         error_log("DEBUG: Title approval notifications sent successfully");
                         
-                        // Clear the lock after 30 seconds (cleanup for future approvals)
                         if (isset($_SESSION[$lockKey]) && (time() - $_SESSION[$lockKey]) > 30) {
                             unset($_SESSION[$lockKey]);
                         }
                     } else {
                         error_log("DEBUG: No title info found for ID: " . $id);
-                        unset($_SESSION[$lockKey]); // Clear lock if no title found
+                        unset($_SESSION[$lockKey]);
                     }
                 } else {
                     error_log("DEBUG: Title approval notification blocked by session lock for ID: $id");
                 }
             }
         } else {
-            // Check if a specific message was set in handleEditSubmission
             if (isset($GLOBALS['edit_error_message'])) {
                  $response['message'] = $GLOBALS['edit_error_message'];
-                 unset($GLOBALS['edit_error_message']); // Clear global message
+                 unset($GLOBALS['edit_error_message']);
             } else {
                  $response['message'] = ucfirst($table) . ' update failed. Check logs for details.';
             }

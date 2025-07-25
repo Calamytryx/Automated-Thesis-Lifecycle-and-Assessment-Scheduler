@@ -94,6 +94,10 @@ $rest_of_name = substr($app_name, 1);
                                     <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name" required>
                                 </div>
                                 <div class="form-group">
+                                    <label for="section" >Section</label>
+                                    <input type="text" id="section" name="section" class="form-control" placeholder="Section" required>
+                                </div>
+                                <div class="form-group">
                                     <label for="password" >Password</label>
                                     <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                                 </div>

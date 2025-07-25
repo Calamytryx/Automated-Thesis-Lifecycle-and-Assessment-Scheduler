@@ -1,476 +1,965 @@
-CREATE DATABASE  IF NOT EXISTS `coecsa_thesis` /*!40100 DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci */;
-USE `coecsa_thesis`;
--- MySQL dump 10.13  Distrib 8.0.38, for Win64 (x86_64)
+-- phpMyAdmin SQL Dump
+-- version 5.2.1
+-- https://www.phpmyadmin.net/
 --
--- Host: 127.0.0.1    Database: coecsa_thesis
--- ------------------------------------------------------
--- Server version	5.5.5-10.4.32-MariaDB
+-- Host: 127.0.0.1
+-- Generation Time: Jul 25, 2025 at 10:32 AM
+-- Server version: 10.4.32-MariaDB-log
+-- PHP Version: 8.3.12
+
+SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
+START TRANSACTION;
+SET time_zone = "+00:00";
+
 
 /*!40101 SET @OLD_CHARACTER_SET_CLIENT=@@CHARACTER_SET_CLIENT */;
 /*!40101 SET @OLD_CHARACTER_SET_RESULTS=@@CHARACTER_SET_RESULTS */;
 /*!40101 SET @OLD_COLLATION_CONNECTION=@@COLLATION_CONNECTION */;
-/*!50503 SET NAMES utf8 */;
-/*!40103 SET @OLD_TIME_ZONE=@@TIME_ZONE */;
-/*!40103 SET TIME_ZONE='+00:00' */;
-/*!40014 SET @OLD_UNIQUE_CHECKS=@@UNIQUE_CHECKS, UNIQUE_CHECKS=0 */;
-/*!40014 SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0 */;
-/*!40101 SET @OLD_SQL_MODE=@@SQL_MODE, SQL_MODE='NO_AUTO_VALUE_ON_ZERO' */;
-/*!40111 SET @OLD_SQL_NOTES=@@SQL_NOTES, SQL_NOTES=0 */;
+/*!40101 SET NAMES utf8mb4 */;
+
+--
+-- Database: `icei_38697196_coecsathesis`
+--
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `auth_tokens`
 --
 
-DROP TABLE IF EXISTS `auth_tokens`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `auth_tokens` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `user_email` varchar(255) NOT NULL,
   `auth_type` varchar(255) NOT NULL,
   `selector` text NOT NULL,
   `token` longtext NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  `expires_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `id` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=101 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `expires_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `auth_tokens`
 --
 
-LOCK TABLES `auth_tokens` WRITE;
-/*!40000 ALTER TABLE `auth_tokens` DISABLE KEYS */;
-/*!40000 ALTER TABLE `auth_tokens` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `auth_tokens` (`id`, `user_email`, `auth_type`, `selector`, `token`, `created_at`, `expires_at`) VALUES
+(1, 'winstonagustin.ih@gmail.com', 'account_verify', '613f4c35ee6dac46', '$2y$10$fGDz8SdTBADhULRbmpcauORjPUc1tD.JsKCldb72Z.uQFaej5PdG.', '2025-07-22 05:07:15', '2025-07-22 21:07:15'),
+(2, 'aaa@lpunetwork.edu.ph', 'account_verify', '48b48c832e3b664f', '$2y$10$ji.QirAwmGil3ZuarXxw6.WQMcoWiqQlYGkP//soSegE2LsdYPjBC', '2025-07-23 04:51:53', '2025-07-23 05:51:53'),
+(5, 'neilvicedo@lpunetwork.edu.ph', 'account_verify', 'd39d2af98ea2eca9', '$2y$10$Uz0QqWNE4bMp33p5z1nIl.C/1sX1V46wjeMx814UBeeZwmfWfL07y', '2025-07-24 03:35:21', '2025-07-24 04:35:21');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `default_schedules`
+--
+
+CREATE TABLE `default_schedules` (
+  `id` int(11) NOT NULL,
+  `program` varchar(255) NOT NULL,
+  `year` enum('1','2','3','4','5') NOT NULL,
+  `section` int(2) NOT NULL,
+  `building` varchar(45) NOT NULL,
+  `room` varchar(45) NOT NULL,
+  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
+  `class_name` varchar(45) NOT NULL,
+  `start_time` varchar(45) NOT NULL,
+  `end_time` varchar(45) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `defense_panelists`
 --
 
-DROP TABLE IF EXISTS `defense_panelists`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `defense_panelists` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `defense_id` int(11) unsigned NOT NULL,
-  `panelist_id` int(11) unsigned DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `defense_id` (`defense_id`),
-  KEY `panelist_id` (`panelist_id`),
-  CONSTRAINT `defense_panelists_ibfk_1` FOREIGN KEY (`defense_id`) REFERENCES `defense_schedules` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `defense_panelists_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_id` int(11) UNSIGNED NOT NULL,
+  `panelist_id` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `defense_panelists`
---
-
-LOCK TABLES `defense_panelists` WRITE;
-/*!40000 ALTER TABLE `defense_panelists` DISABLE KEYS */;
-/*!40000 ALTER TABLE `defense_panelists` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `defense_schedules`
 --
 
-DROP TABLE IF EXISTS `defense_schedules`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `defense_schedules` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `team_id` int(11) unsigned DEFAULT NULL,
-  `panelist_id` int(11) unsigned DEFAULT NULL,
-  `panelist_id2` int(11) unsigned DEFAULT NULL,
-  `panelist_id3` int(11) unsigned DEFAULT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
+  `team_id` int(11) UNSIGNED DEFAULT NULL,
+  `panelist_id` int(11) UNSIGNED DEFAULT NULL,
+  `panelist_id2` int(11) UNSIGNED DEFAULT NULL,
+  `panelist_id3` int(11) UNSIGNED DEFAULT NULL,
   `schedule_date` date DEFAULT NULL,
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
   `room` varchar(50) DEFAULT NULL,
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `panelist_id` (`panelist_id`),
-  KEY `panelist_id2` (`panelist_id2`),
-  KEY `panelist_id3` (`panelist_id3`),
-  KEY `fk_defense_schedules_team` (`team_id`),
-  CONSTRAINT `defense_schedules_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `defense_schedules_ibfk_3` FOREIGN KEY (`panelist_id2`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `defense_schedules_ibfk_4` FOREIGN KEY (`panelist_id3`) REFERENCES `users` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `fk_defense_schedules_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL ON UPDATE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `approval_status` enum('approved','rejected','pending') DEFAULT 'pending'
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `defense_schedules`
 --
 
-LOCK TABLES `defense_schedules` WRITE;
-/*!40000 ALTER TABLE `defense_schedules` DISABLE KEYS */;
-INSERT INTO `defense_schedules` VALUES (1,1,59,62,65,'2024-12-10','10:00:00','11:00:00','Defense Room B','scheduled','2024-10-13 08:02:26'),(2,2,60,64,67,'2024-12-10','14:00:00','15:00:00','Defense Room A','scheduled','2024-10-13 08:02:26'),(3,3,64,65,66,'2024-12-10','13:00:00','14:00:00','Defense Room A','scheduled','2024-10-13 08:02:26'),(4,4,60,62,67,'2024-12-10','14:00:00','15:00:00','Defense Room A','scheduled','2024-10-13 08:02:26'),(5,5,61,65,66,'2024-12-14','09:00:00','10:00:00','Defense Room A','scheduled','2024-10-13 08:02:26'),(6,6,60,65,66,'2024-12-09','11:00:00','12:00:00','Defense Room B','scheduled','2024-10-13 08:02:26'),(7,7,58,59,63,'2024-12-14','14:00:00','15:00:00','Defense Room B','scheduled','2024-10-13 08:02:26');
-/*!40000 ALTER TABLE `defense_schedules` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`, `approval_status`) VALUES
+(6, 1, 271, 270, 272, '2025-07-23', '17:00:00', '18:00:00', 'a', 'scheduled', '2025-07-23 01:38:48', 'pending');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `env_variables`
 --
 
-DROP TABLE IF EXISTS `env_variables`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `env_variables` (
-  `id` int(11) NOT NULL AUTO_INCREMENT,
+  `id` int(11) NOT NULL,
   `key` varchar(255) NOT NULL,
   `value` text NOT NULL,
-  `description` text DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `key` (`key`)
-) ENGINE=InnoDB AUTO_INCREMENT=16 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `description` text DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `env_variables`
 --
 
-LOCK TABLES `env_variables` WRITE;
-/*!40000 ALTER TABLE `env_variables` DISABLE KEYS */;
-INSERT INTO `env_variables` VALUES (1,'APP_NAME','ATLAS','Application name'),(2,'APP_ORGANIZATION','LPU-C CoECSA','Organization name'),(3,'APP_OWNER','120ms','Application owner'),(4,'APP_DESCRIPTION','Advanced Thesis Logistics and AI System for LPU','Application description'),(5,'ALLOWED_INACTIVITY_TIME','3600','Allowed inactivity time in seconds'),(6,'DB_DATABASE','coecsa_thesis','Database name'),(7,'DB_HOST','127.0.0.1','Database host'),(8,'DB_USERNAME','root','Database username'),(9,'DB_PASSWORD','','Database password'),(10,'DB_PORT','3306','Database port'),(11,'MAIL_HOST','smtp.gmail.com','Mail host'),(12,'MAIL_USERNAME','ton.agustin09@gmail.com','Mail username'),(13,'MAIL_PASSWORD','rdrc cinf leli xdms','Mail password'),(14,'MAIL_ENCRYPTION','ssl','Mail encryption'),(15,'MAIL_PORT','465','Mail port');
-/*!40000 ALTER TABLE `env_variables` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `env_variables` (`id`, `key`, `value`, `description`) VALUES
+(1, 'APP_NAME_ID', 'ATLAS', 'Application name'),
+(2, 'APP_ORGANIZATION', 'LPU-C CoECSA', 'Organization name'),
+(3, 'APP_OWNER', '120ms', 'Application owner'),
+(4, 'APP_DESCRIPTION', 'taga schedule', 'Application description'),
+(5, 'ALLOWED_INACTIVITY_TIME', '86400', 'Allowed inactivity time in seconds'),
+(11, 'MAIL_HOST', '\n	\n\nsmtp-mail.outlook.com', 'Mail host'),
+(12, 'MAIL_USERNAME', 'winstonagustin@lpunetwork.edu.ph', 'Mail username'),
+(13, 'MAIL_PASSWORD', 'CALmytryx6969..', 'Mail password'),
+(14, 'MAIL_ENCRYPTION', 'ssl', 'Mail encryption'),
+(15, 'MAIL_PORT', '587', 'Mail port'),
+(16, 'APP_LOGO_NAVBAR', 'logo_full_lightbg.png', NULL),
+(17, 'APP_LOGO_FOOTER', 'logowhite.png', NULL);
 
---
--- Table structure for table `evaluation_details`
---
-
-DROP TABLE IF EXISTS `evaluation_details`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `evaluation_details` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `evaluation_id` int(11) unsigned DEFAULT NULL,
-  `criterion_id` int(11) unsigned DEFAULT NULL,
-  `score` float DEFAULT NULL,
-  `comment` text DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `evaluation_id` (`evaluation_id`),
-  KEY `criterion_id` (`criterion_id`),
-  CONSTRAINT `evaluation_details_ibfk_1` FOREIGN KEY (`evaluation_id`) REFERENCES `evaluations` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `evaluation_details_ibfk_2` FOREIGN KEY (`criterion_id`) REFERENCES `rubric_criteria` (`id`) ON DELETE SET NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `evaluation_details`
---
-
-LOCK TABLES `evaluation_details` WRITE;
-/*!40000 ALTER TABLE `evaluation_details` DISABLE KEYS */;
-/*!40000 ALTER TABLE `evaluation_details` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `evaluations`
 --
 
-DROP TABLE IF EXISTS `evaluations`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `evaluations` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `defense_schedule_id` int(11) unsigned DEFAULT NULL,
-  `evaluator_id` int(11) unsigned DEFAULT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED DEFAULT NULL,
+  `evaluator_id` int(11) UNSIGNED DEFAULT NULL,
+  `total_score` float DEFAULT NULL,
+  `pass_fail_status` enum('pass','fail') DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  `recommendation` enum('pass','fail','revise minor','revise major') DEFAULT NULL,
+  `yes_no` enum('yes','no') DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `evaluation_details`
+--
+
+CREATE TABLE `evaluation_details` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `evaluation_id` int(11) UNSIGNED DEFAULT NULL,
+  `rubric_id` int(11) UNSIGNED DEFAULT NULL,
+  `criterion_id` int(11) UNSIGNED DEFAULT NULL,
+  `student_id` int(11) UNSIGNED DEFAULT NULL,
+  `score` float DEFAULT NULL,
+  `selected_option` varchar(50) DEFAULT NULL,
+  `comment` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `evaluation_details`
+--
+
+INSERT INTO `evaluation_details` (`id`, `evaluation_id`, `rubric_id`, `criterion_id`, `student_id`, `score`, `selected_option`, `comment`, `created_at`, `updated_at`) VALUES
+(1, 1, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(2, 1, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(3, 1, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(4, 1, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(5, 1, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(6, 1, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(7, 1, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(8, 1, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(9, 1, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(10, 1, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(11, 1, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(12, 1, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(13, 1, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(14, 1, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(15, 1, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(16, 1, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(17, 1, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(18, 1, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(19, 1, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(20, 1, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(21, 1, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(22, 2, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(23, 1, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(24, 2, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(25, 1, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(26, 2, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(27, 1, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(28, 2, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(29, 1, 6, NULL, NULL, NULL, '0', NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(30, 3, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(31, 3, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(32, 3, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(33, 3, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(34, 3, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(35, 3, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(36, 3, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(37, 3, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(38, 3, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(39, 3, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(40, 3, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(41, 3, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(42, 3, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(43, 3, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(44, 3, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(45, 3, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(46, 3, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(47, 3, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(48, 3, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(49, 3, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(50, 3, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(51, 4, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(52, 3, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(53, 4, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(54, 3, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(55, 4, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(56, 3, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(57, 4, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(58, 3, 6, NULL, NULL, NULL, '2', NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(59, 5, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(60, 5, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(61, 5, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(62, 5, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(63, 5, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(64, 5, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(65, 5, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(66, 5, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(67, 5, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(68, 5, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(69, 5, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(70, 5, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(71, 5, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(72, 5, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(73, 5, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(74, 5, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(75, 5, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(76, 5, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(77, 5, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(78, 5, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(79, 5, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(80, 6, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(81, 5, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(82, 6, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(83, 5, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(84, 6, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(85, 5, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(86, 6, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(87, 5, 6, NULL, NULL, NULL, '3', NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `evaluation_per_panel`
+--
+
+CREATE TABLE `evaluation_per_panel` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED NOT NULL,
+  `evaluator_id` int(11) UNSIGNED NOT NULL,
+  `student_id` int(11) UNSIGNED NOT NULL,
+  `group_score` float DEFAULT NULL,
+  `solo_score` float DEFAULT NULL,
   `total_score` float DEFAULT NULL,
   `comments` text DEFAULT NULL,
-  `recommendation` enum('pass','fail','revise') DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `defense_schedule_id` (`defense_schedule_id`),
-  KEY `evaluator_id` (`evaluator_id`),
-  CONSTRAINT `evaluations_ibfk_1` FOREIGN KEY (`defense_schedule_id`) REFERENCES `defense_schedules` (`id`) ON DELETE SET NULL,
-  CONSTRAINT `evaluations_ibfk_2` FOREIGN KEY (`evaluator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
--- Dumping data for table `evaluations`
+-- Dumping data for table `evaluation_per_panel`
 --
 
-LOCK TABLES `evaluations` WRITE;
-/*!40000 ALTER TABLE `evaluations` DISABLE KEYS */;
-/*!40000 ALTER TABLE `evaluations` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`, `student_id`, `group_score`, `solo_score`, `total_score`, `comments`, `created_at`, `updated_at`) VALUES
+(1, 2, 270, 267, 65, 2, 67, 'I love Computer Science', '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(2, 2, 270, 268, 65, 2, 67, 'I love Computer Science', '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
+(3, 2, 271, 267, 65, 2, 67, 'test', '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(4, 2, 271, 268, 65, 2, 67, 'test', '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
+(5, 2, 272, 267, 65, 2, 67, 'bakit bigas thesis niyo', '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
+(6, 2, 272, 268, 65, 2, 67, 'bakit bigas thesis niyo', '2025-07-21 13:44:42', '2025-07-21 13:44:42');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `form_assignments`
+--
+
+CREATE TABLE `form_assignments` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED NOT NULL,
+  `embed_link` text NOT NULL,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `merged_evaluations`
+--
+
+CREATE TABLE `merged_evaluations` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED DEFAULT NULL,
+  `evaluator_id` int(11) UNSIGNED DEFAULT NULL,
+  `student_id` int(11) UNSIGNED DEFAULT NULL,
+  `group_score` float DEFAULT NULL,
+  `solo_score` float DEFAULT NULL,
+  `total_score` float DEFAULT NULL,
+  `pass_fail_status` enum('pass','fail') DEFAULT NULL,
+  `recommendation` enum('pass','fail','revise minor','revise major') DEFAULT NULL,
+  `yes_no` enum('yes','no') DEFAULT NULL,
+  `rubric_id` int(11) UNSIGNED DEFAULT NULL,
+  `criterion_id` int(11) UNSIGNED DEFAULT NULL,
+  `score` float DEFAULT NULL,
+  `selected_option` varchar(50) DEFAULT NULL,
+  `comments` text DEFAULT NULL,
+  `detail_comment` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `type` enum('defense_scheduled','title_approved','requirement_created','requirement_submitted','requirement_approved','requirement_rejected','defense_approval') NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `related_id` int(11) UNSIGNED DEFAULT NULL COMMENT 'ID of related entity (team_id, requirement_id, etc.)',
+  `related_type` enum('team','requirement','defense_schedule','research_title') DEFAULT NULL,
+  `is_read` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notifications`
+--
+
+INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `updated_at`) VALUES
+(2, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-23 01:40:44'),
+(3, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 19:45:00'),
+(4, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 17:47:51'),
+(5, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 0, '2025-07-22 17:45:02', '2025-07-22 17:45:02'),
+(6, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-07-23 01:40:43'),
+(7, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(8, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(9, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 11:00 AM - 1:00 PM in a. Waiting for panelist approval.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-07-22 19:45:00'),
+(10, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 11:00 AM - 1:00 PM in a. Waiting for panelist approval.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(11, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 11:00 AM - 1:00 PM in a. Waiting for panelist approval.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(12, 269, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Title of Team 1\' has been approved and you can now proceed with your research.', 1, NULL, 0, '2025-07-22 19:48:15', '2025-07-22 19:48:15'),
+(13, 267, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Title of Team 1\' has been approved and you can now proceed with your research.', 1, NULL, 0, '2025-07-22 19:48:15', '2025-07-22 19:48:15'),
+(14, 268, 'title_approved', 'Research Title Approved', 'Great news! Your research title \'Title of Team 1\' has been approved and you can now proceed with your research.', 1, NULL, 0, '2025-07-22 19:48:15', '2025-07-22 19:48:15'),
+(15, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
+(16, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
+(17, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 1, '2025-07-22 19:50:20', '2025-07-22 19:50:44'),
+(18, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
+(19, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(20, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 1, '2025-07-23 01:38:48', '2025-07-23 01:40:37'),
+(21, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(22, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(23, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(24, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notification_actions`
+--
+
+CREATE TABLE `notification_actions` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `notification_id` int(11) UNSIGNED NOT NULL,
+  `action_type` enum('approve_defense','reject_defense') NOT NULL,
+  `action_data` longtext DEFAULT NULL,
+  `is_completed` tinyint(1) DEFAULT 0,
+  `completed_at` timestamp NULL DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `notification_actions`
+--
+
+INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `action_data`, `is_completed`, `completed_at`, `created_at`) VALUES
+(1, 6, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(2, 6, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(3, 7, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(4, 7, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(5, 8, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(6, 8, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(7, 19, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(8, 19, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(9, 20, 'approve_defense', '{\"schedule_id\":\"6\"}', 1, '2025-07-23 01:40:37', '2025-07-23 01:38:48'),
+(10, 20, 'reject_defense', '{\"schedule_id\":\"6\"}', 1, '2025-07-23 01:40:37', '2025-07-23 01:38:48'),
+(11, 21, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(12, 21, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notification_preferences`
+--
+
+CREATE TABLE `notification_preferences` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `defense_scheduled` tinyint(1) NOT NULL DEFAULT 1,
+  `title_approved` tinyint(1) NOT NULL DEFAULT 1,
+  `requirement_created` tinyint(1) NOT NULL DEFAULT 1,
+  `requirement_submitted` tinyint(1) NOT NULL DEFAULT 1,
+  `requirement_approved` tinyint(1) NOT NULL DEFAULT 1,
+  `requirement_rejected` tinyint(1) NOT NULL DEFAULT 1,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `page_content`
+--
+
+CREATE TABLE `page_content` (
+  `id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `slug` varchar(255) NOT NULL,
+  `content` text DEFAULT NULL,
+  `status` enum('published','draft') NOT NULL DEFAULT 'draft',
+  `created_at` datetime NOT NULL DEFAULT current_timestamp(),
+  `updated_at` datetime NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_by` int(11) DEFAULT NULL,
+  `updated_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `page_content`
+--
+
+INSERT INTO `page_content` (`id`, `title`, `slug`, `content`, `status`, `created_at`, `updated_at`, `created_by`, `updated_by`) VALUES
+(1, 'pls work', 'pls-work', '<p>If you\'re seeing this then celebrate, it\'s now <b>working.</b></p>', 'published', '2025-04-18 19:24:53', '2025-07-21 07:01:08', 37, 0),
+(2, 'still working and improved?', 'still-working-and-improved', '<h1>Greetings Lyceans,</h1><h3>We are venom.</h3><blockquote class=\"blockquote\"><p>I do not think, therefore I do not am. - Venom</p></blockquote><p><br></p><p>&nbsp;This is a normal paragraph being tested for the features such as, <b>bold,</b>&nbsp;<u>underlined,</u>&nbsp;<i>italic, </i><span style=\"background-color: rgb(0, 255, 0);\">with higlight,</span>&nbsp;&nbsp;<br></p><hr><ul><li>In a bullet<br></li></ul><hr><ol><li>In a number</li></ol><hr><p style=\"text-align: center; \">Centered</p><hr><p style=\"text-align: left;\">Left-aligned</p><hr><p style=\"text-align: right;\">Right-aligned</p><hr><p style=\"text-align: justify;\">Justified&nbsp;Lorem ipsum dolor sit amet consectetur adipiscing elit. Quisque faucibus ex sapien vitae pellentesque sem placerat. In id cursus mi pretium tellus duis convallis. Tempus leo eu aenean sed diam urna tempor. Pulvinar vivamus fringilla lacus nec metus bibendum egestas. Iaculis massa nisl malesuada lacinia integer nunc posuere. Ut hendrerit semper vel class aptent taciti sociosqu. Ad litora torquent per conubia nostra inceptos himenaeos.<br></p><hr><p style=\"text-align: justify; margin-left: 25px;\">Indented</p><hr><p style=\"text-align: justify; margin-left: 25px;\">Table</p><table class=\"table table-bordered\"><tbody><tr><td>Col1</td><td>Col2</td><td>Col3</td></tr><tr><td>Row1 C1</td><td>Row1 C2</td><td>Row1 C3</td></tr></tbody></table><hr><p style=\"text-align: justify; margin-left: 25px;\">gfdgfd</p>', 'published', '2025-04-21 02:37:06', '2025-04-21 09:18:23', 37, 37);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `panelist_approvals`
+--
+
+CREATE TABLE `panelist_approvals` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `defense_schedule_id` int(11) UNSIGNED NOT NULL,
+  `panelist_id` int(11) UNSIGNED NOT NULL,
+  `approval_status` enum('pending','approved','rejected') DEFAULT 'pending',
+  `response_date` datetime DEFAULT NULL,
+  `rejection_reason` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `panelist_approvals`
+--
+
+INSERT INTO `panelist_approvals` (`id`, `defense_schedule_id`, `panelist_id`, `approval_status`, `response_date`, `rejection_reason`, `created_at`) VALUES
+(1, 2, 271, 'approved', '2025-07-21 06:17:19', '', '2025-07-21 09:14:41'),
+(2, 2, 270, 'approved', '2025-07-21 05:51:57', '', '2025-07-21 09:14:41'),
+(3, 2, 272, 'approved', '2025-07-21 06:32:35', '', '2025-07-21 09:14:41'),
+(4, 3, 270, 'pending', NULL, NULL, '2025-07-22 16:19:50'),
+(5, 3, 275, 'pending', NULL, NULL, '2025-07-22 16:19:50'),
+(6, 3, 272, 'pending', NULL, NULL, '2025-07-22 16:19:50'),
+(7, 4, 270, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
+(8, 4, 275, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
+(9, 4, 272, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
+(10, 5, 270, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(11, 5, 271, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(12, 5, 272, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(13, 6, 271, 'pending', NULL, NULL, '2025-07-23 01:38:48'),
+(14, 6, 270, 'approved', '2025-07-23 09:40:37', '', '2025-07-23 01:38:48'),
+(15, 6, 272, 'pending', NULL, NULL, '2025-07-23 01:38:48');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `programs`
+--
+
+CREATE TABLE `programs` (
+  `id` int(11) NOT NULL,
+  `college` varchar(255) NOT NULL,
+  `department` varchar(255) DEFAULT NULL,
+  `name` varchar(255) NOT NULL,
+  `specialization` varchar(255) DEFAULT NULL,
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=MyISAM DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `programs`
+--
+
+INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`, `updated_at`) VALUES
+(58, 'College of Allied Medical Sciences', NULL, 'BS Medical Technology', NULL, '2025-04-29 09:02:55'),
+(59, 'College of Allied Medical Sciences', '', 'BS Pharmacy', '', '2025-07-21 13:12:37'),
+(60, 'College of Allied Medical Sciences', NULL, 'BS Radiologic Technology', NULL, '2025-04-29 09:02:55'),
+(61, 'College of Allied Medical Sciences', NULL, 'BS Biology', NULL, '2025-04-29 09:02:55'),
+(62, 'College of Liberal Arts and Education', NULL, 'Bachelor of Arts in Communication', NULL, '2025-04-29 09:02:55'),
+(63, 'College of Liberal Arts and Education', NULL, 'AB Foreign Service', NULL, '2025-04-29 09:02:55'),
+(64, 'College of Liberal Arts and Education', NULL, 'AB Legal Studies', NULL, '2025-04-29 09:02:55'),
+(65, 'College of Liberal Arts and Education', NULL, 'Bachelor of Early Childhood Education', NULL, '2025-04-29 09:02:55'),
+(66, 'College of Liberal Arts and Education', NULL, 'Bachelor in Secondary Education', NULL, '2025-04-29 09:02:55'),
+(67, 'College of Liberal Arts and Education', NULL, 'BS Psychology', NULL, '2025-04-29 09:02:55'),
+(68, 'College of Business Administration', NULL, 'BS Accountancy', NULL, '2025-04-29 09:02:55'),
+(69, 'College of Business Administration', NULL, 'BS Business Administration', 'Human Resource Development Management', '2025-04-29 09:02:55'),
+(70, 'College of Business Administration', NULL, 'BS Business Administration', 'Management Accounting', '2025-04-29 09:02:55'),
+(71, 'College of Business Administration', NULL, 'BS Business Administration', 'Marketing Management', '2025-04-29 09:02:55'),
+(72, 'College of Business Administration', NULL, 'BS Business Administration', 'Operations Management', '2025-04-29 09:02:55'),
+(73, 'College of Business Administration', NULL, 'BS Customs Administration', NULL, '2025-04-29 09:02:55'),
+(74, 'College of Business Administration', NULL, 'BS Entrepreneurship', 'Aesthetics Industry Management', '2025-04-29 09:02:55'),
+(75, 'College of Business Administration', NULL, 'BS Real Estate Management', NULL, '2025-04-29 09:02:55'),
+(76, 'College of Engineering and Architecture', 'Architecture', 'Bachelor of Science in Architecture (Arch)', '', '2025-07-20 11:14:34'),
+(77, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Data Science', '2025-07-20 11:16:27'),
+(78, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Software Engineering', '2025-07-20 11:16:19'),
+(79, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Network and Information Security', '2025-07-20 11:15:35'),
+(80, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Web and Mobile Technology', '2025-07-20 11:15:22'),
+(81, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Library and Information Science', '', '2025-07-20 11:15:11'),
+(82, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Aeronautical Engineering', '', '2025-07-20 11:14:26'),
+(83, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Construction Engineering & Management', '2025-07-20 11:14:15'),
+(84, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Structural Engineering', '2025-07-20 11:14:03'),
+(85, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Transportation Engineering', '2025-07-20 11:13:45'),
+(86, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Computer Engineering', '', '2025-07-20 11:13:55'),
+(87, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Engineering Technology', 'Construction Technology and Management', '2025-07-20 11:13:29'),
+(88, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Electrical Engineering', '', '2025-07-20 11:13:19'),
+(89, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Electronics Engineering', '', '2025-07-20 11:13:06'),
+(90, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Industrial Engineering', '', '2025-07-20 11:12:54'),
+(91, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Mechanical Engineering', '', '2025-07-20 11:12:36'),
+(92, 'College of Fine Arts and Design', NULL, 'Bachelor of Fine Arts', NULL, '2025-04-29 09:02:55'),
+(93, 'College of Fine Arts and Design', '', 'Bachelor of Multimedia Arts', '', '2025-07-20 11:15:44'),
+(94, 'College of Fine Arts and Design', NULL, 'Bachelor in Photography', NULL, '2025-04-29 09:02:55'),
+(95, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', NULL, '2025-04-29 09:02:55'),
+(96, 'College of International Tourism and Hospitality Management', NULL, 'BS International Travel and Tourism Management', 'Health and Wellness', '2025-04-29 09:02:55'),
+(97, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Culinary Arts', '2025-04-29 09:02:55'),
+(98, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Cruise Line Operations in Hotel Services', '2025-04-29 09:02:55'),
+(99, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Culinary Arts and Kitchen Operations', '2025-04-29 09:02:55'),
+(100, 'College of International Tourism and Hospitality Management', NULL, 'BS International Hospitality Management', 'Hotel and Restaurant Administration', '2025-04-29 09:02:55'),
+(101, 'College of International Tourism and Hospitality Management', NULL, 'BS Nutrition and Dietetics', NULL, '2025-04-29 09:02:55'),
+(102, 'College of Nursing', NULL, 'BS Nursing', NULL, '2025-04-29 09:02:55'),
+(103, 'College of Law', NULL, 'Juris Doctor', NULL, '2025-04-29 09:02:55'),
+(104, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master of Arts in Education', 'Educational Management', '2025-04-29 09:02:55'),
+(105, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Business Administration', NULL, '2025-04-29 09:02:55'),
+(106, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Hospitality Management', NULL, '2025-04-29 09:02:55'),
+(107, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in International Travel and Tourism Management', NULL, '2025-04-29 09:02:55'),
+(108, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Master in Public Administration', NULL, '2025-04-29 09:02:55'),
+(109, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Business Management', NULL, '2025-04-29 09:02:55'),
+(110, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in Public Policy and Management', NULL, '2025-04-29 09:02:55'),
+(111, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Hospitality Management', NULL, '2025-04-29 09:02:55'),
+(112, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in International Tourism Management', NULL, '2025-04-29 09:02:55'),
+(113, 'Claro M. Recto Academy of Advanced Studies', NULL, 'Ph.D. in English Language', NULL, '2025-04-29 09:02:55');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `requirements`
 --
 
-DROP TABLE IF EXISTS `requirements`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `requirements` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
+  `template_file` varchar(255) DEFAULT NULL,
+  `template_original_name` varchar(255) DEFAULT NULL,
   `due_date` date DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `requirements`
 --
 
-LOCK TABLES `requirements` WRITE;
-/*!40000 ALTER TABLE `requirements` DISABLE KEYS */;
-/*!40000 ALTER TABLE `requirements` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `requirements` (`id`, `name`, `description`, `template_file`, `template_original_name`, `due_date`, `created_at`) VALUES
+(2, 'Capstone 2', 'This includes the template', '687d025450e81_1753023060.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-10-31', '2024-11-11 10:52:54'),
+(3, 'Capstone 1', 'This includes the template\r\n(IT ONLY)', '687d0244896eb_1753023044.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-11-30', '2024-11-11 10:52:41'),
+(5, 'Final Manuscript', 'Also used for Research Repository (DO NOT REMOVE)', '687d0263dbbb8_1753023075.docx', 'FULL MANUSCRIPT_template_crd2025.docx', '2024-12-04', '2024-11-11 10:52:22');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `research_titles`
 --
 
-DROP TABLE IF EXISTS `research_titles`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `research_titles` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `team_id` int(11) unsigned NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
+  `team_id` int(11) UNSIGNED NOT NULL,
   `title` varchar(255) NOT NULL,
+  `program` varchar(255) DEFAULT NULL,
   `approved_at` timestamp NULL DEFAULT NULL,
+  `defended_at` timestamp NULL DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `team_id` (`team_id`),
-  CONSTRAINT `research_titles_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `research_titles`
 --
 
-LOCK TABLES `research_titles` WRITE;
-/*!40000 ALTER TABLE `research_titles` DISABLE KEYS */;
-INSERT INTO `research_titles` VALUES (1,1,'Analysis of Machine Learning Algorithms in Predictive Maintenance','2024-11-15 01:00:00','2024-10-13 07:15:44','2024-10-13 07:15:44'),(2,2,'Sustainable Urban Planning: A Case Study of Green Cities','2024-11-16 02:30:00','2024-10-13 07:15:44','2024-10-13 07:15:44'),(3,3,'The Impact of Social Media on Mental Health in Adolescents','2024-11-17 03:45:00','2024-10-13 07:15:44','2024-10-13 07:15:44'),(4,4,'Renewable Energy Integration in Smart Grids','2024-11-18 06:00:00','2024-10-13 07:15:44','2024-10-13 07:15:44'),(5,5,'Cybersecurity Challenges in Internet of Things (IoT) Devices','2024-11-19 07:30:00','2024-10-13 07:15:44','2024-10-13 07:15:44'),(6,6,'The Role of Artificial Intelligence in Healthcare Diagnostics',NULL,'2024-10-13 07:15:44','2024-10-13 07:15:44'),(7,7,'Blockchain Technology in Supply Chain Management','2024-11-20 05:15:00','2024-10-13 07:16:51','2024-10-13 07:16:51');
-/*!40000 ALTER TABLE `research_titles` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at`, `defended_at`, `created_at`, `updated_at`) VALUES
+(1, 1, 'Title of Team 1', '', '2025-07-22 19:48:15', NULL, '2025-07-21 09:05:57', '2025-07-22 19:48:15');
 
---
--- Table structure for table `rubric_criteria`
---
-
-DROP TABLE IF EXISTS `rubric_criteria`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `rubric_criteria` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `rubric_id` int(11) unsigned DEFAULT NULL,
-  `criterion` varchar(255) NOT NULL,
-  `max_score` int(11) DEFAULT NULL,
-  `weight` float DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `rubric_id` (`rubric_id`),
-  CONSTRAINT `rubric_criteria_ibfk_1` FOREIGN KEY (`rubric_id`) REFERENCES `rubrics` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `rubric_criteria`
---
-
-LOCK TABLES `rubric_criteria` WRITE;
-/*!40000 ALTER TABLE `rubric_criteria` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rubric_criteria` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `rubrics`
 --
 
-DROP TABLE IF EXISTS `rubrics`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `rubrics` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `name` varchar(100) NOT NULL,
+  `id` int(11) UNSIGNED NOT NULL,
+  `name` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
-  `created_by` int(11) unsigned DEFAULT NULL,
+  `rubric_type` enum('numerical','yesno','passfail') NOT NULL DEFAULT 'numerical',
+  `is_individual_enabled` tinyint(1) NOT NULL DEFAULT 0,
+  `defense_type` varchar(50) DEFAULT NULL,
+  `rubric_description` text DEFAULT NULL,
+  `pass_recommendation_text` varchar(255) DEFAULT NULL,
+  `fail_recommendation_text` varchar(255) DEFAULT NULL,
+  `fail_option_text` text DEFAULT NULL,
+  `pass_threshold_1` decimal(5,2) DEFAULT NULL,
+  `pass_threshold_2` decimal(5,2) DEFAULT NULL,
+  `pass_threshold_3` decimal(5,2) DEFAULT NULL,
+  `max_total_score` int(11) DEFAULT 0,
+  `max_members` int(11) DEFAULT 5,
+  `is_active` tinyint(1) NOT NULL DEFAULT 1,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`),
-  KEY `created_by` (`created_by`),
-  CONSTRAINT `rubrics_ibfk_1` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`) ON DELETE SET NULL
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `max_score_per_criterion` int(11) DEFAULT 100 COMMENT 'Maximum score allowed per criterion for individual scoring mode'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `rubrics`
 --
 
-LOCK TABLES `rubrics` WRITE;
-/*!40000 ALTER TABLE `rubrics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `rubrics` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `rubrics` (`id`, `name`, `description`, `rubric_type`, `is_individual_enabled`, `defense_type`, `rubric_description`, `pass_recommendation_text`, `fail_recommendation_text`, `fail_option_text`, `pass_threshold_1`, `pass_threshold_2`, `pass_threshold_3`, `max_total_score`, `max_members`, `is_active`, `created_at`, `updated_at`, `max_score_per_criterion`) VALUES
+(1, 'A. Degree of Design / Level of Technical Complexity (30%)', '(RE-PRESENTATION)', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-07-21 09:32:37', '2025-07-21 09:36:37', 100),
+(2, 'B. Safety, Functionality, & Workmanship (20%)', '(RE-PRESENTATION)', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-07-21 09:36:20', '2025-07-21 13:25:50', 100),
+(3, 'Content (20%)', 'Final Manuscript Rubric (RE-PRESENTATION)', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-07-21 09:41:50', '2025-07-21 09:45:42', 100),
+(4, 'Organization (10%)', 'Final Manuscript Rubric (RE-PRESENTATION)', 'numerical', 0, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, NULL, 1, '2025-07-21 09:45:09', '2025-07-21 09:45:09', 100),
+(5, 'Presentation and Defense', 'Final Manuscript Rubric (RE-PRESENTATION)', 'numerical', 1, 'Proposal Defense', '', NULL, NULL, NULL, NULL, NULL, NULL, 0, 5, 1, '2025-07-21 09:48:07', '2025-07-21 09:48:20', 100),
+(6, 'FINAL RECOMMENDATION:', '(RE-PRESENTATION)', 'passfail', 0, 'Proposal Defense', '', 'System is accepted:', 'System is rejected:', 'below 65% acceptability; refer to thesis adviser', 100.00, 75.00, 65.00, 0, NULL, 1, '2025-07-21 09:52:11', '2025-07-21 09:53:02', 100);
+
+-- --------------------------------------------------------
 
 --
--- Table structure for table `team_members`
+-- Table structure for table `rubric_criteria`
 --
 
-DROP TABLE IF EXISTS `team_members`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `team_members` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `team_id` int(11) unsigned DEFAULT NULL,
-  `user_id` int(11) unsigned DEFAULT NULL,
-  `role` varchar(50) DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `team_id` (`team_id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `team_members_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `team_members_ibfk_2` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=28 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+CREATE TABLE `rubric_criteria` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `rubric_id` int(11) UNSIGNED NOT NULL COMMENT 'FK to rubrics table',
+  `criterion_text` text NOT NULL COMMENT 'The main text for the criterion row',
+  `criterion_detail` text DEFAULT NULL COMMENT 'Optional secondary description (e.g., for Yes/No)',
+  `order_index` int(11) NOT NULL COMMENT 'Order of this criterion row within the rubric',
+  `is_individual` tinyint(1) NOT NULL DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores criteria rows for Numerical and Yes/No rubrics';
 
 --
--- Dumping data for table `team_members`
+-- Dumping data for table `rubric_criteria`
 --
 
-LOCK TABLES `team_members` WRITE;
-/*!40000 ALTER TABLE `team_members` DISABLE KEYS */;
-INSERT INTO `team_members` VALUES (1,1,58,'adviser'),(2,1,38,'leader'),(3,1,39,'member'),(4,1,40,'member'),(5,2,59,'adviser'),(6,2,41,'leader'),(7,2,42,'member'),(8,2,43,'member'),(9,3,60,'adviser'),(10,3,44,'leader'),(11,3,45,'member'),(12,3,46,'member'),(13,4,61,'adviser'),(14,4,47,'leader'),(15,4,48,'member'),(16,4,49,'member'),(17,5,62,'adviser'),(18,5,50,'leader'),(19,5,51,'member'),(20,5,52,'member'),(21,6,63,'adviser'),(22,6,53,'leader'),(23,6,54,'member'),(24,6,55,'member'),(25,7,64,'adviser'),(26,7,56,'leader'),(27,7,57,'member');
-/*!40000 ALTER TABLE `team_members` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `rubric_criteria` (`id`, `rubric_id`, `criterion_text`, `criterion_detail`, `order_index`, `is_individual`, `created_at`, `updated_at`) VALUES
+(8, 1, 'Modules and Features', '[\"Modules and features are missing, non-functional, or incomplete.\",\"Core modules present and functional but may lack advanced or complete features.\",\"All modules and features are fully functional and demonstrate advanced or extended capabilities.\"]', 0, 0, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(9, 1, 'User Interface (UI) Design', '[\"UI is hard to use, lacks structure, and does not follow any design principles.\",\"Functional and moderately user-friendly but lacks visual polish and consistency.\",\"Intuitive, professional, visually appealing, responsive, and adheres to usability and design principles.\"]', 1, 0, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(10, 1, 'Innovation and Creativity', '[\"\",\"\",\"\"]', 2, 0, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(20, 4, 'Table of Contents', '[\"Missing or disorganized.\",\"Mostly consistent.\",\"Complete, consistent, easy to navigate.\"]', 0, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(21, 4, 'Acknowledgment', '[\"Informal or irrelevant.\",\"Somewhat formal and relevant.\",\"Formal, well-written, and appropriate.\"]', 1, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(22, 4, 'References', '[\"Missing or not in proper format.\",\"APA followed but inconsistently.\",\"APA fully followed and well-organized.\"]', 2, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(23, 4, 'Appendices', '[\"Missing or not supportive.\",\"Present and somewhat relevant.\",\"Highly relevant and supportive.\"]', 3, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(24, 4, 'Manuscript Layout', '[\"Poor formatting and structure.\",\"Mostly follows academic standards.\",\"Professionally formatted and consistent.\"]', 4, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(25, 4, 'Grammar and Fluidity', '[\"Many errors and weak coherence.\",\"Minor issues; decent flow.\",\"Grammatically strong with excellent flow.\"]', 5, 0, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(26, 3, 'Relevance of Introduction', '[\"Lacks relevance or is disconnected.\",\"Relevant and provides sufficient background.\",\"Highly relevant, compelling, and comprehensive.\"]', 0, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(27, 3, 'Clarity of Objectives', '[\"Objectives unclear or poorly stated.\",\"Clear and defined.\",\"Exceptionally clear, specific, and integrated.\"]', 1, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(28, 3, 'Relevance of Literature', '[\"Outdated or irrelevant.\",\"Mostly relevant and updated.\",\"Comprehensive, current, and well-integrated.\"]', 2, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(29, 3, 'Critical Analysis of Literature', '[\"Lacks critical evaluation.\",\"Demonstrates basic synthesis.\",\"Deep analysis with meaningful integration.\"]', 3, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(30, 3, 'Appropriateness of Methodology', '[\"Poorly described or irrelevant.\",\"Appropriate and sufficiently described.\",\"Clearly justified, highly appropriate.\"]', 4, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(31, 3, 'Alignment with Objectives', '[\"Methodology does not align.\",\"Some alignment with objectives.\",\"Strong, justified alignment.\"]', 5, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(32, 3, 'Clarity of Results', '[\"Results unclear or incomplete.\",\"Adequately clear and complete.\",\"Clearly presented and comprehensive.\"]', 6, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(33, 3, 'Depth of Discussion', '[\"Superficial with limited insight.\",\"Moderately insightful.\",\"Thorough, insightful, and critically evaluates findings.\"]', 7, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(34, 3, 'Relevance of Conclusions', '[\"Vague or unsupported conclusions.\",\"Supported by results.\",\"Clear, relevant, and strongly supported.\"]', 8, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(35, 3, 'Practicality of Recommendations', '[\"Impractical or irrelevant.\",\"Feasible and related to findings.\",\"Highly practical and forward-looking.\"]', 9, 0, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(40, 5, '1.	The student has passed due to demonstrating mastery in presenting the research findings with clarity in conveying the findings, conclusions, and recommendations; providing ', NULL, 0, 1, '2025-07-21 09:48:20', '2025-07-21 09:48:20'),
+(41, 5, 'The student has failed due to lack of mastery in presenting the research findings, unclear delivery of the findings, conclusions, and recommendations; inability to respond effectively to the examiners’ inquiries;', NULL, 1, 1, '2025-07-21 09:48:20', '2025-07-21 09:48:20'),
+(42, 5, 'empty', NULL, 2, 1, '2025-07-21 09:48:20', '2025-07-21 09:48:20'),
+(43, 5, 'empty again', NULL, 3, 1, '2025-07-21 09:48:20', '2025-07-21 09:48:20'),
+(45, 2, '', '[\"\",\"\",\"\"]', 0, 0, '2025-07-21 13:25:50', '2025-07-21 13:25:50'),
+(48, 7, 'a', '[\"a\",\"a\",\"a\"]', 0, 0, '2025-07-21 13:27:25', '2025-07-21 13:27:25'),
+(49, 7, 'b', '[\"b\",\"b\",\"b\"]', 1, 0, '2025-07-21 13:27:25', '2025-07-21 13:27:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_groups`
+--
+
+CREATE TABLE `rubric_groups` (
+  `id` int(11) NOT NULL,
+  `name` varchar(255) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rubric_groups`
+--
+
+INSERT INTO `rubric_groups` (`id`, `name`, `description`, `created_at`, `updated_at`) VALUES
+(1, 'Information Technology and Computer Science', '(RE-PRESENTATION)', '2025-07-21 09:50:27', '2025-07-21 13:30:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_group_items`
+--
+
+CREATE TABLE `rubric_group_items` (
+  `id` int(11) NOT NULL,
+  `group_id` int(11) NOT NULL,
+  `rubric_id` int(11) UNSIGNED NOT NULL,
+  `order_index` int(11) NOT NULL DEFAULT 0,
+  `weight` decimal(5,2) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `rubric_group_items`
+--
+
+INSERT INTO `rubric_group_items` (`id`, `group_id`, `rubric_id`, `order_index`, `weight`, `created_at`, `updated_at`) VALUES
+(30, 1, 1, 0, 30.00, '2025-07-21 13:30:27', '2025-07-21 13:30:27'),
+(31, 1, 2, 1, 20.00, '2025-07-21 13:30:27', '2025-07-21 13:30:27'),
+(32, 1, 3, 2, 20.00, '2025-07-21 13:30:27', '2025-07-21 13:30:27'),
+(33, 1, 4, 3, 10.00, '2025-07-21 13:30:27', '2025-07-21 13:30:27'),
+(34, 1, 5, 4, 20.00, '2025-07-21 13:30:27', '2025-07-21 13:30:27'),
+(35, 1, 6, 5, NULL, '2025-07-21 13:30:27', '2025-07-21 13:30:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_levels`
+--
+
+CREATE TABLE `rubric_levels` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `rubric_id` int(11) UNSIGNED NOT NULL COMMENT 'FK to rubrics table',
+  `level_index` tinyint(3) UNSIGNED NOT NULL COMMENT 'Order of the level/modifier (1, 2, 3...)',
+  `name` varchar(100) NOT NULL COMMENT 'Name of the level (e.g., Excellent) or Pass Modifier',
+  `description` text DEFAULT NULL COMMENT 'Description of the level or Pass Modifier',
+  `points_min` int(11) DEFAULT NULL COMMENT 'Numerical Only: Min points for this level',
+  `points_max` int(11) DEFAULT NULL COMMENT 'Numerical Only: Max points (same as min if not range)',
+  `is_range` tinyint(1) NOT NULL DEFAULT 0 COMMENT 'Numerical Only: 1 if points_min/max define a range, 0 otherwise',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Stores Numerical quality levels or Pass/Fail modifier definitions';
+
+--
+-- Dumping data for table `rubric_levels`
+--
+
+INSERT INTO `rubric_levels` (`id`, `rubric_id`, `level_index`, `name`, `description`, `points_min`, `points_max`, `is_range`, `created_at`, `updated_at`) VALUES
+(7, 1, 1, 'Unacceptable', '', 1, 3, 1, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(8, 1, 2, 'Acceptable ', '', 4, 7, 1, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(9, 1, 3, 'Excellent ', '', 8, 10, 1, '2025-07-21 09:36:37', '2025-07-21 09:36:37'),
+(13, 4, 1, 'Unacceptable ', '', 0, 1, 1, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(14, 4, 2, 'Acceptable ', '', 2, 3, 1, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(15, 4, 3, 'Exemplary ', '', 4, 5, 1, '2025-07-21 09:45:09', '2025-07-21 09:45:09'),
+(16, 3, 1, 'Unacceptable', '', 0, 1, 1, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(17, 3, 2, 'Acceptable ', '', 2, 3, 1, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(18, 3, 3, 'Exemplary ', '', 4, 5, 1, '2025-07-21 09:45:42', '2025-07-21 09:45:42'),
+(20, 5, 1, 'Level 1', '', 1, 1, 0, '2025-07-21 09:48:20', '2025-07-21 09:48:20'),
+(24, 6, 1, 'Pass Option 1', 'without revision; 100% acceptability  ', NULL, NULL, 0, '2025-07-21 09:53:02', '2025-07-21 09:53:02'),
+(25, 6, 2, 'Pass Option 2', 'with minor revision(s); 75-99.99% acceptability; refer to evaluation sheet', NULL, NULL, 0, '2025-07-21 09:53:02', '2025-07-21 09:53:02'),
+(26, 6, 3, 'Pass Option 3', 'with major revisions; 65-74.99% acceptability; for re -presentation', NULL, NULL, 0, '2025-07-21 09:53:02', '2025-07-21 09:53:02'),
+(30, 2, 1, 'Unacceptable ', '', 1, 3, 1, '2025-07-21 13:25:50', '2025-07-21 13:25:50'),
+(31, 2, 2, 'Acceptable ', '', 4, 7, 1, '2025-07-21 13:25:50', '2025-07-21 13:25:50'),
+(32, 2, 3, 'Excellent ', '', 8, 10, 1, '2025-07-21 13:25:50', '2025-07-21 13:25:50'),
+(37, 7, 1, 'Level 1', '', 5, 6, 1, '2025-07-21 13:27:25', '2025-07-21 13:27:25'),
+(38, 7, 2, 'Level 2', '', 3, 4, 1, '2025-07-21 13:27:25', '2025-07-21 13:27:25'),
+(39, 7, 3, 'Level 3', '', 1, 2, 1, '2025-07-21 13:27:25', '2025-07-21 13:27:25');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `rubric_programs`
+--
+
+CREATE TABLE `rubric_programs` (
+  `rubric_id` int(10) UNSIGNED NOT NULL,
+  `program_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Associates rubrics with specific programs';
+
+--
+-- Dumping data for table `rubric_programs`
+--
+
+INSERT INTO `rubric_programs` (`rubric_id`, `program_name`) VALUES
+(1, 'Bachelor of Science in Information Technology - Web and Mobile Technology'),
+(2, 'Bachelor of Science in Information Technology - Web and Mobile Technology'),
+(3, 'Bachelor of Science in Information Technology - Web and Mobile Technology'),
+(4, 'Bachelor of Science in Information Technology - Web and Mobile Technology'),
+(5, 'Bachelor of Science in Information Technology - Web and Mobile Technology'),
+(6, 'Bachelor of Science in Information Technology - Web and Mobile Technology');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `teams`
 --
 
-DROP TABLE IF EXISTS `teams`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `teams` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(100) NOT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `title` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`)
-) ENGINE=InnoDB AUTO_INCREMENT=8 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `program` varchar(255) NOT NULL,
+  `area_of_expertise` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `teams`
 --
 
-LOCK TABLES `teams` WRITE;
-/*!40000 ALTER TABLE `teams` DISABLE KEYS */;
-INSERT INTO `teams` VALUES (1,'Team1','2024-10-13 06:58:29','Analysis of Machine Learning Algorithms in Predictive Maintenance'),(2,'Team2','2024-10-13 06:58:29','Sustainable Urban Planning: A Case Study of Green Cities'),(3,'Team3','2024-10-13 06:58:29','The Impact of Social Media on Mental Health in Adolescents'),(4,'Team4','2024-10-13 06:58:29','Renewable Energy Integration in Smart Grids'),(5,'Team5','2024-10-13 06:58:29','Cybersecurity Challenges in Internet of Things (IoT) Devices'),(6,'Team6','2024-10-13 06:58:29','The Role of Artificial Intelligence in Healthcare Diagnostics'),(7,'Team7','2024-10-13 06:58:29','Blockchain Technology in Supply Chain Management');
-/*!40000 ALTER TABLE `teams` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `teams` (`id`, `name`, `created_at`, `program`, `area_of_expertise`) VALUES
+(1, 'Team 1', '2025-07-21 09:05:57', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `team_members`
+--
+
+CREATE TABLE `team_members` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `team_id` int(11) UNSIGNED DEFAULT NULL,
+  `user_id` int(11) UNSIGNED DEFAULT NULL,
+  `role` varchar(50) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `team_members`
+--
+
+INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
+(1, 1, 269, 'adviser'),
+(2, 1, 267, 'leader'),
+(3, 1, 268, 'member');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `team_requirements`
+--
+
+CREATE TABLE `team_requirements` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `team_id` int(11) UNSIGNED DEFAULT NULL,
+  `requirement_id` int(11) UNSIGNED DEFAULT NULL,
+  `status` enum('pending','submitted','approved','rejected') DEFAULT 'pending',
+  `submitted_at` timestamp NULL DEFAULT NULL,
+  `feedback` text DEFAULT NULL,
+  `file_name` varchar(255) DEFAULT NULL,
+  `feedback_file` varchar(255) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `team_requirements`
+--
+
+INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `submitted_at`, `feedback`, `file_name`, `feedback_file`) VALUES
+(1, 1, 3, 'pending', '2025-07-21 09:09:20', '', '1_3_1753088960_687d0244896eb_1753023044_2_.docx', ''),
+(3, 1, 5, 'pending', '2025-07-21 09:19:02', '', '1_5_1753089542_FULL_MANUSCRIPT_template_crd2025.pdf', ''),
+(6, 1, 4, 'submitted', '2025-07-21 13:07:31', NULL, '1_4_1753103251_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
+(7, 1, 41, 'submitted', '2025-07-21 13:07:39', NULL, '1_41_1753103259_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
+(8, 1, 2, 'submitted', '2025-07-22 16:25:58', 'nice', '1_2_1753201558_system-flow.pdf', '');
+
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `thesis_topics`
 --
 
-DROP TABLE IF EXISTS `thesis_topics`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `thesis_topics` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `topic` varchar(255) NOT NULL,
   `description` text DEFAULT NULL,
   `category` varchar(100) DEFAULT NULL,
-  `suggested_by` varchar(100) DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  PRIMARY KEY (`id`)
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
 --
 -- Dumping data for table `thesis_topics`
 --
 
-LOCK TABLES `thesis_topics` WRITE;
-/*!40000 ALTER TABLE `thesis_topics` DISABLE KEYS */;
-/*!40000 ALTER TABLE `thesis_topics` ENABLE KEYS */;
-UNLOCK TABLES;
+INSERT INTO `thesis_topics` (`id`, `topic`, `description`, `category`, `created_at`) VALUES
+(1, 'a', ' a', 'a', '2025-07-21 13:03:36');
+
+-- --------------------------------------------------------
 
 --
--- Table structure for table `user_requirements`
+-- Table structure for table `uploaded_files`
 --
 
-DROP TABLE IF EXISTS `user_requirements`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_requirements` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) unsigned DEFAULT NULL,
-  `requirement_id` int(11) unsigned DEFAULT NULL,
-  `status` enum('pending','submitted','approved','rejected') DEFAULT 'pending',
-  `submitted_at` timestamp NULL DEFAULT NULL,
-  `feedback` text DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  KEY `requirement_id` (`requirement_id`),
-  CONSTRAINT `user_requirements_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  CONSTRAINT `user_requirements_ibfk_2` FOREIGN KEY (`requirement_id`) REFERENCES `requirements` (`id`) ON DELETE CASCADE
+CREATE TABLE `uploaded_files` (
+  `id` int(10) UNSIGNED NOT NULL,
+  `filename` varchar(255) NOT NULL,
+  `filepath` varchar(512) NOT NULL,
+  `filesize` int(11) NOT NULL,
+  `filetype` varchar(50) NOT NULL,
+  `uploaded_by` int(10) UNSIGNED NOT NULL,
+  `uploaded_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `description` text DEFAULT NULL,
+  `college_name` varchar(255) DEFAULT NULL,
+  `program_id` int(11) DEFAULT NULL,
+  `team_id` int(11) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
 
---
--- Dumping data for table `user_requirements`
---
-
-LOCK TABLES `user_requirements` WRITE;
-/*!40000 ALTER TABLE `user_requirements` DISABLE KEYS */;
-/*!40000 ALTER TABLE `user_requirements` ENABLE KEYS */;
-UNLOCK TABLES;
-
---
--- Table structure for table `user_schedules`
---
-
-DROP TABLE IF EXISTS `user_schedules`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
-CREATE TABLE `user_schedules` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
-  `user_id` int(11) unsigned NOT NULL,
-  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
-  `start_time` time NOT NULL,
-  `end_time` time NOT NULL,
-  `class_name` varchar(255) NOT NULL,
-  PRIMARY KEY (`id`),
-  KEY `user_id` (`user_id`),
-  CONSTRAINT `user_schedules_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE
-) ENGINE=InnoDB AUTO_INCREMENT=126 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
-
---
--- Dumping data for table `user_schedules`
---
-
-LOCK TABLES `user_schedules` WRITE;
-/*!40000 ALTER TABLE `user_schedules` DISABLE KEYS */;
-INSERT INTO `user_schedules` VALUES (6,38,'Tuesday','13:00:00','16:00:00','English'),(7,38,'Wednesday','08:00:00','11:00:00','History'),(8,38,'Monday','10:00:00','14:00:00','Literature'),(9,38,'Friday','15:00:00','18:00:00','Math'),(10,38,'Wednesday','16:00:00','20:00:00','Economics'),(11,39,'Wednesday','12:00:00','15:00:00','English'),(12,39,'Friday','18:00:00','23:00:00','Economics'),(13,39,'Monday','15:00:00','19:00:00','History'),(14,40,'Wednesday','17:00:00','21:00:00','English'),(15,40,'Tuesday','13:00:00','18:00:00','Programming'),(16,40,'Monday','07:00:00','11:00:00','History'),(17,41,'Monday','14:00:00','17:00:00','English'),(18,41,'Thursday','08:00:00','11:00:00','Chemistry'),(19,41,'Wednesday','14:00:00','18:00:00','English'),(20,41,'Tuesday','11:00:00','15:00:00','Literature'),(21,41,'Friday','11:00:00','14:00:00','Physics'),(22,42,'Friday','17:00:00','20:00:00','Chemistry'),(23,42,'Monday','14:00:00','17:00:00','Physics'),(24,42,'Thursday','14:00:00','19:00:00','Math'),(25,42,'Tuesday','13:00:00','18:00:00','Programming'),(26,43,'Wednesday','19:00:00','22:00:00','Programming'),(27,43,'Monday','07:00:00','10:00:00','Literature'),(28,43,'Thursday','18:00:00','22:00:00','Science'),(29,44,'Friday','10:00:00','13:00:00','Programming'),(30,44,'Saturday','11:00:00','14:00:00','Chemistry'),(31,44,'Saturday','15:00:00','20:00:00','English'),(32,44,'Thursday','08:00:00','12:00:00','Economics'),(33,44,'Friday','10:00:00','14:00:00','Programming'),(34,45,'Wednesday','16:00:00','20:00:00','English'),(35,45,'Tuesday','15:00:00','18:00:00','Chemistry'),(36,45,'Thursday','19:00:00','24:00:00','History'),(37,45,'Monday','16:00:00','21:00:00','Literature'),(38,46,'Thursday','12:00:00','15:00:00','Literature'),(39,46,'Friday','09:00:00','14:00:00','Programming'),(40,46,'Wednesday','17:00:00','22:00:00','Physics'),(41,46,'Wednesday','17:00:00','20:00:00','History'),(42,47,'Friday','10:00:00','13:00:00','Economics'),(43,47,'Saturday','12:00:00','16:00:00','Literature'),(44,47,'Wednesday','11:00:00','14:00:00','History'),(45,47,'Saturday','09:00:00','12:00:00','English'),(46,47,'Friday','10:00:00','14:00:00','Economics'),(47,48,'Monday','08:00:00','11:00:00','Chemistry'),(48,48,'Thursday','07:00:00','12:00:00','English'),(49,48,'Saturday','09:00:00','12:00:00','Economics'),(50,49,'Saturday','07:00:00','12:00:00','Economics'),(51,49,'Monday','09:00:00','14:00:00','Economics'),(52,49,'Friday','12:00:00','17:00:00','Chemistry'),(53,50,'Thursday','13:00:00','16:00:00','Literature'),(54,50,'Thursday','10:00:00','13:00:00','Chemistry'),(55,50,'Wednesday','10:00:00','14:00:00','English'),(56,51,'Thursday','19:00:00','23:00:00','English'),(57,51,'Saturday','19:00:00','23:00:00','History'),(58,51,'Saturday','19:00:00','22:00:00','Literature'),(59,51,'Friday','11:00:00','15:00:00','Science'),(60,51,'Friday','07:00:00','10:00:00','Science'),(61,52,'Saturday','13:00:00','18:00:00','Literature'),(62,52,'Thursday','17:00:00','22:00:00','Literature'),(63,52,'Wednesday','08:00:00','12:00:00','English'),(64,52,'Tuesday','16:00:00','19:00:00','Chemistry'),(65,52,'Monday','13:00:00','18:00:00','Physics'),(66,53,'Wednesday','13:00:00','18:00:00','Chemistry'),(67,53,'Tuesday','12:00:00','16:00:00','Programming'),(68,53,'Saturday','13:00:00','18:00:00','Programming'),(69,53,'Monday','08:00:00','13:00:00','Literature'),(70,54,'Saturday','14:00:00','19:00:00','Science'),(71,54,'Friday','19:00:00','22:00:00','Economics'),(72,54,'Wednesday','15:00:00','19:00:00','History'),(73,54,'Thursday','10:00:00','14:00:00','Literature'),(74,54,'Tuesday','15:00:00','18:00:00','Chemistry'),(75,55,'Friday','13:00:00','17:00:00','Programming'),(76,55,'Saturday','16:00:00','20:00:00','Economics'),(77,55,'Friday','16:00:00','21:00:00','Literature'),(78,56,'Friday','19:00:00','24:00:00','History'),(79,56,'Saturday','13:00:00','18:00:00','History'),(80,56,'Thursday','13:00:00','18:00:00','Physics'),(81,57,'Saturday','17:00:00','20:00:00','Chemistry'),(82,57,'Wednesday','12:00:00','16:00:00','Math'),(83,57,'Saturday','16:00:00','21:00:00','Chemistry'),(84,57,'Tuesday','14:00:00','18:00:00','History'),(85,57,'Wednesday','07:00:00','12:00:00','Chemistry'),(86,58,'Thursday','13:00:00','17:00:00','Programming'),(87,58,'Monday','10:00:00','14:00:00','Literature'),(88,58,'Monday','19:00:00','24:00:00','Math'),(89,58,'Tuesday','14:00:00','18:00:00','Chemistry'),(90,58,'Saturday','11:00:00','14:00:00','Economics'),(91,59,'Friday','19:00:00','22:00:00','Economics'),(92,59,'Friday','17:00:00','22:00:00','Physics'),(93,59,'Thursday','16:00:00','21:00:00','Literature'),(94,59,'Tuesday','10:00:00','13:00:00','Chemistry'),(95,60,'Friday','07:00:00','10:00:00','Science'),(96,60,'Tuesday','16:00:00','19:00:00','Science'),(97,60,'Monday','10:00:00','14:00:00','Chemistry'),(98,60,'Thursday','19:00:00','22:00:00','Programming'),(99,61,'Wednesday','09:00:00','12:00:00','Science'),(100,61,'Saturday','08:00:00','11:00:00','Chemistry'),(101,61,'Monday','08:00:00','13:00:00','Economics'),(102,61,'Monday','16:00:00','20:00:00','Programming'),(103,62,'Monday','09:00:00','14:00:00','Math'),(104,62,'Tuesday','18:00:00','22:00:00','Programming'),(105,62,'Wednesday','12:00:00','15:00:00','Literature'),(106,62,'Thursday','08:00:00','12:00:00','Programming'),(107,62,'Tuesday','12:00:00','17:00:00','History'),(108,63,'Saturday','18:00:00','22:00:00','Economics'),(109,63,'Wednesday','15:00:00','20:00:00','English'),(110,63,'Tuesday','18:00:00','22:00:00','Literature'),(111,63,'Tuesday','08:00:00','11:00:00','Chemistry'),(112,64,'Wednesday','13:00:00','17:00:00','History'),(113,64,'Saturday','16:00:00','20:00:00','Programming'),(114,64,'Wednesday','13:00:00','18:00:00','Literature'),(115,65,'Wednesday','12:00:00','17:00:00','Literature'),(116,65,'Tuesday','13:00:00','17:00:00','Literature'),(117,65,'Saturday','12:00:00','16:00:00','Chemistry'),(118,65,'Friday','10:00:00','13:00:00','Math'),(119,66,'Saturday','11:00:00','14:00:00','Math'),(120,66,'Monday','16:00:00','21:00:00','Economics'),(121,66,'Thursday','14:00:00','17:00:00','Programming'),(122,67,'Tuesday','08:00:00','11:00:00','Physics'),(123,67,'Tuesday','08:00:00','11:00:00','Science'),(124,67,'Tuesday','18:00:00','23:00:00','Science'),(125,67,'Thursday','16:00:00','21:00:00','History');
-/*!40000 ALTER TABLE `user_schedules` ENABLE KEYS */;
-UNLOCK TABLES;
+-- --------------------------------------------------------
 
 --
 -- Table structure for table `users`
 --
 
-DROP TABLE IF EXISTS `users`;
-/*!40101 SET @saved_cs_client     = @@character_set_client */;
-/*!50503 SET character_set_client = utf8mb4 */;
 CREATE TABLE `users` (
-  `id` int(11) unsigned NOT NULL AUTO_INCREMENT,
+  `id` int(11) UNSIGNED NOT NULL,
   `usertype` int(1) NOT NULL DEFAULT 1,
   `username` varchar(255) NOT NULL,
+  `program` varchar(255) DEFAULT NULL,
+  `area_of_expertise` varchar(255) DEFAULT NULL,
+  `is_parttime` int(1) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
   `password` varchar(255) NOT NULL,
   `first_name` varchar(255) DEFAULT NULL,
@@ -483,31 +972,503 @@ CREATE TABLE `users` (
   `created_at` timestamp NULL DEFAULT NULL,
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `last_login_at` timestamp NULL DEFAULT NULL,
-  PRIMARY KEY (`id`),
-  UNIQUE KEY `username` (`username`),
-  UNIQUE KEY `email` (`email`),
-  UNIQUE KEY `id` (`id`,`username`,`email`)
-) ENGINE=InnoDB AUTO_INCREMENT=68 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-/*!40101 SET character_set_client = @saved_cs_client */;
+  `last_login_at` timestamp NULL DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-LOCK TABLES `users` WRITE;
-/*!40000 ALTER TABLE `users` DISABLE KEYS */;
-INSERT INTO `users` VALUES (1,0,'winstonadmin','ton.agustin09@gmail.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Winston','Agustin','m','SUPER ADMIN','This is the bio of a supa hot user. Now i will say needless stuff to make this longer so this looks like a bio and not anything other than a bio.','6703b15c765f80.83029727.png','2024-10-05 13:55:38','2024-10-05 13:55:38','2024-10-13 11:28:54',NULL,'2024-10-13 11:28:54'),(35,0,'supahot','supa@hot.com','$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a','Supahot','Soverysupahot','m','Headline of a supa hot user','This is the bio of a supa hot user. Now i will say needless stuff to make this longer so this looks like a bio and not anything other than a bio.','_defaultUser.png',NULL,'2024-10-08 05:25:07','2024-10-08 05:25:07',NULL,NULL),(37,0,'neilv','neilvicedo.ih@gmail.com','$2y$10$3NRnm/wbLVuSxzSPDE92LObQmTkp.n3A4Ztk6eBEW7zXYVnNhNOaq','Niall','V','o','Basta programmer ako','?','_defaultUser.png','2024-10-08 13:14:14','2024-10-08 13:13:14','2024-10-08 13:15:31',NULL,'2024-10-08 13:14:37'),(38,1,'student1','student1@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','One','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 10:11:36',NULL,'2024-10-10 10:11:36'),(39,1,'student2','student2@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Two','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(40,1,'student3','student3@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Three','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-12 04:44:23',NULL,'2024-10-12 04:44:23'),(41,1,'student4','student4@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Four','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(42,1,'student5','student5@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Five','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(43,1,'student6','student6@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Six','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(44,1,'student7','student7@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Seven','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(45,1,'student8','student8@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Eight','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(46,1,'student9','student9@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Nine','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(47,1,'student10','student10@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Ten','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(48,1,'student11','student11@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Eleven','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(49,1,'student12','student12@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Twelve','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(50,1,'student13','student13@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Thirteen','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(51,1,'student14','student14@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Fourteen','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(52,1,'student15','student15@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Fifteen','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(53,1,'student16','student16@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Sixteen','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(54,1,'student17','student17@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Seventeen','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(55,1,'student18','student18@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Eighteen','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(56,1,'student19','student19@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Nineteen','m','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(57,1,'student20','student20@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Student','Twenty','f','Student Headline','This is a student bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(58,2,'staff1','staff1@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','One','m','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-12 04:42:12',NULL,'2024-10-12 04:42:12'),(59,2,'staff2','staff2@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Two','f','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(60,2,'staff3','staff3@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Three','m','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(61,2,'staff4','staff4@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Four','f','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(62,2,'staff5','staff5@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Five','m','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(63,2,'staff6','staff6@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Six','f','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(64,2,'staff7','staff7@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Seven','m','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(65,2,'staff8','staff8@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Eight','f','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(66,2,'staff9','staff9@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Nine','m','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06'),(67,2,'staff10','staff10@example.com','$2y$10$hyL9m74UHeQQJU9TtWMIW.NvwcLInFk2xhTQMK9f7Tkdi4591gy6K','Staff','Ten','f','Staff Headline','This is a staff bio.','_defaultUser.png','2024-10-10 06:07:06','2024-10-10 06:07:06','2024-10-10 06:07:06',NULL,'2024-10-10 06:07:06');
-/*!40000 ALTER TABLE `users` ENABLE KEYS */;
-UNLOCK TABLES;
-/*!40103 SET TIME_ZONE=@OLD_TIME_ZONE */;
+INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`) VALUES
+(0, 0, 'Admin', NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-07-25 02:51:01', '0000-00-00 00:00:00', '2025-07-25 02:51:01'),
+(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:35', NULL, '2025-07-22 19:50:35'),
+(268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:48:49', NULL, '2025-07-22 19:48:49'),
+(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:05', NULL, '2025-07-22 19:50:05'),
+(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-23 01:40:09', NULL, '2025-07-23 01:40:09'),
+(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01'),
+(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:18', NULL, '2025-07-22 19:46:18'),
+(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-21 12:07:13', NULL, '2025-07-21 12:05:22'),
+(274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11'),
+(275, 2, 'winstonadmina', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-25 10:27:32', NULL, '2025-07-22 18:54:09');
 
-/*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
-/*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;
-/*!40014 SET UNIQUE_CHECKS=@OLD_UNIQUE_CHECKS */;
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `user_schedules`
+--
+
+CREATE TABLE `user_schedules` (
+  `id` int(11) UNSIGNED NOT NULL,
+  `user_id` int(11) UNSIGNED NOT NULL,
+  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
+  `start_time` time NOT NULL,
+  `end_time` time NOT NULL,
+  `class_name` varchar(255) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Indexes for dumped tables
+--
+
+--
+-- Indexes for table `auth_tokens`
+--
+ALTER TABLE `auth_tokens`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `id` (`id`);
+
+--
+-- Indexes for table `default_schedules`
+--
+ALTER TABLE `default_schedules`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `defense_panelists`
+--
+ALTER TABLE `defense_panelists`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_id` (`defense_id`),
+  ADD KEY `panelist_id` (`panelist_id`);
+
+--
+-- Indexes for table `defense_schedules`
+--
+ALTER TABLE `defense_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `panelist_id` (`panelist_id`),
+  ADD KEY `panelist_id2` (`panelist_id2`),
+  ADD KEY `panelist_id3` (`panelist_id3`),
+  ADD KEY `fk_defense_schedules_team` (`team_id`),
+  ADD KEY `idx_defense_schedules_approval` (`approval_status`);
+
+--
+-- Indexes for table `env_variables`
+--
+ALTER TABLE `env_variables`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `key` (`key`);
+
+--
+-- Indexes for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`),
+  ADD KEY `evaluator_id` (`evaluator_id`);
+
+--
+-- Indexes for table `evaluation_details`
+--
+ALTER TABLE `evaluation_details`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `evaluation_id` (`evaluation_id`),
+  ADD KEY `criterion_id` (`criterion_id`),
+  ADD KEY `fk_evaluation_details_rubric` (`rubric_id`),
+  ADD KEY `fk_evaluation_details_student` (`student_id`);
+
+--
+-- Indexes for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`),
+  ADD KEY `evaluator_id` (`evaluator_id`),
+  ADD KEY `evalusations_per_panel_ibfk_3_idx` (`student_id`);
+
+--
+-- Indexes for table `form_assignments`
+--
+ALTER TABLE `form_assignments`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`);
+
+--
+-- Indexes for table `merged_evaluations`
+--
+ALTER TABLE `merged_evaluations`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `defense_schedule_id` (`defense_schedule_id`),
+  ADD KEY `evaluator_id` (`evaluator_id`),
+  ADD KEY `student_id` (`student_id`),
+  ADD KEY `rubric_id` (`rubric_id`),
+  ADD KEY `criterion_id` (`criterion_id`);
+
+--
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`),
+  ADD KEY `is_read` (`is_read`),
+  ADD KEY `created_at` (`created_at`),
+  ADD KEY `idx_notifications_type` (`type`),
+  ADD KEY `idx_notifications_related` (`related_id`,`related_type`);
+
+--
+-- Indexes for table `notification_actions`
+--
+ALTER TABLE `notification_actions`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `notification_id` (`notification_id`);
+
+--
+-- Indexes for table `notification_preferences`
+--
+ALTER TABLE `notification_preferences`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `page_content`
+--
+ALTER TABLE `page_content`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `slug` (`slug`);
+
+--
+-- Indexes for table `panelist_approvals`
+--
+ALTER TABLE `panelist_approvals`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_panelist_defense` (`defense_schedule_id`,`panelist_id`),
+  ADD KEY `panelist_id` (`panelist_id`),
+  ADD KEY `idx_panelist_approvals_status` (`approval_status`);
+
+--
+-- Indexes for table `programs`
+--
+ALTER TABLE `programs`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `requirements`
+--
+ALTER TABLE `requirements`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `research_titles`
+--
+ALTER TABLE `research_titles`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `team_id` (`team_id`);
+
+--
+-- Indexes for table `rubrics`
+--
+ALTER TABLE `rubrics`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `rubric_criteria`
+--
+ALTER TABLE `rubric_criteria`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `rubric_criterion_order` (`rubric_id`,`order_index`) COMMENT 'Ensure unique order per rubric',
+  ADD KEY `rubric_id` (`rubric_id`);
+
+--
+-- Indexes for table `rubric_groups`
+--
+ALTER TABLE `rubric_groups`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `rubric_group_items`
+--
+ALTER TABLE `rubric_group_items`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `group_id_idx` (`group_id`),
+  ADD KEY `rubric_id_idx` (`rubric_id`);
+
+--
+-- Indexes for table `rubric_levels`
+--
+ALTER TABLE `rubric_levels`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `rubric_level_order` (`rubric_id`,`level_index`) COMMENT 'Ensure unique order per rubric',
+  ADD KEY `rubric_id` (`rubric_id`);
+
+--
+-- Indexes for table `rubric_programs`
+--
+ALTER TABLE `rubric_programs`
+  ADD PRIMARY KEY (`rubric_id`,`program_name`),
+  ADD KEY `fk_rubric_programs_rubric_id_idx` (`rubric_id`);
+
+--
+-- Indexes for table `teams`
+--
+ALTER TABLE `teams`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `team_members`
+--
+ALTER TABLE `team_members`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `team_id` (`team_id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- Indexes for table `team_requirements`
+--
+ALTER TABLE `team_requirements`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `requirement_id` (`requirement_id`),
+  ADD KEY `team_id` (`team_id`);
+
+--
+-- Indexes for table `thesis_topics`
+--
+ALTER TABLE `thesis_topics`
+  ADD PRIMARY KEY (`id`);
+
+--
+-- Indexes for table `uploaded_files`
+--
+ALTER TABLE `uploaded_files`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_college` (`college_name`),
+  ADD KEY `idx_program` (`program_id`),
+  ADD KEY `idx_team` (`team_id`),
+  ADD KEY `uploaded_by` (`uploaded_by`);
+
+--
+-- Indexes for table `users`
+--
+ALTER TABLE `users`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `username` (`username`),
+  ADD UNIQUE KEY `email` (`email`),
+  ADD UNIQUE KEY `id` (`id`,`username`,`email`);
+
+--
+-- Indexes for table `user_schedules`
+--
+ALTER TABLE `user_schedules`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `user_id` (`user_id`);
+
+--
+-- AUTO_INCREMENT for dumped tables
+--
+
+--
+-- AUTO_INCREMENT for table `auth_tokens`
+--
+ALTER TABLE `auth_tokens`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+
+--
+-- AUTO_INCREMENT for table `defense_panelists`
+--
+ALTER TABLE `defense_panelists`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `defense_schedules`
+--
+ALTER TABLE `defense_schedules`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `env_variables`
+--
+ALTER TABLE `env_variables`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=18;
+
+--
+-- AUTO_INCREMENT for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `evaluation_details`
+--
+ALTER TABLE `evaluation_details`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+
+--
+-- AUTO_INCREMENT for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+
+--
+-- AUTO_INCREMENT for table `form_assignments`
+--
+ALTER TABLE `form_assignments`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `merged_evaluations`
+--
+ALTER TABLE `merged_evaluations`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
+
+--
+-- AUTO_INCREMENT for table `notification_actions`
+--
+ALTER TABLE `notification_actions`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+
+--
+-- AUTO_INCREMENT for table `page_content`
+--
+ALTER TABLE `page_content`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `panelist_approvals`
+--
+ALTER TABLE `panelist_approvals`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+
+--
+-- AUTO_INCREMENT for table `programs`
+--
+ALTER TABLE `programs`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
+
+--
+-- AUTO_INCREMENT for table `requirements`
+--
+ALTER TABLE `requirements`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=46;
+
+--
+-- AUTO_INCREMENT for table `research_titles`
+--
+ALTER TABLE `research_titles`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `rubrics`
+--
+ALTER TABLE `rubrics`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+
+--
+-- AUTO_INCREMENT for table `rubric_criteria`
+--
+ALTER TABLE `rubric_criteria`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+
+--
+-- AUTO_INCREMENT for table `rubric_groups`
+--
+ALTER TABLE `rubric_groups`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `rubric_group_items`
+--
+ALTER TABLE `rubric_group_items`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=36;
+
+--
+-- AUTO_INCREMENT for table `rubric_levels`
+--
+ALTER TABLE `rubric_levels`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=40;
+
+--
+-- AUTO_INCREMENT for table `teams`
+--
+ALTER TABLE `teams`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `team_members`
+--
+ALTER TABLE `team_members`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+
+--
+-- AUTO_INCREMENT for table `team_requirements`
+--
+ALTER TABLE `team_requirements`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+
+--
+-- AUTO_INCREMENT for table `thesis_topics`
+--
+ALTER TABLE `thesis_topics`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+
+--
+-- AUTO_INCREMENT for table `uploaded_files`
+--
+ALTER TABLE `uploaded_files`
+  MODIFY `id` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+
+--
+-- AUTO_INCREMENT for table `users`
+--
+ALTER TABLE `users`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=279;
+
+--
+-- AUTO_INCREMENT for table `user_schedules`
+--
+ALTER TABLE `user_schedules`
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126;
+
+--
+-- Constraints for dumped tables
+--
+
+--
+-- Constraints for table `defense_panelists`
+--
+ALTER TABLE `defense_panelists`
+  ADD CONSTRAINT `defense_panelists_ibfk_1` FOREIGN KEY (`defense_id`) REFERENCES `defense_schedules` (`id`) ON DELETE CASCADE,
+  ADD CONSTRAINT `defense_panelists_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `defense_schedules`
+--
+ALTER TABLE `defense_schedules`
+  ADD CONSTRAINT `defense_schedules_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `defense_schedules_ibfk_3` FOREIGN KEY (`panelist_id2`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `defense_schedules_ibfk_4` FOREIGN KEY (`panelist_id3`) REFERENCES `users` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `fk_defense_schedules_team` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE SET NULL ON UPDATE CASCADE;
+
+--
+-- Constraints for table `evaluations`
+--
+ALTER TABLE `evaluations`
+  ADD CONSTRAINT `evaluations_ibfk_1` FOREIGN KEY (`defense_schedule_id`) REFERENCES `defense_schedules` (`id`) ON DELETE SET NULL,
+  ADD CONSTRAINT `evaluations_ibfk_2` FOREIGN KEY (`evaluator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `evaluation_per_panel`
+--
+ALTER TABLE `evaluation_per_panel`
+  ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
+
+--
+-- Constraints for table `notification_actions`
+--
+ALTER TABLE `notification_actions`
+  ADD CONSTRAINT `notification_actions_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notification_preferences`
+--
+ALTER TABLE `notification_preferences`
+  ADD CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
+COMMIT;
+
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
 /*!40101 SET CHARACTER_SET_RESULTS=@OLD_CHARACTER_SET_RESULTS */;
 /*!40101 SET COLLATION_CONNECTION=@OLD_COLLATION_CONNECTION */;
-/*!40111 SET SQL_NOTES=@OLD_SQL_NOTES */;
-
--- Dump completed on 2024-10-13 19:48:53

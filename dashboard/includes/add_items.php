@@ -26,15 +26,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
         echo json_encode($response);
         exit;
     }
-
-    // Inside form processing logic (before inserting a new item)
 
     // Special file upload handling for requirements
     if ($table === 'requirements' && isset($_FILES['template_file']) && $_FILES['template_file']['error'] === UPLOAD_ERR_OK) {
@@ -48,6 +46,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             exit;
         }
     }
+
     // For programs
     if ($table === 'programs' && $usertype == 0 && $userId != 0 && $userCollege) {
         // If non-super admin is adding a program, ensure it's for their college
@@ -75,25 +74,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         try {
-            $sql = "INSERT INTO programs (college, department, name, specialization)
-                    VALUES (:college, :department, :name, :specialization)";
+            $sql = "INSERT INTO programs (college, department, name, specialization, updated_at)
+                    VALUES (:college, :department, :name, :specialization, NOW())";
             $stmt = $pdo->prepare($sql);
 
             $stmt->execute([
                 ':college' => $college,
-                ':department' => $department, // Allow null
+                ':department' => $department,
                 ':name' => $name,
-                ':specialization' => $specialization // Allow null
+                ':specialization' => $specialization
             ]);
 
             $response['success'] = true;
             $response['message'] = 'Program added successfully.';
 
         } catch (PDOException $e) {
-            // Handle potential database errors (e.g., duplicate entry if name should be unique)
-            if ($e->getCode() == '23000') { // Integrity constraint violation
+            if ($e->getCode() == '23000') {
                  if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                     // Assuming a unique constraint might exist on (college, name) or just name
                      $response['message'] = 'A program with this name might already exist.';
                  } else {
                      $response['message'] = 'Database constraint violation. Please check your input values.';
@@ -105,9 +102,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
 
         echo json_encode($response);
-        exit; // Stop script after handling program
+        exit;
 
-    } else if ($table === 'rubrics') { // Special handling for rubrics
+    } else if ($table === 'rubrics') {
         error_log("=== START ADD RUBRIC (Individual as Numerical) ===");
         error_log("Received POST data for rubric add: " . print_r($data, true));
 
@@ -281,8 +278,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Special handling for teams
     if ($table === 'teams' && $usertype == 0 && $userId != 0 && $userCollege) {
         // Check if the program belongs to the admin's college
-        $stmtCheck = $pdo->prepare("SELECT college FROM programs WHERE id = :program_id");
-        $stmtCheck->execute([':program_id' => $data['program'] ?? $data['program_id'] ?? 0]);
+        $stmtCheck = $pdo->prepare("SELECT college FROM programs WHERE CONCAT(name, IFNULL(CONCAT(' - ', specialization), '')) = :program_name");
+        $stmtCheck->execute([':program_name' => $data['program'] ?? '']);
         $programCollege = $stmtCheck->fetchColumn();
         
         if ($programCollege && $programCollege != $userCollege) {
@@ -299,20 +296,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         try {
             // Fix for program_id field - rename it to match the database column name
             if (isset($data['program_id'])) {
-                $data['program'] = $data['program_id']; // Map program_id from form to program in database
-                unset($data['program_id']); // Remove the original key
+                $data['program'] = $data['program_id'];
+                unset($data['program_id']);
             }
 
             // Ensure program has a value to avoid NULL constraint errors
             if (!isset($data['program']) || $data['program'] === '') {
-                $data['program'] = 'Unspecified'; // Default value for required field
+                $data['program'] = 'Unspecified';
             }
 
-            $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
+            $stmt = $pdo->prepare("INSERT INTO teams (name, program, area_of_expertise, created_at) VALUES (:name, :program, :area_of_expertise, NOW())");
             $stmt->execute([
                 'name' => $data['name'],
-                'area_of_expertise' => $data['area_of_expertise'] ?? null,
-                'program' => $data['program']
+                'program' => $data['program'],
+                'area_of_expertise' => $data['area_of_expertise'] ?? null
             ]);
 
             $teamId = $pdo->lastInsertId();
@@ -320,9 +317,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             // Use title if provided, otherwise use team name
             $title = !empty($data['title']) ? $data['title'] : $data['name'];
 
-            $stmt = $pdo->prepare("INSERT INTO research_titles (id, team_id, title) VALUES (:id, :team_id, :title)");
+            $stmt = $pdo->prepare("INSERT INTO research_titles (team_id, title, created_at, updated_at) VALUES (:team_id, :title, NOW(), NOW())");
             $stmt->execute([
-                'id' => $teamId,
                 'team_id' => $teamId,
                 'title' => $title
             ]);
@@ -388,7 +384,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         } catch (Exception $e) {
             $pdo->rollBack();
 
-            // Provide user-friendly error message
             if ($e instanceof PDOException && $e->getCode() == '23000') {
                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                     $response['message'] = "Error: This team name is already in use. Please choose a different name.";
@@ -415,11 +410,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }
 
-        // Fix for program_id field - rename it to match the database column name
+        // Fix for program_id field
         if (isset($data['program_id'])) {
-            $data['program'] = $data['program_id']; // Map program_id from form to program in database
-            unset($data['program_id']); // Remove the original key
+            $data['program'] = $data['program_id'];
+            unset($data['program_id']);
         }
+
+        // Set default values for required fields
+        $data['created_at'] = $data['created_at'] ?? null;
+        $data['updated_at'] = date('Y-m-d H:i:s');
     }
 
     if ($table === 'defense_schedules') {
@@ -427,6 +426,58 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['panelist_id']  = $panelist_ids[0] ?? null;
         $data['panelist_id2'] = $panelist_ids[1] ?? null;
         $data['panelist_id3'] = $panelist_ids[2] ?? null;
+        
+        // Set default values
+        $data['status'] = $data['status'] ?? 'scheduled';
+        $data['approval_status'] = $data['approval_status'] ?? 'pending';
+        $data['created_at'] = date('Y-m-d H:i:s');
+    }
+
+    // Handle default_schedules and user_schedules tables
+    if ($table === 'default_schedules' || $table === 'user_schedules') {
+        // Validate required fields based on table type
+        if ($table === 'default_schedules') {
+            $requiredFields = ['program', 'year', 'section', 'building', 'room', 'day_of_week', 'class_name', 'start_time', 'end_time'];
+            foreach ($requiredFields as $field) {
+                if (empty($data[$field])) {
+                    $response['message'] = "Field '$field' is required.";
+                    echo json_encode($response);
+                    exit;
+                }
+            }
+
+            // Validate enum values
+            $validYears = ['1', '2', '3', '4', '5'];
+            $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            
+            if (!in_array($data['year'], $validYears)) {
+                $response['message'] = 'Invalid year value.';
+                echo json_encode($response);
+                exit;
+            }
+            
+            if (!in_array($data['day_of_week'], $validDays)) {
+                $response['message'] = 'Invalid day of week value.';
+                echo json_encode($response);
+                exit;
+            }
+        } else if ($table === 'user_schedules') {
+            $requiredFields = ['user_id', 'building', 'room', 'day_of_week', 'class_name', 'start_time', 'end_time'];
+            foreach ($requiredFields as $field) {
+                if (empty($data[$field])) {
+                    $response['message'] = "Field '$field' is required.";
+                    echo json_encode($response);
+                    exit;
+                }
+            }
+
+            $validDays = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+            if (!in_array($data['day_of_week'], $validDays)) {
+                $response['message'] = 'Invalid day of week value.';
+                echo json_encode($response);
+                exit;
+            }
+        }
     }
 
     $columns = implode(", ", array_keys($data));
@@ -437,7 +488,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         $stmt->execute($data);
         
-        // 🎯 CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MANUAL CREATION
+        // CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MANUAL CREATION
         if ($table === 'defense_schedules') {
             require_once __DIR__ . '/../../assets/includes/notification_functions.php';
             
@@ -457,8 +508,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     } catch (Exception $e) {
         $errorCode = $e->getCode();
 
-        // Provide user-friendly messages for common errors
-        if ($errorCode == 23000) { // Integrity constraint violation
+        if ($errorCode == 23000) {
             if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
                 if ($table === 'users' && strpos($e->getMessage(), 'username') !== false) {
                     $response['message'] = 'This username already exists. Please choose a different username.';
@@ -475,11 +525,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $response['message'] = 'Database constraint violation. Please check your input values.';
             }
         } else {
-            // For other types of errors, provide a generic message
             $response['message'] = 'Error adding ' . $table . '. Please check your input and try again.';
         }
 
-        // Log the actual error for troubleshooting
         error_log('Database error in add_items.php: ' . $e->getMessage());
     }
 
@@ -547,9 +595,9 @@ function handleRequirementTemplateUpload($file) {
         return ['success' => false, 'error' => 'Invalid file type. Allowed types: ' . implode(', ', $allowedTypes)];
     }
     
-    if ($file['size'] > 10 * 1024 * 1024) { // 10MB limit
+    if ($file['size'] > 10 * 1024 * 1024) // 10MB limit
         return ['success' => false, 'error' => 'File size too large. Maximum 10MB allowed.'];
-    }
+    
     
     // Generate unique filename
     $filename = uniqid() . '_' . time() . '.' . $extension;
