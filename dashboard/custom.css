@@ -1972,3 +1972,12 @@ main.container-fluid {
     height: 100%;
     min-height: 100%;
 }
+
+.btn.btn-info{
+    background-color: #1304ee;
+    color: var(--main-white);
+    transition: background-color 0.2s ease;
+}
+
+.btn.btn-info:hover {
+    background-color: #2c1ef5;}

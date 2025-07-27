@@ -292,11 +292,14 @@
 <div class="modal fade" id="rubricDeleteConfirmModal" tabindex="-1">
     <div class="modal-dialog">
         <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">Confirm Deletion</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+                </div>
+                <h4 class="fw-bold mb-3">Confirm Deletion</h4>
                 <p>Are you sure you want to delete this rubric?</p>
                 <input type="hidden" id="rubricToDeleteId">
             </div>

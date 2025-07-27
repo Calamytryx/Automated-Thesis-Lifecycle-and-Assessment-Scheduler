@@ -2002,18 +2002,29 @@ function showToast(title, message, type = 'success') {
     // Generate unique ID for the toast
     const toastId = 'toast-' + Date.now();
 
-    // Create toast HTML with more prominent styling
+    // Modern universal toast styling and structure
+    const icon = type === 'success'
+        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>`
+        : type === 'error'
+        ? `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>`
+        : `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+
+    const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
+    const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
+    const textColor = '#222';
     const toast = `
-<div id="${toastId}" class="toast align-items-center border-0"
+<div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
     role="alert"
     aria-live="assertive"
     aria-atomic="true"
-    style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : (type === 'error' ? 'var(--main-btn-del)' : 'var(--bs-warning)')};">
-    <div class="d-flex">
-        <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
-            <strong>${title}:</strong> ${message}
+    style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
+    <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
+        ${icon}
+        <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
+            <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
+            <div>${message}</div>
         </div>
-        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
     </div>
 </div>
 `;
@@ -2084,12 +2095,14 @@ function showToast(title, message, type = 'success') {
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header bg-danger text-white">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Deletion</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
+                </div>
+                <h4 class="fw-bold mb-3" id="deleteConfirmModalLabel">Confirm Deletion</h4>
                 <p>Are you sure you want to delete this item?</p>
                 <p class="mb-0"><strong>Table:</strong> <span id="deleteTableName"></span></p>
                 <p class="mb-0"><strong>ID:</strong> <span id="deleteItemId"></span></p>
