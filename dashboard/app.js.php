@@ -1,73 +1,141 @@
 <script>
-    // Add helper function to dynamically populate program dropdowns
-    function populateProgramDropdown(selectElement, selectedValue = null) {
-        selectElement.html('<option value="">Loading programs...</option>');
+function adjustTime(id, type, step) {
+  const hourEl = document.getElementById(`${id}_hour`);
+  const minuteEl = document.getElementById(`${id}_minute`);
+  const meridianEl = document.getElementById(`${id}_meridian`);
+  const inputEl = document.getElementById(`${id}_time`);
 
-        $.ajax({
-            url: 'includes/get_programs_grouped.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                selectElement.empty();
-                selectElement.append('<option value="">Select Program</option>');
+  let hour = parseInt(hourEl.innerText);
+  let minute = parseInt(minuteEl.innerText);
+  let meridian = meridianEl.innerText;
 
-                if (response.success && response.programs.length > 0) {
-                    let currentCollege = null;
-                    let optgroup = null;
+  // Convert to 24-hour time for easier math
+  let militaryHour = hour % 12;
+  if (meridian === 'PM') militaryHour += 12;
 
-                    $.each(response.programs, function(i, program) {
-                        // Create new optgroup when college changes
-                        if (program.college !== currentCollege) {
-                            currentCollege = program.college;
-                            optgroup = $('<optgroup>', {
-                                label: currentCollege
-                            });
-                            selectElement.append(optgroup);
-                        }
+  let totalMinutes = militaryHour * 60 + minute;
 
-                        // Add program option to current optgroup
-                        const option = $('<option>', {
-                            value: program.display_name,
-                            text: program.display_name
+  // ⏫ Apply step
+  if (type === 'hour') {
+    totalMinutes += step * 60;
+  } else if (type === 'minute') {
+    totalMinutes += step;
+  }
+
+  // 🔄 Loop if out of range
+  if (totalMinutes > 1260) {
+    totalMinutes = 420; // back to 07:00
+  } else if (totalMinutes < 420) {
+    totalMinutes = 1260; // back to 21:00
+  }
+
+  // 🧮 Convert back to hour/minute
+  militaryHour = Math.floor(totalMinutes / 60);
+  minute = totalMinutes % 60;
+
+  // Convert 24h to 12h + AM/PM
+  meridian = militaryHour >= 12 ? 'PM' : 'AM';
+  hour = militaryHour % 12;
+  if (hour === 0) hour = 12;
+
+  // ✅ Update UI + hidden input
+  hourEl.innerText = String(hour).padStart(2, '0');
+  minuteEl.innerText = String(minute).padStart(2, '0');
+  meridianEl.innerText = meridian;
+  inputEl.value = `${String(militaryHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+function toggleMeridian(id) {
+  const hour = parseInt(document.getElementById(`${id}_hour`).innerText);
+  const minute = parseInt(document.getElementById(`${id}_minute`).innerText);
+  const meridianEl = document.getElementById(`${id}_meridian`);
+  const inputEl = document.getElementById(`${id}_time`);
+
+  let meridian = meridianEl.innerText === 'AM' ? 'PM' : 'AM';
+
+  // Convert to 24-hour for validation
+  let militaryHour = hour % 12;
+  if (meridian === 'PM') militaryHour += 12;
+  const totalMinutes = militaryHour * 60 + minute;
+
+  // Validate range: 07:00 (420) to 21:00 (1260)
+  if (totalMinutes < 420 || totalMinutes > 1260) return; // ❌ cancel toggle
+
+  meridianEl.innerText = meridian;
+  inputEl.value = `${String(militaryHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+}
+
+
+
+// Add helper function to dynamically populate program dropdowns
+function populateProgramDropdown(selectElement, selectedValue = null) {
+    selectElement.html('<option value="">Loading programs...</option>');
+
+    $.ajax({
+        url: 'includes/get_programs_grouped.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
+            selectElement.empty();
+            selectElement.append('<option value="">Select Program</option>');
+
+            if (response.success && response.programs.length > 0) {
+                let currentCollege = null;
+                let optgroup = null;
+
+                $.each(response.programs, function(i, program) {
+                    // Create new optgroup when college changes
+                    if (program.college !== currentCollege) {
+                        currentCollege = program.college;
+                        optgroup = $('<optgroup>', {
+                            label: currentCollege
                         });
+                        selectElement.append(optgroup);
+                    }
 
-                        // Set selected if matches
-                        if (selectedValue !== null && selectedValue == program.id) {
-                            option.prop('selected', true);
-                        }
-
-                        optgroup.append(option);
+                    // Add program option to current optgroup
+                    const option = $('<option>', {
+                        value: program.display_name,
+                        text: program.display_name
                     });
-                } else {
-                    selectElement.html('<option value="">No programs available</option>');
-                }
-            },
-            error: function() {
-                selectElement.html('<option value="">Error loading programs</option>');
-                console.error("Failed to load programs");
+
+                    // Set selected if matches
+                    if (selectedValue !== null && selectedValue == program.id) {
+                        option.prop('selected', true);
+                    }
+
+                    optgroup.append(option);
+                });
+            } else {
+                selectElement.html('<option value="">No programs available</option>');
             }
-        });
+        },
+        error: function() {
+            selectElement.html('<option value="">Error loading programs</option>');
+            console.error("Failed to load programs");
+        }
+    });
+}
+
+$(document).ready(function() {
+    // Create toast container if it doesn't exist
+    if (!$('#toastContainer').length) {
+        $('body').append(
+            '<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>');
     }
 
-    $(document).ready(function() {
-        // Create toast container if it doesn't exist
-        if (!$('#toastContainer').length) {
-            $('body').append(
-                '<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>');
-        }
+    // NEW: Connect the saveChanges button to trigger the edit form submission
+    $(document).on('click', '#saveChanges', function() {
+        console.log('DEBUG: Save changes button clicked, triggering edit form submission');
+        $('#editForm').submit();
+    });
 
-        // NEW: Connect the saveChanges button to trigger the edit form submission
-        $(document).on('click', '#saveChanges', function() {
-            console.log('DEBUG: Save changes button clicked, triggering edit form submission');
-            $('#editForm').submit();
-        });
-
-        // NEW: Add bulk row functionality
-        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function() {
-            let count = parseInt($('#rowCountInput').val()) || 1;
-            for (let i = 0; i < count; i++) {
-                var rowCount = $('#bulkAddTable tbody tr').length;
-                var newRow = `
+    // NEW: Add bulk row functionality
+    $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function() {
+        let count = parseInt($('#rowCountInput').val()) || 1;
+        for (let i = 0; i < count; i++) {
+            var rowCount = $('#bulkAddTable tbody tr').length;
+            var newRow = `
                     <tr>
                         <td><input type="text" class="form-control" name="users[${rowCount}][id]"></td>
                         <td><input type="text" class="form-control" name="users[${rowCount}][name]"></td>
@@ -77,51 +145,51 @@
                         </td>
                     </tr>
                     `;
-                $('#bulkAddTable tbody').append(newRow);
-            }
-        });
+            $('#bulkAddTable tbody').append(newRow);
+        }
+    });
 
-        // When the Bulk Add Modal is shown, insert the CSV download link if not already present
-        $('#bulkAddModal').on('shown.bs.modal', function() {
-            if (!$(this).find('#downloadCsvTemplate').length) {
-                $(this).find('.modal-body').prepend(`
+    // When the Bulk Add Modal is shown, insert the CSV download link if not already present
+    $('#bulkAddModal').on('shown.bs.modal', function() {
+        if (!$(this).find('#downloadCsvTemplate').length) {
+            $(this).find('.modal-body').prepend(`
                         <div class="mb-3">
                             <a href="#" id="downloadCsvTemplate" class="btn btn-sm btn-secondary">Download CSV Template</a>
                         </div>
                     `);
-            }
-        });
+        }
+    });
 
-        // Update Bulk Add Users CSV download handler
-        $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate',
-            function(e) {
-                e.preventDefault();
-                const csvContent = 'ID,Name,Program,No Username\\n';
-                const blob = new Blob([csvContent], {
-                    type: 'text/csv;charset=utf-8;'
-                });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = 'users_template.csv';
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-                URL.revokeObjectURL(url);
-            });
-
-        // NEW: Bulk Add Teams functionality
-        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+    // Update Bulk Add Users CSV download handler
+    $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate',
+        function(e) {
             e.preventDefault();
-            console.log('Bulk Add Teams button clicked');
-            $('#bulkAddTeamsModal').modal('show');
+            const csvContent = 'ID,Name,Program,No Username\\n';
+            const blob = new Blob([csvContent], {
+                type: 'text/csv;charset=utf-8;'
+            });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'users_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
         });
 
-        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
-            let count = parseInt($('#teamsRowCountInput').val()) || 1;
-            for (let i = 0; i < count; i++) {
-                var rowCount = $('#bulkAddTeamsTable tbody tr').length;
-                var newRow = `
+    // NEW: Bulk Add Teams functionality
+    $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+        e.preventDefault();
+        console.log('Bulk Add Teams button clicked');
+        $('#bulkAddTeamsModal').modal('show');
+    });
+
+    $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
+        let count = parseInt($('#teamsRowCountInput').val()) || 1;
+        for (let i = 0; i < count; i++) {
+            var rowCount = $('#bulkAddTeamsTable tbody tr').length;
+            var newRow = `
                     <tr>
                         <td><input type="text" class="form-control" name="teams[${rowCount}][name]"></td>
                         <td><input type="text" class="form-control" name="teams[${rowCount}][title]"></td>
@@ -129,146 +197,146 @@
                         <td><input type="text" class="form-control" name="teams[${rowCount}][program]"></td>
                     </tr>
                     `;
-                $('#bulkAddTeamsTable tbody').append(newRow);
-            }
-        });
+            $('#bulkAddTeamsTable tbody').append(newRow);
+        }
+    });
 
-        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e) {
-            e.preventDefault();
-            console.log('Bulk Add Teams form submitted');
+    $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e) {
+        e.preventDefault();
+        console.log('Bulk Add Teams form submitted');
 
-            var form = $('#bulkAddTeamsForm');
-            var formData = new FormData(form[0]);
+        var form = $('#bulkAddTeamsForm');
+        var formData = new FormData(form[0]);
 
-            // If pasted bulk text is provided, append it
-            var bulkText = $('#bulkTeamsTextInput').val().trim();
-            if (bulkText !== "") {
-                formData.append('bulk_teams', bulkText);
-            }
-
-            $.ajax({
-                url: 'includes/bulk_add_teams.php',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showToast('Success', 'Teams added successfully', 'success');
-                        $('#bulkAddTeamsModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        // More descriptive error message
-                        showToast('Error', response.message ||
-                            'Failed to add teams. Please check your data and try again.',
-                            'error');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
-                    // User-friendly error message
-                    let errorMessage =
-                    'Unable to process your request. Please try again later.';
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response && response.message) {
-                            errorMessage = response.message;
-                        }
-                    } catch (e) {
-                        console.error('Error parsing response:', e);
-                    }
-                    showToast('Error', errorMessage, 'error');
-                }
-            });
-        });
-
-        // Event handler for preset buttons in area of expertise fields
-        $(document).on('click', '.area-option', function(e) {
-            e.preventDefault();
-            var presetValue = $(this).data('value');
-            $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
-        });
-
-        // Event handler for preset buttons in program fields
-        $(document).on('click', '.program-option', function(e) {
-            e.preventDefault();
-            var presetValue = $(this).data('value');
-            $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
-        });
-
-        const sidebarContainer = $('#sidebarContainer');
-        const mainContent = $('#mainContent');
-        const toggleButton = $('#toggleSidebar');
-
-        toggleButton.on('click', function() {
-            sidebarContainer.toggleClass('collapsed');
-            mainContent.toggleClass('expanded');
-            toggleButton.toggleClass('collapsed');
-            localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
-        });
-
-        // Check localStorage for saved sidebar state on page load
-        const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
-        if (sidebarCollapsed) {
-            sidebarContainer.addClass('collapsed');
-            mainContent.addClass('expanded');
-            toggleButton.addClass('collapsed');
+        // If pasted bulk text is provided, append it
+        var bulkText = $('#bulkTeamsTextInput').val().trim();
+        if (bulkText !== "") {
+            formData.append('bulk_teams', bulkText);
         }
 
-        // Handle window resize
-        $(window).on('resize', function() {
-            if (window.innerWidth <= 768) {
-                mainContent.addClass('expanded');
-            } else {
-                if (!sidebarContainer.hasClass('collapsed')) {
-                    mainContent.removeClass('expanded');
+        $.ajax({
+            url: 'includes/bulk_add_teams.php',
+            method: 'POST',
+            data: formData,
+            processData: false,
+            contentType: false,
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showToast('Success', 'Teams added successfully', 'success');
+                    $('#bulkAddTeamsModal').modal('hide');
+                    setTimeout(function() {
+                        location.reload();
+                    }, 2000);
+                } else {
+                    // More descriptive error message
+                    showToast('Error', response.message ||
+                        'Failed to add teams. Please check your data and try again.',
+                        'error');
                 }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', xhr.responseText);
+                // User-friendly error message
+                let errorMessage =
+                    'Unable to process your request. Please try again later.';
+                try {
+                    const response = JSON.parse(xhr.responseText);
+                    if (response && response.message) {
+                        errorMessage = response.message;
+                    }
+                } catch (e) {
+                    console.error('Error parsing response:', e);
+                }
+                showToast('Error', errorMessage, 'error');
             }
         });
     });
 
-    function updatePanelistDropdowns() {
-        // Collect all selected panelist IDs
-        var selectedIds = [];
-        $('#panelists .panelist select').each(function() {
-            var val = $(this).val();
-            if (val) selectedIds.push(val);
-        });
+    // Event handler for preset buttons in area of expertise fields
+    $(document).on('click', '.area-option', function(e) {
+        e.preventDefault();
+        var presetValue = $(this).data('value');
+        $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
+    });
 
-        $('#panelists .panelist select').each(function() {
-            var $select = $(this);
-            var currentVal = $select.val();
-            $select.find('option').each(function() {
-                var $opt = $(this);
-                if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
-                    $opt.prop('disabled', true);
-                } else {
-                    $opt.prop('disabled', false);
-                }
-            });
-        });
+    // Event handler for preset buttons in program fields
+    $(document).on('click', '.program-option', function(e) {
+        e.preventDefault();
+        var presetValue = $(this).data('value');
+        $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
+    });
+
+    const sidebarContainer = $('#sidebarContainer');
+    const mainContent = $('#mainContent');
+    const toggleButton = $('#toggleSidebar');
+
+    toggleButton.on('click', function() {
+        sidebarContainer.toggleClass('collapsed');
+        mainContent.toggleClass('expanded');
+        toggleButton.toggleClass('collapsed');
+        localStorage.setItem('sidebarCollapsed', sidebarContainer.hasClass('collapsed'));
+    });
+
+    // Check localStorage for saved sidebar state on page load
+    const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        sidebarContainer.addClass('collapsed');
+        mainContent.addClass('expanded');
+        toggleButton.addClass('collapsed');
     }
 
-    function addNewPanelist(staff) {
-        // Check current number of panelists
-        var currentPanelistCount = $('#panelists .panelist').length;
-        if (currentPanelistCount >= 3) {
-            showToast('Warning', 'Maximum of 3 panelists allowed.', 'warning');
-            return; // Stop if limit is reached
+    // Handle window resize
+    $(window).on('resize', function() {
+        if (window.innerWidth <= 768) {
+            mainContent.addClass('expanded');
+        } else {
+            if (!sidebarContainer.hasClass('collapsed')) {
+                mainContent.removeClass('expanded');
+            }
         }
+    });
+});
 
-        // Determine the next index based on existing panelists
-        var currentIndices = $('#panelists .panelist select').map(function() {
-            var name = $(this).attr('name');
-            var match = name.match(/\[(\d+)\]/);
-            return match ? parseInt(match[1], 10) : -1;
-        }).get();
-        var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
+function updatePanelistDropdowns() {
+    // Collect all selected panelist IDs
+    var selectedIds = [];
+    $('#panelists .panelist select').each(function() {
+        var val = $(this).val();
+        if (val) selectedIds.push(val);
+    });
 
-        var newPanelistHtml = `
+    $('#panelists .panelist select').each(function() {
+        var $select = $(this);
+        var currentVal = $select.val();
+        $select.find('option').each(function() {
+            var $opt = $(this);
+            if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
+                $opt.prop('disabled', true);
+            } else {
+                $opt.prop('disabled', false);
+            }
+        });
+    });
+}
+
+function addNewPanelist(staff) {
+    // Check current number of panelists
+    var currentPanelistCount = $('#panelists .panelist').length;
+    if (currentPanelistCount >= 3) {
+        showToast('Warning', 'Maximum of 3 panelists allowed.', 'warning');
+        return; // Stop if limit is reached
+    }
+
+    // Determine the next index based on existing panelists
+    var currentIndices = $('#panelists .panelist select').map(function() {
+        var name = $(this).attr('name');
+        var match = name.match(/\[(\d+)\]/);
+        return match ? parseInt(match[1], 10) : -1;
+    }).get();
+    var nextIndex = currentIndices.length > 0 ? Math.max(...currentIndices) + 1 : 0;
+
+    var newPanelistHtml = `
                 <div class="mb-3 row panelist">
                     <div class="col-sm-10">
                         <select class="form-select" name="panelist_id[${nextIndex}]">
@@ -282,32 +350,32 @@
                 </div>
                 `;
 
-        $('#panelists').append(newPanelistHtml);
-        console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
+    $('#panelists').append(newPanelistHtml);
+    console.log('New panelist added to DOM with name:', `panelist_id[${nextIndex}]`);
 
-        // Disable button if limit is now reached
-        if ($('#panelists .panelist').length >= 3) {
-            $('#addPanelist').prop('disabled', true);
-        }
-        // Update dropdowns to enforce unique selection
-        updatePanelistDropdowns();
+    // Disable button if limit is now reached
+    if ($('#panelists .panelist').length >= 3) {
+        $('#addPanelist').prop('disabled', true);
     }
+    // Update dropdowns to enforce unique selection
+    updatePanelistDropdowns();
+}
 
-    // Optionally, update existing panelist entries to have unique indices
-    $(document).ready(function() {
-        $('#panelists .panelist').each(function(index) {
-            $(this).find('select').attr('name', `panelist_id[${index}]`);
-        });
+// Optionally, update existing panelist entries to have unique indices
+$(document).ready(function() {
+    $('#panelists .panelist').each(function(index) {
+        $(this).find('select').attr('name', `panelist_id[${index}]`);
     });
+});
 
-    // Define addNewTeamMember function globally
-    function addNewTeamMember() {
-        $.ajax({
-            url: 'includes/get_users.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(users) {
-                var newMemberHtml = `
+// Define addNewTeamMember function globally
+function addNewTeamMember() {
+    $.ajax({
+        url: 'includes/get_users.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(users) {
+            var newMemberHtml = `
                         <div class="mb-3 row team-member">
                             <div class="col-sm-5">
                                 <select class="form-select user-select" name="new_user_id[]" style="display:block;">
@@ -329,78 +397,78 @@
                             </div>
                         </div>
                         `;
-                $('#teamMembers').append(newMemberHtml);
-                $('#teamMembers .toggle-input').last().on('click', function(e) {
-                    e.preventDefault();
-                    var $select = $(this).siblings('.user-select');
-                    var $input = $(this).siblings('.new-username-input');
-                    if ($select.is(':visible')) {
-                        $select.hide();
-                        $input.show();
-                        $(this).text('Switch to select');
-                    } else {
-                        $input.hide();
-                        $select.show();
-                        $(this).text('Switch to manual');
-                    }
-                });
-            },
-            error: function(jqXHR, textStatus, errorThrown) {
-                alert('Error loading users');
-            }
-        });
-    }
-
-    // Remove team member functionality
-    $(document).on('click', '.remove-member', function() {
-        var teamMember = $(this).closest('.team-member');
-        var userId = teamMember.data('user-id');
-        var teamId = $('input[name="id"]').val();
-        if (userId && teamId) {
-            if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
-                $.ajax({
-                    url: 'includes/remove_team_member.php',
-                    method: 'POST',
-                    data: {
-                        user_id: userId,
-                        team_id: teamId
-                    },
-                    dataType: 'json',
-                    success: function(response) {
-                        if (response.success) {
-                            teamMember.remove();
-                            alert('Team member removed successfully');
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    },
-                    error: function() {
-                        alert('Error: Unable to remove team member');
-                    }
-                });
-            }
-        } else {
-            // If it's a new member (not yet saved to database), just remove from form
-            teamMember.remove();
+            $('#teamMembers').append(newMemberHtml);
+            $('#teamMembers .toggle-input').last().on('click', function(e) {
+                e.preventDefault();
+                var $select = $(this).siblings('.user-select');
+                var $input = $(this).siblings('.new-username-input');
+                if ($select.is(':visible')) {
+                    $select.hide();
+                    $input.show();
+                    $(this).text('Switch to select');
+                } else {
+                    $input.hide();
+                    $select.show();
+                    $(this).text('Switch to manual');
+                }
+            });
+        },
+        error: function(jqXHR, textStatus, errorThrown) {
+            alert('Error loading users');
         }
     });
+}
 
-    // Helper function for showing toasts
-    function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
-        if (!$('#toastContainer').length) {
-            $('body').append(`
+// Remove team member functionality
+$(document).on('click', '.remove-member', function() {
+    var teamMember = $(this).closest('.team-member');
+    var userId = teamMember.data('user-id');
+    var teamId = $('input[name="id"]').val();
+    if (userId && teamId) {
+        if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
+            $.ajax({
+                url: 'includes/remove_team_member.php',
+                method: 'POST',
+                data: {
+                    user_id: userId,
+                    team_id: teamId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        teamMember.remove();
+                        alert('Team member removed successfully');
+                    } else {
+                        alert('Error: ' + response.message);
+                    }
+                },
+                error: function() {
+                    alert('Error: Unable to remove team member');
+                }
+            });
+        }
+    } else {
+        // If it's a new member (not yet saved to database), just remove from form
+        teamMember.remove();
+    }
+});
+
+// Helper function for showing toasts
+function showToast(title, message, type = 'success') {
+    // Create toast container if it doesn't exist
+    if (!$('#toastContainer').length) {
+        $('body').append(`
                 <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
                 </div>
                 `);
 
-        }
+    }
 
-        // Generate unique ID for the toast
-        const toastId = 'toast-' + Date.now();
+    // Generate unique ID for the toast
+    const toastId = 'toast-' + Date.now();
 
-        // Create toast HTML with more prominent styling
-        const toast = `
+    // Create toast HTML with more prominent styling
+    const toast = `
                 <div id="${toastId}" class="toast align-items-center border-0" 
                     role="alert" 
                     aria-live="assertive" 
@@ -415,22 +483,22 @@
                 </div>
                 `;
 
-        // Add toast to container
-        $('#toastContainer').append(toast);
+    // Add toast to container
+    $('#toastContainer').append(toast);
 
-        // Initialize and show the toast with modified options
-        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-            autohide: true,
-            delay: 3000,
-            animation: true
-        });
-        toastElement.show();
+    // Initialize and show the toast with modified options
+    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+        autohide: true,
+        delay: 3000,
+        animation: true
+    });
+    toastElement.show();
 
-        // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function() {
-            $(this).remove();
-        });
-    }
+    // Remove toast element after it's hidden
+    $(`#${toastId}`).on('hidden.bs.toast', function() {
+        $(this).remove();
+    });
+}
 </script>
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -509,7 +577,7 @@ $(document).ready(function() {
         $('body').append(
             '<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>');
     }
-// EDIT START
+    // EDIT START
     // Edit button functionality
     $(document).off('click.editBtn').on('click.editBtn', '.edit-btn', function(e) {
         e.preventDefault();
@@ -568,7 +636,7 @@ $(document).ready(function() {
                             var value = response.data[key] || '';
                             var inputType = (key === 'email') ? 'email' : 'text';
                             var label = key.replace('_', ' ').charAt(0)
-                            .toUpperCase() + key.slice(1);
+                                .toUpperCase() + key.slice(1);
 
                             if (key === 'bio') {
                                 formHtml += `
@@ -876,7 +944,7 @@ $(document).ready(function() {
                         if (response.data.panelists && Array.isArray(response.data
                                 .panelists)) {
                             panelistCount = response.data.panelists
-                            .length; // Get initial count
+                                .length; // Get initial count
                             response.data.panelists.forEach(function(panelist, index) {
                                 // Ensure unique indices for names
                                 formHtml += `
@@ -897,7 +965,7 @@ $(document).ready(function() {
                         } else {
                             console.warn(
                                 'Panelists data is missing or not an array in the response for edit form.'
-                                );
+                            );
                         }
 
                         formHtml += `
@@ -924,7 +992,7 @@ $(document).ready(function() {
                             if (startTime && endTime && startTime >= endTime) {
                                 showToast('Error',
                                     'End time must be after start time', 'error'
-                                    );
+                                );
                                 $(this).val(''); // Clear the current field
                             }
                         });
@@ -940,9 +1008,9 @@ $(document).ready(function() {
                         // Add panelist functionality (uses global addNewPanelist function)
                         $('#addPanelist').on('click', function() {
                             console.log(
-                            'Add Panelist button clicked in edit modal');
+                                'Add Panelist button clicked in edit modal');
                             addNewPanelist(window
-                            .staffData); // Call the global function
+                                .staffData); // Call the global function
                         });
 
                         // Remove panelist functionality (Enable add button when removing)
@@ -963,7 +1031,7 @@ $(document).ready(function() {
                                         `Panelist ${index + 1}`);
                                 });
                                 updatePanelistDropdowns
-                            (); // Update dropdowns after removal
+                                    (); // Update dropdowns after removal
                             });
 
                         // Update dropdowns initially to disable selected options in other dropdowns
@@ -1069,9 +1137,9 @@ $(document).ready(function() {
         console.log('DEBUG: Save changes button clicked, triggering edit form submission');
         $('#editForm').submit();
     });
-// EDIT END
+    // EDIT END
 
-// ADD START
+    // ADD START
     // Add button functionality
     $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
         e.preventDefault();
@@ -1113,8 +1181,134 @@ $(document).ready(function() {
             return true;
         }
 
-        // programs
-        if (table === 'programs') {
+
+
+        // Standard handling for all other tables
+        var form = $('#addForm');
+        form.empty();
+        form.append('<input type="hidden" name="table" value="' + table + '">');
+        // user_schedules
+        if (table === 'user_schedules') {
+            form.append('<div class="mb-3">' +
+                '<label for="program" class="form-label">Program</label>' +
+                '<select class="form-select" id="program" name="program" required>' +
+                '<option value="">Select Program</option>' +
+                // Populate programs dynamically
+                <?php
+                    try {
+                        $stmt = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE name IS NOT NULL ORDER BY name");
+                        $stmt->execute();
+                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                            echo "'<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . ($row['specialization'] ? " (" . htmlspecialchars($row['specialization']) . ")" : "") . "</option>' +";
+                        }
+                    } catch (PDOException $e) {
+                        echo "'<option value=\"\">Error loading programs</option>' +";
+                        error_log("Database error: " . $e->getMessage());
+                    }
+                    ?> '</select>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="class_name" class="form-label">Course Code</label>' +
+                '<input type="text" class="form-control" id="class_name" name=" class_name" required>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="year" class="form-label">Year</label>' +
+                '<input type="number" class="form-control" id="year" name="year" min="1" max="5" oninput="if(this.value > 5) this.value = 5; if(this.value < 1 && this.value !== \'\') this.value = 1;" required>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="section" class="form-label">Section</label>' +
+                '<input type="text" class="form-control" id="section" name="section" required>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="room" class="form-label">Room</label>' +
+                '<input type="text" class="form-control" id="room" name="room" required>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="user_id" class="form-label">Instructor</label>' +
+                '<select class="form-select" id="user_id" name="user_id" required>' +
+                '<option value="">Select Instructor</option>' +
+                <?php
+                try {
+                    $stmt = $pdo->prepare("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM users WHERE usertype = 2 ORDER BY name");
+                    $stmt->execute();
+                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                        echo "'<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>' +";
+                    }
+                } catch (PDOException $e) {
+                    echo "'<option value=\"\">Error loading instructors</option>' +";
+                    error_log("Database error: " . $e->getMessage());
+                }
+                ?> '</select>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label for="day_of_week" class="form-label">Day of Week</label>' +
+                '<select class="form-select" id="day_of_week" name="day_of_week" required>' +
+                '<option value="">Select Day</option>' +
+                '<option value="Monday">Monday</option>' +
+                '<option value="Tuesday">Tuesday</option>' +
+                '<option value="Wednesday">Wednesday</option>' +
+                '<option value="Thursday">Thursday</option>' +
+                '<option value="Friday">Friday</option>' +
+                '<option value="Saturday">Saturday</option>' +
+                '</select>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label class="form-label">Start Time</label>' +
+                '<div class="d-flex align-items-center gap-2">' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'start\', \'hour\', -1)">▲</button><br>' +
+                '<span id="start_hour">07</span><br>' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'start\', \'hour\', 1)">▼</button>' +
+                '</div>' +
+                '<span>:</span>' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'start\', \'minute\', -30)">▲</button><br>' +
+                '<span id="start_minute">00</span><br>' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'start\', \'minute\', 30)">▼</button>' +
+                '</div>' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="toggleMeridian(\'start\')">⇅</button><br>' +
+                '<span id="start_meridian">AM</span><br>' +
+                '</div>' +
+                '<input type="hidden" id="start_time" name="start_time" value="07:00" required>' +
+                '</div>' +
+                '<small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>' +
+                '</div>' +
+
+                '<div class="mb-3">' +
+                '<label class="form-label">End Time</label>' +
+                '<div class="d-flex align-items-center gap-2">' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'hour\', -1)">▲</button><br>' +
+                '<span id="end_hour">07</span><br>' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'hour\', 1)">▼</button>' +
+                '</div>' +
+                '<span>:</span>' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'minute\', -30)">▲</button><br>' +
+                '<span id="end_minute">00</span><br>' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'minute\', 30)">▼</button>' +
+                '</div>' +
+                '<div class="text-center">' +
+                '<button type="button" class="btn btn-light btn-sm" onclick="toggleMeridian(\'end\')">⇅</button><br>' +
+                '<span id="end_meridian">AM</span><br>' +
+                '</div>' +
+                '<input type="hidden" id="end_time" name="end_time" value="07:00" required>' +
+                '</div>' +
+                '<small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>' +
+                '</div>'
+
+
+
+            );
+        } else if (table === 'programs') {
             var form = $('#addForm');
             form.empty();
             form.append('<input type="hidden" name="table" value="programs">');
@@ -1138,15 +1332,7 @@ $(document).ready(function() {
                 `);
             $('#addModal').modal('show');
             return true;
-        }
-
-        // Standard handling for all other tables
-        var form = $('#addForm');
-        form.empty();
-        form.append('<input type="hidden" name="table" value="' + table + '">');
-
-        // Generate form fields based on table
-        if (table === 'users') {
+        } else if (table === 'users') {
             form.append('<div class="mb-3">' +
                 '<label for="username" class="form-label">Username</label>' +
                 '<input type="text" class="form-control" id="username" name="username" placeholder="20xx-2-xxxxx" required>' +
@@ -1549,7 +1735,7 @@ $(document).ready(function() {
                 console.error('AJAX Error:', xhr.responseText);
                 // More user-friendly error message
                 let errorMessage =
-                'Unable to process your request. Please try again later.';
+                    'Unable to process your request. Please try again later.';
                 try {
                     const response = JSON.parse(xhr.responseText);
                     if (response && response.message) {
@@ -1563,9 +1749,9 @@ $(document).ready(function() {
             }
         }); // Close $.ajax call
     }); // Close $(document).on('click', '#addItem', ...) handler
-// ADD END
+    // ADD END
 
-// DELETE START
+    // DELETE START
     // Delete button functionality
     $(document).off('click.deleteBtn').on('click.deleteBtn', '.delete-btn', function(e) {
         e.preventDefault();
@@ -1620,9 +1806,9 @@ $(document).ready(function() {
             }
         });
     });
-// DELETE END
+    // DELETE END
 
-// BULK ADD STUDENT START
+    // BULK ADD STUDENT START
     // NEW: Add bulk row functionality
     $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function() {
         let count = parseInt($('#rowCountInput').val()) || 1;
@@ -1672,21 +1858,21 @@ $(document).ready(function() {
         });
 
     // NEW: Bulk Add Students functionality
-        $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function(e) {
-            e.preventDefault();
-            console.log('Bulk Add User button clicked');
-            $('#bulkAddModal').modal('show');
-        });
-    
+    $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function(e) {
+        e.preventDefault();
+        console.log('Bulk Add User button clicked');
+        $('#bulkAddModal').modal('show');
+    });
+
     // NEW: Bulk Add Teams functionality
     $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
         e.preventDefault();
         console.log('Bulk Add Teams button clicked');
         $('#bulkAddTeamsModal').modal('show');
     });
-// BULK ADD STUDENT END
+    // BULK ADD STUDENT END
 
-// BULK ADD TEAMS START
+    // BULK ADD TEAMS START
     $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
         let count = parseInt($('#teamsRowCountInput').val()) || 1;
         for (let i = 0; i < count; i++) {
@@ -1741,7 +1927,7 @@ $(document).ready(function() {
                 console.error('AJAX Error:', xhr.responseText);
                 // User-friendly error message
                 let errorMessage =
-                'Unable to process your request. Please try again later.';
+                    'Unable to process your request. Please try again later.';
                 try {
                     const response = JSON.parse(xhr.responseText);
                     if (response && response.message) {
@@ -1754,7 +1940,7 @@ $(document).ready(function() {
             }
         });
     });
-// BULK ADD TEAMS END
+    // BULK ADD TEAMS END
 
     // Event handler for preset buttons in area of expertise fields
     $(document).on('click', '.area-option', function(e) {
@@ -1960,7 +2146,7 @@ $(document).on('click', '.remove-member', function() {
     if (userId && teamId) { // Existing member in edit form
         if (confirm(
                 'Are you sure you want to remove this team member from the team? This action cannot be undone.'
-                )) {
+            )) {
             $.ajax({
                 url: 'includes/remove_team_member.php',
                 method: 'POST',
