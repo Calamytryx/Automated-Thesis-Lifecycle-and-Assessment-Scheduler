@@ -101,6 +101,8 @@ if (!isset($_POST['loginsubmit'])) {
 
                 $_SESSION['id'] = $row['id'];
                 $_SESSION['username'] = $row['username'];
+                $_SESSION['program'] = $row['program'];
+                $_SESSION['section'] = $row['section'];
                 $_SESSION['email'] = $row['email'];
                 $_SESSION['first_name'] = $row['first_name'];
                 $_SESSION['last_name'] = $row['last_name'];
