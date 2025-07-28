@@ -46,7 +46,7 @@
 }
 
 
-#username, #password, #confirmpassword{
+#username, #password, #confirmpassword, #first_name, #last_name, #program, #specialization, #year, #section, #headline, #bio{
     background-color: var(--white-50);
     border: solid 1px var(--neutral-500);
     border-radius: 6px;

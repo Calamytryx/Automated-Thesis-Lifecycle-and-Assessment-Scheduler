@@ -1,7 +1,7 @@
-
 <?php
 define('TITLE', "Signup");
 include '../assets/layouts/header.php';
+require_once '../assets/setup/db.inc.php';
 check_logged_out();
 $app_name = APP_NAME;
 $first_letter = substr($app_name, 0, 1);
@@ -11,7 +11,7 @@ $rest_of_name = substr($app_name, 1);
 <div class="register-wrapper position-relative min-vh-100">
     <div class="container position-relative">
         <div class="row min-vh-100 align-items-center justify-content-center justify-content-lg">
-            <div class="col-12 col-sm-10 col-md-8 col-lg-7 col-xl-6 py-4">
+            <div class="col-12 col-sm-12 col-md-10 col-lg-9 col-xl-8 py-4">
                 <div class="card shadow-lg p-4 register-card" style="max-width: 900px; width: 100%;">
                     <div class="card-body">
                         <div class="text-center mb-4">
@@ -50,28 +50,34 @@ $rest_of_name = substr($app_name, 1);
                                 </small>
                             </div>
                             <div id="mainFields">
-                                <div class="form-group">
-                                    <label for="username">Username</label>
-                                    <input type="text" id="username" name="username" class="form-control" placeholder="Username" required disabled>
-                                    <sub class="text-danger">
-                                        <?php
-                                        if (isset($_SESSION['ERRORS']['usernameerror']))
-                                            echo $_SESSION['ERRORS']['usernameerror'];
-                                        ?>
-                                    </sub>
-                                </div>
-                                <div class="form-group">
-                                    <label for="email">Email address</label>
-                                    <div class="input-group">
-                                        <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
-                                        <span class="input-group-text">@lpu.edu.ph</span>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="username">Username</label>
+                                            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required disabled>
+                                            <sub class="text-danger">
+                                                <?php
+                                                if (isset($_SESSION['ERRORS']['usernameerror']))
+                                                    echo $_SESSION['ERRORS']['usernameerror'];
+                                                ?>
+                                            </sub>
+                                        </div>
                                     </div>
-                                    <sub class="text-danger">
-                                        <?php
-                                        if (isset($_SESSION['ERRORS']['emailerror']))
-                                            echo $_SESSION['ERRORS']['emailerror'];
-                                        ?>
-                                    </sub>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="email">Email address</label>
+                                            <div class="input-group">
+                                                <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
+                                                <span class="input-group-text">@lpu.edu.ph</span>
+                                            </div>
+                                            <sub class="text-danger">
+                                                <?php
+                                                if (isset($_SESSION['ERRORS']['emailerror']))
+                                                    echo $_SESSION['ERRORS']['emailerror'];
+                                                ?>
+                                            </sub>
+                                        </div>
+                                    </div>
                                 </div>
                                 <script>
                                     const usernameInput = document.getElementById('username');
@@ -84,27 +90,56 @@ $rest_of_name = substr($app_name, 1);
                                         usernameInput.value = emailInput.value;
                                     });
                                 </script>
-                                <div class="form-group">
-                                    <label for="first_name" >First Name</label>
-                                    <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="first_name" >First Name</label>
+                                            <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="last_name" >Last Name</label>
+                                            <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
+                                        </div>
+                                    </div>
                                 </div>
                                 <div class="form-group">
-                                    <label for="last_name" >Last Name</label>
-                                    <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
-                                </div>
-                                <div class="form-group">
-                                    <label for="password" >Password</label>
-                                    <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
-                                </div>
-                                <div class="form-group mb-4">
-                                    <label for="confirmpassword" >Confirm Password</label>
-                                    <input type="password" id="confirmpassword" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
-                                    <sub class="text-danger mb-4">
+                                    <label for="program">Program</label>
+                                    <select id="program" name="program" class="form-control" required>
+                                        <option value="" disabled selected>Select Program</option>
                                         <?php
-                                        if (isset($_SESSION['ERRORS']['passworderror']))
-                                            echo $_SESSION['ERRORS']['passworderror'];
+                                        try {
+                                            $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+                                            $stmt = $pdo->query("SELECT DISTINCT name FROM programs ORDER BY name ASC");
+                                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                                echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
+                                            }
+                                        } catch (PDOException $e) {
+                                            echo '<option disabled>Error loading programs</option>';
+                                        }
                                         ?>
-                                    </sub>
+                                    </select>
+                                </div>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group">
+                                            <label for="password" >Password</label>
+                                            <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group mb-4">
+                                            <label for="confirmpassword" >Confirm Password</label>
+                                            <input type="password" id="confirmpassword" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
+                                            <sub class="text-danger mb-4">
+                                                <?php
+                                                if (isset($_SESSION['ERRORS']['passworderror']))
+                                                    echo $_SESSION['ERRORS']['passworderror'];
+                                                ?>
+                                            </sub>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                             <div class="form-group text-center">

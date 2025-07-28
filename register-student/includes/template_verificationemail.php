@@ -140,7 +140,7 @@
 
                         <div style="line-height: 35px">
 
-                            WELCOME TO {{ APP_NAME }}, <span style="color: #5caad2;">{{ username }}!</span>
+                            WELCOME TO {{ APP_NAME }}, <span style="color: #5caad2;">{{ first_name }}!</span>
 
                         </div>
                     </td>

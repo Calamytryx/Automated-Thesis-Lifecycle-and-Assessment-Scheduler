@@ -52,8 +52,17 @@ if (isset($_POST['signupsubmit'])) {
     $passwordRepeat  = input_filter($_POST['confirmpassword']);
     $headline = input_filter($_POST['headline']);
     $bio = input_filter($_POST['bio']);
-    $full_name = input_filter($_POST['first_name']);
+    $first_name = input_filter($_POST['first_name']);
     $last_name = input_filter($_POST['last_name']);
+    $program_name = input_filter($_POST['program']);
+    $specialization = input_filter($_POST['specialization']);
+    $year = input_filter($_POST['year']);
+    $section = input_filter($_POST['section']);
+
+    $program = $program_name;
+    if (!empty($specialization)) {
+        $program .= ' ' . $specialization;
+    }
 
     if (isset($_POST['gender'])) 
         $gender = input_filter($_POST['gender']);
@@ -162,13 +171,13 @@ if (isset($_POST['signupsubmit'])) {
         */
 
         $sql = "INSERT INTO users(username, email, password, first_name, last_name, gender, 
-                headline, bio, profile_image, created_at) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW())";
+                headline, bio, profile_image, created_at, program, year, section) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?, ?, ?)";
         $stmt = $pdo->prepare($sql);
 
         $hashedPwd = password_hash($password, PASSWORD_DEFAULT);
 
-        $stmt->execute([$username, $email, $hashedPwd, $full_name, $last_name, $gender, $headline, $bio, $FileNameNew]);
+        $stmt->execute([$username, $email, $hashedPwd, $first_name, $last_name, $gender, $headline, $bio, $FileNameNew, $program, $year, $section]);
 
         /*
         * -------------------------------------------------------------------------------

@@ -40,7 +40,7 @@ if (isset($_POST['signupsubmit'])) {
     $mail_variables = array();
 
     $mail_variables['APP_NAME'] = APP_NAME;
-    $mail_variables['username'] = $username;
+    $mail_variables['first_name'] = $first_name;
     $mail_variables['email'] = $email;
     $mail_variables['url'] = $url;
 
