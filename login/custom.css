@@ -81,9 +81,63 @@
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
-    min-height: 100vh; 
-    width: 100%;
-    position: absolute;
+    min-height: 100vh;
+    min-width: 100vw;
+    width: 100vw;
+    height: 100vh;
+    position: fixed;
     top: 0;
     left: 0;
-}  
+    z-index: 0;
+    overflow: hidden;
+}
+
+.login-wrapper > .container {
+    position: relative;
+    z-index: 2;
+    min-height: 100vh;
+    max-height: 100vh;
+    overflow-y: auto;
+    overflow-x: hidden;
+    scrollbar-width: none; /* Firefox */
+    -webkit-overflow-scrolling: touch; /* iOS smooth scrolling */
+    overscroll-behavior: contain; /* Prevent scroll chaining */
+    touch-action: pan-y; /* Enable vertical touch scroll */
+}
+.login-wrapper > .container::-webkit-scrollbar {
+    display: none; /* Chrome, Safari, Opera */
+}
+
+@media (max-width: 600px) {
+    html, body {
+        font-size: 14px;
+    }
+    .login-card {
+        max-width: 98vw !important;
+        margin: 0 1vw;
+        border-radius: 8px;
+        box-shadow: 0 0 16px rgba(0,0,0,0.10);
+    }
+    .login-card .card-body {
+        padding: 0.75rem 0.5rem;
+    }
+    .form-group label,
+    .form-group input,
+    .form-group select,
+    .form-group textarea,
+    .input-group-text {
+        font-size: 0.95rem;
+    }
+    .btn-primary {
+        font-size: 1rem;
+        padding: 10px;
+        margin-top: 14px;
+    }
+    .col-xl-4, .col-lg-5, .col-md-6, .col-sm-8 {
+        max-width: 100vw;
+    }
+    #username, #password {
+        padding: 10px;
+        font-size: 0.95rem;
+    }
+}

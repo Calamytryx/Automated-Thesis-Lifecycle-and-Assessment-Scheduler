@@ -508,7 +508,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
                                 </div>
                             </a>
-                            <a href="../logout/" class="logout-btn" title="Logout">
+                            <a href="#" class="logout-btn" id="dashboardLogoutBtn" title="Logout">
                                 <i class="bi bi-power"></i>
                             </a>
                         </div>

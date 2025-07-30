@@ -520,6 +520,28 @@ function showToast(title, message, type = 'success') {
         </div>
     </div>
 </div>
+
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: var(--main-black); margin-bottom: 1rem;">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <h4 class="fw-bold mb-3" id="logoutConfirmModalLabel">Confirm Logout</h4>
+                <p>Are you sure you want to log out?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="/coecsathesis/logout/" class="btn btn-danger" id="confirmLogout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
 <script>
 // Add helper function to dynamically populate program dropdowns
 function populateProgramDropdown(selectElement, selectedValue = null) {
@@ -2231,6 +2253,19 @@ function showToast(title, message, type = 'success') {
         $(this).remove();
     });
 }
+// Logout confirmation modal trigger for dashboard and home sidebars
+$(document).ready(function() {
+    // Dashboard sidebar logout
+    $(document).on('click', '#dashboardLogoutBtn', function(e) {
+        e.preventDefault();
+        $('#logoutConfirmModal').modal('show');
+    });
+    // Home sidebar logout
+    $(document).on('click', '#homeLogoutBtn', function(e) {
+        e.preventDefault();
+        $('#logoutConfirmModal').modal('show');
+    });
+});
 </script>
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">

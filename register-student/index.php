@@ -54,7 +54,8 @@ $rest_of_name = substr($app_name, 1);
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="username">Username</label>
-                                            <input type="text" id="username" name="username" class="form-control" placeholder="Username" required disabled>
+                                            <input type="text" id="username_display" class="form-control" placeholder="Username" required disabled>
+                                            <input type="hidden" id="username" name="username" value="">
                                             <sub class="text-danger">
                                                 <?php
                                                 if (isset($_SESSION['ERRORS']['usernameerror']))
@@ -80,16 +81,17 @@ $rest_of_name = substr($app_name, 1);
                                     </div>
                                 </div>
                                 <script>
-                                    const usernameInput = document.getElementById('username');
+                                    // Sync username (hidden and display) with email
                                     const emailInput = document.getElementById('email');
-
-                                    usernameInput.addEventListener('input', () => {
-                                        emailInput.value = usernameInput.value;
-                                    });
-
-                                    emailInput.addEventListener('input', () => {
-                                        usernameInput.value = emailInput.value;
-                                    });
+                                    const usernameDisplay = document.getElementById('username_display');
+                                    const usernameHidden = document.getElementById('username');
+                                    function syncUsername() {
+                                        usernameDisplay.value = emailInput.value;
+                                        usernameHidden.value = emailInput.value;
+                                    }
+                                    emailInput.addEventListener('input', syncUsername);
+                                    // On page load, in case of autofill
+                                    window.addEventListener('DOMContentLoaded', syncUsername);
                                 </script>
                                 <div class="row">
                                     <div class="col-md-6">

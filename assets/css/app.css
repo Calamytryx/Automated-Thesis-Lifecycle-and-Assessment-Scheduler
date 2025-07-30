@@ -1745,7 +1745,7 @@ color: #444 !important;
 .modal-footer .btn-secondary {
     color: var(--main-bg-dark);
     background-color: var(--neutral-50);
-    border: none;
+    border: 1px solid var(--main-neutral);
 }
 
 .modal-footer .btn-secondary:hover {

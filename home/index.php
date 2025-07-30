@@ -614,7 +614,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </a>
 
-                        <a href="../logout/" class="logout-btn" title="Logout">
+                        <a href="#" class="logout-btn" id="homeLogoutBtn" title="Logout">
                             <i class="bi bi-power"></i>
                         </a>
                     </div>
