@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $table = $_POST['table'];
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'user_schedules'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
 
     if (!in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table';
@@ -57,13 +57,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     // Fetch user roles
                     $stmt = $pdo->query("SELECT id, name FROM user_roles");
                     $response['roles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                } else if ($table === 'user_schedules') {
-                    // Fetch programs for the dropdown
-                    $stmt = $pdo->query("SELECT id, CONCAT(name, CASE WHEN specialization IS NOT NULL AND specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END) as display_name FROM programs ORDER BY name");
-                    $response['programs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
-                    // Fetch instructors for the dropdown
-                    $stmt = $pdo->query("SELECT id, CONCAT(first_name, ' ', last_name) as name FROM users WHERE usertype = 2 ORDER BY last_name, first_name");
-                    $response['instructors'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'thesis_topics') {
                     // Fetch thesis topics
                     $stmt = $pdo->query("SELECT id, title FROM thesis_topics");
