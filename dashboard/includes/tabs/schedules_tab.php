@@ -390,6 +390,63 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
             };
         };
 
+        // Modal for schedule actions (edit/delete)
+        let scheduleActionModal = null;
+        function showScheduleActionModal(scheduleId) {
+            if (!scheduleActionModal) {
+                scheduleActionModal = document.createElement('div');
+                scheduleActionModal.className = 'modal fade';
+                scheduleActionModal.id = 'scheduleActionModal';
+                scheduleActionModal.tabIndex = -1;
+                scheduleActionModal.innerHTML = `
+                    <div class="modal-dialog modal-dialog-centered">
+                        <div class="modal-content">
+                            <div class="modal-header">
+                                <h5 class="modal-title">Schedule Options</h5>
+                                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body text-center">
+                                <button type="button" class="btn btn-primary mb-2 w-100" id="editScheduleBtn">
+                                    <i class="fas fa-edit me-2"></i>Edit
+                                </button>
+                                <button type="button" class="btn btn-danger w-100" id="deleteScheduleBtn">
+                                    <i class="fas fa-trash me-2"></i>Delete
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(scheduleActionModal);
+            }
+
+            // Attach event listeners for edit and delete
+            scheduleActionModal.querySelector('#editScheduleBtn').onclick = function() {
+                // Trigger edit like other tables
+                const editBtn = document.createElement('button');
+                editBtn.className = 'btn btn-sm edit-btn';
+                editBtn.setAttribute('data-table', 'user_schedules');
+                editBtn.setAttribute('data-id', scheduleId);
+                document.body.appendChild(editBtn);
+                editBtn.click();
+                editBtn.remove();
+                bootstrap.Modal.getOrCreateInstance(scheduleActionModal).hide();
+            };
+            scheduleActionModal.querySelector('#deleteScheduleBtn').onclick = function() {
+                // Trigger delete like other tables
+                const deleteBtn = document.createElement('button');
+                deleteBtn.className = 'btn btn-sm delete-btn';
+                deleteBtn.setAttribute('data-table', 'user_schedules');
+                deleteBtn.setAttribute('data-id', scheduleId);
+                document.body.appendChild(deleteBtn);
+                deleteBtn.click();
+                deleteBtn.remove();
+                bootstrap.Modal.getOrCreateInstance(scheduleActionModal).hide();
+            };
+
+            // Show modal
+            bootstrap.Modal.getOrCreateInstance(scheduleActionModal).show();
+        }
+
         // Load schedules
         const loadSchedules = () => {
             const filters = getCurrentScheduleFilters();
@@ -468,16 +525,10 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 scheduleItem.setAttribute('title',
                                     `${schedule.class_name} (${startTime} - ${endTime})`);
 
-                                // Add click event for editing
+                                // Show modal with Edit/Delete options
                                 scheduleItem.addEventListener('click', function(e) {
                                     e.stopPropagation();
-                                    // Trigger edit functionality
-                                    const editBtn = document.createElement('button');
-                                    editBtn.className = 'btn btn-sm edit-btn';
-                                    editBtn.setAttribute('data-table',
-                                    'user_schedules');
-                                    editBtn.setAttribute('data-id', schedule.id);
-                                    editBtn.click();
+                                    showScheduleActionModal(schedule.id);
                                 });
 
                                 startCell.appendChild(scheduleItem);
