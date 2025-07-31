@@ -233,7 +233,7 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
     }
 
     .schedule-item {
-        background: #007bff;
+        background: #9e2a2f;
         color: white;
         padding: 4px 6px;
         border-radius: 3px;
@@ -245,11 +245,11 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
         right: 2px;
         overflow: hidden;
         z-index: 5;
-        border: 1px solid #0056b3;
+        border: 1px solid #731f22;
     }
 
     .schedule-item:hover {
-        background: #0056b3;
+        background: #731f22;
         z-index: 10;
     }
 
