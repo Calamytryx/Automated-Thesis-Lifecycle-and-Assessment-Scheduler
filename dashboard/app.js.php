@@ -1,9 +1,14 @@
 <script>
+    // Time adjustment functions for both add and edit modals
     function adjustTime(id, type, step) {
-        const hourEl = document.getElementById(`${id}_hour`);
-        const minuteEl = document.getElementById(`${id}_minute`);
-        const meridianEl = document.getElementById(`${id}_meridian`);
-        const inputEl = document.getElementById(`${id}_time`);
+        // Always search inside the currently open modal for elements
+        const $modal = $('.modal.show');
+        let hourEl = $modal.find(`#${id}_hour`)[0];
+        let minuteEl = $modal.find(`#${id}_minute`)[0];
+        let meridianEl = $modal.find(`#${id}_meridian`)[0];
+        let inputEl = $modal.find(`#${id}_time`)[0];
+
+        if (!hourEl || !minuteEl || !meridianEl || !inputEl) return; // If not found, abort
 
         let hour = parseInt(hourEl.innerText);
         let minute = parseInt(minuteEl.innerText);
@@ -46,11 +51,17 @@
     }
 
     function toggleMeridian(id) {
-        const hour = parseInt(document.getElementById(`${id}_hour`).innerText);
-        const minute = parseInt(document.getElementById(`${id}_minute`).innerText);
-        const meridianEl = document.getElementById(`${id}_meridian`);
-        const inputEl = document.getElementById(`${id}_time`);
+        // Always search inside the currently open modal for elements
+        const $modal = $('.modal.show');
+        let hourEl = $modal.find(`#${id}_hour`)[0];
+        let minuteEl = $modal.find(`#${id}_minute`)[0];
+        let meridianEl = $modal.find(`#${id}_meridian`)[0];
+        let inputEl = $modal.find(`#${id}_time`)[0];
 
+        if (!hourEl || !minuteEl || !meridianEl || !inputEl) return;
+
+        const hour = parseInt(hourEl.innerText);
+        const minute = parseInt(minuteEl.innerText);
         let meridian = meridianEl.innerText === 'AM' ? 'PM' : 'AM';
 
         // Convert to 24-hour for validation
