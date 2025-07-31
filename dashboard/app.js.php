@@ -48,6 +48,72 @@
         minuteEl.innerText = String(minute).padStart(2, '0');
         meridianEl.innerText = meridian;
         inputEl.value = `${String(militaryHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+        // Chronological enforcement: start_time < end_time
+        let startInput = $modal.find('#start_time')[0];
+        let endInput = $modal.find('#end_time')[0];
+        if (startInput && endInput) {
+            let startVal = startInput.value;
+            let endVal = endInput.value;
+            if (id === 'start' && startVal >= endVal) {
+                // If start >= end, auto-adjust end to next slot
+                let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
+                let nextEndMinutes = startMinutes + 30;
+                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                let nextEndHour = Math.floor(nextEndMinutes / 60);
+                let nextEndMinute = nextEndMinutes % 60;
+                endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;
+                // Also update UI if present
+                let endHourEl = $modal.find('#end_hour')[0];
+                let endMinuteEl = $modal.find('#end_minute')[0];
+                let endMeridianEl = $modal.find('#end_meridian')[0];
+                let endMeridian = nextEndHour >= 12 ? 'PM' : 'AM';
+                let endHour = nextEndHour % 12;
+                if (endHour === 0) endHour = 12;
+                if (endHourEl) endHourEl.innerText = String(endHour).padStart(2, '0');
+                if (endMinuteEl) endMinuteEl.innerText = String(nextEndMinute).padStart(2, '0');
+                if (endMeridianEl) endMeridianEl.innerText = endMeridian;
+            }
+            if (id === 'end' && startVal >= endVal) {
+                // If end <= start, auto-adjust start to previous slot
+                let endMinutes = parseInt(endVal.split(':')[0]) * 60 + parseInt(endVal.split(':')[1]);
+                let prevStartMinutes = endMinutes - 30;
+                if (prevStartMinutes < 420) prevStartMinutes = 420;
+                let prevStartHour = Math.floor(prevStartMinutes / 60);
+                let prevStartMinute = prevStartMinutes % 60;
+                startInput.value = `${String(prevStartHour).padStart(2, '0')}:${String(prevStartMinute).padStart(2, '0')}`;
+                // Also update UI if present
+                let startHourEl = $modal.find('#start_hour')[0];
+                let startMinuteEl = $modal.find('#start_minute')[0];
+                let startMeridianEl = $modal.find('#start_meridian')[0];
+                let startMeridian = prevStartHour >= 12 ? 'PM' : 'AM';
+                let startHour = prevStartHour % 12;
+                if (startHour === 0) startHour = 12;
+                if (startHourEl) startHourEl.innerText = String(startHour).padStart(2, '0');
+                if (startMinuteEl) startMinuteEl.innerText = String(prevStartMinute).padStart(2, '0');
+                if (startMeridianEl) startMeridianEl.innerText = startMeridian;
+            }
+            if (id === 'end' && startVal == endVal || id === 'start' && startVal == endVal) {
+                // If start == end, auto-adjust end to next slot
+                let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
+                let nextEndMinutes = startMinutes + 30;
+                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                let nextEndHour = Math.floor(nextEndMinutes / 60);
+                let nextEndMinute = nextEndMinutes % 60;
+                endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;
+                // Also update UI if present
+                let endHourEl = $modal.find('#end_hour')[0];
+                let endMinuteEl = $modal.find('#end_minute')[0];
+                let endMeridianEl = $modal.find('#end_meridian')[0];
+                let endMeridian = nextEndHour >= 12 ? 'PM' : 'AM';
+                let endHour = nextEndHour % 12;
+                if (endHour === 0) endHour = 12;
+                if (endHourEl) endHourEl.innerText = String(endHour).padStart(2, '0');
+                if (endMinuteEl) endMinuteEl.innerText = String(nextEndMinute).padStart(2, '0');
+                if (endMeridianEl) endMeridianEl.innerText = endMeridian;
+
+            }
+        }
     }
 
     function toggleMeridian(id) {
@@ -74,6 +140,50 @@
 
         meridianEl.innerText = meridian;
         inputEl.value = `${String(militaryHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+
+        // Chronological enforcement after meridian toggle
+        let startInput = $modal.find('#start_time')[0];
+        let endInput = $modal.find('#end_time')[0];
+        if (startInput && endInput) {
+            let startVal = startInput.value;
+            let endVal = endInput.value;
+            if (id === 'start' && startVal >= endVal) {
+                // If start >= end, auto-adjust end to next slot
+                let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
+                let nextEndMinutes = startMinutes + 30;
+                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                let nextEndHour = Math.floor(nextEndMinutes / 60);
+                let nextEndMinute = nextEndMinutes % 60;
+                endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;
+                let endHourEl = $modal.find('#end_hour')[0];
+                let endMinuteEl = $modal.find('#end_minute')[0];
+                let endMeridianEl = $modal.find('#end_meridian')[0];
+                let endMeridian = nextEndHour >= 12 ? 'PM' : 'AM';
+                let endHour = nextEndHour % 12;
+                if (endHour === 0) endHour = 12;
+                if (endHourEl) endHourEl.innerText = String(endHour).padStart(2, '0');
+                if (endMinuteEl) endMinuteEl.innerText = String(nextEndMinute).padStart(2, '0');
+                if (endMeridianEl) endMeridianEl.innerText = endMeridian;
+            }
+            if (id === 'end' && startVal >= endVal) {
+                // If end <= start, auto-adjust start to previous slot
+                let endMinutes = parseInt(endVal.split(':')[0]) * 60 + parseInt(endVal.split(':')[1]);
+                let prevStartMinutes = endMinutes - 30;
+                if (prevStartMinutes < 420) prevStartMinutes = 420;
+                let prevStartHour = Math.floor(prevStartMinutes / 60);
+                let prevStartMinute = prevStartMinutes % 60;
+                startInput.value = `${String(prevStartHour).padStart(2, '0')}:${String(prevStartMinute).padStart(2, '0')}`;
+                let startHourEl = $modal.find('#start_hour')[0];
+                let startMinuteEl = $modal.find('#start_minute')[0];
+                let startMeridianEl = $modal.find('#start_meridian')[0];
+                let startMeridian = prevStartHour >= 12 ? 'PM' : 'AM';
+                let startHour = prevStartHour % 12;
+                if (startHour === 0) startHour = 12;
+                if (startHourEl) startHourEl.innerText = String(startHour).padStart(2, '0');
+                if (startMinuteEl) startMinuteEl.innerText = String(prevStartMinute).padStart(2, '0');
+                if (startMeridianEl) startMeridianEl.innerText = startMeridian;
+            }
+        }
     }
 
 
@@ -1520,16 +1630,16 @@
                     '<span>:</span>' +
                     '<div class="text-center">' +
                     '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'minute\', -30)">▲</button><br>' +
-                    '<span id="end_minute">00</span><br>' +
+                    '<span id="end_minute">30</span><br>' +
                     '<button type="button" class="btn btn-light btn-sm" onclick="adjustTime(\'end\', \'minute\', 30)">▼</button>' +
                     '</div>' +
                     '<div class="text-center">' +
                     '<button type="button" class="btn btn-light btn-sm" onclick="toggleMeridian(\'end\')">⇅</button><br>' +
                     '<span id="end_meridian">AM</span><br>' +
                     '</div>' +
-                    '<input type="hidden" id="end_time" name="end_time" value="07:00" required>' +
+                    '<input type="hidden" id="end_time" name="end_time" value="07:30" required>' +
                     '</div>' +
-                    '<small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>' +
+                    '<small class="form-text text-muted">Time must be between 7:30 AM and 9:00 PM (00 or 30 minutes only).</small>' +
                     '</div>'
                 );
             } else if (table === 'programs') {
