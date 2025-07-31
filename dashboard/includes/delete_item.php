@@ -80,7 +80,7 @@ try {
 
     // Proceed with deletion (Superadmin or authorized admin)
     // Basic validation to prevent deleting from unexpected tables
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'user_schedules'];
     if (!in_array($table, $allowedTables)) {
          throw new Exception("Invalid table specified for deletion.");
     }
