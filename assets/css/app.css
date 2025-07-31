@@ -811,6 +811,34 @@ border-top: solid 1px var(--main-bg-dark);
     }
 }
 
+/* Schedule Tab */
+.btn-outline {
+    background-color: var(--main-white); /* Non-selected default */
+    color: var(--main-primary);
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--main-primary);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+/* Selected button */
+.btn-outline.active,
+.btn-outline.selected {
+    background-color: var(--main-primary);
+    color: var(--main-white);
+    border-color: var(--main-primary);
+}
+.btn-outline:hover {
+    background-color: var(--primary-600);
+    color: var(--main-white);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
 /* Pagination */
 .pagination .page-link {
     display: flex;

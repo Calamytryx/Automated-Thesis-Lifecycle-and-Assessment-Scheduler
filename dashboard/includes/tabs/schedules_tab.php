@@ -18,9 +18,8 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                 <div class="d-flex flex-wrap gap-2 justify-content-between mb-3">
                     <div class="d-flex gap-2 align-items-center">
                         <div class="btn-group" role="group" aria-label="View type toggle">
-                            <button type="button" class="btn btn-outline-primary view-type-btn" data-view="program">By
-                                Program/Section</button>
-                            <button type="button" class="btn btn-outline-primary view-type-btn"
+                            <button type="button" class="btn btn-outline view-type-btn" data-view="program">By Program/Section</button>
+                            <button type="button" class="btn btn-outline view-type-btn"
                                 data-view="instructor">By Instructor</button>
                         </div>
                         <input type="hidden" id="viewTypeSelect" value="">
