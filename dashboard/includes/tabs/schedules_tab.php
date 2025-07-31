@@ -430,7 +430,7 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                             // Find the starting cell for this schedule
                             const startCell = document.querySelector(
                                 `[data-day="${schedule.day_of_week}"][data-time="${timeSlots[position.startSlotIndex]}"]`
-                                );
+                            );
 
                             if (startCell && position.startSlotIndex !== -1) {
                                 const scheduleItem = document.createElement('div');
@@ -441,26 +441,40 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 const viewType = filters.view_type;
                                 let displayContent = '';
 
+                                // --- Add edit/delete buttons ---
+                                displayContent += `
+                                    <div class="d-flex justify-content-end gap-1 mb-1">
+                                        <button class="btn btn-sm btn-primary edit-btn" 
+                                            data-table="user_schedules" data-id="${schedule.id}" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-danger delete-btn" 
+                                            data-table="user_schedules" data-id="${schedule.id}" title="Delete">
+                                            <i class="fas fa-trash-alt"></i>
+                                        </button>
+                                    </div>
+                                `;
+
                                 if (viewType === 'program') {
-                                    displayContent = `
-                                            <span class="course-code">${schedule.class_name}</span> <br>
-                                            <span class="program-info">${schedule.program_name || 'N/A'}</span> <br>
-                                            <span class="section-info">Section: ${schedule.section || 'N/A'}</span> <br>
-                                            <span class="instructor">
-                                                ${schedule.first_name ? `${schedule.first_name} ${schedule.last_name}` : 'N/A'}
-                                            </span> <br>
-                                            <span class="time-info">${startTime} - ${endTime}</span> <br>
-                                        `;
+                                    displayContent += `
+                                        <span class="course-code">${schedule.class_name}</span> <br>
+                                        <span class="program-info">${schedule.program_name || 'N/A'}</span> <br>
+                                        <span class="section-info">Section: ${schedule.section || 'N/A'}</span> <br>
+                                        <span class="instructor">
+                                            ${schedule.first_name ? `${schedule.first_name} ${schedule.last_name}` : 'N/A'}
+                                        </span> <br>
+                                        <span class="time-info">${startTime} - ${endTime}</span> <br>
+                                    `;
                                 } else if (viewType === 'instructor') {
-                                    displayContent = `
-                                            <span class="course-code">${schedule.class_name}</span> <br>
-                                            <span class="program-info">${schedule.program_name || 'N/A'}</span> <br>
-                                            <span class="section-info">Section: ${schedule.section || 'N/A'}</span> <br>
-                                            <span class="instructor">
-                                                ${schedule.first_name ? `${schedule.first_name} ${schedule.last_name}` : 'N/A'}
-                                            </span> <br>
-                                            <span class="time-info">${startTime} - ${endTime}</span>
-                                        `;
+                                    displayContent += `
+                                        <span class="course-code">${schedule.class_name}</span> <br>
+                                        <span class="program-info">${schedule.program_name || 'N/A'}</span> <br>
+                                        <span class="section-info">Section: ${schedule.section || 'N/A'}</span> <br>
+                                        <span class="instructor">
+                                            ${schedule.first_name ? `${schedule.first_name} ${schedule.last_name}` : 'N/A'}
+                                        </span> <br>
+                                        <span class="time-info">${startTime} - ${endTime}</span>
+                                    `;
                                 }
 
                                 scheduleItem.innerHTML = displayContent;
@@ -468,20 +482,27 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 scheduleItem.setAttribute('title',
                                     `${schedule.class_name} (${startTime} - ${endTime})`);
 
-                                // Add click event for editing
-                                scheduleItem.addEventListener('click', function(e) {
-                                    e.stopPropagation();
-                                    // Trigger edit functionality
-                                    const editBtn = document.createElement('button');
-                                    editBtn.className = 'btn btn-sm edit-btn';
-                                    editBtn.setAttribute('data-table',
-                                    'user_schedules');
-                                    editBtn.setAttribute('data-id', schedule.id);
-                                    editBtn.click();
-                                });
+                                // --- Remove old click-to-edit logic ---
 
                                 startCell.appendChild(scheduleItem);
                             }
+                        });
+
+                        // --- Connect edit/delete buttons to main modal logic ---
+                        // Use event delegation for dynamically added buttons
+                        document.querySelectorAll('.schedule-item .edit-btn').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                // Trigger main edit modal logic
+                                $(this).trigger('click.editBtn');
+                            });
+                        });
+                        document.querySelectorAll('.schedule-item .delete-btn').forEach(btn => {
+                            btn.addEventListener('click', function(e) {
+                                e.stopPropagation();
+                                // Trigger main delete modal logic
+                                $(this).trigger('click.deleteBtn');
+                            });
                         });
                     }
                 })

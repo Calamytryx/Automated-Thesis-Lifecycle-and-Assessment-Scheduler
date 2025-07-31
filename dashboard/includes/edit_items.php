@@ -532,6 +532,32 @@ function handleRequirementTemplateUpload($file) {
         unset($data['team_id']); 
         $data['updated_at'] = date('Y-m-d H:i:s');
     }
+    if ($table === 'user_schedules') {
+        // Map program_id to program if it exists
+        if (isset($data['program_id'])) {
+            $data['program'] = $data['program_id'];
+            unset($data['program_id']);
+        }
+        // Ensure year is an integer and within 1-5 (if provided)
+        if (isset($data['year'])) {
+            $data['year'] = intval($data['year']);
+            if ($data['year'] < 1 || $data['year'] > 5) {
+                $data['year'] = null;
+            }
+        }
+        // Ensure start_time and end_time are valid time strings
+        if (isset($data['start_time'])) {
+            $data['start_time'] = date('H:i:s', strtotime($data['start_time']));
+        }
+        if (isset($data['end_time'])) {
+            $data['end_time'] = date('H:i:s', strtotime($data['end_time']));
+        }
+        // Validate day_of_week
+        $validDays = ['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+        if (isset($data['day_of_week']) && !in_array($data['day_of_week'], $validDays)) {
+            $data['day_of_week'] = 'Monday';
+        }
+    }
 
     // For other tables, use the generic handler
     require_once __DIR__ . '/edit_functions.php';

@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $id = $_POST['id'];
     $table = $_POST['table'];
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'user_schedules'];
 
     if (!in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table';
@@ -132,7 +132,32 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     } catch (Exception $e) {
                         $response['message'] = 'Database error: ' . $e->getMessage();
                     }
-                }
+                } else if($table === 'user_schedules') {
+                    // Fetch user schedules
+                    $stmt = $pdo->prepare("SELECT * FROM user_schedules WHERE id = ?");
+                    $stmt->execute([$id]);
+                    $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+
+                    if ($schedule) {
+                        // Fetch user details
+                        $stmt = $pdo->prepare("SELECT first_name, last_name FROM users WHERE id = ?");
+                        $stmt->execute([$schedule['user_id']]);
+                        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $schedule['user_name'] = $user ? "{$user['first_name']} {$user['last_name']}" : 'Unknown User';
+
+                        // Program is stored as text in user_schedules table
+                        $schedule['program_name'] = $schedule['program'] ?: 'Unknown Program';
+
+                        // There is no course_id column, so set course_name to 'No Course Assigned'
+                        $schedule['course_name'] = 'No Course Assigned';
+
+                        // Add schedule to response
+                        $response['success'] = true;
+                        $response['data'] = $schedule;
+                    } else {
+                        $response['message'] = 'Schedule not found';
+                    }
+                }   
             } else {
                 $response['message'] = 'Item not found';
             }
