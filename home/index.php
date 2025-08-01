@@ -1265,7 +1265,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <div id="calendar2"></div>
                                             </div>
                                         </div>
-                                        <?php if ($_SESSION['usertype'] == 2): ?>
+                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 1): ?>
                                         <?php
                                     // Fetch teams for current user
                                     $userId = $_SESSION['id'];
@@ -1316,8 +1316,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         aria-labelledby="headingRequirements2"
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
-                                                            <!-- Team Selector -->
-                                                            <?php if (count($teams) > 1): ?>
+                                                            <!-- Team Selector (only for professors) -->
+                                                            <?php if ($_SESSION['usertype'] == 2 && count($teams) > 1): ?>
                                                             <div class="mb-3">
                                                                 <label for="requirementsTeamSelector"
                                                                     class="form-label small text-muted">Select
@@ -1332,7 +1332,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
-                                                            <?php elseif (count($teams) == 1): ?>
+                                                            <?php elseif ($_SESSION['usertype'] == 2 && count($teams) == 1): ?>
                                                             <div class="mb-3">
                                                                 <p class="small text-muted mb-2">Team:
                                                                     <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong>
@@ -1385,37 +1385,64 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 </div>
 
                                                 <?php
-                                            // Defense schedules for faculty users (copied from scheduling tab)
+                                            // Defense schedules for both faculty and students
                                             $userId = $_SESSION['id'];
-                                            $query = "SELECT
-                                                        ds.id AS schedule_id,
-                                                        ds.schedule_date,
-                                                        ds.start_time,
-                                                        ds.end_time,
-                                                        ds.room,
-                                                        t.name AS team_name,
-                                                        t.program AS team_program,
-                                                        (
-                                                            SELECT rgi.group_id
-                                                            FROM rubric_programs rp
-                                                            JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                            WHERE rp.program_name = t.program
-                                                            LIMIT 1
-                                                        ) AS rubric_group_id
-                                                    FROM defense_schedules ds
-                                                    JOIN teams t ON ds.team_id = t.id
-                                                    WHERE
-                                                        ds.panelist_id = :user_id1
-                                                        OR ds.panelist_id2 = :user_id2
-                                                        OR ds.panelist_id3 = :user_id3
-                                                    ORDER BY
-                                                        ds.schedule_date, ds.start_time";
-                                            $stmt = $pdo->prepare($query);
-                                            $stmt->execute([
-                                                'user_id1' => $userId,
-                                                'user_id2' => $userId,
-                                                'user_id3' => $userId
-                                            ]);
+                                            $userType = $_SESSION['usertype'];
+                                            
+                                            if ($userType == 1) { // Student
+                                                $query = "SELECT
+                                                            ds.id AS schedule_id,
+                                                            ds.schedule_date,
+                                                            ds.start_time,
+                                                            ds.end_time,
+                                                            ds.room,
+                                                            t.name AS team_name,
+                                                            t.program AS team_program,
+                                                            (
+                                                                SELECT rgi.group_id
+                                                                FROM rubric_programs rp
+                                                                JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
+                                                                WHERE rp.program_name = t.program
+                                                                LIMIT 1
+                                                            ) AS rubric_group_id
+                                                        FROM defense_schedules ds
+                                                        JOIN teams t ON ds.team_id = t.id
+                                                        JOIN team_members tm ON t.id = tm.team_id
+                                                        WHERE tm.user_id = :user_id
+                                                        ORDER BY ds.schedule_date, ds.start_time";
+                                                $stmt = $pdo->prepare($query);
+                                                $stmt->execute(['user_id' => $userId]);
+                                            } else { // Faculty
+                                                $query = "SELECT
+                                                            ds.id AS schedule_id,
+                                                            ds.schedule_date,
+                                                            ds.start_time,
+                                                            ds.end_time,
+                                                            ds.room,
+                                                            t.name AS team_name,
+                                                            t.program AS team_program,
+                                                            (
+                                                                SELECT rgi.group_id
+                                                                FROM rubric_programs rp
+                                                                JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
+                                                                WHERE rp.program_name = t.program
+                                                                LIMIT 1
+                                                            ) AS rubric_group_id
+                                                        FROM defense_schedules ds
+                                                        JOIN teams t ON ds.team_id = t.id
+                                                        WHERE
+                                                            ds.panelist_id = :user_id1
+                                                            OR ds.panelist_id2 = :user_id2
+                                                            OR ds.panelist_id3 = :user_id3
+                                                        ORDER BY
+                                                            ds.schedule_date, ds.start_time";
+                                                $stmt = $pdo->prepare($query);
+                                                $stmt->execute([
+                                                    'user_id1' => $userId,
+                                                    'user_id2' => $userId,
+                                                    'user_id3' => $userId
+                                                ]);
+                                            }
                                             $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
                                             ?>
                                                 <div class="accordion-item mt-2">
@@ -1424,7 +1451,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             type="button" data-bs-toggle="collapse"
                                                             data-bs-target="#collapseDefenses2" aria-expanded="false"
                                                             aria-controls="collapseDefenses2">
-                                                            Defense Schedules
+                                                            <?php echo ($_SESSION['usertype'] == 1) ? 'Your Defense Schedules' : 'Defense Schedules'; ?>
                                                         </button>
                                                     </h2>
                                                     <div id="collapseDefenses2" class="accordion-collapse collapse"
@@ -1442,11 +1469,18 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 $onclick_attr = '';
                                                                 $item_class = 'list-group-item defense-item';
                                                                 $disabled_message = '';
-                                                                if ($rubric_group_id !== null) {
-                                                                    $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
-                                                                } else {
-                                                                    $item_class .= ' disabled';
-                                                                    $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
+                                                                
+                                                                // Only allow faculty to access evaluation system
+                                                                if ($_SESSION['usertype'] == 2) { // Faculty
+                                                                    if ($rubric_group_id !== null) {
+                                                                        $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
+                                                                    } else {
+                                                                        $item_class .= ' disabled';
+                                                                        $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
+                                                                    }
+                                                                } else { // Student
+                                                                    // Students can view but not evaluate
+                                                                    $item_class .= ' defense-item-student';
                                                                 }
                                                             ?>
                                                                 <li class="<?php echo $item_class; ?>"
@@ -1515,6 +1549,28 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </div>
 
+<!-- Logout Confirmation Modal -->
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: var(--main-black); margin-bottom: 1rem;">
+                    <i class="fas fa-door-open"></i>
+                </div>
+                <h4 class="fw-bold mb-3" id="logoutConfirmModalLabel">Confirm Logout</h4>
+                <p>Are you sure you want to log out?</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <a href="../logout/" class="btn btn-danger" id="confirmLogout">Logout</a>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -1538,6 +1594,12 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 $(document).ready(function() {
     // Initialize sidebar toggle functionality
     initHomePageSidebar();
+    
+    // Home sidebar logout functionality
+    $(document).on('click', '#homeLogoutBtn', function(e) {
+        e.preventDefault();
+        $('#logoutConfirmModal').modal('show');
+    });
 });
 
 function initHomePageSidebar() {
@@ -1705,12 +1767,19 @@ $(document).ready(function() {
                         <div class="col-12 col-lg-6 requirement-card-wrapper">
                             <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
                                 <div class="card-body requirement-card-body">
+                                    <!-- Header Section with Title, Due Date, and Checkbox -->
                                     <div class="d-flex justify-content-between align-items-start requirement-header-section">
                                         <div class="requirement-content requirement-info-section">
                                             <label class="form-check-label requirement-title-label" for="req${req.id}">
                                                 <strong class="requirement-name">${req.name}</strong>
                                                 <p class="mb-1 text-muted requirement-description">${req.description || 'No description provided.'}</p>
-                                                <small class="text-muted requirement-due-date">Due Date: ${new Date(req.due_date).toLocaleDateString()}</small>
+                                                ${req.template_file 
+                                                    ? `<a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>
+                                                        <i class="fas fa-download"></i> Template
+                                                    </a>` 
+                                                    : ``
+                                                }
+                                                <small class="text-muted requirement-due-date">Due: ${new Date(req.due_date).toLocaleDateString()}</small>
                                             </label>
                                         </div>
                                         <div class="form-check requirement-checkbox-section">
@@ -1720,7 +1789,8 @@ $(document).ready(function() {
                                         </div>
                                     </div>
                                     
-                                    <div class="mt-3 requirement-status-section">
+                                    <!-- Status Section -->
+                                    <div class="requirement-status-section">
                                         <label for="status${req.id}" class="form-label requirement-status-label">Status:</label>
                                         <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm requirement-status-select">
                                             <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
@@ -1730,37 +1800,53 @@ $(document).ready(function() {
                                         </select>
                                     </div>
                                     
-                                    <div class="mt-3 requirement-feedback-section">
-                                        <label for="feedback${req.id}" class="form-label requirement-feedback-label">Feedback:</label>
-                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control form-control-sm requirement-feedback-textarea" rows="2">${req.feedback}</textarea>
+                                    <!-- Instructor Feedback Section -->
+                                    <div class="requirement-feedback-section">
+                                        <div class="requirement-feedback-header">
+                                            <i class="fas fa-comment-dots"></i>
+                                            <label for="feedback${req.id}" class="requirement-feedback-label">Instructor Feedback</label>
+                                        </div>
+                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea" rows="3" placeholder="Enter your feedback here...">${req.feedback}</textarea>
+                                        
+                                        <!-- Upload Updated Feedback File Section -->
+                                        <div class="requirement-upload-header mt-3">
+                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <label for="feedbackFile${req.id}" class="requirement-upload-label">Upload Updated Feedback File</label>
+                                        </div>
+                                        <div class="upload-controls">
+                                            <input class="form-control requirement-file-input" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
+                                        </div>
+                                        
+                                        ${req.feedback_file ? `
+                                        <div class="requirement-feedback-file-section">
+                                            <a href="./feedback/${req.feedback_file}" class="requirement-feedback-download-btn" download>
+                                                <i class="fas fa-download"></i> Download Feedback File
+                                            </a>
+                                        </div>
+                                        ` : ''}
                                     </div>
+                                    
                                     ${req.file_name 
                                         ? `
-                                            <div class="mt-3 d-flex gap-2 flex-wrap requirement-file-actions">
-                                                <a href="../assets/uploads/submission/${req.file_name}" class="btn btn-sm btn-secondary requirement-download-btn" download>Download File</a>
-                                                <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="btn btn-sm btn-secondary requirement-view-btn">View File</a>
+                                            <!-- Submitted File Section -->
+                                            <div class="requirement-submitted-file-section">
+                                                <div class="submitted-file-header">
+                                                    <i class="fas fa-file-alt"></i>
+                                                    <h6>Submitted File</h6>
+                                                </div>
+                                                <div class="submitted-file-name">${req.file_name}</div>
+                                                <div class="requirement-file-actions">
+                                                    <a href="../assets/uploads/submission/${req.file_name}" class="requirement-download-btn" download>
+                                                        <i class="fas fa-download"></i> Download
+                                                    </a>
+                                                    <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="requirement-view-btn">
+                                                        <i class="far fa-eye"></i> View File
+                                                    </a>
+                                                </div>
                                             </div>
                                         ` 
                                         : ``
                                     }
-                                    
-                                    ${req.template_file 
-                                        ? `
-                                            <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
-                                                <a href="/dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
-                                            </div>
-                                        ` 
-                                        : ``
-                                    }
-                                    
-                                    <div class="mt-3 requirement-upload-section">
-                                        <label for="feedbackFile${req.id}" class="form-label requirement-upload-label">Upload Feedback File:</label>
-                                        <input class="form-control form-control-sm requirement-file-input" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
-                                    </div>
-                                    
-                                    <div class="mt-3 requirement-feedback-file-section">
-                                        ${req.feedback_file ? `<a href="./feedback/${req.feedback_file}" class="btn btn-sm btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` : ''}
-                                    </div>
                                 </div>
                             </div>
                         </div>`;
@@ -1789,6 +1875,61 @@ $(document).ready(function() {
 
         loadRequirements();
 
+        // Modern toast function similar to app.js.php
+        function showToast(title, message, type = 'success') {
+            // Generate unique ID for the toast
+            const toastId = 'toast-' + Date.now();
+
+            // Modern universal toast styling and structure
+            const icon = type === 'success' ?
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
+                type === 'error' ?
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+
+            const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
+            const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
+            const textColor = '#222';
+            const toast = `
+        <div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
+            <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
+                ${icon}
+                <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
+                    <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
+                    <div>${message}</div>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
+            </div>
+        </div>
+        `;
+
+            // Ensure toast container exists
+            if ($('#toastContainer').length === 0) {
+                $('body').append('<div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:9999;"></div>');
+            }
+
+            // Add toast to container
+            $('#toastContainer').append(toast);
+
+            // Initialize and show the toast with modified options
+            const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+                autohide: true,
+                delay: 3000,
+                animation: true
+            });
+
+            toastElement.show();
+
+            // Auto-remove from DOM after hiding
+            document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
 
         $(document).on('submit', '#requirementChecklistForm', function(event) {
             event.preventDefault();
@@ -1804,14 +1945,14 @@ $(document).ready(function() {
                 success: function(response) {
                     console.log("Update response:", response);
                     if (response.success) {
-                        alert("Requirements updated successfully!");
+                        showToast("Success!", "Requirements updated successfully!", "success");
                     } else {
-                        alert("Error: " + response.error);
+                        showToast("Error", response.error, "error");
                     }
                 },
                 error: function(jqXHR, textStatus, errorThrown) {
                     console.error("AJAX error:", textStatus, errorThrown);
-                    alert("An error occurred while updating requirements.");
+                    showToast("Error", "An error occurred while updating requirements.", "error");
                 }
             });
         });
@@ -1923,13 +2064,13 @@ $(document).ready(function() {
             success: function(response) {
                 console.log('AJAX upload success response:', response); // Added log
                 if (response.success) {
-                    statusSpan.text('Upload successful! Refreshing...').addClass(
-                        'text-success');
+                    statusSpan.text('Upload successful!').addClass('text-success');
+                    showToast("Success!", "File uploaded successfully!", "success");
                     // Refresh the requirements list after a short delay
                     setTimeout(loadRequirements, 1500);
                 } else {
-                    statusSpan.text('Error: ' + (response.error || 'Unknown error'))
-                        .addClass('text-danger');
+                    statusSpan.text('Error: ' + (response.error || 'Unknown error')).addClass('text-danger');
+                    showToast("Upload Failed", response.error || 'Unknown error', "error");
                     submitButton.prop('disabled', false);
                 }
             },
@@ -1937,6 +2078,7 @@ $(document).ready(function() {
                 // Log the raw response text to see what the server actually sent
                 console.log('Raw response:', jqXHR.responseText);
                 statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
+                showToast("Upload Failed", "Upload failed. Please try again.", "error");
                 console.error("AJAX upload error:", textStatus, errorThrown);
                 submitButton.prop('disabled', false);
             }

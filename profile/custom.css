@@ -1,3 +1,54 @@
+/* Responsive container structure for profile view (mirrors profile-edit) */
+.profile-view-main-container {
+    --navbar-height: 56px;
+}
+.profile-view-row {
+    height: calc(100vh - var(--navbar-height, 56px));
+    min-height: calc(100vh - var(--navbar-height, 56px));
+    overflow: hidden;
+}
+.profile-view-col {
+    height: 100%;
+    min-height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+}
+#profileViewMainContent {
+    flex: 1 1 0;
+    height: 100%;
+    min-height: 0;
+    overflow-y: auto;
+    background-color: var(--neutral-100, #e6e4e2);
+    padding: 2rem 5rem;
+    position: relative;
+    transition: all 0.3s ease;
+    scrollbar-width: none;
+}
+#profileViewCardContainer {
+    width: 100%;
+    min-height: calc(100vh - 2rem);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+}
+@media (max-width: 900px) {
+    #profileViewMainContent {
+        padding: 1.5rem 0.5rem;
+    }
+    #profileViewCardContainer {
+        min-height: calc(100vh - 1.5rem);
+    }
+}
+@media (max-width: 600px) {
+    #profileViewMainContent {
+        padding: 0.75rem 0.25rem;
+    }
+    #profileViewCardContainer {
+        min-height: calc(100vh - 1rem);
+    }
+}
 .profile-header {
     transform: translateY(7rem);
 }
@@ -21,4 +72,267 @@
 .bio {
     margin-top: 50px;
     margin-bottom: 150px;
+}
+
+/* LinkedIn-style profile styling - matched to the provided image */
+.profile-container {
+    background-color: var(--main-bg-light);
+    padding-bottom: 30px;
+    font-family: -apple-system, system-ui, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+.cover-photo {
+    height: 160px;
+    background-size: cover;
+    background-position: center;
+    border-radius: 8px 8px 0 0;
+    position: relative;
+    margin-bottom: 0;
+    border-bottom: none;
+    overflow: hidden;
+}
+
+.profile-card {
+    border: solid 1px var(--neutral-300);
+    border-radius: 6px;
+    background-color: var(--white-50);
+    box-shadow: 0px 2px 5px rgb(22 22 22 / 15%);
+    overflow: visible;
+    margin: 0 auto;
+    max-width: 900px;
+    width: 100%;
+}
+
+.profile-top-section {
+    display: flex;
+    padding: 16px 24px;
+    padding-top: 0;
+}
+
+.profile-image-container {
+    position: relative;
+    margin-top: -50px;
+    margin-right: 24px;
+    z-index: 2;
+    flex-shrink: 0;
+}
+
+.profile-image {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid var(--main-white);
+    object-fit: cover;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    background-color: var(--main-bg-light);
+    transition: transform .2s;
+}
+
+.profile-image:hover {
+    transform: scale(1.02);
+}
+
+.profile-info {
+    flex-grow: 1;
+    padding-top: 24px;
+}
+
+.profile-header-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+}
+
+.profile-name {
+    font-size: 24px;
+    font-weight: 600;
+    color: var(--main-black);
+    margin-bottom: 4px;
+}
+
+.profile-headline {
+    font-size: 16px;
+    color: var(--main-black);
+    margin-bottom: 8px;
+    font-weight: 400;
+}
+
+.profile-meta {
+    font-size: 14px;
+    color: var(--neutral-700);
+    margin-bottom: 8px;
+}
+
+.profile-location {
+    margin-bottom: 16px;
+    color: var(--neutral-700);
+    font-size: 14px;
+}
+
+.profile-pills {
+    margin-top: 16px;
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.profile-pill {
+    display: inline-block;
+    padding: 3px 8px;
+    margin-right: 8px;
+    margin-bottom: 8px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+    background-color: var(--neutral-100);
+    color: var(--neutral-900);
+}
+
+.bio-section {
+    padding: 3rem !important;
+    border: solid 1px var(--neutral-300);
+    border-radius: 6px;
+    background-color: var(--white-50);
+    box-shadow: 0px 2px 5px rgb(22 22 22 / 15%);
+    margin: 0 auto;
+    max-width: 900px;
+    width: 100%;
+}
+
+.bio-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--main-black);
+    margin-bottom: 16px;
+}
+
+.bio-content {
+    font-size: 14px;
+    color: var(--main-black);
+    line-height: 1.5;
+    white-space: pre-wrap;
+}
+
+/* Edit Profile Button - styled like app.css buttons */
+.edit-profile-btn {
+    border: 1px solid #1304ee;;
+    border-radius: 4px;
+    padding: 0.5rem 1.5rem;
+    font-size: 1.2rem;
+    background-color: #1304ee;;
+    color: #fff;
+    transition: background 0.2s;
+}
+
+.edit-profile-btn:hover {
+    background-color: var(--primary-600);
+    color: var(--main-white);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.edit-profile-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+}
+
+.profile-actions {
+    flex-shrink: 0;
+}
+
+.section-title {
+    font-size: 20px;
+    font-weight: 600;
+    color: var(--main-black);
+    margin-bottom: 16px;
+}
+
+/* Responsive styles */
+@media (max-width: 768px) {
+    .profile-top-section {
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+    }
+    
+    .profile-image-container {
+        margin-right: 0;
+        margin-bottom: 16px;
+    }
+    
+    .profile-header-content {
+        flex-direction: column;
+        align-items: center;
+    }
+    
+    .profile-actions {
+        margin-top: 16px;
+    }
+    
+    .profile-pills {
+        justify-content: center;
+    }
+}
+
+/* Modal styles */
+.profile-modal {
+    display: none;
+    position: fixed;
+    z-index: 1000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    animation-name: fadeIn;
+    animation-duration: 0.4s;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #fefefe;
+    margin: 10% auto;
+    padding: 20px;
+    border-radius: 8px;
+    width: 80%;
+    max-width: 700px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    animation-name: slideIn;
+    animation-duration: 0.4s;
+}
+
+.close-modal {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    color: rgba(0, 0, 0, 0.6);
+    font-size: 24px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close-modal:hover {
+    color: rgba(0, 0, 0, 0.9);
+}
+
+.modal-header {
+    border-bottom: 1px solid #e0e0e0;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.modal-header h3 {
+    font-size: 20px;
+    font-weight: 600;
+    margin: 0;
+}
+
+@keyframes fadeIn {
+    from {opacity: 0}
+    to {opacity: 1}
+}
+
+@keyframes slideIn {
+    from {transform: translateY(-10%); opacity: 0;}
+    to {transform: translateY(0); opacity: 1;}
 }

@@ -177,7 +177,7 @@ main {
 
 .avatar-edit {
     top: 150px;
-    margin-right: -125px;
+    /* margin-right: -125px; */
     margin-top: -40px;
 }
 
@@ -1781,9 +1781,9 @@ color: #444 !important;
 }
 
 .modal-footer .btn-primary {
-    background-color: var(--main-primary);
+    background-color: #1304ee; /* changed from main-primary*/
     color: var(--main-white);
-    border: none;
+    border: 1px solid #1304ee;;
 }
 
 .modal-footer .btn-primary:hover {

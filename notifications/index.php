@@ -95,8 +95,18 @@ foreach ($notifications as $notification) {
                             </div>
                             
                             <!-- Mark All as Read Button -->
-                            <?php if ($filter !== 'read'): ?>
-                                <button type="button" class="btn btn-success" id="markAllReadBtn">
+                            <?php 
+                            // Check if there are unread notifications to show the button
+                            $hasUnread = false;
+                            foreach ($formatted_notifications as $notif) {
+                                if (!$notif['is_read']) {
+                                    $hasUnread = true;
+                                    break;
+                                }
+                            }
+                            ?>
+                            <?php if ($filter !== 'read' && $hasUnread): ?>
+                                <button type="button" class="btn btn-success" id="markAllReadPageBtn">
                                     <i class="fas fa-check-double me-1"></i>Mark All as Read
                                 </button>
                             <?php endif; ?>
@@ -276,40 +286,47 @@ foreach ($notifications as $notification) {
     
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Mark individual notification as read
-            document.querySelectorAll('.mark-read-btn').forEach(button => {
-                button.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    const notificationId = this.dataset.notificationId;
-                    markNotificationAsRead(notificationId);
-                });
-            });
-
-            // Mark all notifications as read
-            const markAllBtn = document.getElementById('markAllReadBtn');
-            if (markAllBtn) {
-                markAllBtn.addEventListener('click', function() {
-                    markAllNotificationsAsRead();
-                });
-            }
-
-            // Mark individual notifications as read when clicked
+            // Update navbar badge on page load to ensure consistency
+            updateNavbarBadge();
+            
+            // Mark notifications as read when clicked
             document.querySelectorAll('.notification-item').forEach(item => {
+                // Add visual feedback for clickability
+                if (item.classList.contains('notification-unread')) {
+                    item.style.cursor = 'pointer';
+                    item.title = 'Click to mark as read';
+                }
+                
                 item.addEventListener('click', function(e) {
-                    // Don't auto-mark if clicking on approval buttons or other interactive elements
-                    if (e.target.closest('.btn-group') || e.target.closest('.dropdown') || e.target.closest('.mark-read-btn')) {
+                    // Don't mark as read if clicking on buttons, approval actions, or other interactive elements
+                    if (e.target.closest('.btn-group') || e.target.closest('.dropdown') || e.target.closest('button')) {
                         return;
                     }
                     
                     if (this.classList.contains('notification-unread')) {
                         const notificationId = this.dataset.notificationId;
-                        markNotificationAsRead(notificationId);
+                        markNotificationAsRead(notificationId, this);
                     }
                 });
             });
+            
+            // Mark all notifications as read
+            const markAllBtn = document.getElementById('markAllReadPageBtn');
+            if (markAllBtn) {
+                markAllBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    markAllNotificationsAsRead();
+                });
+            }
         });
 
-        function markNotificationAsRead(notificationId) {
+        function markNotificationAsRead(notificationId, notificationElement = null) {
+            // Show immediate visual feedback
+            if (notificationElement) {
+                notificationElement.style.opacity = '0.6';
+                notificationElement.style.cursor = 'wait';
+            }
+            
             fetch('../assets/includes/mark_notification_read.php', {
                 method: 'POST',
                 headers: {
@@ -322,27 +339,65 @@ foreach ($notifications as $notification) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Update UI
-                    const notificationItem = document.querySelector(`[data-notification-id="${notificationId}"]`);
+                    // Update UI immediately without page reload
+                    const notificationItem = notificationElement || document.querySelector(`[data-notification-id="${notificationId}"]`);
                     if (notificationItem) {
+                        // Remove unread styling
                         notificationItem.classList.remove('notification-unread');
+                        notificationItem.style.opacity = '1';
+                        notificationItem.style.cursor = 'default';
+                        notificationItem.removeAttribute('title');
+                        
+                        // Remove "New" badges
                         const badges = notificationItem.querySelectorAll('.badge');
                         badges.forEach(badge => {
                             if (badge.textContent.trim() === 'New') {
                                 badge.remove();
                             }
                         });
+                        
+                        // Update the notification item styling to show it's read
+                        notificationItem.style.backgroundColor = '';
+                        
+                        // Show success message briefly
+                        showToast('Success', 'Notification marked as read', 'success');
+                        
+                        // Update the navbar badge count in real-time
+                        updateNavbarBadge();
                     }
                 } else {
+                    // Restore original state on error
+                    if (notificationElement) {
+                        notificationElement.style.opacity = '1';
+                        notificationElement.style.cursor = 'pointer';
+                    }
                     console.error('Failed to mark notification as read:', data.error || 'Unknown error');
+                    showToast('Error', 'Failed to mark notification as read', 'error');
                 }
             })
             .catch(error => {
+                // Restore original state on error
+                if (notificationElement) {
+                    notificationElement.style.opacity = '1';
+                    notificationElement.style.cursor = 'pointer';
+                }
                 console.error('Error marking notification as read:', error);
+                showToast('Error', 'Error marking notification as read', 'error');
             });
         }
 
         function markAllNotificationsAsRead() {
+            // Show loading state
+            const markAllBtn = document.getElementById('markAllReadPageBtn');
+            if (!markAllBtn) {
+                console.error('markAllReadPageBtn not found in function');
+                return;
+            }
+            
+            const originalText = markAllBtn.innerHTML;
+            markAllBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Marking as read...';
+            markAllBtn.disabled = true;
+            
             fetch('../assets/includes/mark_notification_read.php', {
                 method: 'POST',
                 headers: {
@@ -355,13 +410,135 @@ foreach ($notifications as $notification) {
             .then(response => response.json())
             .then(data => {
                 if (data.success) {
-                    // Reload page to show updated state
-                    window.location.reload();
+                    // Update all unread notifications immediately
+                    document.querySelectorAll('.notification-unread').forEach(item => {
+                        item.classList.remove('notification-unread');
+                        item.style.cursor = 'default';
+                        item.removeAttribute('title');
+                        item.style.backgroundColor = '';
+                        
+                        // Remove "New" badges
+                        const badges = item.querySelectorAll('.badge');
+                        badges.forEach(badge => {
+                            if (badge.textContent.trim() === 'New') {
+                                badge.remove();
+                            }
+                        });
+                    });
+                    
+                    // Hide the "Mark All as Read" button since there are no more unread notifications
+                    const markAllBtn = document.getElementById('markAllReadPageBtn');
+                    if (markAllBtn) {
+                        markAllBtn.style.display = 'none';
+                    }
+                    
+                    showToast('Success', 'All notifications marked as read', 'success');
+                    
+                    // Update the navbar badge count in real-time
+                    updateNavbarBadge();
+                } else {
+                    console.error('Failed to mark all notifications as read:', data.error || 'Unknown error');
+                    showToast('Error', 'Failed to mark all notifications as read', 'error');
                 }
             })
             .catch(error => {
                 console.error('Error marking all notifications as read:', error);
+                showToast('Error', 'Error marking all notifications as read', 'error');
+            })
+            .finally(() => {
+                // Restore button state
+                const markAllBtn = document.getElementById('markAllReadPageBtn');
+                if (markAllBtn) {
+                    markAllBtn.innerHTML = originalText;
+                    markAllBtn.disabled = false;
+                }
             });
+        }
+
+        // Toast notification function (matching dashboard system design)
+        function showToast(title, message, type = 'success') {
+            // Create toast container if it doesn't exist
+            if (!document.getElementById('toastContainer')) {
+                const container = document.createElement('div');
+                container.id = 'toastContainer';
+                container.className = 'position-fixed top-0 end-0 p-3';
+                container.style.zIndex = '9999';
+                document.body.appendChild(container);
+            }
+
+            // Generate unique ID for the toast
+            const toastId = 'toast-' + Date.now();
+
+            // Modern universal toast styling and structure
+            const icon = type === 'success' ?
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
+                type === 'error' ?
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+
+            const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
+            const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
+            const textColor = '#222';
+            
+            const toastHtml = `
+<div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
+    <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
+        ${icon}
+        <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
+            <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
+            <div>${message}</div>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
+    </div>
+</div>
+`;
+
+            // Add toast to container
+            document.getElementById('toastContainer').insertAdjacentHTML('beforeend', toastHtml);
+
+            // Initialize and show the toast with modified options
+            const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+                autohide: true,
+                delay: 3000,
+                animation: true
+            });
+            toastElement.show();
+
+            // Remove toast element after it's hidden
+            document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+                this.remove();
+            });
+        }
+
+        // Update navbar notification badge count
+        function updateNavbarBadge() {
+            fetch('../assets/includes/get_notification_count.php')
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const badge = document.getElementById('notificationBadge');
+                        if (badge) {
+                            if (data.count > 0) {
+                                badge.textContent = data.count > 99 ? '99+' : data.count;
+                                badge.style.display = 'block';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                        
+                        // Also update any other notification managers if they exist
+                        if (typeof window.refreshNotifications === 'function') {
+                            window.refreshNotifications();
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating navbar badge:', error);
+                });
         }
 
         // Defense approval modal functionality

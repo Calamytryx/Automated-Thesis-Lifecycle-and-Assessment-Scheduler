@@ -100,70 +100,16 @@
                     <a class="nav-link" href="../contact">Contact Us</a> 
                 </li> -->
                 <script>
-                // Load notifications when page loads and when dropdown is opened
+                // Load notification count on page load (basic functionality only)
+                // Full notification functionality is handled by notifications.js
                 document.addEventListener('DOMContentLoaded', function() {
-                    loadNotifications();
                     loadNotificationCount();
                     
-                    // Refresh notifications every 30 seconds
+                    // Refresh notification count every 30 seconds
                     setInterval(function() {
                         loadNotificationCount();
                     }, 30000);
-                    
-                    // Load notifications when dropdown is opened
-                    document.getElementById('notificationsDropdown').addEventListener('click', function() {
-                        loadNotifications();
-                    });
                 });
-
-                function loadNotifications() {
-                    fetch('../assets/includes/get_notifications.php')
-                        .then(response => response.json())
-                        .then(data => {
-                            const notificationsList = document.getElementById('notificationsList');
-                            
-                            if (data.success && data.notifications && data.notifications.length > 0) {
-                                let html = '';
-                                data.notifications.forEach(notification => {
-                                    const isRead = notification.is_read == 1;
-                                    const bgClass = isRead ? '' : 'bg-light';
-                                    const icon = getNotificationIcon(notification.reference_type);
-                                    const color = getNotificationColor(notification.reference_type);
-                                    
-                                    html += `
-                                        <div class="notification-item px-3 py-2 border-bottom ${bgClass}" data-id="${notification.id}">
-                                            <div class="d-flex align-items-start">
-                                                <div class="flex-shrink-0">
-                                                    <i class="${icon} text-${color}"></i>
-                                                </div>
-                                                <div class="flex-grow-1 ms-2">
-                                                    <div class="fw-semibold">${notification.title}</div>
-                                                    <div class="text-muted small">${notification.message}</div>
-                                                    <div class="text-muted small">${notification.created_at}</div>
-                                                </div>
-                                                ${!isRead ? '<div class="flex-shrink-0"><span class="badge bg-primary rounded-pill">New</span></div>' : ''}
-                                            </div>
-                                        </div>
-                                    `;
-                                });
-                                notificationsList.innerHTML = html;
-                                
-                                // Add click handlers to mark as read
-                                document.querySelectorAll('.notification-item').forEach(item => {
-                                    item.addEventListener('click', function() {
-                                        const notificationId = this.dataset.id;
-                                        markAsRead(notificationId);
-                                    });
-                                });
-                            } else {
-                                notificationsList.innerHTML = '<div class="px-3 py-4 text-center text-muted">No notifications yet</div>';
-                            }
-                        })
-                        .catch(error => {
-                            console.error('Error loading notifications:', error);
-                            document.getElementById('notificationsList').innerHTML = '<div class="px-3 py-4 text-center text-danger">Error loading notifications</div>';
-                        });
-                }
 
                 function loadNotificationCount() {
                     fetch('../assets/includes/get_notification_count.php')
@@ -182,42 +128,6 @@
                         });
                 }
 
-                function markAsRead(notificationId) {
-                    fetch('../assets/includes/mark_notification_read.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ id: notificationId })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            loadNotificationCount();
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Error marking notification as read:', error);
-                    });
-                }
-
-                function getNotificationIcon(type) {
-                    switch(type) {
-                        case 'defense_schedule': return 'fas fa-calendar-check';
-                        case 'title_approved': return 'fas fa-check-circle';
-                        case 'requirement_uploaded': return 'fas fa-file-upload';
-                        default: return 'fas fa-bell';
-                    }
-                }
-
-                function getNotificationColor(type) {
-                    switch(type) {
-                        case 'defense_schedule': return 'warning';
-                        case 'title_approved': return 'success';
-                        case 'requirement_uploaded': return 'primary';
-                        default: return 'secondary';
-                    }
-                }
                 </script>
                 <!-- Profile and logout moved to sidebar -->
             </ul>

@@ -59,7 +59,7 @@ class NotificationManager {
         try {
             this.showLoading();
             
-            const response = await fetch('../assets/includes/get_notifications.php?type=unread&limit=5');
+            const response = await fetch('../assets/includes/get_notifications.php?type=recent&limit=5');
             const data = await response.json();
             
             if (data.success) {
@@ -109,12 +109,12 @@ class NotificationManager {
         // Add click listeners to individual notifications
         this.notificationsList.querySelectorAll('.notification-item').forEach(item => {
             item.addEventListener('click', (e) => {
-                const notificationId = item.dataset.notificationId;
-                if (notificationId && !item.classList.contains('read')) {
-                    this.markAsRead(notificationId);
-                    item.classList.add('read');
-                    item.style.opacity = '0.7';
+                // Check if already on the notifications page
+                if (window.location.pathname.includes('/notifications/')) {
+                    return; // Don't redirect if already on notifications page
                 }
+                // Redirect to notifications page instead of marking as read
+                window.location.href = '../notifications/';
             });
         });
     }
@@ -191,11 +191,11 @@ class NotificationManager {
                 this.updateUnreadCount();
                 
                 // Show success message
-                this.showToast('All notifications marked as read', 'success');
+                this.showToast('Success', 'All notifications marked as read', 'success');
             }
         } catch (error) {
             console.error('Error marking all notifications as read:', error);
-            this.showToast('Error marking notifications as read', 'error');
+            this.showToast('Error', 'Error marking notifications as read', 'error');
         }
     }
 
@@ -231,24 +231,62 @@ class NotificationManager {
         `;
     }
 
-    showToast(message, type = 'info') {
-        // Create a simple toast notification
-        const toast = document.createElement('div');
-        toast.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed`;
-        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
-        toast.innerHTML = `
-            ${message}
-            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-        `;
+    showToast(title, message, type = 'success') {
+        // Create toast container if it doesn't exist
+        if (!document.getElementById('toastContainer')) {
+            const container = document.createElement('div');
+            container.id = 'toastContainer';
+            container.className = 'position-fixed top-0 end-0 p-3';
+            container.style.zIndex = '9999';
+            document.body.appendChild(container);
+        }
+
+        // Generate unique ID for the toast
+        const toastId = 'toast-' + Date.now();
+
+        // Modern universal toast styling and structure
+        const icon = type === 'success' ?
+            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
+            type === 'error' ?
+            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
+            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+
+        const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
+        const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
+        const textColor = '#222';
         
-        document.body.appendChild(toast);
-        
-        // Auto-remove after 3 seconds
-        setTimeout(() => {
-            if (toast.parentNode) {
-                toast.parentNode.removeChild(toast);
-            }
-        }, 3000);
+        const toastHtml = `
+<div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
+    role="alert"
+    aria-live="assertive"
+    aria-atomic="true"
+    style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
+    <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
+        ${icon}
+        <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
+            <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
+            <div>${message}</div>
+        </div>
+        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
+    </div>
+</div>
+`;
+
+        // Add toast to container
+        document.getElementById('toastContainer').insertAdjacentHTML('beforeend', toastHtml);
+
+        // Initialize and show the toast with modified options
+        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+            autohide: true,
+            delay: 3000,
+            animation: true
+        });
+        toastElement.show();
+
+        // Remove toast element after it's hidden
+        document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+            this.remove();
+        });
     }
 
     startPeriodicUpdates() {
