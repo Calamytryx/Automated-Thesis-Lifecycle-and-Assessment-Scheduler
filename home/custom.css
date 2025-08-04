@@ -710,6 +710,13 @@ body.has-collapsed-home-sidebar #homeMainContent {
     border-color: #116C06;
 }
 
+.home-sidebar-role-pill.role-admin {
+    color: #fff;
+    background: #dc3545;
+    border-color: #dc3545;
+}
+
+
 .logout-btn {
     display: flex;
     align-items: center;

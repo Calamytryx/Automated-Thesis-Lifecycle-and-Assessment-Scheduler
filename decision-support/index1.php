@@ -763,7 +763,7 @@ if ($requirement) {
 </main>
 
 <script>
-  // filepath: /c:/xampp/htdocs/coecsathesis/decision-support/index.php
+  // filepath: /c:/xampp/htdocs/decision-support/index.php
 
   document.addEventListener('DOMContentLoaded', () => {
     const calculateSection = (inputs, maxScore, scoreElementId, percentageElementId) => {

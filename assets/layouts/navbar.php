@@ -15,6 +15,45 @@
 
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
+            <!-- Navbar user Program and role -->
+            <div class="d-flex align-items-center me-3">
+                <?php
+                $userType = $_SESSION['usertype'];
+                $userId = $_SESSION['id'];
+                $roleLabel = '';
+
+                if ($userType == 0) {
+                    if ($userId == 0) {
+                        $roleLabel = 'Admin';
+                    } else {
+                        $roleLabel = 'Program Chair';
+                    }
+                } elseif ($userType == 1) {
+                    $roleLabel = 'Student';
+                } elseif ($userType == 2) {
+                    $roleLabel = 'Faculty';
+                } else {
+                    $roleLabel = 'Unknown';
+                }
+                if ($_SESSION['id'] == 0) {
+                    echo '<span class="badge bg-secondary">Center for Research and Development</span>';
+                } else
+                if ( $userType == 1) {
+                    echo '<span class="badge bg-secondary">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '</span>';
+                } else if ($userType == 0 || $userType == 2) {
+                    $program = $_SESSION['program'];
+                    // Cut at the space before "-", if present
+                    $program = preg_replace('/\s-.*$/', '', $program);
+                    echo '<span class="badge bg-secondary">' . htmlspecialchars($roleLabel . ' - ' . $program) . '</span>';
+                }
+                else {
+                    echo '<span class="badge bg-secondary">Unknown Role</span>';
+                }
+                ?>
+                
+                
+            </div>
+
             <!-- All navbar items aligned to the right -->
             <ul class="navbar-nav ms-auto">
 

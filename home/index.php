@@ -8,7 +8,7 @@
  * thesis topic decision, research title acceptance, scheduling system, and 
  * requirement checker.
  * 
- * @file /c:/xampp/htdocs/coecsathesis/home/index.php
+ * @file /c:/xampp/htdocs/home/index.php
  * 
  * @constant TITLE The title of the page.
  * 
@@ -508,6 +508,12 @@ document.addEventListener("DOMContentLoaded", function() {
                                     } elseif ($_SESSION['usertype'] == 2) {
                                         $roleText = 'Professor';
                                         $roleClass = 'role-prof';
+                                    } elseif ($_SESSION['usertype'] == 0) {
+                                        $roleText = 'Administrator';
+                                        $roleClass = 'role-admin';
+                                    } else {
+                                        $roleText = 'User';
+                                        $roleClass = 'role-user';
                                     }
                                 }
                             ?>
@@ -546,10 +552,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                 <div class="home-sidebar-items">
                                     <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" 
                                         href="#thesis-topic" role="tab" aria-controls="thesis-topic"
-                                        aria-selected="true">
+                                        aria-selected="true" disabled>
                                         <i class="bi bi-lightbulb me-2 hollow"></i>
                                         <i class="bi bi-lightbulb-fill me-2 filled"></i>
-                                        <span class="nav-text">Thesis Topic Decision</span>
+                                        <span class="nav-text">Thesis Topic Decision (in conflict with panel suggestion)</span>
                                     </a>
                                     <a class="nav-link" id="research-title-link" data-bs-toggle="pill"
                                         href="#research-title" role="tab" aria-controls="research-title"

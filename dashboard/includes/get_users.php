@@ -9,7 +9,7 @@
  * all the results as an associative array. The results are then encoded in JSON
  * format and output.
  *
- * @file /c:/xampp/htdocs/coecsathesis/dashboard/includes/get_users.php
+ * @file /c:/xampp/htdocs/dashboard/includes/get_users.php
  *
  * @requires ../../assets/setup/db.inc.php
  *
