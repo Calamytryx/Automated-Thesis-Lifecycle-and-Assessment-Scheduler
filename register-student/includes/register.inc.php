@@ -108,6 +108,24 @@ if (isset($_POST['signupsubmit'])) {
             header("Location: ../");
             exit();
         }
+        if (strlen($password) < 8 || strlen($passwordRepeat) < 8){
+
+            $_SESSION['ERRORS']['passworderror'] = 'password must be at least 8 characters';
+            header("Location: ../");
+            exit();
+        }
+        // Only allow web-safe special characters in password: !@#$%^&*()-_=+[]{};:'",.<>/?\|~
+        if (
+            !preg_match("/[a-z]/", $password) ||
+            !preg_match("/[A-Z]/", $password) ||
+            !preg_match("/[0-9]/", $password) ||
+            !preg_match("/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\\\|~]/", $password)
+        ) {
+            $_SESSION['ERRORS']['passworderror'] = 'password must contain at least 1 for each lowercase letter, uppercase letter, number, and special character';
+            header("Location: ../");
+            exit();
+        }
+        
 
         /*
         * -------------------------------------------------------------------------------

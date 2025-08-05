@@ -85,6 +85,7 @@ $rest_of_name = substr($app_name, 1);
                                     const emailInput = document.getElementById('email');
                                     const usernameDisplay = document.getElementById('username_display');
                                     const usernameHidden = document.getElementById('username');
+
                                     function syncUsername() {
                                         usernameDisplay.value = emailInput.value;
                                         usernameHidden.value = emailInput.value;
@@ -96,13 +97,13 @@ $rest_of_name = substr($app_name, 1);
                                 <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="first_name" >First Name</label>
+                                            <label for="first_name">First Name</label>
                                             <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
-                                            <label for="last_name" >Last Name</label>
+                                            <label for="last_name">Last Name</label>
                                             <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
                                         </div>
                                     </div>
@@ -126,23 +127,67 @@ $rest_of_name = substr($app_name, 1);
                                 </div>
                                 <div class="row">
                                     <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="password" >Password</label>
+                                        <div class="form-group" title="Password must be at least 8 characters long, contain at least 1 for each lowercase letter, uppercase letter, number, and special character">
+                                            <label for="password">Password</label> <i class="fas fa-info-circle text-muted" data-toggle="tooltip" data-placement="top" title="Password must be at least 8 characters long, contain at least 1 for each lowercase letter, uppercase letter, number, and special character."></i>
                                             <input type="password" id="password" name="password" class="form-control" placeholder="Password" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group mb-4">
-                                            <label for="confirmpassword" >Confirm Password</label>
+                                            <label for="confirmpassword">Confirm Password</label>
                                             <input type="password" id="confirmpassword" name="confirmpassword" class="form-control" placeholder="Confirm Password" required>
-                                            <sub class="text-danger mb-4">
-                                                <?php
-                                                if (isset($_SESSION['ERRORS']['passworderror']))
-                                                    echo $_SESSION['ERRORS']['passworderror'];
-                                                ?>
-                                            </sub>
                                         </div>
                                     </div>
+                                    <div class="col-md-12 password-row">
+                                        <sub class="text-danger mb-4">
+                                            <?php
+                                            if (isset($_SESSION['ERRORS']['passworderror']))
+                                                echo $_SESSION['ERRORS']['passworderror'];
+                                            ?>
+                                        </sub>
+                                    </div>
+                                    <script>
+                                        // Real-time password strength and match validation per symbol typed
+                                        const passwordInput = document.getElementById('password');
+                                        const confirmPasswordInput = document.getElementById('confirmpassword');
+
+                                        // Create or get password error display element
+                                        let passwordError = document.getElementById('passwordError');
+                                        if (!passwordError) {
+                                            passwordError = document.createElement('sub');
+                                            passwordError.className = 'text-danger mb-4';
+                                            passwordError.id = 'passwordError';
+                                            document.querySelector('.password-row').appendChild(passwordError);
+                                        }
+
+                                        function validatePassword() {
+                                            const password = passwordInput.value;
+                                            const confirmPassword = confirmPasswordInput.value;
+
+                                            // Check password strength
+                                            const hasUppercase = /[A-Z]/.test(password);
+                                            const hasLowercase = /[a-z]/.test(password);
+                                            const hasNumber = /\d/.test(password);
+                                            const hasSpecialChar = /[/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\\\|~]/.test(password);
+                                            const isValid = hasUppercase && hasLowercase && hasNumber && hasSpecialChar && password.length >= 8;
+
+                                            if (!isValid) {
+                                                passwordError.textContent = 'Password must be at least 8 characters long, contain at least 1 for each lowercase letter, uppercase letter, number, and special character.';
+                                            } else {
+                                                passwordError.textContent = '';
+                                            }
+
+                                            // Check if passwords match
+                                            if (password !== confirmPassword) {
+                                                confirmPasswordInput.setCustomValidity('Passwords do not match');
+                                            } else {
+                                                confirmPasswordInput.setCustomValidity('');
+                                            }
+                                        }
+
+                                        passwordInput.addEventListener('input', validatePassword);
+                                        confirmPasswordInput.addEventListener('input', validatePassword);
+                                    </script>
                                 </div>
                             </div>
                             <div class="form-group text-center">
@@ -151,11 +196,11 @@ $rest_of_name = substr($app_name, 1);
                             </div>
                             <div id="optionalFields" style="display:none;">
                                 <div class="form-group">
-                                    <label for="headline" >Headline</label>
+                                    <label for="headline">Headline</label>
                                     <input type="text" id="headline" name="headline" class="form-control" placeholder="Headline">
                                 </div>
                                 <div class="form-group">
-                                    <label for="bio" >Profile Details</label>
+                                    <label for="bio">Profile Details</label>
                                     <textarea type="text" id="bio" name="bio" class="form-control" placeholder="Tell us about yourself..."></textarea>
                                 </div>
                                 <div class="form-group">
