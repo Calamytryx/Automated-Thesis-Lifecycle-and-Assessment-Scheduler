@@ -251,13 +251,13 @@ if ($currentUsertype === 0 && $userId === 0) {
              FROM defense_schedules ds
              JOIN teams t ON ds.team_id = t.id
              LEFT JOIN research_titles rt ON t.id = rt.team_id
-             JOIN programs p ON t.program = p.id -- Join programs for college restriction
+             JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) -- Join programs for college restriction using name string
              LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)";
             $collegeRestrictionClause = "WHERE p.college = :college";
             // Count query only needs joins necessary for the WHERE clause (college restriction)
             $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
                            JOIN teams t ON ds.team_id = t.id
-                           JOIN programs p ON t.program = p.id";
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             // No need for LEFT JOIN research_titles or panelist joins in count query
             break;
         case 'rubrics':

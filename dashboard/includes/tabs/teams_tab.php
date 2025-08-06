@@ -308,9 +308,13 @@
                                     role = matchWithRole[2].trim().toLowerCase();
                                 }
 
+                                if (role === 'adviser') {
+                                    adviser = memberName;
+                                }
+
                                 if (role === 'leader') {
                                     leader = memberName;
-                                } else {
+                                } else if (role === 'member'){
                                     const nameParts = memberName.split(' ');
                                     const surname = nameParts.length > 1 ? nameParts[nameParts.length - 1] : memberName;
                                     members.push({
