@@ -485,10 +485,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-gear me-2 hollow"></i>
                                         <i class="bi bi-gear-fill me-2 filled"></i>Content Management
                                     </a>
-                                    <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank"> <!-- Removed role="tab" -->
+                                    <!-- <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank">
                                         <i class="bi bi-database me-2 hollow"></i>
                                         <i class="bi bi-database-fill me-2 filled"></i>DataBase
-                                    </a>
+                                    </a> -->
                                     <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
                                         <i class="bi bi-book me-2 hollow"></i>
                                         <i class="bi bi-book-fill me-2 filled"></i>Guide
