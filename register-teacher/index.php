@@ -1,4 +1,7 @@
 <?php
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 define('TITLE', "Signup");
 include '../assets/layouts/header.php';
 require_once '../assets/setup/db.inc.php';
