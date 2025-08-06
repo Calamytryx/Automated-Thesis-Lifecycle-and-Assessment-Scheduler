@@ -39,7 +39,40 @@
                     echo '<span class="badge bg-secondary">Center for Research and Development</span>';
                 } else
                 if ( $userType == 1) {
-                    echo '<span class="badge bg-secondary">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '</span>';
+                    // Get team information for the student
+                    $teamQuery = "SELECT t.*, tm.role 
+                                  FROM teams t 
+                                  INNER JOIN team_members tm ON t.id = tm.team_id 
+                                  WHERE tm.user_id = ?";
+                    $teamStmt = $pdo->prepare($teamQuery);
+                    $teamStmt->execute([$userId]);
+                    $team = $teamStmt->fetch();
+
+                    $researchSubject = 'Research Methods'; // Default
+
+                    if ($team) {
+                        // Check if team has an approved research title
+                        $titleQuery = "SELECT approved_at FROM research_titles WHERE team_id = ?";
+                        $titleStmt = $pdo->prepare($titleQuery);
+                        $titleStmt->execute([$team['id']]);
+                        $title = $titleStmt->fetch();
+                        
+                        if ($title && $title['approved_at'] !== null) {
+                            // Check if team has evaluation records (indicating completion of Research 1)
+                            $evaluationQuery = "SELECT COUNT(*) FROM evaluation_per_panel epp 
+                                               WHERE epp.student_id = ?";
+                            $evaluationStmt = $pdo->prepare($evaluationQuery);
+                            $evaluationStmt->execute([$userId]);
+                            $hasEvaluations = $evaluationStmt->fetchColumn() > 0;
+                            
+                            if ($hasEvaluations) {
+                                $researchSubject = 'Research 2';
+                            } else {
+                                $researchSubject = 'Research 1';
+                            }
+                        }
+                    }
+                    echo '<span class="badge bg-secondary text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
                 } else if ($userType == 0 || $userType == 2) {
                     $program = $_SESSION['program'];
                     // Cut at the space before "-", if present
