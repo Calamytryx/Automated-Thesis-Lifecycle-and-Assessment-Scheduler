@@ -12,6 +12,95 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
             </div>
         </div>
 
+        <!-- Conflicting Schedules -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="alert alert-warning" role="alert">
+                    <i class="fas fa-exclamation-triangle me-2"></i>
+                    <strong>Note:</strong> If you see overlapping schedules, please resolve them to avoid conflicts.
+
+                    <br>Click on a schedule item to edit or delete it.
+                    <br>Use the filters below to view schedules by program/section or instructor.
+
+                    <?php
+                    // Check for conflicting schedules
+                    $conflictingSchedules = [];
+
+                    try {
+                        // Get all schedules with user information
+                        $stmt = $pdo->query("
+                            SELECT 
+                                us1.id as schedule1_id,
+                                us1.user_id as user1_id,
+                                us1.class_name as class1_name,
+                                us1.day_of_week,
+                                us1.start_time as start1_time,
+                                us1.end_time as end1_time,
+                                us1.program as program1,
+                                us1.section as section1,
+                                us1.room as room1,
+                                u1.first_name as user1_first,
+                                u1.last_name as user1_last,
+                                us2.id as schedule2_id,
+                                us2.user_id as user2_id,
+                                us2.class_name as class2_name,
+                                us2.start_time as start2_time,
+                                us2.end_time as end2_time,
+                                us2.program as program2,
+                                us2.section as section2,
+                                us2.room as room2,
+                                u2.first_name as user2_first,
+                                u2.last_name as user2_last
+                            FROM user_schedules us1
+                            JOIN user_schedules us2 ON 
+                                us1.day_of_week = us2.day_of_week AND
+                                us1.id < us2.id AND
+                                (
+                                    (us1.start_time < us2.end_time AND us1.end_time > us2.start_time)
+                                )
+                            LEFT JOIN users u1 ON us1.user_id = u1.id
+                            LEFT JOIN users u2 ON us2.user_id = u2.id
+                            ORDER BY us1.day_of_week, us1.start_time
+                        ");
+                        
+                        $conflictingSchedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                        
+                        if (!empty($conflictingSchedules)) {
+                            echo '<br><div class="mt-3"><strong>Conflicting Schedules Found:</strong></div>';
+                            echo '<div class="row mt-2">';
+                            
+                            foreach ($conflictingSchedules as $conflict) {
+                                echo '<div class="col-md-6 mb-2">';
+                                echo '<div class="card border-danger">';
+                                echo '<div class="card-body p-2">';
+                                echo '<small class="text-danger">';
+                                echo '<strong>' . htmlspecialchars($conflict['day_of_week']) . '</strong><br>';
+                                echo '1. ' . htmlspecialchars($conflict['class1_name']) . ' (' . date('g:i A', strtotime($conflict['start1_time'])) . '-' . date('g:i A', strtotime($conflict['end1_time'])) . ')<br>';
+                                echo '&nbsp;&nbsp;&nbsp;' . htmlspecialchars($conflict['user1_first'] . ' ' . $conflict['user1_last']) . ' - ' . htmlspecialchars($conflict['program1']) . ' Sec: ' . htmlspecialchars($conflict['section1']);
+                                if ($conflict['room1']) echo ' - Room: ' . htmlspecialchars($conflict['room1']);
+                                echo '<br>';
+                                echo '2. ' . htmlspecialchars($conflict['class2_name']) . ' (' . date('g:i A', strtotime($conflict['start2_time'])) . '-' . date('g:i A', strtotime($conflict['end2_time'])) . ')<br>';
+                                echo '&nbsp;&nbsp;&nbsp;' . htmlspecialchars($conflict['user2_first'] . ' ' . $conflict['user2_last']) . ' - ' . htmlspecialchars($conflict['program2']) . ' Sec: ' . htmlspecialchars($conflict['section2']);
+                                if ($conflict['room2']) echo ' - Room: ' . htmlspecialchars($conflict['room2']);
+                                echo '</small>';
+                                echo '</div>';
+                                echo '</div>';
+                                echo '</div>';
+                            }
+                            
+                            echo '</div>';
+                        } else {
+                            echo '<br><div class="mt-2 text-success"><i class="fas fa-check-circle me-1"></i>No conflicting schedules found.</div>';
+                        }
+                    } catch (PDOException $e) {
+                        echo '<br><div class="mt-2 text-danger"><i class="fas fa-exclamation-circle me-1"></i>Error checking for conflicts: ' . htmlspecialchars($e->getMessage()) . '</div>';
+                    }
+                    ?>
+
+                </div>
+            </div>
+        </div>
+
         <!-- Controls -->
         <div class="row">
             <div class="col-12">
