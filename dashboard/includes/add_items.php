@@ -460,7 +460,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     try {
         $stmt->execute($data);
         
-        // CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MANUAL CREATION
+        // CREATE DEFENSE SCHEDULE NOTIFICATIONS AND APPROVAL WORKFLOW FOR MANUAL CREATION
         if ($table === 'defense_schedules') {
             require_once __DIR__ . '/../../assets/includes/notification_functions.php';
             
@@ -472,7 +472,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $endTime = date('H:i', strtotime($data['end_time']));
             $room = $data['room'];
             
-            createDefenseScheduleNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room);
+            // CREATE PANELIST APPROVAL RECORDS (same as generated schedules)
+            $approvalStmt = $pdo->prepare("
+                INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
+                VALUES (?, ?)
+            ");
+            
+            // Create approval record for each panelist
+            foreach ($panelistIds as $panelistId) {
+                if ($panelistId && $panelistId !== '') {
+                    $approvalStmt->execute([$scheduleId, $panelistId]);
+                }
+            }
+            
+            // Create approval notifications for panelists (consistent with generated schedules)
+            createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room);
+            
+            // Create regular notifications for team members (they don't need to approve)
+            $teamMemberIds = getTeamMembersForNotifications($teamId);
+            $formattedDate = date('F j, Y', strtotime($scheduleDate));
+            $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
+            $messageForTeam = "Your team's defense has been scheduled for {$formattedDate} at {$formattedTime} in {$room}. Waiting for panelist approval.";
+            
+            foreach ($teamMemberIds as $userId) {
+                createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
+            }
+            
+            error_log("Manual defense schedule created with approval workflow for schedule ID: $scheduleId");
         }
         
         $response['success'] = true;

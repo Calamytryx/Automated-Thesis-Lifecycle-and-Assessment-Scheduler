@@ -369,9 +369,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
                         <div class="sidebar-header d-flex justify-content-between align-items-center">
                             <div class="text-end d-flex align-items-center justify-content-end">
-                                <?php if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
+                                <?php /* User type pill moved to navbar */ ?>
+                                <?php /*if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
                                     <span class="user-role m-0 sidebar-role-pill role-admin">Administrator</span>
-                                <?php endif; ?> 
+                                <?php endif;*/ ?> 
                             </div>
                             <button id="toggleSidebar" class="btn btn-link">
                                 <i class="bi bi-chevron-left"></i>

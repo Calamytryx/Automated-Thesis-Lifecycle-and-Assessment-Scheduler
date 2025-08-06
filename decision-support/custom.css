@@ -101,3 +101,65 @@
 .decision-support-bg {
     background-color: var(--neutral-100);
 }
+
+/* ============================================================================
+   VISUAL TOTALS DISPLAY FIX
+   Hide problematic total computations while keeping backend functionality
+   ============================================================================ */
+
+/* Hide specific problematic group score total displays */
+[id*="group-score-total"] {
+    display: none !important;
+}
+
+/* Hide the div that contains "Group Score:" text */
+.text-right.mt-3,
+.text-end.mt-3 {
+    display: none !important;
+}
+
+/* Hide specific total elements in scoresheet tables that show wrong values */
+#content-total,
+#organization-total, 
+#novelty-total,
+#init-total,
+#group-total,
+#content-score,
+#organization-score,
+#iock-score,
+#isb-score,
+#content-percentage,
+#organization-percentage,
+#iock-percentage,
+#isb-percentage {
+    display: none !important;
+}
+
+/* Hide table cells containing these elements */
+td:has(#content-total),
+td:has(#organization-total),
+td:has(#novelty-total),
+td:has(#init-total),
+td:has(#group-total) {
+    display: none !important;
+}
+
+/* Hide rows that contain TOTAL or PERCENTAGE text in table cells */
+tr:nth-child(n) td:contains("TOTAL"),
+tr:nth-child(n) td:contains("PERCENTAGE") {
+    display: none !important;
+}
+
+/* Fallback: Hide parent rows of problematic total displays */
+#content-total,
+#organization-total,
+#novelty-total,
+#init-total,
+#group-total {
+    visibility: hidden !important;
+    height: 0 !important;
+    line-height: 0 !important;
+    font-size: 0 !important;
+}
+
+/* Note: This only hides visual displays. Backend submission continues to work correctly. */

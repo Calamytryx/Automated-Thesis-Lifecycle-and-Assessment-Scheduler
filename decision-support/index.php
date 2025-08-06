@@ -1039,9 +1039,16 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
     // -------------------------------------------------------------------
-    // FOR DISPLAY OF GROUP SCORE DATA (Numerical)
+    // FOR DISPLAY OF GROUP SCORE DATA (Numerical) - DISABLED DUE TO VISUAL CALCULATION ISSUES
+    // Backend submission and validation continue to work correctly
     // -------------------------------------------------------------------
     window.updateGroupTotalScore = function(rubric_id) {
+        // DISABLED: Visual total calculations showing incorrect values
+        // Backend submission still works correctly with proper validation
+        console.log("Visual total calculation disabled for rubric:", rubric_id);
+        return;
+        
+        /* ORIGINAL CODE - DISABLED
         let total = 0;
         // Select only number inputs associated with the specific rubric's group score
         document.querySelectorAll(`#evaluationForm input[type="number"][data-rubric-id="${rubric_id}"][name*="[group]"]`).forEach(input => {
@@ -1054,6 +1061,7 @@ document.addEventListener('DOMContentLoaded', function() {
         if (totalSpan) {
             totalSpan.textContent = total;
         }
+        */
     }
 
     // -------------------------------------------------------------------

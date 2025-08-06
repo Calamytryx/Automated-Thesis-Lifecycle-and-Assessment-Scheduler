@@ -16,27 +16,33 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
             <!-- Navbar user Program and role -->
-            <div class="d-flex align-items-center me-3">
+            <div class="d-flex align-items-center me-3 justify-content-center">
                 <?php
                 $userType = $_SESSION['usertype'];
                 $userId = $_SESSION['id'];
                 $roleLabel = '';
+                $roleClass = '';
 
                 if ($userType == 0) {
                     if ($userId == 0) {
                         $roleLabel = 'Admin';
+                        $roleClass = 'navbar-role-admin';
                     } else {
                         $roleLabel = 'Program Chair';
+                        $roleClass = 'navbar-role-admin';
                     }
                 } elseif ($userType == 1) {
                     $roleLabel = 'Student';
+                    $roleClass = 'navbar-role-student';
                 } elseif ($userType == 2) {
                     $roleLabel = 'Faculty';
+                    $roleClass = 'navbar-role-prof';
                 } else {
                     $roleLabel = 'Unknown';
+                    $roleClass = 'navbar-role-user';
                 }
                 if ($_SESSION['id'] == 0) {
-                    echo '<span class="badge bg-secondary">Center for Research and Development</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Center for Research and Development</span>';
                 } else
                 if ( $userType == 1) {
                     // Get team information for the student
@@ -72,15 +78,15 @@
                             }
                         }
                     }
-                    echo '<span class="badge bg-secondary text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
                 } else if ($userType == 0 || $userType == 2) {
                     $program = $_SESSION['program'];
                     // Cut at the space before "-", if present
                     $program = preg_replace('/\s-.*$/', '', $program);
-                    echo '<span class="badge bg-secondary">' . htmlspecialchars($roleLabel . ' - ' . $program) . '</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($roleLabel . ' - ' . $program) . '</span>';
                 }
                 else {
-                    echo '<span class="badge bg-secondary">Unknown Role</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Unknown Role</span>';
                 }
                 ?>
                 
