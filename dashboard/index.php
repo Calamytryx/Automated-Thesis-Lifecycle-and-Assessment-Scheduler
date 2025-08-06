@@ -420,10 +420,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     Thesis Management
                                 </div>
                                 <div class="sidebar-items">
-                                    <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false" disabled>
+                                    <!-- <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false" disabled>
                                         <i class="bi bi-book me-2 hollow"></i>
                                         <i class="bi bi-book-fill me-2 filled"></i>Thesis Topics (in conflict with panel suggestion)
-                                    </a>
+                                    </a> -->
                                     <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
                                         <i class="bi bi-file-text me-2 hollow"></i>
                                         <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
@@ -595,7 +595,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </form>
             </div>
             <div class="modal-footer"> 
-                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
                 <button type="button" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
             </div>
         </div>
@@ -625,7 +625,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 </form>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
                 <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
             </div>
         </div>

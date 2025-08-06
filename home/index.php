@@ -551,13 +551,13 @@ document.addEventListener("DOMContentLoaded", function() {
                                     Research Management
                                 </div>
                                 <div class="home-sidebar-items">
-                                    <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" 
+                                    <!-- <a class="nav-link" id="thesis-topic-link" data-bs-toggle="pill" 
                                         href="#thesis-topic" role="tab" aria-controls="thesis-topic"
                                         aria-selected="true" disabled>
                                         <i class="bi bi-lightbulb me-2 hollow"></i>
                                         <i class="bi bi-lightbulb-fill me-2 filled"></i>
                                         <span class="nav-text">Thesis Topic Decision (in conflict with panel suggestion)</span>
-                                    </a>
+                                    </a> -->
                                     <a class="nav-link" id="research-title-link" data-bs-toggle="pill"
                                         href="#research-title" role="tab" aria-controls="research-title"
                                         aria-selected="false">
