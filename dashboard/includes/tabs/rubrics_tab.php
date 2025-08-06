@@ -134,7 +134,7 @@
                         <div class="row mb-3" id="maxMembersConfig" style="display:none;">
                             <div class="col-md-4">
                                 <label for="max_members" class="form-label">Max Members for Individual Scoring</label>
-                                <input type="number" class="form-control" id="max_members" name="max_members" min="1" max="10" value="5">
+                                <input type="number" class="form-control" id="max_members" name="max_members" min="1" max="10" value="5" required>
                                 <small class="form-text text-muted">Max columns shown during evaluation.</small>
                             </div>
                         </div>
@@ -143,7 +143,7 @@
                         <div class="row mb-3" id="individualConfig" style="display:none;">
                             <div class="col-md-4">
                                 <label for="max_score_per_criterion" class="form-label">Max Score per Criterion</label>
-                                <input type="number" class="form-control" id="max_score_per_criterion" name="max_score_per_criterion" min="0" value="100">
+                                <input type="number" class="form-control" id="max_score_per_criterion" name="max_score_per_criterion" min="0" value="100" required>
                             </div>
                         </div>
 
@@ -154,7 +154,7 @@
                                 <div class="col-md-4">
                                     <label for="qualityCriteriaCount" class="form-label">Number of Quality Levels</label>
                                     <div class="input-group">
-                                        <input type="number" class="form-control" id="qualityCriteriaCount" min="1" max="5" value="1">
+                                        <input type="number" class="form-control" id="qualityCriteriaCount" min="1" max="5" value="1" required>
                                         <button class="btn btn-outline-secondary" type="button" id="updateQualityCriteria">Update</button>
                                     </div>
                                 </div>
@@ -1569,26 +1569,33 @@
             var rubricId = $('#rubricToDeleteId').val();
 
             $.ajax({
-                url: 'includes/delete_item.php',
-                method: 'POST',
-                data: {
-                    table: 'rubrics',
-                    id: rubricId
-                },
-                success: function(response) {
-                    response = JSON.parse(response);
-                    if (response.success) {
-                        $('#rubricDeleteConfirmModal').modal('hide');
-                        loadRubrics();
-                        showToast('Success', 'Rubric deleted successfully', 'success');
-                    } else {
-                        showToast('Error', response.message || 'Unknown error occurred', 'error');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
+            url: 'includes/delete_item.php',
+            method: 'POST',
+            data: {
+                table: 'rubrics',
+                id: rubricId
+            },
+            dataType: 'json',
+            success: function(response) {
+                console.log('Delete response:', response);
+                if (response && response.success) {
+                $('#rubricDeleteConfirmModal').modal('hide');
+                location.reload();
+                } else {
+                showToast('Error', response.message || 'Unknown error occurred', 'error');
+                location.reload(); // Reload to reset state
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('AJAX Error:', xhr.responseText);
+                try {
+                    var errorResponse = JSON.parse(xhr.responseText);
+                    showToast('Error', errorResponse.message || 'Unable to delete rubric', 'error');
+                } catch(e) {
                     showToast('Error', 'Unable to delete rubric: ' + error, 'error');
                 }
+                location.reload(); // Reload to reset state
+            }
             });
         });
 
