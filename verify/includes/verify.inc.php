@@ -79,7 +79,7 @@ if (isset($_GET['selector']) && isset($_GET['validator'])) {
     $stmt->execute([$userEmail]);
 
     $_SESSION['STATUS']['verify'] = 'Your account has been verified. You can now log in.';
-    header("Location: ../../login/");
+    header("Location: ../");
     exit();
 }
 else {

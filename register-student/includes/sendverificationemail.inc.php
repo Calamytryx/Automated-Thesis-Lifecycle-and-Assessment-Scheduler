@@ -14,7 +14,7 @@ require '../../assets/vendor/PHPMailer/src/SMTP.php';
 if (isset($_POST['signupsubmit'])) {
 
     $selector = bin2hex(random_bytes(8));
-    $token = random_bytes(32);
+    $token = bin2hex(random_bytes(32));
     $url = "https://atlas.iceiy.com/verify/includes/verify.inc.php?selector=" . $selector . "&validator=" . bin2hex($token);
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 

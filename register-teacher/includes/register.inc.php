@@ -73,7 +73,7 @@ if (isset($_POST['signupsubmit'])) {
         $_SESSION['ERRORS']['formerror'] = 'required fields cannot be empty, try again';
         header("Location: ../");
         exit();
-    } else if (!preg_match("/^[a-zA-Z0-9]*$/", $username)) {
+    } else if (!preg_match("/^[a-zA-Z0-9.\-]+$/", $username)) {
 
         $_SESSION['ERRORS']['usernameerror'] = 'invalid username';
         header("Location: ../");

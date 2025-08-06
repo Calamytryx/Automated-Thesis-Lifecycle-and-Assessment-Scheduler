@@ -55,7 +55,7 @@ if (isset($_POST['signupsubmit'])) {
     $first_name = input_filter($_POST['first_name']);
     $last_name = input_filter($_POST['last_name']);
     $program_name = input_filter($_POST['program']);
-    $specialization = input_filter($_POST['specialization']);
+    $specialization = isset($_POST['specialization']) ? input_filter($_POST['specialization']) : '';
     $year = input_filter($_POST['year']);
     $section = input_filter($_POST['section']);
 
@@ -81,7 +81,7 @@ if (isset($_POST['signupsubmit'])) {
         $_SESSION['ERRORS']['formerror'] = 'required fields cannot be empty, try again';
         header("Location: ../");
         exit();
-    } else if (!preg_match("/^[a-zA-Z0-9]*$/", $username)) {
+    } else if (!preg_match("/^[a-zA-Z0-9.\-]+$/", $username)) {
 
         $_SESSION['ERRORS']['usernameerror'] = 'invalid username';
         header("Location: ../");
