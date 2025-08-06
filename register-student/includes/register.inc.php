@@ -47,7 +47,7 @@ if (isset($_POST['signupsubmit'])) {
     }
     
     $username = input_filter($_POST['username']);
-    $email = input_filter($_POST['email'] . "@gmail.com");
+    $email = input_filter($_POST['email'] . "@lpunetwork.edu.ph");
     $password = input_filter($_POST['password']);
     $passwordRepeat  = input_filter($_POST['confirmpassword']);
     $headline = input_filter($_POST['headline']);
