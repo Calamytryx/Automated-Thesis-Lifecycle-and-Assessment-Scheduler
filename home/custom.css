@@ -1,8 +1,13 @@
-html,
-body {
+html {
     overflow-x: hidden;
     /* Prevent scroll on narrow devices */
     height: 100%;
+}
+
+body {
+    height: 100%;
+    /* Allow y-overflow for dropdowns while preventing x-overflow */
+    overflow-x: hidden;
 }
 
 body {
@@ -220,21 +225,21 @@ main.container-fluid {
 #toggleHomeSidebar {
     color: var(--main-primary);
     transition: all 0.3s ease;
-    padding: 0.5rem;
-    margin-right: -5px; 
+    padding: 0;
+    margin: 0;
     background-color: transparent;
-    border-radius: 4px;
+    border-radius: 0px;
     z-index: 1050;
     display: flex !important;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--neutral-300);
+    border: none;
     outline: none;
     box-shadow: none;
     text-decoration: none !important;
     visibility: visible !important;
-    width: 40px;
-    height: 40px;
+    width: 100%;
+    height: 100%;
 }
 
 #toggleHomeSidebar:hover,
@@ -277,6 +282,198 @@ main.container-fluid {
     color: var(--main-primary); 
     transition: all 0.3s ease;
     transform: rotate(180deg);
+}
+
+/* Home Profile Header Styles */
+.home-profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--neutral-300);
+    background: var(--main-white);
+    width: 100%;
+    flex-shrink: 0;
+    box-sizing: border-box;
+    max-width: 100%;
+    overflow: visible;
+    position: relative;
+}
+
+.home-profile-dropdown-container {
+    flex-grow: 1;
+    position: relative;
+    border-right: 1px solid var(--neutral-300);
+    /* padding: 8px 12px 8px 1.5rem; */
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.home-profile-dropdown-container:hover {
+    background-color: var(--neutral-100);
+}
+
+.home-profile-header .profile-container {
+    display: flex;
+    align-items: center;
+    min-width: 0;
+    pointer-events: none;
+    border-radius: 6px;
+}
+
+.home-profile-header img {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+
+.home-profile-header .user-info {
+    margin-left: 10px;
+    flex-grow: 1;
+    overflow: hidden;
+    min-width: 0;
+    max-width: calc(100% - 80px);
+}
+
+.home-profile-header .user-name {
+    font-size: 0.85rem;
+    font-weight: 500;
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.home-profile-header .user-role {
+    font-size: 0.7rem;
+    color: var(--neutral-700);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.home-profile-dropdown-container:hover .user-name {
+    color: var(--main-primary);
+}
+
+/* Home Toggle button container */
+.home-toggle-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 54px;
+    height: 100%;
+    flex-shrink: 0;
+}
+
+/* Home Profile Dropdown Menu Styling */
+.home-profile-dropdown-menu {
+    min-width: 200px;
+    border: 1px solid var(--neutral-300);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    margin-top: 8px;
+    padding: 0px;
+    z-index: 9999;
+    position: absolute !important;
+    inset: 0px auto auto 0px !important;
+    margin: 0px !important;
+    transform: translate3d(1.5rem, 55px, 0px) !important;
+}
+
+.home-profile-dropdown-menu .dropdown-item {
+    padding: 12px 20px;
+    font-size: 0.85rem;
+    display: flex;
+    align-items: center;
+    transition: all 0.2s ease;
+    color: var(--main-black);
+}
+
+.home-profile-dropdown-menu .dropdown-item:hover {
+    background-color: var(--neutral-100);
+    color: var(--main-primary);
+}
+
+.home-profile-dropdown-menu .dropdown-item:active {
+    background-color: var(--neutral-100);
+    color: var(--main-primary);
+}
+
+.home-profile-dropdown-menu .dropdown-item i {
+    width: 16px;
+    font-size: 0.85rem;
+    color: inherit;
+}
+
+.home-profile-dropdown-menu .dropdown-divider {
+    margin: 8px 0;
+    border-color: var(--neutral-300);
+}
+
+/* Home Logout item specific styling */
+.home-profile-dropdown-menu .dropdown-item#homeLogoutBtn {
+    color: var(--bs-danger);
+}
+
+.home-profile-dropdown-menu .dropdown-item#homeLogoutBtn:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: var(--bs-danger);
+}
+
+/* Collapsed sidebar adjustments for home */
+#homeSidebarContainer.collapsed .home-profile-dropdown-container {
+    display: none;
+    border-right: none;
+    margin-right: 0;
+    padding-right: 0;
+}
+
+#homeSidebarContainer.collapsed .home-toggle-button-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0;
+    width: 100%;
+    height: 100%;
+}
+
+#homeSidebarContainer.collapsed .home-profile-header #toggleHomeSidebar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+/* Update toggle button styles for new container */
+#homeSidebarContainer.collapsed #toggleHomeSidebar {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto;
+    padding: 0;
+    background-color: transparent;
+    box-shadow: none;
+    width: 100%;
+    height: 100%;
+    color: var(--main-primary);
+    visibility: visible !important;
+    border: none;
+    outline: none;
+    text-decoration: none !important;
+    transition: all 0.3s ease;
+}
+
+#homeSidebarContainer.collapsed #toggleHomeSidebar:hover {
+    background-color: var(--neutral-100);
+    color: var(--main-primary);
+}
+
+/* Ensure dropdown works properly on collapsed sidebar by hiding it */
+#homeSidebarContainer.collapsed .home-profile-dropdown-menu {
+    display: none !important;
 }
 
 /* Sidebar Navigation */ 
@@ -441,6 +638,51 @@ main.container-fluid {
         flex-direction: column;
     }
     
+    /* Force single column layout and enable scrolling - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
+        height: calc(100vh - 60px) !important;
+        margin-top: 60px;
+        padding-bottom: 15px;
+        scrollbar-width: none;
+        -ms-overflow-style: none;
+    }
+    
+    /* Hide scrollbar for webkit browsers - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav::-webkit-scrollbar {
+        display: none;
+    }
+    
+    /* Ensure all sidebar sections stack vertically - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-section {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        flex-shrink: 0 !important;
+    }
+    
+    /* Ensure sidebar items container is full width - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-items {
+        display: flex !important;
+        flex-direction: column !important;
+        width: 100% !important;
+        padding-left: 0 !important;
+    }
+    
+    /* Force nav links to be full width and stack vertically - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav .nav-link {
+        width: 100% !important;
+        flex-shrink: 0 !important;
+        display: flex !important;
+        flex-direction: row !important;
+        justify-content: flex-start !important;
+        white-space: nowrap !important;
+    }
+    
     #homeSidebarContainer.collapsed {
         width: 50px;
         height: 100vh;
@@ -455,14 +697,15 @@ main.container-fluid {
 
     #homeSidebarContainer.collapsed .home-sidebar-items,
     #homeSidebarContainer.collapsed .home-sidebar-category,
-    #homeSidebarContainer.collapsed .profile-footer,
+    #homeSidebarContainer.collapsed .home-profile-dropdown-container,
     #homeSidebarContainer.collapsed .home-sidebar-nav,
     #homeSidebarContainer.collapsed .home-sidebar-title,
-    #homeSidebarContainer.collapsed .home-sidebar-header {
+    #homeSidebarContainer.collapsed .home-sidebar-header,
+    #homeSidebarContainer.collapsed .home-profile-header {
         display: none;
     }
     
-    #homeSidebarContainer.collapsed #toggleHomeSidebar {
+    #homeSidebarContainer.collapsed .home-toggle-button-container {
         visibility: visible !important;
         position: fixed;
         top: 50%;
@@ -475,30 +718,54 @@ main.container-fluid {
         border: 1px solid var(--neutral-300);
         border-radius: 4px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        padding: 0;
-        z-index: 9999; /* Very high z-index to ensure it's above everything */
+        z-index: 9999;
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
     }
     
-    #homeSidebarContainer.collapsed #toggleHomeSidebar:hover {
+    #homeSidebarContainer.collapsed #toggleHomeSidebar {
+        width: 100%;
+        height: 100%;
+        background-color: transparent;
+        border: none;
+        box-shadow: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         color: var(--main-primary);
+        transition: all 0.3s ease;
+    }
+    
+    #homeSidebarContainer.collapsed #toggleHomeSidebar:hover {
+        background-color: var(--neutral-100);
+        color: var(--main-primary);
+    }
+    
+    #homeSidebarContainer.collapsed #toggleHomeSidebar:hover i {
+        color: var(--main-primary);
+    }
+    
+    #homeSidebarContainer.collapsed .home-toggle-button-container:hover {
         cursor: pointer;
         box-shadow: 0 4px 8px rgba(0,0,0,0.2);
         transform: translateY(-50%) scale(1.05);
     }
     
-    .profile-footer {
+    .home-profile-header {
         position: fixed;
-        bottom: 0;
+        top: 0;
         left: 0;
         width: 100%;
         display: flex;
+        z-index: 1041;
+        height: 60px;
     }
     
-    .profile-container {
+    .home-profile-dropdown-container {
         flex-grow: 1;
     }
     
@@ -510,15 +777,14 @@ main.container-fluid {
         overflow-y: auto;
         padding-bottom: 70px; 
         background-color: var(--neutral-50, #f8f9fa);
-        scrollbar-width: none; /* Firefox */
-        -ms-overflow-style: none; /* Internet Explorer 10+ */
+        scrollbar-width: none;
+        -ms-overflow-style: none;
     }
     
     #homeMainContent.expanded {
         width: 100% !important;
         margin-top: 0;
         margin-left: 0; 
-        padding-left: 70px;
         height: 100vh;
     }
     
@@ -530,15 +796,76 @@ main.container-fluid {
     .home-sidebar-nav .nav-link {
         width: 100%;
     }
-    
-    .tab-pane {
-        padding: 0.5rem;
+}
+
+/* Responsive adjustments for home profile dropdown */
+@media (max-width: 767.98px) {
+    .home-profile-dropdown-menu {
+        min-width: 180px;
+        font-size: 0.8rem;
     }
     
-    .home-sidebar-box {
-        margin-bottom: 0.5rem;
+    .home-profile-dropdown-menu .dropdown-item {
+        padding: 10px 16px;
+        font-size: 0.8rem;
     }
-} 
+    
+    .home-toggle-button-container {
+        width: 54px;
+        height: 54px;
+    }
+}
+
+/* Additional styles for very small screens (iPhone SE, etc.) */
+@media (max-width: 480px) {
+    /* Force even stricter single column behavior - ONLY when sidebar is NOT collapsed */
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav {
+        display: flex !important;
+        flex-direction: column !important;
+        flex-wrap: nowrap !important;
+        align-items: stretch !important;
+        width: 100% !important;
+    }
+    
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-section {
+        display: block !important;
+        width: 100% !important;
+        margin-bottom: 8px !important;
+    }
+    
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-items {
+        display: block !important;
+        width: 100% !important;
+    }
+    
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav .nav-link {
+        display: flex !important;
+        width: 100% !important;
+        min-width: 100% !important;
+        flex-basis: auto !important;
+        flex-grow: 0 !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+    }
+}
+
+/* Ultra small screens (iPhone SE in landscape, etc.) */
+@media (max-width: 375px) {
+    #homeSidebarContainer:not(.collapsed) .home-sidebar-nav {
+        height: calc(100vh - 50px) !important;
+        margin-top: 50px !important;
+    }
+    
+    #homeSidebarContainer:not(.collapsed) .home-profile-header {
+        height: 50px !important;
+    }
+}
+
+#homeMainContent::-webkit-scrollbar {
+    display: none; /* Webkit browsers (Chrome, Safari, Edge) */
+}
+
+/* Hide scrollbars for mainContent while keeping scroll functionality */
 
 /* Profile hover styles for home page */
 .profile-container:hover .user-name {
@@ -737,6 +1064,11 @@ body.has-collapsed-home-sidebar #homeMainContent {
 /* Collapsed state adjustments for profile footer */
 /* Hide the entire profile footer when sidebar is collapsed */
 #homeSidebarContainer.collapsed .profile-footer {
+    display: none;
+}
+
+/* Hide the profile header when sidebar is collapsed */
+#homeSidebarContainer.collapsed .home-profile-header {
     display: none;
 }
 

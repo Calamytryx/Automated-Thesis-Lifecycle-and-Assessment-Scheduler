@@ -36,13 +36,15 @@ try {
     $titleStmt->execute([$teamId]);
     $title = $titleStmt->fetch(PDO::FETCH_ASSOC);
     
-    // Get adviser - Updated to use first_name and last_name
+    // Get adviser - Look for team member with usertype = 2
     $adviserStmt = $pdo->prepare("
         SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) as name, u.email
-        FROM users u
-        WHERE u.id = ?
+        FROM team_members tm
+        JOIN users u ON tm.user_id = u.id
+        WHERE tm.team_id = ? AND u.usertype = 2
+        ORDER BY tm.id ASC LIMIT 1
     ");
-    $adviserStmt->execute([$team['adviser_id']]);
+    $adviserStmt->execute([$teamId]);
     $adviser = $adviserStmt->fetch(PDO::FETCH_ASSOC);
     
     // Get team members - Updated to use first_name and last_name

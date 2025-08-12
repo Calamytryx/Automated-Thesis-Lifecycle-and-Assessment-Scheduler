@@ -2836,6 +2836,23 @@
             e.preventDefault();
             $('#logoutConfirmModal').modal('show');
         });
+        
+        // Profile dropdown menu functionality
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile"]', function(e) {
+            e.preventDefault();
+            window.location.href = '../profile';
+        });
+        
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile-edit"]', function(e) {
+            e.preventDefault();
+            window.location.href = '../profile-edit';
+        });
+        
+        // dropdown closes properly after clicking links
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item', function() {
+            $('.profile-dropdown-container').removeClass('show');
+            $('.profile-dropdown-menu').removeClass('show');
+        });
     });
 </script>
 

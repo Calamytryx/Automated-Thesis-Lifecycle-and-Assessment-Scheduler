@@ -367,16 +367,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         <div class="col-sm-12"> 
             <?php if ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
-                        <div class="sidebar-header d-flex justify-content-between align-items-center">
-                            <div class="text-end d-flex align-items-center justify-content-end">
-                                <?php /* User type pill moved to navbar */ ?>
-                                <?php /*if (isset($_SESSION['usertype']) && $_SESSION['usertype'] == 0): ?>
-                                    <span class="user-role m-0 sidebar-role-pill role-admin">Administrator</span>
-                                <?php endif;*/ ?> 
+                        <!-- User Profile Section moved to top -->
+                        <div class="profile-header d-flex justify-content-between align-items-center">
+                            <div class="profile-dropdown-container" id="profileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="profile-container">
+                                    <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                        <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php else: ?>
+                                        <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php endif; ?>
+                                    <div class="user-info">
+                                        <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                    </div>
+                                </div>
+                                <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
+                                <ul class="dropdown-menu profile-dropdown-menu" aria-labelledby="profileDropdownToggle">
+                                    <li><a class="dropdown-item" href="../profile"><i class="bi bi-person-circle me-2"></i>View Profile</a></li>
+                                    <li><a class="dropdown-item" href="../profile-edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" id="dashboardLogoutBtn"><i class="bi bi-power me-2"></i>Logout</a></li>
+                                </ul>
                             </div>
-                            <button id="toggleSidebar" class="btn btn-link">
-                                <i class="bi bi-chevron-left"></i>
-                            </button>
+                            <div class="toggle-button-container">
+                                <button id="toggleSidebar" class="btn btn-link">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                            </div>
                         </div>
                         <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
                             <!-- Dashboard Overview -->
@@ -496,22 +513,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                 </div>
                             </div>
-                        </div>                        <!-- User Profile Section at bottom -->
-                        <div class="profile-footer">
-                            <a href="../profile" class="profile-container" title="View Profile" style="text-decoration: none; color: inherit;">
-                                <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-                                    <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
-                                <?php else: ?>
-                                    <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
-                                <?php endif; ?>
-                                <div class="user-info">
-                                    <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                    <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
-                                </div>
-                            </a>
-                            <a href="#" class="logout-btn" id="dashboardLogoutBtn" title="Logout">
-                                <i class="bi bi-power"></i>
-                            </a>
                         </div>
                     </div>                    <div id="mainContent">
                         <div class="tab-content" id="v-pills-tabContent">

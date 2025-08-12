@@ -409,48 +409,54 @@ try {
         // Determine alias based on user type and table
         switch ($table) {
             case 'users':
-                $searchCondition = "(users.username LIKE :search OR users.email LIKE :search OR users.first_name LIKE :search OR users.last_name LIKE :search)";
+                $searchCondition = "(users.username LIKE :search1 OR users.email LIKE :search2 OR users.first_name LIKE :search3 OR users.last_name LIKE :search4)";
                 break;
             case 'teams':
                 // Search t.program directly
-                $searchCondition = "(t.name LIKE :search OR rt.title LIKE :search OR t.program LIKE :search)";
-                break;
-            case 'defense_schedules':
-                $searchCondition = "(t.name LIKE :search OR rt.title LIKE :search)";
-                break;
-            case 'rubrics':
-                $alias = $isAdmin ? 'r.' : '';
-                $searchCondition = "({$alias}name LIKE :search OR {$alias}description LIKE :search OR {$alias}defense_type LIKE :search)";
-                break;
-            case 'rubric_groups':
-                $alias = $isAdmin ? 'rg.' : '';
-                $searchCondition = "({$alias}name LIKE :search OR {$alias}description LIKE :search)";
-                break;
-            case 'requirements':
-                $searchCondition = "(name LIKE :search OR description LIKE :search)";
-                break;
-            case 'evaluations':
-                $searchCondition = "(t.name LIKE :search OR CONCAT(e.first_name, ' ', e.last_name) LIKE :search OR CONCAT(s.first_name, ' ', s.last_name) LIKE :search)";
-                break;
-            case 'evaluation_per_panel':
-                $alias = $isAdmin ? 'ep.' : '';
-                $searchCondition = "({$alias}comments LIKE :search)";
-                if ($isSuperAdmin) $searchCondition = "(comments LIKE :search)";
-                break;
-            case 'programs':
-                $searchCondition = "(college LIKE :search OR department LIKE :search OR name LIKE :search OR specialization LIKE :search)";
+                $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2 OR t.program LIKE :search3)";
                 break;
             case 'thesis_topics':
                 $alias = $isAdmin ? 'tt.' : '';
-                $searchCondition = "({$alias}topic LIKE :search OR {$alias}description LIKE :search)";
+                $searchCondition = "({$alias}topic LIKE :search1 OR {$alias}description LIKE :search2)";
+                break;
+            /* COMMENTED OUT - No frontend search UI implemented for these tables
+            case 'defense_schedules':
+                $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2)";
+                break;
+            case 'rubrics':
+                $alias = $isAdmin ? 'r.' : '';
+                $searchCondition = "({$alias}name LIKE :search1 OR {$alias}description LIKE :search2 OR {$alias}defense_type LIKE :search3)";
+                break;
+            case 'rubric_groups':
+                $alias = $isAdmin ? 'rg.' : '';
+                $searchCondition = "({$alias}name LIKE :search1 OR {$alias}description LIKE :search2)";
+                break;
+            case 'requirements':
+                $searchCondition = "(name LIKE :search1 OR description LIKE :search2)";
+                break;
+            case 'evaluations':
+                $searchCondition = "(t.name LIKE :search1 OR CONCAT(e.first_name, ' ', e.last_name) LIKE :search2 OR CONCAT(s.first_name, ' ', s.last_name) LIKE :search3)";
+                break;
+            case 'evaluation_per_panel':
+                $alias = $isAdmin ? 'ep.' : '';
+                $searchCondition = "({$alias}comments LIKE :search1)";
+                if ($isSuperAdmin) $searchCondition = "(comments LIKE :search1)";
+                break;
+            case 'programs':
+                $searchCondition = "(college LIKE :search1 OR department LIKE :search2 OR name LIKE :search3 OR specialization LIKE :search4)";
                 break;
             case 'research_titles':
-                $searchCondition = "(rt.title LIKE :search OR rt.description LIKE :search OR t.name LIKE :search)";
+                $searchCondition = "(rt.title LIKE :search1 OR rt.description LIKE :search2 OR t.name LIKE :search3)";
                 break;
+            */
         }
         if (!empty($searchCondition)) {
             $conditions[] = $searchCondition;
-            $params[':search'] = "%$search%";
+            // Set multiple search parameters - count how many :search parameters are used
+            $searchCount = substr_count($searchCondition, ':search');
+            for ($i = 1; $i <= $searchCount; $i++) {
+                $params[":search{$i}"] = "%$search%";
+            }
         }
     }
 

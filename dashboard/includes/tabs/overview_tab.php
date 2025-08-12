@@ -121,6 +121,7 @@ foreach ($requirements as $requirement) {
     
     // Store team requirement details for the popup
     $teamRequirementDetails[$requirement['id']] = [
+        'name' => $requirement['name'],
         'completed' => $completedTeams,
         'pending' => $pendingTeams,
         'missing' => $missingTeams
@@ -170,7 +171,7 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                         <!-- Right container with team count and search -->
                         <div class="col-lg-6">
                             <div class="box-container">
-                                <div class="d-flex justify-content-end">
+                                <div class="d-flex justify-content-end align-items-center mb-2">
                                     <span class="badge bg-light text-dark rounded-pill px-3 py-2">Total Teams: <?php echo $totalTeams; ?></span>
                                 </div>
                                 <div class="input-group">
@@ -178,6 +179,9 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                                         <i class="bi bi-search"></i>
                                     </span>
                                     <input type="text" class="form-control border-0" id="searchTeams" placeholder="Search Teams">
+                                    <button class="btn btn-outline-primary border-0" type="button" id="searchTeamsBtn">
+                                        
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -403,24 +407,629 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Global variable to store current search results
+    let currentSearchResults = null;
+    
     // Handle team search functionality
     const searchInput = document.getElementById('searchTeams');
+    const searchBtn = document.getElementById('searchTeamsBtn');
+    let searchTimeout;
+    
     if (searchInput) {
         searchInput.addEventListener('input', function() {
-            // You can implement the search functionality here
-            // For example, filter teams based on the search input
-            const searchText = this.value.toLowerCase();
-            // Add search implementation based on your requirements
+            const searchText = this.value.trim();
+            
+            // Clear previous timeout
+            if (searchTimeout) {
+                clearTimeout(searchTimeout);
+            }
+            
+            // Debounce search to avoid too many requests
+            searchTimeout = setTimeout(() => {
+                if (searchText.length >= 2) {
+                    performTeamSearch(searchText);
+                }
+            }, 300);
+        });
+        
+        // Handle Enter key
+        searchInput.addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                const searchText = this.value.trim();
+                if (searchText.length >= 2) {
+                    performTeamSearch(searchText);
+                } else if (searchText.length > 0 && searchText.length < 2) {
+                    showSearchError('Please enter at least 2 characters to search');
+                }
+            }
         });
     }
+    
+    // Handle search button click
+    if (searchBtn) {
+        searchBtn.addEventListener('click', function() {
+            const searchText = searchInput.value.trim();
+            if (searchText.length >= 2) {
+                performTeamSearch(searchText);
+            } else if (searchText.length === 0) {
+                showSearchError('Please enter a search term');
+            } else {
+                showSearchError('Please enter at least 2 characters to search');
+            }
+        });
+    }
+    
+    // Function to perform AJAX team search
+    function performTeamSearch(searchQuery) {
+        // Show loading state
+        const searchBtn = document.getElementById('searchTeamsBtn');
+        if (!searchBtn) {
+            console.error('Search button not found');
+            return;
+        }
+        
+        const originalBtnContent = searchBtn.innerHTML;
+        searchBtn.innerHTML = '<i class="bi bi-hourglass-split"></i>';
+        searchBtn.disabled = true;
+        
+        // Use relative URL to avoid HTTPS/HTTP issues
+        const searchUrl = `./includes/overview_search.php?search=${encodeURIComponent(searchQuery)}`;
+        console.log('Fetching:', searchUrl);
+        
+        fetch(searchUrl)
+            .then(response => {
+                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                return response.text(); // Get text first to debug
+            })
+            .then(text => {
+                console.log('Response text:', text);
+                try {
+                    const data = JSON.parse(text);
+                    if (data.success) {
+                        showSearchResults(data);
+                    } else {
+                        showSearchError(data.message || 'Search failed');
+                    }
+                } catch (jsonError) {
+                    console.error('JSON parse error:', jsonError);
+                    console.error('Response text:', text);
+                    showSearchError('Invalid response from server. Check console for details.');
+                }
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                showSearchError(`An error occurred while searching: ${error.message}`);
+            })
+            .finally(() => {
+                // Restore button state
+                if (searchBtn) {
+                    searchBtn.innerHTML = originalBtnContent;
+                    searchBtn.disabled = false;
+                }
+            });
+    }
+    
+    // Function to show search results in modal
+    function showSearchResults(data) {
+        // Store the search results globally for navigation
+        currentSearchResults = data;
+        
+        const teamsModal = new bootstrap.Modal(document.getElementById('teamsModal'));
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = `Search Results: "${data.search_query}" (${data.total_found} team${data.total_found !== 1 ? 's' : ''} found)`;
+        
+        if (data.teams.length === 0) {
+            modalContent.innerHTML = `
+                <div class="alert alert-info">
+                    <i class="bi bi-info-circle me-2"></i>
+                    No teams found matching your search criteria.
+                </div>
+            `;
+        } else {
+            let content = '<div class="row">';
+            
+            data.teams.forEach(team => {
+                const statusBadge = getStatusBadge(team.status_category, team.completion_percentage);
+                
+                content += `
+                    <div class="col-12 mb-3">
+                        <div class="card h-100">
+                            <div class="card-body">
+                                <div class="d-flex justify-content-between align-items-start mb-2">
+                                    <h5 class="card-title mb-0 d-flex align-items-center">
+                                        ${team.name}
+                                        <span class="ms-2">${statusBadge}</span>
+                                    </h5>
+                                    <div class="d-flex gap-2">
+                                    <button class="btn btn-sm btn-outline-secondary" onclick="showTeamRequirements(${team.id}, '${team.name.replace(/'/g, "\\'")}', ${JSON.stringify(team.requirement_details).replace(/"/g, '&quot;')})">
+                                            View Requirements
+                                        </button>
+                                        <button class="btn btn-sm" style="background-color: #1304ee; color: white; border-color: #1304ee;" onclick="showTeamDetails(${team.id}, '${team.name.replace(/'/g, "\\'")}')">
+                                            View Info
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <p class="card-text text-muted mb-2">
+                                    <strong>Research Title:</strong> ${team.research_title}
+                                </p>
+                                <p class="card-text text-muted mb-0">
+                                    <strong>Adviser:</strong> ${team.adviser}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            content += '</div>';
+            modalContent.innerHTML = content;
+        }
+        
+        teamsModal.show();
+    }
+    
+    // Function to show search errors
+    function showSearchError(message) {
+        const teamsModal = new bootstrap.Modal(document.getElementById('teamsModal'));
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = 'Search Error';
+        modalContent.innerHTML = `
+            <div class="alert alert-danger">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                ${message}
+            </div>
+        `;
+        
+        teamsModal.show();
+    }
+    
+    // Helper function to get status badge
+    function getStatusBadge(category, percentage) {
+        switch (category) {
+            case 'completed':
+                return '<span class="badge bg-success">Completed</span>';
+            case 'partial':
+                return `<span class="badge bg-warning">${percentage}% Complete</span>`;
+            case 'none':
+                return '<span class="badge bg-secondary">Not Started</span>';
+            default:
+                return '<span class="badge bg-secondary">Unknown</span>';
+        }
+    }
+    
+    // Function to show detailed team information
+    window.showTeamDetails = function(teamId, teamName) {
+        // Don't create a new modal, use the same teams modal
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = `Team: ${teamName}`;
+        modalContent.innerHTML = `
+            <div class="d-flex justify-content-center">
+                <div class="spinner-border text-primary" role="status">
+                    <span class="visually-hidden">Loading...</span>
+                </div>
+            </div>
+        `;
+            
+        // Load team details
+        fetch(`includes/get_team_details.php?team_id=${teamId}`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    modalTitle.textContent = `Team: ${data.team.name}`;
+                    
+                    // Format defense schedule if available
+                    let defenseSchedule = 'Not scheduled';
+                    if (data.defense) {
+                        const date = new Date(data.defense.schedule_date);
+                        const options = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+                        defenseSchedule = `${date.toLocaleDateString('en-US', options)} at ${data.defense.start_time} - ${data.defense.end_time}`;
+                        if (data.defense.location) {
+                            defenseSchedule += ` (${data.defense.location})`;
+                        }
+                    }
+                    
+                    // Find adviser from members list if not in adviser field
+                    let adviser = data.adviser;
+                    let adviserMember = null;
+                    
+                    if (!adviser) {
+                        // Look for a member with the "adviser" role
+                        adviserMember = data.members.find(member => member.role === 'adviser');
+                        if (adviserMember) {
+                            adviser = {
+                                id: adviserMember.user_id,
+                                name: adviserMember.name
+                            };
+                        }
+                    }
+                    
+                    // Filter out the advisor from the members list
+                    const filteredMembers = data.members.filter(member => {
+                        // Remove member if they're the adviser by ID or role
+                        if (adviser && member.user_id === adviser.id) return false;
+                        if (member.role === 'adviser') return false;
+                        return true;
+                    });
+                    
+                    // Create HTML for team details with back button
+                    let backButton = '';
+                    if (currentSearchResults) {
+                        backButton = `
+                            <div class="mt-3 text-center">
+                                <button class="btn btn-secondary" onclick="goBackToSearchResults()">
+                                    <i class="bi bi-arrow-left me-1"></i>Back to Search Results
+                                </button>
+                            </div>
+                        `;
+                    }
+                    
+                    modalContent.innerHTML = `
+                        <div class="row">
+                            <div class="col-md-6">
+                                <h5>Research Title</h5>
+                                <p>${data.title ? data.title.title : 'No approved title'}</p>
+                                
+                                <h5>Defense Schedule</h5>
+                                <p>${defenseSchedule}</p>
+                                
+                                <h5>Adviser</h5>
+                                <p>${adviser ? adviser.name : 'No adviser assigned'}</p>
+                            </div>
+                            <div class="col-md-6">
+                                <h5>Team Members</h5>
+                                <ul class="list-group">
+                                    ${filteredMembers.map(member => `
+                                        <li class="list-group-item d-flex justify-content-between align-items-center">
+                                            ${member.name}
+                                            <span class="badge bg-info rounded-pill">${member.role || 'Member'}</span>
+                                        </li>
+                                    `).join('')}
+                                </ul>
+                            </div>
+                        </div>
+                        ${backButton}
+                    `;
+                } else {
+                    modalContent.innerHTML = `<div class="alert alert-danger">${data.message || 'Failed to load team details'}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error fetching team details:', error);
+                modalContent.innerHTML = `<div class="alert alert-danger">An error occurred while loading team details.</div>`;
+            });
+        
+        // Modal is already showing, just update content
+    };
+    
+    // Function to show team requirements breakdown
+    window.showTeamRequirements = function(teamId, teamName, requirementDetails) {
+        // Use the existing modal, don't create a new one
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = `Requirements - ${teamName}`;
+            
+            // Parse requirement details if it's a string
+            let requirements = requirementDetails;
+            if (typeof requirementDetails === 'string') {
+                try {
+                    requirements = JSON.parse(requirementDetails);
+                } catch (e) {
+                    console.error('Error parsing requirement details:', e);
+                    requirements = [];
+                }
+            }
+            
+            // Categorize requirements
+            const completed = requirements.filter(req => req.status === 'approved' || req.status === 'submitted');
+            const pending = requirements.filter(req => req.status === 'pending');
+            const remaining = requirements.filter(req => req.status === 'missing' || !req.status);
+            
+            modalContent.innerHTML = `
+                <div class="row">
+                    <div class="col-12 mb-4">
+                        <h5 class="text-success">
+                            <i class="bi bi-check-circle-fill me-2"></i>
+                            Completed Requirements (${completed.length})
+                        </h5>
+                        ${completed.length > 0 ? `
+                            <ul class="list-group">
+                                ${completed.map(req => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${req.name}
+                                        <span class="badge bg-success rounded-pill">${req.status === 'approved' ? 'Approved' : 'Submitted'}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p class="text-muted">No completed requirements</p>'}
+                    </div>
+                    
+                    <div class="col-12 mb-4">
+                        <h5 class="text-warning">
+                            <i class="bi bi-clock-fill me-2"></i>
+                            Pending Requirements (${pending.length})
+                        </h5>
+                        ${pending.length > 0 ? `
+                            <ul class="list-group">
+                                ${pending.map(req => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${req.name}
+                                        <span class="badge bg-warning rounded-pill">Pending</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p class="text-muted">No pending requirements</p>'}
+                    </div>
+                    
+                    <div class="col-12">
+                        <h5 class="text-danger">
+                            <i class="bi bi-x-circle-fill me-2"></i>
+                            Remaining/Not Yet Submitted (${remaining.length})
+                        </h5>
+                        ${remaining.length > 0 ? `
+                            <ul class="list-group">
+                                ${remaining.map(req => `
+                                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                                        ${req.name}
+                                        <span class="badge bg-secondary rounded-pill">Not Submitted</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        ` : '<p class="text-muted">No remaining requirements</p>'}
+                    </div>
+                </div>
+                
+                <div class="mt-3 text-center">
+                    <button class="btn btn-secondary" onclick="goBackToSearchResults()">
+                        <i class="bi bi-arrow-left me-1"></i>Back to Search Results
+                    </button>
+                </div>
+            `;
+            
+            // Modal is already showing, just update content
+    };
+    
+    // Function to go back to search results
+    window.goBackToSearchResults = function() {
+        if (currentSearchResults) {
+            // Simply restore the search results in the same modal
+            const modalTitle = document.getElementById('teamsModalLabel');
+            const modalContent = document.getElementById('modalContent');
+            
+            modalTitle.textContent = `Search Results: "${currentSearchResults.search_query}" (${currentSearchResults.total_found} team${currentSearchResults.total_found !== 1 ? 's' : ''} found)`;
+            
+            if (currentSearchResults.teams.length === 0) {
+                modalContent.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="bi bi-info-circle me-2"></i>
+                        No teams found matching your search criteria.
+                    </div>
+                `;
+            } else {
+                let content = '<div class="row">';
+                
+                currentSearchResults.teams.forEach(team => {
+                    const statusBadge = getStatusBadge(team.status_category, team.completion_percentage);
+                    
+                    content += `
+                        <div class="col-12 mb-3">
+                            <div class="card h-100">
+                                <div class="card-body">
+                                    <div class="d-flex justify-content-between align-items-start mb-2">
+                                        <h5 class="card-title mb-0 d-flex align-items-center">
+                                            ${team.name}
+                                            <span class="ms-2">${statusBadge}</span>
+                                        </h5>
+                                        <div class="d-flex gap-2">
+                                            <button class="btn btn-sm" style="background-color: #1304ee; color: white; border-color: #1304ee;" onclick="showTeamDetails(${team.id}, '${team.name.replace(/'/g, "\\'")}')">
+                                                View Info
+                                            </button>
+                                            <button class="btn btn-sm btn-outline-secondary" onclick="showTeamRequirements(${team.id}, '${team.name.replace(/'/g, "\\'")}', ${JSON.stringify(team.requirement_details).replace(/"/g, '&quot;')})">
+                                                View Requirements
+                                            </button>
+                                        </div>
+                                    </div>
+                                    
+                                    <p class="card-text text-muted mb-2">
+                                        <strong>Research Title:</strong> ${team.research_title}
+                                    </p>
+                                    <p class="card-text text-muted mb-0">
+                                        <strong>Adviser:</strong> ${team.adviser}
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                content += '</div>';
+                modalContent.innerHTML = content;
+            }
+        } else {
+            // If no search results stored, just close the modal
+            const modal = bootstrap.Modal.getInstance(document.getElementById('teamsModal'));
+            if (modal) {
+                modal.hide();
+            }
+        }
+    };
+    
+    // Function to show requirements list
+    window.showRequirementsList = function() {
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = 'Requirements Overview';
+        
+        // Debug: Check if requirementDetails is available
+        console.log('Requirements details:', requirementDetails);
+        
+        if (!requirementDetails || Object.keys(requirementDetails).length === 0) {
+            modalContent.innerHTML = `
+                <div class="alert alert-warning">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    No requirements data available.
+                </div>
+            `;
+            return;
+        }
+        
+        let content = '<div class="row">';
+        
+        // Create requirements list from requirementDetails
+        Object.entries(requirementDetails).forEach(([requirementId, details]) => {
+            // Add null checks for details and details.name
+            if (!details || !details.name) {
+                console.warn(`Skipping requirement ${requirementId} - missing name`, details);
+                return;
+            }
+            
+            const totalTeams = (details.completed?.length || 0) + (details.pending?.length || 0) + (details.missing?.length || 0);
+            const safeName = details.name.replace(/'/g, "\\'");
+            
+            content += `
+                <div class="col-12 mb-3">
+                    <div class="card h-100" style="cursor: pointer;" onclick="showRequirementTeams('${requirementId}', '${safeName}')">
+                        <div class="card-body">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <h5 class="card-title mb-0">${details.name}</h5>
+                                <span class="badge bg-primary rounded-pill">${totalTeams}</span>
+                            </div>
+                            <div class="mt-2">
+                                <small class="text-success me-3">
+                                    <i class="bi bi-check-circle-fill me-1"></i>
+                                    ${details.completed?.length || 0} Completed
+                                </small>
+                                <small class="text-warning me-3">
+                                    <i class="bi bi-clock-fill me-1"></i>
+                                    ${details.pending?.length || 0} Pending
+                                </small>
+                                <small class="text-danger">
+                                    <i class="bi bi-x-circle-fill me-1"></i>
+                                    ${details.missing?.length || 0} Missing
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        });
+        
+        content += '</div>';
+        modalContent.innerHTML = content;
+        
+        // Don't create a new modal, just show the existing one if it's not already shown
+        const existingModal = bootstrap.Modal.getInstance(document.getElementById('teamsModal'));
+        if (existingModal) {
+            // Modal is already initialized, just make sure it's shown
+            existingModal.show();
+        } else {
+            // Create and show the modal
+            const teamsModal = new bootstrap.Modal(document.getElementById('teamsModal'));
+            teamsModal.show();
+        }
+    };
+    
+    // Function to show teams for a specific requirement
+    window.showRequirementTeams = function(requirementId, requirementName) {
+        const modalTitle = document.getElementById('teamsModalLabel');
+        const modalContent = document.getElementById('modalContent');
+        
+        modalTitle.textContent = `Teams Status: ${requirementName}`;
+        
+        const requirement = requirementDetails[requirementId];
+        
+        if (!requirement) {
+            modalContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-triangle me-2"></i>
+                    Requirement details not found.
+                </div>
+            `;
+            return;
+        }
+        
+        const content = `
+            <div class="row">
+                <div class="col-12 mb-4">
+                    <h5 class="text-success">
+                        <i class="bi bi-check-circle-fill me-2"></i>
+                        Completed Teams (${requirement.completed.length})
+                    </h5>
+                    ${requirement.completed.length > 0 ? `
+                        <ul class="list-group">
+                            ${requirement.completed.map(team => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${team.name}
+                                    <span class="badge bg-success rounded-pill">Completed</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p class="text-muted">No teams have completed this requirement</p>'}
+                </div>
+                
+                <div class="col-12 mb-4">
+                    <h5 class="text-warning">
+                        <i class="bi bi-clock-fill me-2"></i>
+                        Pending Teams (${requirement.pending.length})
+                    </h5>
+                    ${requirement.pending.length > 0 ? `
+                        <ul class="list-group">
+                            ${requirement.pending.map(team => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${team.name}
+                                    <span class="badge bg-warning rounded-pill">Pending</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p class="text-muted">No teams have pending submissions</p>'}
+                </div>
+                
+                <div class="col-12 mb-4">
+                    <h5 class="text-danger">
+                        <i class="bi bi-x-circle-fill me-2"></i>
+                        Missing Teams (${requirement.missing.length})
+                    </h5>
+                    ${requirement.missing.length > 0 ? `
+                        <ul class="list-group">
+                            ${requirement.missing.map(team => `
+                                <li class="list-group-item d-flex justify-content-between align-items-center">
+                                    ${team.name}
+                                    <span class="badge bg-secondary rounded-pill">Missing</span>
+                                </li>
+                            `).join('')}
+                        </ul>
+                    ` : '<p class="text-muted">No teams are missing this requirement</p>'}
+                </div>
+            </div>
+            
+            <div class="mt-3 text-center">
+                <button class="btn btn-secondary" onclick="showRequirementsList()">
+                    <i class="bi bi-arrow-left me-1"></i>Back to Requirements List
+                </button>
+            </div>
+        `;
+        
+        modalContent.innerHTML = content;
+    };
     
     // Make "view per requirement" link work
     const viewRequirementsLink = document.getElementById('viewRequirementsLink');
     if (viewRequirementsLink) {
         viewRequirementsLink.addEventListener('click', function(e) {
             e.preventDefault();
-            // Navigate to the requirements page or show the requirements modal
-            window.location.href = 'requirements.php';
+            window.showRequirementsList();
         });
     }
     

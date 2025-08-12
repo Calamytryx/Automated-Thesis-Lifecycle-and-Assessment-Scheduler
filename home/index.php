@@ -496,35 +496,43 @@ document.addEventListener("DOMContentLoaded", function() {
         <div class="col-sm-12">
             <div class="row g-0" style="height: 100vh; overflow: hidden;">
                 <div id="homeSidebarContainer">
-                    <div class="home-sidebar-header d-flex justify-content-between align-items-center">
-                        <div class="text-end d-flex align-items-center justify-content-end">
-                            <?php
-                                $roleText = '';
-                                $roleClass = '';
-                                if (isset($_SESSION['usertype'])) {
-                                    if ($_SESSION['usertype'] == 1) {
-                                        $roleText = 'Student';
-                                        $roleClass = 'role-student';
-                                    } elseif ($_SESSION['usertype'] == 2) {
-                                        $roleText = 'Professor';
-                                        $roleClass = 'role-prof';
-                                    } elseif ($_SESSION['usertype'] == 0) {
-                                        $roleText = 'Administrator';
-                                        $roleClass = 'role-admin';
-                                    } else {
-                                        $roleText = 'User';
-                                        $roleClass = 'role-user';
-                                    }
-                                }
-                            ?>
-                            <?php if ($roleText): ?>
-                            <?php /* User type pill moved to navbar */ ?>
-                            <?php /*<span class="user-role m-0 home-sidebar-role-pill <?php echo $roleClass; ?>"><?php echo $roleText; ?></span>*/ ?>
-                            <?php endif; ?>
+                    <!-- User Profile Section moved to top -->
+                    <div class="home-profile-header d-flex justify-content-between align-items-center">
+                        <div class="home-profile-dropdown-container" id="homeProfileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                            <div class="profile-container">
+                                <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                    <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                                <?php else: ?>
+                                    <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                                <?php endif; ?>
+                                <div class="user-info">
+                                    <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                    <p class="user-role"><?php 
+                                        if ($_SESSION['usertype'] == 0) {
+                                            echo "Administrator";
+                                        } elseif ($_SESSION['usertype'] == 1) {
+                                            echo "Student";
+                                        } elseif ($_SESSION['usertype'] == 2) {
+                                            echo "Faculty";
+                                        } else {
+                                            echo "User";
+                                        }
+                                    ?></p>
+                                </div>
+                            </div>
+                            <!-- Profile Dropdown Menu -->
+                            <ul class="dropdown-menu home-profile-dropdown-menu" aria-labelledby="homeProfileDropdownToggle">
+                                <li><a class="dropdown-item" href="../profile"><i class="bi bi-person-circle me-2"></i>View Profile</a></li>
+                                <li><a class="dropdown-item" href="../profile-edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+                                <li><hr class="dropdown-divider"></li>
+                                <li><a class="dropdown-item" href="#" id="homeLogoutBtn"><i class="bi bi-power me-2"></i>Logout</a></li>
+                            </ul>
                         </div>
-                        <button id="toggleHomeSidebar" class="btn btn-link">
-                            <i class="bi bi-chevron-left"></i>
-                        </button>
+                        <div class="home-toggle-button-container">
+                            <button id="toggleHomeSidebar" class="btn btn-link">
+                                <i class="bi bi-chevron-left"></i>
+                            </button>
+                        </div>
                     </div>
                     <!-- Sidebar -->
                     <div class="home-sidebar">
@@ -591,39 +599,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                 </div>
                             </div>
                         </div>
-                    </div>
-
-                    <!-- User Profile Section at bottom -->
-                    <div class="profile-footer">
-                        <a href="../profile" class="profile-container" title="View Profile"
-                            style="text-decoration: none; color: inherit;">
-                            <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
-                            <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>"
-                                alt="<?php echo $_SESSION['username']; ?>">
-                            <?php else: ?>
-                            <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
-                            <?php endif; ?>
-
-                            <div class="user-info">
-                                <p class="user-name">
-                                    <?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                <p class="user-role"><?php 
-                            if ($_SESSION['usertype'] == 0) {
-                                echo "Administrator";
-                            } elseif ($_SESSION['usertype'] == 1) {
-                                echo "Student";
-                            } elseif ($_SESSION['usertype'] == 2) {
-                                echo "Faculty";
-                            } else {
-                                echo "User";
-                            }
-                        ?></p>
-                            </div>
-                        </a>
-
-                        <a href="#" class="logout-btn" id="homeLogoutBtn" title="Logout">
-                            <i class="bi bi-power"></i>
-                        </a>
                     </div>
                 </div>
 
@@ -1637,6 +1612,89 @@ document.addEventListener("DOMContentLoaded", function() {
 <?php
 include '../assets/layouts/footer.php'
 ?>
+
+<!-- Home Page Sidebar Toggle Script -->
+<script>
+// ==========================================
+// COLLAPSIBLE SIDEBAR FUNCTIONALITY - HOME PAGE (Fixed)
+// ==========================================
+$(document).ready(function() {
+    console.log('Home page JavaScript initializing...');
+    
+    // IMPORTANT FIX: Replicate exact dashboard functionality
+    // Remove all click handlers from the toggle button first
+    $('#toggleHomeSidebar').off('click');
+    
+    // Add a single click handler matching dashboard pattern exactly
+    $('#toggleHomeSidebar').on('click', function(e) {
+        e.preventDefault();
+        e.stopPropagation(); // Prevent event bubbling
+        
+        console.log('Home sidebar toggle clicked!');
+        
+        $('#homeSidebarContainer').toggleClass('collapsed');
+        $('#homeMainContent').toggleClass('expanded');
+        $(this).toggleClass('collapsed');
+        
+        // Update icon rotation
+        if ($('#homeSidebarContainer').hasClass('collapsed')) {
+            $(this).find('i').css('transform', 'rotate(180deg)');
+            $('body').addClass('has-collapsed-home-sidebar');
+        } else {
+            $(this).find('i').css('transform', 'rotate(0deg)');
+            $('body').removeClass('has-collapsed-home-sidebar');
+        }
+        
+        // Save state to localStorage
+        localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
+    });
+    
+    // Check localStorage for saved sidebar state on page load
+    const sidebarCollapsed = localStorage.getItem('homeSidebarCollapsed') === 'true';
+    if (sidebarCollapsed) {
+        $('#homeSidebarContainer').addClass('collapsed');
+        $('#homeMainContent').addClass('expanded');
+        $('#toggleHomeSidebar').addClass('collapsed');
+        $('#toggleHomeSidebar').find('i').css('transform', 'rotate(180deg)');
+    }
+    
+    // Handle window resize for responsive behavior
+    $(window).on('resize', function() {
+        if (window.innerWidth <= 768) {
+            $('#homeMainContent').addClass('expanded');
+        } else {
+            if (!$('#homeSidebarContainer').hasClass('collapsed')) {
+                $('#homeMainContent').removeClass('expanded');
+            }
+        }
+    });
+    
+    console.log('Home page sidebar toggle functionality initialized');
+    
+    // Home sidebar logout functionality
+    $(document).on('click', '#homeLogoutBtn', function(e) {
+        e.preventDefault();
+        $('#logoutConfirmModal').modal('show');
+    });
+    
+    // Home profile dropdown functionality
+    $(document).on('click', '.home-profile-dropdown-menu .dropdown-item[href="../profile"]', function(e) {
+        e.preventDefault();
+        window.location.href = '../profile';
+    });
+    
+    $(document).on('click', '.home-profile-dropdown-menu .dropdown-item[href="../profile-edit"]', function(e) {
+        e.preventDefault();
+        window.location.href = '../profile-edit';
+    });
+    
+    // Ensure dropdown closes properly after clicking links
+    $(document).on('click', '.home-profile-dropdown-menu .dropdown-item', function() {
+        $('.home-profile-dropdown-container').removeClass('show');
+        $('.home-profile-dropdown-menu').removeClass('show');
+    });
+});
+</script>
 <!-- AI GEMINI MODULE -->
 <!-- Main Module JS -->
 <script type="module" src="../assets/js/mainModule.js"></script>
@@ -1651,111 +1709,7 @@ $titles = $stmt->fetchAll(PDO::FETCH_COLUMN);
 // ==========================================
 // COLLAPSIBLE SIDEBAR FUNCTIONALITY - HOME PAGE
 // ==========================================
-$(document).ready(function() {
-    // Initialize sidebar toggle functionality
-    initHomePageSidebar();
-    
-    // Home sidebar logout functionality
-    $(document).on('click', '#homeLogoutBtn', function(e) {
-        e.preventDefault();
-        $('#logoutConfirmModal').modal('show');
-    });
-});
-
-function initHomePageSidebar() {
-    // Remove any existing click handlers to prevent conflicts
-    $('#toggleHomeSidebar').off('click');
-
-    // Check localStorage for saved sidebar state on page load
-    const sidebarCollapsed = localStorage.getItem('homeSidebarCollapsed') === 'true';
-    if (sidebarCollapsed) {
-        $('#homeSidebarContainer').addClass('collapsed');
-        $('#homeMainContent').addClass('expanded');
-        $('#toggleHomeSidebar').find('i').css('transform', 'rotate(180deg)');
-        $('body').addClass('home-sidebar-collapsed');
-    }
-
-    // Handle responsive behavior
-    if ($(window).width() <= 768) {
-        // Mobile behavior - matches dashboard breakpoint
-        $('#toggleHomeSidebar').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Toggle collapsed state on mobile
-            $('#homeSidebarContainer').toggleClass('collapsed');
-            $('#homeMainContent').toggleClass('expanded');
-
-            // Update icon rotation and body class
-            if ($('#homeSidebarContainer').hasClass('collapsed')) {
-                $(this).find('i').css('transform', 'rotate(180deg)');
-                $('body').addClass('has-collapsed-home-sidebar');
-            } else {
-                $(this).find('i').css('transform', 'rotate(0deg)');
-                $('body').removeClass('has-collapsed-home-sidebar');
-            }
-
-            // Save state to localStorage
-            localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
-        });
-    } else {
-        // Desktop behavior
-        $('#toggleHomeSidebar').on('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            // Toggle collapsed state
-            $('#homeSidebarContainer').toggleClass('collapsed');
-            $('#homeMainContent').toggleClass('expanded');
-
-            // Update icon rotation
-            if ($('#homeSidebarContainer').hasClass('collapsed')) {
-                $(this).find('i').css('transform', 'rotate(180deg)');
-                $('body').addClass('has-collapsed-home-sidebar');
-            } else {
-                $(this).find('i').css('transform', 'rotate(0deg)');
-                $('body').removeClass('has-collapsed-home-sidebar');
-            }
-
-            // Save state to localStorage
-            localStorage.setItem('homeSidebarCollapsed', $('#homeSidebarContainer').hasClass('collapsed'));
-        });
-    }
-
-    // Handle window resize - reinitialize without infinite recursion
-    $(window).off('resize.homeSidebar').on('resize.homeSidebar', function() {
-        // Only reinitialize if we switch between mobile and desktop
-        const isMobile = $(window).width() <= 768;
-        const wasInitializedForMobile = $('#toggleHomeSidebar').data('mobile-mode') === true;
-
-        if (isMobile !== wasInitializedForMobile) {
-            $('#toggleHomeSidebar').data('mobile-mode', isMobile);
-            initHomePageSidebar();
-        }
-    });
-
-    // Mark current mode
-    $('#toggleHomeSidebar').data('mobile-mode', $(window).width() <= 768);
-
-    console.log('Home page sidebar toggle functionality initialized');
-}
-
-// Remove legacy mobile overlay styles - now using dashboard responsive approach
-$('<style>')
-    .prop('type', 'text/css')
-    .html(`
-            /* Home sidebar responsive helper styles */
-            body.has-collapsed-home-sidebar {
-                overflow-x: hidden;
-            }
-            
-            @media (max-width: 768px) { 
-                body.has-collapsed-home-sidebar #homeMainContent {
-                    padding-left: 70px;
-                }
-            }
-        `)
-    .appendTo('head');
+// Move sidebar toggle functionality to after jQuery is loaded
 
 var existingTitles = "<?php echo implode(', ', $titles); ?>";
 </script>
