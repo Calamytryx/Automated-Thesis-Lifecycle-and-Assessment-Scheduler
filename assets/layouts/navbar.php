@@ -58,23 +58,24 @@
 
                     if ($team) {
                         // Check if team has an approved research title
-                        $titleQuery = "SELECT approved_at FROM research_titles WHERE team_id = ?";
+                        $titleQuery = "SELECT id, approved_at FROM research_titles WHERE team_id = ?";
                         $titleStmt = $pdo->prepare($titleQuery);
                         $titleStmt->execute([$team['id']]);
                         $title = $titleStmt->fetch();
                         
                         if ($title && $title['approved_at'] !== null) {
-                            // Check if team has evaluation records (indicating completion of Research 1)
-                            $evaluationQuery = "SELECT COUNT(*) FROM evaluation_per_panel epp 
-                                               WHERE epp.student_id = ?";
+                            // Count evaluations for the research title
+                            $evaluationQuery = "SELECT COUNT(*) FROM evaluation_per_panel WHERE title_id = ? AND student_id = ?";
                             $evaluationStmt = $pdo->prepare($evaluationQuery);
-                            $evaluationStmt->execute([$userId]);
-                            $hasEvaluations = $evaluationStmt->fetchColumn() > 0;
+                            $evaluationStmt->execute([$title['id'], $userId]);
+                            $evaluationCount = (int)$evaluationStmt->fetchColumn();
                             
-                            if ($hasEvaluations) {
+                            if ($evaluationCount === 1) {
+                                $researchSubject = 'Research 1';
+                            } elseif ($evaluationCount === 2) {
                                 $researchSubject = 'Research 2';
                             } else {
-                                $researchSubject = 'Research 1';
+                                $researchSubject = 'Research Methods';
                             }
                         }
                     }
