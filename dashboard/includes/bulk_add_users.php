@@ -117,9 +117,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if (strpos($nameField, ',') !== false) {
                 list($last_name, $first_name) = array_map('trim', explode(',', $nameField, 2));
+                $first_name = ucwords(strtolower($first_name));
+                $last_name = ucwords(strtolower($last_name));
             } else {
-                $first_name = $nameField;
-                $last_name  = $nameField;
+                $first_name = ucwords(strtolower($nameField));
+                $last_name  = ucwords(strtolower($nameField));
             }
 
             if (strtolower($noUsername) === 'true' || $noUsername === '1' || strtolower($noUsername) === 'on') {
@@ -128,9 +130,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $username = $csvUsername;
             }
             
-            $password = "1234";
-            $email = $username . '@lpunetwork.com';
-            
+            $password = $last_name;
+            $email = $username . '@lpunetwork.edu.ph';
+
             $processedUsers[] = [
                 'username'    => $username,
                 'first_name'  => $first_name,

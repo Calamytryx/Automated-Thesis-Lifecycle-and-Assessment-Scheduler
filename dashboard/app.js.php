@@ -2198,13 +2198,54 @@
             $('#bulkAddModal').modal('show');
         });
 
-        // NEW: Bulk Add Teams functionality
-        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
-            e.preventDefault();
-            console.log('Bulk Add Teams button clicked');
-            $('#bulkAddTeamsModal').modal('show');
+        // Handle Bulk Add Form Submission
+    $(document).off('submit.bulkAddForm').on('submit.bulkAddForm', '#bulkAddForm', function(e) {
+        e.preventDefault();
+
+        let formData = new FormData(this); // Grab all form inputs
+
+        $.ajax({
+            url: 'includes/bulk_add_users.php', // Path to backend PHP
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            dataType: 'json',
+            beforeSend: function() {
+                $('#bulkAddStatus').html('<div class="alert alert-info">Processing...</div>');
+            },
+            success: function(response) {
+                if (response.success) {
+                    $('#bulkAddStatus').html(`
+                        <div class="alert alert-success">
+                            ${response.message}<br>
+                            Processed: ${response.processed_count} | Inserted: ${response.inserted_count}
+                        </div>
+                    `);
+                    $('#bulkAddModal').modal('hide');
+                    location.reload(); // Reload to reflect changes
+                } else {
+                    $('#bulkAddStatus').html(`
+                        <div class="alert alert-danger">
+                            ${response.message}
+                        </div>
+                    `);
+                }
+            },
+            error: function(xhr, status, error) {
+                $('#bulkAddStatus').html(`
+                    <div class="alert alert-danger">
+                        🚨 An error occurred: ${error}
+                    </div>
+                `);
+            }
         });
+    });
+
         // BULK ADD STUDENT END
+
+        // NEW: Bulk Add Teams functionality
+        
 
         // BULK ADD TEAMS START
         $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
@@ -2274,6 +2315,13 @@
                 }
             });
         });
+
+        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+            e.preventDefault();
+            console.log('Bulk Add Teams button clicked');
+            $('#bulkAddTeamsModal').modal('show');
+        });
+        
         // BULK ADD TEAMS END
 
         // Event handler for preset buttons in area of expertise fields

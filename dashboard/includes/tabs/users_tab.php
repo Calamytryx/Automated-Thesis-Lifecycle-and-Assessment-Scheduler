@@ -132,6 +132,9 @@
                                 </label>
                             </div>
                         </div>
+                        <div class="mb-3 text-danger">
+                            <span>Password will be their lastname (e.g. Sean Gono, Password will be Gono)</span>
+                        </div>
                         <div class="mb-3">
                             <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
                             <input type="file" class="form-control" id="bulkFileInput" name="bulkFile" accept=".csv, .xls, .xlsx">
