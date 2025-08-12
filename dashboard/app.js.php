@@ -461,7 +461,6 @@
                 <div class="mb-3 row panelist">
                     <div class="col-sm-10">
                         <select class="form-select" name="panelist_id[${nextIndex}]">
-                            <option value="">Select a panelist</option>
                             ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
                         </select>
                     </div>
@@ -763,7 +762,7 @@
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
                                     <label for="usertype" class="form-label">User Type</label>
-                                    <select class="form-select" id="usertype" name="usertype">
+                                    <select class="form-select" id="usertype" name="usertype" required>
                                         <option value="0"${response.data.usertype == 0 ? ' selected' : ''}>Admin</option>
                                         <option value="1"${response.data.usertype == 1 ? ' selected' : ''}>Student</option>
                                         <option value="2"${response.data.usertype == 2 ? ' selected' : ''}>Faculty</option>
@@ -785,14 +784,14 @@
                                     formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
-                                            <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
+                                            <textarea class="form-control" id="${key}" name="${key}" rows="3" required>${value}</textarea>
                                         </div>
                                     `;
                                 } else {
                                     formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
-                                            <input type="${inputType}" class="form-control" id="${key}" name="${key}" value="${value}">
+                                            <input type="${inputType}" class="form-control" id="${key}" name="${key}" value="${value}" required>
                                         </div>
                                     `;
                                 }
@@ -802,7 +801,7 @@
                             formHtml += `
                                 <div class="mb-3">
                                     <label for="program_id" class="form-label">Program</label>
-                                    <select class="form-select" id="program_id" name="program_id">
+                                    <select class="form-select" id="program_id" name="program_id" required>
                                         <option value="">Loading programs...</option>
                                     </select>
                                 </div>
@@ -813,7 +812,7 @@
                                 <div class="mb-3 area-expertise-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
                                     <label for="area_of_expertise" class="form-label">Area of Expertise</label>
                                     <div class="input-group">
-                                        <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
+                                        <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}" required>
                                         <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
                                         <ul class="dropdown-menu">
                                             <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
@@ -830,11 +829,11 @@
                             <div class="mb-3 is-part-time-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
                                 <label class="form-label">Is Part Time</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_parttime" id="fullTime" value="0" ${response.data.is_parttime == 0 || response.data.is_parttime == null ? 'checked' : ''}>
+                                    <input class="form-check-input" type="radio" name="is_parttime" id="fullTime" value="0" ${response.data.is_parttime == 0 || response.data.is_parttime == null ? 'checked' : ''} required>
                                     <label class="form-check-label" for="fullTime">Full Time</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_parttime" id="partTime" value="1" ${response.data.is_parttime == 1 ? 'checked' : ''}>
+                                    <input class="form-check-input" type="radio" name="is_parttime" id="partTime" value="1" ${response.data.is_parttime == 1 ? 'checked' : ''} required>
                                     <label class="form-check-label" for="partTime">Part Time</label>
                                 </div>
                             </div>
@@ -1094,9 +1093,12 @@
                             <div class="mb-3 row panelist align-items-center" data-user-id="${panelist.id}">
                                 <label class="col-sm-2 col-form-label">Panelist ${index + 1}</label>
                                 <div class="col-sm-8">
-                                    <select class="form-select" name="panelist_id[${index}]">
-                                        <option value="">Select Panelist</option>
-                                        ${response.staff.map(staff => `<option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>${staff.name}</option>`).join('')}
+                                    <select class="form-select" name="panelist_id[${index}]" required>
+                                        ${response.staff.map(staff => `
+                                            <option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>
+                                                ${staff.name}
+                                            </option>
+                                        `).join('')}
                                     </select>
                                 </div>
                                 <div class="col-sm-2">
@@ -1934,9 +1936,9 @@
                             <h5 class="mt-4">Panelists (Max 3)</h5>
                             <div id="panelists">
                                 <div class="mb-3 row panelist">
-                                    <div class="col-sm-10">
+                                <label class="col-sm-2 col-form-label">Panelist 1</label>
+                                    <div class="col-sm-8">
                                         <select class="form-select" name="panelist_id[0]">
-                                            <option value="">Select Panelist</option>
                                             ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
                                         </select>
                                     </div>
@@ -2421,7 +2423,6 @@
             <label class="col-sm-2 col-form-label">Panelist ${nextIndex + 1}</label>
             <div class="col-sm-8">
                 <select class="form-select" name="panelist_id[${nextIndex}]">
-                    <option value="">Select a panelist</option>
                     ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
                 </select>
             </div>
