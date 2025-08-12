@@ -2,6 +2,8 @@
 session_start();
 require '../assets/setup/db.inc.php'; // Adjust path as needed
 
+$done_evaluating = false; // Initialize evaluation status
+
 // --- Configuration ---
 $page_title = "Defense Evaluation"; // Updated Title
 $error_ref_prefix = "DS-FETCH-"; // Prefix for error references
@@ -16,6 +18,16 @@ echo '  console.log("Rubric Group ID:", ' . json_encode($group_id, JSON_NUMERIC_
 echo '</script>';
 
 $evaluator_id = $_SESSION['id'] ?? null;
+
+// Helper function to fetch all evaluations (if needed)
+function fetchevaluations($pdo) {
+    $stmt = $pdo->prepare("SELECT * FROM evaluation_per_panel");
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+// Check if evaluator has already evaluated this schedule
+$done_evaluating = false;
 
 // --- Validate Input (New Logic) ---
 if (!$schedule_id || !$group_id || !$evaluator_id) {
@@ -747,6 +759,19 @@ include '../assets/layouts/header.php';
 <main role="main" class="decision-support-bg">
   <section class="jumbotron py-5 mb-4 jbtron">
     <div class="container">
+        <?php
+        if ($evaluator_id && $schedule_id) {
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM evaluation_per_panel WHERE defense_schedule_id = ? AND evaluator_id = ?");
+    $stmt->execute([$schedule_id, $evaluator_id]);
+    $done_evaluating = $stmt->fetchColumn() > 0;
+    if ($done_evaluating) {
+        echo "<div class='container mt-5'><div class='alert alert-info'>You can no longer edit this evaluation.</div></div>";
+        $done_evaluating = true;
+
+    }
+}
+
+        ?>
         <div class="text-center mb-4">
             <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
             <div class="d-flex justify-content-center gap-2 mb-4">
@@ -979,7 +1004,7 @@ include '../assets/layouts/header.php';
                 </div>
 
                 <!-- Submit Button -->
-                <?php if (!empty($rubrics_in_group)): ?>
+                <?php if (!empty($rubrics_in_group) && !$done_evaluating): ?>
                     <div class="text-center mb-5">
                         <button type="submit" class="btn btn-primary btn-lg">Submit Evaluation</button>
                     </div>
