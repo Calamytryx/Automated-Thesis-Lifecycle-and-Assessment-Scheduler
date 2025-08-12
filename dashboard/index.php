@@ -594,10 +594,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     </div>
                 </form>
             </div>
-            <div class="modal-footer"> 
-                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                <button type="button" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
-            </div>
+
         </div>
     </div>
 </div>
@@ -624,10 +621,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <!-- Form fields will be dynamically inserted here -->
                 </form>
             </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
-            </div>
+            
         </div>
     </div>
 </div>

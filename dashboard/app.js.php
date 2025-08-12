@@ -1,4 +1,5 @@
 <script>
+    
     // Time adjustment functions for both add and edit modals
     function adjustTime(id, type, step) {
         // Always search inside the currently open modal for elements
@@ -1374,6 +1375,7 @@
                                     <small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>
                                 </div>
                             `;
+                            
                             form.html(formHtml);
 
                             // 🎯 Now get the selected program in real-time (AFTER form is rendered)
@@ -1401,6 +1403,16 @@
                             }
                         }
 
+                        
+                        form.append(`
+                            <div class="modal-footer"> 
+                                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
+                                <button type="submit" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
+                            </div>
+                        `);
+                        
+
+
                         // Add more conditions for other tables as needed
                         $('#editModal').modal('show');
                     } else {
@@ -1417,6 +1429,11 @@
         // UPDATED: Edit form submission handler with debug logs
         $(document).on('submit', '#editForm', function(e) {
             e.preventDefault();
+            // 🔹 Check native HTML5 validation first
+    if (!form.checkValidity()) {
+        form.reportValidity(); // show browser validation messages
+        return; // stop here if invalid
+    }
             console.log('DEBUG: Edit form submit event triggered'); // <-- New debug log
             var formData = new FormData(this);
             var table = formData.get('table'); // Get table name from form data
@@ -1482,7 +1499,6 @@
         // Add button functionality
         $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
             e.preventDefault();
-
             var table = $(this).data('table');
             console.log('Main app: Add button clicked for table:', table);
 
@@ -1801,39 +1817,39 @@
                 });
             } else if (table === 'teams') {
                 var formHtml = `
-            <div class="mb-3">
-            <label for="name" class="form-label">Team Name</label>
-            <input type="text" class="form-control" id="name" name="name" required>
-            </div>
-            <div class="mb-3">
-            <label for="title" class="form-label">Research Title</label>
-            <input type="text" class="form-control" id="title" name="title" required>
-            </div>
-            <div class="mb-3">
-            <label for="area_of_expertise" class="form-label">Area of Expertise</label>
-            <div class="input-group">
-                <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
-                <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
-                <ul class="dropdown-menu">
-                    <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
-                    <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
-                </ul>
-            </div>
-            </div>
-            <div class="mb-3">
-            <label for="program_id" class="form-label">Program</label>
-            <select class="form-select" id="program_id" name="program_id">
-                <option value="">Loading programs...</option>
-            </select>
-            </div>
-            <h5 class="mt-4">Team Members</h5>
-            <div id="teamMembers">
-            <!-- Team members will be added here -->
-            </div>
-            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
-        `;
+                    <div class="mb-3">
+                    <label for="name" class="form-label">Team Name</label>
+                    <input type="text" class="form-control" id="name" name="name" required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="title" class="form-label">Research Title</label>
+                    <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    <div class="mb-3">
+                    <label for="area_of_expertise" class="form-label">Area of Expertise</label>
+                    <div class="input-group">
+                        <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" placeholder="Enter area of expertise">
+                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown" aria-expanded="false">Preset</button>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item area-option" href="#" data-value="Mobile Dev">Mobile Dev</a></li>
+                            <li><a class="dropdown-item area-option" href="#" data-value="Hybrid Dev">Hybrid Dev</a></li>
+                            <li><a class="dropdown-item area-option" href="#" data-value="Web Dev">Web Dev</a></li>
+                            <li><a class="dropdown-item area-option" href="#" data-value="Software Engineering">Software Engineering</a></li>
+                        </ul>
+                    </div>
+                    </div>
+                    <div class="mb-3">
+                    <label for="program_id" class="form-label">Program</label>
+                    <select class="form-select" id="program_id" name="program_id">
+                        <option value="">Loading programs...</option>
+                    </select>
+                    </div>
+                    <h5 class="mt-4">Team Members</h5>
+                    <div id="teamMembers">
+                    <!-- Team members will be added here -->
+                    </div>
+                    <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+                `;
                 form.append(formHtml);
 
                 // Populate the programs dropdown for the add form
@@ -2010,6 +2026,12 @@
                     '<input type="text" class="form-control" id="name" name="name" required>' +
                     '</div>');
             }
+            form.append(`
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
+                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
+            </div>
+            `);
 
             // Show the modal for tables other than rubrics
             $('#addModal').modal('show');
@@ -2017,74 +2039,76 @@
 
         // Add form submission handler
         $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
-            e.preventDefault();
-            console.log('Add item button clicked');
+    e.preventDefault();
+    console.log('Add item button clicked');
 
-            var form = $('#addForm');
-            var table = form.find('input[name="table"]').val();
-            var formData = new FormData(form[0]); // moved initialization here
+    var form = $('#addForm')[0]; // get raw DOM element
 
-            // Add validation for defense schedule times
-            if (table === 'defense_schedules') {
-                const startTime = formData.get('start_time');
-                const endTime = formData.get('end_time');
-                const minTime = '07:00';
-                const maxTime = '20:30';
+    // 🔹 Check native HTML5 validation first
+    if (!form.checkValidity()) {
+        form.reportValidity(); // show browser validation messages
+        return; // stop here if invalid
+    }
 
-                if (startTime < minTime || startTime > maxTime) {
-                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
-                    return; // Prevent submission
-                }
-                if (endTime < minTime || endTime > maxTime) {
-                    showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
-                    return; // Prevent submission
-                }
-                if (startTime >= endTime) {
-                    showToast('Error', 'End time must be after start time.', 'error');
-                    return; // Prevent submission
-                }
-                // NOTE: Add server-side validation in includes/add_items.php
-                // to prevent scheduling a team that already has a schedule on the selected date.
+    var $form = $(form);
+    var table = $form.find('input[name="table"]').val();
+    var formData = new FormData(form); // form is already DOM node
+
+    // Your custom defense schedule validation
+    if (table === 'defense_schedules') {
+        const startTime = formData.get('start_time');
+        const endTime = formData.get('end_time');
+        const minTime = '07:00';
+        const maxTime = '20:30';
+
+        if (startTime < minTime || startTime > maxTime) {
+            showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+            return;
+        }
+        if (endTime < minTime || endTime > maxTime) {
+            showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+            return;
+        }
+        if (startTime >= endTime) {
+            showToast('Error', 'End time must be after start time.', 'error');
+            return;
+        }
+    }
+
+    $.ajax({
+        url: 'includes/add_items.php',
+        method: 'POST',
+        data: formData,
+        processData: false,
+        contentType: false,
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                showToast('Success', 'Added successfully', 'success');
+                $('#addModal').modal('hide');
+                setTimeout(function() {
+                    location.reload();
+                }, 2000);
+            } else {
+                showToast('Error', response.message || 'An unknown error occurred', 'error');
             }
-
-            $.ajax({
-                url: 'includes/add_items.php',
-                method: 'POST',
-                data: formData,
-                processData: false,
-                contentType: false,
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showToast('Success', 'Added successfully', 'success');
-                        $('#addModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
-                    } else {
-                        // Improved error message display
-                        showToast('Error', response.message || 'An unknown error occurred',
-                            'error');
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('AJAX Error:', xhr.responseText);
-                    // More user-friendly error message
-                    let errorMessage =
-                        'Unable to process your request. Please try again later.';
-                    try {
-                        const response = JSON.parse(xhr.responseText);
-                        if (response && response.message) {
-                            errorMessage = response.message;
-                        }
-                    } catch (e) {
-                        // If parsing fails, stick with generic message but log the real error
-                        console.error('Error parsing response:', e);
-                    }
-                    showToast('Error', errorMessage, 'error');
+        },
+        error: function(xhr, status, error) {
+            console.error('AJAX Error:', xhr.responseText);
+            let errorMessage = 'Unable to process your request. Please try again later.';
+            try {
+                const response = JSON.parse(xhr.responseText);
+                if (response && response.message) {
+                    errorMessage = response.message;
                 }
-            }); // Close $.ajax call
-        }); // Close $(document).on('click', '#addItem', ...) handler
+            } catch (e) {
+                console.error('Error parsing response:', e);
+            }
+            showToast('Error', errorMessage, 'error');
+        }
+    });
+});
+  // Close $(document).on('click', '#addItem', ...) handler
         // ADD END
 
         // DELETE START
@@ -2814,49 +2838,6 @@
         });
     });
 </script>
-<!-- Edit Modal -->
-<div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="editForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="editModalLabel">Edit Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Form contents filled via AJAX -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="saveEdit">Save Changes</button>
-                    <!-- Changed type to button, ID to saveEdit -->
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-
-<!-- Add Modal -->
-<div class="modal fade" id="addModal" tabindex="-1" aria-labelledby="addModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="addForm">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addModalLabel">Add New Item</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Form contents filled via JS -->
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
-                    <!-- Changed type to button -->
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"
@@ -2885,251 +2866,3 @@
     </div>
 </div>
 
-<!-- Bulk Add Users Modal -->
-<div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-
-            <form id="bulkAddForm">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="bulkAddModalLabel">Bulk Add Users</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Option to upload excel file -->
-                    <div class="mb-3">
-                        <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
-                        <input type="file" class="form-control" id="bulkFileInput" name="bulkFile"
-                            accept=".csv, .xls, .xlsx">
-                    </div>
-                    <!-- NEW: Option to paste bulk data -->
-                    <div class="mb-3">
-                        <label for="bulkTextInput" class="form-label">Paste Bulk Data</label>
-                        <textarea class="form-control" id="bulkTextInput" name="bulkTextInput" rows="5"
-                            placeholder="Paste CSV data here (ID,Name,Program,No Username)"></textarea>
-                    </div>
-                    <hr>
-                    <!-- Table for manual data input -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="bulkAddTable">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Program</th>
-                                    <th>No Username?</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- one sample row -->
-                                <tr>
-                                    <td><input type="text" class="form-control" name="users[0][id]"></td>
-                                    <td><input type="text" class="form-control" name="users[0][name]"></td>
-                                    <td><input type="text" class="form-control" name="users[0][program]"></td>
-                                    <td class="text-center">
-                                        <input type="checkbox" name="users[0][no_username]">
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Optionally, add number input to add multiple rows -->
-                    <div class="mb-3">
-                        <label for="rowCountInput" class="form-label">Add Rows: </label>
-                        <input type="number" id="rowCountInput" class="form-control"
-                            style="width:100px; display:inline-block" min="1" value="1">
-                        <button type="button" class="btn btn-secondary" id="addBulkRow">Add Rows</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="bulkAddSubmit" class="btn btn-info">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Bulk Add Teams Modal -->
-<div class="modal fade" id="bulkAddTeamsModal" tabindex="-1" aria-labelledby="bulkAddTeamsModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="bulkAddTeamsForm">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Teams</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Option to upload excel file -->
-                    <div class="mb-3">
-                        <label for="bulkTeamsFileInput" class="form-label">Upload Excel/CSV File</label>
-                        <input type="file" class="form-control" id="bulkTeamsFileInput" name="bulkTeamsFile"
-                            accept=".csv, .xls, .xlsx">
-                    </div>
-                    <!-- NEW: Option to paste bulk data -->
-                    <div class="mb-3">
-                        <label for="bulkTeamsTextInput" class="form-label">Paste Bulk Data</label>
-                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5"
-                            placeholder="Paste CSV data here (Team Name,Research Title,Area of Expertise,Program)"></textarea>
-                    </div>
-                    <hr>
-                    <!-- Table for manual data input -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="bulkAddTeamsTable">
-                            <thead>
-                                <tr>
-                                    <th>Team Name</th>
-                                    <th>Research Title</th>
-                                    <th>Area of Expertise</th>
-                                    <th>Program</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- one sample row -->
-                                <tr>
-                                    <td><input type="text" class="form-control" name="teams[0][name]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][title]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][program]"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Optionally, add number input to add multiple rows -->
-                    <div class="mb-3">
-                        <label for="teamsRowCountInput" class="form-label">Add Rows: </label>
-                        <input type="number" id="teamsRowCountInput" class="form-control"
-                            style="width:100px; display:inline-block" min="1" value="1">
-                        <button type="button" class="btn btn-secondary" id="addBulkTeamsRow">Add Rows</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="bulkAddTeamsSubmit" class="btn btn-info">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Bulk Add Users Modal -->
-<div class="modal fade" id="bulkAddModal" tabindex="-1" aria-labelledby="bulkAddModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-
-            <form id="bulkAddForm">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="bulkAddModalLabel">Bulk Add Users</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Option to upload excel file -->
-                    <div class="mb-3">
-                        <label for="bulkFileInput" class="form-label">Upload Excel/CSV File</label>
-                        <input type="file" class="form-control" id="bulkFileInput" name="bulkFile"
-                            accept=".csv, .xls, .xlsx">
-                    </div>
-                    <!-- NEW: Option to paste bulk data -->
-                    <div class="mb-3">
-                        <label for="bulkTextInput" class="form-label">Paste Bulk Data</label>
-                        <textarea class="form-control" id="bulkTextInput" name="bulkTextInput" rows="5"
-                            placeholder="Paste CSV data here"></textarea>
-                    </div>
-                    <hr>
-                    <!-- Table for manual data input -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="bulkAddTable<tbody>
-                                <!-- one sample row -->
-                                <tr>
-                                    <td><input type=" text" class="form-control" name="users[0][id]">
-                            </td>
-                            <td><input type="text" class="form-control" name="users[0][name]"></td>
-                            <td><input type="text" class="form-control" name="users[0][program]"></td>
-                            <td class="text-center">
-                                <input type="checkbox" name="users[0][no_username]">
-                            </td>
-                            </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Optionally, add number input to add multiple rows -->
-                    <div class="mb-3">
-                        <label for="rowCountInput" class="form-label">Add Rows: </label>
-                        <input type="number" id="rowCountInput" class="form-control"
-                            style="width:100px; display:inline-block" min="1" value="1">
-                        <button type="button" class="btn btn-secondary" id="addBulkRow">Add Rows</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="bulkAddSubmit" class="btn btn-info">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
-<!-- Bulk Add Teams Modal -->
-<div class="modal fade" id="bulkAddTeamsModal" tabindex="-1" aria-labelledby="bulkAddTeamsModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg modal-dialog-centered">
-        <div class="modal-content">
-            <form id="bulkAddTeamsForm">
-                <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Teams</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <!-- Option to upload excel file -->
-                    <div class="mb-3">
-                        <label for="bulkTeamsFileInput" class="form-label">Upload Excel/CSV File</label>
-                        <input type="file" class="form-control" id="bulkTeamsFileInput" name="bulkTeamsFile"
-                            accept=".csv, .xls, .xlsx">
-                    </div>
-                    <!-- NEW: Option to paste bulk data -->
-                    <div class="mb-3">
-                        <label for="bulkTeamsTextInput" class="form-label">Paste Bulk Data</label>
-                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5"
-                            placeholder="Paste CSV data here"></textarea>
-                    </div>
-                    <hr>
-                    <!-- Table for manual data input -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered" id="bulkAddTeamsTable">
-                            <thead>
-                                <tr>
-                                    <th>Team Name</th>
-                                    <th>Research Title</th>
-                                    <th>Area of Expertise</th>
-                                    <th>Program</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- one sample row -->
-                                <tr>
-                                    <td><input type="text" class="form-control" name="teams[0][name]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][title]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][area_of_expertise]"></td>
-                                    <td><input type="text" class="form-control" name="teams[0][program]"></td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <!-- Optionally, add number input to add multiple rows -->
-                    <div class="mb-3">
-                        <label for="teamsRowCountInput" class="form-label">Add Rows: </label>
-                        <input type="number" id="teamsRowCountInput" class="form-control"
-                            style="width:100px; display:inline-block" min="1" value="1">
-                        <button type="button" class="btn btn-secondary" id="addBulkTeamsRow">Add Rows</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" id="bulkAddTeamsSubmit" class="btn btn-info">Submit</button>
-                </div>
-            </form>
-        </div>
-    </div>
-</div>
