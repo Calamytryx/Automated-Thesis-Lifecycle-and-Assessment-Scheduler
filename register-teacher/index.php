@@ -101,13 +101,13 @@ $rest_of_name = substr($app_name, 1);
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="first_name">First Name</label>
-                                            <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name">
+                                            <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name" required>
                                         </div>
                                     </div>
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="last_name">Last Name</label>
-                                            <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name">
+                                            <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name" required>
                                         </div>
                                     </div>
                                 </div>

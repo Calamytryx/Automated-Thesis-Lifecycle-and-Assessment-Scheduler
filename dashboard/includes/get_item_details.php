@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response['programs'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'users') {
                     // Fetch user roles
-                    $stmt = $pdo->query("SELECT id, name FROM user_roles");
+                    $stmt = $pdo->query("SELECT * FROM users");
                     $response['roles'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'thesis_topics') {
                     // Fetch thesis topics

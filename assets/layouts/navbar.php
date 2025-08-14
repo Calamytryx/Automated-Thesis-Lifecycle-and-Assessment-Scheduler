@@ -65,9 +65,10 @@
                         
                         if ($title && $title['approved_at'] !== null) {
                             // Count evaluations for the research title
-                            $evaluationQuery = "SELECT COUNT(*) FROM evaluation_per_panel WHERE title_id = ? AND student_id = ?";
+                            $evaluationQuery = "SELECT COUNT(*) FROM evaluation_per_panel epp
+                            WHERE epp.student_id = ?";
                             $evaluationStmt = $pdo->prepare($evaluationQuery);
-                            $evaluationStmt->execute([$title['id'], $userId]);
+                            $evaluationStmt->execute([$userId]);
                             $evaluationCount = (int)$evaluationStmt->fetchColumn();
                             
                             if ($evaluationCount === 1) {

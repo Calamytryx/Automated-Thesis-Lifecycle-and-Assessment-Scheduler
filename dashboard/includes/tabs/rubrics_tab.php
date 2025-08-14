@@ -88,13 +88,14 @@
                         </div>
                         <div class="col-md-4">
                             <label for="defense_type" class="form-label">Defense Type</label>
-                            <select class="form-select" id="defense_type" name="defense_type">
-                                <option value="" selected>Select Defense Type (Optional)</option>
-                                <option value="Title Defense">Title Defense</option>
+                            <select class="form-select" id="defense_type" name="defense_type" required>
+                                <option value="Title Defense" selected>Title Defense</option>
                                 <option value="Proposal Defense">Proposal Defense</option>
                                 <option value="Final Defense">Final Defense</option>
                                 <option value="Re-Defense">Re-Defense</option>
                             </select>
+
+
                         </div>
                         <div class="col-md-4">
                             <label for="rubric_description" class="form-label">Rubric Description</label>
@@ -282,8 +283,9 @@
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-primary" id="saveRubric">Save Rubric</button>
+                <button type="submit" class="btn btn-primary" id="saveRubric">Save Rubric</button>
             </div>
+
         </div>
     </div>
 </div>
@@ -1196,6 +1198,32 @@
 
     // Function to save rubric data (Add or Edit)
     function saveRubric() {
+
+        // Basic required fields validation
+    var form = $('#rubricForm')[0];
+    var valid = true;
+
+    $(form).find('input[required], select[required], textarea[required]').each(function() {
+        if (!$(this).val()) {
+            valid = false;
+            // Optionally add some visual cue
+            $(this).addClass('is-invalid');
+        } else {
+            $(this).removeClass('is-invalid');
+        }
+    });
+
+    if (!valid) {
+        showToast('Error', 'Please fill in all required fields.', 'error');
+        return; // Stop the save if any required field is empty
+    }
+
+        // Check at least one program checkbox is checked
+    if ($('#programCheckboxesContainer input[type="checkbox"]:checked').length === 0) {
+        showToast('Error', 'Please select at least one applicable program.', 'error');
+        return;
+    }
+
         // --- Add validation check before saving ---
         var rubricType = $('#rubric_type').val();
         if (rubricType === 'numerical' && !validateLevelPoints()) {
@@ -1458,7 +1486,7 @@
             $('#rubricPreviewBody').empty();
             $('.program-checkbox').prop('checked', false); // Uncheck all programs
             $('#programsCollapse').removeClass('show'); // Ensure programs are collapsed
-            $('#defense_type').val(''); // Reset defense type
+            //$('#defense_type').val(''); // Reset defense type
 
             // Set default type and trigger change to set initial UI state
             $('#rubric_type').val('numerical'); // Set default

@@ -189,55 +189,62 @@
 
 
 
-    // Add helper function to dynamically populate program dropdowns
-    function populateProgramDropdown(selectElement, selectedValue = null) {
-        selectElement.html('<option value="">Loading programs...</option>');
+// Add helper function to dynamically populate program dropdowns
+// Add helper function to dynamically populate program dropdowns
+function populateProgramDropdown(selectElement, selectedValue) {
+    //     if (selectedValue != null) {
+    //     selectElement.html('<option value="' + selectedValue + '">' + selectedValue + '</option>');
+    // } else {
+    //     selectElement.html('<option value="">Loading programs...</option>');
+    // }
+    console.log(selectedValue)
 
-        $.ajax({
-            url: 'includes/get_programs_grouped.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                selectElement.empty();
-                selectElement.append('<option value="">Select Program</option>');
 
-                if (response.success && response.programs.length > 0) {
-                    let currentCollege = null;
-                    let optgroup = null;
+    $.ajax({
+        url: 'includes/get_programs_grouped.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(response) {
 
-                    $.each(response.programs, function(i, program) {
-                        // Create new optgroup when college changes
-                        if (program.college !== currentCollege) {
-                            currentCollege = program.college;
-                            optgroup = $('<optgroup>', {
-                                label: currentCollege
-                            });
-                            selectElement.append(optgroup);
-                        }
+            if (response.success && response.programs.length > 0) {
+                let currentCollege = null;
+                let optgroup = null;
 
-                        // Add program option to current optgroup
-                        const option = $('<option>', {
-                            value: program.display_name,
-                            text: program.display_name
+                $.each(response.programs, function(i, program) {
+                    // Create new optgroup when college changes
+                    if (program.college !== currentCollege) {
+                        currentCollege = program.college;
+                        optgroup = $('<optgroup>', {
+                            label: currentCollege
                         });
+                        selectElement.append(optgroup);
+                    }
 
-                        // Set selected if matches
-                        if (selectedValue !== null && selectedValue == program.id) {
-                            option.prop('selected', true);
-                        }
-
-                        optgroup.append(option);
+                    // Add program option to current optgroup
+                    const option = $('<option>', {
+                        value: program.display_name,
+                        text: program.display_name
                     });
-                } else {
-                    selectElement.html('<option value="">No programs available</option>');
-                }
-            },
-            error: function() {
-                selectElement.html('<option value="">Error loading programs</option>');
-                console.error("Failed to load programs");
+
+                    // Set selected if matches by program name
+                    if (selectedValue !== null && selectedValue === program.display_name) {
+                        option.prop('selected', true);
+                    }
+
+                    optgroup.append(option);
+                });
+            } else {
+                selectElement.html('<option value="">No programs available</option>');
             }
-        });
-    }
+        },
+        error: function() {
+            selectElement.html('<option value="">Error loading programs</option>');
+            console.error("Failed to load programs");
+        }
+    });
+}
+
+
 
     $(document).ready(function() {
         // Create toast container if it doesn't exist
@@ -665,54 +672,58 @@
 </div>
 <script>
     // Add helper function to dynamically populate program dropdowns
-    function populateProgramDropdown(selectElement, selectedValue = null) {
-        selectElement.html('<option value="">Loading programs...</option>');
+    // function populateProgramDropdown(selectElement, selectedValue = null) {
+    //     selectElement.html('<option value="">Loading programs...</option>');
 
-        $.ajax({
-            url: 'includes/get_programs_grouped.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                selectElement.empty();
-                selectElement.append('<option value="">Select Program</option>');
+    //     $.ajax({
+    //         url: 'includes/get_programs_grouped.php',
+    //         method: 'GET',
+    //         dataType: 'json',
+    //         success: function(response) {
+    //             selectElement.empty();
+    //             selectElement.append('<option value="">Select Program</option>');
 
-                if (response.success && response.programs.length > 0) {
-                    let currentCollege = null;
-                    let optgroup = null;
+    //             if (response.success && response.programs.length > 0) {
+    //                 let currentCollege = null;
+    //                 let optgroup = null;
 
-                    $.each(response.programs, function(i, program) {
-                        // Create new optgroup when college changes
-                        if (program.college !== currentCollege) {
-                            currentCollege = program.college;
-                            optgroup = $('<optgroup>', {
-                                label: currentCollege
-                            });
-                            selectElement.append(optgroup);
-                        }
+    //                 $.each(response.programs, function(i, program) {
+    //                     // Create new optgroup when college changes
+    //                     if (program.college !== currentCollege) {
+    //                         currentCollege = program.college;
+    //                         optgroup = $('<optgroup>', {
+    //                             label: currentCollege
+    //                         });
+    //                         selectElement.append(optgroup);
+    //                     }
 
-                        // Add program option to current optgroup
-                        const option = $('<option>', {
-                            value: program.display_name,
-                            text: program.display_name
-                        });
+    //                     // Add program option to current optgroup
+    //                     const option = $('<option>', {
+    //                         value: program.display_name,
+    //                         text: program.display_name
+    //                     });
 
-                        // Set selected if matches
-                        if (selectedValue !== null && selectedValue == program.id) {
-                            option.prop('selected', true);
-                        }
 
-                        optgroup.append(option);
-                    });
-                } else {
-                    selectElement.html('<option value="">No programs available</option>');
-                }
-            },
-            error: function() {
-                selectElement.html('<option value="">Error loading programs</option>');
-                console.error("Failed to load programs");
-            }
-        });
-    }
+
+    //                     // Set selected if matches
+    //                     if (selectedValue !== null && selectedValue === program.display_name) {
+    //                         option.prop('selected', true);
+    //                     }
+
+
+
+    //                     optgroup.append(option);
+    //                 });
+    //             } else {
+    //                 selectElement.html('<option value="">No programs available</option>');
+    //             }
+    //         },
+    //         error: function() {
+    //             selectElement.html('<option value="">Error loading programs</option>');
+    //             console.error("Failed to load programs");
+    //         }
+    //     });
+    // }
 
     $(document).ready(function() {
         // Create toast container if it doesn't exist
@@ -758,11 +769,13 @@
                         form.append('<input type="hidden" name="id" value="' + id + '">');
 
                         if (table === 'users') {
+                            console.log('Response programs:', response.programs);
+
                             var formHtml = `
                                 <input type="hidden" name="table" value="${table}">
                                 <input type="hidden" name="id" value="${id}">
                                 <div class="mb-3">
-                                    <label for="usertype" class="form-label">User Type</label>
+                                    <label for="usertype" class="form-label">User Type ${response.data.program}</label>
                                     <select class="form-select" id="usertype" name="usertype" required>
                                         <option value="0"${response.data.usertype == 0 ? ' selected' : ''}>Admin</option>
                                         <option value="1"${response.data.usertype == 1 ? ' selected' : ''}>Student</option>
@@ -785,14 +798,35 @@
                                     formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
-                                            <textarea class="form-control" id="${key}" name="${key}" rows="3" required>${value}</textarea>
+                                            <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
                                         </div>
                                     `;
-                                } else {
+                                } if (key === 'gender') {
+    formHtml += `
+        <div class="mb-3">
+            <label class="form-label">${label}</label>
+            <div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="${key}" id="${key}_m" value="m" ${value === 'm' ? 'checked' : ''}>
+                    <label class="form-check-label" for="${key}_m">Male</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="${key}" id="${key}_f" value="f" ${value === 'f' ? 'checked' : ''}>
+                    <label class="form-check-label" for="${key}_f">Female</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="${key}" id="${key}_o" value="o" ${value === 'o' ? 'checked' : ''}>
+                    <label class="form-check-label" for="${key}_o">Other</label>
+                </div>
+            </div>
+        </div>
+    `;
+} 
+                                else {
                                     formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
-                                            <input type="${inputType}" class="form-control" id="${key}" name="${key}" value="${value}" required>
+                                            <input type="${inputType}" class="form-control" id="${key}" name="${key}" value="${value}">
                                         </div>
                                     `;
                                 }
@@ -803,7 +837,6 @@
                                 <div class="mb-3">
                                     <label for="program_id" class="form-label">Program</label>
                                     <select class="form-select" id="program_id" name="program_id" required>
-                                        <option value="">Loading programs...</option>
                                     </select>
                                 </div>
                             `;
@@ -841,9 +874,11 @@
                             `;
 
                             form.html(formHtml);
+                            console.log(`Program data: ${response.data.program}`);
+
 
                             // Populate the programs dropdown
-                            populateProgramDropdown($('#program_id'), response.data.program_id);
+                            populateProgramDropdown($('#program_id'), response.data.program);
 
                             $('#usertype').on('change', function() {
                                 if ($(this).val() == 2) {
@@ -882,7 +917,7 @@
                             <div class="mb-3">
                                 <label for="program_id" class="form-label">Program</label>
                                 <select class="form-select" id="program_id" name="program_id">
-                                    <option value="">Loading programs...</option>
+                                    // <option value="">Loading programs...</option>
                                 </select>
                             </div>
                             <h5 class="mt-4">Team Members</h5>
@@ -918,8 +953,7 @@
                             form.html(formHtml);
 
                             // Populate the programs dropdown for the edit form, selecting the current value
-                            populateProgramDropdown($('#editForm #program_id'), response.data
-                                .program_id);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program_id);
 
                             // Add team member functionality
                             $('#addTeamMember').on('click', function() {
@@ -950,7 +984,6 @@
                           </div>`;
                             form.html(html);
                             $('#editModal').modal('show');
-                            return;
                         } else if (table === 'thesis_topics') {
                             var formHtml = `
                         <input type="hidden" name="table" value="${table}">
@@ -1081,7 +1114,7 @@
                             </div>
                             <h5 class="mt-4">Panelists (Max 3)</h5>
                             <div id="panelists">
-                        `;
+                            `;
 
                             let panelistCount = 0; // Initialize panelist count
                             if (response.data.panelists && Array.isArray(response.data
@@ -1106,7 +1139,7 @@
                                     <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
                                 </div>
                             </div>
-                        `;
+                            `;
                                 });
                             } else {
                                 console.warn(
@@ -1115,9 +1148,9 @@
                             }
 
                             formHtml += `
-                        </div>
-                        <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
-                        `;
+                            </div>
+                            <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+                            `;
 
                             form.html(formHtml);
 
@@ -1430,14 +1463,14 @@
         $(document).on('submit', '#editForm', function(e) {
             e.preventDefault();
             // 🔹 Check native HTML5 validation first
-    if (!form.checkValidity()) {
-        form.reportValidity(); // show browser validation messages
-        return; // stop here if invalid
-    }
+
             console.log('DEBUG: Edit form submit event triggered'); // <-- New debug log
             var formData = new FormData(this);
             var table = formData.get('table'); // Get table name from form data
-
+                // if (table != 'user_schedules' && !form.checkValidity() ) {
+                //     form.reportValidity(); // show browser validation messages
+                //     return; // stop here if invalid
+                // }
             // Add validation for defense schedule times
             if (table === 'defense_schedules') {
                 const startTime = formData.get('start_time');
@@ -1683,7 +1716,6 @@
                   </div>
                 `);
                 $('#addModal').modal('show');
-                return true;
             } else if (table === 'users') {
                 form.append('<div class="mb-3">' +
                     '<label for="username" class="form-label">Username</label>' +
@@ -1708,7 +1740,7 @@
                     '<div class="mb-3">' +
                     '<label for="program_id" class="form-label">Program</label>' +
                     '<select class="form-select" id="program_id" name="program_id">' +
-                    '<option value="">Loading programs...</option>' +
+                    // '<option value="">Loading programs...</option>' +
                     '</select>' +
                     '</div>' +
                     '<div class="mb-3 area-expertise-field" style="display:none;">' +
@@ -1795,6 +1827,10 @@
                                 <input type="checkbox" class="form-check-input" id="approved" name="approved">
                                 <label class="form-check-label" for="approved">Approved</label>
                             </div>
+                            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
+                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
+            </div>
                         `;
                         $('#addForm').append(formHtml);
                     },
@@ -1966,6 +2002,8 @@
                             <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
                         `;
 
+                        
+
                         form.html(formHtml);
 
                         // Initialize the date picker with same options as in defense_schedules_tab.php
@@ -2015,10 +2053,17 @@
                             updatePanelistDropdowns();
                         });
                         updatePanelistDropdowns(); // Initial update
+                        form.append(`
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
+                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
+            </div>
+            `)
                     },
                     error: function() {
                         showToast('Error', 'Unable to fetch teams and staff data', 'error');
                     }
+                    
                 });
             } else {
                 form.append('<div class="mb-3">' +
@@ -2026,12 +2071,13 @@
                     '<input type="text" class="form-control" id="name" name="name" required>' +
                     '</div>');
             }
+            if (table != 'research_titles'){
             form.append(`
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
                 <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
             </div>
-            `);
+            `);}
 
             // Show the modal for tables other than rubrics
             $('#addModal').modal('show');
@@ -2882,4 +2928,3 @@
         </div>
     </div>
 </div>
-

@@ -29,39 +29,44 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     try {
                         // Get all schedules with user information
                         $stmt = $pdo->query("
-                            SELECT 
-                                us1.id as schedule1_id,
-                                us1.user_id as user1_id,
-                                us1.class_name as class1_name,
-                                us1.day_of_week,
-                                us1.start_time as start1_time,
-                                us1.end_time as end1_time,
-                                us1.program as program1,
-                                us1.section as section1,
-                                us1.room as room1,
-                                u1.first_name as user1_first,
-                                u1.last_name as user1_last,
-                                us2.id as schedule2_id,
-                                us2.user_id as user2_id,
-                                us2.class_name as class2_name,
-                                us2.start_time as start2_time,
-                                us2.end_time as end2_time,
-                                us2.program as program2,
-                                us2.section as section2,
-                                us2.room as room2,
-                                u2.first_name as user2_first,
-                                u2.last_name as user2_last
-                            FROM user_schedules us1
-                            JOIN user_schedules us2 ON 
-                                us1.day_of_week = us2.day_of_week AND
-                                us1.id < us2.id AND
-                                (
-                                    (us1.start_time < us2.end_time AND us1.end_time > us2.start_time)
-                                )
-                            LEFT JOIN users u1 ON us1.user_id = u1.id
-                            LEFT JOIN users u2 ON us2.user_id = u2.id
-                            ORDER BY us1.day_of_week, us1.start_time
-                        ");
+    SELECT 
+        us1.id as schedule1_id,
+        us1.user_id as user1_id,
+        us1.class_name as class1_name,
+        us1.day_of_week,
+        us1.start_time as start1_time,
+        us1.end_time as end1_time,
+        us1.program as program1,
+        us1.section as section1,
+        us1.room as room1,
+        u1.first_name as user1_first,
+        u1.last_name as user1_last,
+        us2.id as schedule2_id,
+        us2.user_id as user2_id,
+        us2.class_name as class2_name,
+        us2.start_time as start2_time,
+        us2.end_time as end2_time,
+        us2.program as program2,
+        us2.section as section2,
+        us2.room as room2,
+        u2.first_name as user2_first,
+        u2.last_name as user2_last
+    FROM user_schedules us1
+    JOIN user_schedules us2 ON 
+        us1.day_of_week = us2.day_of_week AND
+        us1.id < us2.id AND
+        (
+            us1.start_time < us2.end_time AND us1.end_time > us2.start_time
+        ) AND (
+            us1.user_id = us2.user_id OR
+            us1.room = us2.room OR
+            (us1.program = us2.program AND us1.section = us2.section)
+        )
+    LEFT JOIN users u1 ON us1.user_id = u1.id
+    LEFT JOIN users u2 ON us2.user_id = u2.id
+    ORDER BY us1.day_of_week, us1.start_time
+");
+
                         
                         $conflictingSchedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
                         
