@@ -47,11 +47,11 @@
                         <div class="col-12 col-md-5 col-lg-5">
                             <!-- Action buttons container -->
                             <div class="d-flex gap-2">
-                                <!-- <button class="btn feature-btn bulk-add-btn user-control-height flex-fill" data-table="teams" id="bulkAddTeamsBtn">
+                                <button class="btn feature-btn bulk-add-btn user-control-height flex-fill" data-table="teams" id="bulkAddTeamsBtn" style="display:none;">
                                     <i class="fas fa-upload me-1 d-none d-lg-inline"></i>
                                     <span class="d-none d-lg-inline">Bulk Add Teams</span>
                                     <span class="d-lg-none">Bulk Add</span>
-                                </button> -->
+                                </button> 
                                 <button class="btn feature-btn add-btn user-control-height flex-fill" data-table="teams" id="addTeamBtn">
                                     <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
                                     <span class="d-none d-lg-inline">Add Team</span>
