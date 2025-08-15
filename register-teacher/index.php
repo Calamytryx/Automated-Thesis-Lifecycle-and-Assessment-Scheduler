@@ -52,6 +52,12 @@ $rest_of_name = substr($app_name, 1);
                                     ?>
                                 </small>
                             </div>
+                            <sub class="text-danger">
+                                    <?php
+                                    if (isset($_SESSION['ERRORS']['formerror']))
+                                        echo $_SESSION['ERRORS']['formerror'];
+                                    ?>
+                                </sub>
                             <div id="mainFields">
                                 <div class="row">
                                     <div class="col-md-6">

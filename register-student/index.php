@@ -51,6 +51,12 @@ $rest_of_name = substr($app_name, 1);
                                         echo $_SESSION['STATUS']['signupstatus'];
                                     ?>
                                 </small>
+                                <sub class="text-danger">
+                                    <?php
+                                    if (isset($_SESSION['ERRORS']['formerror']))
+                                        echo $_SESSION['ERRORS']['formerror'];
+                                    ?>
+                                </sub>
                             </div>
                             <div id="mainFields">
                                 <div class="row">

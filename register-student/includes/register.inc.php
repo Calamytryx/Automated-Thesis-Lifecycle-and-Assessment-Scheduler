@@ -98,6 +98,18 @@ if (isset($_POST['signupsubmit'])) {
         exit();
     } else {
 
+        if (!preg_match("/^[a-zA-Z]+$/", $first_name) || !preg_match("/^[a-zA-Z]+$/", $last_name)) {
+        $_SESSION['ERRORS']['formerror'] = 'Invalid name — letters only';
+        header("Location: ../");
+        exit();
+        }
+
+        if (!preg_match("/^[a-zA-Z]+$/", $section)) {
+        $_SESSION['ERRORS']['formerror'] = 'Invalid section';
+        header("Location: ../");
+        exit();
+        }
+
         if (!availableUsername($pdo, $username)){
             $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
             header("Location: ../");
