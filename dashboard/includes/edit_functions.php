@@ -57,9 +57,19 @@
 
 // Include database connection
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
 // Function to update user information
 function updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype) {
+    // Sanitize all text inputs to prevent HTML/script injection
+    $username = sanitize_html_input($username);
+    $email = sanitize_html_input($email);
+    $first_name = sanitize_html_input($first_name);
+    $last_name = sanitize_html_input($last_name);
+    $gender = sanitize_html_input($gender);
+    $headline = sanitize_html_input($headline);
+    $bio = sanitize_html_input($bio);
+    
     $sql = "UPDATE users SET username = ?, email = ?, first_name = ?, last_name = ?, gender = ?, headline = ?, bio = ?, usertype = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     return $stmt->execute([$username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype, $id]);
@@ -74,6 +84,10 @@ function updateThesisTopic($pdo, $id, $topic, $description, $category, $suggeste
 
 // Function to update research title
 function updateResearchTitle($pdo, $id, $title, $team_id, $program, $approved_at, $defended_at) {
+    // Sanitize text inputs to prevent HTML/script injection
+    $title = sanitize_html_input($title);
+    $program = sanitize_html_input($program);
+    
     $sql = "UPDATE research_titles 
             SET title = ?, 
                 team_id = ?, 
@@ -96,13 +110,18 @@ function updateDefenseSchedule($pdo, $id, $student_id, $panelist_id, $schedule_d
 
 // Function to update team
 function updateTeam($pdo, $id, $name, $title, $members) {
+    // Sanitize text inputs to prevent HTML/script injection
+    $name = sanitize_html_input($name);
+    $title = sanitize_html_input($title);
+    
     try {
         $pdo->beginTransaction();
 
         // Update team name
         $sql = "UPDATE `teams` SET `name` = ?, `program` = ? WHERE `id` = ?";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute([$name, $_POST['program'] ?? null, $id]);
+        $program = isset($_POST['program']) ? sanitize_html_input($_POST['program']) : null;
+        $stmt->execute([$name, $program, $id]);
 
         // Update research title
         $sql = "UPDATE `research_titles` SET `title` = ? WHERE `team_id` = ?";
@@ -187,8 +206,8 @@ function handleEditSubmission($pdo, $table, $id, $data) {
 
     // For teams table, handle special processing
     if ($table === 'teams') {
-        // Extract title to update research_titles separately
-        $teamTitle = isset($data['title']) ? $data['title'] : null;
+        // Sanitize team title
+        $teamTitle = isset($data['title']) ? sanitize_html_input($data['title']) : null;
 
         // Extract existing member roles if present
         $memberRoles = isset($data['member_role']) && is_array($data['member_role']) ? $data['member_role'] : [];
@@ -204,7 +223,12 @@ function handleEditSubmission($pdo, $table, $id, $data) {
             if (strpos($key, 'member_') === false &&
                 strpos($key, 'new_') === false &&
                 $key !== 'title') {
-                $cleanData[$key] = $value;
+                // Sanitize team data fields
+                if (in_array($key, ['name', 'program', 'area_of_expertise'])) {
+                    $cleanData[$key] = sanitize_html_input($value);
+                } else {
+                    $cleanData[$key] = $value;
+                }
             }
         }
 
@@ -332,6 +356,24 @@ function handleEditSubmission($pdo, $table, $id, $data) {
     foreach ($fields as $field) {
         $setParts[] = "`$field` = :$field";
     }
+    
+    // Apply general sanitization for text fields in other tables
+    if ($table === 'research_titles') {
+        $textFields = ['title', 'description', 'program'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+    } elseif ($table === 'users') {
+        $textFields = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+    }
+    
     $setStr = implode(', ', $setParts);
     $sql = "UPDATE `$table` SET $setStr WHERE id = :id";
     $stmt = $pdo->prepare($sql);

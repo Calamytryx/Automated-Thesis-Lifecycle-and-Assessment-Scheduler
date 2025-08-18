@@ -142,12 +142,12 @@ if ($currentUsertype === 0 && $userId === 0) {
             $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
             break;
         case 'research_titles':
-            $baseQuery = "SELECT rt.id, rt.title, rt.description, t.name AS team_name
+            $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
                           FROM research_titles rt
-                          JOIN teams t ON rt.team_id = t.id";
+                          LEFT JOIN teams t ON rt.team_id = t.id";
             // Count query needs joins for potential filtering
             $countQuery = "SELECT COUNT(rt.id) FROM research_titles rt
-                           JOIN teams t ON rt.team_id = t.id";
+                           LEFT JOIN teams t ON rt.team_id = t.id";
             break;
         case 'requirements':
             $baseQuery = "SELECT * FROM requirements";
@@ -326,15 +326,15 @@ if ($currentUsertype === 0 && $userId === 0) {
             unset($params[':college']);
             break;
         case 'research_titles':
-            $baseQuery = "SELECT rt.id, rt.title, rt.description, t.name AS team_name
+            $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
                            FROM research_titles rt
-                           JOIN teams t ON rt.team_id = t.id
-                           JOIN programs p ON t.program = p.id";
-            $collegeRestrictionClause = "WHERE p.college = :college";
+                           LEFT JOIN teams t ON rt.team_id = t.id
+                           LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            $collegeRestrictionClause = "WHERE (p.college = :college OR t.id IS NULL)";
             $countQuery = "SELECT COUNT(rt.id)
                             FROM research_titles rt
-                            JOIN teams t ON rt.team_id = t.id
-                            JOIN programs p ON t.program = p.id";
+                            LEFT JOIN teams t ON rt.team_id = t.id
+                            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             break;
         case 'user_schedules':
             $baseQuery = "SELECT 
@@ -419,6 +419,10 @@ try {
                 $alias = $isAdmin ? 'tt.' : '';
                 $searchCondition = "({$alias}topic LIKE :search1 OR {$alias}description LIKE :search2)";
                 break;
+            case 'research_titles':
+                $searchCondition = "(rt.title LIKE :search1 OR t.name LIKE :search2 OR 
+                                   CASE WHEN rt.approved_at IS NOT NULL THEN 'approved' ELSE 'pending' END LIKE :search3)";
+                break;
             /* COMMENTED OUT - No frontend search UI implemented for these tables
             case 'defense_schedules':
                 $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2)";
@@ -442,13 +446,14 @@ try {
                 $searchCondition = "({$alias}comments LIKE :search1)";
                 if ($isSuperAdmin) $searchCondition = "(comments LIKE :search1)";
                 break;
+            */
             case 'programs':
                 $searchCondition = "(college LIKE :search1 OR department LIKE :search2 OR name LIKE :search3 OR specialization LIKE :search4)";
                 break;
             case 'research_titles':
-                $searchCondition = "(rt.title LIKE :search1 OR rt.description LIKE :search2 OR t.name LIKE :search3)";
+                $searchCondition = "(rt.title LIKE :search1 OR t.name LIKE :search2 OR 
+                                   CASE WHEN rt.approved_at IS NOT NULL THEN 'approved' ELSE 'pending' END LIKE :search3)";
                 break;
-            */
         }
         if (!empty($searchCondition)) {
             $conditions[] = $searchCondition;
@@ -516,7 +521,7 @@ try {
         'evaluation_per_panel' => ['id', 'defense_schedule_id', 'evaluator_id', 'student_id', 'group_score', 'solo_score', 'total_score', 'comments', 'created_at'],
         'programs' => ['id', 'college', 'department', 'name', 'specialization'],
         'thesis_topics' => ['id', 'topic', 'description', 'program_id'],
-        'research_titles' => ['id', 'title', 'description', 'team_name'],
+        'research_titles' => ['id', 'title', 'description', 'team_name', 'approved_at', 'updated_at', 'created_at', 'status'],
         'rubric_groups' => ['id', 'name', 'description', 'created_at'],
     ];
 

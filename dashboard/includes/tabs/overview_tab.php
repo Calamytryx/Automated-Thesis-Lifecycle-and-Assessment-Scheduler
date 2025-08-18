@@ -164,7 +164,7 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                         <!-- Left container with title -->
                         <div class="col-lg-6 mb-3 mb-lg-0">
                             <h2 class="requirements-title fw-medium">
-                                requirements<br>progress
+                                Requirements<br>progress
                             </h2>
                         </div>
                         
@@ -247,7 +247,7 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                         <!-- Left container with title -->
                         <div class="col-lg-6 mb-3 mb-lg-0">
                             <h2 class="requirements-title fw-medium">
-                                defense<br>schedules
+                                Defense<br>schedules
                             </h2>
                         </div>
                         

@@ -106,6 +106,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response['data']['members'] = $members;
                     $response['data']['title'] = $researchTitle;
                     $response['data']['program_teams'] = $data['program']; // program is stored as text
+                } else if ($table === 'research_titles') {
+                    // Fetch teams data to populate the dropdown
+                    $stmt = $pdo->query("SELECT id, name FROM teams");
+                    $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'rubrics') {
                     try {
                         // Get basic rubric info

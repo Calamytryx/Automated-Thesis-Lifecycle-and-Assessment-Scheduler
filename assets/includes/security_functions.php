@@ -38,6 +38,19 @@ function insert_csrf_token() {
     echo '<input type="hidden" name="token" value="' . $_SESSION['token'] . '" />';
 }
 
+function sanitize_html_input($data) {
+    if (is_array($data)) {
+        return array_map('sanitize_html_input', $data);
+    }
+    
+    $data = trim($data);
+    $data = stripslashes($data);
+    // First remove HTML tags, then escape special characters
+    $data = strip_tags($data);
+    $data = htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    return $data;
+}
+
 function verify_csrf_token() {
 
     generate_csrf_token();

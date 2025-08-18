@@ -395,6 +395,9 @@
                 loadUsers(filters.userType, page, filters.search, filters.sort);
             };
 
+            // Expose reloadCurrentView to global scope for use by main app.js.php
+            window.reloadCurrentView = reloadCurrentView;
+
             // Initialize on page load
             loadUsers('all', 1, '', 'id:desc');
             updateButtonVisibility('all');

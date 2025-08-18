@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
 // Set header to return JSON
 header('Content-Type: application/json');
@@ -333,6 +334,14 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for teams
     if ($table === 'teams') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['name', 'area_of_expertise', 'program', 'title'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         $pdo->beginTransaction();
         try {
             // Fix for program_id field
@@ -478,6 +487,14 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for users
     if ($table === 'users') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         // Hash password if provided
         if (isset($data['password']) && !empty($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
@@ -497,6 +514,14 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for research_titles BEFORE calling generic handler
     if ($table === 'research_titles') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['title', 'description', 'program'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         // Map program_id to program if it exists
         if (isset($data['program_id'])) {
             $data['program'] = $data['program_id'];

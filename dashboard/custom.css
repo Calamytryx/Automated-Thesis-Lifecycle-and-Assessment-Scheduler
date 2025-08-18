@@ -25,7 +25,7 @@ body {
 /* Requirements progress section styling */
 .content-container h2.fs-1 {
     font-size: 2.5rem;
-    text-transform: lowercase;
+    /* text-transform: lowercase; */
     color: var(--neutral-800);
     font-weight: 600;
 }
@@ -33,7 +33,7 @@ body {
 /* New requirements title styling */
 .requirements-title {
     font-size: 3rem;
-    text-transform: lowercase;
+    /* text-transform: lowercase; */
     color: var(--neutral-800);
     font-weight: 500;
     line-height: 1.1;
@@ -43,7 +43,7 @@ body {
 /* Defense schedules title styling - matches requirements title */
 .content-container h2.requirements-title {
     font-size: 3rem;
-    text-transform: lowercase;
+    /* text-transform: lowercase; */
     color: var(--neutral-800);
     font-weight: 500;
     line-height: 1.1;

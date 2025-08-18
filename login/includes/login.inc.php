@@ -75,7 +75,7 @@ if (!isset($_POST['loginsubmit'])) {
 
         if (!$row) {
 
-            $_SESSION['ERRORS']['nouser'] = 'username does not exist';
+            $_SESSION['ERRORS']['nouser'] = 'Username not found';
             header("Location: ../");
             exit();
         } else {
@@ -84,7 +84,7 @@ if (!isset($_POST['loginsubmit'])) {
 
             if ($pwdCheck == false) {
 
-                $_SESSION['ERRORS']['wrongpassword'] = 'wrong password';
+                $_SESSION['ERRORS']['wrongpassword'] = 'Wrong password. Please try again';
                 header("Location: ../");
                 exit();
             } else if ($pwdCheck == true) {

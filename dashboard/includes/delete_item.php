@@ -42,7 +42,7 @@ try {
             case 'teams':
                 $stmt = $pdo->prepare("
                     SELECT p.college FROM teams t
-                    JOIN programs p ON t.program = p.id
+                    JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
                     WHERE t.id = ?
                 ");
                 $stmt->execute([$id]);

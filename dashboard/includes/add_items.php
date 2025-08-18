@@ -1,5 +1,6 @@
 <?php
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
 // Set header to return JSON
 header('Content-Type: application/json');
@@ -270,6 +271,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for research_titles
     if ($table === 'research_titles') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['title', 'description', 'program'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         $approved = isset($data['approved']) ? date('Y-m-d H:i:s') : null;
         unset($data['approved']);
         $data['approved_at'] = $approved;
@@ -292,6 +301,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     if ($table === 'teams') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['name', 'program', 'area_of_expertise', 'title'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         $pdo->beginTransaction();
         try {
             // Fix for program_id field - rename it to match the database column name
@@ -365,14 +382,24 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
                     if (!empty($userId)) {
                         try {
-                            $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
-                            $stmt->execute([
-                                'team_id' => $teamId,
-                                'user_id' => $userId,
-                                'role' => $role
-                            ]);
+                            // Check if user exists first
+                            $checkStmt = $pdo->prepare("SELECT id, first_name, last_name, usertype FROM users WHERE id = ?");
+                            $checkStmt->execute([$userId]);
+                            $user = $checkStmt->fetch(PDO::FETCH_ASSOC);
+                            
+                            if ($user) {
+                                $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                                $stmt->execute([
+                                    'team_id' => $teamId,
+                                    'user_id' => $userId,
+                                    'role' => $role
+                                ]);
+                                error_log("Added team member: {$user['first_name']} {$user['last_name']} as $role to team $teamId");
+                            } else {
+                                error_log("User not found: ID $userId");
+                            }
                         } catch (PDOException $memberError) {
-                            error_log("Error adding new team member (ID: {$userId}): " . $memberError->getMessage());
+                            error_log("Error adding team member (ID: {$userId}): " . $memberError->getMessage());
                         }
                     }
                 }
@@ -406,6 +433,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for users
     if ($table === 'users') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
         if (isset($data['password'])) {
             $data['password'] = password_hash($data['password'], PASSWORD_DEFAULT);
         }

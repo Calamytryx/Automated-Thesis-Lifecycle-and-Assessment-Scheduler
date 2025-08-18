@@ -628,6 +628,261 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
     }
 </script>
+
+<!-- AJAX Live Updates & Form Validation Functions -->
+<script>
+    // Comprehensive form validation functions
+    const ValidationUtils = {
+        // Check for emojis
+        containsEmoji: function(text) {
+            const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
+            return emojiRegex.test(text);
+        },
+
+        // Check if text is too long
+        isTooLong: function(text, maxLength = 100) {
+            return text.length > maxLength;
+        },
+
+        // Check if text is too short (single character/digit)
+        isTooShort: function(text, minLength = 2) {
+            return text.trim().length < minLength;
+        },
+
+        // Check for only numbers (for name fields)
+        isOnlyNumbers: function(text) {
+            return /^\d+$/.test(text.trim());
+        },
+
+        // Check for special characters (allow only letters, numbers, spaces, basic punctuation)
+        hasInvalidCharacters: function(text) {
+            const validPattern = /^[a-zA-Z0-9\s\.\,\-\_\@\(\)]+$/;
+            return !validPattern.test(text);
+        },
+
+        // Check if email is valid
+        isValidEmail: function(email) {
+            const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            return emailPattern.test(email);
+        },
+
+        // Check username format (for student IDs like 20xx-x-xxxxx)
+        isValidUsername: function(username, usertype) {
+            if (usertype == 1) { // Student
+                const studentPattern = /^20\d{2}-\d{1}-\d{5}$/;
+                return studentPattern.test(username);
+            }
+            // For admin/faculty, allow alphanumeric with basic characters
+            const generalPattern = /^[a-zA-Z0-9\._-]{3,50}$/;
+            return generalPattern.test(username);
+        },
+
+        // Validate field based on type
+        validateField: function(fieldName, value, usertype = null) {
+            const errors = [];
+            
+            if (!value || value.trim() === '') {
+                return ['This field is required'];
+            }
+
+            const trimmedValue = value.trim();
+
+            // Check for emojis
+            if (this.containsEmoji(trimmedValue)) {
+                errors.push('Emojis are not allowed');
+            }
+
+            // Field-specific validations
+            switch (fieldName) {
+                case 'username':
+                    if (!this.isValidUsername(trimmedValue, usertype)) {
+                        if (usertype == 1) {
+                            errors.push('Student ID must be in format: 20XX-X-XXXXX');
+                        } else {
+                            errors.push('Username must be 3-50 characters, alphanumeric only');
+                        }
+                    }
+                    break;
+
+                case 'email':
+                    if (!this.isValidEmail(trimmedValue)) {
+                        errors.push('Please enter a valid email address');
+                    }
+                    break;
+
+                case 'first_name':
+                case 'last_name':
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Name must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 50)) {
+                        errors.push('Name cannot exceed 50 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Name cannot be only numbers');
+                    }
+                    if (this.hasInvalidCharacters(trimmedValue)) {
+                        errors.push('Name contains invalid characters');
+                    }
+                    break;
+
+                case 'headline':
+                    if (this.isTooLong(trimmedValue, 150)) {
+                        errors.push('Headline cannot exceed 150 characters');
+                    }
+                    break;
+
+                case 'bio':
+                    if (this.isTooLong(trimmedValue, 500)) {
+                        errors.push('Bio cannot exceed 500 characters');
+                    }
+                    break;
+
+                case 'password':
+                    if (trimmedValue.length < 6) {
+                        errors.push('Password must be at least 6 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Password cannot exceed 100 characters');
+                    }
+                    break;
+
+                case 'area_of_expertise':
+                    if (this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Area of expertise cannot exceed 100 characters');
+                    }
+                    break;
+
+                // Teams-specific validations
+                case 'name': // Team name
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Team name must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 80)) {
+                        errors.push('Team name cannot exceed 80 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Team name cannot be only numbers');
+                    }
+                    break;
+
+                case 'title': // Research title - allowing longer text
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Research title must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 250)) {
+                        errors.push('Research title cannot exceed 250 characters');
+                    }
+                    break;
+            }
+
+            return errors;
+        },
+
+        // Validate entire form
+        validateUserForm: function(formElement) {
+            const errors = {};
+            const formData = new FormData(formElement);
+            const usertype = formData.get('usertype');
+
+            // Define fields to validate
+            const fieldsToValidate = ['username', 'email', 'first_name', 'last_name', 'headline', 'bio'];
+            
+            // Add password field if it's an add form or if password is being changed
+            if (formElement.id === 'addForm' || formData.get('password')) {
+                fieldsToValidate.push('password');
+            }
+
+            // Add area_of_expertise if usertype is faculty (2)
+            if (usertype == 2) {
+                fieldsToValidate.push('area_of_expertise');
+            }
+
+            fieldsToValidate.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (value !== null) { // Only validate if field exists
+                    const fieldErrors = this.validateField(fieldName, value, usertype);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
+                }
+            });
+
+            return errors;
+        },
+
+        // Validate teams form
+        validateTeamsForm: function(formElement) {
+            const errors = {};
+            const formData = new FormData(formElement);
+
+            // Define fields to validate for teams
+            const fieldsToValidate = ['name', 'title', 'area_of_expertise'];
+
+            fieldsToValidate.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (value !== null) { // Only validate if field exists
+                    const fieldErrors = this.validateField(fieldName, value);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
+                }
+            });
+
+            return errors;
+        },
+
+        // Display validation errors
+        displayErrors: function(errors) {
+            // Clear previous errors
+            $('.validation-error').remove();
+            $('.is-invalid').removeClass('is-invalid');
+
+            Object.keys(errors).forEach(fieldName => {
+                const field = $(`[name="${fieldName}"]`);
+                if (field.length > 0) {
+                    field.addClass('is-invalid');
+                    const errorHtml = `<div class="validation-error text-danger small mt-1">${errors[fieldName].join(', ')}</div>`;
+                    field.closest('.mb-3').append(errorHtml);
+                }
+            });
+        },
+
+        // Real-time validation for individual fields
+        setupRealTimeValidation: function(formSelector) {
+            $(document).off('input.validation').on('input.validation', `${formSelector} input, ${formSelector} textarea`, function() {
+                const field = $(this);
+                const fieldName = field.attr('name');
+                const value = field.val();
+                const form = field.closest('form')[0];
+                const formData = new FormData(form);
+                const usertype = formData.get('usertype');
+
+                // Remove previous error for this field
+                field.removeClass('is-invalid');
+                field.closest('.mb-3').find('.validation-error').remove();
+
+                if (value && fieldName) {
+                    const fieldErrors = ValidationUtils.validateField(fieldName, value, usertype);
+                    if (fieldErrors.length > 0) {
+                        field.addClass('is-invalid');
+                        const errorHtml = `<div class="validation-error text-danger small mt-1">${fieldErrors.join(', ')}</div>`;
+                        field.closest('.mb-3').append(errorHtml);
+                    }
+                }
+            });
+        }
+    };
+
+    // Setup real-time validation when modals are shown
+    $('#editModal, #addModal').on('shown.bs.modal', function() {
+        const formSelector = $(this).find('form').length > 0 ? $(this).find('form').eq(0).attr('id') : null;
+        if (formSelector) {
+            ValidationUtils.setupRealTimeValidation(`#${formSelector}`);
+        }
+    });
+</script>
+
 <!-- Edit Modal -->
 <div class="modal fade" id="editModal" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
@@ -801,28 +1056,27 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                             <textarea class="form-control" id="${key}" name="${key}" rows="3">${value}</textarea>
                                         </div>
                                     `;
-                                } if (key === 'gender') {
-    formHtml += `
-        <div class="mb-3">
-            <label class="form-label">${label}</label>
-            <div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="${key}" id="${key}_m" value="m" ${value === 'm' ? 'checked' : ''}>
-                    <label class="form-check-label" for="${key}_m">Male</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="${key}" id="${key}_f" value="f" ${value === 'f' ? 'checked' : ''}>
-                    <label class="form-check-label" for="${key}_f">Female</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="${key}" id="${key}_o" value="o" ${value === 'o' ? 'checked' : ''}>
-                    <label class="form-check-label" for="${key}_o">Other</label>
-                </div>
-            </div>
-        </div>
-    `;
-} 
-                                else {
+                                } else if (key === 'gender') {
+                                    formHtml += `
+                                        <div class="mb-3">
+                                            <label class="form-label">${label}</label>
+                                            <div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="${key}" id="${key}_m" value="m" ${value === 'm' ? 'checked' : ''}>
+                                                    <label class="form-check-label" for="${key}_m">Male</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="${key}" id="${key}_f" value="f" ${value === 'f' ? 'checked' : ''}>
+                                                    <label class="form-check-label" for="${key}_f">Female</label>
+                                                </div>
+                                                <div class="form-check form-check-inline">
+                                                    <input class="form-check-input" type="radio" name="${key}" id="${key}_o" value="o" ${value === 'o' ? 'checked' : ''}>
+                                                    <label class="form-check-label" for="${key}_o">Other</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    `;
+                                } else {
                                     formHtml += `
                                         <div class="mb-3">
                                             <label for="${key}" class="form-label">${label}</label>
@@ -953,7 +1207,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             form.html(formHtml);
 
                             // Populate the programs dropdown for the edit form, selecting the current value
-                            populateProgramDropdown($('#editForm #program_id'), response.data.program_id);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program);
 
                             // Add team member functionality
                             $('#addTeamMember').on('click', function() {
@@ -1467,6 +1721,23 @@ function populateProgramDropdown(selectElement, selectedValue) {
             console.log('DEBUG: Edit form submit event triggered'); // <-- New debug log
             var formData = new FormData(this);
             var table = formData.get('table'); // Get table name from form data
+            
+            // Apply comprehensive validation for users table
+            if (table === 'users') {
+                const validationErrors = ValidationUtils.validateUserForm(this);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
+            } else if (table === 'teams') {
+                const validationErrors = ValidationUtils.validateTeamsForm(this);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
+            }
                 // if (table != 'user_schedules' && !form.checkValidity() ) {
                 //     form.reportValidity(); // show browser validation messages
                 //     return; // stop here if invalid
@@ -1507,9 +1778,47 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (response.success) {
                         showToast('Success', 'Item updated successfully', 'success');
                         $('#editModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 2000);
+                        
+                        // AJAX live update - refresh content without page reload
+                        if (table === 'users') {
+                            // For users tab, use the existing reloadCurrentView function
+                            if (typeof window.reloadCurrentView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'teams') {
+                            // For teams tab, use the teams-specific reload function
+                            if (typeof window.reloadCurrentTeamsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentTeamsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'research_titles') {
+                            // For research titles tab, use the research titles-specific reload function
+                            if (typeof window.reloadCurrentResearchTitlesView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentResearchTitlesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            // For other tables, use their specific reload functions or fallback to page reload
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
                     } else {
                         showToast('Error', response.message || 'Update failed', 'error');
                     }
@@ -2090,14 +2399,33 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
     var form = $('#addForm')[0]; // get raw DOM element
 
+    // Get table type to determine validation
+    var $form = $(form);
+    var table = $form.find('input[name="table"]').val();
+
+    // Apply comprehensive validation for users table
+    if (table === 'users') {
+        const validationErrors = ValidationUtils.validateUserForm(form);
+        if (Object.keys(validationErrors).length > 0) {
+            ValidationUtils.displayErrors(validationErrors);
+            showToast('Error', 'Please fix the validation errors before submitting', 'error');
+            return;
+        }
+    } else if (table === 'teams') {
+        const validationErrors = ValidationUtils.validateTeamsForm(form);
+        if (Object.keys(validationErrors).length > 0) {
+            ValidationUtils.displayErrors(validationErrors);
+            showToast('Error', 'Please fix the validation errors before submitting', 'error');
+            return;
+        }
+    }
+
     // 🔹 Check native HTML5 validation first
     if (!form.checkValidity()) {
         form.reportValidity(); // show browser validation messages
         return; // stop here if invalid
     }
 
-    var $form = $(form);
-    var table = $form.find('input[name="table"]').val();
     var formData = new FormData(form); // form is already DOM node
 
     // Your custom defense schedule validation
@@ -2132,9 +2460,48 @@ function populateProgramDropdown(selectElement, selectedValue) {
             if (response.success) {
                 showToast('Success', 'Added successfully', 'success');
                 $('#addModal').modal('hide');
-                setTimeout(function() {
-                    location.reload();
-                }, 2000);
+                
+                // AJAX live update - refresh content without page reload
+                var table = $('#addForm input[name="table"]').val();
+                if (table === 'users') {
+                    // For users tab, use the existing reloadCurrentView function
+                    if (typeof window.reloadCurrentView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else if (table === 'teams') {
+                    // For teams tab, use the teams-specific reload function
+                    if (typeof window.reloadCurrentTeamsView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentTeamsView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else if (table === 'research_titles') {
+                    // For research titles tab, use the research titles-specific reload function
+                    if (typeof window.reloadCurrentResearchTitlesView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentResearchTitlesView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else {
+                    // For other tables, use their specific reload functions or fallback to page reload
+                    setTimeout(function() {
+                        location.reload();
+                    }, 1000);
+                }
             } else {
                 showToast('Error', response.message || 'An unknown error occurred', 'error');
             }
@@ -2197,11 +2564,47 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (response.success) {
                         showToast('Success', 'Item deleted successfully', 'success');
                         $('#deleteConfirmModal').modal('hide');
-                        // Optionally remove the row from the table without reloading
-                        // $('tr[data-id="' + id + '"]').remove(); // Requires rows to have data-id attribute
-                        setTimeout(function() {
-                            location.reload(); // Reload to reflect changes
-                        }, 2000);
+                        
+                        // AJAX live update - refresh content without page reload
+                        if (table === 'users') {
+                            // For users tab, use the existing reloadCurrentView function
+                            if (typeof window.reloadCurrentView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'teams') {
+                            // For teams tab, use the teams-specific reload function
+                            if (typeof window.reloadCurrentTeamsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentTeamsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'research_titles') {
+                            // For research titles tab, use the research titles-specific reload function
+                            if (typeof window.reloadCurrentResearchTitlesView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentResearchTitlesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            // For other tables, use their specific reload functions or fallback to page reload
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
                     } else {
                         showToast('Error', response.message || 'Deletion failed', 'error');
                     }
@@ -2544,8 +2947,11 @@ function populateProgramDropdown(selectElement, selectedValue) {
             return;
         }
 
+        // Get the current team ID if editing (for excluding current members)
+        var teamId = $modal.find('input[name="id"]').val() || 0;
+        
         $.ajax({
-            url: 'includes/get_users.php',
+            url: 'includes/get_available_users.php?team_id=' + teamId,
             method: 'GET',
             dataType: 'json',
             success: function(users) {
@@ -2566,17 +2972,38 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
+                        <select class="form-select role-select" name="new_role[]" onchange="filterUsersByRole(this)">
+                            ${generateRoleOptions(availableRoles)}
+                        </select>
+                    </div>
+                    <div class="col-sm-5">
                         <select class="form-select user-select" name="new_user_id[]" style="display:block;">
                             <option value="">Select a user</option>
-                            ${users.map(user => `<option value="${user.id}" data-usertype="${user.usertype}">${user.first_name} ${user.last_name}</option>`).join('')}
+                            ${users.map(user => {
+                                // Add usertype indicator and filter logic
+                                let userTypeLabel = '';
+                                let isAppropriateForRole = true;
+                                
+                                if (user.usertype == 0) {
+                                    userTypeLabel = ' (Program Chair)';
+                                } else if (user.usertype == 1) {
+                                    userTypeLabel = ' (Student)';
+                                } else if (user.usertype == 2) {
+                                    userTypeLabel = ' (Staff/Professor)';
+                                } else {
+                                    userTypeLabel = ' (Other)';
+                                    isAppropriateForRole = false;
+                                }
+                                
+                                // Only show appropriate users
+                                if (isAppropriateForRole) {
+                                    return `<option value="${user.id}" data-usertype="${user.usertype}">${user.first_name} ${user.last_name}${userTypeLabel}</option>`;
+                                }
+                                return '';
+                            }).filter(option => option !== '').join('')}
                         </select>
                         <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
                         <a href="#" class="toggle-input">Switch to manual</a>
-                    </div>
-                    <div class="col-sm-5">
-                        <select class="form-select role-select" name="new_role[]">
-                            ${generateRoleOptions(availableRoles)}
-                        </select>
                     </div>
                     <div class="col-sm-2">
                         <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
@@ -2682,6 +3109,38 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         return options;
+    }
+
+    // Helper function to filter users based on selected role
+    function filterUsersByRole(roleSelect) {
+        const selectedRole = roleSelect.value;
+        const userSelect = $(roleSelect).closest('.team-member').find('.user-select');
+        
+        // Show/hide options based on role requirements
+        userSelect.find('option').each(function() {
+            const option = $(this);
+            const usertype = option.data('usertype');
+            let shouldShow = true;
+            
+            if (selectedRole === 'adviser') {
+                // For adviser role, only show staff (2) and program chairs (0)
+                shouldShow = usertype == 2 || usertype == 0;
+            } else if (selectedRole === 'leader' || selectedRole === 'member') {
+                // For leader/member roles, primarily show students (1), but allow others too
+                shouldShow = true; // Allow all for flexibility
+            }
+            
+            if (shouldShow) {
+                option.show();
+            } else {
+                option.hide();
+                // If this option was selected and now hidden, deselect it
+                if (option.is(':selected')) {
+                    option.prop('selected', false);
+                    userSelect.val('');
+                }
+            }
+        });
     }
 
     // Helper function to update user dropdown based on selected role

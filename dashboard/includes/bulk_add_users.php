@@ -3,6 +3,7 @@ header('Content-Type: application/json');
 
 // NEW: Include database connection
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Determine upload method if provided
@@ -51,12 +52,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email = $username . '@lpunetwork.edu.ph';
                 
                 $processedUsers[] = [
-                    'username'    => $username,
-                    'first_name'  => $first_name,
-                    'last_name'   => $last_name,
-                    'program'     => $program,
+                    'username'    => sanitize_html_input($username),
+                    'first_name'  => sanitize_html_input($first_name),
+                    'last_name'   => sanitize_html_input($last_name),
+                    'program'     => sanitize_html_input($program),
                     'password'    => $password,
-                    'email'       => $email,
+                    'email'       => sanitize_html_input($email),
                     'usertype'    => 1
                 ];
             }
@@ -96,12 +97,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $email = $username . '@lpunetwork.com';
                 
                 $processedUsers[] = [
-                    'username'    => $username,
-                    'first_name'  => $first_name,
-                    'last_name'   => $last_name,
-                    'program'     => $program,
+                    'username'    => sanitize_html_input($username),
+                    'first_name'  => sanitize_html_input($first_name),
+                    'last_name'   => sanitize_html_input($last_name),
+                    'program'     => sanitize_html_input($program),
                     'password'    => $password,
-                    'email'       => $email,
+                    'email'       => sanitize_html_input($email),
                     'usertype'    => 1
                 ];
             }
@@ -134,12 +135,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $email = $username . '@lpunetwork.edu.ph';
 
             $processedUsers[] = [
-                'username'    => $username,
-                'first_name'  => $first_name,
-                'last_name'   => $last_name,
-                'program'     => $program,
+                'username'    => sanitize_html_input($username),
+                'first_name'  => sanitize_html_input($first_name),
+                'last_name'   => sanitize_html_input($last_name),
+                'program'     => sanitize_html_input($program),
                 'password'    => $password,
-                'email'       => $email,
+                'email'       => sanitize_html_input($email),
                 'usertype'    => 1
             ];
         }

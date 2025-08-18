@@ -290,6 +290,9 @@
                     // Clear any existing dropdowns
                     document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
                     
+                    // Clear any existing dropdowns
+                    document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-team-"]').forEach(portal => portal.remove());
+                    
                     data.data.forEach(team => {
                         // Process team members
                         let adviser = team.adviser || ''; 
@@ -356,7 +359,7 @@
                         // Create dropdown portal outside table
                         const dropdownPortal = document.createElement('div');
                         dropdownPortal.className = 'meatball-dropdown-portal';
-                        dropdownPortal.id = `dropdown-${team.id}`;
+                        dropdownPortal.id = `dropdown-team-${team.id}`; // Use team- prefix to avoid conflicts
                         console.log('Creating dropdown portal for team:', team.id);
                         dropdownPortal.style.cssText = `
                             position: fixed;
@@ -451,6 +454,9 @@
             loadTeams(page, filters.search, filters.sort);
         };
 
+        // Expose reloadCurrentView to global scope for use by main app.js.php
+        window.reloadCurrentTeamsView = reloadCurrentView;
+
         // Initialize on page load
         loadTeamsWithoutTitles();
         loadTeams(1, '', 'id:desc');
@@ -499,6 +505,15 @@
             tab.addEventListener('shown.bs.tab', function(e) {
                 if (e.target.id === 'teams-tab') {
                     initializeTeamsTab();
+                }
+            });
+            
+            // Clean up teams dropdowns when switching away from teams tab
+            tab.addEventListener('hide.bs.tab', function(e) {
+                if (e.target.id === 'teams-tab') {
+                    document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-team-"]').forEach(portal => {
+                        portal.style.display = 'none';
+                    });
                 }
             });
         });
@@ -639,7 +654,7 @@
                 
                 const btn = e.target.closest('.meatball-btn');
                 const teamId = btn.getAttribute('data-team-id');
-                const dropdown = document.getElementById(`dropdown-${teamId}`);
+                const dropdown = document.getElementById(`dropdown-team-${teamId}`);
                 
                 if (!dropdown) {
                     console.error('Dropdown not found for team:', teamId);
@@ -648,8 +663,8 @@
                 
                 const isCurrentlyOpen = dropdown.style.display === 'block';
                 
-                // Close all other dropdowns first
-                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                // Close all other teams dropdowns first
+                document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-team-"]').forEach(dd => {
                     dd.style.display = 'none';
                 });
                 
@@ -684,9 +699,13 @@
             } 
             // Close dropdown when clicking outside
             else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
-                document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
-                    dd.style.display = 'none';
-                });
+                // Only close teams-specific dropdowns when in teams tab
+                const teamsTab = document.getElementById('teams');
+                if (teamsTab && (teamsTab.classList.contains('active') || teamsTab.classList.contains('show'))) {
+                    document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-team-"]').forEach(dd => {
+                        dd.style.display = 'none';
+                    });
+                }
             }
         });
 
