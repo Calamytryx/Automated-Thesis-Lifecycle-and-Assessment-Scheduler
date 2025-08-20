@@ -176,6 +176,35 @@ async function analyzeTitle(title, field, problem) {
     }
 }
 
+// Function to validate form and update button state
+function validateForm() {
+    const title = document.getElementById('researchTitle')?.value.trim();
+    const field = document.getElementById('researchField')?.value.trim();
+    const problem = document.getElementById('problem')?.value.trim();
+    const submitBtn = document.getElementById('submitTitleBtn');
+    const statusText = document.querySelector('.research-title-status small');
+    
+    if (title && field && problem) {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
+        }
+        if (statusText) {
+            statusText.textContent = 'Ready to analyze your research title';
+            statusText.style.color = 'var(--primary-600)';
+        }
+    } else {
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
+        }
+        if (statusText) {
+            statusText.textContent = 'Fill in all fields to analyze your title';
+            statusText.style.color = 'var(--neutral-600)';
+        }
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
     console.log("Document ready, initializing chat session...");
     // Initialize chat session only if in the relevant page
@@ -220,63 +249,43 @@ document.addEventListener('DOMContentLoaded', function() {
             }
         });
     }
-    
-    // Function to validate form and update button state
-    function validateForm() {
-        const title = document.getElementById('researchTitle')?.value.trim();
-        const field = document.getElementById('researchField')?.value.trim();
-        const problem = document.getElementById('problem')?.value.trim();
-        const submitBtn = document.getElementById('submitTitleBtn');
-        const statusText = document.querySelector('.research-title-status small');
-        
-        if (title && field && problem) {
-            if (submitBtn) {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
-            }
-            if (statusText) {
-                statusText.textContent = 'Ready to analyze your research title';
-                statusText.style.color = 'var(--primary-600)';
-            }
-        } else {
-            if (submitBtn) {
-                submitBtn.disabled = true;
-                submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
-            }
-            if (statusText) {
-                statusText.textContent = 'Fill in all fields to analyze your title';
-                statusText.style.color = 'var(--neutral-600)';
-            }
-        }
-    }
-    
-    // Function to show loading state in result cards
-    function showLoadingState() {
-        const uniquenessResult = document.getElementById('uniquenessResult');
-        const aiSuggestions = document.getElementById('aiSuggestions');
-        
-        if (uniquenessResult) {
-            uniquenessResult.innerHTML = `
-                <div class="research-title-loading">
-                    <div class="spinner-border" role="status"></div>
-                    <span>Analyzing title uniqueness...</span>
-                </div>
-            `;
-        }
-        
-        if (aiSuggestions) {
-            aiSuggestions.innerHTML = `
-                <div class="research-title-loading">
-                    <div class="spinner-border" role="status"></div>
-                    <span>Generating AI suggestions...</span>
-                </div>
-            `;
-        }
+
+    // Add reset button functionality
+    const resetFieldsBtn = document.getElementById('resetFieldsBtn');
+    if (resetFieldsBtn) {
+        resetFieldsBtn.addEventListener('click', function() {
+            console.log("Reset button clicked");
+            resetResearchTitleForm();
+        });
     }
 
     // Call the new AI processing function on page load
     processOutputToAI();
 });
+
+// Function to show loading state in result cards
+function showLoadingState() {
+    const uniquenessResult = document.getElementById('uniquenessResult');
+    const aiSuggestions = document.getElementById('aiSuggestions');
+    
+    if (uniquenessResult) {
+        uniquenessResult.innerHTML = `
+            <div class="research-title-loading">
+                <div class="spinner-border" role="status"></div>
+                <span>Analyzing title uniqueness...</span>
+            </div>
+        `;
+    }
+    
+    if (aiSuggestions) {
+        aiSuggestions.innerHTML = `
+            <div class="research-title-loading">
+                <div class="spinner-border" role="status"></div>
+                <span>Generating AI suggestions...</span>
+            </div>
+        `;
+    }
+}
 
 // Function to reset the research title form to empty state
 function resetResearchTitleForm() {

@@ -42,110 +42,273 @@ if (isset($_POST['update-profile'])) {
     require '../../assets/setup/db.inc.php';
     require '../../assets/includes/datacheck.php';
 
-    $username = $_POST['username'];
-    $email = $_POST['email'];
-    $first_name = $_POST['first_name'];
-    $last_name = $_POST['last_name'];
-    $headline = $_POST['headline'];
-    $bio = $_POST['bio'];
+    // Enhanced validation and sanitization functions
+    function validate_field($field_name, $value, $usertype = null) {
+        $errors = [];
+        
+        if (empty(trim($value))) {
+            if ($field_name !== 'headline' && $field_name !== 'bio') { // These can be optional
+                return ['This field is required'];
+            }
+            return [];
+        }
+
+        $trimmed_value = trim($value);
+
+        // Check for emojis
+        if (preg_match('/[\x{1F600}-\x{1F64F}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{1F1E0}-\x{1F1FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]/u', $trimmed_value)) {
+            $errors[] = 'Emojis are not allowed';
+        }
+
+        // Check for HTML tags
+        if (preg_match('/<[^>]*>/', $trimmed_value)) {
+            $errors[] = 'HTML tags are not allowed';
+        }
+
+        // Field-specific validations
+        switch ($field_name) {
+            case 'username':
+                if ($usertype == 1) { // Student
+                    if (!preg_match('/^20\d{2}-\d{1}-\d{5}$/', $trimmed_value)) {
+                        $errors[] = 'Student ID must be in format: 20XX-X-XXXXX';
+                    }
+                } else {
+                    if (!preg_match('/^[a-zA-Z0-9\._-]{3,50}$/', $trimmed_value)) {
+                        $errors[] = 'Username must be 3-50 characters, alphanumeric only';
+                    }
+                }
+                break;
+
+            case 'email':
+                if (!filter_var($trimmed_value, FILTER_VALIDATE_EMAIL)) {
+                    $errors[] = 'Please enter a valid email address';
+                }
+                break;
+
+            case 'first_name':
+            case 'last_name':
+                if (strlen($trimmed_value) < 2) {
+                    $errors[] = 'Name must be at least 2 characters long';
+                }
+                if (strlen($trimmed_value) > 50) {
+                    $errors[] = 'Name cannot exceed 50 characters';
+                }
+                if (preg_match('/^\d+$/', $trimmed_value)) {
+                    $errors[] = 'Name cannot be only numbers';
+                }
+                if (!preg_match('/^[a-zA-Z0-9\s\.\,\-\_\@\(\)]+$/', $trimmed_value)) {
+                    $errors[] = 'Name contains invalid characters';
+                }
+                break;
+
+            case 'headline':
+                if (!empty($trimmed_value) && strlen($trimmed_value) > 150) {
+                    $errors[] = 'Headline cannot exceed 150 characters';
+                }
+                break;
+
+            case 'bio':
+                if (!empty($trimmed_value) && strlen($trimmed_value) > 500) {
+                    $errors[] = 'Bio cannot exceed 500 characters';
+                }
+                break;
+        }
+
+        return $errors;
+    }
+
+    // Sanitize input data
+    $username = sanitize_html_input($_POST['username']);
+    $email = sanitize_html_input($_POST['email']);
+    $first_name = sanitize_html_input($_POST['first_name']);
+    $last_name = sanitize_html_input($_POST['last_name']);
+    $headline = sanitize_html_input($_POST['headline']);
+    $bio = sanitize_html_input($_POST['bio']);
 
     if (isset($_POST['gender'])) 
         $gender = $_POST['gender'];
     else
         $gender = NULL;
 
+    // Validate all fields
+    $validation_errors = [];
+    $usertype = $_SESSION['usertype'];
 
-    $oldPassword = $_POST['password'];
-    $newpassword = $_POST['newpassword'];
-    $passwordrepeat  = $_POST['confirmpassword'];
+    // Validate required fields
+    $required_fields = ['username', 'first_name', 'last_name'];
+    
+    // Only allow admins to change email
+    if ($usertype == 0) {
+        $required_fields[] = 'email';
+    } else {
+        // For non-admins, keep original email
+        $email = $_SESSION['email'];
+    }
 
+    foreach ($required_fields as $field) {
+        $field_errors = validate_field($field, $$field, $usertype);
+        if (!empty($field_errors)) {
+            $validation_errors[$field] = $field_errors;
+        }
+    }
 
-    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    // Validate optional fields if they have values
+    $optional_fields = ['headline', 'bio'];
+    foreach ($optional_fields as $field) {
+        if (!empty($$field)) {
+            $field_errors = validate_field($field, $$field, $usertype);
+            if (!empty($field_errors)) {
+                $validation_errors[$field] = $field_errors;
+            }
+        }
+    }
 
+    // If there are validation errors, return them
+    if (!empty($validation_errors)) {
+        $error_messages = [];
+        foreach ($validation_errors as $field => $errors) {
+            $error_messages[] = ucfirst($field) . ': ' . implode(', ', $errors);
+        }
+        $_SESSION['ERRORS']['validationerror'] = implode('; ', $error_messages);
+        header("Location: ../");
+        exit();
+    }
+
+    // Additional validation for email availability (only if admin is changing email)
+    if ($usertype == 0 && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['ERRORS']['emailerror'] = 'invalid email, try again';
         header("Location: ../");
         exit();
     } 
-    if ($_SESSION['email'] != $email && !availableEmail($pdo, $email)) {
-
+    if ($usertype == 0 && $_SESSION['email'] != $email && !availableEmail($pdo, $email)) {
         $_SESSION['ERRORS']['emailerror'] = 'email already taken';
         header("Location: ../");
         exit();
     }
+    
+    // Username availability check
     if ( $_SESSION['username'] != $username && !availableUsername($pdo, $username)) {
-
         $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
         header("Location: ../");
         exit();
     }
-    else {
 
-        /*
-        * -------------------------------------------------------------------------------
-        *   Image Upload
-        * -------------------------------------------------------------------------------
-        */
+    // Handle password fields with enhanced validation
+    $oldPassword = $_POST['password'];
+    $newpassword = $_POST['newpassword'];
+    $passwordrepeat  = $_POST['confirmpassword'];
 
-        $FileNameNew = $_SESSION['profile_image'];
-        $file = $_FILES['avatar'];
+    // Initialize password update flag
+    $passwordUpdated = false;
 
-        if (!empty($_FILES['avatar']['name']))
-        {
-            $fileName = $_FILES['avatar']['name'];
-            $fileTmpName = $_FILES['avatar']['tmp_name'];
-            $fileSize = $_FILES['avatar']['size'];
-            $fileError = $_FILES['avatar']['error'];
-            $fileType = $_FILES['avatar']['type']; 
+    // Check if password change is requested
+    if (!empty($oldPassword) || !empty($newpassword) || !empty($passwordrepeat)) {
+        include 'password-edit.inc.php';
+    }
 
-            $fileExt = explode('.', $fileName);
-            $fileActualExt = strtolower(end($fileExt));
+    /*
+    * -------------------------------------------------------------------------------
+    *   Image Upload with Enhanced Validation
+    * -------------------------------------------------------------------------------
+    */
 
-            $allowed = array('jpg', 'jpeg', 'png', 'gif');
-            if (in_array($fileActualExt, $allowed))
-            {
-                if ($fileError === 0)
-                {
-                    if ($fileSize < 10000000)
-                    {
-                        $FileNameNew = uniqid('', true) . "." . $fileActualExt;
-                        $fileDestination = '../../assets/uploads/users/' . $FileNameNew;
-                        move_uploaded_file($fileTmpName, $fileDestination);
+    $FileNameNew = $_SESSION['profile_image'];
+    $file = $_FILES['avatar'];
 
-                        /*
-                        * -------------------------------------------------------------------------------
-                        *   Deleting old profile photo
-                        * -------------------------------------------------------------------------------
-                        */
-						if ( $_SESSION['profile_image'] != "_defaultUser.png" ) {
-							if (!unlink('../../assets/uploads/users/' . $_SESSION['profile_image'])) {  
+    if (!empty($_FILES['avatar']['name']))
+    {
+        $fileName = $_FILES['avatar']['name'];
+        $fileTmpName = $_FILES['avatar']['tmp_name'];
+        $fileSize = $_FILES['avatar']['size'];
+        $fileError = $_FILES['avatar']['error'];
+        $fileType = $_FILES['avatar']['type']; 
 
-								$_SESSION['ERRORS']['imageerror'] = 'old image could not be deleted';
-								header("Location: ../");
-								exit();
-							} 
-						}
-                    }
-                    else
-                    {
-                        $_SESSION['ERRORS']['imageerror'] = 'image size should be less than 10MB';
-                        header("Location: ../");
-                        exit(); 
-                    }
-                }
-                else
-                {
-                    $_SESSION['ERRORS']['imageerror'] = 'image upload failed, try again';
-                    header("Location: ../");
-                    exit();
-                }
+        // Enhanced validation
+        $imageErrors = [];
+
+        // Check file upload errors
+        if ($fileError !== 0) {
+            $imageErrors[] = 'File upload failed. Please try again';
+        }
+
+        // Validate file extension
+        $fileExt = explode('.', $fileName);
+        $fileActualExt = strtolower(end($fileExt));
+        $allowed = array('jpg', 'jpeg', 'png', 'gif');
+        
+        if (!in_array($fileActualExt, $allowed)) {
+            $imageErrors[] = 'Invalid file type. Only JPG, PNG, and GIF images are allowed';
+        }
+
+        // Validate MIME type for additional security
+        $allowedMimeTypes = array('image/jpeg', 'image/jpg', 'image/png', 'image/gif');
+        if (!in_array($fileType, $allowedMimeTypes)) {
+            $imageErrors[] = 'Invalid file format detected';
+        }
+
+        // Validate file size (5MB limit instead of 10MB)
+        $maxSize = 5 * 1024 * 1024; // 5MB
+        if ($fileSize > $maxSize) {
+            $imageErrors[] = 'Image size must be less than 5MB';
+        }
+
+        // Validate minimum file size (prevent empty files)
+        if ($fileSize < 1024) { // 1KB minimum
+            $imageErrors[] = 'Image file is too small or corrupted';
+        }
+
+        // Validate image dimensions
+        $imageInfo = getimagesize($fileTmpName);
+        if ($imageInfo === false) {
+            $imageErrors[] = 'Invalid image file or corrupted';
+        } else {
+            $width = $imageInfo[0];
+            $height = $imageInfo[1];
+            
+            // Check minimum dimensions
+            if ($width < 100 || $height < 100) {
+                $imageErrors[] = 'Image must be at least 100x100 pixels';
             }
-            else
-            {
-                $_SESSION['ERRORS']['imageerror'] = 'invalid image type, try again';
-                header("Location: ../");
-                exit();
+            
+            // Check maximum dimensions (prevent extremely large images)
+            if ($width > 5000 || $height > 5000) {
+                $imageErrors[] = 'Image dimensions too large. Maximum 5000x5000 pixels';
             }
         }
+
+        // If there are validation errors, return them
+        if (!empty($imageErrors)) {
+            $_SESSION['ERRORS']['imageerror'] = implode('; ', $imageErrors);
+            header("Location: ../");
+            exit();
+        }
+
+        // All validations passed, proceed with upload
+        $FileNameNew = uniqid('profile_', true) . "." . $fileActualExt;
+        $fileDestination = '../../assets/uploads/users/' . $FileNameNew;
+        
+        if (move_uploaded_file($fileTmpName, $fileDestination)) {
+            /*
+            * -------------------------------------------------------------------------------
+            *   Deleting old profile photo
+            * -------------------------------------------------------------------------------
+            */
+            if ( $_SESSION['profile_image'] != "_defaultUser.png" ) {
+                $oldImagePath = '../../assets/uploads/users/' . $_SESSION['profile_image'];
+                if (file_exists($oldImagePath)) {
+                    if (!unlink($oldImagePath)) {  
+                        $_SESSION['ERRORS']['imageerror'] = 'Old image could not be deleted';
+                        header("Location: ../");
+                        exit();
+                    } 
+                }
+            }
+        } else {
+            $_SESSION['ERRORS']['imageerror'] = 'Failed to save uploaded image. Please try again';
+            header("Location: ../");
+            exit();
+        }
+    }
 
 
         /*
@@ -291,7 +454,6 @@ if (isset($_POST['update-profile'])) {
             header("Location: ../");
             exit();
         }
-    }
 
     $stmt->closeCursor();
     $pdo = null;

@@ -84,7 +84,13 @@ if (isset($_SESSION['is_parttime']) && $_SESSION['is_parttime'] == 1) {
                     <div class="bio-section">
                         <div class="bio-title">About</div>
                         <div class="bio-content">
-                            <?php echo $_SESSION['bio']; ?>
+                            <?php 
+                            if (isset($_SESSION['bio']) && !empty(trim($_SESSION['bio']))) {
+                                echo $_SESSION['bio'];
+                            } else {
+                                echo '<span class="text-muted">No information has been provided. Click "Edit Profile" to add information.</span>';
+                            }
+                            ?>
                         </div>
                     </div>
                 </div>

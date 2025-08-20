@@ -349,6 +349,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for research_titles
     if ($table === 'research_titles') {
+        // Check if the team already has a research title assigned
+        if (isset($data['team_id']) && !empty($data['team_id'])) {
+            $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM research_titles WHERE team_id = ?");
+            $stmtCheck->execute([$data['team_id']]);
+            $existingCount = $stmtCheck->fetchColumn();
+            
+            if ($existingCount > 0) {
+                echo json_encode([
+                    'success' => false, 
+                    'message' => 'This team already has a research title assigned. Each team can only have one research title.'
+                ]);
+                exit;
+            }
+        }
+        
         // Sanitize text fields to prevent HTML/script injection
         $textFields = ['title', 'description', 'program'];
         foreach ($textFields as $field) {

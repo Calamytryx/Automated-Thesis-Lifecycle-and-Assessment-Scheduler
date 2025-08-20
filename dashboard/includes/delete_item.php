@@ -99,6 +99,13 @@ try {
         }
     }
 
+    // Special handling for teams: delete associated research title when team is deleted
+    if ($table === 'teams') {
+        // First delete the associated research title
+        $stmtDeleteTitle = $pdo->prepare("DELETE FROM research_titles WHERE team_id = ?");
+        $stmtDeleteTitle->execute([$id]);
+    }
+
     // Disable foreign key checks
     $pdo->exec('SET FOREIGN_KEY_CHECKS=0;');
 

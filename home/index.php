@@ -936,8 +936,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <div class="card-body">
                                         <form id="titleSubmissionForm" class="needs-validation">
                                             <div class="mb-3">
-                                                <label for="researchTitle" class="form-label fw-semibold">Proposed
-                                                    Research Title</label>
+                                                <div class="d-flex justify-content-between align-items-center mb-2">
+                                                    <label for="researchTitle" class="form-label fw-semibold mb-0">Proposed
+                                                        Research Title</label>
+                                                    <button type="button" id="resetFieldsBtn" class="btn btn-outline-secondary btn-sm rounded-circle" 
+                                                            title="Clear all fields" style="width: 32px; height: 32px; padding: 0;">
+                                                        <i class="bi bi-arrow-clockwise"></i>
+                                                    </button>
+                                                </div>
                                                 <textarea class="form-control research-title-textarea"
                                                     id="researchTitle" name="researchTitle"
                                                     placeholder="Enter your research title here..." rows="3"

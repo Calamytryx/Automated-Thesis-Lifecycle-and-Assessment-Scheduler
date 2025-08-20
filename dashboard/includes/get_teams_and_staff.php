@@ -4,8 +4,14 @@ require_once __DIR__ . '/../../assets/setup/db.inc.php';
 header('Content-Type: application/json');
 
 try {
-    // Fetch teams
-    $teams_stmt = $pdo->query("SELECT id, name FROM teams ORDER BY name");
+    // Fetch teams with their research title status
+    $teams_stmt = $pdo->query("
+        SELECT t.id, t.name, 
+               CASE WHEN rt.team_id IS NOT NULL THEN 1 ELSE 0 END as has_research_title
+        FROM teams t 
+        LEFT JOIN research_titles rt ON t.id = rt.team_id 
+        ORDER BY t.name
+    ");
     $teams = $teams_stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Fetch staff (users with usertype 2)

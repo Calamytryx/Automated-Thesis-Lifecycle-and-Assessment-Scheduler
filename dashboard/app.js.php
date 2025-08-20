@@ -1433,6 +1433,18 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         `;
                             form.html(formHtml);
                         } else if (table === 'research_titles') {
+                            // Filter teams: include current team and teams without research titles
+                            const availableTeams = response.teams.filter(team => 
+                                team.id == response.data.team_id || !team.has_research_title
+                            );
+                            
+                            var teamOptions = availableTeams.map(team => {
+                                const selected = team.id == response.data.team_id ? ' selected' : '';
+                                const label = team.id == response.data.team_id ? 
+                                    `${team.name} (current)` : team.name;
+                                return `<option value="${team.id}"${selected}>${label}</option>`;
+                            }).join('');
+                            
                             var formHtml = `
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
@@ -1440,8 +1452,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                 <label for="team_id" class="form-label">Team</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
                                     <option value="">Select Team</option>
-                                    ${response.teams ? response.teams.map(team => `<option value="${team.id}"${team.id == response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('') : ''}
+                                    ${teamOptions}
                                 </select>
+                                <div class="form-text text-muted">Only teams without existing research titles are shown (plus current team).</div>
                             </div>
                             <div class="mb-3">
                                 <label for="title" class="form-label">Title</label>
@@ -2333,13 +2346,24 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     method: 'GET',
                     dataType: 'json',
                     success: function(data) {
+                        // Filter out teams that already have research titles
+                        const availableTeams = data.teams.filter(team => !team.has_research_title);
+                        
+                        var teamOptions = '';
+                        if (availableTeams.length === 0) {
+                            teamOptions = '<option value="" disabled>No teams available (all teams already have research titles)</option>';
+                        } else {
+                            teamOptions = availableTeams.map(team => `<option value="${team.id}">${team.name}</option>`).join('');
+                        }
+                        
                         var formHtml = `
                             <div class="mb-3">
                                 <label for="team_id" class="form-label">Team Name</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
                                     <option value="">Select Team</option>
-                                    ${data.teams.map(team => `<option value="${team.id}">${team.name}</option>`).join('')}
+                                    ${teamOptions}
                                 </select>
+                                ${availableTeams.length === 0 ? '<div class="form-text text-muted">All teams already have research titles assigned. You can manage existing titles in the table below.</div>' : ''}
                             </div>
                             <div class="mb-3">
                                 <label for="title" class="form-label">Title</label>

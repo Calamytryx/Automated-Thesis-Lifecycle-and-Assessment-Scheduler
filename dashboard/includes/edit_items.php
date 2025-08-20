@@ -605,6 +605,30 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for research_titles BEFORE calling generic handler
     if ($table === 'research_titles') {
+        // Check if team_id is being changed to a team that already has a research title
+        if (isset($data['team_id']) && !empty($data['team_id'])) {
+            // Get current team_id for this research title
+            $stmtCurrent = $pdo->prepare("SELECT team_id FROM research_titles WHERE id = ?");
+            $stmtCurrent->execute([$id]);
+            $currentTeamId = $stmtCurrent->fetchColumn();
+            
+            // If team_id is being changed
+            if ($currentTeamId != $data['team_id']) {
+                // Check if the new team already has a research title
+                $stmtCheck = $pdo->prepare("SELECT COUNT(*) FROM research_titles WHERE team_id = ? AND id != ?");
+                $stmtCheck->execute([$data['team_id'], $id]);
+                $existingCount = $stmtCheck->fetchColumn();
+                
+                if ($existingCount > 0) {
+                    echo json_encode([
+                        'success' => false, 
+                        'message' => 'The selected team already has a research title assigned. Each team can only have one research title.'
+                    ]);
+                    exit;
+                }
+            }
+        }
+        
         // Sanitize text fields to prevent HTML/script injection
         $textFields = ['title', 'description', 'program'];
         foreach ($textFields as $field) {
