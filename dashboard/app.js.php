@@ -675,8 +675,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
         // Check username format (for student IDs like 20xx-x-xxxxx)
         isValidUsername: function(username, usertype) {
             if (usertype == 1) { // Student
-                const studentPattern = /^20\d{2}-\d{1}-\d{5}$/;
-                return studentPattern.test(username);
+                // Accept either 4digits-1digit-5digits or text.text
+                const studentPattern = /^\d{4}-\d{1}-\d{5}$/;
+                const altPattern = /^[a-zA-Z]+\.[a-zA-Z]+$/;
+                return studentPattern.test(username) || altPattern.test(username);
             }
             // For admin/faculty, allow alphanumeric with basic characters
             const generalPattern = /^[a-zA-Z0-9\._-]{3,50}$/;
@@ -703,9 +705,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 case 'username':
                     if (!this.isValidUsername(trimmedValue, usertype)) {
                         if (usertype == 1) {
-                            errors.push('Student ID must be in format: 20XX-X-XXXXX');
+                            errors.push('Student ID must be in format: 20XX-X-XXXXX or First.Last(old format)');
                         } else {
-                            errors.push('Username must be 3-50 characters, alphanumeric only');
+                            errors.push('Username must be 3-50 characters, alphanumeric, -, and . only');
                         }
                     }
                     break;
