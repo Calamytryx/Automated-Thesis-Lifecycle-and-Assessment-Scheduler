@@ -560,40 +560,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             </div>
             <div class="modal-body">
                 <form id="editForm">
-                    <!-- Hidden inputs for table and id -->
-                    <input type="hidden" name="table" id="editTable">
-                    <input type="hidden" name="id" id="editId">
-
-                    <!-- Fields for defense schedule -->
-                    <div class="mb-3">
-                        <label for="editTeam" class="form-label">Team</label>
-                        <select class="form-select" id="editTeam" name="team_id" required>
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editPanelists" class="form-label">Panelists</label>
-                        <select class="form-select" id="editPanelists" name="panelist_ids[]" multiple required>
-                            <!-- Options will be populated dynamically -->
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editRoom" class="form-label">Room</label>
-                        <input type="text" class="form-control" id="editRoom" name="room" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editScheduleDate" class="form-label">Schedule Date</label>
-                        <input type="date" class="form-control" id="editScheduleDate" name="schedule_date" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editStartTime" class="form-label">Start Time</label>
-                        <input type="time" class="form-control" id="editStartTime" name="start_time" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="editEndTime" class="form-label">End Time</label>
-                        <input type="time" class="form-control" id="editEndTime" name="end_time" required>
-                    </div>
+                    <!-- Form fields will be dynamically populated -->
                 </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="saveEdit">Save Changes</button>
             </div>
 
         </div>
@@ -609,20 +581,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <!-- HTML form structure -->
                 <form id="addForm">
-                    <input type="hidden" name="table" value="your_table_name">
-                    <!-- Add other form fields here -->
-                    <div class="mb-3">
-                        <label for="name" class="form-label">Name</label>
-                        <input type="text" class="form-control" id="name" name="name" required>
-                    </div>
-                    <!-- Add more fields as needed -->
-                
-                <!-- Form fields will be dynamically inserted here -->
+                    <!-- Form fields will be dynamically populated -->
                 </form>
             </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
+            </div>
             
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div class="text-center">
+                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
+                    <h5 class="mt-3">Delete Confirmation</h5>
+                    <p>Are you sure you want to delete this item from <span id="deleteTableName" class="fw-bold"></span> with ID <span id="deleteItemId" class="fw-bold"></span>?</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
+            </div>
         </div>
     </div>
 </div>

@@ -29,7 +29,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table'], $data['id']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules', 'page_content'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -127,6 +127,97 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for programs update
     if ($table === 'programs') {
+        // Sanitize text fields to prevent HTML/script injection
+        $textFields = ['college', 'department', 'name', 'specialization'];
+        foreach ($textFields as $field) {
+            if (isset($data[$field])) {
+                $data[$field] = sanitize_html_input($data[$field]);
+            }
+        }
+
+        // Extract and validate data
+        $college = $data['college'] ?? null;
+        $department = $data['department'] ?? null;
+        $name = $data['name'] ?? null;
+        $specialization = $data['specialization'] ?? null;
+
+        // Enhanced validation for required fields
+        if (empty($college) || empty($name)) {
+            $response['message'] = 'College and Program Name are required fields.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate college field - should not be empty or just whitespace
+        if (strlen(trim($college)) < 2) {
+            $response['message'] = 'College name must be at least 2 characters long.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate program name - should not be empty or just whitespace
+        if (strlen(trim($name)) < 2) {
+            $response['message'] = 'Program name must be at least 2 characters long.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate program name length (reasonable limit)
+        if (strlen($name) > 255) {
+            $response['message'] = 'Program name cannot exceed 255 characters.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate college name length
+        if (strlen($college) > 255) {
+            $response['message'] = 'College name cannot exceed 255 characters.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate department name length if provided
+        if (!empty($department) && strlen($department) > 255) {
+            $response['message'] = 'Department name cannot exceed 255 characters.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Validate specialization length if provided
+        if (!empty($specialization) && strlen($specialization) > 255) {
+            $response['message'] = 'Specialization cannot exceed 255 characters.';
+            echo json_encode($response);
+            exit;
+        }
+
+        // Check for duplicate program name within the same college (excluding current record)
+        try {
+            $duplicateCheckSql = "SELECT COUNT(*) FROM programs WHERE college = :college AND name = :name AND id != :current_id";
+            $params = [':college' => $college, ':name' => $name, ':current_id' => $id];
+            
+            // If specialization is provided, include it in the uniqueness check
+            if (!empty($specialization)) {
+                $duplicateCheckSql .= " AND specialization = :specialization";
+                $params[':specialization'] = $specialization;
+            } else {
+                $duplicateCheckSql .= " AND (specialization IS NULL OR specialization = '')";
+            }
+            
+            $stmtDuplicate = $pdo->prepare($duplicateCheckSql);
+            $stmtDuplicate->execute($params);
+            
+            if ($stmtDuplicate->fetchColumn() > 0) {
+                $response['message'] = 'A program with this name and specialization already exists in this college.';
+                echo json_encode($response);
+                exit;
+            }
+        } catch (PDOException $e) {
+            error_log('Error checking for duplicate program: ' . $e->getMessage());
+            $response['message'] = 'Error validating program data.';
+            echo json_encode($response);
+            exit;
+        }
+
         try {
             $programUpdateSql = "UPDATE programs SET
                                     college = :college,
@@ -139,10 +230,10 @@ function handleRequirementTemplateUpload($file) {
 
             $programData = [
                 ':id' => $id,
-                ':college' => $data['college'] ?? null,
-                ':department' => $data['department'] ?? null,
-                ':name' => $data['name'] ?? 'Unnamed Program',
-                ':specialization' => $data['specialization'] ?? null
+                ':college' => $college,
+                ':department' => empty($department) ? null : $department,
+                ':name' => $name,
+                ':specialization' => empty($specialization) ? null : $specialization
             ];
 
             $stmtProgram->execute($programData);

@@ -8,140 +8,382 @@
         <p class="text-muted">Manage academic programs and their associated colleges</p>
       </div>
     </div>
- 
+
+    <!-- Program Management Controls -->
     <div class="row">
       <div class="col-12">
-        <div class="d-flex justify-content-between mb-3">
-          <div></div>
-          <button class="btn feature-btn add-btn" data-table="programs">
-            <i class="fas fa-plus me-2"></i> Add Program
-          </button>
+        <!-- Mobile-first responsive layout -->
+        <div class="program-controls-container p-0 mt-3">
+          <!-- Search and Filter Row -->
+          <div class="row g-2 mb-3 align-items-end">
+            <div class="col-12 col-md-4 col-lg-4">
+              <!-- Search container -->
+              <div class="programs-search-container">
+                <div class="input-group user-control-height m-0">
+                  <span class="input-group-text border-0"> 
+                    <i class="bi bi-search"></i>
+                  </span>
+                  <input type="text" class="form-control border-0" id="programSearchInput" placeholder="Search programs...">
+                </div>
+              </div>
+            </div>
+            
+            <div class="col-12 col-md-3 col-lg-2">
+              <!-- College Dropdown -->
+              <div class="programs-tab-controls">
+                <select class="form-select user-control-height" id="collegeFilterSelect">
+                  <option value="all">All Colleges</option>
+                  <?php
+                  // Get distinct colleges for filter
+                  try {
+                    $stmt = $pdo->query("SELECT DISTINCT college FROM programs WHERE college IS NOT NULL ORDER BY college");
+                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                      echo '<option value="' . htmlspecialchars($row['college']) . '">' . htmlspecialchars($row['college']) . '</option>';
+                    }
+                  } catch (PDOException $e) {
+                    echo '<option disabled>Error loading colleges</option>';
+                  }
+                  ?>
+                </select>
+              </div>
+            </div>
+            
+            <div class="col-12 col-md-3 col-lg-3">
+              <!-- Sort Dropdown -->
+              <select class="form-select user-control-height" id="programSortSelect">
+                <option value="id:desc">Default (Newest First)</option>
+                <option value="id:asc">Default (Oldest First)</option>
+                <option value="name:asc">Name (A-Z)</option>
+                <option value="name:desc">Name (Z-A)</option>
+                <option value="college:asc">College (A-Z)</option>
+                <option value="college:desc">College (Z-A)</option>
+                <option value="department:asc">Department (A-Z)</option>
+                <option value="department:desc">Department (Z-A)</option>
+              </select>
+            </div>
+            
+            <div class="col-12 col-md-2 col-lg-3">
+              <!-- Add Button -->
+              <div class="d-flex gap-2 justify-content-end">
+                <button class="btn feature-btn add-btn user-control-height w-100 w-md-auto" data-table="programs" id="addProgramBtn">
+                  <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
+                  <span class="d-none d-sm-inline">Add Program</span>
+                  <span class="d-sm-none">Add</span>
+                </button>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
 
-    <div id="programs-content">
-      <!-- Content will be dynamically populated using JavaScript -->
+    <!-- Program Management Content -->
+    <div class="row">
+      <div class="col-12">
+        <!-- Programs table with filters -->
+        <div class="table-responsive">
+          <table class="table table-bordered table-hover table-sm db-table" id="allProgramsTable">
+            <thead>
+              <tr>
+                <th class="d-none d-md-table-cell">College</th>
+                <th class="d-table-cell d-md-none">Program</th>
+                <th class="d-none d-lg-table-cell">Department</th>
+                <th>Program Name</th>
+                <th class="d-none d-md-table-cell">Specialization</th>
+                <th class="text-center">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="programsTableBody">
+              <!-- Content will be dynamically populated -->
+            </tbody>
+          </table>
+        </div>
+        
+        <!-- Pagination -->
+        <nav aria-label="Programs pagination">
+          <ul class="pagination justify-content-center" id="programsPagination">
+            <!-- Pagination will be dynamically populated -->
+          </ul>
+        </nav>
+      </div>
     </div>
   </div>
 </div>
 
 <script>
-  const loadPrograms = () => {
-    fetch(`includes/tabs/get_table.php?table=programs`)
-      .then(response => response.json())
-      .then(data => {
-        const content = document.querySelector('#programs-content');
-        content.innerHTML = '';  // Clear existing content
+  document.addEventListener('DOMContentLoaded', function() {
+    // Function to load programs based on filters with search and sorting
+    const loadPrograms = (collegeFilter = 'all', page = 1, search = '', sort = 'id:desc') => {
+      let url = `includes/tabs/get_table.php?table=programs&page=${page}&per_page=10`;
+      
+      if (collegeFilter !== 'all') {
+        url += `&college=${encodeURIComponent(collegeFilter)}`;
+      }
+      if (search) {
+        url += `&search=${encodeURIComponent(search)}`;
+      }
+      if (sort) {
+        url += `&sort=${encodeURIComponent(sort)}`;
+      }
 
-        if (data.error) {
-          console.error(data.error);
+      fetch(url)
+        .then(response => response.json())
+        .then(data => {
+          const tableBody = document.querySelector('#programsTableBody');
+          if (!tableBody) {
+            console.error('Could not find table body');
+            return;
+          }
+          
+          tableBody.innerHTML = '';
+
+          if (data.error) {
+            console.error(data.error);
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+            return;
+          }
+
+          if (!data.data || data.data.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No programs found</td></tr>';
+            return;
+          }
+
+          // Clear any existing dropdowns
+          document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
+          
+          // Populate table with programs
+          data.data.forEach(program => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td class="d-none d-md-table-cell">${program.college || 'N/A'}</td>
+              <td class="d-table-cell d-md-none">
+                <div class="fw-bold">${program.name || 'N/A'}</div>
+                <small class="text-muted">${program.college || 'N/A'}</small>
+                ${program.specialization ? `<br><small class="text-info">${program.specialization}</small>` : ''}
+              </td>
+              <td class="d-none d-lg-table-cell">${program.department || 'N/A'}</td>
+              <td>${program.name || 'N/A'}</td>
+              <td class="d-none d-md-table-cell">${program.specialization || 'N/A'}</td>
+              <td class="action-buttons text-center">
+                <button class="meatball-btn" data-program-id="${program.id}" aria-label="Actions">
+                  <i class="fas fa-ellipsis-h"></i>
+                </button>
+              </td>
+            `;
+            tableBody.appendChild(row);
+            
+            // Create dropdown portal outside table
+            const dropdownPortal = document.createElement('div');
+            dropdownPortal.className = 'meatball-dropdown-portal';
+            dropdownPortal.id = `dropdown-${program.id}`;
+            dropdownPortal.style.cssText = `
+              position: fixed;
+              background: white;
+              border: 1px solid #dee2e6;
+              border-radius: 6px;
+              box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+              z-index: 9999;
+              min-width: 120px;
+              padding: 4px 0;
+              display: none;
+            `;
+            dropdownPortal.innerHTML = `
+              <button class="meatball-dropdown-item edit-item edit-btn" data-table="programs" data-id="${program.id}">
+                <i class="fas fa-edit"></i>
+                Edit
+              </button>
+              <button class="meatball-dropdown-item delete-item delete-btn" data-table="programs" data-id="${program.id}">
+                <i class="fas fa-trash-alt"></i>
+                Delete
+              </button>
+            `;
+            document.body.appendChild(dropdownPortal);
+          });
+
+          // Build pagination
+          const pagination = document.querySelector('#programsPagination');
+          if (!pagination) {
+            console.error('Could not find pagination');
+            return;
+          }
+          
+          pagination.innerHTML = '';
+          pagination.innerHTML += `
+            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+              <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
+            </li>
+          `;
+          for (let i = 1; i <= data.total_pages; i++) {
+            pagination.innerHTML += `
+              <li class="page-item ${page === i ? 'active' : ''}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+              </li>
+            `;
+          }
+          pagination.innerHTML += `
+            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
+              <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
+            </li>
+          `; 
+        })
+        .catch(error => {
+          console.error('Error loading programs:', error);
+          const tableBody = document.querySelector('#programsTableBody');
+          if (tableBody) {
+            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+          }
+        });
+    };
+
+    // Function to get current filters
+    const getCurrentFilters = () => {
+      return {
+        collegeFilter: document.getElementById('collegeFilterSelect').value,
+        search: document.getElementById('programSearchInput').value,
+        sort: document.getElementById('programSortSelect').value
+      };
+    };
+
+    // Function to reload current view
+    const reloadCurrentView = (page = 1) => {
+      const filters = getCurrentFilters();
+      loadPrograms(filters.collegeFilter, page, filters.search, filters.sort);
+    };
+
+    // Expose reloadCurrentView to global scope for use by main app.js.php
+    window.reloadProgramsView = reloadCurrentView;
+
+    // Initialize on page load
+    loadPrograms('all', 1, '', 'id:desc');
+
+    // Handle college filter dropdown change
+    document.getElementById('collegeFilterSelect').addEventListener('change', function() {
+      reloadCurrentView(1);
+    });
+
+    // Handle search input
+    document.getElementById('programSearchInput').addEventListener('keyup', function(e) {
+      reloadCurrentView(1);
+    });
+
+    // Handle sort dropdown change
+    document.getElementById('programSortSelect').addEventListener('change', function() {
+      reloadCurrentView(1);
+    });
+
+    // Handle pagination clicks
+    document.querySelector('#programsPagination').addEventListener('click', function(e) {
+      e.preventDefault();
+      if (e.target.tagName === 'A') {
+        const page = parseInt(e.target.getAttribute('data-page'));
+        if (!isNaN(page)) {
+          reloadCurrentView(page);
+        }
+      }
+    });
+
+    // Function to initialize data loading when the programs tab becomes visible
+    const initializeProgramsTab = () => {
+      console.log('Initializing programs tab...');
+      const programsTab = document.getElementById('programs');
+      if (programsTab && (programsTab.classList.contains('active') || programsTab.classList.contains('show'))) {
+        console.log('Programs tab is visible, loading data...');
+        reloadCurrentView(1);
+      }
+    };
+
+    // Also initialize when the main dashboard tab for programs becomes visible
+    document.querySelectorAll('#v-pills-tab .nav-link').forEach(tab => {
+      tab.addEventListener('shown.bs.tab', function(e) {
+        if (e.target.id === 'programs-tab') {
+          console.log('Programs tab shown event triggered');
+          initializeProgramsTab();
+        }
+      });
+    });
+
+    // Initialize if programs tab is already active
+    initializeProgramsTab();
+
+    // Handle meatball button clicks for programs
+    document.addEventListener('click', function(e) {
+      const programsTab = document.getElementById('programs');
+      if (!programsTab || (!programsTab.classList.contains('active') && !programsTab.classList.contains('show'))) {
+        return;
+      }
+      
+      // Handle meatball button clicks
+      if (e.target.closest('.meatball-btn') && e.target.closest('#programs')) {
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const btn = e.target.closest('.meatball-btn');
+        const programId = btn.getAttribute('data-program-id');
+        const dropdown = document.getElementById(`dropdown-${programId}`);
+        
+        if (!dropdown) {
+          console.error('Dropdown not found for program:', programId);
           return;
         }
-
-        // Group programs by college
-        const programsByCollege = {};
-        data.data.forEach(program => {
-          const college = program.college || 'Other';
-          if (!programsByCollege[college]) {
-            programsByCollege[college] = [];
+        
+        const isCurrentlyOpen = dropdown.style.display === 'block';
+        
+        // Close all other dropdowns first
+        document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+          dd.style.display = 'none';
+        });
+        
+        // Toggle current dropdown
+        if (!isCurrentlyOpen) {
+          // Position the dropdown relative to the button
+          const btnRect = btn.getBoundingClientRect();
+          const viewportWidth = window.innerWidth;
+          const dropdownWidth = 120;
+          
+          // Calculate position
+          let left = btnRect.right - dropdownWidth;
+          let top = btnRect.bottom + 5;
+          
+          // Adjust for mobile screens
+          if (viewportWidth < 768) {
+            // On mobile, center the dropdown below the button
+            left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
           }
-          programsByCollege[college].push(program);
+          
+          // Ensure dropdown doesn't go off-screen
+          if (left < 10) left = 10;
+          if (left + dropdownWidth > viewportWidth - 10) {
+            left = viewportWidth - dropdownWidth - 10;
+          }
+          
+          dropdown.style.position = 'fixed';
+          dropdown.style.top = `${top}px`;
+          dropdown.style.left = `${left}px`;
+          dropdown.style.display = 'block';
+        }
+      } 
+      // Close dropdown when clicking outside
+      else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+        document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+          dd.style.display = 'none';
         });
-
-        // Create collapsible college groups
-        Object.keys(programsByCollege).sort().forEach((college, index) => {
-          // Create a unique ID for this college group
-          const collegeId = `college-${index}-${college.replace(/\s+/g, '-').toLowerCase()}`;
-          
-          const programs = programsByCollege[college];
-          
-          // Create college card
-          const collegeCard = document.createElement('div');
-          collegeCard.className = 'card mb-3';
-          
-          // College header
-          const collegeHeader = document.createElement('div');
-          collegeHeader.className = 'card-header bg-light';
-          collegeHeader.innerHTML = `
-            <div class="d-flex align-items-center college-header-content" 
-                 data-college-id="${collegeId}" role="button" style="cursor: pointer;">
-              <i class="fas fa-caret-right toggle-icon me-2"></i>
-              <i class="fas fa-university me-2"></i>
-              <strong>${college}</strong>
-              <span class="ms-2 badge bg-secondary">${programs.length} program(s)</span>
-            </div>
-          `;
-          
-          // Programs list
-          const programsList = document.createElement('div');
-          programsList.className = 'card-body d-none'; // Initially hidden
-          programsList.dataset.collegeGroup = collegeId;
-          
-          programs.forEach(program => {
-            const programDiv = document.createElement('div');
-            programDiv.className = 'border-bottom pb-2 mb-2';
-            programDiv.innerHTML = `
-              <div class="row align-items-center">
-                <div class="col-md-3">
-                  <strong>Department:</strong> ${program.department || 'N/A'}
-                </div>
-                <div class="col-md-3">
-                  <strong>Program:</strong> ${program.name}
-                </div>
-                <div class="col-md-3">
-                  <strong>Specialization:</strong> ${program.specialization || 'N/A'}
-                </div>
-                <div class="col-md-3 text-end">
-                  <div class="d-flex gap-2 justify-content-end">
-                    <button class="btn btn-sm btn-primary edit-btn" data-table="programs" data-id="${program.id}">
-                      <i class="fas fa-edit me-1"></i> Edit
-                    </button>
-                    <button class="btn btn-sm btn-danger delete-btn" data-table="programs" data-id="${program.id}">
-                      <i class="fas fa-trash-alt me-1"></i> Delete
-                    </button>
-                  </div>
-                </div>
-              </div>
-            `;
-            programsList.appendChild(programDiv);
-          });
-          
-          collegeCard.appendChild(collegeHeader);
-          collegeCard.appendChild(programsList);
-          content.appendChild(collegeCard);
-        });
-      })
-      .catch(error => console.error('Error loading programs:', error));
-  };
-
-  // Toggle event listener for collapse functionality
-  document.addEventListener('click', function(e) {
-    if (e.target.closest('.college-header-content')) {
-      const header = e.target.closest('.college-header-content');
-      const collegeId = header.dataset.collegeId;
-      const icon = header.querySelector('.toggle-icon');
-      
-      // Get the programs list for this college
-      const programsList = document.querySelector(`div[data-college-group="${collegeId}"]`);
-      
-      // Check if content is currently visible
-      const isVisible = !programsList.classList.contains('d-none');
-      
-      // Toggle visibility
-      if (isVisible) {
-        programsList.classList.add('d-none');
-        icon.classList.remove('fa-caret-down');
-        icon.classList.add('fa-caret-right');
-      } else {
-        programsList.classList.remove('d-none');
-        icon.classList.remove('fa-caret-right');
-        icon.classList.add('fa-caret-down');
       }
-    }
+    });
+
+    // Handle meatball dropdown item clicks for programs
+    document.addEventListener('click', function(e) {
+      if (e.target.closest('.meatball-dropdown-item')) {
+        const item = e.target.closest('.meatball-dropdown-item');
+        
+        // Close the dropdown
+        const dropdown = item.closest('.meatball-dropdown-portal');
+        if (dropdown) {
+          dropdown.style.display = 'none';
+        }
+        
+        // The existing edit-btn and delete-btn event handlers will handle the action
+        // since we've preserved the same classes on the dropdown items
+      }
+    });
   });
-
-  // Initial load
-  loadPrograms();
-
 </script>

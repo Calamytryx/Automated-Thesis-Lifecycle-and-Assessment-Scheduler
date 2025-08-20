@@ -176,6 +176,159 @@ body {
     font-size: 1rem;
 }
 
+/* Programs tab search bar styling - matches users design */
+.programs-search-container .input-group {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid var(--neutral-300); 
+    background-color: var(--white-500); 
+}
+
+.programs-search-container .input-group .form-control,
+.programs-search-container .input-group .input-group-text {
+    border: none;
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    background-color: var(--white-500); 
+}
+
+.programs-search-container .input-group .input-group-text {
+    background-color: var(--white-500); 
+}
+
+.programs-search-container .input-group .form-control {
+    padding-left: 0;
+    background-color: var(--white-500); 
+}
+
+.programs-search-container .input-group .form-control:focus {
+    box-shadow: none;
+    background-color: var(--white-500); 
+}
+
+/* Programs tab components styling - matches search design */
+.programs-tab-controls .form-select {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    border: 1px solid var(--neutral-300);
+    background-color: var(--white-500);
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+}
+
+.programs-tab-controls .form-select:focus {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-color: var(--neutral-300);
+    background-color: var(--white-500);
+}
+
+.programs-tab-controls .btn.feature-btn {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    border: 1px solid var(--neutral-300);
+    padding: 0.75rem 1.25rem;
+    font-size: 1rem;
+    font-weight: 500;
+    height: auto;
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.programs-tab-controls .btn.feature-btn:hover {
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transform: translateY(-1px);
+}
+
+.programs-tab-controls .btn.feature-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+}
+
+.programs-tab-controls .btn.feature-btn i {
+    font-size: 1rem;
+}
+
+/* Programs tab meatball menu styles */
+#programs .meatball-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#programs .meatball-btn:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+#programs .meatball-dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    transition: background-color 0.2s ease;
+    gap: 8px;
+}
+
+#programs .meatball-dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+#programs .meatball-dropdown-item.edit-btn {
+    color: #0d6efd;
+}
+
+#programs .meatball-dropdown-item.delete-btn {
+    color: #dc3545;
+}
+
+#programs .meatball-dropdown-item.edit-btn:hover {
+    background-color: #e7f3ff;
+}
+
+#programs .meatball-dropdown-item.delete-btn:hover {
+    background-color: #f8d7da;
+}
+
+#programs .meatball-dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Responsive adjustments for programs meatball menu */
+@media (max-width: 767.98px) {
+    #programs .meatball-dropdown-portal {
+        min-width: 100px;
+        font-size: 13px;
+    }
+    
+    #programs .meatball-dropdown-item {
+        padding: 6px 12px;
+        font-size: 13px;
+    }
+    
+    #programs .meatball-dropdown-item i {
+        width: 14px;
+        font-size: 12px;
+    }
+}
+
 
 
 /* Category titles styling */
@@ -2205,4 +2358,33 @@ main.container-fluid {
 }
 
 .btn.btn-info:hover {
-    background-color: #2c1ef5;}
+    background-color: #2c1ef5;
+}
+
+/* Form validation error styles */
+.validation-error {
+    color: #dc3545;
+    font-size: 0.875rem;
+    margin-top: 0.25rem;
+}
+
+.is-invalid {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+.is-invalid:focus {
+    border-color: #dc3545 !important;
+    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Success validation styles */
+.is-valid {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}
+
+.is-valid:focus {
+    border-color: #28a745 !important;
+    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25) !important;
+}

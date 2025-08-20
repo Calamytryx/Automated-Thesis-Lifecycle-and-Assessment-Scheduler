@@ -118,6 +118,11 @@
         // Initial Load
         loadRequirements();
 
+        // Create global function for reloading requirements
+        window.reloadCurrentRequirementsView = function(page = 1) {
+            loadRequirements(page);
+        };
+
         // Handle Pagination Clicks
         document.querySelector('#requirements .pagination').addEventListener('click', function(e) {
             e.preventDefault();

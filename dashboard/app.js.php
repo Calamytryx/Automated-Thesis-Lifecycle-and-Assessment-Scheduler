@@ -660,6 +660,12 @@ function populateProgramDropdown(selectElement, selectedValue) {
             return !validPattern.test(text);
         },
 
+        // Check for HTML tags
+        containsHTML: function(text) {
+            const htmlRegex = /<[^>]*>/;
+            return htmlRegex.test(text);
+        },
+
         // Check if email is valid
         isValidEmail: function(email) {
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -774,6 +780,50 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         errors.push('Research title cannot exceed 250 characters');
                     }
                     break;
+
+                // Programs-specific validations
+                case 'college':
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('College name must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 255)) {
+                        errors.push('College name cannot exceed 255 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('College name cannot be only numbers');
+                    }
+                    break;
+
+                case 'department':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 255)) {
+                        errors.push('Department name cannot exceed 255 characters');
+                    }
+                    if (trimmedValue && this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Department name cannot be only numbers');
+                    }
+                    break;
+
+                case 'program_name': // For program forms, we might use 'program_name' as field name
+                case 'program': // Or just 'name' field in program context
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Program name must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 255)) {
+                        errors.push('Program name cannot exceed 255 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Program name cannot be only numbers');
+                    }
+                    break;
+
+                case 'specialization':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 255)) {
+                        errors.push('Specialization cannot exceed 255 characters');
+                    }
+                    if (trimmedValue && this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Specialization cannot be only numbers');
+                    }
+                    break;
             }
 
             return errors;
@@ -828,6 +878,132 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     }
                 }
             });
+
+            return errors;
+        },
+
+        // Validate programs form
+        validateProgramsForm: function(formElement) {
+            const errors = {};
+            const formData = new FormData(formElement);
+
+            // Define fields to validate for programs
+            const fieldsToValidate = ['college', 'name']; // Required fields
+            const optionalFields = ['department', 'specialization']; // Optional fields to validate if present
+
+            // Validate required fields
+            fieldsToValidate.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (!value || !value.trim()) {
+                    errors[fieldName] = ['This field is required'];
+                } else {
+                    const fieldErrors = this.validateField(fieldName === 'name' ? 'program_name' : fieldName, value);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
+                }
+            });
+
+            // Validate optional fields if they have values
+            optionalFields.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (value && value.trim()) { // Only validate if field has content
+                    const fieldErrors = this.validateField(fieldName, value);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
+                }
+            });
+
+            return errors;
+        },
+
+        // Validate requirements form
+        validateRequirementsForm: function(formElement) {
+            const errors = {};
+            const formData = new FormData(formElement);
+
+            // Define fields to validate for requirements
+            const fieldsToValidate = ['name', 'description'];
+
+            fieldsToValidate.forEach(fieldName => {
+                const value = formData.get(fieldName);
+                if (!value || !value.trim()) {
+                    errors[fieldName] = ['This field is required'];
+                } else {
+                    // Use specific validation for requirement fields
+                    let fieldErrors = [];
+                    const trimmedValue = value.trim();
+
+                    // Common validations for all text fields
+                    if (this.containsEmoji(trimmedValue)) {
+                        fieldErrors.push('Emojis are not allowed');
+                    }
+                    if (this.containsHTML(trimmedValue)) {
+                        fieldErrors.push('HTML tags are not allowed');
+                    }
+
+                    if (fieldName === 'name') {
+                        if (this.isTooShort(trimmedValue, 2)) {
+                            fieldErrors.push('Requirement name must be at least 2 characters long');
+                        }
+                        if (this.isTooLong(trimmedValue, 100)) {
+                            fieldErrors.push('Requirement name cannot exceed 100 characters');
+                        }
+                        if (this.isOnlyNumbers(trimmedValue)) {
+                            fieldErrors.push('Requirement name cannot be only numbers');
+                        }
+                        if (this.hasInvalidCharacters(trimmedValue)) {
+                            fieldErrors.push('Requirement name contains invalid characters');
+                        }
+                    } else if (fieldName === 'description') {
+                        if (this.isTooShort(trimmedValue, 5)) {
+                            fieldErrors.push('Description must be at least 5 characters long');
+                        }
+                        if (this.isTooLong(trimmedValue, 500)) {
+                            fieldErrors.push('Description cannot exceed 500 characters');
+                        }
+                        // Allow more characters in description but still validate for emojis and basic structure
+                        const descriptionPattern = /^[a-zA-Z0-9\s\.\,\-\_\@\(\)\:\;\!\?\"\']+$/;
+                        if (!descriptionPattern.test(trimmedValue)) {
+                            fieldErrors.push('Description contains invalid characters');
+                        }
+                    }
+
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
+                }
+            });
+
+            // Validate due_date
+            const dueDate = formData.get('due_date');
+            if (!dueDate) {
+                errors['due_date'] = ['Due date is required'];
+            } else {
+                const selectedDate = new Date(dueDate);
+                const today = new Date();
+                today.setHours(0, 0, 0, 0); // Reset time to start of day for comparison
+
+                if (selectedDate < today) {
+                    errors['due_date'] = ['Due date cannot be in the past'];
+                }
+            }
+
+            // Validate file if provided
+            const fileInput = formElement.querySelector('input[type="file"]');
+            if (fileInput && fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const allowedTypes = ['application/pdf', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', 'text/plain', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', 'application/vnd.openxmlformats-officedocument.presentationml.presentation'];
+                const maxSize = 10 * 1024 * 1024; // 10MB
+
+                if (!allowedTypes.includes(file.type)) {
+                    errors['template_file'] = ['Invalid file type. Please upload PDF, DOC, DOCX, TXT, XLSX, or PPTX files only'];
+                }
+                if (file.size > maxSize) {
+                    errors['template_file'] = ['File size too large. Maximum 10MB allowed'];
+                }
+            }
 
             return errors;
         },
@@ -1482,13 +1658,24 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                 <textarea class="form-control" id="description" name="description" rows="3" required>${response.data.description || ''}</textarea>
                             </div>
                             <div class="mb-3">
-                                <label for="template_file" class="form-label">File Template</label>
-                                <input type="file" class="form-control" id="template_file" name="template_file">
-                                <small class="form-text text-muted">Upload a new file template if needed.</small>
-                            </div>
                                 <label for="due_date" class="form-label">Due Date</label>
                                 <input type="date" class="form-control" id="due_date" name="due_date" value="${response.data.due_date || ''}" required>
                             </div>
+                            <div class="mb-3">
+                                <label for="template_file" class="form-label">File Template</label>
+                                <input type="file" class="form-control" id="template_file" name="template_file" accept=".pdf,.doc,.docx,.txt,.xlsx,.pptx">
+                                <small class="form-text text-muted">Upload a new file template if needed. Current file: ${response.data.template_original_name || 'None'}</small>
+                            </div>
+                            ${response.data.template_file ? `
+                            <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="remove_template" name="remove_template" value="1">
+                                    <label class="form-check-label" for="remove_template">
+                                        Remove current template file
+                                    </label>
+                                </div>
+                            </div>
+                            ` : ''}
                         `;
                             form.html(formHtml);
                         } else if (table === 'rubrics') {
@@ -1690,16 +1877,6 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             }
                         }
 
-                        
-                        form.append(`
-                            <div class="modal-footer"> 
-                                <button type="button" class="btn btn-secondary mod-sec-btn" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                                <button type="submit" class="btn btn-primary mod-pri-btn" id="saveChanges">Save changes</button>
-                            </div>
-                        `);
-                        
-
-
                         // Add more conditions for other tables as needed
                         $('#editModal').modal('show');
                     } else {
@@ -1732,6 +1909,20 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 }
             } else if (table === 'teams') {
                 const validationErrors = ValidationUtils.validateTeamsForm(this);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
+            } else if (table === 'programs') {
+                const validationErrors = ValidationUtils.validateProgramsForm(this);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
+            } else if (table === 'requirements') {
+                const validationErrors = ValidationUtils.validateRequirementsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
                     showToast('Error', 'Please fix the validation errors before submitting', 'error');
@@ -1791,6 +1982,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     location.reload();
                                 }, 1000);
                             }
+                        } else if (table === 'programs') {
+                            // For programs tab, use the programs-specific reload function
+                            if (typeof window.reloadProgramsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadProgramsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
                         } else if (table === 'teams') {
                             // For teams tab, use the teams-specific reload function
                             if (typeof window.reloadCurrentTeamsView === 'function') {
@@ -1807,6 +2009,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
                                 setTimeout(function() {
                                     window.reloadCurrentResearchTitlesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'requirements') {
+                            // For requirements tab, use the requirements-specific reload function
+                            if (typeof window.reloadCurrentRequirementsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentRequirementsView(1);
                                 }, 500);
                             } else {
                                 setTimeout(function() {
@@ -2136,10 +2349,6 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                 <input type="checkbox" class="form-check-input" id="approved" name="approved">
                                 <label class="form-check-label" for="approved">Approved</label>
                             </div>
-                            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
-            </div>
                         `;
                         $('#addForm').append(formHtml);
                     },
@@ -2228,8 +2437,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="template_file" class="form-label">File Template</label>' +
-                    '<input type="file" class="form-control" id="template_file" name="template_file">' +
-                    '<small class="form-text text-muted">Upload a new file template if needed.</small>' +
+                    '<input type="file" class="form-control" id="template_file" name="template_file" accept=".pdf,.doc,.docx,.txt,.xlsx,.pptx">' +
+                    '<small class="form-text text-muted">Upload a file template (Optional). Allowed types: PDF, DOC, DOCX, TXT, XLSX, PPTX</small>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="due_date" class="form-label">Due Date</label>' +
@@ -2362,12 +2571,6 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             updatePanelistDropdowns();
                         });
                         updatePanelistDropdowns(); // Initial update
-                        form.append(`
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
-            </div>
-            `)
                     },
                     error: function() {
                         showToast('Error', 'Unable to fetch teams and staff data', 'error');
@@ -2380,13 +2583,6 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<input type="text" class="form-control" id="name" name="name" required>' +
                     '</div>');
             }
-            if (table != 'research_titles'){
-            form.append(`
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onclick="location.reload()">Close</button>
-                <button type="submit" class="btn btn-primary" id="addItem">Add Item</button>
-            </div>
-            `);}
 
             // Show the modal for tables other than rubrics
             $('#addModal').modal('show');
@@ -2413,6 +2609,20 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
     } else if (table === 'teams') {
         const validationErrors = ValidationUtils.validateTeamsForm(form);
+        if (Object.keys(validationErrors).length > 0) {
+            ValidationUtils.displayErrors(validationErrors);
+            showToast('Error', 'Please fix the validation errors before submitting', 'error');
+            return;
+        }
+    } else if (table === 'programs') {
+        const validationErrors = ValidationUtils.validateProgramsForm(form);
+        if (Object.keys(validationErrors).length > 0) {
+            ValidationUtils.displayErrors(validationErrors);
+            showToast('Error', 'Please fix the validation errors before submitting', 'error');
+            return;
+        }
+    } else if (table === 'requirements') {
+        const validationErrors = ValidationUtils.validateRequirementsForm(form);
         if (Object.keys(validationErrors).length > 0) {
             ValidationUtils.displayErrors(validationErrors);
             showToast('Error', 'Please fix the validation errors before submitting', 'error');
@@ -2474,6 +2684,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             location.reload();
                         }, 1000);
                     }
+                } else if (table === 'programs') {
+                    // For programs tab, use the programs-specific reload function
+                    if (typeof window.reloadProgramsView === 'function') {
+                        setTimeout(function() {
+                            window.reloadProgramsView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
                 } else if (table === 'teams') {
                     // For teams tab, use the teams-specific reload function
                     if (typeof window.reloadCurrentTeamsView === 'function') {
@@ -2490,6 +2711,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (typeof window.reloadCurrentResearchTitlesView === 'function') {
                         setTimeout(function() {
                             window.reloadCurrentResearchTitlesView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else if (table === 'requirements') {
+                    // For requirements tab, use the requirements-specific reload function
+                    if (typeof window.reloadCurrentRequirementsView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentRequirementsView(1);
                         }, 500);
                     } else {
                         setTimeout(function() {
@@ -2577,6 +2809,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     location.reload();
                                 }, 1000);
                             }
+                        } else if (table === 'programs') {
+                            // For programs tab, use the programs-specific reload function
+                            if (typeof window.reloadProgramsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadProgramsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
                         } else if (table === 'teams') {
                             // For teams tab, use the teams-specific reload function
                             if (typeof window.reloadCurrentTeamsView === 'function') {
@@ -2593,6 +2836,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
                                 setTimeout(function() {
                                     window.reloadCurrentResearchTitlesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'requirements') {
+                            // For requirements tab, use the requirements-specific reload function
+                            if (typeof window.reloadCurrentRequirementsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentRequirementsView(1);
                                 }, 500);
                             } else {
                                 setTimeout(function() {

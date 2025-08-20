@@ -492,6 +492,16 @@ try {
         }
     }
 
+    // --- Programs-specific filter conditions ---
+    if ($table === 'programs') {
+        $collegeFilter = $_GET['college'] ?? '';
+
+        if (!empty($collegeFilter)) {
+            $conditions[] = "college = :collegeFilter";
+            $params[':collegeFilter'] = $collegeFilter;
+        }
+    }
+
     // --- Append additional conditions to both queries ---
     if (!empty($conditions)) {
         $dataQuery .= $whereOrAndAdditionalData . implode(' AND ', $conditions);

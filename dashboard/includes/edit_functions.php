@@ -174,9 +174,16 @@ function updateEvaluation($pdo, $id, $defense_schedule_id, $evaluator_id, $total
 
 // Function to update environment variable
 function updateEnvVariable($pdo, $id, $key, $value, $description) {
-    $sql = "UPDATE env_variables SET `key` = ?, `value` = ?, `description` = ? WHERE id = ?";
+    $sql = "UPDATE env_variables SET `key` = ?, `value` = ?, `description` = ?, updated_at = NOW() WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     return $stmt->execute([$key, $value, $description, $id]);
+}
+
+// Function to update page content
+function updatePageContent($pdo, $id, $title, $slug, $content, $status) {
+    $sql = "UPDATE page_content SET title = ?, slug = ?, content = ?, status = ?, updated_at = NOW() WHERE id = ?";
+    $stmt = $pdo->prepare($sql);
+    return $stmt->execute([$title, $slug, $content, $status, $id]);
 }
 
 // Function to update user schedule
@@ -317,6 +324,27 @@ function handleEditSubmission($pdo, $table, $id, $data) {
 
         // Call the specific update function
         return updateProgram($pdo, $id, $college, $department, $name, $specialization);
+    }
+    // Handle env_variables table
+    elseif ($table === 'env_variables') {
+        // Extract env_variables fields
+        $key = $data['key'] ?? null;
+        $value = $data['value'] ?? null;
+        $description = $data['description'] ?? null;
+
+        // Call the specific update function
+        return updateEnvVariable($pdo, $id, $key, $value, $description);
+    }
+    // Handle page_content table
+    elseif ($table === 'page_content') {
+        // Extract page_content fields
+        $title = $data['title'] ?? null;
+        $slug = $data['slug'] ?? null;
+        $content = $data['content'] ?? null;
+        $status = $data['status'] ?? 'draft';
+
+        // Call the specific update function
+        return updatePageContent($pdo, $id, $title, $slug, $content, $status);
     }
 
     // Special handling for defense_schedules table
