@@ -36,7 +36,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode($response);
         exit;
     }
-    if (!$id) {
+    if ($id === null) {
         $response['message'] = 'Item ID not provided.';
         echo json_encode($response);
         exit;

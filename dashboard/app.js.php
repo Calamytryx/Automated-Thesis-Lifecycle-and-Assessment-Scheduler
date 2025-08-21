@@ -743,6 +743,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 case 'bio':
                     if (this.isTooLong(trimmedValue, 500)) {
                         errors.push('Bio cannot exceed 500 characters');
+                    } 
+                    // Check for symbols (non-alphanumeric, non-space, non-basic punctuation)
+                    if (/[^a-zA-Z0-9\s\.\,\-\_\@\(\)\!\?]/.test(trimmedValue)) {
+                        errors.push('Bio must be alphanumeric and basic punctuation only');
                     }
                     break;
 
@@ -838,26 +842,38 @@ function populateProgramDropdown(selectElement, selectedValue) {
             const usertype = formData.get('usertype');
 
             // Define fields to validate
-            const fieldsToValidate = ['username', 'email', 'first_name', 'last_name', 'headline', 'bio'];
-            
+            const fieldsToValidate = ['username', 'email', 'first_name', 'last_name'];
+
             // Add password field if it's an add form or if password is being changed
             if (formElement.id === 'addForm' || formData.get('password')) {
-                fieldsToValidate.push('password');
+            fieldsToValidate.push('password');
             }
 
             // Add area_of_expertise if usertype is faculty (2)
             if (usertype == 2) {
-                fieldsToValidate.push('area_of_expertise');
+            fieldsToValidate.push('area_of_expertise');
             }
 
-            fieldsToValidate.forEach(fieldName => {
-                const value = formData.get(fieldName);
-                if (value !== null) { // Only validate if field exists
-                    const fieldErrors = this.validateField(fieldName, value, usertype);
-                    if (fieldErrors.length > 0) {
-                        errors[fieldName] = fieldErrors;
-                    }
+            // Validate headline and bio only if not empty/null
+            const optionalFields = ['headline', 'bio'];
+            optionalFields.forEach(fieldName => {
+            const value = formData.get(fieldName);
+            if (value && value.trim() !== '') {
+                const fieldErrors = this.validateField(fieldName, value, usertype);
+                if (fieldErrors.length > 0) {
+                errors[fieldName] = fieldErrors;
                 }
+            }
+            });
+
+            fieldsToValidate.forEach(fieldName => {
+            const value = formData.get(fieldName);
+            if (value !== null) { // Only validate if field exists
+                const fieldErrors = this.validateField(fieldName, value, usertype);
+                if (fieldErrors.length > 0) {
+                errors[fieldName] = fieldErrors;
+                }
+            }
             });
 
             return errors;
@@ -1266,7 +1282,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
                             // Replace hardcoded program dropdown with select element
                             formHtml += `
-                                <div class="mb-3">
+                                <div class="mb-3" id="programField" 
+                                    ${(id == 0 || response.data.usertype != 0) ? 'style="display:none;"' : ''}>
                                     <label for="program_id" class="form-label">Program</label>
                                     <select class="form-select" id="program_id" name="program_id" required>
                                     </select>
@@ -1305,7 +1322,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             </div>
                             `;
                             formHtml += `
-                            <div class="mb-3 is-program-chair-field" ${response.data.usertype != 0 ? 'style="display:none;"' : ''}>
+                            <div class="mb-3 is-program-chair-field" 
+                                ${(id == 0 || response.data.usertype != 0) ? 'style="display:none;"' : ''}>
                                 <label class="form-label">Program Chair</label>
                                 <div class="form-check">
                                     <input class="form-check-input" type="checkbox" name="is_program_chair" id="program_chair" value="0" ${response.data.is_program_chair == 0 || response.data.is_program_chair == null ? 'checked' : ''} required>

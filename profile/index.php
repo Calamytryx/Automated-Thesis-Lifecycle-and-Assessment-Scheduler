@@ -29,6 +29,12 @@ if (isset($_SESSION['is_parttime']) && $_SESSION['is_parttime'] == 1) {
     $partTimeStatus = "(Part-time)";
 }
 
+$username = $_SESSION['username'];
+$sql = "SELECT * FROM users WHERE username = ?";
+$stmt = $pdo->prepare($sql);
+$stmt->execute([$username]);
+$row = $stmt->fetch();
+
 ?>
 
 <main class="container-fluid p-0 profile-view-main-container">
@@ -86,7 +92,7 @@ if (isset($_SESSION['is_parttime']) && $_SESSION['is_parttime'] == 1) {
                         <div class="bio-content">
                             <?php 
                             if (isset($_SESSION['bio']) && !empty(trim($_SESSION['bio']))) {
-                                echo $_SESSION['bio'];
+                                echo $row['bio'];
                             } else {
                                 echo '<span class="text-muted">No information has been provided. Click "Edit Profile" to add information.</span>';
                             }
