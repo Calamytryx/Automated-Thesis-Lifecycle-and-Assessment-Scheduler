@@ -24,11 +24,11 @@
                 $roleClass = '';
 
                 if ($userType == 0) {
-                    if ($userId == 0) {
-                        $roleLabel = 'Admin';
+                    if (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1) {
+                        $roleLabel = 'Program Chair';
                         $roleClass = 'navbar-role-admin';
                     } else {
-                        $roleLabel = 'Program Chair';
+                        $roleLabel = 'Admin';
                         $roleClass = 'navbar-role-admin';
                     }
                 } elseif ($userType == 1) {
@@ -102,7 +102,8 @@
                     <a class="nav-link" href="../home">Home</a>
                 </li>
 
-                <?php if ($_SESSION['usertype'] == 0): ?>
+
+                <?php if ($_SESSION['usertype'] != 1): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="../dashboard">Dashboard</a>
                     </li>

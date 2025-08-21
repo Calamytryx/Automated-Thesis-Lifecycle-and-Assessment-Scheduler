@@ -117,6 +117,7 @@ if (!isset($_POST['loginsubmit'])) {
                 $_SESSION['deleted_at'] = $row['deleted_at'];
                 $_SESSION['last_login_at'] = $row['last_login_at'];
                 $_SESSION['usertype'] = $row['usertype'];
+                $_SESSION['program_chair'] = $row['is_program_chair'];
                 // $_SESSION['team_id'] = $row['team_id'];
                 $sql = "SELECT * FROM team_members WHERE user_id=?";
                 $stmt = $pdo->prepare($sql);

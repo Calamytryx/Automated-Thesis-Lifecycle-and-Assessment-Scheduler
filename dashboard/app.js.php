@@ -1304,6 +1304,15 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                 </div>
                             </div>
                             `;
+                            formHtml += `
+                            <div class="mb-3 is-program-chair-field" ${response.data.usertype != 0 ? 'style="display:none;"' : ''}>
+                                <label class="form-label">Program Chair</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_program_chair" id="program_chair" value="0" ${response.data.is_program_chair == 0 || response.data.is_program_chair == null ? 'checked' : ''} required>
+                                    <label class="form-check-label" for="program_chair">Program Chair</label>
+                                </div>
+                            </div>
+                            `;
 
                             form.html(formHtml);
                             console.log(`Program data: ${response.data.program}`);
@@ -2312,7 +2321,16 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
                     '<label class="form-check-label" for="addPartTime">Part Time</label>' +
                     '</div>' +
-                    '</div>');
+                    '</div>' +
+                    // Program Chair field, hidden by default
+                    '<div class="mb-3 is-program-chair-field" style="display:none;">' +
+                    '<label class="form-label">Program Chair</label>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="checkbox" name="is_program_chair" id="program_chair" value="0">' +
+                    '<label class="form-check-label" for="program_chair">Program Chair</label>' +
+                    '</div>' +
+                    '</div>'
+                );
 
                 // Populate the programs dropdown
                 populateProgramDropdown($('#program_id'));
@@ -2322,9 +2340,15 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if ($(this).val() == 2) {
                         $('.area-expertise-field').show();
                         $('.is-part-time-field').show();
+                        $('.is-program-chair-field').hide();
+                    } else if ($(this).val() == 0) {
+                        $('.area-expertise-field').hide();
+                        $('.is-part-time-field').hide();
+                        $('.is-program-chair-field').show();
                     } else {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.is-program-chair-field').hide();
                     }
                 });
             } else if (table === 'thesis_topics') {

@@ -290,10 +290,12 @@
                                     <i class="fas fa-edit"></i>
                                     Edit
                                 </button>
-                                <button class="meatball-dropdown-item delete-item delete-btn" data-table="users" data-id="${user.id}">
-                                    <i class="fas fa-trash-alt"></i>
-                                    Delete
-                                </button>
+                                ${user.id != 0 ? `
+                                    <button class="meatball-dropdown-item delete-item delete-btn" data-table="users" data-id="${user.id}">
+                                        <i class="fas fa-trash-alt"></i>
+                                        Delete
+                                    </button>
+                                ` : ''}
                             `;
                             document.body.appendChild(dropdownPortal);
                         });

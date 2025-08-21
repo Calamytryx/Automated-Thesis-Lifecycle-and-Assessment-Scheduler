@@ -365,7 +365,182 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ?>
         </div> -->
         <div class="col-sm-12"> 
-            <?php if ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
+            <!-- Admin dashboard content -->
+            <?php if (($_SESSION['usertype'] == 0 && (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1)) || $_SESSION['id'] != 0): ?>
+                <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
+                        <!-- User Profile Section moved to top -->
+                        <div class="profile-header d-flex justify-content-between align-items-center">
+                            <div class="profile-dropdown-container" id="profileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="profile-container">
+                                    <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                        <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php else: ?>
+                                        <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php endif; ?>
+                                    <div class="user-info">
+                                        <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                    </div>
+                                </div>
+                                <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
+                                <ul class="dropdown-menu profile-dropdown-menu" aria-labelledby="profileDropdownToggle">
+                                    <li><a class="dropdown-item" href="../profile"><i class="bi bi-person-circle me-2"></i>View Profile</a></li>
+                                    <li><a class="dropdown-item" href="../profile-edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" id="dashboardLogoutBtn"><i class="bi bi-power me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                            <div class="toggle-button-container">
+                                <button id="toggleSidebar" class="btn btn-link">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <!-- Dashboard Overview -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category d-flex justify-content-between align-items-center">
+                                    <span class="category-text">Dashboard</span>
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link active mt-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                        <i class="bi bi-house me-2 hollow"></i>
+                                        <i class="bi bi-house-fill me-2 filled"></i>
+                                        Overview
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- User Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    User Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Users
+                                    </a>
+                                    <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
+                                    </a>
+                                    <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
+                                        <i class="bi bi-calendar me-2 hollow"></i>
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Thesis Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    Thesis Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <!-- <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false" disabled>
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Thesis Topics (in conflict with panel suggestion)
+                                    </a> -->
+                                    <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
+                                        <i class="bi bi-file-text me-2 hollow"></i>
+                                        <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
+                                    </a>
+                                    <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
+                                        <i class="bi bi-mortarboard me-2 hollow"></i>
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Defense Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    Defense Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
+                                        <i class="bi bi-calendar-event me-2 hollow"></i>
+                                        <i class="bi bi-calendar-event-fill me-2 filled"></i>Defense Schedules
+                                    </a>
+                                    <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
+                                        <i class="bi bi-list-check me-2 hollow"></i>
+                                        <i class="bi bi-list-check me-2 filled"></i>Rubrics
+                                    </a>
+                                    <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
+                                        <i class="bi bi-list-columns me-2 hollow"></i>
+                                        <i class="bi bi-list-columns-reverse me-2 filled"></i>Rubric Groups 
+                                    </a>
+                                    <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
+                                        <i class="bi bi-star me-2 hollow"></i>
+                                        <i class="bi bi-star-fill me-2 filled"></i>Evaluations
+                                    </a>
+                                    <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
+                                        <i class="bi bi-check-square me-2 hollow"></i>
+                                        <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Files -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    File Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
+                                        <i class="bi bi-folder2-open me-2 hollow"></i>
+                                        <i class="bi bi-folder2-open me-2 filled"></i>Research Repository
+                                    </a>
+                                </div>
+                            </div>
+                              <!-- Settings -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    System
+                                </div>
+                                <div class="sidebar-items">
+                                    <!-- <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
+                                        <i class="bi bi-gear me-2 hollow"></i>
+                                        <i class="bi bi-gear-fill me-2 filled"></i>Content Management
+                                    </a> -->
+                                    <!-- <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank">
+                                        <i class="bi bi-database me-2 hollow"></i>
+                                        <i class="bi bi-database-fill me-2 filled"></i>DataBase
+                                    </a> -->
+                                    <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    <div id="mainContent">
+                        <div class="tab-content" id="v-pills-tabContent">
+                            <?php include 'includes/tabs/overview_tab.php'; ?>
+
+                            <?php include 'includes/tabs/users_tab.php'; ?>
+                            <?php include 'includes/tabs/teams_tab.php'; ?>
+                            <?php include 'includes/tabs/schedules_tab.php'; ?>
+
+                            <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
+                            <?php include 'includes/tabs/research_titles_tab.php'; ?>
+
+                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
+                            <?php include 'includes/tabs/rubrics_tab.php'; ?>
+
+                            <?php include 'includes/tabs/programs_tab.php'; ?>
+
+                            <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
+                            <?php include 'includes/tabs/evaluations_tab.php'; ?>
+                            <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            
+                            <?php //include 'includes/tabs/env_variables_tab.php'; ?>
+                            <?php include 'includes/tabs/guide_tab.php'; ?>
+                        </div>
+                    </div>
+                </div>
+            <?php elseif ($_SESSION['usertype'] == 0): ?>                <!-- Admin dashboard content -->
                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
                         <!-- User Profile Section moved to top -->
                         <div class="profile-header d-flex justify-content-between align-items-center">
@@ -539,13 +714,184 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         </div>
                     </div>
                 </div>
-            <?php else: ?>
+            <?php elseif ($_SESSION['usertype'] == 2): ?>
                 <!-- Regular user dashboard content -->
-                <script>
-                    window.location.href = '../home';
-                </script>
+                 <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
+                        <!-- User Profile Section moved to top -->
+                        <div class="profile-header d-flex justify-content-between align-items-center">
+                            <div class="profile-dropdown-container" id="profileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
+                                <div class="profile-container">
+                                    <?php if(isset($_SESSION['profile_image']) && !empty($_SESSION['profile_image'])): ?>
+                                        <img src="../assets/uploads/users/<?php echo $_SESSION['profile_image']; ?>" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php else: ?>
+                                        <img src="../assets/images/sample-pic.png" alt="<?php echo $_SESSION['username']; ?>">
+                                    <?php endif; ?>
+                                    <div class="user-info">
+                                        <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
+                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                    </div>
+                                </div>
+                                <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
+                                <ul class="dropdown-menu profile-dropdown-menu" aria-labelledby="profileDropdownToggle">
+                                    <li><a class="dropdown-item" href="../profile"><i class="bi bi-person-circle me-2"></i>View Profile</a></li>
+                                    <li><a class="dropdown-item" href="../profile-edit"><i class="bi bi-pencil-square me-2"></i>Edit Profile</a></li>
+                                    <li><hr class="dropdown-divider"></li>
+                                    <li><a class="dropdown-item" href="#" id="dashboardLogoutBtn"><i class="bi bi-power me-2"></i>Logout</a></li>
+                                </ul>
+                            </div>
+                            <div class="toggle-button-container">
+                                <button id="toggleSidebar" class="btn btn-link">
+                                    <i class="bi bi-chevron-left"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div class="nav flex-column nav-pills pt-3 sidebar-nav" id="v-pills-tab" role="tablist" aria-orientation="vertical">
+                            <!-- Dashboard Overview -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category d-flex justify-content-between align-items-center">
+                                    <span class="category-text">Dashboard</span>
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link active mt-1" id="overview-tab" data-bs-toggle="pill" href="#overview" role="tab" aria-controls="overview" aria-selected="true">
+                                        <i class="bi bi-house me-2 hollow"></i>
+                                        <i class="bi bi-house-fill me-2 filled"></i>
+                                        Overview
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- User Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    User Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="users-tab" data-bs-toggle="pill" href="#users" role="tab" aria-controls="users" aria-selected="false">
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Users
+                                    </a>
+                                    <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
+                                        <i class="bi bi-people me-2 hollow"></i>
+                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
+                                    </a>
+                                    <!-- <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
+                                        <i class="bi bi-calendar me-2 hollow"></i>
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                    </a> -->
+                                </div>
+                            </div>
+
+                            <!-- Thesis Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    Thesis Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <!-- <a class="nav-link my-1" id="thesis-topics-tab" data-bs-toggle="pill" href="#thesis-topics" role="tab" aria-controls="thesis-topics" aria-selected="false" disabled>
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Thesis Topics (in conflict with panel suggestion)
+                                    </a> -->
+                                    <a class="nav-link my-1" id="research-titles-tab" data-bs-toggle="pill" href="#research-titles" role="tab" aria-controls="research-titles" aria-selected="false">
+                                        <i class="bi bi-file-text me-2 hollow"></i>
+                                        <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
+                                    </a>
+                                    <!-- <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
+                                        <i class="bi bi-mortarboard me-2 hollow"></i>
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                    </a> -->
+                                </div>
+                            </div>
+
+                            <!-- Defense Management -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    Defense Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
+                                        <i class="bi bi-calendar-event me-2 hollow"></i>
+                                        <i class="bi bi-calendar-event-fill me-2 filled"></i>Defense Schedules
+                                    </a>
+                                    <!-- <a class="nav-link my-1" id="rubrics-tab" data-bs-toggle="pill" href="#rubrics" role="tab" aria-controls="rubrics" aria-selected="false">
+                                        <i class="bi bi-list-check me-2 hollow"></i>
+                                        <i class="bi bi-list-check me-2 filled"></i>Rubrics
+                                    </a>
+                                    <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
+                                        <i class="bi bi-list-columns me-2 hollow"></i>
+                                        <i class="bi bi-list-columns-reverse me-2 filled"></i>Rubric Groups 
+                                    </a> -->
+                                    <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
+                                        <i class="bi bi-star me-2 hollow"></i>
+                                        <i class="bi bi-star-fill me-2 filled"></i>Evaluations
+                                    </a>
+                                    <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
+                                        <i class="bi bi-check-square me-2 hollow"></i>
+                                        <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
+                                    </a>
+                                </div>
+                            </div>
+
+                            <!-- Files -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    File Management
+                                </div>
+                                <div class="sidebar-items">
+                                    <a class="nav-link my-1" href="<?php echo 'http://' . $_SERVER['HTTP_HOST'] . '/files'; ?>" target="_blank">
+                                        <i class="bi bi-folder2-open me-2 hollow"></i>
+                                        <i class="bi bi-folder2-open me-2 filled"></i>Research Repository
+                                    </a>
+                                </div>
+                            </div>
+                              <!-- Settings -->
+                            <div class="sidebar-section">
+                                <div class="sidebar-category">
+                                    System
+                                </div>
+                                <div class="sidebar-items">
+                                    <!-- <a class="nav-link my-1" id="env-variables-tab" data-bs-toggle="pill" href="#env-variables" role="tab" aria-controls="env-variables" aria-selected="false">
+                                        <i class="bi bi-gear me-2 hollow"></i>
+                                        <i class="bi bi-gear-fill me-2 filled"></i>Content Management
+                                    </a> -->
+                                    <!-- <a class="nav-link my-1" href="https://php-myadmin.net/login.php?2=icei_38697196wejghelqwdtg3e54gVGtSWk5FOUVXWHBPUkZFelRWaDNhRWxUUldoSldIZzRaa2g0T0daSWVEaG1TSGhOWTIxa2FsSnNSbXRWTW1jd1RUQjRhMk5xVVQwPQ==wejghelqwdtg3e54gsql302.iceiy.comwejghelqwdtg3e54gicei_38697196_coecsathesis&db=icei_38697196_coecsathesis" target="_blank">
+                                        <i class="bi bi-database me-2 hollow"></i>
+                                        <i class="bi bi-database-fill me-2 filled"></i>DataBase
+                                    </a> -->
+                                    <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>                    <div id="mainContent">
+                        <div class="tab-content" id="v-pills-tabContent">
+                            <?php include 'includes/tabs/overview_tab.php'; ?>
+
+                            <?php include 'includes/tabs/users_tab.php'; ?>
+                            <?php include 'includes/tabs/teams_tab.php'; ?>
+                            <?php //include 'includes/tabs/schedules_tab.php'; ?>
+
+                            <?php include 'includes/tabs/thesis_topics_tab.php'; ?>
+                            <?php include 'includes/tabs/research_titles_tab.php'; ?>
+
+                            <?php include 'includes/tabs/defense_schedules_tab.php'; ?>
+                            <?php //include 'includes/tabs/rubrics_tab.php'; ?>
+
+                            <?php //include 'includes/tabs/programs_tab.php'; ?>
+
+                            <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
+                            <?php include 'includes/tabs/evaluations_tab.php'; ?>
+                            <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            
+                            <?php //include 'includes/tabs/env_variables_tab.php'; ?>
+                            <?php include 'includes/tabs/guide_tab.php'; ?>
+                        </div>
+                    </div>
+                </div>
                 <!-- Add more content for regular users as needed -->
-            <?php endif; ?>
+            
+                <?php endif; ?>
         </div>
     </div>
 </main>
