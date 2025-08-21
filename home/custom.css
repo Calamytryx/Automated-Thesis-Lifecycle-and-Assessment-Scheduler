@@ -43,7 +43,7 @@ main.container-fluid {
 }
 
 .border-bottom {
-    border-bottom: 1px solid #e5e5e5;
+    border-bottom: 1px solid var(--neutral-300);
 }
 
 #aiSuggestions {
@@ -57,7 +57,7 @@ main.container-fluid {
     margin-left: 20px;
 }
 #aiSuggestions code {
-    background-color: #f0f0f0;
+    background-color: var(--neutral-100);
     padding: 2px 4px;
     border-radius: 4px;
 }
@@ -1038,9 +1038,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .home-sidebar-role-pill.role-admin {
-    color: #fff;
-    background: #dc3545;
-    border-color: #dc3545;
+    color: var(--main-white);
+    background: var(--bs-danger);
+    border-color: var(--bs-danger);
 }
 
 
@@ -1502,13 +1502,13 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .btn-group .btn-outline-primary:hover {
-    color: #fff;
+    color: var(--main-white);
     background-color: var(--primary-600, #0d6efd);
     border-color: var(--primary-600, #0d6efd);
 }
 
 .btn-group .btn-check:checked + .btn-outline-primary {
-    color: #fff;
+    color: var(--main-white);
     background-color: var(--primary-600, #0d6efd);
     border-color: var(--primary-600, #0d6efd);
     box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.125);
@@ -1616,6 +1616,45 @@ body.has-collapsed-home-sidebar #homeMainContent {
         display: flex;
         align-items: center;
         justify-content: center;
+    }
+    
+    /* Requirement checker small mobile adjustments */
+    .requirement-student-card,
+    .requirement-adviser-card {
+        margin-bottom: 1rem;
+    }
+    
+    .requirement-student-body,
+    .requirement-card-body {
+        padding: 1rem;
+    }
+    
+    .requirement-student-title {
+        font-size: 1.05rem !important;
+    }
+    
+    .requirement-name {
+        font-size: 1.05rem;
+    }
+    
+    .requirement-template-btn {
+        margin-bottom: 0.5rem !important;
+        display: block !important;
+    }
+    
+    .requirement-feedback-textarea {
+        min-height: 90px;
+    }
+    
+    .requirement-file-actions {
+        gap: 0.5rem;
+    }
+    
+    .requirement-submit-btn,
+    .requirement-download-btn,
+    .requirement-view-btn {
+        width: 100%;
+        margin-bottom: 0.25rem;
     }
 }
 
@@ -2224,6 +2263,84 @@ body.has-collapsed-home-sidebar #homeMainContent {
     .research-title-empty-state .mt-4 {
         margin-top: 1.5rem !important;
     }
+    
+    /* Additional requirement checker mobile styles */
+    .requirement-student-body,
+    .requirement-card-body {
+        padding: 1rem !important;
+    }
+    
+    .requirement-student-title {
+        font-size: 1rem !important;
+        margin-bottom: 0.75rem !important;
+    }
+    
+    .requirement-student-description,
+    .requirement-student-due-date,
+    .requirement-student-status,
+    .requirement-student-feedback {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.5rem !important;
+    }
+    
+    .requirement-student-upload-footer,
+    .requirement-student-feedback-footer {
+        padding: 1rem !important;
+    }
+    
+    .requirement-name {
+        font-size: 1rem !important;
+    }
+    
+    .requirement-description {
+        font-size: 0.8rem !important;
+        margin-bottom: 6px !important;
+    }
+    
+    .requirement-due-date {
+        font-size: 0.75rem !important;
+    }
+    
+    .requirement-template-btn {
+        font-size: 0.75rem !important;
+        padding: 0.25rem 0 !important;
+    }
+    
+    .requirement-download-btn,
+    .requirement-view-btn {
+        font-size: 0.75rem;
+        padding: 6px 10px;
+    }
+    
+    .requirement-feedback-textarea {
+        min-height: 80px;
+        font-size: 0.8rem;
+    }
+    
+    .requirement-status-select {
+        font-size: 0.8rem;
+        padding: 8px 10px;
+    }
+    
+    .requirement-file-input {
+        font-size: 0.8rem;
+        padding: 8px 10px;
+    }
+    
+    .requirement-submit-btn {
+        font-size: 0.8rem !important;
+        padding: 0.6rem 1.25rem !important;
+        width: 100%;
+        margin-top: 0.5rem;
+    }
+    
+    .requirement-current-file-link {
+        font-size: 0.8rem;
+    }
+    
+    .remove-current-file-btn {
+        font-size: 0.7rem;
+    }
 }
 
 /* ==========================================
@@ -2268,7 +2385,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
     color: var(--neutral-700) !important;
     font-size: 0.95rem;
     line-height: 1.6;
-    margin-bottom: 1rem !important;
+    margin-bottom: 0;
 }
 
 .requirement-student-due-date {
@@ -2338,8 +2455,8 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 /* Student upload footer and form styles */
 .requirement-student-upload-footer {
-    background-color: var(--white-50) !important;
-    border-top: 1px solid var(--neutral-200) !important;
+    /* background-color: var(--white-50) !important;
+    border-top: 1px solid var(--neutral-200) !important; */
     padding: 1.5rem 1.75rem !important;
 }
 
@@ -2364,13 +2481,13 @@ body.has-collapsed-home-sidebar #homeMainContent {
     box-shadow: 0 4px 12px rgba(158, 42, 47, 0.3);
 }
 
-.requirement-upload-form {
+/* .requirement-upload-form {
     background-color: var(--neutral-50);
     border: 1px solid var(--neutral-200);
     border-radius: 8px;
     padding: 1.25rem;
     margin-top: 0.5rem;
-}
+} */
 
 .requirement-file-input-section {
     margin-bottom: 1rem;
@@ -2501,6 +2618,72 @@ body.has-collapsed-home-sidebar #homeMainContent {
     .requirement-upload-form {
         padding: 1rem;
     }
+    
+    /* Additional responsive styles for requirement checker */
+    .requirement-file-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .requirement-download-btn,
+    .requirement-view-btn {
+        font-size: 0.8rem;
+        padding: 8px 12px;
+        text-align: center;
+        width: 100%;
+    }
+    
+    .requirement-status-select {
+        font-size: 0.85rem;
+        padding: 10px 12px;
+    }
+    
+    .requirement-feedback-textarea {
+        min-height: 100px;
+        font-size: 0.85rem;
+    }
+    
+    .upload-controls {
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    
+    .requirement-file-input {
+        min-width: auto;
+        font-size: 0.85rem;
+    }
+    
+    .requirement-template-btn {
+        font-size: 0.8rem !important;
+        margin-bottom: 0.5rem !important;
+        display: block !important;
+    }
+    
+    .requirement-student-title {
+        font-size: 1.1rem !important;
+    }
+    
+    .requirement-student-description,
+    .requirement-student-due-date,
+    .requirement-student-status,
+    .requirement-student-feedback {
+        font-size: 0.85rem !important;
+    }
+    
+    .requirement-current-submission-section > div {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.25rem;
+    }
+    
+    .requirement-current-file-link {
+        max-width: 100%;
+        margin-bottom: 0.25rem;
+    }
+    
+    .remove-current-file-btn {
+        align-self: flex-start;
+    }
 }
 
 /* ==========================================
@@ -2582,6 +2765,45 @@ body.has-collapsed-home-sidebar #homeMainContent {
         background-color: var(--neutral-200) !important;
         transform: scale(0.99);
     }
+    
+    /* Requirement checker medium screen adjustments */
+    .requirement-header-section {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 0.75rem;
+    }
+    
+    .requirement-info-section {
+        width: 100%;
+        margin-right: 0;
+    }
+    
+    .requirement-checkbox-section {
+        align-self: flex-start;
+        margin-left: 0;
+    }
+    
+    .requirement-file-actions {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+    
+    .requirement-download-btn,
+    .requirement-view-btn {
+        width: 100%;
+        text-align: center;
+    }
+    
+    .upload-controls {
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0.5rem;
+    }
+    
+    .requirement-file-input {
+        min-width: auto;
+        width: 100%;
+    }
 }
 
 /* Evaluation modal styling */
@@ -2648,7 +2870,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 /* Main requirement card styling */
 .requirement-adviser-card {
-    border: 1px solid #e9ecef;
+    border: 1px solid var(--neutral-300);
     /* border-radius: 12px; */
     box-shadow: 0 2px 4px rgba(0,0,0,0.05);
     transition: all 0.3s ease;
@@ -2664,6 +2886,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 .requirement-card-body {
     padding: 0;
+    background-color: var(--neutral-50);
 }
 
 /* Card header with title, due date, and status */
@@ -2671,6 +2894,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
     /* margin-bottom: 20px; */
     padding: 15px;
     border-bottom: 1px solid var(--neutral-200);
+    background-color: var(--white-50);
 }
 
 .requirement-info-section {
@@ -2680,21 +2904,21 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .requirement-name {
     font-size: 1.1rem;
     font-weight: 600;
-    color: #2c3e50;
+    color: var(--main-bg-dark);
     margin-bottom: 5px;
     display: block;
 }
 
 .requirement-description {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--neutral-700);
     margin-bottom: 8px !important;
     line-height: 1.4;
 }
 
 .requirement-due-date {
     font-size: 0.85rem;
-    color: #6c757d;
+    color: var(--neutral-700);
     font-weight: 500;
 }
 
@@ -2706,37 +2930,38 @@ body.has-collapsed-home-sidebar #homeMainContent {
     width: 18px;
     height: 18px;
     border-radius: 4px;
-    border: 2px solid #dee2e6;
+    border: 2px solid var(--neutral-300);
 }
 
 .requirement-checkbox:checked {
-    background-color: #28a745;
-    border-color: #28a745;
+    background-color: var(--bs-success);
+    border-color: var(--bs-success);
 }
 
 /* Status badge styling */
 .requirement-status-section {
     padding: 15px;
     border-bottom: 1px solid var(--neutral-200);
+    background-color: var(--white-50);
 }
 
 .requirement-status-label {
     font-weight: 600;
-    color: #495057;
+    color: var(--neutral-700);
     margin-bottom: 8px;
     font-size: 0.9rem;
 }
 
 .requirement-status-select {
     border-radius: 8px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--neutral-300);
     font-size: 0.9rem;
     padding: 8px 12px;
 }
 
 .requirement-status-select:focus {
-    border-color: #007bff;
-    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    border-color: var(--main-primary);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
 /* Submitted File Section */
@@ -2764,12 +2989,12 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .submitted-file-header h6 {
     margin: 0;
     font-weight: 600;
-    color: #495057;
+    color: var(--neutral-700);
 }
 
 .submitted-file-name {
     font-size: 0.9rem;
-    color: #6c757d;
+    color: var(--neutral-700);
     margin-bottom: 10px;
     word-break: break-all;
 }
@@ -2787,9 +3012,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
     padding: 6px 12px;
     border-radius: 6px;
     text-decoration: none;
-    border: 1px solid #dee2e6;
-    background-color: #fff;
-    color: #495057;
+    border: 1px solid var(--neutral-300);
+    background-color: var(--main-white);
+    color: var(--neutral-700);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -2832,21 +3057,21 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 .requirement-feedback-label {
     font-weight: 600;
-    color: #495057;
+    color: var(--neutral-700);
     margin: 0;
     font-size: 0.95rem;
 }
 
 .requirement-feedback-textarea {
     border-radius: 6px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--neutral-300);
     resize: vertical;
     min-height: 80px;
     font-size: 0.9rem;
 }
 
 .requirement-feedback-textarea:focus {
-    border-color: #28a745;
+    border-color: var(--bs-success);
     box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
 }
 
@@ -2865,7 +3090,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 .requirement-upload-label {
     font-weight: 600;
-    color: #495057;
+    color: var(--neutral-700);
     margin: 0;
     font-size: 0.95rem;
 }
@@ -2881,18 +3106,18 @@ body.has-collapsed-home-sidebar #homeMainContent {
     flex: 1;
     min-width: 200px;
     border-radius: 6px;
-    border: 1px solid #dee2e6;
+    border: 1px solid var(--neutral-300);
     font-size: 0.9rem;
 }
 
 .requirement-file-input:focus {
-    border-color: #fd7e14;
+    border-color: var(--bs-warning);
     box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
 }
 
 /* Template download section - styled as link */
 .requirement-template-link {
-    color: #6c757d;
+    color: var(--neutral-700);
     text-decoration: none;
     font-size: 0.85rem;
     display: block;
@@ -2903,7 +3128,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .requirement-template-link:hover {
-    color: #495057;
+    color: var(--neutral-700);
     text-decoration: underline;
 }
 
@@ -2912,14 +3137,55 @@ body.has-collapsed-home-sidebar #homeMainContent {
     margin-right: 5px;
 }
 
+/* Template button styling for students - override Bootstrap button to look like link */
+.requirement-template-btn {
+    color: var(--neutral-700) !important;
+    text-decoration: none !important;
+    font-size: 0.85rem !important;
+    background: none !important;
+    border: none !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 5px !important;
+    transition: all 0.2s ease !important;
+    box-shadow: none !important;
+    font-weight: normal !important;
+}
+
+.requirement-template-btn:hover {
+    color: var(--neutral-700) !important;
+    text-decoration: underline !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    transform: none !important;
+}
+
+.requirement-template-btn:focus,
+.requirement-template-btn:active {
+    color: var(--neutral-700) !important;
+    background: none !important;
+    border: none !important;
+    box-shadow: none !important;
+    outline: none !important;
+}
+
+.requirement-template-btn i {
+    font-size: 0.8rem !important;
+    margin-right: 5px !important;
+    color: inherit !important;
+}
+
 /* Feedback file section */
 .requirement-feedback-file-section {
     margin-top: 10px;
 }
 
 .requirement-feedback-download-btn {
-    background-color: #6c757d;
-    color: white;
+    background-color: var(--neutral-700);
+    color: var(--main-white);
     border: none;
     padding: 6px 12px;
     border-radius: 6px;
@@ -2932,8 +3198,8 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .requirement-feedback-download-btn:hover {
-    background-color: #5a6268;
-    color: white;
+    background-color: var(--neutral-800);
+    color: var(--main-white);
     transform: translateY(-1px);
 }
 
@@ -2961,4 +3227,269 @@ body.has-collapsed-home-sidebar #homeMainContent {
     .requirement-template-link {
         margin-bottom: 8px;
     }
+}
+
+/* === New Submission Interface Styles === */
+
+/* Current submission file link (styled like template links) */
+.requirement-current-file-link {
+    color: var(--neutral-700);
+    text-decoration: none;
+    font-size: 0.9rem;
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    transition: all 0.2s ease;
+    flex: 1;
+    min-width: 0; /* Allow shrinking */
+    max-width: calc(100% - 30px); /* Reserve space for delete button */
+}
+
+.requirement-current-file-link:hover {
+    color: var(--main-primary);
+    text-decoration: underline;
+}
+
+.requirement-current-file-link i {
+    font-size: 0.8rem;
+    flex-shrink: 0; /* Prevent icon from shrinking */
+}
+
+/* Filename text with ellipsis */
+.requirement-current-file-link .filename-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+/* Current submission section styling - ensure single line layout */
+.requirement-current-submission-section {
+    margin-bottom: 0;
+    text-align: left;
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.requirement-current-submission-section > div {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-width: 0; /* Allow flex items to shrink */
+}
+
+.requirement-student-submission-footer {
+    background-color: var(--main-white);
+    padding: 1.75rem;
+}
+
+/* No submission file styling - match feedback file style and height */
+.requirement-no-submission-file {
+    color: var(--neutral-600);
+    font-style: italic;
+    font-size: 0.9rem;
+    text-align: center; /* Center align when no file */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    min-height: 3.5rem; /* Match height of submitted file section */
+    padding: 0.5rem 0;
+}
+
+/* Upload file section */
+.upload-file-section {
+    margin-top: 0;
+    transition: all 0.3s ease;
+}
+
+.upload-file-section strong {
+    color: var(--neutral-700);
+    font-size: 0.9rem;
+}
+
+/* Disabled upload section styling */
+.upload-file-section.upload-disabled {
+    opacity: 0.6;
+    pointer-events: none;
+    background-color: var(--neutral-50);
+}
+
+.upload-file-section.upload-disabled strong {
+    color: var(--neutral-700);
+}
+
+.upload-file-section.upload-disabled .form-control {
+    background-color: var(--neutral-300);
+    border-color: var(--neutral-400);
+    color: var(--neutral-700);
+    cursor: not-allowed;
+}
+
+.upload-file-section.upload-disabled .btn {
+    background-color: var(--neutral-700);
+    border-color: var(--neutral-700);
+    cursor: not-allowed;
+    opacity: 0.8;
+}
+
+.upload-file-section.upload-disabled .btn:hover {
+    background-color: var(--neutral-700);
+    border-color: var(--neutral-700);
+    transform: none;
+}
+
+/* Subtle remove button for current file - just red icon, no background */
+.remove-current-file-btn {
+    color: var(--bs-danger);
+    font-size: 0.8rem;
+    text-decoration: none;
+    opacity: 0.7;
+    transition: all 0.2s ease;
+    border: none;
+    background: none;
+    padding: 0;
+    margin: 0;
+    cursor: pointer;
+    flex-shrink: 0; /* Prevent button from shrinking */
+}
+
+.remove-current-file-btn:hover {
+    color: var(--bs-danger);
+    opacity: 1;
+    text-decoration: none;
+    background: none;
+    border: none;
+}
+
+.remove-current-file-btn:focus {
+    box-shadow: none;
+    outline: none;
+    background: none;
+    border: none;
+}
+
+/* === Original Submission Interface Styles === */
+
+/* Revert submission button */
+.revert-submission-btn {
+    background-color: var(--bs-warning);
+    border-color: var(--neutral-300);
+    color: var(--main-black);
+    font-size: 0.75rem;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+.revert-submission-btn:hover {
+    background-color: var(--bs-warning);
+    border-color: var(--neutral-400);
+    color: var(--main-black);
+    transform: translateY(-1px);
+}
+
+.revert-submission-btn:disabled {
+    opacity: 0.6;
+    transform: none;
+}
+
+/* No submission section for adviser */
+.requirement-no-submission-section {
+    background-color: var(--neutral-50);
+    border-radius: 8px;
+    padding: 1.5rem;
+    text-align: center;
+}
+
+.no-submission-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+}
+
+.no-submission-header i {
+    font-size: 1.25rem;
+}
+
+/* Student submission sections */
+.current-submission-section {
+    background-color: var(--neutral-50);
+    border: 1px solid var(--neutral-300);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.current-submission-section h6 {
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.new-submission-section {
+    background-color: var(--main-white);
+    border: 2px dashed var(--main-primary);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.new-submission-section h6 {
+    color: var(--main-primary);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+.no-submission-section {
+    background-color: var(--main-white);
+    border: 2px dashed var(--neutral-700);
+    border-radius: 8px;
+    padding: 1rem;
+}
+
+.no-submission-section h6 {
+    color: var(--neutral-700);
+    margin-bottom: 0.75rem;
+    font-weight: 600;
+}
+
+/* Remove file button */
+.remove-current-file-btn {
+    background-color: var(--bs-danger);
+    border-color: var(--bs-danger);
+    color: var(--main-white);
+    font-size: 0.75rem;
+    padding: 0.25rem 0.5rem;
+    transition: all 0.2s ease;
+    border-radius: 4px;
+}
+
+.remove-current-file-btn:hover {
+    background-color: var(--bs-danger);
+    border-color: var(--bs-danger);
+    color: var(--main-white);
+    transform: translateY(-1px);
+}
+
+.remove-current-file-btn:disabled {
+    opacity: 0.6;
+    transform: none;
+}
+
+/* Submission status indicators */
+.requirement-student-card[data-status="pending"] .card-header::before {
+    content: "📝 ";
+}
+
+.requirement-student-card[data-status="submitted"] .card-header::before {
+    content: "📤 ";
+}
+
+.requirement-student-card[data-status="approved"] .card-header::before {
+    content: "✅ ";
+}
+
+.requirement-student-card[data-status="rejected"] .card-header::before {
+    content: "❌ ";
 }

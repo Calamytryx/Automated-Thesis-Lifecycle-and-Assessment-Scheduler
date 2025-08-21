@@ -146,14 +146,27 @@ if (!move_uploaded_file($fileTmpPath, $destPath)) {
 
 // 5. Update Database
 try {
-    // Check if a record exists, otherwise insert
-    $checkSql = "SELECT id FROM team_requirements WHERE team_id = :team_id AND requirement_id = :requirement_id";
+    // Check if a record exists and its current status
+    $checkSql = "SELECT id, status FROM team_requirements WHERE team_id = :team_id AND requirement_id = :requirement_id";
     $stmtCheck = $pdo->prepare($checkSql);
     $stmtCheck->execute([':team_id' => $teamId, ':requirement_id' => $requirementId]);
     $existingRecord = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
+    // Security check: Only allow uploads if status is pending or no record exists
+    if ($existingRecord && $existingRecord['status'] !== 'pending') {
+        // Delete the uploaded file since we won't process it
+        if (file_exists($destPath)) {
+            unlink($destPath);
+        }
+        $response['error'] = 'File upload not allowed. Requirement status does not permit new submissions.';
+        error_log("Upload Security Block: Team ID {$teamId}, Req ID {$requirementId} - Status: {$existingRecord['status']}");
+        ob_end_clean();
+        echo json_encode($response);
+        exit;
+    }
+
     if ($existingRecord) {
-        // Update existing record
+        // Update existing record (only if status was pending)
         $sql = "UPDATE team_requirements
                 SET file_name = :file_name, status = 'submitted', submitted_at = NOW(), feedback = NULL, feedback_file = NULL
                 WHERE id = :id";

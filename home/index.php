@@ -1612,6 +1612,56 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </div>
 
+<!-- Revert Submission Confirmation Modal -->
+<div class="modal fade" id="revertConfirmModal" tabindex="-1" aria-labelledby="revertConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: var(--bs-warning); margin-bottom: 1rem;">
+                    <i class="bi bi-arrow-counterclockwise"></i>
+                </div>
+                <h4 class="fw-bold mb-3" id="revertConfirmModalLabel">Confirm Revert Submission</h4>
+                <p>Are you sure you want to revert the submission for <span id="revertRequirementName" class="fw-bold"></span>?</p>
+                <p class="text-muted small">This will allow the team to resubmit their work.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-warning" id="confirmRevert">
+                    Revert Submission
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete File Confirmation Modal -->
+<div class="modal fade" id="deleteFileConfirmModal" tabindex="-1" aria-labelledby="deleteFileConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: var(--bs-danger); margin-bottom: 1rem;">
+                    <i class="bi bi-trash"></i>
+                </div>
+                <h4 class="fw-bold mb-3" id="deleteFileConfirmModalLabel">Confirm File Deletion</h4>
+                <p>Are you sure you want to remove the current file for <span id="deleteRequirementName" class="fw-bold"></span>?</p>
+                <p class="text-muted small">This action cannot be undone and the file will be permanently removed.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmDeleteFile">
+                    Delete File
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
 
 
 
@@ -1723,6 +1773,61 @@ var existingTitles = "<?php echo implode(', ', $titles); ?>";
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
 <script>
+// Modern toast function similar to app.js.php - Moved to top for global scope
+function showToast(title, message, type = 'success') {
+    // Generate unique ID for the toast
+    const toastId = 'toast-' + Date.now();
+
+    // Modern universal toast styling and structure
+    const icon = type === 'success' ?
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
+        type === 'error' ?
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
+        `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+
+    const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
+    const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
+    const textColor = '#222';
+    const toast = `
+        <div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
+            role="alert"
+            aria-live="assertive"
+            aria-atomic="true"
+            style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
+            <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
+                ${icon}
+                <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
+                    <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
+                    <div>${message}</div>
+                </div>
+                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
+            </div>
+        </div>
+    `;
+
+    // Ensure toast container exists
+    if ($('#toastContainer').length === 0) {
+        $('body').append('<div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:9999;"></div>');
+    }
+
+    // Add toast to container
+    $('#toastContainer').append(toast);
+
+    // Initialize and show the toast with modified options
+    const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+        autohide: true,
+        delay: 3000,
+        animation: true
+    });
+
+    toastElement.show();
+
+    // Auto-remove from DOM after hiding
+    document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+        this.remove();
+    });
+}
+
 $(document).ready(function() {
     <?php
         $role = isset($_SESSION['team_role']) ? $_SESSION['team_role'] : '';
@@ -1795,7 +1900,7 @@ $(document).ready(function() {
                                                 <p class="mb-1 text-muted requirement-description">${req.description || 'No description provided.'}</p>
                                                 ${req.template_file 
                                                     ? `<a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>
-                                                        <i class="fas fa-download"></i> Template
+                                                        <i class="bi bi-download"></i> Template
                                                     </a>` 
                                                     : ``
                                                 }
@@ -1823,14 +1928,14 @@ $(document).ready(function() {
                                     <!-- Instructor Feedback Section -->
                                     <div class="requirement-feedback-section">
                                         <div class="requirement-feedback-header">
-                                            <i class="fas fa-comment-dots"></i>
+                                            <i class="bi bi-chat-dots"></i>
                                             <label for="feedback${req.id}" class="requirement-feedback-label">Instructor Feedback</label>
                                         </div>
                                         <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea" rows="3" placeholder="Enter your feedback here...">${req.feedback}</textarea>
                                         
                                         <!-- Upload Updated Feedback File Section -->
                                         <div class="requirement-upload-header mt-3">
-                                            <i class="fas fa-cloud-upload-alt"></i>
+                                            <i class="bi bi-cloud-upload"></i>
                                             <label for="feedbackFile${req.id}" class="requirement-upload-label">Upload Updated Feedback File</label>
                                         </div>
                                         <div class="upload-controls">
@@ -1840,32 +1945,46 @@ $(document).ready(function() {
                                         ${req.feedback_file ? `
                                         <div class="requirement-feedback-file-section">
                                             <a href="./feedback/${req.feedback_file}" class="requirement-feedback-download-btn" download>
-                                                <i class="fas fa-download"></i> Download Feedback File
+                                                <i class="bi bi-download"></i> Download Feedback File
                                             </a>
                                         </div>
                                         ` : ''}
                                     </div>
                                     
-                                    ${req.file_name 
+                                    ${req.file_name && req.status !== 'pending'
                                         ? `
                                             <!-- Submitted File Section -->
                                             <div class="requirement-submitted-file-section">
                                                 <div class="submitted-file-header">
-                                                    <i class="fas fa-file-alt"></i>
+                                                    <i class="bi bi-file-earmark-text"></i>
                                                     <h6>Submitted File</h6>
                                                 </div>
                                                 <div class="submitted-file-name">${req.file_name}</div>
                                                 <div class="requirement-file-actions">
                                                     <a href="../assets/uploads/submission/${req.file_name}" class="requirement-download-btn" download>
-                                                        <i class="fas fa-download"></i> Download
+                                                        <i class="bi bi-download"></i> Download
                                                     </a>
                                                     <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="requirement-view-btn">
                                                         <i class="far fa-eye"></i> View File
                                                     </a>
+                                                    <button type="button" class="btn btn-warning btn-sm revert-submission-btn" 
+                                                            data-req-id="${req.id}" data-req-name="${req.name}" 
+                                                            title="Revert submission to allow resubmission">
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Revert Submission
+                                                    </button>
                                                 </div>
                                             </div>
                                         ` 
-                                        : ``
+                                        : `
+                                            <!-- No Submission Section -->
+                                            <div class="requirement-no-submission-section">
+                                                <div class="no-submission-header">
+                                                    <i class="bi bi-file-earmark-x text-muted"></i>
+                                                    <h6 class="text-muted">No Submitted File</h6>
+                                                </div>
+                                                <p class="text-muted small mb-0">No file has been submitted for this requirement yet.</p>
+                                            </div>
+                                        `
                                     }
                                 </div>
                             </div>
@@ -1890,68 +2009,10 @@ $(document).ready(function() {
         });
     }
 
+    // Call loadRequirements after the function is defined
+    loadRequirements();
 
-    $(document).ready(function() {
-
-        loadRequirements();
-
-        // Modern toast function similar to app.js.php
-        function showToast(title, message, type = 'success') {
-            // Generate unique ID for the toast
-            const toastId = 'toast-' + Date.now();
-
-            // Modern universal toast styling and structure
-            const icon = type === 'success' ?
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
-                type === 'error' ?
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
-
-            const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
-            const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
-            const textColor = '#222';
-            const toast = `
-        <div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
-            role="alert"
-            aria-live="assertive"
-            aria-atomic="true"
-            style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
-            <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
-                ${icon}
-                <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
-                    <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
-                    <div>${message}</div>
-                </div>
-                <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
-            </div>
-        </div>
-        `;
-
-            // Ensure toast container exists
-            if ($('#toastContainer').length === 0) {
-                $('body').append('<div id="toastContainer" style="position:fixed;top:20px;right:20px;z-index:9999;"></div>');
-            }
-
-            // Add toast to container
-            $('#toastContainer').append(toast);
-
-            // Initialize and show the toast with modified options
-            const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-                autohide: true,
-                delay: 3000,
-                animation: true
-            });
-
-            toastElement.show();
-
-            // Auto-remove from DOM after hiding
-            document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
-                this.remove();
-            });
-        }
-
-
-        $(document).on('submit', '#requirementChecklistForm', function(event) {
+    $(document).on('submit', '#requirementChecklistForm', function(event) {
             event.preventDefault();
             var formData = new FormData(this);
 
@@ -1976,7 +2037,76 @@ $(document).ready(function() {
                 }
             });
         });
-    });
+
+        // Handle revert submission button click
+        $(document).on('click', '.revert-submission-btn', function(event) {
+            event.preventDefault();
+            
+            const reqId = $(this).data('req-id');
+            const reqName = $(this).data('req-name');
+            const button = $(this);
+            
+            // Set up the modal with requirement name
+            $('#revertRequirementName').text(reqName);
+            
+            // Store data for confirmation
+            $('#confirmRevert').data('req-id', reqId);
+            $('#confirmRevert').data('req-name', reqName);
+            $('#confirmRevert').data('button', button);
+            
+            // Show confirmation modal
+            const revertModal = new bootstrap.Modal(document.getElementById('revertConfirmModal'));
+            revertModal.show();
+        });
+
+        // Handle revert confirmation
+        $('#confirmRevert').on('click', function() {
+            const reqId = $(this).data('req-id');
+            const reqName = $(this).data('req-name');
+            const button = $(this).data('button');
+            
+            // Hide modal
+            const revertModal = bootstrap.Modal.getInstance(document.getElementById('revertConfirmModal'));
+            revertModal.hide();
+            
+            // Get the current team ID from session
+            const teamId = <?php echo isset($_SESSION['team_id']) ? $_SESSION['team_id'][0] : 'null'; ?>;
+            
+            if (!teamId) {
+                showToast("Error", "No team selected.", "error");
+                return;
+            }
+            
+            // Disable button during request
+            button.prop('disabled', true).html('<i class="bi bi-arrow-repeat spinner-border spinner-border-sm"></i> Reverting...');
+            
+            $.ajax({
+                url: 'includes/revert_submission.php',
+                method: 'POST',
+                data: {
+                    team_id: teamId,
+                    requirement_id: reqId
+                },
+                dataType: 'json',
+                success: function(response) {
+                    if (response.success) {
+                        showToast("Success!", response.message, "success");
+                        // Reload requirements to show updated status
+                        loadRequirements();
+                    } else {
+                        showToast("Error", response.message, "error");
+                    }
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    console.error("Revert error:", textStatus, errorThrown);
+                    showToast("Error", "An error occurred while reverting submission.", "error");
+                },
+                complete: function() {
+                    // Re-enable button
+                    button.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Revert Submission');
+                }
+            });
+        });
     <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>
@@ -2000,14 +2130,15 @@ $(document).ready(function() {
                                         <div class="card-body requirement-student-body rct-cbody">
                                             <h5 class="card-title requirement-student-title rct-ctitle">${req.name}</h5>
                                             <p class="card-text requirement-student-description">${req.description}</p>
+                                            ${req.template_file 
+                                                ? `<a href="../dashboard/uploads/requirements/${req.template_file}" class="requirement-template-btn" download>
+                                                    <i class="bi bi-download"></i> Template
+                                                </a>` 
+                                                : ``
+                                            }
                                             <p class="card-text requirement-student-due-date"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
                                             <p class="card-text requirement-student-status"><strong>Status:</strong> ${req.status}</p>
                                             <p class="card-text requirement-student-feedback"><strong>Feedback:</strong> ${req.feedback}</p>
-                                            ${req.template_file ? `
-                                                <div class="mt-3 d-flex gap-2 flex-wrap requirement-template-actions">
-                                                    <a href="../dashboard/uploads/requirements/${req.template_file}" class="btn btn-sm btn-info requirement-template-btn" download>Download Template</a>
-                                                </div>
-                                            ` : ''}
                                         </div>
                                         
                                         <div class="card-footer requirement-student-feedback-footer">
@@ -2015,22 +2146,44 @@ $(document).ready(function() {
                                                 `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` 
                                                 : '<span class="requirement-no-feedback-file">No Uploaded Feedback File</span>'}
                                         </div> 
+                                        <!-- Current Submission Section (styled like feedback file) -->
+                                        <div class="card-footer requirement-student-submission-footer">
+                                            ${req.file_name ? 
+                                                `<div class="requirement-current-submission-section">
+                                                    <strong>Current Submission:</strong>
+                                                    <div class="d-flex align-items-center gap-2">
+                                                        <a href="../assets/uploads/submission/${req.file_name}" class="requirement-current-file-link" download title="${req.file_name}">
+                                                            <span class="filename-text">${req.file_name}</span>
+                                                            <i class="bi bi-download"></i>
+                                                        </a>
+                                                        ${req.status === 'pending' ? `
+                                                            <button type="button" class="remove-current-file-btn" data-req-id="${req.id}" title="Remove current file">
+                                                                <i class="bi bi-trash"></i>
+                                                            </button>
+                                                        ` : ''}
+                                                    </div>
+                                                </div>` 
+                                                : '<span class="requirement-no-submission-file">No Submitted File</span>'}
+                                        </div> 
                                         <?php if ($role === 'leader') { ?>
                                         <div class="card-footer requirement-student-upload-footer rct-cfooter">
-                                            ${req.file_name 
-                                                ? `<a href="../assets/uploads/submission/${req.file_name}" class="btn btn-secondary requirement-student-download-btn" download>Download Submitted File</a>` 
-                                                : `
-                                                    <form class="upload-form requirement-upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
-                                                        <input type="hidden" name="document_name" value="${req.name}">
-                                                        <input type="hidden" name="requirement_id" value="${req.id}">
-                                                        <div class="mb-3 requirement-file-input-section">
-                                                            <label for="file-${req.id}" class="form-label requirement-file-label">Upload File</label>
-                                                            <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" required>
-                                                        </div>
-                                                        <button type="submit" class="btn btn-primary feature-btn requirement-submit-btn">Submit File</button>
-                                                        <span class="upload-status requirement-upload-status ms-2 small"></span> 
-                                                    </form> 
-                                                `}
+                                            <!-- Upload File Form - Always visible but disabled when file is submitted and not pending -->
+                                            <div class="upload-file-section ${req.file_name && req.status !== 'pending' ? 'upload-disabled' : ''}">
+                                                <strong>Upload ${req.file_name ? 'New' : ''} File:</strong>
+                                                <form class="upload-form requirement-upload-form mt-2" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
+                                                    <input type="hidden" name="document_name" value="${req.name}">
+                                                    <input type="hidden" name="requirement_id" value="${req.id}">
+                                                    <div class="mb-3 requirement-file-input-section">
+                                                        <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" 
+                                                               ${req.file_name && req.status !== 'pending' ? 'disabled' : 'required'}>
+                                                    </div>
+                                                    <button type="submit" class="btn btn-primary feature-btn requirement-submit-btn" 
+                                                            ${req.file_name && req.status !== 'pending' ? 'disabled' : ''}>
+                                                        Submit ${req.file_name ? 'New' : ''} File
+                                                    </button>
+                                                    <span class="upload-status requirement-upload-status ms-2 small"></span> 
+                                                </form>
+                                            </div>
                                         </div>
                                         <?php } ?>
                                     </div>
@@ -2066,12 +2219,28 @@ $(document).ready(function() {
         event.preventDefault(); // Prevent default form submission
 
         var form = $(this);
+        var uploadSection = form.closest('.upload-file-section');
+        
+        // Security check: Prevent submission if upload section is disabled
+        if (uploadSection.hasClass('upload-disabled')) {
+            console.log('Upload blocked: Section is disabled');
+            showToast("Upload Blocked", "File upload is not allowed for this requirement.", "error");
+            return false;
+        }
+        
+        // Additional security: Check if submit button is disabled
+        var submitButton = form.find('button[type="submit"]');
+        if (submitButton.prop('disabled') && !submitButton.hasClass('uploading')) {
+            console.log('Upload blocked: Submit button is disabled');
+            showToast("Upload Blocked", "File upload is not allowed at this time.", "error");
+            return false;
+        }
+
         var formData = new FormData(this);
         var statusSpan = form.find('.upload-status');
-        var submitButton = form.find('button[type="submit"]');
 
         statusSpan.text('Uploading...').removeClass('text-danger text-success');
-        submitButton.prop('disabled', true);
+        submitButton.prop('disabled', true).addClass('uploading');
         console.log('Initiating AJAX upload...'); // Added log
 
         $.ajax({
@@ -2091,7 +2260,7 @@ $(document).ready(function() {
                 } else {
                     statusSpan.text('Error: ' + (response.error || 'Unknown error')).addClass('text-danger');
                     showToast("Upload Failed", response.error || 'Unknown error', "error");
-                    submitButton.prop('disabled', false);
+                    submitButton.prop('disabled', false).removeClass('uploading');
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
@@ -2100,11 +2269,73 @@ $(document).ready(function() {
                 statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
                 showToast("Upload Failed", "Upload failed. Please try again.", "error");
                 console.error("AJAX upload error:", textStatus, errorThrown);
-                submitButton.prop('disabled', false);
+                submitButton.prop('disabled', false).removeClass('uploading');
             }
         });
     });
     // --- End AJAX submission handler ---
+
+    // --- Handle remove current file button ---
+    $(document).on('click', '.remove-current-file-btn', function(event) {
+        event.preventDefault();
+        
+        const reqId = $(this).data('req-id');
+        const button = $(this);
+        
+        // Get requirement name for the modal
+        const requirementRow = button.closest('.requirement-item');
+        const requirementName = requirementRow.find('.requirement-title').text() || 'this requirement';
+        
+        // Set the requirement name in the modal
+        $('#deleteRequirementName').text(requirementName);
+        
+        // Store the requirement ID for later use
+        $('#confirmDeleteFile').data('req-id', reqId);
+        
+        // Show confirmation modal
+        const deleteModal = new bootstrap.Modal(document.getElementById('deleteFileConfirmModal'));
+        deleteModal.show();
+    });
+
+    // Handle confirmation of file deletion
+    $(document).on('click', '#confirmDeleteFile', function() {
+        const reqId = $(this).data('req-id');
+        const originalButton = $(`.remove-current-file-btn[data-req-id="${reqId}"]`);
+        
+        // Hide the modal
+        const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteFileConfirmModal'));
+        deleteModal.hide();
+        
+        // Disable button during request (no animation, just text change)
+        originalButton.prop('disabled', true).text('Removing...');
+        
+        $.ajax({
+            url: 'includes/remove_file.php',
+            method: 'POST',
+            data: {
+                requirement_id: reqId
+            },
+            dataType: 'json',
+            success: function(response) {
+                if (response.success) {
+                    showToast("Success!", response.message, "success");
+                    // Reload requirements to show updated interface
+                    loadRequirements();
+                } else {
+                    showToast("Error", response.message, "error");
+                }
+            },
+            error: function(jqXHR, textStatus, errorThrown) {
+                console.error("Remove file error:", textStatus, errorThrown);
+                showToast("Error", "An error occurred while removing the file.", "error");
+            },
+            complete: function() {
+                // Re-enable button (simple text, no icon)
+                originalButton.prop('disabled', false).text('Remove');
+            }
+        });
+    });
+    // --- End remove file handler ---
 
 
 });

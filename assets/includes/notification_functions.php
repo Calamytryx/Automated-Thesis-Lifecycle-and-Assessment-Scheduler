@@ -856,6 +856,57 @@ function createRequirementFeedbackNotifications($pdo, $teamId, $requirementId, $
 }
 
 /**
+ * Create notifications for requirement submission revert
+ * Notifies students when advisers revert their submission, allowing them to resubmit
+ * 
+ * @param PDO $pdo Database connection
+ * @param int $teamId Team ID whose submission was reverted
+ * @param int $requirementId Requirement ID that was reverted
+ * @param string $requirementName Name of the requirement
+ */
+function createRequirementRevertNotifications($pdo, $teamId, $requirementId, $requirementName) {
+    try {
+        // Get team information
+        $teamStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ?");
+        $teamStmt->execute([$teamId]);
+        $team = $teamStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$team) {
+            error_log("Team not found with ID: $teamId");
+            return false;
+        }
+        
+        $teamName = $team['name'];
+        
+        // Create notification content
+        $title = 'Submission Reverted - Resubmission Required';
+        $message = "Your submission for '{$requirementName}' has been reverted by your adviser. You can now make changes and resubmit the requirement. Please check the requirements section for any additional feedback or instructions.";
+        
+        // Get all team members (students) for this team (usertype = 1 for students)
+        $studentsStmt = $pdo->prepare("
+            SELECT DISTINCT u.id 
+            FROM users u 
+            JOIN team_members tm ON u.id = tm.user_id 
+            WHERE tm.team_id = ? AND u.usertype = 1
+        ");
+        $studentsStmt->execute([$teamId]);
+        $students = $studentsStmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        // Create notifications for all team members (students)
+        foreach ($students as $userId) {
+            createNotification($pdo, $userId, $title, $message, 'requirement_reverted', $teamId);
+        }
+        
+        error_log("Requirement revert notifications created for team ID: $teamId, Requirement: $requirementName");
+        return true;
+        
+    } catch (Exception $e) {
+        error_log("Error creating requirement revert notifications: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
  * Create defense approval notifications for panelists
  * @param PDO $pdo Database connection
  * @param int $scheduleId Defense schedule ID
