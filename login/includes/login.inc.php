@@ -102,6 +102,7 @@ if (!isset($_POST['loginsubmit'])) {
                 $_SESSION['id'] = $row['id'];
                 $_SESSION['username'] = $row['username'];
                 $_SESSION['program'] = $row['program'];
+                $_SESSION['college'] = get_user_college(pdo: $pdo, user_id: $row['id']);
                 $_SESSION['section'] = $row['section'];
                 $_SESSION['email'] = $row['email'];
                 $_SESSION['first_name'] = $row['first_name'];
