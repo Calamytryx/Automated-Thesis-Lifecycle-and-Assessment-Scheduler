@@ -316,7 +316,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 break;
             case 'evaluations':
-                // FIX: Remove stray semicolon and use string join for t.program to programs table
+                // FIX: Add JOIN programs p ON t.program = CONCAT(p.name, ...) for isAdmin baseQuery
                 $baseQuery = "SELECT 
                 ep.id AS evaluation_id,
                 t.id AS team_id,
@@ -350,7 +350,9 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
             JOIN 
                 users s ON ep.student_id = s.id
             LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id";
+                evaluation_details ed ON ep.id = ed.evaluation_id
+            JOIN 
+                programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 $collegeRestrictionClause = "WHERE p.college = :college";
                 $countQuery = "SELECT COUNT(ep.id)
                                 FROM evaluation_per_panel ep
