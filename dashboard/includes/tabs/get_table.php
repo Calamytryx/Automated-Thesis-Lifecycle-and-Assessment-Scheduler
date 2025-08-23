@@ -46,165 +46,156 @@ $userCollege = null;
 if ($currentUsertype === 0 && $userId === 0) {
     $collegeRestrictionClause = "";
     $params = [];
-    $collegeRestrictionClause = '';
-    $baseQuery = '';
-    $countQuery = '';
 
-    $isSuperAdmin = ($currentUsertype === 0 && $userId === 0);
-    $isAdmin = (($currentUsertype === 0 || $currentUsertype === 2) && $userId !== 0);
-
-//    echo $isSuperAdmin;
-
-    if ($isSuperAdmin) {
-        switch ($table) {
-            case 'users':
-                $baseQuery = "SELECT users.* FROM users";
-                $countQuery = "SELECT COUNT(*) FROM users";
-                break;
-            case 'teams':
-                // Select t.program directly. Remove JOIN to programs for name selection.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
-                              GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
-                              GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
-                              FROM teams t
-                              LEFT JOIN research_titles rt ON t.id = rt.team_id
-                              -- Removed: LEFT JOIN programs p ON t.program = p.id
-                              JOIN team_members tm ON t.id = tm.team_id
-                              JOIN users u ON tm.user_id = u.id";
-                // Count query: Remove programs join if not needed for filtering here
-                $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
-                               LEFT JOIN research_titles rt ON t.id = rt.team_id
-                               -- Removed: LEFT JOIN programs p ON t.program = p.id
-                               JOIN team_members tm ON t.id = tm.team_id
-                               JOIN users u ON tm.user_id = u.id";
-                break;
-            case 'programs':
-                $baseQuery = "SELECT id, college, department, name, specialization FROM programs";
-                $countQuery = "SELECT COUNT(*) FROM programs";
-                break;
-            case 'thesis_topics':
-                $baseQuery = "SELECT * FROM thesis_topics";
-                $countQuery = "SELECT COUNT(*) FROM thesis_topics";
-                break;
-            case 'defense_schedules':
-                $baseQuery = "SELECT
-                     ds.id,
-                     ds.schedule_date,
-                     ds.start_time,
-                     ds.end_time,
-                     ds.room,
-                     t.name AS team_name,
-                     rt.title AS thesis_title,
-                     GROUP_CONCAT(
-                         DISTINCT CASE
-                             WHEN u_member.usertype != 2 THEN CONCAT(u_member.first_name, ' ', u_member.last_name)
-                         END
-                         ORDER BY tm.id SEPARATOR ', '
-                     ) AS team_members,
-                     GROUP_CONCAT(
-                         DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
-                         ORDER BY FIELD(u_panelist.id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
-                     ) AS panelists,
-                     (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
-                      FROM team_members tm_adviser
-                      JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
-                      WHERE tm_adviser.team_id = t.id AND u_adviser.usertype = 2
-                      ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
-                 FROM defense_schedules ds
-                 JOIN teams t ON ds.team_id = t.id
-                 LEFT JOIN research_titles rt ON t.id = rt.team_id
-                 LEFT JOIN team_members tm ON t.id = tm.team_id
-                 LEFT JOIN users u_member ON tm.user_id = u_member.id
-                 LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)";
-                // Count query needs joins for potential filtering
-                $countQuery = "SELECT COUNT(DISTINCT ds.id) FROM defense_schedules ds
-                                JOIN teams t ON ds.team_id = t.id
-                                LEFT JOIN research_titles rt ON t.id = rt.team_id";
-                break;
-            case 'rubrics':
-                $baseQuery = "SELECT * FROM rubrics";
-                $countQuery = "SELECT COUNT(*) FROM rubrics";
-                break;
-            case 'rubric_groups':
-                $baseQuery = "SELECT * FROM rubric_groups";
-                $countQuery = "SELECT COUNT(*) FROM rubric_groups";
-                break;
-            case 'evaluations':
-                $baseQuery = "SELECT 
-                ep.id AS evaluation_id,
-                t.id AS team_id,
-                t.name AS team_name,
-                e.id AS evaluator_id,
-                e.first_name AS evaluator_first_name,
-                e.last_name AS evaluator_last_name,
-                s.id AS student_id,
-                s.first_name AS student_first_name,
-                s.last_name AS student_last_name,
-                ep.group_score,
-                ep.solo_score,
-                ep.total_score,
-                ep.comments,
-                ed.id AS detail_id,
-                ed.rubric_id,
-                ed.criterion_id,
-                ed.score AS detail_score,
-                ed.selected_option,
-                ed.comment AS detail_comment,
-                ed.created_at AS detail_created_at,
-                ed.updated_at AS detail_updated_at
-            FROM 
-                evaluation_per_panel ep
-            JOIN 
-                teams t ON ep.student_id IN (
-                    SELECT user_id FROM team_members WHERE team_id = t.id
-                )
-            JOIN 
-                users e ON ep.evaluator_id = e.id
-            JOIN 
-                users s ON ep.student_id = s.id
-            LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id";
-                // Count query needs joins for potential filtering
-                $countQuery = "SELECT COUNT(ep.id) FROM evaluation_per_panel ep
-                               JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                               JOIN teams t ON ds.team_id = t.id
-                               LEFT JOIN users e ON ep.evaluator_id = e.id
-                               LEFT JOIN users s ON ep.student_id = s.id";
-                break;
-            case 'evaluation_per_panel':
-                $baseQuery = "SELECT * FROM evaluation_per_panel";
-                $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
-                break;
-            case 'research_titles':
-                $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
-                              FROM research_titles rt
-                              LEFT JOIN teams t ON rt.team_id = t.id";
-                // Count query needs joins for potential filtering
-                $countQuery = "SELECT COUNT(rt.id) FROM research_titles rt
-                               LEFT JOIN teams t ON rt.team_id = t.id";
-                break;
-            case 'requirements':
-                $baseQuery = "SELECT * FROM requirements";
-                $countQuery = "SELECT COUNT(*) FROM requirements";
-                break;
-            case 'user_schedules':
-                $baseQuery = "SELECT 
-                                us.id,
-                                us.user_id,
-                                u.first_name,
-                                u.last_name,
-                                us.day_of_week,
-                                us.start_time,
-                                us.end_time,
-                                us.class_name,
-                                us.room,
-                                us.section,
-                                p.name AS program_name,
-                                p.specialization
-                            FROM user_schedules us
-                            LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
-                            "; // LEFT JOIN to include NULLs!
+    switch ($table) {
+        case 'users':
+            $baseQuery = "SELECT users.* FROM users";
+            $countQuery = "SELECT COUNT(*) FROM users";
+            break;
+        case 'teams':
+            // Select t.program directly. Remove JOIN to programs for name selection.
+            $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
+                          GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
+                          GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
+                          FROM teams t
+                          LEFT JOIN research_titles rt ON t.id = rt.team_id
+                          -- Removed: LEFT JOIN programs p ON t.program = p.id
+                          JOIN team_members tm ON t.id = tm.team_id
+                          JOIN users u ON tm.user_id = u.id";
+            // Count query: Remove programs join if not needed for filtering here
+            $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
+                           LEFT JOIN research_titles rt ON t.id = rt.team_id
+                           -- Removed: LEFT JOIN programs p ON t.program = p.id
+                           JOIN team_members tm ON t.id = tm.team_id
+                           JOIN users u ON tm.user_id = u.id";
+            break;
+        case 'programs':
+            $baseQuery = "SELECT id, college, department, name, specialization FROM programs";
+            $countQuery = "SELECT COUNT(*) FROM programs";
+            break;
+        case 'thesis_topics':
+            $baseQuery = "SELECT * FROM thesis_topics";
+            $countQuery = "SELECT COUNT(*) FROM thesis_topics";
+            break;
+        case 'defense_schedules':
+            $baseQuery = "SELECT
+                 ds.id,
+                 ds.schedule_date,
+                 ds.start_time,
+                 ds.end_time,
+                 ds.room,
+                 t.name AS team_name,
+                 rt.title AS thesis_title,
+                 GROUP_CONCAT(
+                     DISTINCT CASE
+                         WHEN u_member.usertype != 2 THEN CONCAT(u_member.first_name, ' ', u_member.last_name)
+                     END
+                     ORDER BY tm.id SEPARATOR ', '
+                 ) AS team_members,
+                 GROUP_CONCAT(
+                     DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
+                     ORDER BY FIELD(u_panelist.id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
+                 ) AS panelists,
+                 (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
+                  FROM team_members tm_adviser
+                  JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
+                  WHERE tm_adviser.team_id = t.id AND u_adviser.usertype = 2
+                  ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
+             FROM defense_schedules ds
+             JOIN teams t ON ds.team_id = t.id
+             LEFT JOIN research_titles rt ON t.id = rt.team_id
+             LEFT JOIN team_members tm ON t.id = tm.team_id
+             LEFT JOIN users u_member ON tm.user_id = u_member.id
+             LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)";
+            // Count query needs joins for potential filtering
+            $countQuery = "SELECT COUNT(DISTINCT ds.id) FROM defense_schedules ds
+                            JOIN teams t ON ds.team_id = t.id
+                            LEFT JOIN research_titles rt ON t.id = rt.team_id";
+            break;
+        case 'rubrics':
+            $baseQuery = "SELECT * FROM rubrics";
+            $countQuery = "SELECT COUNT(*) FROM rubrics";
+            break;
+        case 'rubric_groups':
+            $baseQuery = "SELECT * FROM rubric_groups";
+            $countQuery = "SELECT COUNT(*) FROM rubric_groups";
+            break;
+        case 'evaluations':
+            $baseQuery = "SELECT 
+            ep.id AS evaluation_id,
+            t.id AS team_id,
+            t.name AS team_name,
+            e.id AS evaluator_id,
+            e.first_name AS evaluator_first_name,
+            e.last_name AS evaluator_last_name,
+            s.id AS student_id,
+            s.first_name AS student_first_name,
+            s.last_name AS student_last_name,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments,
+            ed.id AS detail_id,
+            ed.rubric_id,
+            ed.criterion_id,
+            ed.score AS detail_score,
+            ed.selected_option,
+            ed.comment AS detail_comment,
+            ed.created_at AS detail_created_at,
+            ed.updated_at AS detail_updated_at
+        FROM 
+            evaluation_per_panel ep
+        JOIN 
+            teams t ON ep.student_id IN (
+                SELECT user_id FROM team_members WHERE team_id = t.id
+            )
+        JOIN 
+            users e ON ep.evaluator_id = e.id
+        JOIN 
+            users s ON ep.student_id = s.id
+        LEFT JOIN 
+            evaluation_details ed ON ep.id = ed.evaluation_id";
+            // Count query needs joins for potential filtering
+            $countQuery = "SELECT COUNT(ep.id) FROM evaluation_per_panel ep
+                           JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                           JOIN teams t ON ds.team_id = t.id
+                           LEFT JOIN users e ON ep.evaluator_id = e.id
+                           LEFT JOIN users s ON ep.student_id = s.id";
+            break;
+        case 'evaluation_per_panel':
+            $baseQuery = "SELECT * FROM evaluation_per_panel";
+            $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
+            break;
+        case 'research_titles':
+            $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
+                          FROM research_titles rt
+                          LEFT JOIN teams t ON rt.team_id = t.id";
+            // Count query needs joins for potential filtering
+            $countQuery = "SELECT COUNT(rt.id) FROM research_titles rt
+                           LEFT JOIN teams t ON rt.team_id = t.id";
+            break;
+        case 'requirements':
+            $baseQuery = "SELECT * FROM requirements";
+            $countQuery = "SELECT COUNT(*) FROM requirements";
+            break;
+        case 'user_schedules':
+            $baseQuery = "SELECT 
+                            us.id,
+                            us.user_id,
+                            u.first_name,
+                            u.last_name,
+                            us.day_of_week,
+                            us.start_time,
+                            us.end_time,
+                            us.class_name,
+                            us.room,
+                            us.section,
+                            p.name AS program_name,
+                            p.specialization
+                        FROM user_schedules us
+                        LEFT JOIN users u ON us.user_id = u.id
+                        LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
+                        "; // LEFT JOIN to include NULLs!
 
             $countQuery = "SELECT COUNT(us.id)
                    FROM user_schedules us
@@ -744,5 +735,4 @@ try {
 } catch (Exception $e) {
     error_log('General error in get_table.php: ' . $e->getMessage());
     echo json_encode(['error' => 'An unexpected error occurred. Please check server logs.']);
-}
 }
