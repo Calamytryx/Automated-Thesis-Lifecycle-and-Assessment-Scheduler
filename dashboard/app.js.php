@@ -2616,8 +2616,6 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         // Store staff data for addNewPanelist function
                         window.staffData = data.staff;
 
-                        console.log('Staff data loaded:', window.staffData);
-
                         // Add panelist functionality
                         $('#addPanelist').on('click', function() {
                             console.log('Add Panelist button clicked');
