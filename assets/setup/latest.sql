@@ -2,10 +2,10 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Host: localhost
--- Generation Time: Aug 21, 2025 at 05:48 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Host: 127.0.0.1
+-- Generation Time: Aug 01, 2025 at 01:15 PM
+-- Server version: 10.4.32-MariaDB-log
+-- PHP Version: 8.3.12
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -42,26 +42,9 @@ CREATE TABLE `auth_tokens` (
 --
 
 INSERT INTO `auth_tokens` (`id`, `user_email`, `auth_type`, `selector`, `token`, `created_at`, `expires_at`) VALUES
-(1, 'winstonagustin.ih@gmail.com', 'account_verify', '613f4c35ee6dac46', '$2y$10$fGDz8SdTBADhULRbmpcauORjPUc1tD.JsKCldb72Z.uQFaej5PdG.', '2025-07-22 05:07:15', '2025-07-22 21:07:15');
-
--- --------------------------------------------------------
-
---
--- Table structure for table `default_schedules`
---
-
-CREATE TABLE `default_schedules` (
-  `id` int(11) NOT NULL,
-  `program` varchar(255) NOT NULL,
-  `year` enum('1','2','3','4','5') NOT NULL,
-  `section` int(2) NOT NULL,
-  `building` varchar(45) NOT NULL,
-  `room` varchar(45) NOT NULL,
-  `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
-  `class_name` varchar(45) NOT NULL,
-  `start_time` varchar(45) NOT NULL,
-  `end_time` varchar(45) NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+(1, 'winstonagustin.ih@gmail.com', 'account_verify', '613f4c35ee6dac46', '$2y$10$fGDz8SdTBADhULRbmpcauORjPUc1tD.JsKCldb72Z.uQFaej5PdG.', '2025-07-22 05:07:15', '2025-07-22 21:07:15'),
+(2, 'aaa@lpunetwork.edu.ph', 'account_verify', '48b48c832e3b664f', '$2y$10$ji.QirAwmGil3ZuarXxw6.WQMcoWiqQlYGkP//soSegE2LsdYPjBC', '2025-07-23 04:51:53', '2025-07-23 05:51:53'),
+(5, 'neilvicedo@lpunetwork.edu.ph', 'account_verify', 'd39d2af98ea2eca9', '$2y$10$Uz0QqWNE4bMp33p5z1nIl.C/1sX1V46wjeMx814UBeeZwmfWfL07y', '2025-07-24 03:35:21', '2025-07-24 04:35:21');
 
 -- --------------------------------------------------------
 
@@ -101,7 +84,7 @@ CREATE TABLE `defense_schedules` (
 --
 
 INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`, `approval_status`) VALUES
-(5, 1, 275, 269, 269, '2025-08-20', '07:00:00', '20:00:00', 'a45645645645', 'scheduled', '2025-07-22 19:40:15', 'pending');
+(6, 1, 271, 270, 272, '2025-07-23', '17:00:00', '18:00:00', 'a', 'scheduled', '2025-07-23 01:38:48', 'pending');
 
 -- --------------------------------------------------------
 
@@ -126,11 +109,11 @@ INSERT INTO `env_variables` (`id`, `key`, `value`, `description`) VALUES
 (3, 'APP_OWNER', '120ms', 'Application owner'),
 (4, 'APP_DESCRIPTION', 'taga schedule', 'Application description'),
 (5, 'ALLOWED_INACTIVITY_TIME', '86400', 'Allowed inactivity time in seconds'),
-(11, 'MAIL_HOST', 'smtp.gmail.com', 'Mail host'),
-(12, 'MAIL_USERNAME', 'ton.agustin09@gmail.com', 'Mail username'),
-(13, 'MAIL_PASSWORD', 'oflo arms thzh jlss', 'Mail password'),
+(11, 'MAIL_HOST', '\n	\n\nsmtp-mail.outlook.com', 'Mail host'),
+(12, 'MAIL_USERNAME', 'winstonagustin@lpunetwork.edu.ph', 'Mail username'),
+(13, 'MAIL_PASSWORD', 'CALmytryx6969..', 'Mail password'),
 (14, 'MAIL_ENCRYPTION', 'ssl', 'Mail encryption'),
-(15, 'MAIL_PORT', '465', 'Mail port'),
+(15, 'MAIL_PORT', '587', 'Mail port'),
 (16, 'APP_LOGO_NAVBAR', 'logo_full_lightbg.png', NULL),
 (17, 'APP_LOGO_FOOTER', 'logowhite.png', NULL);
 
@@ -362,11 +345,11 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `updated_at`) VALUES
-(2, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 4, NULL, 0, '2025-07-22 17:45:02', '2025-07-22 17:45:02'),
+(2, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-23 01:40:44'),
 (3, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 19:45:00'),
 (4, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 17:47:51'),
 (5, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 0, '2025-07-22 17:45:02', '2025-07-22 17:45:02'),
-(6, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(6, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-07-23 01:40:43'),
 (7, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
 (8, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
 (9, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 11:00 AM - 1:00 PM in a. Waiting for panelist approval.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-07-22 19:45:00'),
@@ -379,8 +362,12 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (16, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
 (17, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 1, '2025-07-22 19:50:20', '2025-07-22 19:50:44'),
 (18, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
-(19, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-08-15 15:46:54', '2025-08-15 15:46:54'),
-(20, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-08-15 15:46:54', '2025-08-15 15:46:54');
+(19, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(20, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 1, '2025-07-23 01:38:48', '2025-07-23 01:40:37'),
+(21, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 23, 2025\n🕒 Time: 5:00 PM - 6:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(22, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(23, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48'),
+(24, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 23, 2025 at 5:00 PM - 6:00 PM in a. Waiting for panelist approval.', 6, NULL, 0, '2025-07-23 01:38:48', '2025-07-23 01:38:48');
 
 -- --------------------------------------------------------
 
@@ -408,7 +395,13 @@ INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `act
 (3, 7, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
 (4, 7, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
 (5, 8, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
-(6, 8, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15');
+(6, 8, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(7, 19, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(8, 19, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(9, 20, 'approve_defense', '{\"schedule_id\":\"6\"}', 1, '2025-07-23 01:40:37', '2025-07-23 01:38:48'),
+(10, 20, 'reject_defense', '{\"schedule_id\":\"6\"}', 1, '2025-07-23 01:40:37', '2025-07-23 01:38:48'),
+(11, 21, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48'),
+(12, 21, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-07-23 01:38:48');
 
 -- --------------------------------------------------------
 
@@ -487,7 +480,10 @@ INSERT INTO `panelist_approvals` (`id`, `defense_schedule_id`, `panelist_id`, `a
 (9, 4, 272, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
 (10, 5, 270, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
 (11, 5, 271, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
-(12, 5, 272, 'pending', NULL, NULL, '2025-07-22 19:40:15');
+(12, 5, 272, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(13, 6, 271, 'pending', NULL, NULL, '2025-07-23 01:38:48'),
+(14, 6, 270, 'approved', '2025-07-23 09:40:37', '', '2025-07-23 01:38:48'),
+(15, 6, 272, 'pending', NULL, NULL, '2025-07-23 01:38:48');
 
 -- --------------------------------------------------------
 
@@ -510,7 +506,7 @@ CREATE TABLE `programs` (
 
 INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`, `updated_at`) VALUES
 (58, 'College of Allied Medical Sciences', NULL, 'BS Medical Technology', NULL, '2025-04-29 09:02:55'),
-(59, 'College of Allied Medical Sciences', '', 'BS Pharmacy', '', '2025-07-21 13:12:37'),
+(59, 'College of Allied Medical Sciences', '', 'BS Pharmacy', NULL, '2025-07-27 09:24:39'),
 (60, 'College of Allied Medical Sciences', NULL, 'BS Radiologic Technology', NULL, '2025-04-29 09:02:55'),
 (61, 'College of Allied Medical Sciences', NULL, 'BS Biology', NULL, '2025-04-29 09:02:55'),
 (62, 'College of Liberal Arts and Education', NULL, 'Bachelor of Arts in Communication', NULL, '2025-04-29 09:02:55'),
@@ -527,13 +523,13 @@ INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`,
 (73, 'College of Business Administration', NULL, 'BS Customs Administration', NULL, '2025-04-29 09:02:55'),
 (74, 'College of Business Administration', NULL, 'BS Entrepreneurship', 'Aesthetics Industry Management', '2025-04-29 09:02:55'),
 (75, 'College of Business Administration', NULL, 'BS Real Estate Management', NULL, '2025-04-29 09:02:55'),
-(76, 'College of Engineering and Architecture', 'Architecture', 'Bachelor of Science in Architecture (Arch)', '', '2025-07-20 11:14:34'),
+(76, 'College of Engineering and Architecture', 'Architecture', 'Bachelor of Science in Architecture (Arch)', NULL, '2025-07-27 09:24:44'),
 (77, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Data Science', '2025-07-20 11:16:27'),
 (78, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Computer Science', 'Software Engineering', '2025-07-20 11:16:19'),
 (79, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Network and Information Security', '2025-07-20 11:15:35'),
 (80, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Science in Information Technology', 'Web and Mobile Technology', '2025-07-20 11:15:22'),
-(81, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Library and Information Science', '', '2025-07-20 11:15:11'),
-(82, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Aeronautical Engineering', '', '2025-07-20 11:14:26'),
+(81, 'College of Computer Studies', 'Computer Studies', 'Bachelor of Library and Information Science', NULL, '2025-07-27 09:24:48'),
+(82, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Aeronautical Engineering', NULL, '2025-07-27 09:24:51'),
 (83, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Construction Engineering & Management', '2025-07-20 11:14:15'),
 (84, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Structural Engineering', '2025-07-20 11:14:03'),
 (85, 'College of Engineering and Architecture', 'Engineering', 'Bachelor of Science in Civil Engineering', 'Transportation Engineering', '2025-07-20 11:13:45'),
@@ -889,7 +885,7 @@ INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `s
 (3, 1, 5, 'pending', '2025-07-21 09:19:02', '', '1_5_1753089542_FULL_MANUSCRIPT_template_crd2025.pdf', ''),
 (6, 1, 4, 'submitted', '2025-07-21 13:07:31', NULL, '1_4_1753103251_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
 (7, 1, 41, 'submitted', '2025-07-21 13:07:39', NULL, '1_41_1753103259_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
-(8, 1, 2, 'approved', '2025-07-22 16:25:58', 'nice', '1_2_1753201558_system-flow.pdf', '');
+(8, 1, 2, 'submitted', '2025-07-22 16:25:58', 'nice', '1_2_1753201558_system-flow.pdf', '');
 
 -- --------------------------------------------------------
 
@@ -943,6 +939,7 @@ CREATE TABLE `users` (
   `usertype` int(1) NOT NULL DEFAULT 1,
   `username` varchar(255) NOT NULL,
   `program` varchar(255) DEFAULT NULL,
+  `section` varchar(10) DEFAULT NULL,
   `area_of_expertise` varchar(255) DEFAULT NULL,
   `is_parttime` int(1) DEFAULT NULL,
   `email` varchar(255) NOT NULL,
@@ -958,24 +955,24 @@ CREATE TABLE `users` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL,
   `last_login_at` timestamp NULL DEFAULT NULL,
-  `is_program_chair` int(1) DEFAULT NULL
+  `year` int(1) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `users`
 --
 
-INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`, `is_program_chair`) VALUES
-(0, 0, 'Admin', NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-08-21 03:24:05', '0000-00-00 00:00:00', '2025-08-21 03:24:05', NULL),
-(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:47:17', NULL, '2025-08-21 03:47:17', NULL),
-(268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:48:49', NULL, '2025-07-22 19:48:49', NULL),
-(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:34:53', NULL, '2025-08-21 03:34:53', NULL),
-(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:45:23', NULL, '2025-07-22 19:45:23', NULL),
-(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01', NULL),
-(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:18', NULL, '2025-07-22 19:46:18', NULL),
-(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:39:46', NULL, '2025-08-21 03:24:27', 1),
-(274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11', NULL),
-(275, 2, 'winstonadmina', 'Unspecified', 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 18:54:09', NULL, '2025-07-22 18:54:09', NULL);
+INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `section`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`, `year`) VALUES
+(0, 0, 'Admin', NULL, NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-07-27 15:29:25', '0000-00-00 00:00:00', '2025-07-27 15:29:25', NULL),
+(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'IT301', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-27 13:42:26', NULL, '2025-07-22 19:50:35', 3),
+(268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'IT302', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-27 12:59:00', NULL, '2025-07-22 19:48:49', NULL),
+(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:50:05', NULL, '2025-07-22 19:50:05', NULL),
+(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-23 01:40:09', NULL, '2025-07-23 01:40:09', NULL),
+(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01', NULL),
+(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', NULL, 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-27 13:57:00', NULL, '2025-07-27 13:57:00', NULL),
+(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', '', '', '', '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-27 14:20:06', NULL, '2025-07-27 14:20:06', NULL),
+(274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', NULL, '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11', NULL),
+(275, 1, 'winstonadminaa', '', NULL, 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'ab', 'ab', '', '', '', '_defaultUser.png', NULL, NULL, '2025-07-31 15:47:15', NULL, '2025-07-22 18:54:09', NULL);
 
 -- --------------------------------------------------------
 
@@ -985,15 +982,24 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 
 CREATE TABLE `user_schedules` (
   `id` int(11) UNSIGNED NOT NULL,
-  `user_id` int(11) UNSIGNED NOT NULL,
-  `program` varchar(255) DEFAULT NULL,
-  `section` varchar(255) DEFAULT NULL,
-  `room` varchar(255) DEFAULT NULL,
+  `user_id` int(11) UNSIGNED DEFAULT NULL,
   `day_of_week` enum('Monday','Tuesday','Wednesday','Thursday','Friday','Saturday') NOT NULL,
   `start_time` time NOT NULL,
   `end_time` time NOT NULL,
-  `class_name` varchar(255) NOT NULL
+  `class_name` varchar(255) NOT NULL,
+  `program` varchar(255) DEFAULT NULL,
+  `year` int(1) DEFAULT NULL,
+  `room` varchar(255) DEFAULT NULL,
+  `section` varchar(255) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `user_schedules`
+--
+
+INSERT INTO `user_schedules` (`id`, `user_id`, `day_of_week`, `start_time`, `end_time`, `class_name`, `program`, `year`, `room`, `section`) VALUES
+(126, 271, 'Monday', '07:00:00', '10:00:00', 'LLHNT69', '80', 3, 'C609', 'IT301'),
+(129, 270, 'Thursday', '16:00:00', '19:00:00', 'a', '', 3, '6969', 'll69');
 
 --
 -- Indexes for dumped tables
@@ -1005,12 +1011,6 @@ CREATE TABLE `user_schedules` (
 ALTER TABLE `auth_tokens`
   ADD PRIMARY KEY (`id`),
   ADD UNIQUE KEY `id` (`id`);
-
---
--- Indexes for table `default_schedules`
---
-ALTER TABLE `default_schedules`
-  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `defense_panelists`
@@ -1128,7 +1128,8 @@ ALTER TABLE `panelist_approvals`
 -- Indexes for table `programs`
 --
 ALTER TABLE `programs`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_program` (`name`,`specialization`) USING HASH;
 
 --
 -- Indexes for table `requirements`
@@ -1237,8 +1238,7 @@ ALTER TABLE `users`
 -- Indexes for table `user_schedules`
 --
 ALTER TABLE `user_schedules`
-  ADD PRIMARY KEY (`id`),
-  ADD KEY `user_id` (`user_id`);
+  ADD PRIMARY KEY (`id`);
 
 --
 -- AUTO_INCREMENT for dumped tables
@@ -1248,7 +1248,7 @@ ALTER TABLE `user_schedules`
 -- AUTO_INCREMENT for table `auth_tokens`
 --
 ALTER TABLE `auth_tokens`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `defense_panelists`
@@ -1260,7 +1260,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1302,13 +1302,13 @@ ALTER TABLE `merged_evaluations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=25;
 
 --
 -- AUTO_INCREMENT for table `notification_actions`
 --
 ALTER TABLE `notification_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `page_content`
@@ -1320,7 +1320,7 @@ ALTER TABLE `page_content`
 -- AUTO_INCREMENT for table `panelist_approvals`
 --
 ALTER TABLE `panelist_approvals`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `programs`
@@ -1404,13 +1404,13 @@ ALTER TABLE `uploaded_files`
 -- AUTO_INCREMENT for table `users`
 --
 ALTER TABLE `users`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=276;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=279;
 
 --
 -- AUTO_INCREMENT for table `user_schedules`
 --
 ALTER TABLE `user_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=126;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=131;
 
 --
 -- Constraints for dumped tables
