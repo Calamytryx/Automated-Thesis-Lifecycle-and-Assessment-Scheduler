@@ -52,6 +52,8 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     $isSuperAdmin = ($currentUsertype === 0 && $userId === 0);
     $isAdmin = ($currentUsertype === 0 && $userId !== 0);
 
+//    echo $isSuperAdmin;
+
     if ($isSuperAdmin) {
         switch ($table) {
             case 'users':
@@ -314,7 +316,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 break;
             case 'evaluations':
-                // FIX: Use string join for t.program to programs table
+                // FIX: Remove stray semicolon and use string join for t.program to programs table
                 $baseQuery = "SELECT 
                 ep.id AS evaluation_id,
                 t.id AS team_id,
@@ -348,7 +350,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
             JOIN 
                 users s ON ep.student_id = s.id
             LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id;";
+                evaluation_details ed ON ep.id = ed.evaluation_id";
                 $collegeRestrictionClause = "WHERE p.college = :college";
                 $countQuery = "SELECT COUNT(ep.id)
                                 FROM evaluation_per_panel ep
@@ -359,17 +361,8 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 break;
             case 'evaluation_per_panel':
-                $baseQuery = "SELECT ep.*
-                               FROM evaluation_per_panel ep
-                               JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                               JOIN teams t ON ds.team_id = t.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                $countQuery = "SELECT COUNT(ep.id)
-                                FROM evaluation_per_panel ep
-                                JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                JOIN teams t ON ds.team_id = t.id
-                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                $baseQuery = "SELECT * FROM evaluation_per_panel";
+                $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
                 break;
             case 'requirements':
                 $baseQuery = "SELECT * FROM requirements";
@@ -761,7 +754,16 @@ try {
     error_log('Failing Data Params: ' . json_encode($dataParams ?? $params ?? []));
     error_log('Failing Count Query: ' . ($countFinalQuery ?? $countQuery ?? 'N/A'));
     error_log('Failing Count Params: ' . json_encode($countParams ?? []));
-    echo json_encode(['error' => 'Database error occurred. Please check server logs.']);
+    echo json_encode([
+        'error' => 'Database error occurred. Please check server logs.',
+        'debug' => [
+            'exception' => $e->getMessage(),
+            'data_query' => $dataQuery ?? 'N/A',
+            'data_params' => $dataParams ?? $params ?? [],
+            'count_query' => $countFinalQuery ?? $countQuery ?? 'N/A',
+            'count_params' => $countParams ?? []
+        ]
+    ]);
 } catch (Exception $e) {
     error_log('General error in get_table.php: ' . $e->getMessage());
     echo json_encode(['error' => 'An unexpected error occurred. Please check server logs.']);
