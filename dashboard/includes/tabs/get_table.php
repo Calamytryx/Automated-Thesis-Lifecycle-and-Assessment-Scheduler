@@ -121,15 +121,40 @@ if ($currentUsertype === 0 && $userId === 0) {
             $countQuery = "SELECT COUNT(*) FROM rubric_groups";
             break;
         case 'evaluations':
-            $baseQuery = "SELECT ep.id, ds.team_id, t.name AS team_name,
-                          ep.evaluator_id, e.first_name AS evaluator_first_name, e.last_name AS evaluator_last_name,
-                          ep.student_id, s.first_name AS student_first_name, s.last_name AS student_last_name,
-                          ep.group_score, ep.solo_score, ep.total_score, ep.comments, ep.created_at
-                          FROM evaluation_per_panel ep
-                          JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                          JOIN teams t ON ds.team_id = t.id
-                          LEFT JOIN users e ON ep.evaluator_id = e.id
-                          LEFT JOIN users s ON ep.student_id = s.id";
+            $baseQuery = "SELECT 
+            ep.id AS evaluation_id,
+            t.id AS team_id,
+            t.name AS team_name,
+            e.id AS evaluator_id,
+            e.first_name AS evaluator_first_name,
+            e.last_name AS evaluator_last_name,
+            s.id AS student_id,
+            s.first_name AS student_first_name,
+            s.last_name AS student_last_name,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments,
+            ed.id AS detail_id,
+            ed.rubric_id,
+            ed.criterion_id,
+            ed.score AS detail_score,
+            ed.selected_option,
+            ed.comment AS detail_comment,
+            ed.created_at AS detail_created_at,
+            ed.updated_at AS detail_updated_at
+        FROM 
+            evaluation_per_panel ep
+        JOIN 
+            teams t ON ep.student_id IN (
+                SELECT user_id FROM team_members WHERE team_id = t.id
+            )
+        JOIN 
+            users e ON ep.evaluator_id = e.id
+        JOIN 
+            users s ON ep.student_id = s.id
+        LEFT JOIN 
+            evaluation_details ed ON ep.id = ed.evaluation_id";
             // Count query needs joins for potential filtering
             $countQuery = "SELECT COUNT(ep.id) FROM evaluation_per_panel ep
                            JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
@@ -287,16 +312,41 @@ if ($currentUsertype === 0 && $userId === 0) {
                             JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             break;
         case 'evaluations':
-            $baseQuery = "SELECT ep.id, ds.team_id, t.name AS team_name,
-                           ep.evaluator_id, e.first_name AS evaluator_first_name, e.last_name AS evaluator_last_name,
-                           ep.student_id, s.first_name AS student_first_name, s.last_name AS student_last_name,
-                           ep.group_score, ep.solo_score, ep.total_score, ep.comments, ep.created_at
-                           FROM evaluation_per_panel ep
-                           JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                           JOIN teams t ON ds.team_id = t.id
-                           LEFT JOIN users e ON ep.evaluator_id = e.id
-                           LEFT JOIN users s ON ep.student_id = s.id
-                           JOIN programs p ON t.program = p.id";
+            // FIX: Use string join for t.program to programs table
+            $baseQuery = "SELECT 
+            ep.id AS evaluation_id,
+            t.id AS team_id,
+            t.name AS team_name,
+            e.id AS evaluator_id,
+            e.first_name AS evaluator_first_name,
+            e.last_name AS evaluator_last_name,
+            s.id AS student_id,
+            s.first_name AS student_first_name,
+            s.last_name AS student_last_name,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments,
+            ed.id AS detail_id,
+            ed.rubric_id,
+            ed.criterion_id,
+            ed.score AS detail_score,
+            ed.selected_option,
+            ed.comment AS detail_comment,
+            ed.created_at AS detail_created_at,
+            ed.updated_at AS detail_updated_at
+        FROM 
+            evaluation_per_panel ep
+        JOIN 
+            teams t ON ep.student_id IN (
+                SELECT user_id FROM team_members WHERE team_id = t.id
+            )
+        JOIN 
+            users e ON ep.evaluator_id = e.id
+        JOIN 
+            users s ON ep.student_id = s.id
+        LEFT JOIN 
+            evaluation_details ed ON ep.id = ed.evaluation_id;";
             $collegeRestrictionClause = "WHERE p.college = :college";
             $countQuery = "SELECT COUNT(ep.id)
                             FROM evaluation_per_panel ep
@@ -304,20 +354,20 @@ if ($currentUsertype === 0 && $userId === 0) {
                             JOIN teams t ON ds.team_id = t.id
                             LEFT JOIN users e ON ep.evaluator_id = e.id
                             LEFT JOIN users s ON ep.student_id = s.id
-                            JOIN programs p ON t.program = p.id";
+                            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             break;
         case 'evaluation_per_panel':
             $baseQuery = "SELECT ep.*
                            FROM evaluation_per_panel ep
                            JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
                            JOIN teams t ON ds.team_id = t.id
-                           JOIN programs p ON t.program = p.id";
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             $collegeRestrictionClause = "WHERE p.college = :college";
             $countQuery = "SELECT COUNT(ep.id)
                             FROM evaluation_per_panel ep
                             JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
                             JOIN teams t ON ds.team_id = t.id
-                            JOIN programs p ON t.program = p.id";
+                            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
             break;
         case 'requirements':
             $baseQuery = "SELECT * FROM requirements";
