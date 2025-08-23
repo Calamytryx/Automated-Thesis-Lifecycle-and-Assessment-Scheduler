@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Aug 21, 2025 at 05:48 AM
+-- Generation Time: Aug 23, 2025 at 10:28 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -96,13 +96,6 @@ CREATE TABLE `defense_schedules` (
   `approval_status` enum('approved','rejected','pending') DEFAULT 'pending'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
---
--- Dumping data for table `defense_schedules`
---
-
-INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`, `panelist_id3`, `schedule_date`, `start_time`, `end_time`, `room`, `status`, `created_at`, `approval_status`) VALUES
-(5, 1, 275, 269, 269, '2025-08-20', '07:00:00', '20:00:00', 'a45645645645', 'scheduled', '2025-07-22 19:40:15', 'pending');
-
 -- --------------------------------------------------------
 
 --
@@ -177,93 +170,8 @@ CREATE TABLE `evaluation_details` (
 --
 
 INSERT INTO `evaluation_details` (`id`, `evaluation_id`, `rubric_id`, `criterion_id`, `student_id`, `score`, `selected_option`, `comment`, `created_at`, `updated_at`) VALUES
-(1, 1, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(2, 1, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(3, 1, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(4, 1, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(5, 1, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(6, 1, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(7, 1, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(8, 1, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(9, 1, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(10, 1, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(11, 1, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(12, 1, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(13, 1, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(14, 1, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(15, 1, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(16, 1, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(17, 1, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(18, 1, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(19, 1, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(20, 1, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(21, 1, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(22, 2, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(23, 1, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(24, 2, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(25, 1, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(26, 2, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(27, 1, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(28, 2, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(29, 1, 6, NULL, NULL, NULL, '0', NULL, '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(30, 3, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(31, 3, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(32, 3, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(33, 3, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(34, 3, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(35, 3, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(36, 3, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(37, 3, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(38, 3, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(39, 3, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(40, 3, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(41, 3, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(42, 3, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(43, 3, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(44, 3, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(45, 3, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(46, 3, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(47, 3, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(48, 3, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(49, 3, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(50, 3, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(51, 4, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(52, 3, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(53, 4, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(54, 3, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(55, 4, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(56, 3, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(57, 4, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(58, 3, 6, NULL, NULL, NULL, '2', NULL, '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(59, 5, 1, 8, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(60, 5, 1, 9, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(61, 5, 1, 10, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(62, 5, 2, 45, NULL, 10, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(63, 5, 3, 26, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(64, 5, 3, 27, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(65, 5, 3, 28, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(66, 5, 3, 29, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(67, 5, 3, 30, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(68, 5, 3, 31, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(69, 5, 3, 32, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(70, 5, 3, 33, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(71, 5, 3, 34, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(72, 5, 3, 35, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(73, 5, 4, 20, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(74, 5, 4, 21, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(75, 5, 4, 22, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(76, 5, 4, 23, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(77, 5, 4, 24, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(78, 5, 4, 25, NULL, 5, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(79, 5, 5, 40, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(80, 6, 5, 40, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(81, 5, 5, 41, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(82, 6, 5, 41, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(83, 5, 5, 42, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(84, 6, 5, 42, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(85, 5, 5, 43, 267, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(86, 6, 5, 43, 268, 1, NULL, NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(87, 5, 6, NULL, NULL, NULL, '3', NULL, '2025-07-21 13:44:42', '2025-07-21 13:44:42');
+(114, 7, 5, 43, 267, 1, NULL, NULL, '2025-08-23 06:08:46', '2025-08-23 06:08:46'),
+(115, 8, 5, 43, 268, 1, NULL, NULL, '2025-08-23 06:08:46', '2025-08-23 06:08:46');
 
 -- --------------------------------------------------------
 
@@ -289,12 +197,8 @@ CREATE TABLE `evaluation_per_panel` (
 --
 
 INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`, `student_id`, `group_score`, `solo_score`, `total_score`, `comments`, `created_at`, `updated_at`) VALUES
-(1, 2, 270, 267, 65, 2, 67, 'I love Computer Science', '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(2, 2, 270, 268, 65, 2, 67, 'I love Computer Science', '2025-07-21 13:41:20', '2025-07-21 13:41:20'),
-(3, 2, 271, 267, 65, 2, 67, 'test', '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(4, 2, 271, 268, 65, 2, 67, 'test', '2025-07-21 13:42:03', '2025-07-21 13:42:03'),
-(5, 2, 272, 267, 65, 2, 67, 'bakit bigas thesis niyo', '2025-07-21 13:44:42', '2025-07-21 13:44:42'),
-(6, 2, 272, 268, 65, 2, 67, 'bakit bigas thesis niyo', '2025-07-21 13:44:42', '2025-07-21 13:44:42');
+(7, 6, 270, 267, 65, 2, 67, '123asd', '2025-08-23 06:08:46', '2025-08-23 06:08:46'),
+(8, 6, 270, 268, 65, 2, 67, '123asd', '2025-08-23 06:08:46', '2025-08-23 06:08:46');
 
 -- --------------------------------------------------------
 
@@ -362,11 +266,11 @@ CREATE TABLE `notifications` (
 --
 
 INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `updated_at`) VALUES
-(2, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 4, NULL, 0, '2025-07-22 17:45:02', '2025-07-22 17:45:02'),
+(2, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-08-23 06:03:59'),
 (3, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 19:45:00'),
 (4, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 1, '2025-07-22 17:45:02', '2025-07-22 17:47:51'),
 (5, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 8:00 AM - 10:00 AM in a. Waiting for panelist approval.', 4, NULL, 0, '2025-07-22 17:45:02', '2025-07-22 17:45:02'),
-(6, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
+(6, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-08-23 05:51:46'),
 (7, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
 (8, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: July 25, 2025\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: a\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 5, NULL, 0, '2025-07-22 19:40:15', '2025-07-22 19:40:15'),
 (9, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for July 25, 2025 at 11:00 AM - 1:00 PM in a. Waiting for panelist approval.', 5, NULL, 1, '2025-07-22 19:40:15', '2025-07-22 19:45:00'),
@@ -380,7 +284,13 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (17, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 1, '2025-07-22 19:50:20', '2025-07-22 19:50:44'),
 (18, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-07-22 19:50:20', '2025-07-22 19:50:20'),
 (19, 267, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-08-15 15:46:54', '2025-08-15 15:46:54'),
-(20, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-08-15 15:46:54', '2025-08-15 15:46:54');
+(20, 268, '', 'New Feedback Available', 'Your adviser has provided feedback for your \'Capstone 2\' submission. Please check your requirements section to view the feedback.', 1, NULL, 0, '2025-08-15 15:46:54', '2025-08-15 15:46:54'),
+(21, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: August 23, 2025\n🕒 Time: 7:00 AM - 8:00 AM\n🏢 Room: 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 1, '2025-08-23 06:07:25', '2025-08-23 06:07:50'),
+(22, 275, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: August 23, 2025\n🕒 Time: 7:00 AM - 8:00 AM\n🏢 Room: 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-08-23 06:07:25', '2025-08-23 06:07:25'),
+(23, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team 1\'s defense:\n\n📅 Date: August 23, 2025\n🕒 Time: 7:00 AM - 8:00 AM\n🏢 Room: 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Title of Team 1\n\nPlease approve or decline this assignment.', 6, NULL, 0, '2025-08-23 06:07:25', '2025-08-23 06:07:25'),
+(24, 269, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for August 23, 2025 at 7:00 AM - 8:00 AM in 1. Waiting for panelist approval.', 6, NULL, 0, '2025-08-23 06:07:25', '2025-08-23 06:07:25'),
+(25, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for August 23, 2025 at 7:00 AM - 8:00 AM in 1. Waiting for panelist approval.', 6, NULL, 0, '2025-08-23 06:07:25', '2025-08-23 06:07:25'),
+(26, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for August 23, 2025 at 7:00 AM - 8:00 AM in 1. Waiting for panelist approval.', 6, NULL, 0, '2025-08-23 06:07:25', '2025-08-23 06:07:25');
 
 -- --------------------------------------------------------
 
@@ -403,12 +313,18 @@ CREATE TABLE `notification_actions` (
 --
 
 INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `action_data`, `is_completed`, `completed_at`, `created_at`) VALUES
-(1, 6, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
-(2, 6, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(1, 6, 'approve_defense', '{\"schedule_id\":\"5\"}', 1, '2025-08-23 05:51:46', '2025-07-22 19:40:15'),
+(2, 6, 'reject_defense', '{\"schedule_id\":\"5\"}', 1, '2025-08-23 05:51:46', '2025-07-22 19:40:15'),
 (3, 7, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
 (4, 7, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
 (5, 8, 'approve_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
-(6, 8, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15');
+(6, 8, 'reject_defense', '{\"schedule_id\":\"5\"}', 0, NULL, '2025-07-22 19:40:15'),
+(7, 21, 'approve_defense', '{\"schedule_id\":\"6\"}', 1, '2025-08-23 06:07:50', '2025-08-23 06:07:25'),
+(8, 21, 'reject_defense', '{\"schedule_id\":\"6\"}', 1, '2025-08-23 06:07:50', '2025-08-23 06:07:25'),
+(9, 22, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-08-23 06:07:25'),
+(10, 22, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-08-23 06:07:25'),
+(11, 23, 'approve_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-08-23 06:07:25'),
+(12, 23, 'reject_defense', '{\"schedule_id\":\"6\"}', 0, NULL, '2025-08-23 06:07:25');
 
 -- --------------------------------------------------------
 
@@ -485,9 +401,12 @@ INSERT INTO `panelist_approvals` (`id`, `defense_schedule_id`, `panelist_id`, `a
 (7, 4, 270, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
 (8, 4, 275, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
 (9, 4, 272, 'pending', NULL, NULL, '2025-07-22 17:45:02'),
-(10, 5, 270, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(10, 5, 270, 'approved', '2025-08-23 13:51:46', '', '2025-07-22 19:40:15'),
 (11, 5, 271, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
-(12, 5, 272, 'pending', NULL, NULL, '2025-07-22 19:40:15');
+(12, 5, 272, 'pending', NULL, NULL, '2025-07-22 19:40:15'),
+(13, 6, 270, 'approved', '2025-08-23 14:07:50', '', '2025-08-23 06:07:25'),
+(14, 6, 275, 'pending', NULL, NULL, '2025-08-23 06:07:25'),
+(15, 6, 272, 'pending', NULL, NULL, '2025-08-23 06:07:25');
 
 -- --------------------------------------------------------
 
@@ -966,14 +885,14 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`, `is_program_chair`) VALUES
-(0, 0, 'Admin', NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-08-21 03:24:05', '0000-00-00 00:00:00', '2025-08-21 03:24:05', NULL),
-(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:47:17', NULL, '2025-08-21 03:47:17', NULL),
+(0, 0, 'Admin', NULL, NULL, NULL, 'winston.agustin@lpunetwork.edu.ph', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Winston', 'Agustin', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2025-08-23 05:54:23', '0000-00-00 00:00:00', '2025-08-23 05:54:23', NULL),
+(267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 06:01:35', NULL, '2025-08-23 06:01:35', NULL),
 (268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:48:49', NULL, '2025-07-22 19:48:49', NULL),
-(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:34:53', NULL, '2025-08-21 03:34:53', NULL),
-(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:45:23', NULL, '2025-07-22 19:45:23', NULL),
-(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:01', NULL, '2025-07-22 19:46:01', NULL),
-(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science - Software Engineering', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-07-22 19:46:18', NULL, '2025-07-22 19:46:18', NULL),
-(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-21 03:39:46', NULL, '2025-08-21 03:24:27', 1),
+(269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 08:26:12', NULL, '2025-08-21 03:34:53', NULL),
+(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 08:26:08', NULL, '2025-08-23 06:04:28', NULL),
+(271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 08:26:06', NULL, '2025-07-22 19:46:01', NULL),
+(272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 08:26:26', NULL, '2025-07-22 19:46:18', NULL),
+(273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-08-23 08:07:13', NULL, '2025-08-23 07:58:20', 1),
 (274, 1, '2021-2-01217', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'winstonagustin.ih@gmail.com', '$2y$10$JMQY5E6kK5YjXU8ffa5jPOTMxUFV7U9t7D62pJR5M2FpduRLJq6iO', 'REGIL KENT', 'ANTONIO', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 05:07:11', NULL, '2025-07-22 05:07:11', NULL),
 (275, 2, 'winstonadmina', 'Unspecified', 'Web Dev', 1, 'jk2o4gq65@mozmail.com', '$2y$10$520iKpeTou75C60zH6aQFOUFg4FEGA4tJCNFimuyHAnQ6XG5MLQXq', 'a', 'a', NULL, NULL, NULL, '_defaultUser.png', NULL, NULL, '2025-07-22 18:54:09', NULL, '2025-07-22 18:54:09', NULL);
 
@@ -1260,7 +1179,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1278,13 +1197,13 @@ ALTER TABLE `evaluations`
 -- AUTO_INCREMENT for table `evaluation_details`
 --
 ALTER TABLE `evaluation_details`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=88;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=117;
 
 --
 -- AUTO_INCREMENT for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `form_assignments`
@@ -1302,13 +1221,13 @@ ALTER TABLE `merged_evaluations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=21;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=27;
 
 --
 -- AUTO_INCREMENT for table `notification_actions`
 --
 ALTER TABLE `notification_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
 
 --
 -- AUTO_INCREMENT for table `page_content`
@@ -1320,7 +1239,7 @@ ALTER TABLE `page_content`
 -- AUTO_INCREMENT for table `panelist_approvals`
 --
 ALTER TABLE `panelist_approvals`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=13;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `programs`
