@@ -2534,118 +2534,146 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
                     '</div>');
             } else if (table === 'defense_schedules') {
-                $.ajax({
-                    url: 'includes/get_teams_and_staff.php', // Create this endpoint to fetch teams and staff
-                    method: 'GET',
-                    dataType: 'json',
-                    success: function(data) {
-                        var formHtml = `
-                            <input type="hidden" name="table" value="${table}">
-                            <div class="mb-3">
-                                <label for="schedule_date" class="form-label">Schedule Date</label>
-                                <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
-                                <small class="form-text text-muted">Select date for the defense schedule.</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="start_time" class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required>
-                                <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="end_time" class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required>
-                                <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
-                            </div>
-                            <div class="mb-3">
-                                <label for="room" class="form-label">Room</label>
-                                <input type="text" class="form-control" id="room" name="room" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="team_id" class="form-label">Team</label>
-                                <select class="form-select" id="team_id" name="team_id" required>
-                                <option value="">Select Team</option>
-                                    ${data.teams.map(team => `
-                                        <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
-                                            ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
-                                        </option>
-                                    `).join('')}
+    $.ajax({
+        url: 'includes/get_teams_and_staff.php',
+        method: 'GET',
+        dataType: 'json',
+        success: function(data) {
+            // Store initial staff data for fallback or initial population
+            window.staffData = data.staff;
+
+            var formHtml = `
+                <input type="hidden" name="table" value="${table}">
+                <div class="mb-3">
+                    <label for="schedule_date" class="form-label">Schedule Date</label>
+                    <input type="text" class="form-control datepicker" id="schedule_date" name="schedule_date" required>
+                    <small class="form-text text-muted">Select date for the defense schedule.</small>
+                </div>
+                <div class="mb-3">
+                    <label for="start_time" class="form-label">Start Time</label>
+                    <input type="time" class="form-control" id="start_time" name="start_time" min="07:00" max="20:30" step="1800" required>
+                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                </div>
+                <div class="mb-3">
+                    <label for="end_time" class="form-label">End Time</label>
+                    <input type="time" class="form-control" id="end_time" name="end_time" min="07:00" max="20:30" step="1800" required>
+                    <small class="form-text text-muted">Time must be within working hours (7:00 AM to 8:30 PM).</small>
+                </div>
+                <div class="mb-3">
+                    <label for="room" class="form-label">Room</label>
+                    <input type="text" class="form-control" id="room" name="room" required>
+                </div>
+                <div class="mb-3">
+                    <label for="team_id" class="form-label">Team</label>
+                    <select class="form-select" id="team_id" name="team_id" required>
+                    <option value="">Select Team</option>
+                        ${data.teams.map(team => `
+                            <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
+                                ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
+                            </option>
+                        `).join('')}
+                    </select>
+                </div>
+                <h5 class="mt-4">Panelists (Max 3)</h5>
+                <div id="panelists">
+                    <div class="mb-3 row panelist">
+                    <label class="col-sm-2 col-form-label">Panelist 1</label>
+                        <div class="col-sm-8">
+                            <select class="form-select" name="panelist_id[0]">
                                 </select>
-                            </div>
-                            <h5 class="mt-4">Panelists (Max 3)</h5>
-                            <div id="panelists">
-                                <div class="mb-3 row panelist">
-                                <label class="col-sm-2 col-form-label">Panelist 1</label>
-                                    <div class="col-sm-8">
-                                        <select class="form-select" name="panelist_id[0]">
-                                            ${data.staff.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('')}
-                                        </select>
-                                    </div>
-                                    <div class="col-sm-2">
-                                        <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
-                        `;
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                        </div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
+            `;
 
-                        
+            form.html(formHtml);
 
-                        form.html(formHtml);
-
-                        // Initialize the date picker with same options as in defense_schedules_tab.php
-                        $('.datepicker').datepicker({
-                            format: 'yyyy-mm-dd', // Match MySQL date format
-                            multidate: false, // Single date selection for defense schedule
-                            startDate: new Date(), // Prevent selecting previous dates
-                            todayHighlight: true, // Highlight today's date
-                            autoclose: true // Close calendar after selection
-                        });
-
-                        // Add time picker validation
-                        $('#start_time, #end_time').on('change', function() {
-                            const startTime = $('#start_time').val();
-                            const endTime = $('#end_time').val();
-
-                            if (startTime && endTime && startTime >= endTime) {
-                                showToast('Error', 'End time must be after start time',
-                                    'error');
-                                $(this).val(''); // Clear the current field
-                            }
-                        });
-
-                        // Store staff data for addNewPanelist function
-                        window.staffData = data.staff;
-
-                        // Add panelist functionality
-                        $('#addPanelist').on('click', function() {
-                            console.log('Add Panelist button clicked');
-                            addNewPanelist(window.staffData);
-                        });
-
-                        // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function() {
-                            $(this).closest('.panelist').remove();
-                            // Re-enable add button if below limit
-                            if ($('#panelists .panelist').length < 3) {
-                                $('#addPanelist').prop('disabled', false);
-                            }
-                            // Re-index remaining panelists
-                            $('#panelists .panelist').each(function(index) {
-                                $(this).find('select').attr('name',
-                                    `panelist_id[${index}]`);
-                                $(this).find('label.col-form-label').text(
-                                    `Panelist ${index + 1}`);
-                            });
-                            updatePanelistDropdowns();
-                        });
-                        updatePanelistDropdowns(); // Initial update
-                    },
-                    error: function() {
-                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
-                    }
-                    
+            // Function to update all panelist dropdowns with new data
+            function updatePanelistDropdowns(staffList) {
+                const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
+                $('#panelists .panelist select').each(function() {
+                    $(this).html(optionsHtml);
                 });
-            } else {
+            }
+
+            // --- New Code for Dynamic Staff Loading ---
+            // Event listener for the team dropdown
+            $('#team_id').on('change', function() {
+                const teamId = $(this).val();
+                if (teamId) {
+                    $.ajax({
+                        url: 'includes/get_teams_and_staff.php',
+                        method: 'GET',
+                        dataType: 'json',
+                        data: {
+                            team_id: teamId
+                        },
+                        success: function(staffData) {
+                            if (staffData.success) {
+                                window.staffData = staffData.staff; // Update the global staff data
+                                updatePanelistDropdowns(staffData.staff);
+                            } else {
+                                showToast('Error', 'Unable to fetch panelists for this team.', 'error');
+                            }
+                        },
+                        error: function() {
+                            showToast('Error', 'An error occurred while fetching panelists.', 'error');
+                        }
+                    });
+                } else {
+                    // If no team is selected, clear the panelist dropdowns
+                    $('#panelists .panelist select').html('');
+                }
+            });
+
+            // Initialize the date picker
+            $('.datepicker').datepicker({
+                format: 'yyyy-mm-dd',
+                multidate: false,
+                startDate: new Date(),
+                todayHighlight: true,
+                autoclose: true
+            });
+
+            // Add time picker validation
+            $('#start_time, #end_time').on('change', function() {
+                const startTime = $('#start_time').val();
+                const endTime = $('#end_time').val();
+
+                if (startTime && endTime && startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time', 'error');
+                    $(this).val('');
+                }
+            });
+
+            // Add panelist functionality
+            $('#addPanelist').on('click', function() {
+                addNewPanelist(window.staffData);
+            });
+
+            // Remove panelist functionality
+            $(document).on('click', '.remove-panelist', function() {
+                $(this).closest('.panelist').remove();
+                if ($('#panelists .panelist').length < 3) {
+                    $('#addPanelist').prop('disabled', false);
+                }
+                $('#panelists .panelist').each(function(index) {
+                    $(this).find('select').attr('name', `panelist_id[${index}]`);
+                    $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
+                });
+                updatePanelistDropdowns(window.staffData);
+            });
+
+        },
+        error: function() {
+            showToast('Error', 'Unable to fetch teams and staff data', 'error');
+        }
+    });
+} else {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
                     '<input type="text" class="form-control" id="name" name="name" required>' +
