@@ -80,12 +80,12 @@
                             }
                         }
                     }
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
                 } else if ($userType == 0 || $userType == 2) {
                     $program = $_SESSION['program'];
                     // Cut at the space before "-", if present
                     $program = preg_replace('/\s-.*$/', '', $program);
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($roleLabel . ' - ' . $program) . '</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $program) . '</span>';
                 }
                 else {
                     echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Unknown Role</span>';

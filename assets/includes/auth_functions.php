@@ -173,22 +173,32 @@ function getPublishedPages($pdo)
 function get_user_college($pdo, $user_id)
 {
     try {
-        // First get the user's program
-        $stmt = $pdo->prepare("SELECT program FROM users WHERE id = ?");
-        $stmt->execute([$user_id]);
-        $program = $stmt->fetchColumn();
-
-        if (!$program) {
-            return null;
-        }
-
-        // Look up the college based on the program name/specialization
+        // The single JOIN query is now used to find the college directly from the user's ID.
+        // The first part of your original function (getting the program) is no longer needed.
         $stmt = $pdo->prepare("
-            SELECT college FROM programs 
-            WHERE CONCAT(name, CASE WHEN specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END) = ?
+            SELECT p.college
+            FROM users AS u
+            JOIN programs AS p
+              ON u.program = p.name
+            WHERE u.id = ?;
         ");
-        $stmt->execute([$program]);
+
+        // Pass the user_id variable to the execute method to bind to the placeholder.
+        $stmt->execute(params: [$user_id]);
+        
         $college = $stmt->fetchColumn();
+
+        if (!$college) {
+            $stmt = $pdo->prepare("
+            SELECT p.college
+            FROM users AS u
+            JOIN programs AS p
+              ON u.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+            WHERE u.id = ?;
+        ");
+        $stmt->execute([$user_id]);
+        $college = $stmt->fetchColumn();
+        }
 
         return $college;
     } catch (PDOException $e) {
@@ -196,7 +206,6 @@ function get_user_college($pdo, $user_id)
         return null;
     }
 }
-
 /**
  * Check if the current user can access data for a specific college
  * @param PDO $pdo Database connection
