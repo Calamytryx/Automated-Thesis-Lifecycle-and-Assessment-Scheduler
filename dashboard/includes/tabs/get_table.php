@@ -217,186 +217,193 @@ if ($currentUsertype === 0 && $userId === 0) {
     }
     $params[':college'] = $userCollege;
 
-        switch ($table) {
-            case 'users':
-                $baseQuery = "SELECT users.* FROM users
-                              LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
-                $collegeRestrictionClause = "WHERE (p.college = :college OR users.id = :user_id)";
-                $countQuery = "SELECT COUNT(users.id) FROM users
-                               LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
-                $params[':user_id'] = $userId;
-                break;
-            case 'teams':
-                // Select t.program directly. Keep JOIN programs p for filtering.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
-                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
-                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
-                               FROM teams t
-                               LEFT JOIN research_titles rt ON t.id = rt.team_id
-                               JOIN team_members tm ON t.id = tm.team_id
-                               JOIN users u ON tm.user_id = u.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering, assuming t.program stores name string
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                // Count query needs the join for filtering
-                $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
-                               LEFT JOIN research_titles rt ON t.id = rt.team_id
-                               JOIN team_members tm ON t.id = tm.team_id
-                               JOIN users u ON tm.user_id = u.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering
-                break;
-            case 'programs':
-                $baseQuery = "SELECT id, college, department, name, specialization FROM programs";
-                $collegeRestrictionClause = "WHERE college = :college";
-                $countQuery = "SELECT COUNT(*) FROM programs";
-                break;
-            case 'thesis_topics':
-                $baseQuery = "SELECT tt.* FROM thesis_topics tt JOIN programs p ON tt.program_id = p.id";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                $countQuery = "SELECT COUNT(tt.id) FROM thesis_topics tt JOIN programs p ON tt.program_id = p.id";
-                break;
-            case 'defense_schedules':
-                // Modified baseQuery to correctly fetch adviser and ordered panelists
-                $baseQuery = "SELECT
-                     ds.id,
-                     ds.schedule_date,
-                     ds.start_time,
-                     ds.end_time,
-                     ds.room,
-                     t.name AS team_name,
-                     rt.title AS thesis_title,
-                     (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
-                      FROM team_members tm_adviser
-                      JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
-                      WHERE tm_adviser.team_id = t.id AND u_adviser.usertype = 2
-                      ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser,
-                     GROUP_CONCAT(
-                         DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
-                         ORDER BY FIELD(u_panelist.id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
-                     ) AS panelists
-                 FROM defense_schedules ds
-                 JOIN teams t ON ds.team_id = t.id
-                 LEFT JOIN research_titles rt ON t.id = rt.team_id
-                 JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) -- Join programs for college restriction using name string
-                 LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                // Count query only needs joins necessary for the WHERE clause (college restriction)
-                $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
-                               JOIN teams t ON ds.team_id = t.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                // No need for LEFT JOIN research_titles or panelist joins in count query
-                break;
-            case 'rubrics':
-                $baseQuery = "SELECT DISTINCT r.*
-                               FROM rubrics r
-                               JOIN rubric_programs rp ON r.id = rp.rubric_id
-                               JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                $countQuery = "SELECT COUNT(DISTINCT r.id)
-                                FROM rubrics r
-                                JOIN rubric_programs rp ON r.id = rp.rubric_id
-                                JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                break;
-            case 'rubric_groups':
-                $baseQuery = "SELECT DISTINCT rg.*
-                               FROM rubric_groups rg
-                               JOIN rubric_group_items rgi ON rg.id = rgi.group_id
-                               JOIN rubrics r ON rgi.rubric_id = r.id
-                               JOIN rubric_programs rp ON r.id = rp.rubric_id
-                               JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                $countQuery = "SELECT COUNT(DISTINCT rg.id)
-                                FROM rubric_groups rg
-                                JOIN rubric_group_items rgi ON rg.id = rgi.group_id
-                                JOIN rubrics r ON rgi.rubric_id = r.id
-                                JOIN rubric_programs rp ON r.id = rp.rubric_id
-                                JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                break;
-            case 'evaluations':
-                // FIX: Add JOIN programs p ON t.program = CONCAT(p.name, ...) for isAdmin baseQuery
-                $baseQuery = "SELECT 
-                ep.id AS evaluation_id,
-                t.id AS team_id,
-                t.name AS team_name,
-                e.id AS evaluator_id,
-                e.first_name AS evaluator_first_name,
-                e.last_name AS evaluator_last_name,
-                s.id AS student_id,
-                s.first_name AS student_first_name,
-                s.last_name AS student_last_name,
-                ep.group_score,
-                ep.solo_score,
-                ep.total_score,
-                ep.comments,
-                ed.id AS detail_id,
-                ed.rubric_id,
-                ed.criterion_id,
-                ed.score AS detail_score,
-                ed.selected_option,
-                ed.comment AS detail_comment,
-                ed.created_at AS detail_created_at,
-                ed.updated_at AS detail_updated_at
-            FROM 
-                evaluation_per_panel ep
-            JOIN 
-                teams t ON ep.student_id IN (
-                    SELECT user_id FROM team_members WHERE team_id = t.id
-                )
-            JOIN 
-                users e ON ep.evaluator_id = e.id
-            JOIN 
-                users s ON ep.student_id = s.id
-            LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id
-            JOIN 
-                programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                $countQuery = "SELECT COUNT(ep.id)
-                                FROM evaluation_per_panel ep
-                                JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                JOIN teams t ON ds.team_id = t.id
-                                LEFT JOIN users e ON ep.evaluator_id = e.id
-                                LEFT JOIN users s ON ep.student_id = s.id
-                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                break;
-            case 'evaluation_per_panel':
-                $baseQuery = "SELECT * FROM evaluation_per_panel";
-                $countQuery = "SELECT COUNT(*) FROM evaluation_per_panel";
-                break;
-            case 'requirements':
-                $baseQuery = "SELECT * FROM requirements";
-                $countQuery = "SELECT COUNT(*) FROM requirements";
-                $collegeRestrictionClause = "";
-                unset($params[':college']);
-                break;
-            case 'research_titles':
-                $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
-                               FROM research_titles rt
-                               LEFT JOIN teams t ON rt.team_id = t.id
-                               LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                $collegeRestrictionClause = "WHERE (p.college = :college OR t.id IS NULL)";
-                $countQuery = "SELECT COUNT(rt.id)
-                                FROM research_titles rt
-                                LEFT JOIN teams t ON rt.team_id = t.id
-                                LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                break;
-            case 'user_schedules':
-                $baseQuery = "SELECT 
-                                us.id,
-                                us.user_id,
-                                u.first_name,
-                                u.last_name,
-                                us.day_of_week,
-                                us.start_time,
-                                us.end_time,
-                                us.class_name,
-                                us.room,
-                                us.section,
-                                p.name AS program_name,
-                                p.specialization
-                            FROM user_schedules us
-                            LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
-                            "; // LEFT JOIN to include NULLs!
+    switch ($table) {
+        case 'users':
+            $baseQuery = "SELECT users.* FROM users
+                          LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
+            $collegeRestrictionClause = "WHERE (p.college = :college OR users.id = :user_id)";
+            $countQuery = "SELECT COUNT(users.id) FROM users
+                           LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
+            $params[':user_id'] = $userId;
+            break;
+        case 'teams':
+            // Select t.program directly. Keep JOIN programs p for filtering.
+            $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
+                           GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
+                           GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
+                           FROM teams t
+                           LEFT JOIN research_titles rt ON t.id = rt.team_id
+                           JOIN team_members tm ON t.id = tm.team_id
+                           JOIN users u ON tm.user_id = u.id
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering, assuming t.program stores name string
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            // Count query needs the join for filtering
+            $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
+                           LEFT JOIN research_titles rt ON t.id = rt.team_id
+                           JOIN team_members tm ON t.id = tm.team_id
+                           JOIN users u ON tm.user_id = u.id
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering
+            break;
+        case 'programs':
+            $baseQuery = "SELECT id, college, department, name, specialization FROM programs";
+            $collegeRestrictionClause = "WHERE college = :college";
+            $countQuery = "SELECT COUNT(*) FROM programs";
+            break;
+        case 'thesis_topics':
+            $baseQuery = "SELECT tt.* FROM thesis_topics tt JOIN programs p ON tt.program_id = p.id";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            $countQuery = "SELECT COUNT(tt.id) FROM thesis_topics tt JOIN programs p ON tt.program_id = p.id";
+            break;
+        case 'defense_schedules':
+            // Modified baseQuery to correctly fetch adviser and ordered panelists
+            $baseQuery = "SELECT
+                 ds.id,
+                 ds.schedule_date,
+                 ds.start_time,
+                 ds.end_time,
+                 ds.room,
+                 t.name AS team_name,
+                 rt.title AS thesis_title,
+                 (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
+                  FROM team_members tm_adviser
+                  JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
+                  WHERE tm_adviser.team_id = t.id AND u_adviser.usertype = 2
+                  ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser,
+                 GROUP_CONCAT(
+                     DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
+                     ORDER BY FIELD(u_panelist.id, ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
+                 ) AS panelists
+             FROM defense_schedules ds
+             JOIN teams t ON ds.team_id = t.id
+             LEFT JOIN research_titles rt ON t.id = rt.team_id
+             JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) -- Join programs for college restriction using name string
+             LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            // Count query only needs joins necessary for the WHERE clause (college restriction)
+            $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
+                           JOIN teams t ON ds.team_id = t.id
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            // No need for LEFT JOIN research_titles or panelist joins in count query
+            break;
+        case 'rubrics':
+            $baseQuery = "SELECT DISTINCT r.*
+                           FROM rubrics r
+                           JOIN rubric_programs rp ON r.id = rp.rubric_id
+                           JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            $countQuery = "SELECT COUNT(DISTINCT r.id)
+                            FROM rubrics r
+                            JOIN rubric_programs rp ON r.id = rp.rubric_id
+                            JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            break;
+        case 'rubric_groups':
+            $baseQuery = "SELECT DISTINCT rg.*
+                           FROM rubric_groups rg
+                           JOIN rubric_group_items rgi ON rg.id = rgi.group_id
+                           JOIN rubrics r ON rgi.rubric_id = r.id
+                           JOIN rubric_programs rp ON r.id = rp.rubric_id
+                           JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            $countQuery = "SELECT COUNT(DISTINCT rg.id)
+                            FROM rubric_groups rg
+                            JOIN rubric_group_items rgi ON rg.id = rgi.group_id
+                            JOIN rubrics r ON rgi.rubric_id = r.id
+                            JOIN rubric_programs rp ON r.id = rp.rubric_id
+                            JOIN programs p ON rp.program_name = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            break;
+        case 'evaluations':
+            // FIX: Use string join for t.program to programs table
+            $baseQuery = "SELECT 
+            ep.id AS evaluation_id,
+            t.id AS team_id,
+            t.name AS team_name,
+            e.id AS evaluator_id,
+            e.first_name AS evaluator_first_name,
+            e.last_name AS evaluator_last_name,
+            s.id AS student_id,
+            s.first_name AS student_first_name,
+            s.last_name AS student_last_name,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments,
+            ed.id AS detail_id,
+            ed.rubric_id,
+            ed.criterion_id,
+            ed.score AS detail_score,
+            ed.selected_option,
+            ed.comment AS detail_comment,
+            ed.created_at AS detail_created_at,
+            ed.updated_at AS detail_updated_at
+        FROM 
+            evaluation_per_panel ep
+        JOIN 
+            teams t ON ep.student_id IN (
+                SELECT user_id FROM team_members WHERE team_id = t.id
+            )
+        JOIN 
+            users e ON ep.evaluator_id = e.id
+        JOIN 
+            users s ON ep.student_id = s.id
+        LEFT JOIN 
+            evaluation_details ed ON ep.id = ed.evaluation_id;";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            $countQuery = "SELECT COUNT(ep.id)
+                            FROM evaluation_per_panel ep
+                            JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                            JOIN teams t ON ds.team_id = t.id
+                            LEFT JOIN users e ON ep.evaluator_id = e.id
+                            LEFT JOIN users s ON ep.student_id = s.id
+                            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            break;
+        case 'evaluation_per_panel':
+            $baseQuery = "SELECT ep.*
+                           FROM evaluation_per_panel ep
+                           JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                           JOIN teams t ON ds.team_id = t.id
+                           JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            $collegeRestrictionClause = "WHERE p.college = :college";
+            $countQuery = "SELECT COUNT(ep.id)
+                            FROM evaluation_per_panel ep
+                            JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                            JOIN teams t ON ds.team_id = t.id
+                            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            break;
+        case 'requirements':
+            $baseQuery = "SELECT * FROM requirements";
+            $countQuery = "SELECT COUNT(*) FROM requirements";
+            $collegeRestrictionClause = "";
+            unset($params[':college']);
+            break;
+        case 'research_titles':
+            $baseQuery = "SELECT rt.id, rt.team_id, rt.title, rt.approved_at, rt.updated_at, rt.created_at, t.name AS team_name
+                           FROM research_titles rt
+                           LEFT JOIN teams t ON rt.team_id = t.id
+                           LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            $collegeRestrictionClause = "WHERE (p.college = :college OR t.id IS NULL)";
+            $countQuery = "SELECT COUNT(rt.id)
+                            FROM research_titles rt
+                            LEFT JOIN teams t ON rt.team_id = t.id
+                            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+            break;
+        case 'user_schedules':
+            $baseQuery = "SELECT 
+                            us.id,
+                            us.user_id,
+                            u.first_name,
+                            u.last_name,
+                            us.day_of_week,
+                            us.start_time,
+                            us.end_time,
+                            us.class_name,
+                            us.room,
+                            us.section,
+                            p.name AS program_name,
+                            p.specialization
+                        FROM user_schedules us
+                        LEFT JOIN users u ON us.user_id = u.id
+                        LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
+                        "; // LEFT JOIN to include NULLs!
 
             $countQuery = "SELECT COUNT(us.id)
                    FROM user_schedules us
