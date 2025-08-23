@@ -1124,7 +1124,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                         </thead>
                                         <tbody>
                                             <?php
-                                    // Different queries for different user roles
                                     if ($_SESSION['usertype'] == 1) { // Student
                                         $query = "SELECT 
                                             t.name AS team_name,
@@ -1133,17 +1132,22 @@ document.addEventListener("DOMContentLoaded", function() {
                                             ep.comments,
                                             ep.total_score
                                         FROM evaluation_per_panel ep
-                                        JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                        JOIN teams t ON ds.team_id = t.id
-                                        JOIN research_titles rt ON t.id = rt.team_id
                                         JOIN users e ON ep.evaluator_id = e.id
-                                        WHERE ep.student_id = ?
+                                        JOIN users s ON ep.student_id = s.id
+                                        JOIN team_members tm ON tm.user_id = s.id
+                                        JOIN teams t ON tm.team_id = t.id
+                                        JOIN research_titles rt ON t.id = rt.team_id
+                                        WHERE s.id = ? AND ep.created_at <= NOW() - INTERVAL 7 DAY
                                         ORDER BY ep.created_at DESC";
                                         
                                         $stmt = $pdo->prepare($query);
                                         $stmt->execute([$_SESSION['id']]);
+                                        $results = $stmt->fetchAll();
+
+                                        if (empty($results)) {
+                                            echo "<td>Please wait until 1 week after the defense to view your evaluation scores.</td>";
+                                        } 
                                     } elseif ($_SESSION['usertype'] == 2) { // Faculty (Adviser/Panelist)
-                                        // For faculty: show evaluations they conducted OR teams they advise
                                         $query = "SELECT 
                                             t.name AS team_name,
                                             rt.title AS research_title,
@@ -1152,21 +1156,21 @@ document.addEventListener("DOMContentLoaded", function() {
                                             ep.comments,
                                             ep.total_score
                                         FROM evaluation_per_panel ep
-                                        JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                        JOIN teams t ON ds.team_id = t.id
+                                        JOIN users s ON ep.student_id = s.id
+                                        JOIN team_members tm_s ON tm_s.user_id = s.id
+                                        JOIN teams t ON tm_s.team_id = t.id
                                         JOIN research_titles rt ON t.id = rt.team_id
                                         JOIN users e ON ep.evaluator_id = e.id
-                                        JOIN users s ON ep.student_id = s.id
-                                        LEFT JOIN team_members tm ON t.id = tm.team_id AND tm.user_id = ?
-                                        WHERE ep.evaluator_id = ? OR (tm.role = 'Adviser' AND tm.user_id = ?)
+                                        LEFT JOIN team_members tm_f ON t.id = tm_f.team_id AND tm_f.user_id = ?
+                                        WHERE ep.evaluator_id = ? OR (tm_f.role = 'Adviser' AND tm_f.user_id = ?)
                                         ORDER BY ep.created_at DESC";
-                                        
+
                                         $stmt = $pdo->prepare($query);
                                         $stmt->execute([$_SESSION['id'], $_SESSION['id'], $_SESSION['id']]);
-                                    } else { // Admin/Program Chair (usertype = 0)
-                                        // For admin: show evaluations in their jurisdiction
+
+                                    } else { // Admin or Program Chair
                                         if ($_SESSION['id'] == 0) {
-                                            // Super admin sees all evaluations
+                                            // Super Admin sees all
                                             $query = "SELECT 
                                                 t.name AS team_name,
                                                 rt.title AS research_title,
@@ -1175,20 +1179,20 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 ep.comments,
                                                 ep.total_score
                                             FROM evaluation_per_panel ep
-                                            JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                            JOIN teams t ON ds.team_id = t.id
+                                            JOIN users s ON ep.student_id = s.id
+                                            JOIN team_members tm ON tm.user_id = s.id
+                                            JOIN teams t ON tm.team_id = t.id
                                             JOIN research_titles rt ON t.id = rt.team_id
                                             JOIN users e ON ep.evaluator_id = e.id
-                                            JOIN users s ON ep.student_id = s.id
                                             ORDER BY ep.created_at DESC";
-                                            
+
                                             $stmt = $pdo->prepare($query);
                                             $stmt->execute();
                                         } else {
-                                            // Program chair sees only evaluations from their college
+                                            // Program Chair sees evaluations only from their college
                                             require_once '../assets/includes/auth_functions.php';
                                             $userCollege = get_user_college($pdo, $_SESSION['id']);
-                                            
+
                                             if ($userCollege) {
                                                 $query = "SELECT 
                                                     t.name AS team_name,
@@ -1198,19 +1202,19 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     ep.comments,
                                                     ep.total_score
                                                 FROM evaluation_per_panel ep
-                                                JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                                                JOIN teams t ON ds.team_id = t.id
+                                                JOIN users s ON ep.student_id = s.id
+                                                JOIN team_members tm ON tm.user_id = s.id
+                                                JOIN teams t ON tm.team_id = t.id
                                                 JOIN research_titles rt ON t.id = rt.team_id
                                                 JOIN users e ON ep.evaluator_id = e.id
-                                                JOIN users s ON ep.student_id = s.id
                                                 JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
                                                 WHERE p.college = ?
                                                 ORDER BY ep.created_at DESC";
-                                                
+
                                                 $stmt = $pdo->prepare($query);
                                                 $stmt->execute([$userCollege]);
                                             } else {
-                                                // If college can't be determined, show no results
+                                                // No college info
                                                 $stmt = $pdo->prepare("SELECT NULL AS team_name, NULL AS research_title, NULL AS student_name, NULL AS evaluator_name, NULL AS comments, NULL AS total_score WHERE 1=0");
                                                 $stmt->execute();
                                             }

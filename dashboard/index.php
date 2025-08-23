@@ -373,8 +373,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         </div> -->
         <div class="col-sm-12"> 
             <!-- Admin dashboard content -->
-            <?php if (($_SESSION['usertype'] == 0 && (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1)) || $_SESSION['id'] != 0): ?>
-                <div class="row g-0" style="height: 100vh; overflow: hidden;">                    <div id="sidebarContainer">
+            <?php if (($_SESSION['usertype'] === 0 && (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] === 1))): ?>
+                <div class="row g-0" style="height: 100vh; overflow: hidden;">
+                    <div id="sidebarContainer">
                         <!-- User Profile Section moved to top -->
                         <div class="profile-header d-flex justify-content-between align-items-center">
                             <div class="profile-dropdown-container" id="profileDropdownToggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -826,11 +827,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <a class="nav-link my-1" id="rubric-groups-tab" data-bs-toggle="pill" href="#rubric-groups" role="tab" aria-controls="rubric-groups" aria-selected="false">
                                         <i class="bi bi-list-columns me-2 hollow"></i>
                                         <i class="bi bi-list-columns-reverse me-2 filled"></i>Rubric Groups 
-                                    </a> -->
+                                    </a> 
                                     <a class="nav-link my-1" id="evaluations-tab" data-bs-toggle="pill" href="#evaluations" role="tab" aria-controls="evaluations" aria-selected="false">
                                         <i class="bi bi-star me-2 hollow"></i>
                                         <i class="bi bi-star-fill me-2 filled"></i>Evaluations
-                                    </a>
+                                    </a>-->
                                     <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
@@ -888,7 +889,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php //include 'includes/tabs/programs_tab.php'; ?>
 
                             <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
-                            <?php include 'includes/tabs/evaluations_tab.php'; ?>
+                            <?php //include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
                             
                             <?php //include 'includes/tabs/env_variables_tab.php'; ?>

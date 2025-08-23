@@ -26,9 +26,11 @@ if ($_SESSION['usertype'] == '1') {
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-3">
         <h1>Files</h1>
-        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
-            <i class="fas fa-upload"></i> Upload File
-        </button>
+        <?php if ($_SESSION['usertype'] == '0'): ?>
+            <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#uploadModal">
+                <i class="fas fa-upload"></i> Upload File
+            </button>
+        <?php endif; ?>
     </div>
     <hr>
 
@@ -420,9 +422,11 @@ $(document).ready(function() {
                                   <a href="../uploads/${f.filepath}" target="_blank">
                                     <i class="fas fa-file"></i> ${f.filename}
                                   </a>
-                                  <i class="fas fa-trash-alt delete-file-btn" 
-                                     data-filepath="${filePathAttribute}" 
-                                     title="Delete File"></i>
+                                <?php if ($_SESSION['usertype'] == '0'): ?>
+                                    <i class="fas fa-trash-alt delete-file-btn" 
+                                       data-filepath="${filePathAttribute}" 
+                                       title="Delete File"></i>
+                                <?php endif; ?>
                                 </p>`
                             );
                         });
