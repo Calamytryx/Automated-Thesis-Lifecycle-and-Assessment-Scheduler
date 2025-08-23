@@ -60,6 +60,13 @@ check_verified();
 require '../assets/setup/db.inc.php';
 require_once 'includes/edit_functions.php';
 
+if ($_SESSION['usertype'] === 1){
+    // block students
+    header("Location: /home");
+    exit();
+}
+
+
 // Assume $active_tab is set based on user interaction or the default tab.
 $active_tab = isset($_GET['active_tab']) ? $_GET['active_tab'] : 'overview_tab';  // Default to 'overview_tab'
 
