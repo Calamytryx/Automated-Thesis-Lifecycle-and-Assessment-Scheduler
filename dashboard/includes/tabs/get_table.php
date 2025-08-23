@@ -50,7 +50,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     $countQuery = '';
 
     $isSuperAdmin = ($currentUsertype === 0 && $userId === 0);
-    $isAdmin = ($currentUsertype === 0 && $userId !== 0);
+    $isAdmin = (($currentUsertype === 0 || $currentUsertype === 2) && $userId !== 0);
 
 //    echo $isSuperAdmin;
 
