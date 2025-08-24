@@ -1651,6 +1651,55 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             // Store staff data for addNewPanelist function
                             window.staffData = response.staff;
 
+                            // Function to update all panelist dropdowns with new data (for edit form)
+                            function updatePanelistDropdowns(staffList) {
+                                // Add validation to prevent errors
+                                if (!staffList || !Array.isArray(staffList)) {
+                                    console.warn('Invalid staffList provided to updatePanelistDropdowns:', staffList);
+                                    return;
+                                }
+                                const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
+                                $('#panelists .panelist select').each(function() {
+                                    const currentValue = $(this).val(); // Preserve current selection if possible
+                                    $(this).html(optionsHtml);
+                                    if (currentValue && staffList.find(staff => staff.id == currentValue)) {
+                                        $(this).val(currentValue); // Restore selection if still available
+                                    }
+                                });
+                            }
+
+                            // Event listener for the team dropdown (for edit form)
+                            $('#team_id').on('change', function() {
+                                const teamId = $(this).val();
+                                if (teamId) {
+                                    $.ajax({
+                                        url: 'includes/get_teams_and_staff.php',
+                                        method: 'GET',
+                                        dataType: 'json',
+                                        data: {
+                                            team_id: teamId
+                                        },
+                                        success: function(staffData) {
+                                            if (staffData.success && staffData.staff && Array.isArray(staffData.staff)) {
+                                                window.staffData = staffData.staff; // Update the global staff data
+                                                updatePanelistDropdowns(staffData.staff);
+                                            } else {
+                                                console.warn('Invalid staff data received:', staffData);
+                                                showToast('Error', 'Unable to fetch panelists for this team.', 'error');
+                                            }
+                                        },
+                                        error: function() {
+                                            showToast('Error', 'An error occurred while fetching panelists.', 'error');
+                                        }
+                                    });
+                                } else {
+                                    // If no team is selected, use the original staff data
+                                    if (response.staff && Array.isArray(response.staff)) {
+                                        updatePanelistDropdowns(response.staff);
+                                    }
+                                }
+                            });
+
                             // Disable "Add Panelist" button initially if limit is reached
                             if (panelistCount >= 3) {
                                 $('#addPanelist').prop('disabled', true);
@@ -2073,6 +2122,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             if (typeof window.reloadCurrentRubricsView === 'function') {
                                 setTimeout(function() {
                                     window.reloadCurrentRubricsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'defense_schedules') {
+                            // For defense schedules tab, use the defense schedules-specific reload function
+                            if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentDefenseSchedulesView(1);
                                 }, 500);
                             } else {
                                 setTimeout(function() {
@@ -2846,6 +2906,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             location.reload();
                         }, 1000);
                     }
+                } else if (table === 'defense_schedules') {
+                    // For defense schedules tab, use the defense schedules-specific reload function
+                    if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentDefenseSchedulesView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
                 } else {
                     // For other tables, use their specific reload functions or fallback to page reload
                     setTimeout(function() {
@@ -2965,6 +3036,28 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             if (typeof window.reloadCurrentRequirementsView === 'function') {
                                 setTimeout(function() {
                                     window.reloadCurrentRequirementsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'rubrics') {
+                            // For rubrics tab, use the rubrics-specific reload function
+                            if (typeof window.reloadCurrentRubricsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentRubricsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'defense_schedules') {
+                            // For defense schedules tab, use the defense schedules-specific reload function
+                            if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentDefenseSchedulesView(1);
                                 }, 500);
                             } else {
                                 setTimeout(function() {

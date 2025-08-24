@@ -66,8 +66,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt = $pdo->query("SELECT id, name FROM teams");
                     $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-                    // Fetch all staff members
-                    $stmt = $pdo->query("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM users WHERE usertype = 2");
+                    // Fetch staff members filtered by current team (exclude adviser)
+                    $stmt = $pdo->prepare("
+                        SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
+                        FROM users u 
+                        WHERE u.usertype = 2
+                        AND u.id NOT IN (
+                            SELECT user_id FROM team_members 
+                            WHERE role = 'adviser' AND team_id = :team_id
+                        )
+                        ORDER BY name
+                    ");
+                    $stmt->execute(['team_id' => $data['team_id']]);
                     $response['staff'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     // Fetch current panelists for the defense schedule

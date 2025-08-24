@@ -680,6 +680,11 @@
                         });
                 };
 
+                // Global reload function for defense schedules (similar to other tabs)
+                window.reloadCurrentDefenseSchedulesView = function(page = 1) {
+                    loadDefenseSchedules(page);
+                };
+
                 loadDefenseSchedules();
 
                 document.querySelector('#def-nav .pagination').addEventListener('click', function(e) {
