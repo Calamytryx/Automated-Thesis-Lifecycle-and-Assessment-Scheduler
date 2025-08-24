@@ -1204,9 +1204,97 @@
     // Function to save rubric data (Add or Edit)
     function saveRubric() {
 
+    // Helper function for comprehensive sanitization - mirrors server-side sanitize_html_input()
+    function sanitizeInput($input) {
+        var value = $input.val();
+        var originalValue = value;
+        
+        if (!value) return;
+        
+        // Remove HTML tags
+        value = value.replace(/<[^>]*>/g, '');
+        
+        // Remove emojis using comprehensive pattern matching server-side
+        var emojiPattern = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F018}-\u{1F270}]|[\u{238C}-\u{2454}]|[\u{20D0}-\u{20FF}]|[\u{FE00}-\u{FE0F}]|[\u{1F170}-\u{1F251}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F18E}]|[\u{3030}]|[\u{2B50}]|[\u{2B55}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3297}]|[\u{3299}]|[\u{303D}]|[\u{00A9}]|[\u{00AE}]|[\u{2122}]|[\u{23E9}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2600}-\u{2604}]|[\u{260E}]|[\u{2611}]|[\u{2614}-\u{2615}]|[\u{2618}]|[\u{261D}]|[\u{2620}]|[\u{2622}-\u{2623}]|[\u{2626}]|[\u{262A}]|[\u{262E}-\u{262F}]|[\u{2638}-\u{263A}]|[\u{2640}]|[\u{2642}]|[\u{2648}-\u{2653}]|[\u{2660}]|[\u{2663}]|[\u{2665}-\u{2666}]|[\u{2668}]|[\u{267B}]|[\u{267E}-\u{267F}]|[\u{2692}-\u{2697}]|[\u{2699}]|[\u{269B}-\u{269C}]|[\u{26A0}-\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26B0}-\u{26B1}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26C8}]|[\u{26CE}-\u{26CF}]|[\u{26D1}]|[\u{26D3}-\u{26D4}]|[\u{26E9}-\u{26EA}]|[\u{26F0}-\u{26F5}]|[\u{26F7}-\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{200D}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu;
+        value = value.replace(emojiPattern, '');
+        
+        // Remove any remaining non-printable characters except newlines and tabs
+        value = value.replace(/[^\P{C}\n\r\t]/gu, '');
+        
+        // Trim whitespace
+        value = value.trim();
+        
+        // Update the input if value changed
+        if (value !== originalValue) {
+            $input.val(value);
+            if (originalValue.length > 0 && value.length === 0) {
+                showToast('Warning', 'Input contained only invalid characters and has been cleared.', 'warning');
+            } else {
+                showToast('Warning', 'Invalid characters (HTML tags, emojis) have been removed.', 'warning');
+            }
+        }
+    }
+
         // Basic required fields validation
     var form = $('#rubricForm')[0];
     var valid = true;
+
+    // Validate and sanitize text inputs client-side
+    var textInputs = ['#name', '#description', '#rubric_description'];
+    textInputs.forEach(function(selector) {
+        var $input = $(selector);
+        var value = $input.val();
+        
+        // Only validate required fields for emptiness
+        if (!value && $input.prop('required')) {
+            valid = false;
+            $input.addClass('is-invalid');
+            return;
+        }
+        
+        // Always sanitize if there's content, even for optional fields
+        if (value) {
+            sanitizeInput($input);
+        }
+        
+        $input.removeClass('is-invalid');
+    });
+    
+    // Validate criterion inputs
+    $('#rubricPreviewBody tr').each(function() {
+        var $criterionInput = $(this).find('.criterion-input, input[name="criterion_description[]"]');
+        var $descInput = $(this).find('.description-input');
+        
+        [$criterionInput, $descInput].forEach(function($input) {
+            if ($input.length && $input.val()) {
+                sanitizeInput($input);
+            }
+        });
+    });
+    
+    // Validate quality level inputs
+    $('#qualityCriteriaContainer .quality-level-input, #qualityCriteriaContainer .quality-description-input').each(function() {
+        var $input = $(this);
+        if ($input.val()) {
+            sanitizeInput($input);
+        }
+    });
+
+    // Validate pass/fail modifier text inputs
+    $('#modifierInputsContainer .modifier-text').each(function() {
+        var $input = $(this);
+        if ($input.val()) {
+            sanitizeInput($input);
+        }
+    });
+
+    // Validate pass/fail recommendation text inputs
+    ['#passRecommendationText', '#failRecommendationText', '#failOptionText'].forEach(function(selector) {
+        var $input = $(selector);
+        if ($input.length && $input.val()) {
+            sanitizeInput($input);
+        }
+    });
 
     $(form).find('input[required], select[required], textarea[required]').each(function() {
         if (!$(this).val()) {
@@ -1724,6 +1812,25 @@
         $(document).off('input.passFailConfig').on('input.passFailConfig',
             '#modifierInputsContainer .modifier-text, #failOptionText, #passRecommendationText, #failRecommendationText',
             function() {
+                // Sanitize input in real-time
+                var $input = $(this);
+                var value = $input.val();
+                var cleaned = value;
+                
+                // Remove HTML tags
+                if (/<[^>]*>/g.test(cleaned)) {
+                    cleaned = cleaned.replace(/<[^>]*>/g, '');
+                }
+                
+                // Remove emojis
+                if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(cleaned)) {
+                    cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+                }
+                
+                if (cleaned !== value) {
+                    $input.val(cleaned);
+                }
+                
                 // Update preview options (radio labels)
                 updatePassFailPreviewOptions();
                 // Update recommendation text in preview rows directly
@@ -1731,6 +1838,75 @@
                 var failRec = $('#failRecommendationText').val();
                 $('#rubricPreviewBody tr:nth-child(1) .recommendation-input').val(passRec);
                 $('#rubricPreviewBody tr:nth-child(2) .recommendation-input').val(failRec);
+            });
+
+        // Real-time sanitization for main rubric form fields
+        $(document).off('input.rubricSanitize').on('input.rubricSanitize',
+            '#name, #description, #rubric_description',
+            function() {
+                var $input = $(this);
+                var value = $input.val();
+                var cleaned = value;
+                
+                // Remove HTML tags
+                if (/<[^>]*>/g.test(cleaned)) {
+                    cleaned = cleaned.replace(/<[^>]*>/g, '');
+                }
+                
+                // Remove emojis
+                if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(cleaned)) {
+                    cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+                }
+                
+                if (cleaned !== value) {
+                    $input.val(cleaned);
+                }
+            });
+
+        // Real-time sanitization for quality level inputs (numerical rubrics)
+        $(document).off('input.qualitySanitize').on('input.qualitySanitize',
+            '#qualityCriteriaContainer .quality-level-input, #qualityCriteriaContainer .quality-description-input',
+            function() {
+                var $input = $(this);
+                var value = $input.val();
+                var cleaned = value;
+                
+                // Remove HTML tags
+                if (/<[^>]*>/g.test(cleaned)) {
+                    cleaned = cleaned.replace(/<[^>]*>/g, '');
+                }
+                
+                // Remove emojis
+                if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(cleaned)) {
+                    cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+                }
+                
+                if (cleaned !== value) {
+                    $input.val(cleaned);
+                }
+            });
+
+        // Real-time sanitization for criterion inputs (all rubric types)
+        $(document).off('input.criteriaSanitize').on('input.criteriaSanitize',
+            '#rubricPreviewBody .criterion-input, #rubricPreviewBody .description-input, #rubricPreviewBody .criterion-description, #rubricPreviewBody .criterion-level-input, #rubricPreviewBody input[name="criterion_description[]"]',
+            function() {
+                var $input = $(this);
+                var value = $input.val();
+                var cleaned = value;
+                
+                // Remove HTML tags
+                if (/<[^>]*>/g.test(cleaned)) {
+                    cleaned = cleaned.replace(/<[^>]*>/g, '');
+                }
+                
+                // Remove emojis
+                if (/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u.test(cleaned)) {
+                    cleaned = cleaned.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+                }
+                
+                if (cleaned !== value) {
+                    $input.val(cleaned);
+                }
             });
 
         // Initial setup on document ready - trigger type change

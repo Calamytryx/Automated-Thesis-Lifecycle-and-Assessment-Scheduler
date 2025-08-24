@@ -194,6 +194,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
             $pdo->beginTransaction();
 
+            // Sanitize basic rubric fields
+            $textFields = ['name', 'description', 'rubric_description', 'pass_recommendation_text', 'fail_recommendation_text', 'fail_option_text'];
+            foreach ($textFields as $field) {
+                if (isset($data[$field])) {
+                    $data[$field] = sanitize_html_input($data[$field]);
+                }
+            }
+
             // 1. Insert into the main `rubrics` table (Added is_individual_enabled, handle max_members conditionally)
             $rubricSql = "INSERT INTO rubrics (
                             name, description, rubric_type, is_individual_enabled, defense_type,
@@ -247,7 +255,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             error_log("Validated Rubric ID: " . $rubricId);
             // --- END REFINED VALIDATION ---
 
-            // 2. Insert into `rubric_levels` (Numerical levels or Pass/Fail modifiers)
+            // 2. Insert into `rubric_levels` (Numerical levels or Pass/Fail modifiers) with sanitization
             if (isset($data['levels'])) {
                 $levels = json_decode($data['levels'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($levels)) {
@@ -256,11 +264,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmtLevel = $pdo->prepare($levelSql);
 
                     foreach ($levels as $level) {
+                        // Sanitize level fields
+                        $levelName = sanitize_html_input($level['name'] ?? 'Unnamed Level');
+                        $levelDescription = sanitize_html_input($level['description'] ?? '');
+                        
                         $stmtLevel->execute([
                             ':rubric_id' => $rubricId, // Use the validated integer ID
                             ':level_index' => $level['level_index'] ?? 0,
-                            ':name' => $level['name'] ?? 'Unnamed Level',
-                            ':description' => $level['description'] ?? null,
+                            ':name' => $levelName,
+                            ':description' => empty($levelDescription) ? null : $levelDescription,
                             // Numerical specific fields (null if not numerical)
                             ':points_min' => ($data['rubric_type'] === 'numerical') ? ($level['points_min'] ?? null) : null,
                             ':points_max' => ($data['rubric_type'] === 'numerical') ? ($level['points_max'] ?? null) : null,
@@ -275,7 +287,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("No 'levels' data found in POST.");
             }
 
-            // 3. Insert into `rubric_criteria` (Numerical or Yes/No rows)
+            // 3. Insert into `rubric_criteria` (Numerical or Yes/No rows) with sanitization
             // Added conditional is_individual handling for numerical type
             if (($data['rubric_type'] === 'numerical' || $data['rubric_type'] === 'yesno') && isset($data['criteria'])) {
                 $criteria = json_decode($data['criteria'], true);
@@ -288,10 +300,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         // Determine if the criterion is individual (only applicable for numerical rubrics)
                         $criterion_is_individual = ($data['rubric_type'] === 'numerical' && $is_individual_enabled && isset($criterion['is_individual']) && $criterion['is_individual'] == '1') ? 1 : 0;
 
+                        // Sanitize criterion fields
+                        $criterionText = sanitize_html_input($criterion['criterion_text'] ?? 'Unnamed Criterion');
+                        $criterionDetail = '';
+                        
+                        // Handle criterion_detail based on type
+                        if (isset($criterion['criterion_detail'])) {
+                            if (is_array($criterion['criterion_detail'])) {
+                                // If it's an array, sanitize each element
+                                $sanitizedDetails = array_map('sanitize_html_input', $criterion['criterion_detail']);
+                                $criterionDetail = json_encode($sanitizedDetails);
+                            } else {
+                                // If it's a string (possibly JSON), try to decode and sanitize
+                                $decoded = json_decode($criterion['criterion_detail'], true);
+                                if (is_array($decoded)) {
+                                    $sanitizedDetails = array_map('sanitize_html_input', $decoded);
+                                    $criterionDetail = json_encode($sanitizedDetails);
+                                } else {
+                                    // Plain string, just sanitize
+                                    $criterionDetail = sanitize_html_input($criterion['criterion_detail']);
+                                }
+                            }
+                        }
+
                         $stmtCriteria->execute([
                             ':rubric_id' => $rubricId, // Use the validated integer ID
-                            ':criterion_text' => $criterion['criterion_text'] ?? 'Unnamed Criterion',
-                            ':criterion_detail' => $criterion['criterion_detail'] ?? null, // For Yes/No description
+                            ':criterion_text' => $criterionText,
+                            ':criterion_detail' => empty($criterionDetail) ? null : $criterionDetail, // For Yes/No description
                             ':order_index' => $criterion['order_index'] ?? 0,
                             ':is_individual' => $criterion_is_individual // Store flag conditionally
                         ]);
@@ -304,7 +339,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 error_log("No 'criteria' data found in POST or type is not numerical/yesno.");
             }
 
-            // 4. Insert into `rubric_programs`
+            // 4. Insert into `rubric_programs` (no sanitization needed for program associations)
             if (isset($data['programs'])) {
                 $programs = json_decode($data['programs'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($programs)) {

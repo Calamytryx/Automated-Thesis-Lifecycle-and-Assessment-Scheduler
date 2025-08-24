@@ -268,6 +268,15 @@ function handleRequirementTemplateUpload($file) {
             error_log("Foreign key checks disabled for rubric edit (ID: $id).");
 
             $pdo->beginTransaction();
+
+            // Sanitize basic rubric fields
+            $textFields = ['name', 'description', 'rubric_description', 'pass_recommendation_text', 'fail_recommendation_text', 'fail_option_text'];
+            foreach ($textFields as $field) {
+                if (isset($data[$field])) {
+                    $data[$field] = sanitize_html_input($data[$field]);
+                }
+            }
+
             // 1. Update the main `rubrics` table (Added is_individual_enabled, handle max_members conditionally)
             $rubricSql = "UPDATE rubrics SET
                             name = :name,
@@ -315,7 +324,7 @@ function handleRequirementTemplateUpload($file) {
             $stmtRubric->execute($rubricData);
             error_log("Updated rubrics table for ID: " . $id);
 
-            // 2. Clear and Re-insert `rubric_levels`
+            // 2. Clear and Re-insert `rubric_levels` with sanitization
             $clearLevelsSql = "DELETE FROM rubric_levels WHERE rubric_id = :rubric_id";
             $pdo->prepare($clearLevelsSql)->execute([':rubric_id' => $id]);
             error_log("Cleared rubric_levels for ID: " . $id);
@@ -327,11 +336,15 @@ function handleRequirementTemplateUpload($file) {
                                  VALUES (:rubric_id, :level_index, :name, :description, :points_min, :points_max, :is_range)";
                     $stmtLevel = $pdo->prepare($levelSql);
                     foreach ($levels as $level) {
+                        // Sanitize level fields
+                        $levelName = sanitize_html_input($level['name'] ?? 'Unnamed Level');
+                        $levelDescription = sanitize_html_input($level['description'] ?? '');
+                        
                         $stmtLevel->execute([
                             ':rubric_id' => $id, // Use the existing rubric ID
                             ':level_index' => $level['level_index'] ?? 0,
-                            ':name' => $level['name'] ?? 'Unnamed Level',
-                            ':description' => $level['description'] ?? null,
+                            ':name' => $levelName,
+                            ':description' => empty($levelDescription) ? null : $levelDescription,
                             ':points_min' => ($data['rubric_type'] === 'numerical') ? ($level['points_min'] ?? null) : null,
                             ':points_max' => ($data['rubric_type'] === 'numerical') ? ($level['points_max'] ?? null) : null,
                             ':is_range' => ($data['rubric_type'] === 'numerical') ? ($level['is_range'] ?? 0) : 0,
@@ -345,7 +358,7 @@ function handleRequirementTemplateUpload($file) {
                 error_log("No 'levels' data found in POST for update.");
             }
 
-            // 3. Clear and Re-insert `rubric_criteria` (Added conditional is_individual)
+            // 3. Clear and Re-insert `rubric_criteria` (Added conditional is_individual) with sanitization
             $clearCriteriaSql = "DELETE FROM rubric_criteria WHERE rubric_id = :rubric_id";
             $pdo->prepare($clearCriteriaSql)->execute([':rubric_id' => $id]);
             error_log("Cleared rubric_criteria for ID: " . $id);
@@ -360,10 +373,33 @@ function handleRequirementTemplateUpload($file) {
                         // Only save is_individual flag if the rubric itself has individual scoring enabled
                         $criterion_is_individual = ($is_individual_enabled && isset($criterion['is_individual'])) ? $criterion['is_individual'] : 0;
 
+                        // Sanitize criterion fields
+                        $criterionText = sanitize_html_input($criterion['criterion_text'] ?? 'Unnamed Criterion');
+                        $criterionDetail = '';
+                        
+                        // Handle criterion_detail based on type
+                        if (isset($criterion['criterion_detail'])) {
+                            if (is_array($criterion['criterion_detail'])) {
+                                // If it's an array, sanitize each element
+                                $sanitizedDetails = array_map('sanitize_html_input', $criterion['criterion_detail']);
+                                $criterionDetail = json_encode($sanitizedDetails);
+                            } else {
+                                // If it's a string (possibly JSON), try to decode and sanitize
+                                $decoded = json_decode($criterion['criterion_detail'], true);
+                                if (is_array($decoded)) {
+                                    $sanitizedDetails = array_map('sanitize_html_input', $decoded);
+                                    $criterionDetail = json_encode($sanitizedDetails);
+                                } else {
+                                    // Plain string, just sanitize
+                                    $criterionDetail = sanitize_html_input($criterion['criterion_detail']);
+                                }
+                            }
+                        }
+
                         $stmtCriteria->execute([
                             ':rubric_id' => $id, // Use the existing rubric ID
-                            ':criterion_text' => $criterion['criterion_text'] ?? 'Unnamed Criterion',
-                            ':criterion_detail' => $criterion['criterion_detail'] ?? null,
+                            ':criterion_text' => $criterionText,
+                            ':criterion_detail' => empty($criterionDetail) ? null : $criterionDetail,
                             ':order_index' => $criterion['order_index'] ?? 0,
                             ':is_individual' => $criterion_is_individual // Store flag conditionally
                         ]);
@@ -376,7 +412,7 @@ function handleRequirementTemplateUpload($file) {
                 error_log("No 'criteria' data found in POST or type is not numerical/yesno for update.");
             }
 
-            // 4. Clear and Re-insert `rubric_programs`
+            // 4. Clear and Re-insert `rubric_programs` (no sanitization needed for program associations)
             $clearProgramsSql = "DELETE FROM rubric_programs WHERE rubric_id = :rubric_id";
             $pdo->prepare($clearProgramsSql)->execute([':rubric_id' => $id]);
             error_log("Cleared rubric_programs for ID: " . $id);

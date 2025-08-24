@@ -1,14 +1,19 @@
 <?php
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
 header('Content-Type: application/json');
 $response = ['success' => false, 'message' => 'Invalid request.'];
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $group_id = filter_input(INPUT_POST, 'id', FILTER_VALIDATE_INT);
-    $name = filter_input(INPUT_POST, 'name', FILTER_SANITIZE_STRING);
-    $description = filter_input(INPUT_POST, 'description', FILTER_SANITIZE_STRING);
+    $name = $_POST['name'] ?? '';
+    $description = $_POST['description'] ?? '';
     $rubrics_json = $_POST['rubrics'] ?? '[]';
+
+    // Sanitize text fields using the same function as research titles and rubrics
+    $name = sanitize_html_input($name);
+    $description = sanitize_html_input($description);
 
     if (empty($name)) {
         $response['message'] = 'Group name is required.';
