@@ -174,6 +174,11 @@ function updateEvaluation($pdo, $id, $defense_schedule_id, $evaluator_id, $total
 
 // Function to update environment variable
 function updateEnvVariable($pdo, $id, $key, $value, $description) {
+    // Sanitize text fields to prevent HTML/script injection
+    $key = sanitize_html_input($key);
+    $value = sanitize_html_input($value);
+    $description = sanitize_html_input($description);
+    
     $sql = "UPDATE env_variables SET `key` = ?, `value` = ?, `description` = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     return $stmt->execute([$key, $value, $description, $id]);

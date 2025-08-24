@@ -1821,8 +1821,6 @@
                 };
                 var fieldName = fieldNames[$input.attr('id')];
                 
-                console.log('Rubric validation triggered for:', fieldName, 'Value:', value); // Debug log
-                
                 // Clear previous errors
                 $input.removeClass('is-invalid');
                 $input.siblings('.invalid-feedback').remove();
@@ -1830,13 +1828,11 @@
                 if (value) {
                     // Check for HTML and show persistent error
                     if (ValidationUtils.containsHTML(value)) {
-                        console.log('HTML detected in:', fieldName); // Debug log
                         $input.addClass('is-invalid');
                         $input.after(`<div class="invalid-feedback">HTML tags are not allowed in ${fieldName}.</div>`);
                     } 
                     // Check for emojis and show persistent error
                     else if (ValidationUtils.containsEmoji(value)) {
-                        console.log('Emoji detected in:', fieldName); // Debug log
                         $input.addClass('is-invalid');
                         $input.after(`<div class="invalid-feedback">Emojis are not allowed in ${fieldName}.</div>`);
                     }

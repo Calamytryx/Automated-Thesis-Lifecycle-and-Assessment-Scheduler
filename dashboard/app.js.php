@@ -750,12 +750,98 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     }
                     break;
 
-                case 'password':
-                    if (trimmedValue.length < 6) {
-                        errors.push('Password must be at least 6 characters long');
+                case 'room':
+                    // Room name validation for defense schedules
+                    if (this.isTooShort(trimmedValue, 2)) {
+                        errors.push('Room name must be at least 2 characters long');
                     }
-                    if (this.isTooLong(trimmedValue, 100)) {
-                        errors.push('Password cannot exceed 100 characters');
+                    if (this.isTooLong(trimmedValue, 50)) {
+                        errors.push('Room name cannot exceed 50 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Room name cannot be only numbers');
+                    }
+                    // Allow alphanumeric, spaces, hyphens, and basic punctuation for room names
+                    if (!/^[a-zA-Z0-9\s\-\.\,\_\(\)]+$/.test(trimmedValue)) {
+                        errors.push('Room name contains invalid characters');
+                    }
+                    break;
+
+                case 'rooms':
+                    // Multiple rooms validation (comma-separated)
+                    const roomsList = trimmedValue.split(',').map(room => room.trim()).filter(room => room !== '');
+                    if (roomsList.length === 0) {
+                        errors.push('At least one room is required');
+                    }
+                    for (let room of roomsList) {
+                        if (room.length < 2) {
+                            errors.push('Each room name must be at least 2 characters long');
+                            break;
+                        }
+                        if (room.length > 50) {
+                            errors.push('Each room name cannot exceed 50 characters');
+                            break;
+                        }
+                        if (/^\d+$/.test(room)) {
+                            errors.push('Room names cannot be only numbers');
+                            break;
+                        }
+                        if (!/^[a-zA-Z0-9\s\-\.\,\_\(\)]+$/.test(room)) {
+                            errors.push('Room names contain invalid characters');
+                            break;
+                        }
+                    }
+                    break;
+
+                case 'password':
+                    // Comprehensive password validation matching system requirements
+                    if (this.containsHTML(trimmedValue)) {
+                        errors.push('HTML tags and scripts are not allowed in passwords');
+                    }
+                    
+                    // Length validation
+                    if (trimmedValue.length < 8) {
+                        errors.push('Password must be at least 8 characters long');
+                    }
+                    if (trimmedValue.length > 128) {
+                        errors.push('Password cannot exceed 128 characters');
+                    }
+                    
+                    // Character type requirements
+                    if (!/[A-Z]/.test(trimmedValue)) {
+                        errors.push('Password must contain at least one uppercase letter');
+                    }
+                    if (!/[a-z]/.test(trimmedValue)) {
+                        errors.push('Password must contain at least one lowercase letter');
+                    }
+                    if (!/\d/.test(trimmedValue)) {
+                        errors.push('Password must contain at least one number');
+                    }
+                    if (!/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\|~`]/.test(trimmedValue)) {
+                        errors.push('Password must contain at least one special character');
+                    }
+                    
+                    // Pattern validation
+                    if (/(.)\1{2,}/.test(trimmedValue)) {
+                        errors.push('Password cannot contain 3 or more consecutive identical characters');
+                    }
+                    
+                    // Sequential character check
+                    const sequences = ['abc', 'bcd', 'cde', 'def', 'efg', 'fgh', 'ghi', 'hij', 'ijk', 'jkl', 'klm', 'lmn', 'mno', 'nop', 'opq', 'pqr', 'qrs', 'rst', 'stu', 'tuv', 'uvw', 'vwx', 'wxy', 'xyz', '123', '234', '345', '456', '567', '678', '789'];
+                    for (let seq of sequences) {
+                        if (trimmedValue.toLowerCase().includes(seq)) {
+                            errors.push('Password cannot contain sequential characters');
+                            break;
+                        }
+                    }
+                    
+                    // Common weak passwords
+                    const commonPasswords = ['password', 'password123', '12345678', 'qwerty', 'admin', 'letmein'];
+                    for (let common of commonPasswords) {
+                        if (trimmedValue.toLowerCase().includes(common)) {
+                            errors.push('Password contains common weak patterns');
+                            break;
+                        }
                     }
                     break;
 
@@ -831,6 +917,52 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     }
                     break;
 
+                // Environment variables validation
+                case 'key':
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Key must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Key cannot exceed 100 characters');
+                    }
+                    // Environment variable keys should be alphanumeric with underscores
+                    if (!/^[a-zA-Z0-9_]+$/.test(trimmedValue)) {
+                        errors.push('Key can only contain letters, numbers, and underscores');
+                    }
+                    break;
+
+                case 'value':
+                    if (this.isTooLong(trimmedValue, 500)) {
+                        errors.push('Value cannot exceed 500 characters');
+                    }
+                    break;
+
+                // Requirements validation
+                case 'requirement_name':
+                case 'req_name':
+                    if (this.isTooShort(trimmedValue, 2)) {
+                        errors.push('Requirement name must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Requirement name cannot exceed 100 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Requirement name cannot be only numbers');
+                    }
+                    if (this.hasInvalidCharacters(trimmedValue)) {
+                        errors.push('Requirement name contains invalid characters');
+                    }
+                    break;
+
+                case 'specialization':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 255)) {
+                        errors.push('Specialization cannot exceed 255 characters');
+                    }
+                    if (trimmedValue && this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Specialization cannot be only numbers');
+                    }
+                    break;
+
                 // Rubric-specific validations
                 case 'rubric_description':
                     if (trimmedValue && this.isTooLong(trimmedValue, 500)) {
@@ -843,8 +975,79 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         errors.push('Description cannot exceed 1000 characters');
                     }
                     break;
+
+                // Environment variables and other fields
+                case 'key':
+                    if (this.isTooShort(trimmedValue)) {
+                        errors.push('Key must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 50)) {
+                        errors.push('Key cannot exceed 50 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Key cannot be only numbers');
+                    }
+                    break;
+
+                case 'value':
+                    if (this.isTooLong(trimmedValue, 500)) {
+                        errors.push('Value cannot exceed 500 characters');
+                    }
+                    break;
+
+                case 'bio':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 1000)) {
+                        errors.push('Bio cannot exceed 1000 characters');
+                    }
+                    break;
+
+                case 'headline':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Headline cannot exceed 100 characters');
+                    }
+                    break;
             }
 
+            return errors;
+        },
+
+        // Validate password confirmation
+        validatePasswordConfirmation: function(password, confirmPassword) {
+            const errors = [];
+            
+            if (!confirmPassword || confirmPassword.trim() === '') {
+                return ['Password confirmation is required'];
+            }
+            
+            if (password !== confirmPassword) {
+                errors.push('Passwords do not match');
+            }
+            
+            return errors;
+        },
+
+        // Validate form data with password confirmation
+        validatePasswordForm: function(formData) {
+            const errors = {};
+            const password = formData.get('password');
+            const confirmPassword = formData.get('confirmpassword') || formData.get('password_confirm');
+            
+            // Validate password
+            if (password) {
+                const passwordErrors = this.validateField('password', password);
+                if (passwordErrors.length > 0) {
+                    errors.password = passwordErrors;
+                }
+                
+                // Validate password confirmation
+                if (confirmPassword) {
+                    const confirmErrors = this.validatePasswordConfirmation(password, confirmPassword);
+                    if (confirmErrors.length > 0) {
+                        errors.confirmpassword = confirmErrors;
+                    }
+                }
+            }
+            
             return errors;
         },
 
@@ -1755,6 +1958,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
                             // Update dropdowns initially to disable selected options in other dropdowns
                             updatePanelistDropdowns();
+                            
+                            // Add real-time validation for defense schedules edit form using ValidationUtils
+                            ValidationUtils.setupRealTimeValidation('#editForm');
                         } else if (table === 'requirements') {
                             var formHtml = `
                             <input type="hidden" name="table" value="${table}">
@@ -2457,6 +2663,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '</div>'
                 );
 
+                // Add real-time validation for users form using ValidationUtils
+                ValidationUtils.setupRealTimeValidation('#addForm');
+
                 // Populate the programs dropdown
                 populateProgramDropdown($('#program_id'));
 
@@ -2526,6 +2735,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             </div>
                         `;
                         $('#addForm').append(formHtml);
+                        
+                        // Add real-time validation for research titles form using ValidationUtils
+                        ValidationUtils.setupRealTimeValidation('#addForm');
                     },
                     error: function() {
                         showToast('Error', 'Unable to fetch teams data', 'error');
@@ -2542,6 +2754,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
                             '<label class="form-check-label" for="approved">Approved</label>' +
                             '</div>');
+                            
+                        // Add real-time validation for research titles form using ValidationUtils (fallback)
+                        ValidationUtils.setupRealTimeValidation('#addForm');
                     }
                 });
             } else if (table === 'teams') {
@@ -2581,6 +2796,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 `;
                 form.append(formHtml);
 
+                // Add real-time validation for teams form using ValidationUtils
+                ValidationUtils.setupRealTimeValidation('#addForm');
+
                 // Populate the programs dropdown for the add form
                 populateProgramDropdown($('#addForm #program_id'));
 
@@ -2601,6 +2819,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<label for="created_by" class="form-label">Description</label>' +
                     '<input type="text" class="form-control" id="Description" name="description" required>' +
                     '</div>');
+                
+                // Add real-time validation for env_variables form using ValidationUtils
+                ValidationUtils.setupRealTimeValidation('#addForm');
             } else if (table === 'requirements') {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
@@ -2701,6 +2922,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
             `;
 
             form.html(formHtml);
+
+            // Add real-time validation for defense schedules add form using ValidationUtils
+            ValidationUtils.setupRealTimeValidation('#addForm');
 
             // Function to update all panelist dropdowns with new data
             function updatePanelistDropdowns(staffList) {
