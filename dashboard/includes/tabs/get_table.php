@@ -130,39 +130,29 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 break;
             case 'evaluations':
                 $baseQuery = "SELECT 
-                ep.id AS evaluation_id,
-                t.id AS team_id,
-                t.name AS team_name,
-                e.id AS evaluator_id,
-                e.first_name AS evaluator_first_name,
-                e.last_name AS evaluator_last_name,
-                s.id AS student_id,
-                s.first_name AS student_first_name,
-                s.last_name AS student_last_name,
-                ep.group_score,
-                ep.solo_score,
-                ep.total_score,
-                ep.comments,
-                ed.id AS detail_id,
-                ed.rubric_id,
-                ed.criterion_id,
-                ed.score AS detail_score,
-                ed.selected_option,
-                ed.comment AS detail_comment,
-                ed.created_at AS detail_created_at,
-                ed.updated_at AS detail_updated_at
-            FROM 
-                evaluation_per_panel ep
-            JOIN 
-                teams t ON ep.student_id IN (
-                    SELECT user_id FROM team_members WHERE team_id = t.id
-                )
-            JOIN 
-                users e ON ep.evaluator_id = e.id
-            JOIN 
-                users s ON ep.student_id = s.id
-            LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id";
+        ep.id AS evaluation_id,
+        t.id AS team_id,
+        t.name AS team_name,
+        e.id AS evaluator_id,
+        e.first_name AS evaluator_first_name,
+        e.last_name AS evaluator_last_name,
+        s.id AS student_id,
+        s.first_name AS student_first_name,
+        s.last_name AS student_last_name,
+        ep.group_score,
+        ep.solo_score,
+        ep.total_score,
+        ep.comments
+    FROM 
+        evaluation_per_panel ep
+    JOIN 
+        teams t ON ep.student_id IN (
+            SELECT user_id FROM team_members WHERE team_id = t.id
+        )
+    JOIN 
+        users e ON ep.evaluator_id = e.id
+    JOIN 
+        users s ON ep.student_id = s.id";
                 // Count query needs joins for potential filtering
                 $countQuery = "SELECT COUNT(ep.id) FROM evaluation_per_panel ep
                                JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
@@ -318,39 +308,29 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
             case 'evaluations':
                 // FIX: Add JOIN programs p ON t.program = CONCAT(p.name, ...) for isAdmin baseQuery
                 $baseQuery = "SELECT 
-                ep.id AS evaluation_id,
-                t.id AS team_id,
-                t.name AS team_name,
-                e.id AS evaluator_id,
-                e.first_name AS evaluator_first_name,
-                e.last_name AS evaluator_last_name,
-                s.id AS student_id,
-                s.first_name AS student_first_name,
-                s.last_name AS student_last_name,
-                ep.group_score,
-                ep.solo_score,
-                ep.total_score,
-                ep.comments,
-                ed.id AS detail_id,
-                ed.rubric_id,
-                ed.criterion_id,
-                ed.score AS detail_score,
-                ed.selected_option,
-                ed.comment AS detail_comment,
-                ed.created_at AS detail_created_at,
-                ed.updated_at AS detail_updated_at
-            FROM 
-                evaluation_per_panel ep
-            JOIN 
-                teams t ON ep.student_id IN (
-                    SELECT user_id FROM team_members WHERE team_id = t.id
-                )
-            JOIN 
-                users e ON ep.evaluator_id = e.id
-            JOIN 
-                users s ON ep.student_id = s.id
-            LEFT JOIN 
-                evaluation_details ed ON ep.id = ed.evaluation_id
+        ep.id AS evaluation_id,
+        t.id AS team_id,
+        t.name AS team_name,
+        e.id AS evaluator_id,
+        e.first_name AS evaluator_first_name,
+        e.last_name AS evaluator_last_name,
+        s.id AS student_id,
+        s.first_name AS student_first_name,
+        s.last_name AS student_last_name,
+        ep.group_score,
+        ep.solo_score,
+        ep.total_score,
+        ep.comments
+    FROM 
+        evaluation_per_panel ep
+    JOIN 
+        teams t ON ep.student_id IN (
+            SELECT user_id FROM team_members WHERE team_id = t.id
+        )
+    JOIN 
+        users e ON ep.evaluator_id = e.id
+    JOIN 
+        users s ON ep.student_id = s.id
             JOIN 
                 programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 $collegeRestrictionClause = "WHERE p.college = :college";
