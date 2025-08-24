@@ -314,19 +314,121 @@
                                     // Global flag to prevent duplicate scheduler runs
                                     let schedulerRunning = false;
 
-                                    // Update the Generate Schedule click handler
-                                    document.getElementById('generateSchedule').addEventListener('click', function(e) {
-                                        e.preventDefault(); // prevent default submission
-                                        e.stopPropagation();
-                                        if (schedulerRunning) {
-                                            console.log("Scheduler already running, ignoring duplicate call.");
+                                    // Enhanced loading state management
+                                    function showLoadingState() {
+                                        const statusElement = document.getElementById('scheduleGenerationStatus');
+                                        const generateBtn = document.getElementById('generateSchedule');
+                                        
+                                        if (!statusElement) {
+                                            console.error('Status element not found!');
                                             return;
                                         }
-                                        schedulerRunning = true;
-                                        // Disable button to prevent duplicate calls
-                                        $("#generateSchedule").prop("disabled", true);
+                                        
+                                        if (!generateBtn) {
+                                            console.error('Generate button not found!');
+                                            return;
+                                        }
+                                        
+                                        // Update button state
+                                        generateBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating...';
+                                        generateBtn.disabled = true;
+                                        
+                                        // Show progress container
+                                        statusElement.innerHTML = `
+                                            <div class="d-flex align-items-center">
+                                                <div class="spinner-border spinner-border-sm me-2" role="status">
+                                                    <span class="visually-hidden">Loading...</span>
+                                                </div>
+                                                <span id="progressText">Initializing schedule generation...</span>
+                                            </div>
+                                            <div class="progress mt-2" style="height: 8px;">
+                                                <div class="progress-bar progress-bar-striped progress-bar-animated" 
+                                                     id="progressBar" role="progressbar" style="width: 0%"></div>
+                                            </div>
+                                        `;
+                                    }
+
+                                    function updateProgress(message, percentage = null) {
+                                        const progressText = document.getElementById('progressText');
+                                        const progressBar = document.getElementById('progressBar');
+                                        
+                                        if (progressText) progressText.textContent = message;
+                                        if (progressBar && percentage !== null) {
+                                            progressBar.style.width = percentage + '%';
+                                        }
+                                    }
+
+                                    function hideLoadingState(success = true, message = '') {
                                         const statusElement = document.getElementById('scheduleGenerationStatus');
-                                        statusElement.innerText = "Generating schedule, please wait...";
+                                        const generateBtn = document.getElementById('generateSchedule');
+                                        
+                                        if (!statusElement || !generateBtn) {
+                                            console.error('Required elements not found for hideLoadingState');
+                                            return;
+                                        }
+                                        
+                                        // Reset button
+                                        generateBtn.innerHTML = '<i class="fas fa-calendar-plus me-2"></i>Generate Defense Schedule';
+                                        generateBtn.disabled = false;
+                                        
+                                        // Show final message
+                                        statusElement.innerHTML = `
+                                            <div class="alert alert-${success ? 'success' : 'danger'} alert-dismissible fade show">
+                                                <i class="fas fa-${success ? 'check-circle' : 'exclamation-triangle'} me-2"></i>
+                                                ${message}
+                                                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                                            </div>
+                                        `;
+                                        
+                                        schedulerRunning = false;
+                                    }
+
+                                    // Progress polling system
+                                    function pollScheduleProgress(progressId) {
+                                        const pollInterval = setInterval(() => {
+                                            fetch(`../dashboard/includes/get_schedule_progress.php?id=${progressId}`)
+                                                .then(response => response.json())
+                                                .then(data => {
+                                                    if (data.status === 'running') {
+                                                        updateProgress(data.message, data.percentage);
+                                                    } else if (data.status === 'completed') {
+                                                        clearInterval(pollInterval);
+                                                        hideLoadingState(true, 'Schedule generated successfully!');
+                                                        // Reload the defense schedules table
+                                                        setTimeout(() => {
+                                                            if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                                                window.reloadCurrentDefenseSchedulesView(1);
+                                                            }
+                                                        }, 1000);
+                                                    } else if (data.status === 'error') {
+                                                        clearInterval(pollInterval);
+                                                        hideLoadingState(false, data.message || 'An error occurred during generation');
+                                                    }
+                                                })
+                                                .catch(error => {
+                                                    console.error('Progress polling error:', error);
+                                                    clearInterval(pollInterval);
+                                                    hideLoadingState(false, 'Failed to monitor progress');
+                                                });
+                                        }, 1000); // Poll every second
+                                    }
+
+                                    // Update the Generate Schedule click handler
+                                    const generateButton = document.getElementById('generateSchedule');
+                                    console.log('Generate button found:', generateButton);
+                                    
+                                    if (generateButton) {
+                                        generateButton.addEventListener('click', function(e) {
+                                            console.log('Generate button clicked!');
+                                            e.preventDefault(); // prevent default submission
+                                            e.stopPropagation();
+                                            if (schedulerRunning) {
+                                                console.log("Scheduler already running, ignoring duplicate call.");
+                                                return;
+                                            }
+                                            schedulerRunning = true;
+                                            
+                                            showLoadingState();
 
                                         const rooms = document.getElementById("rooms").value.split(',');
                                         const duration = parseFloat(document.getElementById("timeDuration").value);
@@ -369,14 +471,24 @@
                                             dataType: 'json',
                                             success: function(response) {
                                                 if (response.success) {
-                                                    statusElement.innerText = "Schedule generated successfully!";
-                                                    if (response.overwrittenTeams > 0) {
-                                                        statusElement.innerText += ` (Overwrote ${response.overwrittenTeams} existing team schedules)`;
+                                                    if (response.progressId) {
+                                                        // Start polling for progress if backend supports it
+                                                        pollScheduleProgress(response.progressId);
+                                                    } else {
+                                                        // Fallback to immediate completion
+                                                        hideLoadingState(true, 'Schedule generated successfully!');
+                                                        if (response.overwrittenTeams > 0) {
+                                                            updateProgress(`Success! Overwrote ${response.overwrittenTeams} existing schedules`);
+                                                        }
+                                                        // Reload table automatically
+                                                        setTimeout(() => {
+                                                            if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                                                window.reloadCurrentDefenseSchedulesView(1);
+                                                            }
+                                                        }, 1000);
                                                     }
-                                                    loadDefenseSchedules(1);
-                                                    // Optionally, you can refresh the table here
-                                                    location.reload();
                                                 } else if (response.requireConfirmation) {
+                                                    hideLoadingState(false, 'Confirmation required');
                                                     // Show confirmation dialog with list of teams to be overwritten
                                                     let teamList = '<ul>';
                                                     for (const [id, name] of Object.entries(response.scheduledTeams)) {
@@ -413,22 +525,18 @@
                                                     document.getElementById('cancelSchedule').addEventListener('click', function() {
                                                         confirmationDiv.style.display = 'none';
                                                     });
-                                                    
-                                                    statusElement.innerText = "Please confirm overwriting existing schedules.";
                                                 } else {
-                                                    statusElement.innerText = "Error: " + response.message;
+                                                    hideLoadingState(false, response.message || 'Unknown error occurred');
                                                 }
-                                                schedulerRunning = false;
-                                                // Re-enable the button after request completes
-                                                $("#generateSchedule").prop("disabled", false);
                                             },
                                             error: function(xhr, status, error) {
-                                                statusElement.innerText = "Server error: " + error;
-                                                schedulerRunning = false;
-                                                $("#generateSchedule").prop("disabled", false);
+                                                hideLoadingState(false, `Server error: ${error}`);
                                             }
                                         });
                                     });
+                                    } else {
+                                        console.error('Generate button not found!');
+                                    }
                                 });
                             </script>
                             <div class="mb-3 form-check">
@@ -580,7 +688,11 @@
                     return panelists.slice(0, 3);
                 };
 
-                const loadDefenseSchedules = (page = 1) => {
+                const loadDefenseSchedules = (page = 1, showProgress = false) => {
+                    if (showProgress) {
+                        updateProgress('Refreshing defense schedules...', 95);
+                    }
+                    
                     console.log(`Loading Defense Schedules Page: ${page}`);
                     fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`)
                         .then(response => {
@@ -669,8 +781,17 @@
                                     </a>
                                 </li>
                             `;
+                            
+                            if (showProgress) {
+                                setTimeout(() => {
+                                    hideLoadingState(true, 'Defense schedules updated successfully!');
+                                }, 500);
+                            }
                         })
                         .catch(error => {
+                            if (showProgress) {
+                                hideLoadingState(false, 'Failed to refresh schedules');
+                            }
                             console.error('Fetch Error:', error);
                             document.getElementById('scheduleGenerationStatus').innerText = `Fetch Error: ${error.message}`;
                             const tbody = document.querySelector('#def-table tbody'); // Ensure tbody is selected here too

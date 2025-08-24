@@ -23,12 +23,39 @@ try {
         throw new Exception('Database connection error');
     }
 
+    // Progress tracking function
+    function updateProgress($pdo, $progressId, $status, $message, $percentage = null) {
+        try {
+            $stmt = $pdo->prepare("
+                INSERT INTO schedule_progress (id, status, message, percentage) 
+                VALUES (?, ?, ?, ?) 
+                ON DUPLICATE KEY UPDATE 
+                status = VALUES(status), 
+                message = VALUES(message), 
+                percentage = VALUES(percentage),
+                updated_at = CURRENT_TIMESTAMP
+            ");
+            $stmt->execute([$progressId, $status, $message, $percentage]);
+        } catch (Exception $e) {
+            error_log("Progress update failed: " . $e->getMessage());
+        }
+    }
+
     // Main execution
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+        // Generate unique progress ID for tracking
+        $progressId = uniqid('sched_', true);
+        updateProgress($pdo, $progressId, 'running', 'Validating inputs...', 5);
+
         // Validate required inputs
         if (!validateInputs()) {
+            updateProgress($pdo, $progressId, 'error', 'Please check all required fields are filled correctly', null);
             throw new Exception("Please check all required fields are filled correctly");
         }
+
+        updateProgress($pdo, $progressId, 'running', 'Loading team data...', 10);
+
+        updateProgress($pdo, $progressId, 'running', 'Loading team data...', 10);
 
         // Get the selected program(s) for filtering - now supports multiple programs
         $selectedPrograms = [];
@@ -46,11 +73,14 @@ try {
             }
         }
 
+        updateProgress($pdo, $progressId, 'running', 'Checking for existing schedules...', 15);
+
         // Check for teams that already have schedules
         $scheduledTeams = checkExistingSchedules($pdo, $selectedPrograms);
         
         // If there are scheduled teams and overwrite confirmation is not received
         if (!empty($scheduledTeams) && (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true')) {
+            updateProgress($pdo, $progressId, 'error', 'Confirmation required for overwriting existing schedules', null);
             $teamNames = getTeamNames($pdo, array_keys($scheduledTeams));
             // FIX: Don't use return, actually echo the JSON response and exit
             echo json_encode([
@@ -62,11 +92,14 @@ try {
             exit; // Make sure we exit after sending the response
         }
 
+        updateProgress($pdo, $progressId, 'running', 'Loading teams and panelists...', 20);
+
         $teams = fetchTeams($pdo, $selectedPrograms);
         $panelists = fetchPanelists($pdo);
         $duration = $_POST['timeDuration'];
         // Convert to a proper number
         if (!is_numeric($duration) || floatval($duration) <= 0) {
+            updateProgress($pdo, $progressId, 'error', 'Invalid duration. It must be a positive number.', null);
             throw new Exception("Invalid duration. It must be a positive number.");
         }
         $duration = floatval($duration);
@@ -77,17 +110,25 @@ try {
         $timeSlots = $_POST['timeSlots'];
         $days = $_POST['days'];
 
+        updateProgress($pdo, $progressId, 'running', 'Loading user schedules...', 25);
+
         $userSchedules = fetchUserSchedules($pdo);
 
         // Validate input parameters
         if (empty($teams) || empty($panelists)) {
+            updateProgress($pdo, $progressId, 'error', 'No teams or panelists available for scheduling', null);
             throw new Exception("No teams or panelists available for scheduling");
         }
 
         // If confirmed, now remove existing schedules for the affected teams
         if (!empty($scheduledTeams)) {
+            updateProgress($pdo, $progressId, 'running', 'Removing existing schedules...', 30);
             removeExistingSchedules($pdo, array_keys($scheduledTeams));
         }
+
+        updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
+
+        updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
 
         // Optimize parameters for better performance-quality balance
         $populationSize = 200;     // Reduced from 200 for faster execution
@@ -106,12 +147,17 @@ try {
             $populationSize,
             $generations,
             $mutationRate,
-            $earlyStopGenerations
+            $earlyStopGenerations,
+            $progressId // Pass progress ID for tracking
         );
 
+        updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
+
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
+            updateProgress($pdo, $progressId, 'completed', 'Schedule generated and saved successfully!', 100);
             $result = [
                 'success' => true,
+                'progressId' => $progressId,
                 'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
                 'crossoverCount' => DefenseSchedule::$crossoverCount,
                 'mutationCount' => DefenseSchedule::$mutationCount,
@@ -356,7 +402,8 @@ function geneticAlgorithm(
     $populationSize,
     $generations,
     $mutationRate,
-    $earlyStopGenerations = 30
+    $earlyStopGenerations = 30,
+    $progressId = null
 ) {
     // Store teams globally for use in other functions
     $GLOBALS['teams'] = $teams;
@@ -376,6 +423,12 @@ function geneticAlgorithm(
 
     for ($i = 0; $i < $generations; $i++) {
         $generationImproved = false;
+
+        // Update progress every 10 generations
+        if ($progressId && $i % 10 == 0) {
+            $percentage = 35 + (($i / $generations) * 50); // Progress from 35% to 85%
+            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations", $percentage);
+        }
 
         // Process in batches to avoid memory issues
         foreach ($population as $schedule) {
