@@ -1170,11 +1170,21 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             $('.summernote').summernote('code', page.content);
                         });
                     } else {
-                        showToast('Error', response.message, 'error');
+                        // Use the standard system showToast function
+                        if (typeof showToast === 'function') {
+                            showToast('Error', response.message, 'error');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
                     }
                 },
                 error: function(xhr, status, error) {
-                    showToast('Error', 'Failed to load page details: ' + error, 'error');
+                    // Use the standard system showToast function
+                    if (typeof showToast === 'function') {
+                        showToast('Error', 'Failed to load page details: ' + error, 'error');
+                    } else {
+                        alert('Error: Failed to load page details: ' + error);
+                    }
                 }
             });
             
@@ -1213,15 +1223,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showToast('Success', response.message, 'success');
+                        // Use the standard system showToast function
+                        if (typeof showToast === 'function') {
+                            showToast('Success', response.message, 'success');
+                        } else {
+                            alert('Success: ' + response.message);
+                        }
                         
-                        // Close modal and reload page to show updated data
+                        // Close modal and reload env variables view to show updated data
                         $('#pageContentModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        
+                        // Use AJAX reload instead of page reload
+                        if (typeof window.reloadCurrentEnvVariablesView === 'function') {
+                            setTimeout(function() {
+                                window.reloadCurrentEnvVariablesView(1);
+                            }, 500);
+                        } else {
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
                     } else {
-                        showToast('Error', response.message, 'error');
+                        // Use the standard system showToast function
+                        if (typeof showToast === 'function') {
+                            showToast('Error', response.message, 'error');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
                     }
                 },
                 error: function(xhr, status, error) {
@@ -1242,7 +1270,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         console.error('Error parsing error response:', e);
                     }
                     
-                    showToast('Error', errorMessage, 'error');
+                    // Use the standard system showToast function
+                    if (typeof showToast === 'function') {
+                        showToast('Error', errorMessage, 'error');
+                    } else {
+                        alert('Error: ' + errorMessage);
+                    }
                 }
             });
         });
@@ -1273,15 +1306,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 dataType: 'json',
                 success: function(response) {
                     if (response.success) {
-                        showToast('Success', response.message, 'success');
+                        // Use the standard system showToast function
+                        if (typeof showToast === 'function') {
+                            showToast('Success', response.message, 'success');
+                        } else {
+                            alert('Success: ' + response.message);
+                        }
                         
-                        // Close modal and reload page
+                        // Close modal and reload env variables view
                         $('#deletePageModal').modal('hide');
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
+                        
+                        // Use AJAX reload instead of page reload
+                        if (typeof window.reloadCurrentEnvVariablesView === 'function') {
+                            setTimeout(function() {
+                                window.reloadCurrentEnvVariablesView(1);
+                            }, 500);
+                        } else {
+                            setTimeout(function() {
+                                location.reload();
+                            }, 1000);
+                        }
                     } else {
-                        showToast('Error', response.message, 'error');
+                        // Use the standard system showToast function
+                        if (typeof showToast === 'function') {
+                            showToast('Error', response.message, 'error');
+                        } else {
+                            alert('Error: ' + response.message);
+                        }
                     }
                 },
                 error: function(xhr, status, error) {
@@ -1291,7 +1342,12 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         errorMessage = xhr.responseJSON.message;
                     }
                     
-                    showToast('Error', errorMessage, 'error');
+                    // Use the standard system showToast function
+                    if (typeof showToast === 'function') {
+                        showToast('Error', errorMessage, 'error');
+                    } else {
+                        alert('Error: ' + errorMessage);
+                    }
                 }
             });
         });
@@ -1312,58 +1368,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }, 300);
         });
 
-        // Helper function to show toast notifications
-        function showToast(title, message, type) {
-            // Check if toastContainer exists, if not create it
-            if ($('#toastContainer').length === 0) {
-                $('body').append('<div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 1100;"></div>');
-            }
-            
-            // Create a unique ID for this toast
-            const toastId = 'toast-' + Date.now();
-            
-            // Determine the appropriate Bootstrap class based on type
-            let bgClass = 'bg-primary';
-            switch (type) {
-                case 'success':
-                    bgClass = 'bg-success';
-                    break;
-                case 'error':
-                    bgClass = 'bg-danger';
-                    break;
-                case 'warning':
-                    bgClass = 'bg-warning';
-                    break;
-                case 'info':
-                    bgClass = 'bg-info';
-                    break;
-            }
-            
-            // Create the toast HTML
-            const toastHtml = `
-                <div id="${toastId}" class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="5000">
-                    <div class="toast-header ${bgClass} text-white">
-                        <strong class="me-auto">${title}</strong>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                    <div class="toast-body">
-                        ${message}
-                    </div>
-                </div>
-            `;
-            
-            // Append the toast to the container
-            $('#toastContainer').append(toastHtml);
-            
-            // Initialize and show the toast
-            const toastElement = document.getElementById(toastId);
-            const toast = new bootstrap.Toast(toastElement);
-            toast.show();
-            
-            // Remove the toast from DOM after it's hidden
-            $(toastElement).on('hidden.bs.toast', function() {
-                $(this).remove();
-            });
-        }
+
     });
 </script>

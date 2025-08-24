@@ -174,7 +174,7 @@ function updateEvaluation($pdo, $id, $defense_schedule_id, $evaluator_id, $total
 
 // Function to update environment variable
 function updateEnvVariable($pdo, $id, $key, $value, $description) {
-    $sql = "UPDATE env_variables SET `key` = ?, `value` = ?, `description` = ?, updated_at = NOW() WHERE id = ?";
+    $sql = "UPDATE env_variables SET `key` = ?, `value` = ?, `description` = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
     return $stmt->execute([$key, $value, $description, $id]);
 }

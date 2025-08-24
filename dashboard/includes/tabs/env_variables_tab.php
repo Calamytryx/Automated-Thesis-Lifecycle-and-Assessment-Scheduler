@@ -414,6 +414,92 @@
             }); 
         });
         
+        // Function to reload env variables view with AJAX
+        window.reloadCurrentEnvVariablesView = function(showToast = 0) {
+            console.log('Reloading environment variables view...');
+            
+            $.ajax({
+                url: 'includes/reload_views/env_variables_view.php',
+                type: 'GET',
+                dataType: 'html',
+                success: function(response) {
+                    // Replace the content of the env-variables tab
+                    $('#env-variables .content-container').html(response);
+                    
+                    // Reinitialize tooltips after content reload
+                    var tooltipTriggerList = [].slice.call(document.querySelectorAll('#env-variables [data-bs-toggle="tooltip"]'));
+                    tooltipTriggerList.map(function (tooltipTriggerEl) {
+                        return new bootstrap.Tooltip(tooltipTriggerEl, {
+                            html: true,
+                            container: 'body'
+                        });
+                    });
+                    
+                    // Reinitialize content type dropdown functionality
+                    initializeContentTypeDropdown();
+                    
+                    if (showToast) {
+                        showToast('Success', 'Environment variables updated successfully', 'success');
+                    }
+                    
+                    console.log('Environment variables view reloaded successfully');
+                },
+                error: function(xhr, status, error) {
+                    console.error('Error reloading environment variables view:', error);
+                    if (showToast) {
+                        showToast('Error', 'Failed to reload environment variables', 'error');
+                    }
+                }
+            });
+        };
+        
+        // Function to initialize content type dropdown functionality
+        function initializeContentTypeDropdown() {
+            const cmsContentTypeSelect = document.getElementById('cmsContentTypeSelect');
+            const addSettingBtn = document.getElementById('addSettingBtn');
+            const addPageContentBtn = document.getElementById('addPageContentBtn');
+            const allContentView = document.getElementById('all-content-view');
+            const systemSettingsView = document.getElementById('system-settings-view');
+            const pageContentView = document.getElementById('page-content-view');
+
+            if (cmsContentTypeSelect) {
+                // Handle dropdown change
+                cmsContentTypeSelect.addEventListener('change', function() {
+                    const selectedType = this.value;
+                    
+                    // Hide all views first
+                    if (allContentView) allContentView.style.display = 'none';
+                    if (systemSettingsView) systemSettingsView.style.display = 'none';
+                    if (pageContentView) pageContentView.style.display = 'none';
+                    
+                    // Hide all buttons first
+                    if (addSettingBtn) addSettingBtn.style.display = 'none';
+                    if (addPageContentBtn) addPageContentBtn.style.display = 'none';
+                    
+                    // Show appropriate view and button based on selection
+                    switch(selectedType) {
+                        case 'all-content':
+                            if (allContentView) allContentView.style.display = 'block';
+                            // Show both buttons for "All Content" view
+                            if (addSettingBtn) addSettingBtn.style.display = 'inline-flex';
+                            if (addPageContentBtn) addPageContentBtn.style.display = 'inline-flex';
+                            break;
+                        case 'system-settings':
+                            if (systemSettingsView) systemSettingsView.style.display = 'block';
+                            if (addSettingBtn) addSettingBtn.style.display = 'inline-flex';
+                            break;
+                        case 'page-content':
+                            if (pageContentView) pageContentView.style.display = 'block';
+                            if (addPageContentBtn) addPageContentBtn.style.display = 'inline-flex';
+                            break;
+                    }
+                });
+
+                // Initialize default view
+                cmsContentTypeSelect.dispatchEvent(new Event('change'));
+            }
+        }
+        
         // Function to initialize content management tab when it becomes visible
         const initializeContentManagementTab = () => {
             // Check if the env-variables tab is currently visible
@@ -448,6 +534,7 @@
             tab.addEventListener('shown.bs.tab', function(e) {
                 if (e.target.id === 'env-variables-tab') {
                     initializeContentManagementTab();
+                    initializeContentTypeDropdown();
                 }
             });
         });
@@ -455,6 +542,7 @@
         // Call initialization function on page load
         // This ensures content is visible if the content management tab is visible by default
         setTimeout(initializeContentManagementTab, 100);
+        setTimeout(initializeContentTypeDropdown, 100);
         
         // Add click event for info icons to show modal with full details
         document.querySelectorAll('.info-icon').forEach(function(icon) {
@@ -513,47 +601,7 @@
         }
         
         // --- CMS Content Type Dropdown Functionality ---
-        const cmsContentTypeSelect = document.getElementById('cmsContentTypeSelect');
-        const addSettingBtn = document.getElementById('addSettingBtn');
-        const addPageContentBtn = document.getElementById('addPageContentBtn');
-        const allContentView = document.getElementById('all-content-view');
-        const systemSettingsView = document.getElementById('system-settings-view');
-        const pageContentView = document.getElementById('page-content-view');
-
-        // Handle dropdown change
-        cmsContentTypeSelect.addEventListener('change', function() {
-            const selectedType = this.value;
-            
-            // Hide all views first
-            allContentView.style.display = 'none';
-            systemSettingsView.style.display = 'none';
-            pageContentView.style.display = 'none';
-            
-            // Hide all buttons first
-            addSettingBtn.style.display = 'none';
-            addPageContentBtn.style.display = 'none';
-            
-            // Show appropriate view and button based on selection
-            switch(selectedType) {
-                case 'all-content':
-                    allContentView.style.display = 'block';
-                    // Show both buttons for "All Content" view
-                    addSettingBtn.style.display = 'inline-flex';
-                    addPageContentBtn.style.display = 'inline-flex';
-                    break;
-                case 'system-settings':
-                    systemSettingsView.style.display = 'block';
-                    addSettingBtn.style.display = 'inline-flex';
-                    break;
-                case 'page-content':
-                    pageContentView.style.display = 'block';
-                    addPageContentBtn.style.display = 'inline-flex';
-                    break;
-            }
-        });
-
-        // Initialize default view
-        cmsContentTypeSelect.dispatchEvent(new Event('change'));
+        initializeContentTypeDropdown();
 
         // --- Meatball Menu Functionality ---
         // Handle meatball button clicks

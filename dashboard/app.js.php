@@ -2139,6 +2139,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     location.reload();
                                 }, 1000);
                             }
+                        } else if (table === 'env_variables') {
+                            // For environment variables tab, use the env variables-specific reload function
+                            if (typeof window.reloadCurrentEnvVariablesView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentEnvVariablesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
                         } else {
                             // For other tables, use their specific reload functions or fallback to page reload
                             setTimeout(function() {
@@ -2744,6 +2755,20 @@ function populateProgramDropdown(selectElement, selectedValue) {
             showToast('Error', 'Unable to fetch teams and staff data', 'error');
         }
     });
+} else if (table === 'env_variables') {
+                form.append('<div class="mb-3">' +
+                    '<label for="key" class="form-label">Key</label>' +
+                    '<input type="text" class="form-control" id="key" name="key" placeholder="VARIABLE_NAME" required>' +
+                    '<div class="form-text">Use uppercase letters, numbers, and underscores only</div>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="value" class="form-label">Value</label>' +
+                    '<input type="text" class="form-control" id="value" name="value" placeholder="Enter value" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="description" class="form-label">Description</label>' +
+                    '<textarea class="form-control" id="description" name="description" rows="3" placeholder="Optional description"></textarea>' +
+                    '</div>');
 } else {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
@@ -2911,6 +2936,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
                         setTimeout(function() {
                             window.reloadCurrentDefenseSchedulesView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else if (table === 'env_variables') {
+                    // For environment variables tab, use the env variables-specific reload function
+                    if (typeof window.reloadCurrentEnvVariablesView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentEnvVariablesView(1);
                         }, 500);
                     } else {
                         setTimeout(function() {
