@@ -169,7 +169,7 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     <!-- Instructor Filter -->
                     <div class="d-flex gap-2 align-items-center" id="instructorFilters">
                         <select class="form-select" id="instructorFilterSelect" style="width: 220px; display: none;">
-                            <option value="">All Instructors</option>
+                            <option value="">Select Instructors</option>
                             <?php
                             try {
                                 $stmt = $pdo->query("
