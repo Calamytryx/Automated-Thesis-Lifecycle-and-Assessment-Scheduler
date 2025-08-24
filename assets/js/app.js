@@ -467,3 +467,146 @@ async function processOutputToAI() {
 document.addEventListener('DOMContentLoaded', function() {
         processOutputToAI();
 });
+
+// ============================================
+// UNIVERSAL VALIDATION FRAMEWORK
+// ============================================
+
+/**
+ * Universal validation framework for consistent input validation across all dashboard tabs
+ * Provides field-level error messages and prevents form submission until issues are resolved
+ */
+window.UniversalValidator = (function() {
+    
+    // Simple patterns for client-side validation (server-side has comprehensive patterns)
+    const PATTERNS = {
+        HTML: /<[^>]*>/g,
+        // Simplified emoji pattern covering most common emoji ranges
+        EMOJI: /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u
+    };
+    
+    /**
+     * Check if string contains HTML tags
+     */
+    function containsHtml(str) {
+        return PATTERNS.HTML.test(str);
+    }
+    
+    /**
+     * Check if string contains emojis
+     */
+    function containsEmojis(str) {
+        return PATTERNS.EMOJI.test(str);
+    }
+    
+    /**
+     * Clear validation errors for a specific input
+     */
+    function clearValidationErrors($input) {
+        $input.removeClass('is-invalid');
+        $input.siblings('.invalid-feedback').remove();
+    }
+    
+    /**
+     * Show validation error for a specific input
+     */
+    function showValidationError($input, message) {
+        $input.addClass('is-invalid');
+        $input.after(`<div class="invalid-feedback">${message}</div>`);
+    }
+    
+    /**
+     * Validate a text field for HTML and emoji content
+     * @param {jQuery} $input - The input element to validate
+     * @param {string} fieldName - Human-readable field name for error messages
+     * @param {Object} options - Validation options
+     * @param {boolean} options.allowHtml - Whether to allow HTML tags (default: false)
+     * @param {boolean} options.allowEmojis - Whether to allow emojis (default: false)
+     * @returns {boolean} - True if valid, false if invalid
+     */
+    function validateTextField($input, fieldName, options = {}) {
+        const value = $input.val();
+        const allowHtml = options.allowHtml || false;
+        const allowEmojis = options.allowEmojis || false;
+        let isValid = true;
+        
+        // Clear any previous validation errors
+        clearValidationErrors($input);
+        
+        // Check for HTML tags (unless explicitly allowed)
+        if (!allowHtml && containsHtml(value)) {
+            showValidationError($input, `HTML tags are not allowed in ${fieldName}.`);
+            isValid = false;
+        }
+        
+        // Check for emojis (unless explicitly allowed)
+        if (!allowEmojis && containsEmojis(value)) {
+            showValidationError($input, `Emojis are not allowed in ${fieldName}.`);
+            isValid = false;
+        }
+        
+        return isValid;
+    }
+    
+    /**
+     * Validate multiple text fields at once
+     * @param {Array} fieldsConfig - Array of field configuration objects
+     * @returns {boolean} - True if all fields are valid, false if any are invalid
+     */
+    function validateMultipleFields(fieldsConfig) {
+        let allValid = true;
+        
+        fieldsConfig.forEach(config => {
+            const $input = $(config.selector);
+            const fieldName = config.fieldName;
+            const options = config.options || {};
+            
+            if ($input.length > 0) {
+                const isValid = validateTextField($input, fieldName, options);
+                if (!isValid) {
+                    allValid = false;
+                }
+            }
+        });
+        
+        return allValid;
+    }
+    
+    /**
+     * Setup real-time validation for a form (prevents duplicate listeners)
+     * @param {string} formSelector - CSS selector for the form container
+     */
+    function setupRealtimeValidation(formSelector) {
+        // Remove any existing validation listeners for this form to prevent duplicates
+        $(document).off('blur.universalValidation input.universalValidation', formSelector + ' input, ' + formSelector + ' textarea');
+        
+        // Set up validation for text inputs and textareas within the specified form
+        $(document).on('blur.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function() {
+            const $input = $(this);
+            const fieldName = $input.attr('name') || $input.attr('id') || 'field';
+            validateTextField($input, fieldName);
+        });
+        
+        // Also validate on input to clear errors as user types valid content
+        $(document).on('input.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function() {
+            const $input = $(this);
+            const value = $input.val();
+            
+            // Only clear errors if the content is now valid
+            if (!containsHtml(value) && !containsEmojis(value)) {
+                clearValidationErrors($input);
+            }
+        });
+    }
+    
+    // Public API
+    return {
+        containsHtml: containsHtml,
+        containsEmojis: containsEmojis,
+        validateTextField: validateTextField,
+        validateMultipleFields: validateMultipleFields,
+        setupRealtimeValidation: setupRealtimeValidation,
+        clearValidationErrors: clearValidationErrors,
+        showValidationError: showValidationError
+    };
+})();

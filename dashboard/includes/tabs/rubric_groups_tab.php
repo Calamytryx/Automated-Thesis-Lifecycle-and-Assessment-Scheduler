@@ -136,42 +136,34 @@ $(document).ready(function() {
     const rubricGroupDeleteModal = new bootstrap.Modal(document.getElementById('rubricGroupDeleteConfirmModal'));
     let allRubricsData = []; // Store all available rubrics {id, name, type}
 
-    // Client-side sanitization helper function - mirrors server-side sanitize_html_input()
-    function sanitizeInput($input) {
-        var value = $input.val();
-        var originalValue = value;
-        
-        if (!value) return;
-        
-        // Remove HTML tags
-        value = value.replace(/<[^>]*>/g, '');
-        
-        // Remove emojis using comprehensive pattern matching server-side
-        var emojiPattern = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]|[\u{1F900}-\u{1F9FF}]|[\u{1F018}-\u{1F270}]|[\u{238C}-\u{2454}]|[\u{20D0}-\u{20FF}]|[\u{FE00}-\u{FE0F}]|[\u{1F170}-\u{1F251}]|[\u{1F004}]|[\u{1F0CF}]|[\u{1F18E}]|[\u{3030}]|[\u{2B50}]|[\u{2B55}]|[\u{2934}-\u{2935}]|[\u{2B05}-\u{2B07}]|[\u{2B1B}-\u{2B1C}]|[\u{3297}]|[\u{3299}]|[\u{303D}]|[\u{00A9}]|[\u{00AE}]|[\u{2122}]|[\u{23E9}-\u{23FA}]|[\u{25AA}-\u{25AB}]|[\u{25B6}]|[\u{25C0}]|[\u{25FB}-\u{25FE}]|[\u{2600}-\u{2604}]|[\u{260E}]|[\u{2611}]|[\u{2614}-\u{2615}]|[\u{2618}]|[\u{261D}]|[\u{2620}]|[\u{2622}-\u{2623}]|[\u{2626}]|[\u{262A}]|[\u{262E}-\u{262F}]|[\u{2638}-\u{263A}]|[\u{2640}]|[\u{2642}]|[\u{2648}-\u{2653}]|[\u{2660}]|[\u{2663}]|[\u{2665}-\u{2666}]|[\u{2668}]|[\u{267B}]|[\u{267E}-\u{267F}]|[\u{2692}-\u{2697}]|[\u{2699}]|[\u{269B}-\u{269C}]|[\u{26A0}-\u{26A1}]|[\u{26AA}-\u{26AB}]|[\u{26B0}-\u{26B1}]|[\u{26BD}-\u{26BE}]|[\u{26C4}-\u{26C5}]|[\u{26C8}]|[\u{26CE}-\u{26CF}]|[\u{26D1}]|[\u{26D3}-\u{26D4}]|[\u{26E9}-\u{26EA}]|[\u{26F0}-\u{26F5}]|[\u{26F7}-\u{26FA}]|[\u{26FD}]|[\u{2702}]|[\u{2705}]|[\u{2708}-\u{270D}]|[\u{270F}]|[\u{2712}]|[\u{2714}]|[\u{2716}]|[\u{271D}]|[\u{2721}]|[\u{2728}]|[\u{2733}-\u{2734}]|[\u{2744}]|[\u{2747}]|[\u{274C}]|[\u{274E}]|[\u{2753}-\u{2755}]|[\u{2757}]|[\u{2763}-\u{2764}]|[\u{2795}-\u{2797}]|[\u{27A1}]|[\u{27B0}]|[\u{27BF}]|[\u{2934}-\u{2935}]|[\u{200D}]|[\u{1F000}-\u{1F02F}]|[\u{1F0A0}-\u{1F0FF}]|[\u{1F100}-\u{1F64F}]|[\u{1F680}-\u{1F6FF}]|[\u{1F700}-\u{1F77F}]|[\u{1F780}-\u{1F7FF}]|[\u{1F800}-\u{1F8FF}]|[\u{1F900}-\u{1F9FF}]|[\u{1FA00}-\u{1FA6F}]|[\u{1FA70}-\u{1FAFF}]/gu;
-        value = value.replace(emojiPattern, '');
-        
-        // Remove any remaining non-printable characters except newlines and tabs
-        value = value.replace(/[^\P{C}\n\r\t]/gu, '');
-        
-        // Trim whitespace
-        value = value.trim();
-        
-        // Update the input if value changed
-        if (value !== originalValue) {
-            $input.val(value);
-            if (originalValue.length > 0 && value.length === 0) {
-                showToast('Warning', 'Input contained only invalid characters and has been cleared.', 'warning');
-            } else {
-                showToast('Warning', 'Invalid characters (HTML tags, emojis) have been removed.', 'warning');
-            }
-        }
-    }
-
-    // Real-time sanitization for rubric group form fields
-    $(document).off('input.rubricGroupSanitize').on('input.rubricGroupSanitize',
+    // Real-time validation for rubric group form fields using ValidationUtils
+    $(document).off('input.rubricGroupValidation').on('input.rubricGroupValidation',
         '#groupName, #groupDescription',
         function() {
-            sanitizeInput($(this));
+            var $input = $(this);
+            var value = $input.val();
+            var fieldNames = {
+                'groupName': 'Group Name',
+                'groupDescription': 'Group Description'
+            };
+            var fieldName = fieldNames[$input.attr('id')];
+            
+            // Clear previous errors
+            $input.removeClass('is-invalid');
+            $input.siblings('.invalid-feedback').remove();
+            
+            if (value) {
+                // Check for HTML and show persistent error
+                if (ValidationUtils.containsHTML(value)) {
+                    $input.addClass('is-invalid');
+                    $input.after(`<div class="invalid-feedback">HTML tags are not allowed in ${fieldName}.</div>`);
+                } 
+                // Check for emojis and show persistent error
+                else if (ValidationUtils.containsEmoji(value)) {
+                    $input.addClass('is-invalid');
+                    $input.after(`<div class="invalid-feedback">Emojis are not allowed in ${fieldName}.</div>`);
+                }
+            }
         });
 
     // --- Initialize SortableJS ---
@@ -371,16 +363,48 @@ $(document).ready(function() {
         let rubrics = [];
         let invalidRubricFound = false; // Flag for validation
 
-        // Client-side sanitization before validation
-        sanitizeInput($('#groupName'));
-        sanitizeInput($('#groupDescription'));
+        // Clear any existing validation errors first
+        $('#rubricGroupForm .is-invalid').removeClass('is-invalid');
+        $('#rubricGroupForm .invalid-feedback').remove();
 
-        // Get values after sanitization
-        const groupName = $('#groupName').val().trim();
-        const groupDescription = $('#groupDescription').val().trim();
+        // Validate using ValidationUtils for consistent error display
+        var groupName = $('#groupName').val().trim();
+        var groupDescription = $('#groupDescription').val().trim();
+        var isValid = true;
 
+        // Validate group name (required)
         if (!groupName) {
-            showToast('Error', 'Group Name is required.', 'error');
+            $('#groupName').addClass('is-invalid');
+            $('#groupName').after('<div class="invalid-feedback">Group Name is required.</div>');
+            isValid = false;
+        } else {
+            // Check content for HTML/emojis
+            if (ValidationUtils.containsHTML(groupName)) {
+                $('#groupName').addClass('is-invalid');
+                $('#groupName').after('<div class="invalid-feedback">HTML tags are not allowed in Group Name.</div>');
+                isValid = false;
+            } else if (ValidationUtils.containsEmoji(groupName)) {
+                $('#groupName').addClass('is-invalid');
+                $('#groupName').after('<div class="invalid-feedback">Emojis are not allowed in Group Name.</div>');
+                isValid = false;
+            }
+        }
+
+        // Validate group description (optional, but if present check content)
+        if (groupDescription) {
+            if (ValidationUtils.containsHTML(groupDescription)) {
+                $('#groupDescription').addClass('is-invalid');
+                $('#groupDescription').after('<div class="invalid-feedback">HTML tags are not allowed in Group Description.</div>');
+                isValid = false;
+            } else if (ValidationUtils.containsEmoji(groupDescription)) {
+                $('#groupDescription').addClass('is-invalid');
+                $('#groupDescription').after('<div class="invalid-feedback">Emojis are not allowed in Group Description.</div>');
+                isValid = false;
+            }
+        }
+
+        if (!isValid) {
+            showToast('Error', 'Please fix the validation errors before saving.', 'error');
             return;
         }
 

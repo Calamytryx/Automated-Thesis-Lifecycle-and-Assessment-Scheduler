@@ -830,6 +830,19 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         errors.push('Specialization cannot be only numbers');
                     }
                     break;
+
+                // Rubric-specific validations
+                case 'rubric_description':
+                    if (trimmedValue && this.isTooLong(trimmedValue, 500)) {
+                        errors.push('Rubric description cannot exceed 500 characters');
+                    }
+                    break;
+
+                case 'description': // For requirements and other forms
+                    if (this.isTooLong(trimmedValue, 1000)) {
+                        errors.push('Description cannot exceed 1000 characters');
+                    }
+                    break;
             }
 
             return errors;
@@ -1054,14 +1067,16 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
                 // Remove previous error for this field
                 field.removeClass('is-invalid');
-                field.closest('.mb-3').find('.validation-error').remove();
+                // Look for error container in both .mb-3 and .col-* structures
+                const errorContainer = field.closest('.mb-3').length > 0 ? field.closest('.mb-3') : field.closest('.col-md-6, .col-md-4, .col-md-12, .col-12');
+                errorContainer.find('.validation-error').remove();
 
                 if (value && fieldName) {
                     const fieldErrors = ValidationUtils.validateField(fieldName, value, usertype);
                     if (fieldErrors.length > 0) {
                         field.addClass('is-invalid');
                         const errorHtml = `<div class="validation-error text-danger small mt-1">${fieldErrors.join(', ')}</div>`;
-                        field.closest('.mb-3').append(errorHtml);
+                        errorContainer.append(errorHtml);
                     }
                 }
             });
@@ -1442,6 +1457,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             <input class="form-control" name="specialization" id="specialization" value="${d.specialization || ''}">
                           </div>`;
                             form.html(html);
+                            
+                            // Add real-time validation for programs edit form using ValidationUtils
+                            ValidationUtils.setupRealTimeValidation('#editForm');
+                            
                             $('#editModal').modal('show');
                         } else if (table === 'thesis_topics') {
                             var formHtml = `
@@ -1769,6 +1788,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             ` : ''}
                         `;
                             form.html(formHtml);
+                            
+                            // Add real-time validation for requirements edit form using ValidationUtils
+                            ValidationUtils.setupRealTimeValidation('#editForm');
                         } else if (table === 'rubrics') {
                             // Don't generate form fields - they're handled in rubrics_tab.php
                             return;
@@ -2346,21 +2368,24 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 form.append(`
                   <div class="mb-3">
                     <label class="form-label">College</label>
-                    <input class="form-control" name="college" required>
+                    <input class="form-control" name="college" id="college" required>
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Department</label>
-                    <input class="form-control" name="department">
+                    <input class="form-control" name="department" id="department">
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Program Name</label>
-                    <input class="form-control" name="name" required>
+                    <input class="form-control" name="name" id="name" required>
                   </div>
                   <div class="mb-3">
                     <label class="form-label">Specialization</label>
-                    <input type="text" class="form-control" name="specialization">
+                    <input type="text" class="form-control" name="specialization" id="specialization">
                   </div>
                 `);
+                
+                // Add real-time validation for programs form using ValidationUtils
+                ValidationUtils.setupRealTimeValidation('#addForm');
                 $('#addModal').modal('show');
             } else if (table === 'users') {
                 form.append('<div class="mb-3">' +
@@ -2594,6 +2619,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<label for="due_date" class="form-label">Due Date</label>' +
                     '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
                     '</div>');
+                
+                // Add real-time validation for requirements form using ValidationUtils
+                ValidationUtils.setupRealTimeValidation('#addForm');
             } else if (table === 'evaluations') {
                 form.append('<div class="mb-3">' +
                     '<label for="defense_schedule_id" class="form-label">Defense Schedule ID</label>' +
