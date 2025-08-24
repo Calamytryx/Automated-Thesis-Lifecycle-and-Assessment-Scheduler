@@ -450,6 +450,11 @@
         });
     }
 
+    // Global reload function for rubrics (similar to other tabs)
+    window.reloadCurrentRubricsView = function(page = 1) {
+        loadRubrics(page);
+    };
+
     // Update pagination
     function updatePagination(totalPages, currentPage) {
         var pagination = $('#rubricsPagination');
@@ -1357,7 +1362,14 @@
             success: function(response) {
                 if (response.success) {
                     $('#rubricModal').modal('hide');
-                    loadRubrics();
+                    // Replace loadRubrics() with AJAX live update
+                    if (typeof window.reloadCurrentRubricsView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentRubricsView(1);
+                        }, 500);
+                    } else {
+                        loadRubrics(); // Fallback
+                    }
                     showToast('Success', 'Rubric saved successfully!', 'success');
                 } else {
                     showToast('Error', response.message || 'Failed to save rubric.', 'error');
@@ -1608,10 +1620,25 @@
                 console.log('Delete response:', response);
                 if (response && response.success) {
                 $('#rubricDeleteConfirmModal').modal('hide');
-                location.reload();
+                // Replace location reload with AJAX live update
+                if (typeof window.reloadCurrentRubricsView === 'function') {
+                    setTimeout(function() {
+                        window.reloadCurrentRubricsView(1);
+                    }, 500);
+                } else {
+                    loadRubrics(); // Fallback
+                }
+                showToast('Success', 'Rubric deleted successfully!', 'success');
                 } else {
                 showToast('Error', response.message || 'Unknown error occurred', 'error');
-                location.reload(); // Reload to reset state
+                // Still use AJAX reload instead of location.reload()
+                if (typeof window.reloadCurrentRubricsView === 'function') {
+                    setTimeout(function() {
+                        window.reloadCurrentRubricsView(1);
+                    }, 500);
+                } else {
+                    loadRubrics();
+                }
                 }
             },
             error: function(xhr, status, error) {
@@ -1622,7 +1649,14 @@
                 } catch(e) {
                     showToast('Error', 'Unable to delete rubric: ' + error, 'error');
                 }
-                location.reload(); // Reload to reset state
+                // Replace location.reload() with AJAX reload
+                if (typeof window.reloadCurrentRubricsView === 'function') {
+                    setTimeout(function() {
+                        window.reloadCurrentRubricsView(1);
+                    }, 500);
+                } else {
+                    loadRubrics();
+                }
             }
             });
         });

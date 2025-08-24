@@ -2068,6 +2068,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     location.reload();
                                 }, 1000);
                             }
+                        } else if (table === 'rubrics') {
+                            // For rubrics tab, use the rubrics-specific reload function
+                            if (typeof window.reloadCurrentRubricsView === 'function') {
+                                setTimeout(function() {
+                                    window.reloadCurrentRubricsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function() {
+                                    location.reload();
+                                }, 1000);
+                            }
                         } else {
                             // For other tables, use their specific reload functions or fallback to page reload
                             setTimeout(function() {
@@ -2818,6 +2829,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (typeof window.reloadCurrentRequirementsView === 'function') {
                         setTimeout(function() {
                             window.reloadCurrentRequirementsView(1);
+                        }, 500);
+                    } else {
+                        setTimeout(function() {
+                            location.reload();
+                        }, 1000);
+                    }
+                } else if (table === 'rubrics') {
+                    // For rubrics tab, use the rubrics-specific reload function
+                    if (typeof window.reloadCurrentRubricsView === 'function') {
+                        setTimeout(function() {
+                            window.reloadCurrentRubricsView(1);
                         }, 500);
                     } else {
                         setTimeout(function() {
