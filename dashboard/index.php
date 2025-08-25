@@ -1009,6 +1009,36 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             localStorage.setItem('sidebarCollapsed', $('#sidebarContainer').hasClass('collapsed'));
         });
         
+        // Mobile backdrop click to close sidebar
+        $(document).on('click', function(e) {
+            // Only on mobile devices (window width <= 768px)
+            if ($(window).width() <= 768) {
+                // If sidebar is open and click is outside sidebar
+                if (!$('#sidebarContainer').hasClass('collapsed') && 
+                    !$(e.target).closest('#sidebarContainer').length && 
+                    !$(e.target).closest('#toggleSidebar').length) {
+                    
+                    // Close the sidebar
+                    $('#sidebarContainer').addClass('collapsed');
+                    $('#mainContent').addClass('expanded');
+                    $('#toggleSidebar').addClass('collapsed');
+                    $('#toggleSidebar').find('i').css('transform', 'rotate(180deg)');
+                    $('body').addClass('has-collapsed-sidebar');
+                    
+                    // Save state to localStorage
+                    localStorage.setItem('sidebarCollapsed', true);
+                }
+            }
+        });
+        
+        // Handle window resize to reset sidebar behavior when switching between mobile and desktop
+        $(window).on('resize', function() {
+            if ($(window).width() > 768) {
+                // Desktop view - reset mobile-specific behaviors
+                $('body').removeClass('has-collapsed-sidebar');
+            }
+        });
+        
         // Check localStorage for saved sidebar state on page load
         const sidebarCollapsed = localStorage.getItem('sidebarCollapsed') === 'true';        if (sidebarCollapsed) {
             $('#sidebarContainer').addClass('collapsed');

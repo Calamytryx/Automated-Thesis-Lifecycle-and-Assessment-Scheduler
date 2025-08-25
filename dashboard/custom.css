@@ -695,11 +695,17 @@ body {
 /* Center the toggle button icon when collapsed */
 #sidebarContainer.collapsed #toggleSidebar i {
     margin: 0;
-    font-size: 14px;
+    font-size: 16px; /* Slightly larger icon */
     color: var(--main-primary); 
     transition: all 0.3s ease;
     line-height: 1;
     display: block;
+}
+
+/* Enhance toggle button icon on hover */
+#sidebarContainer.collapsed #toggleSidebar:hover i {
+    color: var(--primary-600);
+    transform: scale(1.1);
 }
 
 /* User profile at top as header */
@@ -801,6 +807,17 @@ body {
     transform: translate3d(1.5rem, 55px, 0px) !important;
 }
 
+/* Ensure profile dropdown works on mobile */
+@media (max-width: 768px) {
+    .profile-dropdown-menu {
+        z-index: 1055; /* Higher than sidebar on mobile */
+    }
+    
+    body:not(.has-collapsed-sidebar) {
+    overflow: hidden;
+    }
+}
+
 .profile-dropdown-menu .dropdown-item {
     padding: 12px 20px;
     font-size: 0.85rem;
@@ -883,11 +900,27 @@ body {
         transition: all 0.3s ease;
         min-height: auto;
         position: fixed;
-        z-index: 1040;
+        z-index: 1050; /* Higher than navbar to appear on top */
         top: 0;
         left: 0;
         display: flex;
         flex-direction: column;
+        transform: translateX(0); /* Initial position - visible */
+    }
+    
+    /* When collapsed on mobile, slide the sidebar out to the left */
+    
+    
+    /* Add backdrop when sidebar is open on mobile */
+    #sidebarContainer:not(.collapsed)::before {
+        content: '';
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100vw;
+        height: 100vh;
+        z-index: -1; /* Behind sidebar but above everything else */
+        transition: opacity 0.3s ease;
     }
     
     /* Force single column layout and enable scrolling - ONLY when sidebar is NOT collapsed */
@@ -959,17 +992,24 @@ body {
         left: 10px;
         transform: translateY(-50%);
         margin: 0;
-        width: 35px;
-        height: 35px;
+       width: 40px;
+        height: 40px;
         background-color: var(--main-white);
         border: 1px solid var(--neutral-300);
         border-radius: 4px; 
         box-shadow: 0 2px 5px rgba(0,0,0,0.15);
-        z-index: 9999; /* Very high z-index to ensure it's above everything */
         display: flex;
         align-items: center;
         justify-content: center;
         transition: all 0.3s ease;
+        cursor: pointer;
+      }
+      
+      /* Enhance hover effect for mobile toggle button */
+      #sidebarContainer.collapsed .toggle-button-container:hover {
+        box-shadow: 0 6px 16px rgba(0,0,0,0.25);
+        transform: translateY(-50%) scale(1.05);
+        background-color: var(--neutral-50);
       }
 
       #sidebarContainer.collapsed #toggleSidebar {
@@ -1028,14 +1068,16 @@ body {
         background-color: var(--neutral-50);
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* Internet Explorer 10+ */
+        position: relative;
+        z-index: 1040; /* Below sidebar */
     }
     
     #mainContent.expanded {
         width: 100% !important;
         margin-top: 0;
         margin-left: 0; 
-        /* padding-left: 70px; */
         height: 100vh;
+        z-index: 1040; /* Below sidebar */
     }
     
     /* Sidebar items are still full-width on mobile */
