@@ -499,53 +499,110 @@
 
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
+        // Count current roles
+        var $modal = $('.modal.show');
+        var $teamMembersContainer = $modal.find('#teamMembers');
+        var roleCount = { adviser: 0, leader: 0, member: 0 };
+
+        $teamMembersContainer.find('.team-member').each(function () {
+            var role = $(this).find('.role-select').val();
+            if (role && roleCount.hasOwnProperty(role)) {
+                roleCount[role]++;
+            }
+        });
+
         $.ajax({
             url: 'includes/get_users.php',
             method: 'GET',
             dataType: 'json',
             success: function (users) {
+                // Determine available roles
+                var availableRoles = [];
+                if (roleCount.adviser < 1) availableRoles.push('adviser');
+                if (roleCount.leader < 1) availableRoles.push('leader');
+                if (roleCount.member < 4) availableRoles.push('member');
+
+                if (availableRoles.length === 0) {
+                    showToast('Warning', 'All required roles are filled. You can only add more members (max 4 total).', 'warning');
+                    return;
+                }
+
                 var newMemberHtml = `
-                        <div class="mb-3 row team-member">
-                            <div class="col-sm-5">
-                                <select class="form-select user-select" name="new_user_id[]" style="display:block;">
-                                    <option value="">Select a user</option>
-                                    ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
-                                </select>
-                                <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
-                                <a href="#" class="toggle-input">Switch to manual</a>
-                            </div>
-                            <div class="col-sm-5">
-                                <select class="form-select role-select" name="new_role[]">
-                                    <option value="adviser">Adviser/Professor</option>
-                                    <option value="leader">Leader</option>
-                                    <option value="member">Member</option>
-                                </select>
-                            </div>
-                            <div class="col-sm-2">
-                                <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
-                            </div>
+                    <div class="mb-3 row team-member">
+                        <div class="col-sm-5">
+                            <select class="form-select user-select" name="new_user_id[]" style="display:block;">
+                                <option value="">Select a user</option>
+                                ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
+                            </select>
+                            <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
+                            <a href="#" class="toggle-input">Switch to manual</a>
                         </div>
-                        `;
-                $('#teamMembers').append(newMemberHtml);
-                $('#teamMembers .toggle-input').last().on('click', function (e) {
+                        <div class="col-sm-5">
+                            <select class="form-select role-select" name="new_role[]">
+                                <option value="">Select Role</option>
+                                ${availableRoles.includes('adviser') ? '<option value="adviser">Adviser/Professor</option>' : ''}
+                                ${availableRoles.includes('leader') ? '<option value="leader">Leader</option>' : ''}
+                                ${availableRoles.includes('member') ? '<option value="member">Member</option>' : ''}
+                            </select>
+                        </div>
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
+                        </div>
+                    </div>
+                `;
+                $teamMembersContainer.append(newMemberHtml);
+
+                var $newMember = $teamMembersContainer.find('.team-member').last();
+
+                $newMember.find('.toggle-input').on('click', function (e) {
                     e.preventDefault();
                     var $select = $(this).siblings('.user-select');
                     var $input = $(this).siblings('.new-username-input');
                     if ($select.is(':visible')) {
-                        $select.hide();
-                        $input.show();
+                        $select.hide().prop('disabled', true);
+                        $input.show().prop('disabled', false);
                         $(this).text('Switch to select');
                     } else {
-                        $input.hide();
-                        $select.show();
+                        $input.hide().prop('disabled', true);
+                        $select.show().prop('disabled', false);
                         $(this).text('Switch to manual');
                     }
                 });
+
+                $newMember.find('.new-username-input').prop('disabled', true);
+
+                // Role select change disables adviser/leader if already present
+                $newMember.find('.role-select').on('change', function () {
+                    updateRoleDropdowns();
+                });
+
+                // Initial update
+                updateRoleDropdowns();
             },
-            error: function (jqXHR, textStatus, errorThrown) {
-                alert('Error loading users');
+            error: function () {
+                showToast('Error', 'Error loading users', 'error');
             }
         });
+
+        // Helper to update all role dropdowns
+        function updateRoleDropdowns() {
+            var $modal = $('.modal.show');
+            var $teamMembersContainer = $modal.find('#teamMembers');
+            var adviserSelected = false;
+            var leaderSelected = false;
+
+            $teamMembersContainer.find('.role-select').each(function () {
+                var val = $(this).val();
+                if (val === 'adviser') adviserSelected = true;
+                if (val === 'leader') leaderSelected = true;
+            });
+
+            $teamMembersContainer.find('.role-select').each(function () {
+                var $select = $(this);
+                $select.find('option[value="adviser"]').prop('disabled', adviserSelected && $select.val() !== 'adviser');
+                $select.find('option[value="leader"]').prop('disabled', leaderSelected && $select.val() !== 'leader');
+            });
+        }
     }
 
     // Remove team member functionality
