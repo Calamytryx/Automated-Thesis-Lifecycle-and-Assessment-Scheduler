@@ -112,7 +112,7 @@
                             <div class="card card-body">
                                 <div id="programCheckboxesContainer">
                                     <!-- Checkboxes will be loaded here dynamically -->
-                                    <p class="text-muted">Loading programs...</p>
+                                    <p class="text-muted">Choose a program...</p>
                                 </div>
                             </div>
                         </div>
@@ -1447,7 +1447,7 @@
     // --- UPDATED Function: Load programs into checkboxes (Handles nested structure) ---
     function loadProgramsForCheckboxes() {
         const container = $('#programCheckboxesContainer');
-        container.html('<p class="text-muted">Loading programs...</p>'); // Show loading message
+        container.html('<p class="text-muted">Choose a program...</p>'); // Show loading message
 
         $.ajax({
             url: 'includes/get_programs.php', // Corrected path relative to the dashboard page

@@ -52,7 +52,7 @@
                                     <span class="d-none d-lg-inline">Bulk Add Teams</span>
                                     <span class="d-lg-none">Bulk Add</span>
                                 </button> 
-                                <button class="btn feature-btn add-btn user-control-height flex-fill" data-table="teams" id="addTeamBtn">
+                                <button class="btn feature-btn add-btn user-control-height flex-fill" data-table="teams" id="addTeamBtn" onclick="addNewTeamMember()">
                                     <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
                                     <span class="d-none d-lg-inline">Add Team</span>
                                     <span class="d-lg-none">Add</span>

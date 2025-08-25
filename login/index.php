@@ -59,6 +59,13 @@ $rest_of_name = substr($app_name, 1);
                             <div class="mb-3 text-end">
                                 <a href="../reset-password/" class="login-register-a">Forgot password?</a>
                             </div>
+                            <div class="mb-3 text-end">
+                                <a href="../reset-password/" class="login-register-a">Account not activated?</a>
+                                <!-- tooltip icon -->
+                                <span class="tooltip-icon" data-bs-toggle="tooltip" data-bs-placement="top" title="For first time login users, we will send you an email to activate your account.">
+                                    <i class="fas fa-question-circle"></i>
+                                </span>
+                            </div>
 
                             <!-- Submit Button -->
                             <button class="btn btn-primary w-100" type="submit" value="loginsubmit" name="loginsubmit">Login</button>
