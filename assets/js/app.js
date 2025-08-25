@@ -22,8 +22,18 @@ import { initializeChatSession, sendMessageToModel, performWebSearch } from './m
 
 async function analyzeTitle(title, field, problem) {
     try {
+        // Sanitize inputs before sending to external APIs
+        const sanitizedTitle = title.replace(/<[^>]*>/g, '').trim();
+        const sanitizedField = field.replace(/<[^>]*>/g, '').trim();
+        const sanitizedProblem = problem.replace(/<[^>]*>/g, '').trim();
+        
+        // Additional validation before API calls
+        if (!sanitizedTitle || !sanitizedField || !sanitizedProblem) {
+            throw new Error('Invalid input data after sanitization');
+        }
+        
         // First prompt to check similarity
-        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${title}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response strictly as "score(number only): 'title'".`;
+        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${sanitizedTitle}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response strictly as "score(number only): 'title'".`;
         
         console.log("Sending similarity prompt to AI:", similarityPrompt);
         const similarityResponse = await sendMessageToModel(similarityPrompt);
@@ -38,14 +48,14 @@ async function analyzeTitle(title, field, problem) {
         
         if (similarityScoreFloat < 5) {
             // Proceed to analyze as usual
-            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
+            const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
                 Also, assess its potential uniqueness and originality.
                 Additionally, evaluate if the research problem is feasible or if further investigation is needed to determine its feasibility.
                 If improvements are needed, suggest up to three alternative titles.
                 
                 Format the response as follows:
-                H2 Analysis of Research Title: "${title}"
+                H2 Analysis of Research Title: "${sanitizedTitle}"
                 strong Clarity: (feedback)
                 strong Specificity: (feedback)
                 strong Potential Impact: (feedback)
@@ -84,14 +94,14 @@ async function analyzeTitle(title, field, problem) {
         } else if (confirm(`The title is similar to an existing title (${similarityScoreFloat}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
             // separated the two conditions so this confirm will only show if similarity is higher than 5.
             // Proceed to analyze as usual
-            const analysisPrompt = `Analyze the following research title in the field of ${field}: "${title}" with the problem to solve of ${problem}. 
+            const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
                 Also, assess its potential uniqueness and originality.
                 Additionally, evaluate if the research problem is feasible or if further investigation is needed to determine its feasibility.
                 If improvements are needed, suggest up to three alternative titles.
                 
                 Format the response as follows:
-                H2 Analysis of Research Title: "${title}"
+                H2 Analysis of Research Title: "${sanitizedTitle}"
                 strong Clarity: (feedback)
                 strong Specificity: (feedback)
                 strong Potential Impact: (feedback)
@@ -184,7 +194,11 @@ function validateForm() {
     const submitBtn = document.getElementById('submitTitleBtn');
     const statusText = document.querySelector('.research-title-status small');
     
-    if (title && field && problem) {
+    // Check if all fields have content and are valid
+    const hasContent = title && field && problem;
+    const isValid = hasContent && ValidationUtils.validateForm();
+    
+    if (isValid) {
         if (submitBtn) {
             submitBtn.disabled = false;
             submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
@@ -199,7 +213,11 @@ function validateForm() {
             submitBtn.innerHTML = '<i class="bi bi-search me-2"></i>Analyze Title';
         }
         if (statusText) {
-            statusText.textContent = 'Fill in all fields to analyze your title';
+            if (!hasContent) {
+                statusText.textContent = 'Fill in all fields to analyze your title';
+            } else {
+                statusText.textContent = 'Please fix validation errors before proceeding';
+            }
             statusText.style.color = 'var(--neutral-600)';
         }
     }
@@ -217,11 +235,18 @@ document.addEventListener('DOMContentLoaded', function() {
     if (submitTitleBtn) {
         submitTitleBtn.addEventListener('click', function() {
             console.log("Submit button clicked");
+            
+            // First validate all fields using ValidationUtils
+            if (!validateResearchTitleForm()) {
+                console.log("Form validation failed");
+                return;
+            }
+            
             var title = document.getElementById('researchTitle').value.trim();
             var field = document.getElementById('researchField').value.trim();
             var problem = document.getElementById('problem').value.trim();
             
-            // Validate inputs
+            // Basic presence validation (already checked by ValidationUtils, but kept for consistency)
             if (!title || !field || !problem) {
                 alert('Please fill in all fields before analyzing your title.');
                 return;
@@ -240,7 +265,7 @@ document.addEventListener('DOMContentLoaded', function() {
             analyzeTitle(title, field, problem);
         });
         
-        // Add input validation listeners
+        // Add input validation listeners using ValidationUtils
         const requiredFields = ['researchTitle', 'researchField', 'problem'];
         requiredFields.forEach(fieldId => {
             const field = document.getElementById(fieldId);
@@ -248,6 +273,9 @@ document.addEventListener('DOMContentLoaded', function() {
                 field.addEventListener('input', validateForm);
             }
         });
+        
+        // Setup real-time validation
+        ValidationUtils.setupRealTimeValidation();
     }
 
     // Add reset button functionality
@@ -383,19 +411,22 @@ async function getTopThesisTopics(field) {
 }
 
 document.addEventListener('DOMContentLoaded', function() {
-    document.getElementById('getTopicsBtn').addEventListener('click', function() {
-        const field = document.getElementById('thesisField').value;
-        
-        if (!field) {
-            alert('Please select a field');
-            return;
-        }
+    const getTopicsBtn = document.getElementById('getTopicsBtn');
+    if (getTopicsBtn) {
+        getTopicsBtn.addEventListener('click', function() {
+            const field = document.getElementById('thesisField').value;
+            
+            if (!field) {
+                alert('Please select a field');
+                return;
+            }
 
         console.log("Getting top thesis topics for field:", field);
         document.getElementById('topicAnalysisResult').innerHTML = '<p>Generating top thesis topics...</p>';
 
         getTopThesisTopics(field);
-    });
+        });
+    }
 });
 
 // New function to send output to AI and display the response
@@ -610,3 +641,25 @@ window.UniversalValidator = (function() {
         showValidationError: showValidationError
     };
 })();
+
+// Custom validation function for research title form
+function validateResearchTitleForm() {
+    let isValid = true;
+    const fields = ['researchTitle', 'researchField', 'problem'];
+    
+    fields.forEach(fieldId => {
+        const input = document.getElementById(fieldId);
+        if (input && !ValidationUtils.validateField(input)) {
+            isValid = false;
+        }
+    });
+    
+    return isValid;
+}
+
+// Initialize when DOM is loaded
+document.addEventListener('DOMContentLoaded', function() {
+    console.log("DOM loaded - initializing research title validation");
+    // ValidationUtils handles real-time validation setup
+    ValidationUtils.setupRealTimeValidation();
+});
