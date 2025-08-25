@@ -469,6 +469,7 @@
                 <div class="mb-3 row panelist">
                     <div class="col-sm-10">
                         <select class="form-select" name="panelist_id[${nextIndex}]">
+                            <option value="">Select a panelist</option>
                             ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
                         </select>
                     </div>
@@ -1882,6 +1883,7 @@
                                 <label class="col-sm-2 col-form-label">Panelist ${index + 1}</label>
                                 <div class="col-sm-8">
                                     <select class="form-select" name="panelist_id[${index}]" required>
+                                    <option value="">Select a panelist</option>
                                         ${response.staff.map(staff => `
                                             <option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>
                                                 ${staff.name}
@@ -2663,8 +2665,8 @@
                     '<input type="email" class="form-control" id="email" name="email" placeholder="Enter email" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
-                    '<label for="password" class="form-label">Password</label>' +
-                    '<input type="password" class="form-control" id="password" name="password" placeholder="Enter password" required>' +
+                    '<label for="password" class="form-label">Password will be auto generated</label>' +
+                    '<input type="hidden" class="form-control" id="password" name="password" placeholder="Enter password" value="P@55w0rd" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="first_name" class="form-label">First Name</label>' +
@@ -2677,7 +2679,7 @@
                     '<div class="mb-3">' +
                     '<label for="program_id" class="form-label">Program</label>' +
                     '<select class="form-select" id="program_id" name="program_id">' +
-                    // '<option value="">Loading programs...</option>' +
+                    '<option value="">Choose a program...</option>' +
                     '</select>' +
                     '</div>' +
                     '<div class="mb-3 area-expertise-field" style="display:none;">' +
@@ -2845,7 +2847,7 @@
                     <div class="mb-3">
                     <label for="program_id" class="form-label">Program</label>
                     <select class="form-select" id="program_id" name="program_id">
-                        <option value="">Loading programs...</option>
+                        <option value="">Choose a program...</option>
                     </select>
                     </div>
                     <h5 class="mt-4">Team Members</h5>
@@ -2971,11 +2973,10 @@
                     <label class="col-sm-2 col-form-label">Panelist 1</label>
                         <div class="col-sm-8">
                             <select class="form-select" name="panelist_id[0]">
+                            <option value="">Select a panelist</option>
                                 </select>
                         </div>
-                        <div class="col-sm-2">
-                            <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
-                        </div>
+                        
                     </div>
                 </div>
                 <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
@@ -3695,6 +3696,7 @@
             <label class="col-sm-2 col-form-label">Panelist ${nextIndex + 1}</label>
             <div class="col-sm-8">
                 <select class="form-select" name="panelist_id[${nextIndex}]">
+                    <option value="">Select a panelist</option>
                     ${staff.map(member => `<option value="${member.id}">${member.name}</option>`).join('')}
                 </select>
             </div>
@@ -3804,9 +3806,11 @@
                         <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
                         <a href="#" class="toggle-input">Switch to manual</a>
                     </div>
-                    <div class="col-sm-2">
-                        <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
-                    </div>
+                    ${(currentMemberCount === 0 || currentMemberCount === 1) ? '' : `
+                        <div class="col-sm-2">
+                            <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
+                        </div>
+                    `}
                 </div>
                 `;
                 $teamMembersContainer.append(newMemberHtml);
