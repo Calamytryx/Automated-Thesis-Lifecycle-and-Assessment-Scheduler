@@ -1006,6 +1006,37 @@
                         errors.push('Headline cannot exceed 100 characters');
                     }
                     break;
+
+                // Research title form fields (for home page research title checker)
+                case 'researchTitle':
+                    if (this.isTooShort(trimmedValue, 10)) {
+                        errors.push('Research title must be at least 10 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 250)) {
+                        errors.push('Research title cannot exceed 250 characters');
+                    }
+                    break;
+
+                case 'researchField':
+                    if (this.isTooShort(trimmedValue, 2)) {
+                        errors.push('Research field must be at least 2 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 100)) {
+                        errors.push('Research field cannot exceed 100 characters');
+                    }
+                    if (this.isOnlyNumbers(trimmedValue)) {
+                        errors.push('Research field cannot be only numbers');
+                    }
+                    break;
+
+                case 'problem':
+                    if (this.isTooShort(trimmedValue, 10)) {
+                        errors.push('Problem statement must be at least 10 characters long');
+                    }
+                    if (this.isTooLong(trimmedValue, 500)) {
+                        errors.push('Problem statement cannot exceed 500 characters');
+                    }
+                    break;
             }
 
             return errors;

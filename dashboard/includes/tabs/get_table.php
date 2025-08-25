@@ -498,10 +498,6 @@ try {
             case 'programs':
                 $searchCondition = "(college LIKE :search1 OR department LIKE :search2 OR name LIKE :search3 OR specialization LIKE :search4)";
                 break;
-            case 'research_titles':
-                $searchCondition = "(rt.title LIKE :search1 OR t.name LIKE :search2 OR 
-                                   CASE WHEN rt.approved_at IS NOT NULL THEN 'approved' ELSE 'pending' END LIKE :search3)";
-                break;
         }
         if (!empty($searchCondition)) {
             $conditions[] = $searchCondition;
@@ -659,6 +655,15 @@ try {
             else $safeSortBy = $sortPrefix . $sortBy;
         } elseif ($table === 'research_titles' && $sortBy == 'team_name') {
             $safeSortBy = 't.name';
+        } elseif ($table === 'research_titles' && $sortBy == 'approved_at') {
+            // Special handling for approved_at sorting to handle NULL values properly
+            if ($sortDir === 'ASC') {
+                // For oldest approved: show approved titles (non-NULL) first, ordered by date ASC, then pending (NULL) last
+                $safeSortBy = 'rt.approved_at IS NULL, rt.approved_at';
+            } else {
+                // For recently approved: show approved titles (non-NULL) first, ordered by date DESC, then pending (NULL) last
+                $safeSortBy = 'rt.approved_at IS NULL, rt.approved_at';
+            }
         } else {
             $safeSortBy = $sortPrefix . $sortBy;
         }
