@@ -948,7 +948,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     id="researchTitle" name="researchTitle"
                                                     placeholder="Enter your research title here..." rows="3"
                                                     required></textarea>
-                                                <div class="invalid-feedback"></div>
                                                 <div class="form-text">Be specific and descriptive about your research
                                                     focus</div>
                                             </div>
@@ -960,7 +959,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <input type="text" class="form-control research-title-input"
                                                         id="researchField" name="researchField"
                                                         placeholder="e.g., Computer Science" required>
-                                                    <div class="invalid-feedback"></div>
                                                 </div>
                                                 <div class="col-sm-6">
                                                     <label for="problem" class="form-label fw-semibold">Problem
@@ -968,7 +966,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <input type="text" class="form-control research-title-input"
                                                         id="problem" name="problem"
                                                         placeholder="Brief description of the problem" required>
-                                                    <div class="invalid-feedback"></div>
                                                 </div>
                                             </div>
 
@@ -1763,8 +1760,6 @@ $(document).ready(function() {
 <script type="module" src="../assets/js/mainModule.js"></script>
 <!-- app.js -->
 <script type="module" src="../assets/js/app.js"></script>
-<!-- Include shared validation utilities for consistent validation -->
-<script src="../assets/js/validation-utils.js"></script>
 <?php
 // Local: research_titles | Deployed: icei_38697196_coecsathesis.research_titles
 $stmt = $pdo->query("SELECT title FROM research_titles;");
