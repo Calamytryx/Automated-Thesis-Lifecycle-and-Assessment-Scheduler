@@ -63,14 +63,14 @@ function xss_filter($data) {
                                         <div class="col-md-6 profile-edit-card-col">
                                             <div class="form-group">
                                                 <label for="first_name">First Name</label>
-                                                <input type="text" id="first_name" name="first_name" class="form-control" placeholder="First Name" value="<?php echo xss_filter($_SESSION['first_name']); ?>">
+                                                <p id="first_name" class="form-control"><?php echo xss_filter($_SESSION['first_name']); ?></p>
                                                 <div class="validation-error" id="first_name-error" style="display: none;"></div>
                                             </div>
                                         </div>
                                         <div class="col-md-6 profile-edit-card-col">
                                             <div class="form-group">
                                                 <label for="last_name">Last Name</label>
-                                                <input type="text" id="last_name" name="last_name" class="form-control" placeholder="Last Name" value="<?php echo xss_filter($_SESSION['last_name']); ?>">
+                                                <p id="last_name" class="form-control" > <?php echo xss_filter($_SESSION['last_name']); ?> </p>
                                                 <div class="validation-error" id="last_name-error" style="display: none;"></div>
                                             </div>
                                         </div>
@@ -79,7 +79,7 @@ function xss_filter($data) {
                                         <div class="col-md-6 profile-edit-card-col">
                                             <div class="form-group">
                                                 <label for="username">Username</label>
-                                                <input type="text" id="username" name="username" class="form-control" placeholder="Username" value="<?php echo xss_filter($_SESSION['username']); ?>" autocomplete="off">
+                                                <p id="username" class="form-control" ><?php echo xss_filter($_SESSION['username']); ?></p>
                                                 <sub class="text-danger">
                                                     <?php if (isset($_SESSION['ERRORS']['usernameerror'])) echo $_SESSION['ERRORS']['usernameerror']; ?>
                                                 </sub>
@@ -92,7 +92,7 @@ function xss_filter($data) {
                                                 <?php if ($_SESSION['usertype'] == 0): // Only admins can edit email ?>
                                                     <input type="email" id="email" name="email" class="form-control" placeholder="Email address" value="<?php echo xss_filter($_SESSION['email']); ?>">
                                                 <?php else: ?>
-                                                    <input type="email" id="email" name="email" class="form-control" placeholder="Email address" value="<?php echo xss_filter($_SESSION['email']); ?>" readonly style="background-color: #f8f9fa; cursor: not-allowed;">
+                                                    <p type="email" id="email" class="form-control" readonly style="background-color: #f8f9fa; cursor: not-allowed;"><?php echo xss_filter($_SESSION['email']); ?></p>
                                                     <small class="form-text text-muted">Only administrators can change email addresses</small>
                                                 <?php endif; ?>
                                                 <sub class="text-danger">
