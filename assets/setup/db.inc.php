@@ -2,10 +2,10 @@
 
 // --- DATABASE CONFIGURATION ---
 $primaryHost   = 'localhost';
-$fallbackHost  = 'localhost';
-$dbName        = 'coecsa_thesis';
-$dbUser        = 'root';
-$dbPass        = '';
+$fallbackHost  = 'sql302.iceiy.com';
+$dbName        = 'icei_38697196_coecsathesis';
+$dbUser        = 'icei_38697196';
+$dbPass        = '4rdL34hSdQFcgrL';
 $dbCharset     = 'utf8mb4';
 
 $dsnPrimary   = "mysql:host={$primaryHost};dbname={$dbName};charset={$dbCharset}";
