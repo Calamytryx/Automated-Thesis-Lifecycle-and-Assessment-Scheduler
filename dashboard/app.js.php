@@ -1,5 +1,5 @@
 <script>
-    
+
     // Time adjustment functions for both add and edit modals
     function adjustTime(id, type, step) {
         // Always search inside the currently open modal for elements
@@ -189,64 +189,64 @@
 
 
 
-// Add helper function to dynamically populate program dropdowns
-// Add helper function to dynamically populate program dropdowns
-function populateProgramDropdown(selectElement, selectedValue) {
-    //     if (selectedValue != null) {
-    //     selectElement.html('<option value="' + selectedValue + '">' + selectedValue + '</option>');
-    // } else {
-    //     selectElement.html('<option value="">Loading programs...</option>');
-    // }
-    console.log(selectedValue)
+    // Add helper function to dynamically populate program dropdowns
+    // Add helper function to dynamically populate program dropdowns
+    function populateProgramDropdown(selectElement, selectedValue) {
+        //     if (selectedValue != null) {
+        //     selectElement.html('<option value="' + selectedValue + '">' + selectedValue + '</option>');
+        // } else {
+        //     selectElement.html('<option value="">Loading programs...</option>');
+        // }
+        console.log(selectedValue)
 
 
-    $.ajax({
-        url: 'includes/get_programs_grouped.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(response) {
+        $.ajax({
+            url: 'includes/get_programs_grouped.php',
+            method: 'GET',
+            dataType: 'json',
+            success: function (response) {
 
-            if (response.success && response.programs.length > 0) {
-                let currentCollege = null;
-                let optgroup = null;
+                if (response.success && response.programs.length > 0) {
+                    let currentCollege = null;
+                    let optgroup = null;
 
-                $.each(response.programs, function(i, program) {
-                    // Create new optgroup when college changes
-                    if (program.college !== currentCollege) {
-                        currentCollege = program.college;
-                        optgroup = $('<optgroup>', {
-                            label: currentCollege
+                    $.each(response.programs, function (i, program) {
+                        // Create new optgroup when college changes
+                        if (program.college !== currentCollege) {
+                            currentCollege = program.college;
+                            optgroup = $('<optgroup>', {
+                                label: currentCollege
+                            });
+                            selectElement.append(optgroup);
+                        }
+
+                        // Add program option to current optgroup
+                        const option = $('<option>', {
+                            value: program.display_name,
+                            text: program.display_name
                         });
-                        selectElement.append(optgroup);
-                    }
 
-                    // Add program option to current optgroup
-                    const option = $('<option>', {
-                        value: program.display_name,
-                        text: program.display_name
+                        // Set selected if matches by program name
+                        if (selectedValue !== null && selectedValue === program.display_name) {
+                            option.prop('selected', true);
+                        }
+
+                        optgroup.append(option);
                     });
-
-                    // Set selected if matches by program name
-                    if (selectedValue !== null && selectedValue === program.display_name) {
-                        option.prop('selected', true);
-                    }
-
-                    optgroup.append(option);
-                });
-            } else {
-                selectElement.html('<option value="">No programs available</option>');
+                } else {
+                    selectElement.html('<option value="">No programs available</option>');
+                }
+            },
+            error: function () {
+                selectElement.html('<option value="">Error loading programs</option>');
+                console.error("Failed to load programs");
             }
-        },
-        error: function() {
-            selectElement.html('<option value="">Error loading programs</option>');
-            console.error("Failed to load programs");
-        }
-    });
-}
+        });
+    }
 
 
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Create toast container if it doesn't exist
         if (!$('#toastContainer').length) {
             $('body').append(
@@ -254,13 +254,13 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         // NEW: Connect the saveChanges button to trigger the edit form submission
-        $(document).on('click', '#saveChanges', function() {
+        $(document).on('click', '#saveChanges', function () {
             console.log('DEBUG: Save changes button clicked, triggering edit form submission');
             $('#editForm').submit();
         });
 
         // NEW: Add bulk row functionality
-        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function() {
+        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function () {
             let count = parseInt($('#rowCountInput').val()) || 1;
             for (let i = 0; i < count; i++) {
                 var rowCount = $('#bulkAddTable tbody tr').length;
@@ -279,7 +279,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // When the Bulk Add Modal is shown, insert the CSV download link if not already present
-        $('#bulkAddModal').on('shown.bs.modal', function() {
+        $('#bulkAddModal').on('shown.bs.modal', function () {
             if (!$(this).find('#downloadCsvTemplate').length) {
                 $(this).find('.modal-body').prepend(`
                         <div class="mb-3">
@@ -291,7 +291,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
         // Update Bulk Add Users CSV download handler
         $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate',
-            function(e) {
+            function (e) {
                 e.preventDefault();
                 const csvContent = 'ID,Name,Program,No Username\\n';
                 const blob = new Blob([csvContent], {
@@ -308,13 +308,13 @@ function populateProgramDropdown(selectElement, selectedValue) {
             });
 
         // NEW: Bulk Add Teams functionality
-        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function (e) {
             e.preventDefault();
             console.log('Bulk Add Teams button clicked');
             $('#bulkAddTeamsModal').modal('show');
         });
 
-        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
+        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function () {
             let count = parseInt($('#teamsRowCountInput').val()) || 1;
             for (let i = 0; i < count; i++) {
                 var rowCount = $('#bulkAddTeamsTable tbody tr').length;
@@ -330,7 +330,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
             }
         });
 
-        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e) {
+        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function (e) {
             e.preventDefault();
             console.log('Bulk Add Teams form submitted');
 
@@ -350,11 +350,11 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 processData: false,
                 contentType: false,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('Success', 'Teams added successfully', 'success');
                         $('#bulkAddTeamsModal').modal('hide');
-                        setTimeout(function() {
+                        setTimeout(function () {
                             location.reload();
                         }, 2000);
                     } else {
@@ -364,7 +364,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             'error');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('AJAX Error:', xhr.responseText);
                     // User-friendly error message
                     let errorMessage =
@@ -383,14 +383,14 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // Event handler for preset buttons in area of expertise fields
-        $(document).on('click', '.area-option', function(e) {
+        $(document).on('click', '.area-option', function (e) {
             e.preventDefault();
             var presetValue = $(this).data('value');
             $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
         });
 
         // Event handler for preset buttons in program fields
-        $(document).on('click', '.program-option', function(e) {
+        $(document).on('click', '.program-option', function (e) {
             e.preventDefault();
             var presetValue = $(this).data('value');
             $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
@@ -400,7 +400,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         const mainContent = $('#mainContent');
         const toggleButton = $('#toggleSidebar');
 
-        toggleButton.on('click', function() {
+        toggleButton.on('click', function () {
             sidebarContainer.toggleClass('collapsed');
             mainContent.toggleClass('expanded');
             toggleButton.toggleClass('collapsed');
@@ -416,7 +416,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         // Handle window resize
-        $(window).on('resize', function() {
+        $(window).on('resize', function () {
             if (window.innerWidth <= 768) {
                 mainContent.addClass('expanded');
             } else {
@@ -430,15 +430,15 @@ function populateProgramDropdown(selectElement, selectedValue) {
     function updatePanelistDropdowns() {
         // Collect all selected panelist IDs
         var selectedIds = [];
-        $('#panelists .panelist select').each(function() {
+        $('#panelists .panelist select').each(function () {
             var val = $(this).val();
             if (val) selectedIds.push(val);
         });
 
-        $('#panelists .panelist select').each(function() {
+        $('#panelists .panelist select').each(function () {
             var $select = $(this);
             var currentVal = $select.val();
-            $select.find('option').each(function() {
+            $select.find('option').each(function () {
                 var $opt = $(this);
                 if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
                     $opt.prop('disabled', true);
@@ -458,7 +458,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         // Determine the next index based on existing panelists
-        var currentIndices = $('#panelists .panelist select').map(function() {
+        var currentIndices = $('#panelists .panelist select').map(function () {
             var name = $(this).attr('name');
             var match = name.match(/\[(\d+)\]/);
             return match ? parseInt(match[1], 10) : -1;
@@ -490,8 +490,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
     }
 
     // Optionally, update existing panelist entries to have unique indices
-    $(document).ready(function() {
-        $('#panelists .panelist').each(function(index) {
+    $(document).ready(function () {
+        $('#panelists .panelist').each(function (index) {
             $(this).find('select').attr('name', `panelist_id[${index}]`);
         });
     });
@@ -502,7 +502,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
             url: 'includes/get_users.php',
             method: 'GET',
             dataType: 'json',
-            success: function(users) {
+            success: function (users) {
                 var newMemberHtml = `
                         <div class="mb-3 row team-member">
                             <div class="col-sm-5">
@@ -526,7 +526,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         </div>
                         `;
                 $('#teamMembers').append(newMemberHtml);
-                $('#teamMembers .toggle-input').last().on('click', function(e) {
+                $('#teamMembers .toggle-input').last().on('click', function (e) {
                     e.preventDefault();
                     var $select = $(this).siblings('.user-select');
                     var $input = $(this).siblings('.new-username-input');
@@ -541,14 +541,14 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     }
                 });
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 alert('Error loading users');
             }
         });
     }
 
     // Remove team member functionality
-    $(document).on('click', '.remove-member', function() {
+    $(document).on('click', '.remove-member', function () {
         var teamMember = $(this).closest('.team-member');
         var userId = teamMember.data('user-id');
         var teamId = $('input[name="id"]').val();
@@ -562,7 +562,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         team_id: teamId
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             teamMember.remove();
                             alert('Team member removed successfully');
@@ -570,7 +570,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             alert('Error: ' + response.message);
                         }
                     },
-                    error: function() {
+                    error: function () {
                         alert('Error: Unable to remove team member');
                     }
                 });
@@ -623,7 +623,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         toastElement.show();
 
         // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function() {
+        $(`#${toastId}`).on('hidden.bs.toast', function () {
             $(this).remove();
         });
     }
@@ -634,46 +634,46 @@ function populateProgramDropdown(selectElement, selectedValue) {
     // Comprehensive form validation functions
     const ValidationUtils = {
         // Check for emojis
-        containsEmoji: function(text) {
+        containsEmoji: function (text) {
             const emojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u;
             return emojiRegex.test(text);
         },
 
         // Check if text is too long
-        isTooLong: function(text, maxLength = 100) {
+        isTooLong: function (text, maxLength = 100) {
             return text.length > maxLength;
         },
 
         // Check if text is too short (single character/digit)
-        isTooShort: function(text, minLength = 2) {
+        isTooShort: function (text, minLength = 2) {
             return text.trim().length < minLength;
         },
 
         // Check for only numbers (for name fields)
-        isOnlyNumbers: function(text) {
+        isOnlyNumbers: function (text) {
             return /^\d+$/.test(text.trim());
         },
 
         // Check for special characters (allow only letters, numbers, spaces, basic punctuation)
-        hasInvalidCharacters: function(text) {
+        hasInvalidCharacters: function (text) {
             const validPattern = /^[a-zA-Z0-9\s\.\,\-\_\@\(\)]+$/;
             return !validPattern.test(text);
         },
 
         // Check for HTML tags
-        containsHTML: function(text) {
+        containsHTML: function (text) {
             const htmlRegex = /<[^>]*>/;
             return htmlRegex.test(text);
         },
 
         // Check if email is valid
-        isValidEmail: function(email) {
+        isValidEmail: function (email) {
             const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
             return emailPattern.test(email);
         },
 
         // Check username format (for student IDs like 20xx-x-xxxxx)
-        isValidUsername: function(username, usertype) {
+        isValidUsername: function (username, usertype) {
             if (usertype == 1) { // Student
                 // Accept either 4digits-1digit-5digits or text.text
                 const studentPattern = /^\d{4}-\d{1}-\d{5}$/;
@@ -686,9 +686,9 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Validate field based on type
-        validateField: function(fieldName, value, usertype = null) {
+        validateField: function (fieldName, value, usertype = null) {
             const errors = [];
-            
+
             if (!value || value.trim() === '') {
                 return ['This field is required'];
             }
@@ -743,7 +743,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 case 'bio':
                     if (this.isTooLong(trimmedValue, 500)) {
                         errors.push('Bio cannot exceed 500 characters');
-                    } 
+                    }
                     // Check for symbols (non-alphanumeric, non-space, non-basic punctuation)
                     if (/[^a-zA-Z0-9\s\.\,\-\_\@\(\)\!\?]/.test(trimmedValue)) {
                         errors.push('Bio must be alphanumeric and basic punctuation only');
@@ -798,7 +798,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (this.containsHTML(trimmedValue)) {
                         errors.push('HTML tags and scripts are not allowed in passwords');
                     }
-                    
+
                     // Length validation
                     if (trimmedValue.length < 8) {
                         errors.push('Password must be at least 8 characters long');
@@ -806,7 +806,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (trimmedValue.length > 128) {
                         errors.push('Password cannot exceed 128 characters');
                     }
-                    
+
                     // Character type requirements
                     if (!/[A-Z]/.test(trimmedValue)) {
                         errors.push('Password must contain at least one uppercase letter');
@@ -820,12 +820,12 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     if (!/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\|~`]/.test(trimmedValue)) {
                         errors.push('Password must contain at least one special character');
                     }
-                    
+
                     // Pattern validation
                     if (/(.)\1{2,}/.test(trimmedValue)) {
                         errors.push('Password cannot contain 3 or more consecutive identical characters');
                     }
-                    
+
                     // Sequential character check
                     const sequences = ['abc', 'bcd', 'cde', 'def', 'efg', 'fgh', 'ghi', 'hij', 'ijk', 'jkl', 'klm', 'lmn', 'mno', 'nop', 'opq', 'pqr', 'qrs', 'rst', 'stu', 'tuv', 'uvw', 'vwx', 'wxy', 'xyz', '123', '234', '345', '456', '567', '678', '789'];
                     for (let seq of sequences) {
@@ -834,7 +834,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             break;
                         }
                     }
-                    
+
                     // Common weak passwords
                     const commonPasswords = ['password', 'password123', '12345678', 'qwerty', 'admin', 'letmein'];
                     for (let common of commonPasswords) {
@@ -1012,33 +1012,33 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Validate password confirmation
-        validatePasswordConfirmation: function(password, confirmPassword) {
+        validatePasswordConfirmation: function (password, confirmPassword) {
             const errors = [];
-            
+
             if (!confirmPassword || confirmPassword.trim() === '') {
                 return ['Password confirmation is required'];
             }
-            
+
             if (password !== confirmPassword) {
                 errors.push('Passwords do not match');
             }
-            
+
             return errors;
         },
 
         // Validate form data with password confirmation
-        validatePasswordForm: function(formData) {
+        validatePasswordForm: function (formData) {
             const errors = {};
             const password = formData.get('password');
             const confirmPassword = formData.get('confirmpassword') || formData.get('password_confirm');
-            
+
             // Validate password
             if (password) {
                 const passwordErrors = this.validateField('password', password);
                 if (passwordErrors.length > 0) {
                     errors.password = passwordErrors;
                 }
-                
+
                 // Validate password confirmation
                 if (confirmPassword) {
                     const confirmErrors = this.validatePasswordConfirmation(password, confirmPassword);
@@ -1047,12 +1047,12 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     }
                 }
             }
-            
+
             return errors;
         },
 
         // Validate entire form
-        validateUserForm: function(formElement) {
+        validateUserForm: function (formElement) {
             const errors = {};
             const formData = new FormData(formElement);
             const usertype = formData.get('usertype');
@@ -1062,41 +1062,41 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
             // Add password field if it's an add form or if password is being changed
             if (formElement.id === 'addForm' || formData.get('password')) {
-            fieldsToValidate.push('password');
+                fieldsToValidate.push('password');
             }
 
             // Add area_of_expertise if usertype is faculty (2)
             if (usertype == 2) {
-            fieldsToValidate.push('area_of_expertise');
+                fieldsToValidate.push('area_of_expertise');
             }
 
             // Validate headline and bio only if not empty/null
             const optionalFields = ['headline', 'bio'];
             optionalFields.forEach(fieldName => {
-            const value = formData.get(fieldName);
-            if (value && value.trim() !== '') {
-                const fieldErrors = this.validateField(fieldName, value, usertype);
-                if (fieldErrors.length > 0) {
-                errors[fieldName] = fieldErrors;
+                const value = formData.get(fieldName);
+                if (value && value.trim() !== '') {
+                    const fieldErrors = this.validateField(fieldName, value, usertype);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
                 }
-            }
             });
 
             fieldsToValidate.forEach(fieldName => {
-            const value = formData.get(fieldName);
-            if (value !== null) { // Only validate if field exists
-                const fieldErrors = this.validateField(fieldName, value, usertype);
-                if (fieldErrors.length > 0) {
-                errors[fieldName] = fieldErrors;
+                const value = formData.get(fieldName);
+                if (value !== null) { // Only validate if field exists
+                    const fieldErrors = this.validateField(fieldName, value, usertype);
+                    if (fieldErrors.length > 0) {
+                        errors[fieldName] = fieldErrors;
+                    }
                 }
-            }
             });
 
             return errors;
         },
 
         // Validate teams form
-        validateTeamsForm: function(formElement) {
+        validateTeamsForm: function (formElement) {
             const errors = {};
             const formData = new FormData(formElement);
 
@@ -1117,7 +1117,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Validate programs form
-        validateProgramsForm: function(formElement) {
+        validateProgramsForm: function (formElement) {
             const errors = {};
             const formData = new FormData(formElement);
 
@@ -1153,7 +1153,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Validate requirements form
-        validateRequirementsForm: function(formElement) {
+        validateRequirementsForm: function (formElement) {
             const errors = {};
             const formData = new FormData(formElement);
 
@@ -1243,7 +1243,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Display validation errors
-        displayErrors: function(errors) {
+        displayErrors: function (errors) {
             // Clear previous errors
             $('.validation-error').remove();
             $('.is-invalid').removeClass('is-invalid');
@@ -1259,8 +1259,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
         },
 
         // Real-time validation for individual fields
-        setupRealTimeValidation: function(formSelector) {
-            $(document).off('input.validation').on('input.validation', `${formSelector} input, ${formSelector} textarea`, function() {
+        setupRealTimeValidation: function (formSelector) {
+            $(document).off('input.validation').on('input.validation', `${formSelector} input, ${formSelector} textarea`, function () {
                 const field = $(this);
                 const fieldName = field.attr('name');
                 const value = field.val();
@@ -1287,7 +1287,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
     };
 
     // Setup real-time validation when modals are shown
-    $('#editModal, #addModal').on('shown.bs.modal', function() {
+    $('#editModal, #addModal').on('shown.bs.modal', function () {
         const formSelector = $(this).find('form').length > 0 ? $(this).find('form').eq(0).attr('id') : null;
         if (formSelector) {
             ValidationUtils.setupRealTimeValidation(`#${formSelector}`);
@@ -1317,7 +1317,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
 </div>
 
 <!-- Logout Confirmation Modal -->
-<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel"
+    aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
@@ -1392,7 +1393,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
     //     });
     // }
 
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Create toast container if it doesn't exist
         if (!$('#toastContainer').length) {
             $('body').append(
@@ -1400,7 +1401,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
         // EDIT START
         // Edit button functionality
-        $(document).off('click.editBtn').on('click.editBtn', '.edit-btn', function(e) {
+        $(document).off('click.editBtn').on('click.editBtn', '.edit-btn', function (e) {
             e.preventDefault();
 
             var table = $(this).data('table');
@@ -1425,7 +1426,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     id: id
                 },
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     console.log('Response data:', response)
                     if (response.success) {
                         var form = $('#editForm');
@@ -1455,7 +1456,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                 'gender', 'headline', 'bio'
                             ];
 
-                            fieldsToShow.forEach(function(key) {
+                            fieldsToShow.forEach(function (key) {
                                 var value = response.data[key] || '';
                                 var inputType = (key === 'email') ? 'email' : 'text';
                                 var label = key.replace('_', ' ').charAt(0)
@@ -1557,7 +1558,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             // Populate the programs dropdown
                             populateProgramDropdown($('#program_id'), response.data.program);
 
-                            $('#usertype').on('change', function() {
+                            $('#usertype').on('change', function () {
                                 if ($(this).val() == 2) {
                                     $('.area-expertise-field').show();
                                     $('.is-part-time-field').show();
@@ -1601,7 +1602,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             <div id="teamMembers">
                         `;
 
-                            response.data.members.forEach(function(member, index) {
+                            response.data.members.forEach(function (member, index) {
                                 formHtml += `
                                 <div class="mb-3 row team-member" data-user-id="${member.id}">
                                     <div class="col-sm-5">
@@ -1633,7 +1634,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             populateProgramDropdown($('#editForm #program_id'), response.data.program);
 
                             // Add team member functionality
-                            $('#addTeamMember').on('click', function() {
+                            $('#addTeamMember').on('click', function () {
                                 console.log('Add Team Member button clicked');
                                 addNewTeamMember();
                             });
@@ -1660,10 +1661,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             <input class="form-control" name="specialization" id="specialization" value="${d.specialization || ''}">
                           </div>`;
                             form.html(html);
-                            
+
                             // Add real-time validation for programs edit form using ValidationUtils
                             ValidationUtils.setupRealTimeValidation('#editForm');
-                            
+
                             $('#editModal').modal('show');
                         } else if (table === 'thesis_topics') {
                             var formHtml = `
@@ -1685,17 +1686,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             form.html(formHtml);
                         } else if (table === 'research_titles') {
                             // Filter teams: include current team and teams without research titles
-                            const availableTeams = response.teams.filter(team => 
+                            const availableTeams = response.teams.filter(team =>
                                 team.id == response.data.team_id || !team.has_research_title
                             );
-                            
+
                             var teamOptions = availableTeams.map(team => {
                                 const selected = team.id == response.data.team_id ? ' selected' : '';
-                                const label = team.id == response.data.team_id ? 
+                                const label = team.id == response.data.team_id ?
                                     `${team.name} (current)` : team.name;
                                 return `<option value="${team.id}"${selected}>${label}</option>`;
                             }).join('');
-                            
+
                             var formHtml = `
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
@@ -1729,51 +1730,110 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             // Populate the programs dropdown
                             populateProgramDropdown($('#program_id'), response.data.program_id);
                         } else if (table === 'env_variables') {
-                            var formHtml = `
-                            <input type="hidden" name="table" value="${table}">
-                            <input type="hidden" name="id" value="${id}">
-                            <div class="mb-3">
-                                <label for="key" class="form-label">Key</label>
-                                <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="value" class="form-label">Value</label>
-                                <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
-                            </div>
-                        `;
 
-                            // Handle special cases for DB_PASSWORD and MAIL_ENCRYPTION
-                            if (response.data.key === 'DB_PASSWORD' || response.data.key ===
-                                'MAIL_ENCRYPTION') {
+                            if (response.data.key === 'APP_LOGO_NAVBAR') {
+                                var formHtml = `
+                                <input type="hidden" name="table" value="${table}">
+                                <input type="hidden" name="id" value="${id}">
+                                <div class="mb-3">
+                                    <label for="key" class="form-label">Key</label>
+                                    <input type="text" class="form-control" id="key" name="key" value="${response.data.key}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="value" class="form-label">Upload Image</label>
+                                    <input type="file" class="form-control" id="value" name="value" accept="image/*" required>
+                                    <!-- Current image preview -->
+                                    <?php
+                                    if (defined('APP_LOGO_NAVBAR') && APP_LOGO_NAVBAR ) {
+                                        $logoPath = '../assets/images/' . APP_LOGO_NAVBAR;
+                                        echo '<img src="' . htmlspecialchars($logoPath) . '" alt="Current Image" class="img-thumbnail mt-2" style="max-width: 200px;">';
+                                    } else {
+                                        echo '<img src="../assets/images/" alt="Current Image" class="img-thumbnail mt-2" style="max-width: 200px;">';
+                                    }
+                                    ?>
+                                    <p class="form-text text-muted">Image will be saved to /assets/images/ and renamed automatically.</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    
+                                        <textarea class="form-control" id="description" name="description" rows="3"><?php if (!empty($response['data']['description'])): ?><?= htmlspecialchars($response['data']['description']) ?><?php endif; ?></textarea>
+                                    
+                                </div>
+                            `;
+                            } else if (response.data.key === 'APP_LOGO_FOOTER') {
+                                var formHtml = `
+                                <input type="hidden" name="table" value="${table}">
+                                <input type="hidden" name="id" value="${id}">
+                                <div class="mb-3">
+                                    <label for="key" class="form-label">Key</label>
+                                    <input type="text" class="form-control" id="key" name="key" value="${response.data.key}" readonly>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="value" class="form-label">Upload Image</label>
+                                    <input type="file" class="form-control" id="value" name="value" accept="image/*" required>
+                                    <!-- Current image preview -->
+                                    <?php
+                                    if (defined('APP_LOGO_FOOTER') && APP_LOGO_FOOTER) {
+                                        $logoPath = '../assets/images/' . APP_LOGO_FOOTER;
+                                        echo '<img src="' . htmlspecialchars($logoPath) . '" alt="Current Image" class="img-thumbnail mt-2" style="max-width: 200px;">';
+                                    } else {
+                                        echo '<img src="../assets/images/" alt="Current Image" class="img-thumbnail mt-2" style="max-width: 200px;">';
+                                    }
+                                    ?>
+                                    <p class="form-text text-muted">Image will be saved to /assets/images/ and renamed automatically.</p>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="description" class="form-label">Description</label>
+                                    
+                                        <textarea class="form-control" id="description" name="description" rows="3"><?php if (!empty($response['data']['description'])): ?><?= htmlspecialchars($response['data']['description']) ?><?php endif; ?></textarea>
+                                    
+                                </div>
+                            `;
+                            }
+
+                            // Handle special cases for MAIL_PASSWORD
+                            else if (response.data.key === 'MAIL_PASSWORD') {
                                 $('#value').val(''); // Clear the value field
                                 form.html(`
-                            <input type="hidden" name="table" value="${table}">
-                            <input type="hidden" name="id" value="${id}">
-                            <div class="mb-3">
-                                <label for="key" class="form-label">Key</label>
-                                <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="value" class="form-label">Value</label>
-                                <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
-                            </div>
-                            <div class="mb-3">
-                                <label for="old_value" class="form-label">Old Value</label>
-                                <input type="password" class="form-control" id="old_value" name="old_value" required>
-                            </div>
-                            <div class="mb-3">
-                                <label for="description" class="form-label">Description</label>
-                                <textarea class="form-control" id="description" name="description" rows="3">${response.data.description}</textarea>
-                            </div>
+                                    <input type="hidden" name="table" value="${table}">
+                                    <input type="hidden" name="id" value="${id}">
+                                    <div class="mb-3">
+                                        <label for="key" class="form-label">Key</label>
+                                        <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="value" class="form-label">Value</label>
+                                        <input type="text" class="form-control" id="value" name="value" value="">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="old_value" class="form-label">Old Value</label>
+                                        <input type="password" class="form-control" id="old_value" name="old_value" required>
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <textarea class="form-control" id="description" name="description" rows="3"><?php if (!empty($response['data']['description'])): ?><?= htmlspecialchars($response['data']['description']) ?><?php endif; ?></textarea>
+                                    </div>
 
-                        `);
+                                `);
                             } else {
-                                form.html(formHtml);
+                                var formHtml = `
+                                    <input type="hidden" name="table" value="${table}">
+                                    <input type="hidden" name="id" value="${id}">
+                                    <div class="mb-3">
+                                        <label for="key" class="form-label">Key</label>
+                                        <input type="text" class="form-control" id="key" name="key" value="${response.data.key}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="value" class="form-label">Value</label>
+                                        <input type="text" class="form-control" id="value" name="value" value="${response.data.value}">
+                                    </div>
+                                    <div class="mb-3">
+                                        <label for="description" class="form-label">Description</label>
+                                        <textarea class="form-control" id="description" name="description" rows="3"><?php if (!empty($response['data']['description'])): ?><?= htmlspecialchars($response['data']['description']) ?><?php endif; ?></textarea>
+                                    </div>
+                                `;
                             }
+                            form.html(formHtml);
                         } else if (table === 'defense_schedules') {
                             var formHtml = `
                             <input type="hidden" name="table" value="${table}">
@@ -1812,10 +1872,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
                             let panelistCount = 0; // Initialize panelist count
                             if (response.data.panelists && Array.isArray(response.data
-                                    .panelists)) {
+                                .panelists)) {
                                 panelistCount = response.data.panelists
                                     .length; // Get initial count
-                                response.data.panelists.forEach(function(panelist, index) {
+                                response.data.panelists.forEach(function (panelist, index) {
                                     // Ensure unique indices for names
                                     formHtml += `
                             <div class="mb-3 row panelist align-items-center" data-user-id="${panelist.id}">
@@ -1858,7 +1918,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             });
 
                             // Add time picker validation
-                            $('#start_time, #end_time').on('change', function() {
+                            $('#start_time, #end_time').on('change', function () {
                                 const startTime = $('#start_time').val();
                                 const endTime = $('#end_time').val();
 
@@ -1881,7 +1941,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     return;
                                 }
                                 const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
-                                $('#panelists .panelist select').each(function() {
+                                $('#panelists .panelist select').each(function () {
                                     const currentValue = $(this).val(); // Preserve current selection if possible
                                     $(this).html(optionsHtml);
                                     if (currentValue && staffList.find(staff => staff.id == currentValue)) {
@@ -1891,7 +1951,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             }
 
                             // Event listener for the team dropdown (for edit form)
-                            $('#team_id').on('change', function() {
+                            $('#team_id').on('change', function () {
                                 const teamId = $(this).val();
                                 if (teamId) {
                                     $.ajax({
@@ -1901,7 +1961,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                         data: {
                                             team_id: teamId
                                         },
-                                        success: function(staffData) {
+                                        success: function (staffData) {
                                             if (staffData.success && staffData.staff && Array.isArray(staffData.staff)) {
                                                 window.staffData = staffData.staff; // Update the global staff data
                                                 updatePanelistDropdowns(staffData.staff);
@@ -1910,7 +1970,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                                 showToast('Error', 'Unable to fetch panelists for this team.', 'error');
                                             }
                                         },
-                                        error: function() {
+                                        error: function () {
                                             showToast('Error', 'An error occurred while fetching panelists.', 'error');
                                         }
                                     });
@@ -1928,7 +1988,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             }
 
                             // Add panelist functionality (uses global addNewPanelist function)
-                            $('#addPanelist').on('click', function() {
+                            $('#addPanelist').on('click', function () {
                                 console.log(
                                     'Add Panelist button clicked in edit modal');
                                 addNewPanelist(window
@@ -1939,14 +1999,14 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             // Use event delegation on the form for dynamically added elements
                             form.off('click.removePanelist').on('click.removePanelist',
                                 '.remove-panelist',
-                                function() {
+                                function () {
                                     $(this).closest('.panelist').remove();
                                     // Check count and enable button if below limit
                                     if ($('#panelists .panelist').length < 3) {
                                         $('#addPanelist').prop('disabled', false);
                                     }
                                     // Re-index remaining panelists to ensure sequential names
-                                    $('#panelists .panelist').each(function(index) {
+                                    $('#panelists .panelist').each(function (index) {
                                         $(this).find('select').attr('name',
                                             `panelist_id[${index}]`);
                                         $(this).find('label.col-form-label').text(
@@ -1958,7 +2018,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
                             // Update dropdowns initially to disable selected options in other dropdowns
                             updatePanelistDropdowns();
-                            
+
                             // Add real-time validation for defense schedules edit form using ValidationUtils
                             ValidationUtils.setupRealTimeValidation('#editForm');
                         } else if (table === 'requirements') {
@@ -1994,7 +2054,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             ` : ''}
                         `;
                             form.html(formHtml);
-                            
+
                             // Add real-time validation for requirements edit form using ValidationUtils
                             ValidationUtils.setupRealTimeValidation('#editForm');
                         } else if (table === 'rubrics') {
@@ -2043,14 +2103,14 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             // JS: Call this when you need to load the instructors
                             function loadInstructors(selectedId) {
                                 fetch('includes/tabs/load_instructors.php', {
-                                        method: 'POST',
-                                        headers: {
-                                            'Content-Type': 'application/json'
-                                        },
-                                        body: JSON.stringify({
-                                            user_id: selectedId
-                                        })
+                                    method: 'POST',
+                                    headers: {
+                                        'Content-Type': 'application/json'
+                                    },
+                                    body: JSON.stringify({
+                                        user_id: selectedId
                                     })
+                                })
                                     .then(res => res.text())
                                     .then(html => {
                                         document.getElementById('user_id').innerHTML = html;
@@ -2114,7 +2174,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     <label for="day_of_week" class="form-label">Day of Week</label>
                                     <select class="form-select" id="day_of_week" name="day_of_week" required>
                                         <option value="">Select Day</option>
-                                        ${['Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'].map(day => `
+                                        ${['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'].map(day => `
                                             <option value="${day}"${d.day_of_week === day ? ' selected' : ''}>${day}</option>
                                         `).join('')}
                                     </select>
@@ -2168,7 +2228,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                                     <small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>
                                 </div>
                             `;
-                            
+
                             form.html(formHtml);
 
                             // 🎯 Now get the selected program in real-time (AFTER form is rendered)
@@ -2202,7 +2262,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         alert('Error: ' + response.message);
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('AJAX Error:', xhr.responseText);
                     alert('Error: Unable to fetch item details - ' + error);
                 }
@@ -2210,14 +2270,14 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // UPDATED: Edit form submission handler with debug logs
-        $(document).on('submit', '#editForm', function(e) {
+        $(document).on('submit', '#editForm', function (e) {
             e.preventDefault();
             // 🔹 Check native HTML5 validation first
 
             console.log('DEBUG: Edit form submit event triggered'); // <-- New debug log
             var formData = new FormData(this);
             var table = formData.get('table'); // Get table name from form data
-            
+
             // Apply comprehensive validation for users table
             if (table === 'users') {
                 const validationErrors = ValidationUtils.validateUserForm(this);
@@ -2248,10 +2308,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     return;
                 }
             }
-                // if (table != 'user_schedules' && !form.checkValidity() ) {
-                //     form.reportValidity(); // show browser validation messages
-                //     return; // stop here if invalid
-                // }
+            // if (table != 'user_schedules' && !form.checkValidity() ) {
+            //     form.reportValidity(); // show browser validation messages
+            //     return; // stop here if invalid
+            // }
             // Add validation for defense schedule times
             if (table === 'defense_schedules') {
                 const startTime = formData.get('start_time');
@@ -2283,104 +2343,104 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 processData: false,
                 contentType: false,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     console.log('DEBUG: Edit response received:', response);
                     if (response.success) {
                         showToast('Success', 'Item updated successfully', 'success');
                         $('#editModal').modal('hide');
-                        
+
                         // AJAX live update - refresh content without page reload
                         if (table === 'users') {
                             // For users tab, use the existing reloadCurrentView function
                             if (typeof window.reloadCurrentView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'programs') {
                             // For programs tab, use the programs-specific reload function
                             if (typeof window.reloadProgramsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadProgramsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'teams') {
                             // For teams tab, use the teams-specific reload function
                             if (typeof window.reloadCurrentTeamsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentTeamsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'research_titles') {
                             // For research titles tab, use the research titles-specific reload function
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentResearchTitlesView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'requirements') {
                             // For requirements tab, use the requirements-specific reload function
                             if (typeof window.reloadCurrentRequirementsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentRequirementsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'rubrics') {
                             // For rubrics tab, use the rubrics-specific reload function
                             if (typeof window.reloadCurrentRubricsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentRubricsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'defense_schedules') {
                             // For defense schedules tab, use the defense schedules-specific reload function
                             if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentDefenseSchedulesView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'env_variables') {
                             // For environment variables tab, use the env variables-specific reload function
                             if (typeof window.reloadCurrentEnvVariablesView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentEnvVariablesView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else {
                             // For other tables, use their specific reload functions or fallback to page reload
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 location.reload();
                             }, 1000);
                         }
@@ -2388,7 +2448,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         showToast('Error', response.message || 'Update failed', 'error');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('DEBUG: AJAX error in edit form:', xhr.responseText);
                     showToast('Error', 'Unable to update item: ' + error, 'error');
                 }
@@ -2396,7 +2456,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }); // Close $(document).on('submit', '#editForm', ...) handler
 
         // NEW: Connect the saveChanges button to trigger the edit form submission
-        $(document).on('click', '#saveEdit', function() { // Changed ID to match button in modal
+        $(document).on('click', '#saveEdit', function () { // Changed ID to match button in modal
             console.log('DEBUG: Save changes button clicked, triggering edit form submission');
             $('#editForm').submit();
         });
@@ -2404,7 +2464,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
         // ADD START
         // Add button functionality
-        $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function(e) {
+        $(document).off('click.addBtn').on('click.addBtn', '.add-btn', function (e) {
             e.preventDefault();
             var table = $(this).data('table');
             console.log('Main app: Add button clicked for table:', table);
@@ -2589,7 +2649,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     <input type="text" class="form-control" name="specialization" id="specialization">
                   </div>
                 `);
-                
+
                 // Add real-time validation for programs form using ValidationUtils
                 ValidationUtils.setupRealTimeValidation('#addForm');
                 $('#addModal').modal('show');
@@ -2670,7 +2730,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 populateProgramDropdown($('#program_id'));
 
                 // Add event listener for usertype change in add form
-                $('#addForm').on('change', '#usertype', function() {
+                $('#addForm').on('change', '#usertype', function () {
                     if ($(this).val() == 2) {
                         $('.area-expertise-field').show();
                         $('.is-part-time-field').show();
@@ -2705,17 +2765,17 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     url: 'includes/get_teams_and_staff.php',
                     method: 'GET',
                     dataType: 'json',
-                    success: function(data) {
+                    success: function (data) {
                         // Filter out teams that already have research titles
                         const availableTeams = data.teams.filter(team => !team.has_research_title);
-                        
+
                         var teamOptions = '';
                         if (availableTeams.length === 0) {
                             teamOptions = '<option value="" disabled>No teams available (all teams already have research titles)</option>';
                         } else {
                             teamOptions = availableTeams.map(team => `<option value="${team.id}">${team.name}</option>`).join('');
                         }
-                        
+
                         var formHtml = `
                             <div class="mb-3">
                                 <label for="team_id" class="form-label">Team Name</label>
@@ -2735,11 +2795,11 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             </div>
                         `;
                         $('#addForm').append(formHtml);
-                        
+
                         // Add real-time validation for research titles form using ValidationUtils
                         ValidationUtils.setupRealTimeValidation('#addForm');
                     },
-                    error: function() {
+                    error: function () {
                         showToast('Error', 'Unable to fetch teams data', 'error');
                         // Fallback to simple input field if AJAX fails
                         form.append('<div class="mb-3">' +
@@ -2754,7 +2814,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             '<input type="checkbox" class="form-check-input" id="approved" name="approved">' +
                             '<label class="form-check-label" for="approved">Approved</label>' +
                             '</div>');
-                            
+
                         // Add real-time validation for research titles form using ValidationUtils (fallback)
                         ValidationUtils.setupRealTimeValidation('#addForm');
                     }
@@ -2803,7 +2863,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 populateProgramDropdown($('#addForm #program_id'));
 
                 // Add team member functionality
-                $('#addTeamMember').on('click', function() {
+                $('#addTeamMember').on('click', function () {
                     console.log('Add Team Member button clicked');
                     addNewTeamMember();
                 });
@@ -2819,7 +2879,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<label for="created_by" class="form-label">Description</label>' +
                     '<input type="text" class="form-control" id="Description" name="description" required>' +
                     '</div>');
-                
+
                 // Add real-time validation for env_variables form using ValidationUtils
                 ValidationUtils.setupRealTimeValidation('#addForm');
             } else if (table === 'requirements') {
@@ -2840,7 +2900,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<label for="due_date" class="form-label">Due Date</label>' +
                     '<input type="date" class="form-control" id="due_date" name="due_date" required>' +
                     '</div>');
-                
+
                 // Add real-time validation for requirements form using ValidationUtils
                 ValidationUtils.setupRealTimeValidation('#addForm');
             } else if (table === 'evaluations') {
@@ -2865,15 +2925,15 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     '<input type="text" class="form-control" id="recommendation" name="recommendation" required>' +
                     '</div>');
             } else if (table === 'defense_schedules') {
-    $.ajax({
-        url: 'includes/get_teams_and_staff.php',
-        method: 'GET',
-        dataType: 'json',
-        success: function(data) {
-            // Store initial staff data for fallback or initial population
-            window.staffData = data.staff;
+                $.ajax({
+                    url: 'includes/get_teams_and_staff.php',
+                    method: 'GET',
+                    dataType: 'json',
+                    success: function (data) {
+                        // Store initial staff data for fallback or initial population
+                        window.staffData = data.staff;
 
-            var formHtml = `
+                        var formHtml = `
                 <input type="hidden" name="table" value="${table}">
                 <div class="mb-3">
                     <label for="schedule_date" class="form-label">Schedule Date</label>
@@ -2921,107 +2981,93 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 <button type="button" class="btn btn-secondary mt-2" id="addPanelist">Add Panelist</button>
             `;
 
-            form.html(formHtml);
+                        form.html(formHtml);
 
-            // Add real-time validation for defense schedules add form using ValidationUtils
-            ValidationUtils.setupRealTimeValidation('#addForm');
+                        // Add real-time validation for defense schedules add form using ValidationUtils
+                        ValidationUtils.setupRealTimeValidation('#addForm');
 
-            // Function to update all panelist dropdowns with new data
-            function updatePanelistDropdowns(staffList) {
-                const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
-                $('#panelists .panelist select').each(function() {
-                    $(this).html(optionsHtml);
-                });
-            }
-
-            // --- New Code for Dynamic Staff Loading ---
-            // Event listener for the team dropdown
-            $('#team_id').on('change', function() {
-                const teamId = $(this).val();
-                if (teamId) {
-                    $.ajax({
-                        url: 'includes/get_teams_and_staff.php',
-                        method: 'GET',
-                        dataType: 'json',
-                        data: {
-                            team_id: teamId
-                        },
-                        success: function(staffData) {
-                            if (staffData.success) {
-                                window.staffData = staffData.staff; // Update the global staff data
-                                updatePanelistDropdowns(staffData.staff);
-                            } else {
-                                showToast('Error', 'Unable to fetch panelists for this team.', 'error');
-                            }
-                        },
-                        error: function() {
-                            showToast('Error', 'An error occurred while fetching panelists.', 'error');
+                        // Function to update all panelist dropdowns with new data
+                        function updatePanelistDropdowns(staffList) {
+                            const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
+                            $('#panelists .panelist select').each(function () {
+                                $(this).html(optionsHtml);
+                            });
                         }
-                    });
-                } else {
-                    // If no team is selected, clear the panelist dropdowns
-                    $('#panelists .panelist select').html('');
-                }
-            });
 
-            // Initialize the date picker
-            $('.datepicker').datepicker({
-                format: 'yyyy-mm-dd',
-                multidate: false,
-                startDate: new Date(),
-                todayHighlight: true,
-                autoclose: true
-            });
+                        // --- New Code for Dynamic Staff Loading ---
+                        // Event listener for the team dropdown
+                        $('#team_id').on('change', function () {
+                            const teamId = $(this).val();
+                            if (teamId) {
+                                $.ajax({
+                                    url: 'includes/get_teams_and_staff.php',
+                                    method: 'GET',
+                                    dataType: 'json',
+                                    data: {
+                                        team_id: teamId
+                                    },
+                                    success: function (staffData) {
+                                        if (staffData.success) {
+                                            window.staffData = staffData.staff; // Update the global staff data
+                                            updatePanelistDropdowns(staffData.staff);
+                                        } else {
+                                            showToast('Error', 'Unable to fetch panelists for this team.', 'error');
+                                        }
+                                    },
+                                    error: function () {
+                                        showToast('Error', 'An error occurred while fetching panelists.', 'error');
+                                    }
+                                });
+                            } else {
+                                // If no team is selected, clear the panelist dropdowns
+                                $('#panelists .panelist select').html('');
+                            }
+                        });
 
-            // Add time picker validation
-            $('#start_time, #end_time').on('change', function() {
-                const startTime = $('#start_time').val();
-                const endTime = $('#end_time').val();
+                        // Initialize the date picker
+                        $('.datepicker').datepicker({
+                            format: 'yyyy-mm-dd',
+                            multidate: false,
+                            startDate: new Date(),
+                            todayHighlight: true,
+                            autoclose: true
+                        });
 
-                if (startTime && endTime && startTime >= endTime) {
-                    showToast('Error', 'End time must be after start time', 'error');
-                    $(this).val('');
-                }
-            });
+                        // Add time picker validation
+                        $('#start_time, #end_time').on('change', function () {
+                            const startTime = $('#start_time').val();
+                            const endTime = $('#end_time').val();
 
-            // Add panelist functionality
-            $('#addPanelist').on('click', function() {
-                addNewPanelist(window.staffData);
-            });
+                            if (startTime && endTime && startTime >= endTime) {
+                                showToast('Error', 'End time must be after start time', 'error');
+                                $(this).val('');
+                            }
+                        });
 
-            // Remove panelist functionality
-            $(document).on('click', '.remove-panelist', function() {
-                $(this).closest('.panelist').remove();
-                if ($('#panelists .panelist').length < 3) {
-                    $('#addPanelist').prop('disabled', false);
-                }
-                $('#panelists .panelist').each(function(index) {
-                    $(this).find('select').attr('name', `panelist_id[${index}]`);
-                    $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
+                        // Add panelist functionality
+                        $('#addPanelist').on('click', function () {
+                            addNewPanelist(window.staffData);
+                        });
+
+                        // Remove panelist functionality
+                        $(document).on('click', '.remove-panelist', function () {
+                            $(this).closest('.panelist').remove();
+                            if ($('#panelists .panelist').length < 3) {
+                                $('#addPanelist').prop('disabled', false);
+                            }
+                            $('#panelists .panelist').each(function (index) {
+                                $(this).find('select').attr('name', `panelist_id[${index}]`);
+                                $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
+                            });
+                            updatePanelistDropdowns(window.staffData);
+                        });
+
+                    },
+                    error: function () {
+                        showToast('Error', 'Unable to fetch teams and staff data', 'error');
+                    }
                 });
-                updatePanelistDropdowns(window.staffData);
-            });
-
-        },
-        error: function() {
-            showToast('Error', 'Unable to fetch teams and staff data', 'error');
-        }
-    });
-} else if (table === 'env_variables') {
-                form.append('<div class="mb-3">' +
-                    '<label for="key" class="form-label">Key</label>' +
-                    '<input type="text" class="form-control" id="key" name="key" placeholder="VARIABLE_NAME" required>' +
-                    '<div class="form-text">Use uppercase letters, numbers, and underscores only</div>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="value" class="form-label">Value</label>' +
-                    '<input type="text" class="form-control" id="value" name="value" placeholder="Enter value" required>' +
-                    '</div>' +
-                    '<div class="mb-3">' +
-                    '<label for="description" class="form-label">Description</label>' +
-                    '<textarea class="form-control" id="description" name="description" rows="3" placeholder="Optional description"></textarea>' +
-                    '</div>');
-} else {
+            } else {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Name</label>' +
                     '<input type="text" class="form-control" id="name" name="name" required>' +
@@ -3033,209 +3079,209 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // Add form submission handler
-        $(document).off('click.addItem').on('click.addItem', '#addItem', function(e) {
-    e.preventDefault();
-    console.log('Add item button clicked');
+        $(document).off('click.addItem').on('click.addItem', '#addItem', function (e) {
+            e.preventDefault();
+            console.log('Add item button clicked');
 
-    var form = $('#addForm')[0]; // get raw DOM element
+            var form = $('#addForm')[0]; // get raw DOM element
 
-    // Get table type to determine validation
-    var $form = $(form);
-    var table = $form.find('input[name="table"]').val();
+            // Get table type to determine validation
+            var $form = $(form);
+            var table = $form.find('input[name="table"]').val();
 
-    // Apply comprehensive validation for users table
-    if (table === 'users') {
-        const validationErrors = ValidationUtils.validateUserForm(form);
-        if (Object.keys(validationErrors).length > 0) {
-            ValidationUtils.displayErrors(validationErrors);
-            showToast('Error', 'Please fix the validation errors before submitting', 'error');
-            return;
-        }
-    } else if (table === 'teams') {
-        const validationErrors = ValidationUtils.validateTeamsForm(form);
-        if (Object.keys(validationErrors).length > 0) {
-            ValidationUtils.displayErrors(validationErrors);
-            showToast('Error', 'Please fix the validation errors before submitting', 'error');
-            return;
-        }
-    } else if (table === 'programs') {
-        const validationErrors = ValidationUtils.validateProgramsForm(form);
-        if (Object.keys(validationErrors).length > 0) {
-            ValidationUtils.displayErrors(validationErrors);
-            showToast('Error', 'Please fix the validation errors before submitting', 'error');
-            return;
-        }
-    } else if (table === 'requirements') {
-        const validationErrors = ValidationUtils.validateRequirementsForm(form);
-        if (Object.keys(validationErrors).length > 0) {
-            ValidationUtils.displayErrors(validationErrors);
-            showToast('Error', 'Please fix the validation errors before submitting', 'error');
-            return;
-        }
-    }
-
-    // 🔹 Check native HTML5 validation first
-    if (!form.checkValidity()) {
-        form.reportValidity(); // show browser validation messages
-        return; // stop here if invalid
-    }
-
-    var formData = new FormData(form); // form is already DOM node
-
-    // Your custom defense schedule validation
-    if (table === 'defense_schedules') {
-        const startTime = formData.get('start_time');
-        const endTime = formData.get('end_time');
-        const minTime = '07:00';
-        const maxTime = '20:30';
-
-        if (startTime < minTime || startTime > maxTime) {
-            showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
-            return;
-        }
-        if (endTime < minTime || endTime > maxTime) {
-            showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
-            return;
-        }
-        if (startTime >= endTime) {
-            showToast('Error', 'End time must be after start time.', 'error');
-            return;
-        }
-    }
-
-    $.ajax({
-        url: 'includes/add_items.php',
-        method: 'POST',
-        data: formData,
-        processData: false,
-        contentType: false,
-        dataType: 'json',
-        success: function(response) {
-            if (response.success) {
-                showToast('Success', 'Added successfully', 'success');
-                $('#addModal').modal('hide');
-                
-                // AJAX live update - refresh content without page reload
-                var table = $('#addForm input[name="table"]').val();
-                if (table === 'users') {
-                    // For users tab, use the existing reloadCurrentView function
-                    if (typeof window.reloadCurrentView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'programs') {
-                    // For programs tab, use the programs-specific reload function
-                    if (typeof window.reloadProgramsView === 'function') {
-                        setTimeout(function() {
-                            window.reloadProgramsView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'teams') {
-                    // For teams tab, use the teams-specific reload function
-                    if (typeof window.reloadCurrentTeamsView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentTeamsView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'research_titles') {
-                    // For research titles tab, use the research titles-specific reload function
-                    if (typeof window.reloadCurrentResearchTitlesView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentResearchTitlesView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'requirements') {
-                    // For requirements tab, use the requirements-specific reload function
-                    if (typeof window.reloadCurrentRequirementsView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentRequirementsView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'rubrics') {
-                    // For rubrics tab, use the rubrics-specific reload function
-                    if (typeof window.reloadCurrentRubricsView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentRubricsView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'defense_schedules') {
-                    // For defense schedules tab, use the defense schedules-specific reload function
-                    if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentDefenseSchedulesView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else if (table === 'env_variables') {
-                    // For environment variables tab, use the env variables-specific reload function
-                    if (typeof window.reloadCurrentEnvVariablesView === 'function') {
-                        setTimeout(function() {
-                            window.reloadCurrentEnvVariablesView(1);
-                        }, 500);
-                    } else {
-                        setTimeout(function() {
-                            location.reload();
-                        }, 1000);
-                    }
-                } else {
-                    // For other tables, use their specific reload functions or fallback to page reload
-                    setTimeout(function() {
-                        location.reload();
-                    }, 1000);
+            // Apply comprehensive validation for users table
+            if (table === 'users') {
+                const validationErrors = ValidationUtils.validateUserForm(form);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
                 }
-            } else {
-                showToast('Error', response.message || 'An unknown error occurred', 'error');
-            }
-        },
-        error: function(xhr, status, error) {
-            console.error('AJAX Error:', xhr.responseText);
-            let errorMessage = 'Unable to process your request. Please try again later.';
-            try {
-                const response = JSON.parse(xhr.responseText);
-                if (response && response.message) {
-                    errorMessage = response.message;
+            } else if (table === 'teams') {
+                const validationErrors = ValidationUtils.validateTeamsForm(form);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
                 }
-            } catch (e) {
-                console.error('Error parsing response:', e);
+            } else if (table === 'programs') {
+                const validationErrors = ValidationUtils.validateProgramsForm(form);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
+            } else if (table === 'requirements') {
+                const validationErrors = ValidationUtils.validateRequirementsForm(form);
+                if (Object.keys(validationErrors).length > 0) {
+                    ValidationUtils.displayErrors(validationErrors);
+                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    return;
+                }
             }
-            showToast('Error', errorMessage, 'error');
-        }
-    });
-});
-  // Close $(document).on('click', '#addItem', ...) handler
+
+            // 🔹 Check native HTML5 validation first
+            if (!form.checkValidity()) {
+                form.reportValidity(); // show browser validation messages
+                return; // stop here if invalid
+            }
+
+            var formData = new FormData(form); // form is already DOM node
+
+            // Your custom defense schedule validation
+            if (table === 'defense_schedules') {
+                const startTime = formData.get('start_time');
+                const endTime = formData.get('end_time');
+                const minTime = '07:00';
+                const maxTime = '20:30';
+
+                if (startTime < minTime || startTime > maxTime) {
+                    showToast('Error', 'Start time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return;
+                }
+                if (endTime < minTime || endTime > maxTime) {
+                    showToast('Error', 'End time must be between 7:00 AM and 8:30 PM.', 'error');
+                    return;
+                }
+                if (startTime >= endTime) {
+                    showToast('Error', 'End time must be after start time.', 'error');
+                    return;
+                }
+            }
+
+            $.ajax({
+                url: 'includes/add_items.php',
+                method: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                dataType: 'json',
+                success: function (response) {
+                    if (response.success) {
+                        showToast('Success', 'Added successfully', 'success');
+                        $('#addModal').modal('hide');
+
+                        // AJAX live update - refresh content without page reload
+                        var table = $('#addForm input[name="table"]').val();
+                        if (table === 'users') {
+                            // For users tab, use the existing reloadCurrentView function
+                            if (typeof window.reloadCurrentView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'programs') {
+                            // For programs tab, use the programs-specific reload function
+                            if (typeof window.reloadProgramsView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadProgramsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'teams') {
+                            // For teams tab, use the teams-specific reload function
+                            if (typeof window.reloadCurrentTeamsView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentTeamsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'research_titles') {
+                            // For research titles tab, use the research titles-specific reload function
+                            if (typeof window.reloadCurrentResearchTitlesView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentResearchTitlesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'requirements') {
+                            // For requirements tab, use the requirements-specific reload function
+                            if (typeof window.reloadCurrentRequirementsView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentRequirementsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'rubrics') {
+                            // For rubrics tab, use the rubrics-specific reload function
+                            if (typeof window.reloadCurrentRubricsView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentRubricsView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'defense_schedules') {
+                            // For defense schedules tab, use the defense schedules-specific reload function
+                            if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentDefenseSchedulesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else if (table === 'env_variables') {
+                            // For environment variables tab, use the env variables-specific reload function
+                            if (typeof window.reloadCurrentEnvVariablesView === 'function') {
+                                setTimeout(function () {
+                                    window.reloadCurrentEnvVariablesView(1);
+                                }, 500);
+                            } else {
+                                setTimeout(function () {
+                                    location.reload();
+                                }, 1000);
+                            }
+                        } else {
+                            // For other tables, use their specific reload functions or fallback to page reload
+                            setTimeout(function () {
+                                location.reload();
+                            }, 1000);
+                        }
+                    } else {
+                        showToast('Error', response.message || 'An unknown error occurred', 'error');
+                    }
+                },
+                error: function (xhr, status, error) {
+                    console.error('AJAX Error:', xhr.responseText);
+                    let errorMessage = 'Unable to process your request. Please try again later.';
+                    try {
+                        const response = JSON.parse(xhr.responseText);
+                        if (response && response.message) {
+                            errorMessage = response.message;
+                        }
+                    } catch (e) {
+                        console.error('Error parsing response:', e);
+                    }
+                    showToast('Error', errorMessage, 'error');
+                }
+            });
+        });
+        // Close $(document).on('click', '#addItem', ...) handler
         // ADD END
 
         // DELETE START
         // Delete button functionality
-        $(document).off('click.deleteBtn').on('click.deleteBtn', '.delete-btn', function(e) {
+        $(document).off('click.deleteBtn').on('click.deleteBtn', '.delete-btn', function (e) {
             e.preventDefault();
             var table = $(this).data('table');
             var id = $(this).data('id');
@@ -3255,7 +3301,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // Confirm Delete button functionality
-        $(document).off('click.confirmDelete').on('click.confirmDelete', '#confirmDelete', function() {
+        $(document).off('click.confirmDelete').on('click.confirmDelete', '#confirmDelete', function () {
             var table = $(this).data('table');
             var id = $(this).data('id');
 
@@ -3269,92 +3315,92 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     id: id
                 },
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('Success', 'Item deleted successfully', 'success');
                         $('#deleteConfirmModal').modal('hide');
-                        
+
                         // AJAX live update - refresh content without page reload
                         if (table === 'users') {
                             // For users tab, use the existing reloadCurrentView function
                             if (typeof window.reloadCurrentView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'programs') {
                             // For programs tab, use the programs-specific reload function
                             if (typeof window.reloadProgramsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadProgramsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'teams') {
                             // For teams tab, use the teams-specific reload function
                             if (typeof window.reloadCurrentTeamsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentTeamsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'research_titles') {
                             // For research titles tab, use the research titles-specific reload function
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentResearchTitlesView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'requirements') {
                             // For requirements tab, use the requirements-specific reload function
                             if (typeof window.reloadCurrentRequirementsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentRequirementsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'rubrics') {
                             // For rubrics tab, use the rubrics-specific reload function
                             if (typeof window.reloadCurrentRubricsView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentRubricsView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else if (table === 'defense_schedules') {
                             // For defense schedules tab, use the defense schedules-specific reload function
                             if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     window.reloadCurrentDefenseSchedulesView(1);
                                 }, 500);
                             } else {
-                                setTimeout(function() {
+                                setTimeout(function () {
                                     location.reload();
                                 }, 1000);
                             }
                         } else {
                             // For other tables, use their specific reload functions or fallback to page reload
-                            setTimeout(function() {
+                            setTimeout(function () {
                                 location.reload();
                             }, 1000);
                         }
@@ -3362,7 +3408,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         showToast('Error', response.message || 'Deletion failed', 'error');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('AJAX Error:', xhr.responseText);
                     showToast('Error', 'Unable to delete item: ' + error, 'error');
                 }
@@ -3372,7 +3418,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
         // BULK ADD STUDENT START
         // NEW: Add bulk row functionality
-        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function() {
+        $(document).off('click.addBulkRow').on('click.addBulkRow', '#addBulkRow', function () {
             let count = parseInt($('#rowCountInput').val()) || 1;
             for (let i = 0; i < count; i++) {
                 var rowCount = $('#bulkAddTable tbody tr').length;
@@ -3391,7 +3437,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // When the Bulk Add Modal is shown, insert the CSV download link if not already present
-        $('#bulkAddModal').on('shown.bs.modal', function() {
+        $('#bulkAddModal').on('shown.bs.modal', function () {
             if (!$(this).find('#downloadCsvTemplate').length) {
                 $(this).find('.modal-body').prepend(`
                     <div class="mb-3">
@@ -3403,7 +3449,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
         // Update Bulk Add Users CSV download handler
         $(document).off('click.downloadCsvTemplate').on('click.downloadCsvTemplate', '#downloadCsvTemplate',
-            function(e) {
+            function (e) {
                 e.preventDefault();
                 const csvContent = 'ID,Name,Program,No Username\\n';
                 const blob = new Blob([csvContent], {
@@ -3420,63 +3466,63 @@ function populateProgramDropdown(selectElement, selectedValue) {
             });
 
         // NEW: Bulk Add Students functionality
-        $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function(e) {
+        $(document).off('click.bulkAddBtn').on('click.bulkAddBtn', '.bulk-add-btn', function (e) {
             e.preventDefault();
             console.log('Bulk Add User button clicked');
             $('#bulkAddModal').modal('show');
         });
 
         // Handle Bulk Add Form Submission
-    $(document).off('submit.bulkAddForm').on('submit.bulkAddForm', '#bulkAddForm', function(e) {
-        e.preventDefault();
+        $(document).off('submit.bulkAddForm').on('submit.bulkAddForm', '#bulkAddForm', function (e) {
+            e.preventDefault();
 
-        let formData = new FormData(this); // Grab all form inputs
+            let formData = new FormData(this); // Grab all form inputs
 
-        $.ajax({
-            url: 'includes/bulk_add_users.php', // Path to backend PHP
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            dataType: 'json',
-            beforeSend: function() {
-                $('#bulkAddStatus').html('<div class="alert alert-info">Processing...</div>');
-            },
-            success: function(response) {
-                if (response.success) {
-                    $('#bulkAddStatus').html(`
+            $.ajax({
+                url: 'includes/bulk_add_users.php', // Path to backend PHP
+                type: 'POST',
+                data: formData,
+                contentType: false,
+                processData: false,
+                dataType: 'json',
+                beforeSend: function () {
+                    $('#bulkAddStatus').html('<div class="alert alert-info">Processing...</div>');
+                },
+                success: function (response) {
+                    if (response.success) {
+                        $('#bulkAddStatus').html(`
                         <div class="alert alert-success">
                             ${response.message}<br>
                             Processed: ${response.processed_count} | Inserted: ${response.inserted_count}
                         </div>
                     `);
-                    $('#bulkAddModal').modal('hide');
-                    location.reload(); // Reload to reflect changes
-                } else {
-                    $('#bulkAddStatus').html(`
+                        $('#bulkAddModal').modal('hide');
+                        location.reload(); // Reload to reflect changes
+                    } else {
+                        $('#bulkAddStatus').html(`
                         <div class="alert alert-danger">
                             ${response.message}
                         </div>
                     `);
-                }
-            },
-            error: function(xhr, status, error) {
-                $('#bulkAddStatus').html(`
+                    }
+                },
+                error: function (xhr, status, error) {
+                    $('#bulkAddStatus').html(`
                     <div class="alert alert-danger">
                         🚨 An error occurred: ${error}
                     </div>
                 `);
-            }
+                }
+            });
         });
-    });
 
         // BULK ADD STUDENT END
 
         // NEW: Bulk Add Teams functionality
-        
+
 
         // BULK ADD TEAMS START
-        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function() {
+        $(document).off('click.addBulkTeamsRow').on('click.addBulkTeamsRow', '#addBulkTeamsRow', function () {
             let count = parseInt($('#teamsRowCountInput').val()) || 1;
             for (let i = 0; i < count; i++) {
                 var rowCount = $('#bulkAddTeamsTable tbody tr').length;
@@ -3492,7 +3538,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
             }
         });
 
-        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function(e) {
+        $(document).off('submit.bulkAddTeamsForm').on('submit.bulkAddTeamsForm', '#bulkAddTeamsForm', function (e) {
             e.preventDefault();
             console.log('Bulk Add Teams form submitted');
 
@@ -3512,11 +3558,11 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 processData: false,
                 contentType: false,
                 dataType: 'json',
-                success: function(response) {
+                success: function (response) {
                     if (response.success) {
                         showToast('Success', 'Teams added successfully', 'success');
                         $('#bulkAddTeamsModal').modal('hide');
-                        setTimeout(function() {
+                        setTimeout(function () {
                             location.reload();
                         }, 2000);
                     } else {
@@ -3526,7 +3572,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             'error');
                     }
                 },
-                error: function(xhr, status, error) {
+                error: function (xhr, status, error) {
                     console.error('AJAX Error:', xhr.responseText);
                     // User-friendly error message
                     let errorMessage =
@@ -3544,23 +3590,23 @@ function populateProgramDropdown(selectElement, selectedValue) {
             });
         });
 
-        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function(e) {
+        $(document).off('click.bulkAddTeamsBtn').on('click.bulkAddTeamsBtn', '.bulk-add-teams-btn', function (e) {
             e.preventDefault();
             console.log('Bulk Add Teams button clicked');
             $('#bulkAddTeamsModal').modal('show');
         });
-        
+
         // BULK ADD TEAMS END
 
         // Event handler for preset buttons in area of expertise fields
-        $(document).on('click', '.area-option', function(e) {
+        $(document).on('click', '.area-option', function (e) {
             e.preventDefault();
             var presetValue = $(this).data('value');
             $(this).closest('.input-group').find('input[name="area_of_expertise"]').val(presetValue);
         });
 
         // Event handler for preset buttons in program fields
-        $(document).on('click', '.program-option', function(e) {
+        $(document).on('click', '.program-option', function (e) {
             e.preventDefault();
             var presetValue = $(this).data('value');
             $(this).closest('.input-group').find('input[name="program"]').val(presetValue);
@@ -3570,7 +3616,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         const mainContent = $('#mainContent');
         const toggleButton = $('#toggleSidebar');
 
-        toggleButton.on('click', function() {
+        toggleButton.on('click', function () {
             sidebarContainer.toggleClass('collapsed');
             mainContent.toggleClass('expanded');
             toggleButton.toggleClass('collapsed');
@@ -3586,7 +3632,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         // Handle window resize
-        $(window).on('resize', function() {
+        $(window).on('resize', function () {
             if (window.innerWidth <= 768) {
                 mainContent.addClass('expanded');
             } else {
@@ -3604,15 +3650,15 @@ function populateProgramDropdown(selectElement, selectedValue) {
         if (!$panelistContainer.length) return; // Exit if no panelist container found
 
         var selectedIds = [];
-        $panelistContainer.find('.panelist select').each(function() {
+        $panelistContainer.find('.panelist select').each(function () {
             var val = $(this).val();
             if (val) selectedIds.push(val);
         });
 
-        $panelistContainer.find('.panelist select').each(function() {
+        $panelistContainer.find('.panelist select').each(function () {
             var $select = $(this);
             var currentVal = $select.val();
-            $select.find('option').each(function() {
+            $select.find('option').each(function () {
                 var $opt = $(this);
                 if ($opt.val() && $opt.val() !== currentVal && selectedIds.includes($opt.val())) {
                     $opt.prop('disabled', true);
@@ -3637,7 +3683,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         }
 
         // Determine the next index based on existing panelists in this modal
-        var currentIndices = $panelistContainer.find('.panelist select').map(function() {
+        var currentIndices = $panelistContainer.find('.panelist select').map(function () {
             var name = $(this).attr('name');
             var match = name.match(/\[(\d+)\]/);
             return match ? parseInt(match[1], 10) : -1;
@@ -3674,10 +3720,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
 
     // Optionally, update existing panelist entries to have unique indices on modal show
-    $('#editModal, #addModal').on('shown.bs.modal', function() {
+    $('#editModal, #addModal').on('shown.bs.modal', function () {
         var $panelistContainer = $(this).find('#panelists');
         if ($panelistContainer.length) {
-            $panelistContainer.find('.panelist').each(function(index) {
+            $panelistContainer.find('.panelist').each(function (index) {
                 $(this).find('select').attr('name', `panelist_id[${index}]`);
                 $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
             });
@@ -3702,12 +3748,12 @@ function populateProgramDropdown(selectElement, selectedValue) {
 
         // Get the current team ID if editing (for excluding current members)
         var teamId = $modal.find('input[name="id"]').val() || 0;
-        
+
         $.ajax({
             url: 'includes/get_available_users.php?team_id=' + teamId,
             method: 'GET',
             dataType: 'json',
-            success: function(users) {
+            success: function (users) {
                 var $modal = $('.modal.show'); // Target the current modal
                 var $teamMembersContainer = $modal.find('#teamMembers');
 
@@ -3733,27 +3779,27 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         <select class="form-select user-select" name="new_user_id[]" style="display:block;">
                             <option value="">Select a user</option>
                             ${users.map(user => {
-                                // Add usertype indicator and filter logic
-                                let userTypeLabel = '';
-                                let isAppropriateForRole = true;
-                                
-                                if (user.usertype == 0) {
-                                    userTypeLabel = ' (Program Chair)';
-                                } else if (user.usertype == 1) {
-                                    userTypeLabel = ' (Student)';
-                                } else if (user.usertype == 2) {
-                                    userTypeLabel = ' (Staff/Professor)';
-                                } else {
-                                    userTypeLabel = ' (Other)';
-                                    isAppropriateForRole = false;
-                                }
-                                
-                                // Only show appropriate users
-                                if (isAppropriateForRole) {
-                                    return `<option value="${user.id}" data-usertype="${user.usertype}">${user.first_name} ${user.last_name}${userTypeLabel}</option>`;
-                                }
-                                return '';
-                            }).filter(option => option !== '').join('')}
+                    // Add usertype indicator and filter logic
+                    let userTypeLabel = '';
+                    let isAppropriateForRole = true;
+
+                    if (user.usertype == 0) {
+                        userTypeLabel = ' (Program Chair)';
+                    } else if (user.usertype == 1) {
+                        userTypeLabel = ' (Student)';
+                    } else if (user.usertype == 2) {
+                        userTypeLabel = ' (Staff/Professor)';
+                    } else {
+                        userTypeLabel = ' (Other)';
+                        isAppropriateForRole = false;
+                    }
+
+                    // Only show appropriate users
+                    if (isAppropriateForRole) {
+                        return `<option value="${user.id}" data-usertype="${user.usertype}">${user.first_name} ${user.last_name}${userTypeLabel}</option>`;
+                    }
+                    return '';
+                }).filter(option => option !== '').join('')}
                         </select>
                         <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
                         <a href="#" class="toggle-input">Switch to manual</a>
@@ -3768,7 +3814,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 // Add event listeners
                 var $newMember = $teamMembersContainer.find('.team-member').last();
 
-                $newMember.find('.toggle-input').on('click', function(e) {
+                $newMember.find('.toggle-input').on('click', function (e) {
                     e.preventDefault();
                     var $select = $(this).siblings('.user-select');
                     var $input = $(this).siblings('.new-username-input');
@@ -3787,12 +3833,12 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 $newMember.find('.new-username-input').prop('disabled', true);
 
                 // Add change listeners for role and user selection
-                $newMember.find('.role-select').on('change', function() {
+                $newMember.find('.role-select').on('change', function () {
                     updateUserDropdownForRole($(this));
                     updateTeamMemberDropdowns();
                 });
 
-                $newMember.find('.user-select').on('change', function() {
+                $newMember.find('.user-select').on('change', function () {
                     updateTeamMemberDropdowns();
                 });
 
@@ -3805,7 +3851,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                     $modal.find('#addTeamMember').prop('disabled', true);
                 }
             },
-            error: function(jqXHR, textStatus, errorThrown) {
+            error: function (jqXHR, textStatus, errorThrown) {
                 showToast('Error', 'Error loading users', 'error');
             }
         });
@@ -3819,7 +3865,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
             member: 0
         };
 
-        $container.find('.team-member').each(function() {
+        $container.find('.team-member').each(function () {
             var role = $(this).find('select[name*="role"]').val() || $(this).find('select[name*="member_role"]').val();
             if (role && count.hasOwnProperty(role)) {
                 count[role]++;
@@ -3868,13 +3914,13 @@ function populateProgramDropdown(selectElement, selectedValue) {
     function filterUsersByRole(roleSelect) {
         const selectedRole = roleSelect.value;
         const userSelect = $(roleSelect).closest('.team-member').find('.user-select');
-        
+
         // Show/hide options based on role requirements
-        userSelect.find('option').each(function() {
+        userSelect.find('option').each(function () {
             const option = $(this);
             const usertype = option.data('usertype');
             let shouldShow = true;
-            
+
             if (selectedRole === 'adviser') {
                 // For adviser role, only show staff (2) and program chairs (0)
                 shouldShow = usertype == 2 || usertype == 0;
@@ -3882,7 +3928,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                 // For leader/member roles, primarily show students (1), but allow others too
                 shouldShow = true; // Allow all for flexibility
             }
-            
+
             if (shouldShow) {
                 option.show();
             } else {
@@ -3902,7 +3948,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         var $userSelect = $roleSelect.closest('.team-member').find('.user-select');
         var $options = $userSelect.find('option');
 
-        $options.each(function() {
+        $options.each(function () {
             var $option = $(this);
             var usertype = $option.data('usertype');
 
@@ -3952,7 +3998,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
         var selectedUserIds = [];
 
         // Collect all selected user IDs
-        $container.find('.team-member').each(function() {
+        $container.find('.team-member').each(function () {
             var userId = $(this).find('.user-select').val();
             if (userId) {
                 selectedUserIds.push(userId);
@@ -3960,11 +4006,11 @@ function populateProgramDropdown(selectElement, selectedValue) {
         });
 
         // Update each dropdown
-        $container.find('.team-member').each(function() {
+        $container.find('.team-member').each(function () {
             var $currentSelect = $(this).find('.user-select');
             var currentValue = $currentSelect.val();
 
-            $currentSelect.find('option').each(function() {
+            $currentSelect.find('option').each(function () {
                 var $option = $(this);
                 var optionValue = $option.val();
 
@@ -3978,7 +4024,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
     }
 
     // Remove team member functionality (works for both edit and add modals)
-    $(document).on('click', '.remove-member', function() {
+    $(document).on('click', '.remove-member', function () {
         var teamMember = $(this).closest('.team-member');
         var userId = teamMember.data('user-id'); // Only set for existing members in edit form
         var teamId = $('.modal.show').find('input[name="id"]').val(); // Get team ID from the current modal
@@ -3993,7 +4039,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                         team_id: teamId
                     },
                     dataType: 'json',
-                    success: function(response) {
+                    success: function (response) {
                         if (response.success) {
                             teamMember.remove();
                             showToast('Success', 'Team member removed successfully', 'success');
@@ -4007,7 +4053,7 @@ function populateProgramDropdown(selectElement, selectedValue) {
                             showToast('Error', response.message || 'Failed to remove member', 'error');
                         }
                     },
-                    error: function() {
+                    error: function () {
                         showToast('Error', 'Unable to remove team member via AJAX', 'error');
                     }
                 });
@@ -4043,8 +4089,8 @@ function populateProgramDropdown(selectElement, selectedValue) {
         const icon = type === 'success' ?
             `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
             type === 'error' ?
-            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
-            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
+                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
 
         const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
         const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
@@ -4078,36 +4124,36 @@ function populateProgramDropdown(selectElement, selectedValue) {
         toastElement.show();
 
         // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function() {
+        $(`#${toastId}`).on('hidden.bs.toast', function () {
             $(this).remove();
         });
     }
     // Logout confirmation modal trigger for dashboard and home sidebars
-    $(document).ready(function() {
+    $(document).ready(function () {
         // Dashboard sidebar logout
-        $(document).on('click', '#dashboardLogoutBtn', function(e) {
+        $(document).on('click', '#dashboardLogoutBtn', function (e) {
             e.preventDefault();
             $('#logoutConfirmModal').modal('show');
         });
         // Home sidebar logout
-        $(document).on('click', '#homeLogoutBtn', function(e) {
+        $(document).on('click', '#homeLogoutBtn', function (e) {
             e.preventDefault();
             $('#logoutConfirmModal').modal('show');
         });
-        
+
         // Profile dropdown menu functionality
-        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile"]', function(e) {
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile"]', function (e) {
             e.preventDefault();
             window.location.href = '../profile';
         });
-        
-        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile-edit"]', function(e) {
+
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item[href="../profile-edit"]', function (e) {
             e.preventDefault();
             window.location.href = '../profile-edit';
         });
-        
+
         // dropdown closes properly after clicking links
-        $(document).on('click', '.profile-dropdown-menu .dropdown-item', function() {
+        $(document).on('click', '.profile-dropdown-menu .dropdown-item', function () {
             $('.profile-dropdown-container').removeClass('show');
             $('.profile-dropdown-menu').removeClass('show');
         });
@@ -4124,8 +4170,10 @@ function populateProgramDropdown(selectElement, selectedValue) {
             </div>
             <div class="modal-body text-center">
                 <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
                     </svg>
                 </div>
                 <h4 class="fw-bold mb-3" id="deleteConfirmModalLabel">Confirm Deletion</h4>

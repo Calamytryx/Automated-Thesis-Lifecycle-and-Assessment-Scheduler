@@ -81,6 +81,57 @@ function handleRequirementTemplateUpload($file) {
         return ['success' => false, 'error' => 'Failed to upload file'];
     }
 }
+
+    if ($table === 'env_variables' && isset($_FILES['value']) && $_FILES['value']['error'] === UPLOAD_ERR_OK) {
+    // fetch current record
+    $stmt = $pdo->prepare("SELECT value FROM env_variables WHERE id = ?");
+    $stmt->execute([$id]);
+    $oldFile = $stmt->fetchColumn();
+
+    // Remove old file if exists
+    if ($oldFile && file_exists('../assets/images/' . $oldFile)) {
+        unlink('../assets/images/' . $oldFile);
+    }
+
+    // Upload directory (already exists, no mkdir)
+    $uploadDir = $_SERVER['DOCUMENT_ROOT'].'/assets/images/';
+
+
+    // Get file extension
+    $extension = strtolower(pathinfo($_FILES['value']['name'], PATHINFO_EXTENSION));
+    if (!$extension) {
+        $response['message'] = 'Missing file extension.';
+        echo json_encode($response);
+        exit;
+    }
+
+    // Validate file type (by MIME)
+    $allowedTypes = ['image/png', 'image/jpeg', 'image/jpg', 'image/gif', 'image/svg+xml', 'image/webp'];
+    $mimeType = mime_content_type($_FILES['value']['tmp_name']);
+    if (!in_array($mimeType, $allowedTypes)) {
+        $response['message'] = 'Invalid file type.';
+        echo json_encode($response);
+        exit;
+    }
+
+    // Generate new unique filename
+    $newFileName = uniqid('img_', true) . '.' . $extension;
+
+    // Move uploaded file
+    $targetPath = $uploadDir . $newFileName;
+    if (move_uploaded_file($_FILES['value']['tmp_name'], $targetPath)) {
+        // Update DB
+        $data['value'] = $newFileName;
+        $data['description'] = $_POST['description'] ?? '';
+    } else {
+        $response['message'] = 'Failed to move uploaded file.';
+        echo json_encode($response);
+        exit;
+    }
+}
+
+
+
     // Special file upload handling for requirements
     if ($table === 'requirements' && isset($_FILES['template_file']) && $_FILES['template_file']['error'] === UPLOAD_ERR_OK) {
         // Remove old file if exists

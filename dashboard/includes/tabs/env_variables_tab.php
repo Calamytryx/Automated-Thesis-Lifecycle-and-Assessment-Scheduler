@@ -439,7 +439,7 @@
                     initializeContentTypeDropdown();
                     
                     if (showToast) {
-                        showToast('Success', 'Environment variables updated successfully', 'success');
+                        //showToast('Success', 'Environment variables updated successfully', 'success');
                     }
                     
                     console.log('Environment variables view reloaded successfully');
@@ -594,7 +594,7 @@
                         valueInput.placeholder = 'Enter new password or leave blank to keep unchanged';
                     } else {
                         // Ensure it's text for non-password fields
-                        valueInput.setAttribute('type', 'text');
+                        //valueInput.setAttribute('type', 'text');
                     }
                 }
             });
