@@ -78,6 +78,13 @@ check_logged_out();
                                 <button class="btn btn-primary w-100" type="submit" value="resentsend" name="resentsend">
                                     Send Activation Link
                                 </button>
+                                <p class="mt-2 mb-0 text-muted text-center">
+                                    <small>
+                                        If you don't receive the email, please check your spam folder.
+                                    </small>
+                                    <br>
+                                    <a href="../" class="login-register-a">Go back</a>
+                                </p>
                                 <!-- <p class="mt-4 mb-3 text-muted text-center">
                                     <a href="https://github.com/msaad1999/PHP-Login-System" target="_blank">
                                         Login System
