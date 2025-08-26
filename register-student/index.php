@@ -63,7 +63,7 @@ $rest_of_name = substr($app_name, 1);
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="username">Username</label>
-                                            <input type="text" id="username_display" class="form-control" placeholder="Username" required disabled>
+                                            <input type="text" id="username_display" class="form-control" placeholder="Username" required disabled style="text-transform: lowercase;" oninput="this.value = this.value.toLowerCase();">
                                             <input type="hidden" id="username" name="username" value="">
                                             <sub class="text-danger">
                                                 <?php
@@ -77,7 +77,7 @@ $rest_of_name = substr($app_name, 1);
                                         <div class="form-group">
                                             <label for="email">Email address</label>
                                             <div class="input-group">
-                                                <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required autofocus>
+                                                <input type="text" id="email" name="email" class="form-control" placeholder="Email address" required autofocus style="text-transform: lowercase;" oninput="this.value = this.value.toLowerCase();">
                                                 <span class="input-group-text">@lpunetwork.edu.ph</span>
                                             </div>
                                             <sub class="text-danger">
@@ -117,35 +117,41 @@ $rest_of_name = substr($app_name, 1);
                                     </div>
                                 </div>
                                 <div class="row">
-                                    <div class="col-md-6">
-                                        <div class="form-group">
-                                            <label for="program">Program</label>
-                                            <select id="program" name="program" class="form-control" required>
-                                                <option value="" disabled selected>Select Program</option>
-                                                <?php
-                                                try {
-                                                    $pdo->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
-                                                    $stmt = $pdo->query("SELECT DISTINCT name FROM programs ORDER BY name ASC");
-                                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                                        echo '<option value="' . htmlspecialchars($row['name']) . '">' . htmlspecialchars($row['name']) . '</option>';
-                                                    }
-                                                } catch (PDOException $e) {
-                                                    echo '<option disabled>Error loading programs</option>';
-                                                }
-                                                ?>
-                                            </select>
+                                    <div class="col-md-12">
+                                        <div class="card mb-3">
+                                            <div class="card-body">
+                                                <div class="form-group" id="college-group">
+                                                    <label for="college" class="font-weight-bold">College</label>
+                                                    <select id="college" name="college" class="form-control" required>
+                                                        <option value="" disabled selected>Select College</option>
+                                                        <?php
+                                                        try {
+                                                            $stmt = $pdo->query("SELECT DISTINCT college FROM programs ORDER BY college ASC");
+                                                            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                                                echo '<option value="' . htmlspecialchars($row['college']) . '">' . htmlspecialchars($row['college']) . '</option>';
+                                                            }
+                                                        } catch (PDOException $e) {
+                                                            echo '<option disabled>Error loading colleges</option>';
+                                                        }
+                                                        ?>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group" id="program-group" style="display: none;">
+                                                    <label for="program" class="font-weight-bold">Program</label>
+                                                    <select id="program" name="program" class="form-control" required>
+                                                        <option value="" disabled selected>Select Program</option>
+                                                    </select>
+                                                </div>
+                                                <div class="form-group" id="specialization-group" style="display: none;">
+                                                    <label for="specialization" class="font-weight-bold">Specialization</label>
+                                                    <select id="specialization" name="specialization" class="form-control">
+                                                        <option value="" disabled selected>Select Specialization</option>
+                                                    </select>
+                                                </div>
+                                                <button type="button" id="changeCollegeBtn" class="btn btn-secondary btn-block w-100 mt-2 p-0">Change College</button>
+                                            </div>
                                         </div>
                                     </div>
-                                    <div class="col-md-6">
-                                        <div class="form-group" id="specialization-group" style="display: none;">
-                                            <label for="specialization">Specialization</label>
-                                            <select id="specialization" name="specialization" class="form-control">
-                                                <!-- Options will be populated by JavaScript -->
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="row">
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="year">Year Level</label>
@@ -162,7 +168,7 @@ $rest_of_name = substr($app_name, 1);
                                     <div class="col-md-6">
                                         <div class="form-group">
                                             <label for="section" >Section</label>
-                                            <input type="text" id="section" name="section" class="form-control" placeholder="Section" required>
+                                            <input type="text" id="section" name="section" class="form-control text-uppercase" placeholder="Section" required oninput="this.value = this.value.toUpperCase();">
                                         </div>
                                     </div>
                                 </div>
@@ -299,11 +305,58 @@ $rest_of_name = substr($app_name, 1);
             $('#mainFields').show();
         }
     });
+    // Hide program and specialization initially
+    $('#program-group').hide();
+    $('#specialization-group').hide();
+
+    $('#college').change(function() {
+        var collegeName = $(this).val();
+        if (collegeName) {
+            $.ajax({
+                url: 'includes/get_programs_by_college.php',
+                type: 'GET',
+                data: { college: collegeName },
+                dataType: 'json',
+                success: function(programs) {
+                    var programSelect = $('#program');
+                    programSelect.empty();
+                    if (programs.length > 0) {
+                        programSelect.append('<option value="" disabled selected>Select Program</option>');
+                        $.each(programs, function(index, item) {
+                            programSelect.append($('<option>', {
+                                value: item.name,
+                                text: item.name
+                            }));
+                        });
+                        $('#college-group').hide();
+                        $('#program-group').show();
+                    } else {
+                        $('#program-group').hide();
+                    }
+                    $('#specialization-group').hide();
+                    $('#specialization').empty();
+                },
+                error: function() {
+                    $('#program-group').hide();
+                    $('#specialization-group').hide();
+                    $('#specialization').empty();
+                }
+            });
+        }
+    });
+
+    $('#changeCollegeBtn').click(function() {
+        $('#program-group').hide();
+        $('#specialization-group').hide();
+        $('#specialization').empty();
+        $('#college-group').show();
+        $('#college').val('');
+    });
+
     $('#program').change(function() {
         var programName = $(this).val();
         var specializationGroup = $('#specialization-group');
         var specializationSelect = $('#specialization');
-
         if (programName) {
             $.ajax({
                 url: 'includes/get_specializations.php',
@@ -335,4 +388,91 @@ $rest_of_name = substr($app_name, 1);
             specializationSelect.empty();
         }
     });
+</script>
+
+<script>
+function showValidationErrors(errors) {
+    let errorBox = document.getElementById('formValidationErrors');
+    if (!errorBox) {
+        errorBox = document.createElement('div');
+        errorBox.id = 'formValidationErrors';
+        errorBox.className = 'alert alert-danger mt-3';
+        document.querySelector('.form-auth').prepend(errorBox);
+    }
+    if (errors.length > 0) {
+        errorBox.innerHTML = errors.map(e => `<div>${e}</div>`).join('');
+        errorBox.style.display = 'block';
+    } else {
+        errorBox.innerHTML = '';
+        errorBox.style.display = 'none';
+    }
+}
+
+// Limit first/last name input to 50 chars and allow only letters and single spaces between words
+function nameInputLimiter(e) {
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z ]+/g, '');
+    value = value.replace(/\s{2,}/g, ' ');
+    value = value.replace(/^\s+|\s+$/g, '');
+    if (value.length > 50) value = value.substring(0, 50);
+    e.target.value = value;
+}
+
+document.getElementById('first_name').addEventListener('input', nameInputLimiter);
+document.getElementById('last_name').addEventListener('input', nameInputLimiter);
+
+function validateFormFields() {
+    let errors = [];
+    const email = document.getElementById('email').value.trim();
+    const emailPattern1 = /^\d{4}-\d-\d{5}$/;
+    const emailPattern2 = /^[a-zA-Z]+\.[a-zA-Z]+$/;
+    if (!emailPattern1.test(email) && !emailPattern2.test(email)) {
+        errors.push("Email must be in 20XX-X-XXXXX or name.surname format.");
+    }
+    const firstName = document.getElementById('first_name').value.trim();
+    const lastName = document.getElementById('last_name').value.trim();
+    const namePattern = /^([a-zA-Z]{2,})( [a-zA-Z]{2,})*$/;
+    if (!namePattern.test(firstName) || firstName.length > 50) {
+        errors.push("First name must be up to 50 letters, words separated by single space, each word at least 2 letters.");
+    }
+    if (!namePattern.test(lastName) || lastName.length > 50) {
+        errors.push("Last name must be up to 50 letters, words separated by single space, each word at least 2 letters.");
+    }
+    const year = document.getElementById('year').value;
+    if (!/^[1-5]{1}$/.test(year)) {
+        errors.push("Year must be a digit from 1 to 5.");
+    }
+    const section = document.getElementById('section').value.trim();
+    if (!/^[A-Za-z]+[0-9]+$/.test(section) || section.length > 10) {
+        errors.push("Section must start with letters, end with numbers, and be max 10 alphanumeric characters.");
+    }
+    const specializationGroup = document.getElementById('specialization-group');
+    if (specializationGroup.style.display !== 'none') {
+        const specialization = document.getElementById('specialization').value;
+        if (!specialization) {
+            errors.push("Specialization is required for this program.");
+        }
+    }
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmpassword').value;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\|~]/.test(password);
+    if (!(hasUppercase && hasLowercase && hasNumber && hasSpecialChar && password.length >= 8)) {
+        errors.push("Password must be at least 8 characters long, contain at least 1 for each lowercase letter, uppercase letter, number, and special character.");
+    }
+    if (password !== confirmPassword) {
+        errors.push("Passwords do not match.");
+    }
+    showValidationErrors(errors);
+    return errors.length === 0;
+}
+
+// Only validate on submit
+document.querySelector('.form-auth').addEventListener('submit', function(e) {
+    if (!validateFormFields()) {
+        e.preventDefault();
+    }
+});
 </script>

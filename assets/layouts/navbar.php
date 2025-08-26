@@ -166,6 +166,10 @@
                     </div>
                 </li>
 
+                <li class="nav-item logout">
+                    <a class="nav-link" href="../logout" title="Logout"><i class="fas fa-sign-out"></i></a>
+                </li>
+
                 <!-- User role pill removed from navbar, now in sidebar header -->
                 <!-- <?php if ($_SESSION['usertype'] == 0): ?>
                     <li class="nav-item">

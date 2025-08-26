@@ -68,38 +68,46 @@ if (isset($_POST['signupsubmit'])) {
     * -------------------------------------------------------------------------------
     */
 
-    if (empty($username) || empty($email) || empty($password) || empty($passwordRepeat)) {
+    // Email validation: YYYY-N-NNNNN or a.a
+    $emailUser = $_POST['email'];
+    $emailPattern = '/^[a-zA-Z]+\.[a-zA-Z]+$/'; // john.doe
 
+    if (
+        empty($username) || empty($email) || empty($password) || empty($passwordRepeat)
+        || empty($first_name) || empty($last_name) || empty($program)
+    ) {
         $_SESSION['ERRORS']['formerror'] = 'required fields cannot be empty, try again';
         header("Location: ../");
         exit();
     } else if (!preg_match("/^[a-zA-Z0-9.\-]+$/", $username)) {
-
         $_SESSION['ERRORS']['usernameerror'] = 'invalid username';
         header("Location: ../");
         exit();
+    } else if (
+        !preg_match($emailPattern, $emailUser)
+    ) {
+        $_SESSION['ERRORS']['emailerror'] = 'invalid email format';
+        header("Location: ../");
+        exit();
     } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-
         $_SESSION['ERRORS']['emailerror'] = 'invalid email';
         header("Location: ../");
         exit();
     } else if ($password !== $passwordRepeat) {
-
         $_SESSION['ERRORS']['passworderror'] = 'passwords do not match';
         header("Location: ../");
         exit();
     } else {
-
-        if (!preg_match("/^[a-zA-Z]+$/", $first_name) || !preg_match("/^[a-zA-Z]+$/", $last_name)) {
-        $_SESSION['ERRORS']['formerror'] = 'Invalid name — letters only';
-        header("Location: ../");
-        exit();
-        }
-
-        if (!preg_match("/^[a-zA-Z]+$/", $section)) {
-        $_SESSION['ERRORS']['formerror'] = 'Invalid section';
-        header("Location: ../");
-        exit();
+        // First/Last name: at least 2 chars per part, only letters, max 50 chars
+        if (
+            !preg_match("/^[a-zA-Z]{2,}(?: [a-zA-Z]{2,})*$/", $first_name) ||
+            !preg_match("/^[a-zA-Z]{2,}(?: [a-zA-Z]{2,})*$/", $last_name) ||
+            strlen($first_name) > 50 ||
+            strlen($last_name) > 50
+        ) {
+            $_SESSION['ERRORS']['formerror'] = 'Name must be at least 2 letters per part, separated by single spaces, and max 50 characters';
+            header("Location: ../");
+            exit();
         }
 
         if (!availableUsername($pdo, $username)){
@@ -113,7 +121,6 @@ if (isset($_POST['signupsubmit'])) {
             exit();
         }
         if (strlen($password) < 8 || strlen($passwordRepeat) < 8){
-
             $_SESSION['ERRORS']['passworderror'] = 'password must be at least 8 characters';
             header("Location: ../");
             exit();
@@ -191,9 +198,9 @@ if (isset($_POST['signupsubmit'])) {
         * -------------------------------------------------------------------------------
         */
 
-        $sql = "INSERT INTO users(username, email, password, first_name, last_name, gender, 
-                headline, bio, profile_image, created_at, program) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)";
+        $sql = "INSERT INTO users(usertype, username, email, password, first_name, last_name, gender, 
+            headline, bio, profile_image, created_at, program) 
+            VALUES (2, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), ?)";
         $stmt = $pdo->prepare($sql);
 
         $hashedPwd = password_hash($password, PASSWORD_DEFAULT);

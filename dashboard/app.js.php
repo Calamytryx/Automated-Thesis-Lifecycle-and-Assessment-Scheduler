@@ -2315,7 +2315,7 @@
                                         </div>
                                         <input type="hidden" id="end_time" name="end_time" value="${d.end_time || '07:00'}" required>
                                     </div>
-                                    <small class="form-text text-muted">Time must be between 7:00 AM and 9:00 PM (00 or 30 minutes only).</small>
+                                    <small class="form-text text-muted">Time must be between 7:30 AM and 9:00 PM (00 or 30 minutes only).</small>
                                 </div>
                             `;
 
@@ -2754,7 +2754,34 @@
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="password" class="form-label">Password will be auto generated</label>' +
-                    '<input type="hidden" class="form-control" id="password" name="password" placeholder="Enter password" value="P@55w0rd" required>' +
+                    // Generate a randomized password in PHP with required constraints
+                    <?php
+                    function generateRandomPassword($length = 12) {
+                        $length = max(8, min($length, 64));
+                        $upper = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+                        $lower = 'abcdefghijklmnopqrstuvwxyz';
+                        $digits = '0123456789';
+                        $symbols = '!@#$%^&*()-_=+[]{}';
+
+                        // Ensure at least one of each required character type
+                        $password = '';
+                        $password .= $upper[random_int(0, strlen($upper) - 1)];
+                        $password .= $lower[random_int(0, strlen($lower) - 1)];
+                        $password .= $digits[random_int(0, strlen($digits) - 1)];
+                        $password .= $symbols[random_int(0, strlen($symbols) - 1)];
+
+                        $all = $upper . $lower . $digits . $symbols;
+                        for ($i = 4; $i < $length; $i++) {
+                            $password .= $all[random_int(0, strlen($all) - 1)];
+                        }
+
+                        // Shuffle to randomize character positions
+                        $password = str_shuffle($password);
+                        return $password;
+                    }
+                    $randomPassword = generateRandomPassword(12);
+                    ?>
+                    '<input type="hidden" class="form-control" id="password" name="password" placeholder="Enter password" value="<?= htmlspecialchars($randomPassword) ?>" required>' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="first_name" class="form-label">First Name</label>' +

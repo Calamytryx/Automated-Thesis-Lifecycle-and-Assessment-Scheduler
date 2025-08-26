@@ -46,6 +46,23 @@ if (isset($_POST['resentsend'])) {
     $expires = date('Y-m-d H:i:s', strtotime('+1 hour'));
 
     $email = $_POST['email'];
+    $cooldownMinutes = 1;
+
+    // Check for cooldown
+    $sql = "SELECT created_at FROM auth_tokens WHERE user_email=? AND auth_type='password_reset' ORDER BY created_at DESC LIMIT 1";
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute([$email]);
+    $lastToken = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if ($lastToken) {
+        $lastSent = strtotime($lastToken['created_at']);
+        $now = time();
+        if (($now - $lastSent) < ($cooldownMinutes * 60)) {
+            $_SESSION['STATUS']['resentsend'] = "Please wait 1 minutes before requesting another link or contact ITD";
+            header("Location: ../");
+            exit();
+        }
+    }
 
     // First, delete any existing tokens for this email
     $sql = "DELETE FROM auth_tokens WHERE user_email=? AND auth_type='password_reset'";
@@ -60,7 +77,7 @@ if (isset($_POST['resentsend'])) {
     $stmt->execute([$email, $selector, $hashedToken, $expires]);
 
     $to = $email;
-    $subject = 'Reset Your Password';
+    $subject = 'Activate your account';
     
     /*
     * -------------------------------------------------------------------------------

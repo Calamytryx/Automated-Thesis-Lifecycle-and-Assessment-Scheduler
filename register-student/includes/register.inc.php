@@ -57,7 +57,7 @@ if (isset($_POST['signupsubmit'])) {
     $program_name = input_filter($_POST['program']);
     $specialization = isset($_POST['specialization']) ? input_filter($_POST['specialization']) : '';
     $year = input_filter($_POST['year']);
-    $section = input_filter($_POST['section']);
+    $section = strtoupper(input_filter($_POST['section']));
 
     $program = $program_name;
     if (!empty($specialization)) {
@@ -76,67 +76,124 @@ if (isset($_POST['signupsubmit'])) {
     * -------------------------------------------------------------------------------
     */
 
-    if (empty($username) || empty($email) || empty($password) || empty($passwordRepeat)) {
+    // Email validation: YYYY-N-NNNNN or a.a
+    $emailUser = $_POST['email'];
+    $emailPattern1 = '/^\d{4}-\d-\d{5}$/'; // 2021-2-02134
+    $emailPattern2 = '/^[a-zA-Z]+\.[a-zA-Z]+$/'; // john.doe
 
+    // Required fields check
+    if (
+        empty($username) || empty($email) || empty($password) || empty($passwordRepeat)
+        || empty($first_name) || empty($last_name) || empty($program_name) || empty($year) || empty($section)
+    ) {
         $_SESSION['ERRORS']['formerror'] = 'required fields cannot be empty, try again';
         header("Location: ../");
         exit();
-    } else if (!preg_match("/^[a-zA-Z0-9.\-]+$/", $username)) {
+    }
 
+    // Username validation
+    if (!preg_match("/^[a-zA-Z0-9.\-]+$/", $username)) {
         $_SESSION['ERRORS']['usernameerror'] = 'invalid username';
         header("Location: ../");
         exit();
-    } else if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    }
 
+    // Email format validation
+    if (
+        preg_match($emailPattern1, $emailUser)
+    ) {
+        // Valid student ID format
+    } else if (
+        preg_match($emailPattern2, $emailUser)
+    ) {
+        // Valid a.a format
+    } else {
+        $_SESSION['ERRORS']['emailerror'] = 'invalid email format';
+        header("Location: ../");
+        exit();
+    }
+
+    // Email validation
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $_SESSION['ERRORS']['emailerror'] = 'invalid email';
         header("Location: ../");
         exit();
-    } else if ($password !== $passwordRepeat) {
+    }
 
+    // Password match validation
+    if ($password !== $passwordRepeat) {
         $_SESSION['ERRORS']['passworderror'] = 'passwords donot match';
         header("Location: ../");
         exit();
-    } else {
+    }
 
-        if (!preg_match("/^[a-zA-Z]+$/", $first_name) || !preg_match("/^[a-zA-Z]+$/", $last_name)) {
-        $_SESSION['ERRORS']['formerror'] = 'Invalid name — letters only';
+    // First/Last name validation
+    if (
+        !preg_match("/^[a-zA-Z]{2,}(?: [a-zA-Z]{2,})*$/", $first_name) ||
+        !preg_match("/^[a-zA-Z]{2,}(?: [a-zA-Z]{2,})*$/", $last_name) ||
+        strlen($first_name) > 50 ||
+        strlen($last_name) > 50
+    ) {
+        $_SESSION['ERRORS']['formerror'] = 'Name must be at least 2 letters per part, separated by single spaces, and max 50 characters';
         header("Location: ../");
         exit();
-        }
+    }
 
-        if (!preg_match("/^[a-zA-Z]+$/", $section)) {
-        $_SESSION['ERRORS']['formerror'] = 'Invalid section';
+    // Section: max 10 chars, alphanumeric, must start with a letter
+    if (
+    !preg_match("/^[A-Za-z]+[0-9]+$/", $section) || strlen($section) > 10
+    ) {
+        $_SESSION['ERRORS']['formerror'] = 'Section must start with letters, end with numbers, and be max 10 alphanumeric characters';
         header("Location: ../");
         exit();
-        }
+    }
 
-        if (!availableUsername($pdo, $username)){
-            $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
-            header("Location: ../");
-            exit();
-        }
-        if (!availableEmail($pdo, $email)){
-            $_SESSION['ERRORS']['emailerror'] = 'email already taken';
-            header("Location: ../");
-            exit();
-        }
-        if (strlen($password) < 8 || strlen($passwordRepeat) < 8){
 
-            $_SESSION['ERRORS']['passworderror'] = 'password must be at least 8 characters';
-            header("Location: ../");
-            exit();
-        }
-        // Only allow web-safe special characters in password: !@#$%^&*()-_=+[]{};:'",.<>/?\|~
-        if (
-            !preg_match("/[a-z]/", $password) ||
-            !preg_match("/[A-Z]/", $password) ||
-            !preg_match("/[0-9]/", $password) ||
-            !preg_match("/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\\\|~]/", $password)
-        ) {
-            $_SESSION['ERRORS']['passworderror'] = 'password must contain at least 1 for each lowercase letter, uppercase letter, number, and special character';
-            header("Location: ../");
-            exit();
-        }
+    // Year: 1 digit, 1-5 only
+    if (!preg_match("/^[1-5]{1}$/", $year)) {
+        $_SESSION['ERRORS']['formerror'] = 'Year must be a digit from 1 to 5';
+        header("Location: ../");
+        exit();
+    }
+
+    // Specialization required if program has specialization
+    // Query DB for specializations for this program
+    $stmt = $pdo->prepare("SELECT COUNT(*) FROM programs WHERE name = ? AND specialization IS NOT NULL AND specialization != ''");
+    $stmt->execute([$program_name]);
+    $hasSpecialization = $stmt->fetchColumn() > 0;
+    if ($hasSpecialization && empty($specialization)) {
+        $_SESSION['ERRORS']['formerror'] = 'Specialization is required for this program';
+        header("Location: ../");
+        exit();
+    }
+
+    if (!availableUsername($pdo, $username)){
+        $_SESSION['ERRORS']['usernameerror'] = 'username already taken';
+        header("Location: ../");
+        exit();
+    }
+    if (!availableEmail($pdo, $email)){
+        $_SESSION['ERRORS']['emailerror'] = 'email already taken';
+        header("Location: ../");
+        exit();
+    }
+    if (strlen($password) < 8 || strlen($passwordRepeat) < 8){
+
+        $_SESSION['ERRORS']['passworderror'] = 'password must be at least 8 characters';
+        header("Location: ../");
+        exit();
+    }
+    // Only allow web-safe special characters in password: !@#$%^&*()-_=+[]{};:'",.<>/?\|~
+    if (
+        !preg_match("/[a-z]/", $password) ||
+        !preg_match("/[A-Z]/", $password) ||
+        !preg_match("/[0-9]/", $password) ||
+        !preg_match("/[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\\\|~]/", $password)
+    ) {
+        $_SESSION['ERRORS']['passworderror'] = 'password must contain at least 1 for each lowercase letter, uppercase letter, number, and special character';
+        header("Location: ../");
+        exit();
+    }
         
 
         /*
@@ -218,15 +275,15 @@ if (isset($_POST['signupsubmit'])) {
         require 'sendverificationemail.inc.php';
 
         $_SESSION['STATUS']['loginstatus'] = 'Account Created, please Login';
+
+        $stmt->closeCursor();
+        $pdo = null;
+
         header("Location: ../../login/");
         exit();
-    }
+    
 
-    $stmt->closeCursor();
-    $pdo = null;
-} 
-else {
-
+} else {
     header("Location: ../");
     exit();
 }

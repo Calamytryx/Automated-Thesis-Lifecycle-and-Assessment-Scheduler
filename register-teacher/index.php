@@ -268,3 +268,75 @@ $rest_of_name = substr($app_name, 1);
         }
     });
 </script>
+
+<script>
+function showValidationErrors(errors) {
+    let errorBox = document.getElementById('formValidationErrors');
+    if (!errorBox) {
+        errorBox = document.createElement('div');
+        errorBox.id = 'formValidationErrors';
+        errorBox.className = 'alert alert-danger mt-3';
+        document.querySelector('.form-auth').prepend(errorBox);
+    }
+    if (errors.length > 0) {
+        errorBox.innerHTML = errors.map(e => `<div>${e}</div>`).join('');
+        errorBox.style.display = 'block';
+    } else {
+        errorBox.innerHTML = '';
+        errorBox.style.display = 'none';
+    }
+}
+
+// Limit first/last name input to 50 chars and allow only letters and single spaces between words
+function nameInputLimiter(e) {
+    let value = e.target.value;
+    value = value.replace(/[^a-zA-Z ]+/g, '');
+    value = value.replace(/\s{2,}/g, ' ');
+    value = value.replace(/^\s+|\s+$/g, '');
+    if (value.length > 50) value = value.substring(0, 50);
+    e.target.value = value;
+}
+
+document.getElementById('first_name').addEventListener('input', nameInputLimiter);
+document.getElementById('last_name').addEventListener('input', nameInputLimiter);
+
+function validateFormFields() {
+    let errors = [];
+    const email = document.getElementById('email').value.trim();
+    const emailPattern1 = /^\d{4}-\d-\d{5}$/;
+    const emailPattern2 = /^[a-zA-Z]+\.[a-zA-Z]+$/;
+    if (!emailPattern1.test(email) && !emailPattern2.test(email)) {
+        errors.push("Email must be in 20XX-X-XXXXX or name.surname format.");
+    }
+    const firstName = document.getElementById('first_name').value.trim();
+    const lastName = document.getElementById('last_name').value.trim();
+    const namePattern = /^([a-zA-Z]{2,})( [a-zA-Z]{2,})*$/;
+    if (!namePattern.test(firstName) || firstName.length > 50) {
+        errors.push("First name must be up to 50 letters, words separated by single space, each word at least 2 letters.");
+    }
+    if (!namePattern.test(lastName) || lastName.length > 50) {
+        errors.push("Last name must be up to 50 letters, words separated by single space, each word at least 2 letters.");
+    }
+    const password = document.getElementById('password').value;
+    const confirmPassword = document.getElementById('confirmpassword').value;
+    const hasUppercase = /[A-Z]/.test(password);
+    const hasLowercase = /[a-z]/.test(password);
+    const hasNumber = /\d/.test(password);
+    const hasSpecialChar = /[!@#$%^&*\(\)\-_=+\[\]{};:'\",.<>\/?\\|~]/.test(password);
+    if (!(hasUppercase && hasLowercase && hasNumber && hasSpecialChar && password.length >= 8)) {
+        errors.push("Password must be at least 8 characters long, contain at least 1 for each lowercase letter, uppercase letter, number, and special character.");
+    }
+    if (password !== confirmPassword) {
+        errors.push("Passwords do not match.");
+    }
+    showValidationErrors(errors);
+    return errors.length === 0;
+}
+
+// Only validate on submit
+document.querySelector('.form-auth').addEventListener('submit', function(e) {
+    if (!validateFormFields()) {
+        e.preventDefault();
+    }
+});
+</script>
