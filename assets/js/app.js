@@ -32,21 +32,41 @@ async function analyzeTitle(title, field, problem) {
             throw new Error('Invalid input data after sanitization');
         }
         
+
+        // Get web search results for the research title
+        let webSearchResults = '';
+        try {
+            webSearchResults = await performWebSearch(`research titles similar to ${sanitizedTitle} in ${sanitizedField}`);
+        } catch (err) {
+            console.warn('Web search failed, proceeding with internal data only.', err);
+        }
+
+        // Combine internal and web search data for similarity check
+        let combinedTitles = existingTitles;
+        if (webSearchResults && Array.isArray(webSearchResults) && webSearchResults.length > 0) {
+            // If webSearchResults is an array of objects with title/snippet
+            const webTitles = webSearchResults.map(r => r.snippet || '').filter(Boolean);
+            if (webTitles.length > 0) {
+                combinedTitles += '\n' + webTitles.join('\n');
+            }
+        }
+
         // First prompt to check similarity
-        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${sanitizedTitle}". Existing titles: ${existingTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response strictly as "score(number only): 'title'".`;
-        
+        const similarityPrompt = `Check the similarity of the following research title in terms of final output with existing titles: "${sanitizedTitle}". Existing titles: ${combinedTitles}. Rate the similarity on a scale of 1 to 10 and provide the most similar title. Format the response strictly as "score(number only): 'title'".`;
+
         console.log("Sending similarity prompt to AI:", similarityPrompt);
         const similarityResponse = await sendMessageToModel(similarityPrompt);
         console.log("Received similarity response:", similarityResponse);
-        
+
         const [similarityScore, similarTitleMatch] = similarityResponse.split(':');
         console.log("Similarity Score:", similarityScore)
-        const scoreMatch = similarityScore.match(/\d+/);
-        const similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
-        // const similarityScoreFloat = parseFloat(similarityScore.trim());
-        const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
+    const scoreMatch = similarityScore.match(/\d+/);
+    // Convert score (1-10) to percentage (10-100%)
+    let similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
+    let similarityPercent = Math.round((similarityScoreFloat / 10) * 100);
+    const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
         
-        if (similarityScoreFloat < 5) {
+    if (similarityPercent < 50) {
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
@@ -78,7 +98,7 @@ async function analyzeTitle(title, field, problem) {
                 <div class="d-flex align-items-center mb-3">
                     <div class="badge bg-success me-3 px-3 py-2">
                         <i class="bi bi-check-circle me-1"></i>
-                        Unique (${similarityScoreFloat}% similarity)
+                        Unique (${similarityPercent}% similarity)
                     </div>
                     <div>
                         <div class="fw-semibold text-success">Good Uniqueness Score</div>
@@ -91,7 +111,7 @@ async function analyzeTitle(title, field, problem) {
             // Update AI suggestions
             document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
             
-        } else if (confirm(`The title is similar to an existing title (${similarityScoreFloat}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+    } else if (confirm(`The title is similar to an existing title (${similarityPercent}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
             // separated the two conditions so this confirm will only show if similarity is higher than 5.
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
@@ -124,7 +144,7 @@ async function analyzeTitle(title, field, problem) {
                 <div class="d-flex align-items-center mb-3">
                     <div class="badge bg-warning text-dark me-3 px-3 py-2">
                         <i class="bi bi-exclamation-triangle me-1"></i>
-                        Similar (${similarityScoreFloat}% similarity)
+                        Similar (${similarityPercent}% similarity)
                     </div>
                     <div>
                         <div class="fw-semibold text-warning">Moderate Similarity Detected</div>
@@ -146,7 +166,7 @@ async function analyzeTitle(title, field, problem) {
                 <div class="d-flex align-items-center mb-3">
                     <div class="badge bg-danger me-3 px-3 py-2">
                         <i class="bi bi-x-circle me-1"></i>
-                        Too Similar (${similarityScoreFloat}% similarity)
+                        Too Similar (${similarityPercent}% similarity)
                     </div>
                     <div>
                         <div class="fw-semibold text-danger">High Similarity Detected</div>
