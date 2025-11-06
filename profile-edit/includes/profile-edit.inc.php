@@ -118,10 +118,10 @@ if (isset($_POST['update-profile'])) {
     }
 
     // Sanitize input data
-    $username = sanitize_html_input($_POST['username']);
+    $username = $_SESSION['username']; // Non-editable
     $email = sanitize_html_input($_POST['email']);
-    $first_name = sanitize_html_input($_POST['first_name']);
-    $last_name = sanitize_html_input($_POST['last_name']);
+    $first_name = $_SESSION['first_name']; // Non-editable
+    $last_name = $_SESSION['last_name']; // Non-editable
     $headline = sanitize_html_input($_POST['headline']);
     $bio = sanitize_html_input($_POST['bio']);
 
@@ -134,8 +134,8 @@ if (isset($_POST['update-profile'])) {
     $validation_errors = [];
     $usertype = $_SESSION['usertype'];
 
-    // Validate required fields
-    $required_fields = ['username', 'first_name', 'last_name'];
+    // Required fields (excluding non-editable ones)
+    $required_fields = [];
     
     // Only allow admins to change email
     if ($usertype == 0) {
