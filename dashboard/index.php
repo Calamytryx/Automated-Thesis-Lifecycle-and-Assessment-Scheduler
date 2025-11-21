@@ -487,6 +487,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
+                                        <i class="bi bi-shield-lock me-2 hollow"></i>
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                    </a>
                                 </div>
                             </div>
 
@@ -542,6 +546,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            <?php include 'includes/tabs/program_requirements_tab.php'; ?>
+                            <?php include 'includes/tabs/team_management_tab.php'; ?>
                             
                             <?php //include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>
@@ -661,6 +667,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
+                                        <i class="bi bi-shield-lock me-2 hollow"></i>
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                    </a>
                                 </div>
                             </div>
 
@@ -716,6 +726,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
+                            <?php include 'includes/tabs/team_management_tab.php'; ?>
                             
                             <?php include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>

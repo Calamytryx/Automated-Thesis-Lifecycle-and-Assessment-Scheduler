@@ -27,6 +27,8 @@
                     <tr>
                         <th>Name</th>
                         <th>Description</th>
+                        <th>Defense Type</th>
+                        <th>Multi-Submit</th>
                         <th>Due Date</th>
                         <th>Template</th>
                         <th>Action</th>
@@ -71,10 +73,27 @@
                             </a>`;
                         }
                         
+                        // Format defense type
+                        const defenseTypeMap = {
+                            'title_proposal': '<span class="badge bg-info">Title Proposal</span>',
+                            'title_defense': '<span class="badge bg-primary">Title Defense</span>',
+                            'final_defense': '<span class="badge bg-success">Final Defense</span>',
+                            're-defense': '<span class="badge bg-warning">Re-Defense</span>',
+                            'general': '<span class="badge bg-secondary">General</span>'
+                        };
+                        let typeCell = defenseTypeMap[requirement.requirement_type] || '<span class="badge bg-secondary">General</span>';
+                        
+                        // Format multi-submission
+                        let multiSubmitCell = requirement.allow_multiple_submissions 
+                            ? `<span class="badge bg-success">Yes (Max: ${requirement.max_submissions})</span>`
+                            : '<span class="badge bg-light text-dark">No</span>';
+                        
                         tbody.innerHTML += `
                             <tr>
                                 <td>${requirement.name}</td>
                                 <td>${requirement.description}</td>
+                                <td>${typeCell}</td>
+                                <td>${multiSubmitCell}</td>
                                 <td>${requirement.due_date}</td>
                                 <td>${templateCell}</td>
                                 <td class="action-buttons text-center">

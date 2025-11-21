@@ -1210,7 +1210,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 JOIN teams t ON tm.team_id = t.id
                                                 JOIN research_titles rt ON t.id = rt.team_id
                                                 JOIN users e ON ep.evaluator_id = e.id
-                                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+                                                JOIN programs p ON t.program COLLATE utf8mb4_general_ci = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) COLLATE utf8mb4_general_ci
                                                 WHERE p.college = ?
                                                 ORDER BY ep.created_at DESC";
 
@@ -1450,7 +1450,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 SELECT rgi.group_id
                                                                 FROM rubric_programs rp
                                                                 JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                                WHERE rp.program_name = t.program
+                                                                WHERE rp.program_name COLLATE utf8mb4_general_ci = t.program COLLATE utf8mb4_general_ci
                                                                 LIMIT 1
                                                             ) AS rubric_group_id
                                                         FROM defense_schedules ds
@@ -1473,7 +1473,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 SELECT rgi.group_id
                                                                 FROM rubric_programs rp
                                                                 JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                                WHERE rp.program_name = t.program
+                                                                WHERE rp.program_name COLLATE utf8mb4_general_ci = t.program COLLATE utf8mb4_general_ci
                                                                 LIMIT 1
                                                             ) AS rubric_group_id
                                                         FROM defense_schedules ds
@@ -1973,7 +1973,7 @@ $(document).ready(function() {
                                                     <a href="../assets/uploads/submission/${req.file_name}" class="requirement-download-btn" download>
                                                         <i class="bi bi-download"></i> Download
                                                     </a>
-                                                    <a href="../assets/uploads/submission/viewer.html?file=${req.file_name}" class="requirement-view-btn">
+                                                    <a href="../assets/uploads/submission/viewer.html#file=${encodeURIComponent(req.file_name)}" class="requirement-view-btn">
                                                         <i class="far fa-eye"></i> View File
                                                     </a>
                                                     <button type="button" class="btn btn-warning btn-sm revert-submission-btn" 
@@ -2176,18 +2176,18 @@ $(document).ready(function() {
                                         </div> 
                                         <?php if ($role === 'leader') { ?>
                                         <div class="card-footer requirement-student-upload-footer rct-cfooter">
-                                            <!-- Upload File Form - Always visible but disabled when file is submitted and not pending -->
-                                            <div class="upload-file-section ${req.file_name && req.status !== 'pending' ? 'upload-disabled' : ''}">
+                                            <!-- Upload File Form - Allow multiple if allow_multiple_submissions is true -->
+                                            <div class="upload-file-section ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'upload-disabled' : ''}">
                                                 <strong>Upload ${req.file_name ? 'New' : ''} File:</strong>
                                                 <form class="upload-form requirement-upload-form mt-2" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                     <input type="hidden" name="document_name" value="${req.name}">
                                                     <input type="hidden" name="requirement_id" value="${req.id}">
                                                     <div class="mb-3 requirement-file-input-section">
                                                         <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" 
-                                                               ${req.file_name && req.status !== 'pending' ? 'disabled' : 'required'}>
+                                                               ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'disabled' : 'required'}>
                                                     </div>
                                                     <button type="submit" class="btn btn-primary feature-btn requirement-submit-btn" 
-                                                            ${req.file_name && req.status !== 'pending' ? 'disabled' : ''}>
+                                                            ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'disabled' : ''}>
                                                         Submit ${req.file_name ? 'New' : ''} File
                                                     </button>
                                                     <span class="upload-status requirement-upload-status ms-2 small"></span> 
