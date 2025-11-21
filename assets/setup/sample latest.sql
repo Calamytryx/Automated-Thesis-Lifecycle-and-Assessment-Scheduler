@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: localhost
--- Generation Time: Nov 21, 2025 at 04:29 PM
+-- Generation Time: Nov 21, 2025 at 09:52 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -93,7 +93,7 @@ CREATE TABLE `defense_schedules` (
   `start_time` time DEFAULT NULL,
   `end_time` time DEFAULT NULL,
   `room` varchar(50) DEFAULT NULL,
-  `defense_type` enum('title_proposal','title_defense','final_defense') DEFAULT NULL COMMENT 'Type of defense being scheduled',
+  `defense_type` enum('title_proposal','title_defense','final_defense','re-defense') DEFAULT 'title_proposal',
   `related_requirement_files` longtext CHARACTER SET utf8mb4 COLLATE utf8mb4_bin DEFAULT NULL COMMENT 'JSON array of team_requirement_files IDs for multi-submission requirements' CHECK (json_valid(`related_requirement_files`)),
   `admin_override_defense_type` tinyint(1) DEFAULT 0 COMMENT 'Whether defense type was manually overridden by admin',
   `status` enum('scheduled','completed','cancelled') DEFAULT 'scheduled',
@@ -119,7 +119,7 @@ INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`,
 CREATE TABLE `defense_type_overrides` (
   `id` int(11) UNSIGNED NOT NULL,
   `team_id` int(11) UNSIGNED NOT NULL,
-  `override_type` enum('title_proposal','title_defense','final_defense') NOT NULL COMMENT 'Force team to be treated as this defense type',
+  `override_type` enum('title_proposal','title_defense','final_defense','re-defense') NOT NULL,
   `reason` text DEFAULT NULL,
   `active` tinyint(1) DEFAULT 1 COMMENT 'Whether this override is currently active',
   `created_by` int(11) UNSIGNED NOT NULL COMMENT 'Admin user ID who created this override',
@@ -127,6 +127,13 @@ CREATE TABLE `defense_type_overrides` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `expires_at` timestamp NULL DEFAULT NULL COMMENT 'Optional expiry date for temporary overrides'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Admin overrides for defense type mapping';
+
+--
+-- Dumping data for table `defense_type_overrides`
+--
+
+INSERT INTO `defense_type_overrides` (`id`, `team_id`, `override_type`, `reason`, `active`, `created_by`, `created_at`, `updated_at`, `expires_at`) VALUES
+(1, 4, 'final_defense', '', 0, 0, '2025-11-21 16:34:41', '2025-11-21 16:35:04', NULL);
 
 -- --------------------------------------------------------
 
@@ -381,13 +388,21 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (50, 294, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 7:00 AM - 9:00 AM in d201. Waiting for panelist approval.', 8, NULL, 0, '2025-11-21 05:39:08', '2025-11-21 05:39:08'),
 (51, 283, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 7:00 AM - 9:00 AM in d201. Waiting for panelist approval.', 8, NULL, 0, '2025-11-21 05:39:08', '2025-11-21 05:39:08'),
 (52, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team Innovate\'s defense:\n\n📅 Date: November 21, 2025\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: defense room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Next Gen Web App\n\nPlease approve or decline this assignment.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
-(53, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team Innovate\'s defense:\n\n📅 Date: November 21, 2025\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: defense room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Next Gen Web App\n\nPlease approve or decline this assignment.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
+(53, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team Innovate\'s defense:\n\n📅 Date: November 21, 2025\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: defense room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Next Gen Web App\n\nPlease approve or decline this assignment.', 9, NULL, 1, '2025-11-21 14:46:29', '2025-11-21 16:28:43'),
 (54, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for Team Innovate\'s defense:\n\n📅 Date: November 21, 2025\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: defense room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: Next Gen Web App\n\nPlease approve or decline this assignment.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
 (55, 280, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
 (56, 287, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
 (57, 288, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
 (58, 289, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
-(59, 290, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29');
+(59, 290, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for November 21, 2025 at 10:00 AM - 12:00 PM in defense room 1. Waiting for panelist approval.', 9, NULL, 0, '2025-11-21 14:46:29', '2025-11-21 14:46:29'),
+(60, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Nexus\' has submitted the requirement \'Research methods Template A\'. File: 7_46_1763742782_Document1.pdf', 7, NULL, 0, '2025-11-21 16:33:02', '2025-11-21 16:33:02'),
+(61, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Nexus\' has submitted the requirement \'Research methods Template A\'. File: 7_46_1763748840_Document1.pdf', 7, NULL, 0, '2025-11-21 18:14:00', '2025-11-21 18:14:00'),
+(62, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Research methods Template A\'. File: 4_46_1763749192_Document1.pdf', 4, NULL, 0, '2025-11-21 18:19:52', '2025-11-21 18:19:52'),
+(63, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Research methods Template A\'. File: 4_46_1763749500_document.pdf', 4, NULL, 0, '2025-11-21 18:25:00', '2025-11-21 18:25:00'),
+(64, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Final Manuscript\'. File: 4_5_1763749535_THESIS-7.pdf', 4, NULL, 0, '2025-11-21 18:25:35', '2025-11-21 18:25:35'),
+(65, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Research methods Template A\'. File: 4_46_1763750136_THESIS-9.pdf', 4, NULL, 0, '2025-11-21 18:35:36', '2025-11-21 18:35:36'),
+(66, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Research methods Template A\'. File: 4_46_1763752944_Document1.pdf', 4, NULL, 0, '2025-11-21 19:22:24', '2025-11-21 19:22:24'),
+(67, 280, 'requirement_submitted', 'New Requirement Submission', 'Team \'Team Innovate\' has submitted the requirement \'Final Manuscript\'. File: 4_5_1763753811_1_3_1762412995_5-Drugs-for-Asthma.pdf', 4, NULL, 0, '2025-11-21 19:36:51', '2025-11-21 19:36:51');
 
 -- --------------------------------------------------------
 
@@ -436,8 +451,8 @@ INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `act
 (24, 46, 'reject_defense', '{\"schedule_id\":\"8\"}', 0, NULL, '2025-11-21 05:39:08'),
 (25, 52, 'approve_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29'),
 (26, 52, 'reject_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29'),
-(27, 53, 'approve_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29'),
-(28, 53, 'reject_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29'),
+(27, 53, 'approve_defense', '{\"schedule_id\":\"9\"}', 1, '2025-11-21 16:28:43', '2025-11-21 14:46:29'),
+(28, 53, 'reject_defense', '{\"schedule_id\":\"9\"}', 1, '2025-11-21 16:28:43', '2025-11-21 14:46:29'),
 (29, 54, 'approve_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29'),
 (30, 54, 'reject_defense', '{\"schedule_id\":\"9\"}', 0, NULL, '2025-11-21 14:46:29');
 
@@ -529,7 +544,7 @@ INSERT INTO `panelist_approvals` (`id`, `defense_schedule_id`, `panelist_id`, `a
 (20, 8, 277, 'pending', NULL, NULL, '2025-11-21 05:39:08'),
 (21, 8, 279, 'pending', NULL, NULL, '2025-11-21 05:39:08'),
 (22, 9, 271, 'pending', NULL, NULL, '2025-11-21 14:46:29'),
-(23, 9, 270, 'pending', NULL, NULL, '2025-11-21 14:46:29'),
+(23, 9, 270, 'approved', '2025-11-22 00:28:43', '', '2025-11-21 14:46:29'),
 (24, 9, 272, 'pending', NULL, NULL, '2025-11-21 14:46:29');
 
 -- --------------------------------------------------------
@@ -612,13 +627,79 @@ INSERT INTO `programs` (`id`, `college`, `department`, `name`, `specialization`,
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `program_manuscript_requirements`
+--
+
+CREATE TABLE `program_manuscript_requirements` (
+  `id` int(11) NOT NULL,
+  `requirement_id` int(10) UNSIGNED NOT NULL,
+  `program_id` int(11) NOT NULL,
+  `defense_type` enum('title_proposal','title_defense','final_defense','re-defense','general') NOT NULL,
+  `is_required` tinyint(1) DEFAULT 1 COMMENT 'Is this manuscript required for this combination?',
+  `submission_stage` enum('before_defense','at_defense','optional') DEFAULT 'before_defense' COMMENT 'When should it be submitted?',
+  `can_revise_after` tinyint(1) DEFAULT 0 COMMENT 'Can team revise after this stage?',
+  `visibility_to_panelist` tinyint(1) DEFAULT 1 COMMENT 'Should panelist see this at defense?',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci COMMENT='Maps manuscript requirements to specific program + defense type combinations';
+
+--
+-- Dumping data for table `program_manuscript_requirements`
+--
+
+INSERT INTO `program_manuscript_requirements` (`id`, `requirement_id`, `program_id`, `defense_type`, `is_required`, `submission_stage`, `can_revise_after`, `visibility_to_panelist`, `created_at`, `updated_at`) VALUES
+(3, 46, 79, 'title_proposal', 1, 'before_defense', 0, 1, '2025-11-21 18:22:37', '2025-11-21 18:22:37'),
+(4, 46, 80, 'title_proposal', 1, 'before_defense', 0, 1, '2025-11-21 18:22:37', '2025-11-21 18:22:37');
+
+-- --------------------------------------------------------
+
+--
+-- Stand-in structure for view `program_manuscript_view`
+-- (See below for the actual view)
+--
+CREATE TABLE `program_manuscript_view` (
+`mapping_id` int(11)
+,`requirement_id` int(11) unsigned
+,`requirement_name` varchar(255)
+,`is_defense_manuscript` tinyint(1)
+,`program_id` int(11)
+,`program_name` varchar(255)
+,`defense_type` enum('title_proposal','title_defense','final_defense','re-defense','general')
+,`is_required` tinyint(1)
+,`submission_stage` enum('before_defense','at_defense','optional')
+,`can_revise_after` tinyint(1)
+,`visibility_to_panelist` tinyint(1)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `program_requirements_mapping`
+--
+
+CREATE TABLE `program_requirements_mapping` (
+  `id` int(11) NOT NULL,
+  `program_id` int(11) NOT NULL,
+  `defense_type` enum('title_proposal','title_defense','final_defense','re-defense','general') NOT NULL,
+  `requirement_id` int(11) UNSIGNED NOT NULL,
+  `is_mandatory` tinyint(1) DEFAULT 1,
+  `display_order` int(11) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `created_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `requirements`
 --
 
 CREATE TABLE `requirements` (
   `id` int(11) UNSIGNED NOT NULL,
   `name` varchar(255) NOT NULL,
-  `requirement_type` enum('title_proposal','title_defense','final_defense','general') DEFAULT 'general' COMMENT 'Defense type this requirement applies to',
+  `requirement_type` enum('title_proposal','title_defense','final_defense','re-defense','general') DEFAULT 'general',
+  `is_defense_manuscript` tinyint(1) DEFAULT 0,
   `allow_multiple_submissions` tinyint(1) DEFAULT 0 COMMENT 'Whether teams can submit multiple files (max 3) for this requirement',
   `max_submissions` int(11) DEFAULT 1 COMMENT 'Maximum number of submissions allowed (default 1, max 3)',
   `description` text DEFAULT NULL,
@@ -632,11 +713,11 @@ CREATE TABLE `requirements` (
 -- Dumping data for table `requirements`
 --
 
-INSERT INTO `requirements` (`id`, `name`, `requirement_type`, `allow_multiple_submissions`, `max_submissions`, `description`, `template_file`, `template_original_name`, `due_date`, `created_at`) VALUES
-(2, 'Capstone 2', 'title_defense', 0, 1, 'This includes the template', '687d025450e81_1753023060.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-10-31', '2024-11-11 10:52:54'),
-(3, 'Capstone 1', 'title_defense', 0, 1, 'This includes the template\r\n(IT ONLY)', '687d0244896eb_1753023044.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-11-30', '2024-11-11 10:52:41'),
-(5, 'Final Manuscript', 'final_defense', 0, 1, 'Also used for Research Repository (DO NOT REMOVE)', '687d0263dbbb8_1753023075.docx', 'FULL MANUSCRIPT_template_crd2025.docx', '2024-12-04', '2024-11-11 10:52:22'),
-(46, 'Research methods Template A', 'title_proposal', 1, 3, 'Template of title proposal template', NULL, NULL, '2025-11-28', '2025-11-21 14:47:43');
+INSERT INTO `requirements` (`id`, `name`, `requirement_type`, `is_defense_manuscript`, `allow_multiple_submissions`, `max_submissions`, `description`, `template_file`, `template_original_name`, `due_date`, `created_at`) VALUES
+(2, 'Capstone 2', 'title_defense', 0, 0, 1, 'This includes the template', '687d025450e81_1753023060.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-10-31', '2024-11-11 10:52:54'),
+(3, 'Capstone 1', 'title_defense', 0, 0, 1, 'This includes the template\r\n(IT ONLY)', '687d0244896eb_1753023044.docx', 'CAPSTONE 1-2 TEMPLATES.docx', '2024-11-30', '2024-11-11 10:52:41'),
+(5, 'Final Manuscript', 'final_defense', 1, 0, 1, 'Also used for Research Repository (DO NOT REMOVE)', '687d0263dbbb8_1753023075.docx', 'FULL MANUSCRIPT_template_crd2025.docx', '2026-12-04', '2024-11-11 10:52:22'),
+(46, 'Research methods Template A', 'title_proposal', 1, 1, 3, 'Template of title proposal template', NULL, NULL, '2025-11-28', '2025-11-21 14:47:43');
 
 -- --------------------------------------------------------
 
@@ -664,6 +745,24 @@ INSERT INTO `research_titles` (`id`, `team_id`, `title`, `program`, `approved_at
 (5, 5, 'Secure Network Project', NULL, NULL, NULL, '2025-11-20 23:16:36', '2025-11-21 01:04:39'),
 (6, 6, 'AI Optimization Project', 'Bachelor of Science in Computer Science - Software Engineering', '2025-11-21 15:20:12', NULL, '2025-11-20 23:16:36', '2025-11-21 12:51:48'),
 (7, 7, 'ML Prediction Model', 'Bachelor of Science in Computer Science - Software Engineering', '2025-11-21 15:19:59', NULL, '2025-11-20 23:16:36', '2025-11-21 15:19:59');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `re_defense_assessments`
+--
+
+CREATE TABLE `re_defense_assessments` (
+  `id` int(11) NOT NULL,
+  `team_id` int(11) NOT NULL,
+  `defense_schedule_id` int(11) NOT NULL,
+  `reason_for_redefense` text DEFAULT NULL,
+  `initial_defense_schedule_id` int(11) DEFAULT NULL,
+  `status` enum('pending','completed','passed','failed') DEFAULT 'pending',
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `initiated_by` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- --------------------------------------------------------
 
@@ -928,7 +1027,7 @@ CREATE TABLE `team_defense_status` (
 ,`current_defense_type` varchar(14)
 ,`approved_titles` bigint(21)
 ,`completed_evaluations` bigint(21)
-,`override_defense_type` enum('title_proposal','title_defense','final_defense')
+,`override_defense_type` enum('title_proposal','title_defense','final_defense','re-defense')
 ,`override_active` tinyint(1)
 );
 
@@ -950,19 +1049,6 @@ CREATE TABLE `team_members` (
 --
 
 INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
-(1, 1, 269, 'adviser'),
-(2, 1, 267, 'leader'),
-(3, 1, 268, 'member'),
-(4, 2, 269, 'adviser'),
-(5, 2, 287, 'leader'),
-(6, 2, 288, 'member'),
-(7, 2, 289, 'member'),
-(8, 2, 290, 'member'),
-(9, 3, 272, 'adviser'),
-(10, 3, 291, 'leader'),
-(11, 3, 292, 'member'),
-(12, 3, 293, 'member'),
-(13, 3, 294, 'member'),
 (14, 4, 280, 'adviser'),
 (15, 4, 287, 'leader'),
 (16, 4, 288, 'member'),
@@ -995,7 +1081,7 @@ INSERT INTO `team_members` (`id`, `team_id`, `user_id`, `role`) VALUES
 CREATE TABLE `team_panelists` (
   `id` int(11) UNSIGNED NOT NULL,
   `team_id` int(11) UNSIGNED NOT NULL,
-  `defense_type` enum('title_proposal','title_defense','final_defense') NOT NULL COMMENT 'The defense stage this assignment is for',
+  `defense_type` enum('title_proposal','title_defense','final_defense','re-defense') NOT NULL,
   `panelist_id` int(11) UNSIGNED NOT NULL,
   `panelist_position` int(1) DEFAULT 1 COMMENT 'Position: 1=primary, 2=secondary, 3=tertiary',
   `locked` tinyint(1) DEFAULT 0 COMMENT 'Whether this assignment is locked and cannot be changed',
@@ -1031,7 +1117,8 @@ INSERT INTO `team_requirements` (`id`, `team_id`, `requirement_id`, `status`, `s
 (3, 1, 5, 'pending', '2025-07-21 09:19:02', '', '1_5_1753089542_FULL_MANUSCRIPT_template_crd2025.pdf', ''),
 (6, 1, 4, 'submitted', '2025-07-21 13:07:31', NULL, '1_4_1753103251_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
 (7, 1, 41, 'submitted', '2025-07-21 13:07:39', NULL, '1_41_1753103259_1_3_1753088960_687d0244896eb_1753023044_2_.docx', NULL),
-(8, 1, 2, 'submitted', '2025-07-22 16:25:58', 'nice', '1_2_1753201558_system-flow.pdf', 'feedback-Team 1-Capstone 2-20251106.pdf');
+(8, 1, 2, 'submitted', '2025-07-22 16:25:58', 'nice', '1_2_1753201558_system-flow.pdf', 'feedback-Team 1-Capstone 2-20251106.pdf'),
+(14, 4, 46, 'submitted', '2025-11-21 19:22:24', NULL, '4_46_1763752944_Document1.pdf', NULL);
 
 -- --------------------------------------------------------
 
@@ -1056,6 +1143,13 @@ CREATE TABLE `team_requirement_files` (
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
   `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Individual file submissions for requirements with multi-submission support';
+
+--
+-- Dumping data for table `team_requirement_files`
+--
+
+INSERT INTO `team_requirement_files` (`id`, `team_id`, `requirement_id`, `file_name`, `original_file_name`, `file_path`, `file_size`, `submission_number`, `status`, `feedback`, `feedback_file`, `submitted_by`, `submitted_at`, `updated_at`, `deleted_at`) VALUES
+(6, 4, 46, '4_46_1763752944_Document1.pdf', 'Document1.pdf', '/opt/lampp/htdocs/home/includes/../../assets/uploads/submission/4_46_1763752944_Document1.pdf', 4548364, 1, 'submitted', NULL, NULL, 287, '2025-11-21 19:22:24', '2025-11-21 19:22:24', NULL);
 
 -- --------------------------------------------------------
 
@@ -1138,21 +1232,21 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (267, 1, 'student1', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Example', 'One', NULL, 'a', 'a', 'profile_690c9a896fffe9.39118562.gif', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-06 12:55:11', NULL, '2025-11-06 12:37:41', NULL, 4, 'IT401'),
 (268, 1, 'student2', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$Ggm2Jo3kYZpazx29LW/Fdea52tRW3cgRCrY3AV2j6nDThbUmqLSIe', 'Example', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-09-01 15:31:55', NULL, '2025-07-22 19:48:49', NULL, 4, 'IT401'),
 (269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$dDLdwhy2MzpJKXfp98CeE.TV3ChOHpHIvTWZy1Ffkc7xsJhj0o0hK', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 00:12:11', NULL, '2025-11-06 06:58:50', NULL, NULL, NULL),
-(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 00:12:11', NULL, '2025-11-06 06:56:59', NULL, NULL, NULL),
+(270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$0ZKGSjL2n/TDJJjWDlNQ4euoT/Ej7sqjjifsd7fTP7IQpgWGBNvR2', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 18:20:40', NULL, '2025-11-21 18:20:40', NULL, NULL, NULL),
 (271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$7gglTWLQSErKoILKfiCj3uC6GoMs28PyMwcnKYyI1JYq.gSGwNnCm', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 00:12:11', NULL, '2025-11-20 17:53:34', NULL, NULL, NULL),
 (272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 00:59:24', NULL, '2025-11-21 00:22:49', NULL, NULL, NULL),
 (273, 0, 'CCS-IT', 'Bachelor of Science in Information Technology', '', 0, 'it.programchair@lpu.edu.ph', '$2y$10$s.h4./g96wR0jfV1L3qbqOkiaQY8uu0dTaFVJgZoLeKIlR1PF7.qS', 'Program Chair', 'IT', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-21 15:09:58', NULL, '2025-11-21 15:09:58', 1, NULL, NULL),
 (277, 2, 'CCS-IT-04', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Systems Dev', 0, 'marc.santiago@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Marc', 'Santiago', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, '2025-11-20 22:48:52', NULL, NULL, NULL),
 (278, 2, 'CCS-IT-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Cybersecurity', 0, 'louise.torres@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Louise', 'Torres', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, NULL, NULL, NULL, NULL),
 (279, 2, 'CCS-IT-06', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Networking', 1, 'jared.cruz@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Jared', 'Cruz', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, NULL, NULL, NULL, NULL),
-(280, 2, 'CCS-IT-07', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'UI/UX', 0, 'kimberly.reyes@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Kimberly', 'Reyes', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, NULL, NULL, NULL, NULL),
+(280, 2, 'CCS-IT-07', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'UI/UX', 0, 'kimberly.reyes@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Kimberly', 'Reyes', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 19:13:44', NULL, '2025-11-21 19:13:44', NULL, NULL, NULL),
 (281, 2, 'CCS-IT-08', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Database Systems', 0, 'francis.lopez@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Francis', 'Lopez', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, NULL, NULL, NULL, NULL),
 (282, 2, 'CCS-CS-02', 'Bachelor of Science in Computer Science', 'Machine Learning', 0, 'harold.espinosa@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Harold', 'Espinosa', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:43', NULL, NULL, NULL, NULL, NULL),
 (283, 2, 'CCS-CS-03', 'Bachelor of Science in Computer Science', 'Algorithms', 0, 'ivy.marquez@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Ivy', 'Marquez', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:01:46', NULL, NULL, NULL, NULL, NULL),
 (284, 2, 'CCS-CS-04', 'Bachelor of Science in Computer Science', 'AI Research', 1, 'renzo.castillo@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Renzo', 'Castillo', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:01:42', NULL, NULL, NULL, NULL, NULL),
 (285, 2, 'CCS-CS-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Data Science', 0, 'mika.soriano@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Mika', 'Soriano', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:00:57', NULL, NULL, NULL, NULL, NULL),
 (286, 2, 'CCS-IT-09', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'DevOps', 0, 'patrick.valdez@lpu.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Patrick', 'Valdez', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:12:11', NULL, NULL, NULL, NULL, NULL),
-(287, 1, '2022-2-01001', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01001@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Allen', 'Rivera', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:14:03', NULL, NULL, NULL, 4, 'IT401'),
+(287, 1, '2022-2-01001', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01001@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Allen', 'Rivera', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 20:32:22', NULL, '2025-11-21 20:32:22', NULL, 4, 'IT401'),
 (288, 1, '2022-2-01002', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01002@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Hannah', 'Flores', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:13:59', NULL, NULL, NULL, 4, 'IT401'),
 (289, 1, '2022-2-01003', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01003@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Jake', 'Manalo', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:58:59', NULL, NULL, NULL, 4, 'CS401'),
 (290, 1, '2022-2-01004', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01004@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Sophia', 'Quinto', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:02', NULL, NULL, NULL, 4, 'CS401'),
@@ -1164,7 +1258,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (296, 1, '2022-2-01010', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01010@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Karen', 'Santos', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:00:49', NULL, NULL, NULL, 4, 'IT401'),
 (297, 1, '2022-2-01011', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01011@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Cyrill', 'Amante', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:08', NULL, NULL, NULL, 4, 'CS401'),
 (298, 1, '2022-2-01012', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01012@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Lara', 'Ignacio', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:10', NULL, NULL, NULL, 4, 'CS401'),
-(299, 1, '2022-2-01013', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01013@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Joshua', 'Villena', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:00:46', NULL, NULL, NULL, 4, 'IT401'),
+(299, 1, '2022-2-01013', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01013@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Joshua', 'Villena', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 16:29:40', NULL, '2025-11-21 16:29:40', NULL, 4, 'IT401'),
 (300, 1, '2022-2-01014', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01014@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Ariana', 'Lim', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 01:00:44', NULL, NULL, NULL, 4, 'IT401'),
 (301, 1, '2022-2-01015', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01015@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Felix', 'Ordoña', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:12', NULL, NULL, NULL, 4, 'CS401'),
 (302, 1, '2022-2-01016', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'student01016@lpunetwork.edu.ph', '$2y$10$dEmz96jH8Ej2CvOldOWtO.rb0pWOEEqKp4s9DGjaRWT5dIl4YXBbG', 'Ruby', 'Mendoza', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-11-21 00:59:16', NULL, NULL, NULL, 4, 'CS401'),
@@ -1211,6 +1305,15 @@ INSERT INTO `user_schedules` (`id`, `user_id`, `program`, `section`, `room`, `da
 (138, 284, '78', 'CS401', 'R203', 'Monday', '15:00:00', '18:00:00', 'AI Research', 4),
 (139, 285, '78', 'CS401', 'R201', 'Tuesday', '08:00:00', '11:00:00', 'Data Science', 4),
 (140, 272, '78', 'CS401', 'R202', 'Tuesday', '11:30:00', '14:30:00', 'Software Design', 4);
+
+-- --------------------------------------------------------
+
+--
+-- Structure for view `program_manuscript_view`
+--
+DROP TABLE IF EXISTS `program_manuscript_view`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `program_manuscript_view`  AS SELECT `pmr`.`id` AS `mapping_id`, `r`.`id` AS `requirement_id`, `r`.`name` AS `requirement_name`, `r`.`is_defense_manuscript` AS `is_defense_manuscript`, `p`.`id` AS `program_id`, `p`.`name` AS `program_name`, `pmr`.`defense_type` AS `defense_type`, `pmr`.`is_required` AS `is_required`, `pmr`.`submission_stage` AS `submission_stage`, `pmr`.`can_revise_after` AS `can_revise_after`, `pmr`.`visibility_to_panelist` AS `visibility_to_panelist` FROM ((`program_manuscript_requirements` `pmr` join `requirements` `r` on(`pmr`.`requirement_id` = `r`.`id`)) join `programs` `p` on(`pmr`.`program_id` = `p`.`id`)) WHERE `r`.`is_defense_manuscript` = 1 ORDER BY `p`.`name` ASC, field(`pmr`.`defense_type`,'title_proposal','title_defense','final_defense','re-defense','general') ASC, `r`.`name` ASC ;
 
 -- --------------------------------------------------------
 
@@ -1366,6 +1469,25 @@ ALTER TABLE `programs`
   ADD PRIMARY KEY (`id`);
 
 --
+-- Indexes for table `program_manuscript_requirements`
+--
+ALTER TABLE `program_manuscript_requirements`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_req_program_defense` (`requirement_id`,`program_id`,`defense_type`),
+  ADD KEY `idx_program_defense_type` (`program_id`,`defense_type`),
+  ADD KEY `idx_requirement_program` (`requirement_id`,`program_id`),
+  ADD KEY `idx_is_required` (`is_required`);
+
+--
+-- Indexes for table `program_requirements_mapping`
+--
+ALTER TABLE `program_requirements_mapping`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_program_defense_requirement` (`program_id`,`defense_type`,`requirement_id`),
+  ADD KEY `idx_program_defense` (`program_id`,`defense_type`),
+  ADD KEY `idx_program_requirements` (`program_id`,`requirement_id`);
+
+--
 -- Indexes for table `requirements`
 --
 ALTER TABLE `requirements`
@@ -1377,6 +1499,15 @@ ALTER TABLE `requirements`
 ALTER TABLE `research_titles`
   ADD PRIMARY KEY (`id`),
   ADD KEY `team_id` (`team_id`);
+
+--
+-- Indexes for table `re_defense_assessments`
+--
+ALTER TABLE `re_defense_assessments`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `unique_team_redefense` (`team_id`,`defense_schedule_id`),
+  ADD KEY `idx_team_redefense` (`team_id`,`status`),
+  ADD KEY `idx_defense_schedule` (`defense_schedule_id`);
 
 --
 -- Indexes for table `rubrics`
@@ -1527,7 +1658,7 @@ ALTER TABLE `defense_schedules`
 -- AUTO_INCREMENT for table `defense_type_overrides`
 --
 ALTER TABLE `defense_type_overrides`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `env_variables`
@@ -1569,7 +1700,7 @@ ALTER TABLE `merged_evaluations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=60;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=68;
 
 --
 -- AUTO_INCREMENT for table `notification_actions`
@@ -1596,6 +1727,18 @@ ALTER TABLE `programs`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=116;
 
 --
+-- AUTO_INCREMENT for table `program_manuscript_requirements`
+--
+ALTER TABLE `program_manuscript_requirements`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=62;
+
+--
+-- AUTO_INCREMENT for table `program_requirements_mapping`
+--
+ALTER TABLE `program_requirements_mapping`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- AUTO_INCREMENT for table `requirements`
 --
 ALTER TABLE `requirements`
@@ -1606,6 +1749,12 @@ ALTER TABLE `requirements`
 --
 ALTER TABLE `research_titles`
   MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+
+--
+-- AUTO_INCREMENT for table `re_defense_assessments`
+--
+ALTER TABLE `re_defense_assessments`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
 
 --
 -- AUTO_INCREMENT for table `rubrics`
@@ -1659,13 +1808,13 @@ ALTER TABLE `team_panelists`
 -- AUTO_INCREMENT for table `team_requirements`
 --
 ALTER TABLE `team_requirements`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `team_requirement_files`
 --
 ALTER TABLE `team_requirement_files`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `thesis_topics`
