@@ -605,6 +605,89 @@
         }
     }
 
+    // --- Adviser assignment check: warn when adviser already handles >= 3 teams ---
+    // Helper: ask server how many teams the adviser currently handles
+    function checkAdviserTeamCount(userId, callback) {
+        if (!userId) {
+            callback(false, 0);
+            return;
+        }
+        // First try to read adviser_count from any option in the DOM (avoids extra AJAX)
+        var $opt = $(`option[value="${userId}"]`);
+        if ($opt.length && typeof $opt.data('adviser-count') !== 'undefined') {
+            var cnt = parseInt($opt.data('adviser-count') || 0, 10);
+            callback(true, cnt);
+            return;
+        }
+
+        // Fallback: request from server
+        $.ajax({
+            url: 'includes/get_adviser_team_count.php',
+            method: 'POST',
+            data: { user_id: userId },
+            dataType: 'json',
+            success: function (resp) {
+                if (resp && resp.success) {
+                    callback(true, parseInt(resp.count, 10));
+                } else {
+                    callback(false, 0);
+                }
+            },
+            error: function () {
+                callback(false, 0);
+            }
+        });
+    }
+
+    // When role becomes 'adviser' or when selecting a user while role is adviser,
+    // warn if adviser already handles 3 teams. If user cancels, clear the role selection.
+    $(document).on('change', '.role-select, select[name="member_role[]"], select[name="new_role[]"]', function () {
+        var $role = $(this);
+        var roleVal = $role.val();
+        if (roleVal !== 'adviser') return; // only care about adviser role
+
+        var $memberRow = $role.closest('.team-member');
+        // Try to get user id from new selection (user-select) or existing hidden member_ids
+        var userId = $memberRow.find('.user-select').val() || $memberRow.find('input[name="member_ids[]"]').val();
+        if (!userId) {
+            // No user selected yet; nothing to check
+            return;
+        }
+
+        checkAdviserTeamCount(userId, function (ok, count) {
+            if (!ok) return; // silently ignore errors
+            if (count >= 3) {
+                var message = 'Warning: This adviser already handles ' + count + ' teams. Are you sure you want to add them to another team? This will override the usual limit.';
+                if (!confirm(message)) {
+                    // User canceled; reset the role select
+                    $role.val('');
+                    // If a global role updater exists, try to call it to refresh UI. If not, just trigger change.
+                    try { if (typeof updateRoleDropdowns === 'function') updateRoleDropdowns(); } catch (e) {}
+                }
+            }
+        });
+    });
+
+    // Also check when user selection changes and the role is already adviser
+    $(document).on('change', '.user-select', function () {
+        var $user = $(this);
+        var userId = $user.val();
+        var $memberRow = $user.closest('.team-member');
+        var $role = $memberRow.find('.role-select');
+        if ($role.length && $role.val() === 'adviser' && userId) {
+            checkAdviserTeamCount(userId, function (ok, count) {
+                if (!ok) return;
+                if (count >= 3) {
+                    var message = 'Warning: This adviser already handles ' + count + ' teams. Are you sure you want to add them to another team? This will override the usual limit.';
+                    if (!confirm(message)) {
+                        // User canceled; clear the user select
+                        $user.val('');
+                    }
+                }
+            });
+        }
+    });
+
     // Remove team member functionality
     $(document).on('click', '.remove-member', function () {
         var teamMember = $(this).closest('.team-member');
@@ -3867,7 +3950,7 @@
         var teamId = $modal.find('input[name="id"]').val() || 0;
 
         $.ajax({
-            url: 'includes/get_available_users.php?team_id=' + teamId,
+            url: 'includes/get_available_users.php?team_id=' + teamId + '&include_advisers=1',
             method: 'GET',
             dataType: 'json',
             success: function (users) {
@@ -3913,7 +3996,9 @@
 
                     // Only show appropriate users
                     if (isAppropriateForRole) {
-                        return `<option value="${user.id}" data-usertype="${user.usertype}">${user.first_name} ${user.last_name}${userTypeLabel}</option>`;
+                        // Include adviser_count when available so client can warn about overload
+                        var adviserCountAttr = (typeof user.adviser_count !== 'undefined') ? ` data-adviser-count="${user.adviser_count}"` : '';
+                        return `<option value="${user.id}" data-usertype="${user.usertype}"${adviserCountAttr}>${user.first_name} ${user.last_name}${userTypeLabel}</option>`;
                     }
                     return '';
                 }).filter(option => option !== '').join('')}
