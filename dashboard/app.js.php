@@ -2165,8 +2165,8 @@
                             let programOptions = '<option value="">Select Program</option>';
                             if (Array.isArray(response.programs)) {
                                 programOptions += response.programs.map(p => `
-                                    <option value="${p.id}" data-name="${p.name}" data-specialization="${p.specialization || ''}"${p.id == d.program ? ' selected' : ''}>
-                                        ${p.name}${p.specialization ? ' (' + p.specialization + ')' : ''}
+                                    <option value="${p.id}" data-name="${p.name}" data-specialization="${p.specialization || ''}"${p.id == d.program ? 'selected' : ''}>
+                                        ${p.name}${p.specialization ? ' - ' + p.specialization : ''}
                                     </option>
                                 `).join('');
                             } else {
@@ -2611,7 +2611,7 @@
                         $stmt = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE name IS NOT NULL ORDER BY name");
                         $stmt->execute();
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                            echo "'<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . ($row['specialization'] ? " (" . htmlspecialchars($row['specialization']) . ")" : "") . "</option>' +";
+                            echo "'<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . ($row['specialization'] ? " - " . htmlspecialchars($row['specialization']) : "") . "</option>' +";
                         }
                     } catch (PDOException $e) {
                         echo "'<option value=\"\">Error loading programs</option>' +";

@@ -42,7 +42,7 @@
                     $roleClass = 'navbar-role-user';
                 }
                 if ($_SESSION['id'] == 0) {
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Center for Research and Development</span>';
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">ITD</span>';
                 } else
                 if ( $userType == 1) {
                     // Get team information for the student

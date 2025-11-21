@@ -30,14 +30,16 @@ try {
     }
 
     // 3. Fetch sections that match the full program
-    $stmt = $pdo->prepare("SELECT DISTINCT section 
-                           FROM users 
-                           WHERE TRIM(program) = :program 
-                           AND section IS NOT NULL 
-                           AND section != '' 
-                           ORDER BY section");
-    $stmt->execute(['program' => $fullProgram]);
-    $sections = $stmt->fetchAll(PDO::FETCH_COLUMN);
+$stmt = $pdo->prepare("
+    SELECT DISTINCT section
+    FROM users
+    WHERE REPLACE(TRIM(program), '  ', ' ') = :program
+      AND section IS NOT NULL AND section != ''
+    ORDER BY section
+");
+$stmt->execute(['program' => $fullProgram]);
+$sections = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
 
     // Return sections as a JSON array
     echo json_encode($sections);

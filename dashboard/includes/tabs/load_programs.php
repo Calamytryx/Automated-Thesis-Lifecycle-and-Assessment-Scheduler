@@ -7,7 +7,7 @@ try {
     $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($programs as $p) {
-        $label = $p['name'] . ($p['specialization'] ? ' (' . $p['specialization'] . ')' : '');
+        $label = $p['name'] . ($p['specialization'] ? ' - ' . $p['specialization'] : '');
         echo '<option value="' . htmlspecialchars($p['id']) . '">' . htmlspecialchars($label) . '</option>';
     }
 

@@ -2174,3 +2174,393 @@ Stack trace:
 [23-Jul-2025 09:38:48 Asia/Manila] Defense approval notifications created for schedule ID: 6
 [23-Jul-2025 09:38:48 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
 [23-Jul-2025 09:38:48 Asia/Manila] Teams scheduled: 1 out of 1 expected
+[26-Aug-2025 23:53:24 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => a
+            [1] => b
+            [2] => c
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 07:00
+            [1] => 08:00
+            [2] => 09:00
+            [3] => 10:00
+            [4] => 11:00
+            [5] => 12:00
+            [6] => 13:00
+            [7] => 14:00
+            [8] => 15:00
+        )
+
+    [days] => Array
+        (
+            [0] => 08-30-2025
+            [1] => 09-06-2025
+        )
+
+    [program] => 
+    [confirm_overwrite] => false
+)
+
+[26-Aug-2025 23:53:24 Asia/Manila] Found 3 teams with existing schedules
+[28-Aug-2025 21:51:10 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Room 1
+            [1] =>  Room 2
+        )
+
+    [timeDuration] => 5
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+            [8] => 17:00
+            [9] => 18:00
+            [10] => 19:00
+            [11] => 20:00
+        )
+
+    [days] => Array
+        (
+            [0] => 09-10-2025
+            [1] => 09-18-2025
+            [2] => 09-26-2025
+            [3] => 10-10-2025
+            [4] => 11-07-2025
+            [5] => 12-05-2025
+            [6] => 01-09-2026
+            [7] => 02-06-2026
+            [8] => 03-06-2026
+            [9] => 04-03-2026
+            [10] => 05-08-2026
+            [11] => 06-05-2026
+            [12] => 07-10-2026
+            [13] => 08-07-2026
+            [14] => 09-04-2026
+            [15] => 10-09-2026
+            [16] => 11-06-2026
+            [17] => 12-04-2026
+            [18] => 01-08-2027
+            [19] => 02-05-2027
+            [20] => 03-12-2027
+            [21] => 04-09-2027
+            [22] => 05-07-2027
+            [23] => 06-04-2027
+            [24] => 07-09-2027
+            [25] => 08-06-2027
+            [26] => 09-03-2027
+            [27] => 10-08-2027
+            [28] => 11-05-2027
+            [29] => 12-10-2027
+            [30] => 01-07-2028
+            [31] => 02-04-2028
+            [32] => 03-10-2028
+            [33] => 04-07-2028
+            [34] => 05-05-2028
+            [35] => 06-09-2028
+            [36] => 07-07-2028
+            [37] => 08-04-2028
+            [38] => 09-08-2028
+            [39] => 10-06-2028
+            [40] => 11-03-2028
+            [41] => 12-08-2028
+            [42] => 01-05-2029
+            [43] => 02-09-2029
+            [44] => 03-09-2029
+            [45] => 04-06-2029
+            [46] => 05-04-2029
+            [47] => 06-08-2029
+            [48] => 07-06-2029
+            [49] => 08-03-2029
+            [50] => 09-07-2029
+            [51] => 10-05-2029
+            [52] => 11-09-2029
+            [53] => 12-07-2029
+            [54] => 01-04-2030
+            [55] => 02-08-2030
+            [56] => 03-08-2030
+            [57] => 04-05-2030
+            [58] => 05-10-2030
+            [59] => 06-07-2030
+            [60] => 07-05-2030
+            [61] => 08-09-2030
+            [62] => 09-06-2030
+            [63] => 10-04-2030
+            [64] => 11-08-2030
+            [65] => 12-06-2030
+            [66] => 01-03-2031
+            [67] => 02-07-2031
+            [68] => 03-07-2031
+            [69] => 04-04-2031
+            [70] => 05-09-2031
+            [71] => 06-06-2031
+            [72] => 07-04-2031
+            [73] => 08-08-2031
+            [74] => 09-05-2031
+            [75] => 10-10-2031
+            [76] => 11-07-2031
+            [77] => 12-05-2031
+            [78] => 01-09-2032
+        )
+
+    [program] => Master in Business Administration
+    [confirm_overwrite] => false
+)
+
+[28-Aug-2025 21:51:10 Asia/Manila] Found 1 teams with existing schedules
+[28-Aug-2025 21:51:14 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Room 1
+            [1] =>  Room 2
+        )
+
+    [timeDuration] => 5
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+            [8] => 17:00
+            [9] => 18:00
+            [10] => 19:00
+            [11] => 20:00
+        )
+
+    [days] => Array
+        (
+            [0] => 09-10-2025
+            [1] => 09-18-2025
+            [2] => 09-26-2025
+            [3] => 10-10-2025
+            [4] => 11-07-2025
+            [5] => 12-05-2025
+            [6] => 01-09-2026
+            [7] => 02-06-2026
+            [8] => 03-06-2026
+            [9] => 04-03-2026
+            [10] => 05-08-2026
+            [11] => 06-05-2026
+            [12] => 07-10-2026
+            [13] => 08-07-2026
+            [14] => 09-04-2026
+            [15] => 10-09-2026
+            [16] => 11-06-2026
+            [17] => 12-04-2026
+            [18] => 01-08-2027
+            [19] => 02-05-2027
+            [20] => 03-12-2027
+            [21] => 04-09-2027
+            [22] => 05-07-2027
+            [23] => 06-04-2027
+            [24] => 07-09-2027
+            [25] => 08-06-2027
+            [26] => 09-03-2027
+            [27] => 10-08-2027
+            [28] => 11-05-2027
+            [29] => 12-10-2027
+            [30] => 01-07-2028
+            [31] => 02-04-2028
+            [32] => 03-10-2028
+            [33] => 04-07-2028
+            [34] => 05-05-2028
+            [35] => 06-09-2028
+            [36] => 07-07-2028
+            [37] => 08-04-2028
+            [38] => 09-08-2028
+            [39] => 10-06-2028
+            [40] => 11-03-2028
+            [41] => 12-08-2028
+            [42] => 01-05-2029
+            [43] => 02-09-2029
+            [44] => 03-09-2029
+            [45] => 04-06-2029
+            [46] => 05-04-2029
+            [47] => 06-08-2029
+            [48] => 07-06-2029
+            [49] => 08-03-2029
+            [50] => 09-07-2029
+            [51] => 10-05-2029
+            [52] => 11-09-2029
+            [53] => 12-07-2029
+            [54] => 01-04-2030
+            [55] => 02-08-2030
+            [56] => 03-08-2030
+            [57] => 04-05-2030
+            [58] => 05-10-2030
+            [59] => 06-07-2030
+            [60] => 07-05-2030
+            [61] => 08-09-2030
+            [62] => 09-06-2030
+            [63] => 10-04-2030
+            [64] => 11-08-2030
+            [65] => 12-06-2030
+            [66] => 01-03-2031
+            [67] => 02-07-2031
+            [68] => 03-07-2031
+            [69] => 04-04-2031
+            [70] => 05-09-2031
+            [71] => 06-06-2031
+            [72] => 07-04-2031
+            [73] => 08-08-2031
+            [74] => 09-05-2031
+            [75] => 10-10-2031
+            [76] => 11-07-2031
+            [77] => 12-05-2031
+            [78] => 01-09-2032
+        )
+
+    [program] => Master in Business Administration
+    [confirm_overwrite] => true
+)
+
+[28-Aug-2025 21:51:14 Asia/Manila] Found 1 teams with existing schedules
+[28-Aug-2025 21:51:14 Asia/Manila] Fetched 2 teams for programs: Master in Business Administration
+[28-Aug-2025 21:51:14 Asia/Manila] Removed schedules for 1 teams
+[28-Aug-2025 21:51:14 Asia/Manila] Generation 0 completed. Best fitness: -75. Elapsed time: 0.0264871120453 seconds
+[28-Aug-2025 21:51:17 Asia/Manila] Generation 20 completed. Best fitness: -50. Elapsed time: 3.48601603508 seconds
+[28-Aug-2025 21:51:20 Asia/Manila] Generation 40 completed. Best fitness: -50. Elapsed time: 6.47619509697 seconds
+[28-Aug-2025 21:51:23 Asia/Manila] Generation 60 completed. Best fitness: -50. Elapsed time: 9.35545015335 seconds
+[28-Aug-2025 21:51:26 Asia/Manila] Generation 80 completed. Best fitness: -50. Elapsed time: 12.3239901066 seconds
+[28-Aug-2025 21:51:29 Asia/Manila] Generation 100 completed. Best fitness: -50. Elapsed time: 15.3835310936 seconds
+[28-Aug-2025 21:51:32 Asia/Manila] Generation 120 completed. Best fitness: -50. Elapsed time: 18.2139701843 seconds
+[28-Aug-2025 21:51:35 Asia/Manila] Generation 140 completed. Best fitness: -50. Elapsed time: 21.0277321339 seconds
+[28-Aug-2025 21:51:38 Asia/Manila] Generation 160 completed. Best fitness: -50. Elapsed time: 24.3208940029 seconds
+[28-Aug-2025 21:51:41 Asia/Manila] Generation 180 completed. Best fitness: -50. Elapsed time: 27.7441110611 seconds
+[28-Aug-2025 21:51:45 Asia/Manila] Generation 200 completed. Best fitness: -50. Elapsed time: 31.0821321011 seconds
+[28-Aug-2025 21:51:48 Asia/Manila] Generation 220 completed. Best fitness: -50. Elapsed time: 34.4768121243 seconds
+[28-Aug-2025 21:51:51 Asia/Manila] Generation 240 completed. Best fitness: -50. Elapsed time: 37.5226039886 seconds
+[28-Aug-2025 21:51:54 Asia/Manila] Generation 260 completed. Best fitness: -50. Elapsed time: 40.259496212 seconds
+[28-Aug-2025 21:51:57 Asia/Manila] Generation 280 completed. Best fitness: -50. Elapsed time: 43.1556952 seconds
+[28-Aug-2025 21:52:00 Asia/Manila] Generation 300 completed. Best fitness: -50. Elapsed time: 45.9803080559 seconds
+[28-Aug-2025 21:52:03 Asia/Manila] Generation 320 completed. Best fitness: -50. Elapsed time: 48.9829440117 seconds
+[28-Aug-2025 21:52:06 Asia/Manila] Generation 340 completed. Best fitness: -50. Elapsed time: 51.9913311005 seconds
+[28-Aug-2025 21:52:09 Asia/Manila] Generation 360 completed. Best fitness: -50. Elapsed time: 54.9594731331 seconds
+[28-Aug-2025 21:52:11 Asia/Manila] Generation 380 completed. Best fitness: -50. Elapsed time: 57.8984510899 seconds
+[28-Aug-2025 21:52:15 Asia/Manila] Generation 400 completed. Best fitness: -50. Elapsed time: 61.0305399895 seconds
+[28-Aug-2025 21:52:18 Asia/Manila] Generation 420 completed. Best fitness: -50. Elapsed time: 64.7693731785 seconds
+[28-Aug-2025 21:52:22 Asia/Manila] Generation 440 completed. Best fitness: -50. Elapsed time: 68.1101150513 seconds
+[28-Aug-2025 21:52:25 Asia/Manila] Generation 460 completed. Best fitness: -50. Elapsed time: 71.1323571205 seconds
+[28-Aug-2025 21:52:28 Asia/Manila] Generation 480 completed. Best fitness: -50. Elapsed time: 74.0031650066 seconds
+[28-Aug-2025 21:52:31 Asia/Manila] Genetic algorithm completed in 77.0608050823 seconds
+[28-Aug-2025 21:52:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 19, team: 14
+[28-Aug-2025 21:52:31 Asia/Manila] Defense approval notifications created for schedule ID: 19
+[28-Aug-2025 21:52:31 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[28-Aug-2025 21:52:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 20, team: 9
+[28-Aug-2025 21:52:31 Asia/Manila] Defense approval notifications created for schedule ID: 20
+[28-Aug-2025 21:52:31 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[28-Aug-2025 21:52:31 Asia/Manila] Teams scheduled: 2 out of 2 expected
+[07-Nov-2025 13:31:47 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => 1
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 11-20-2025
+        )
+
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [confirm_overwrite] => false
+)
+
+[07-Nov-2025 13:31:47 Asia/Manila] Found 0 teams with existing schedules
+[07-Nov-2025 13:31:47 Asia/Manila] Fetched 1 teams for programs: Bachelor of Science in Information Technology - Web and Mobile Technology
+[07-Nov-2025 13:31:47 Asia/Manila] Generation 0 completed. Best fitness: 55. Elapsed time: 0.00487494468689 seconds
+[07-Nov-2025 13:31:49 Asia/Manila] Generation 20 completed. Best fitness: 60. Elapsed time: 1.95427107811 seconds
+[07-Nov-2025 13:31:51 Asia/Manila] Generation 40 completed. Best fitness: 60. Elapsed time: 3.76888203621 seconds
+[07-Nov-2025 13:31:52 Asia/Manila] Generation 60 completed. Best fitness: 60. Elapsed time: 5.45188999176 seconds
+[07-Nov-2025 13:31:54 Asia/Manila] Generation 80 completed. Best fitness: 60. Elapsed time: 7.28501486778 seconds
+[07-Nov-2025 13:31:56 Asia/Manila] Generation 100 completed. Best fitness: 60. Elapsed time: 9.1764960289 seconds
+[07-Nov-2025 13:31:58 Asia/Manila] Generation 120 completed. Best fitness: 60. Elapsed time: 10.924685955 seconds
+[07-Nov-2025 13:32:00 Asia/Manila] Generation 140 completed. Best fitness: 60. Elapsed time: 12.6739830971 seconds
+[07-Nov-2025 13:32:01 Asia/Manila] Generation 160 completed. Best fitness: 60. Elapsed time: 14.5177578926 seconds
+[07-Nov-2025 13:32:03 Asia/Manila] Generation 180 completed. Best fitness: 60. Elapsed time: 16.246762991 seconds
+[07-Nov-2025 13:32:05 Asia/Manila] Generation 200 completed. Best fitness: 60. Elapsed time: 18.0045940876 seconds
+[07-Nov-2025 13:32:07 Asia/Manila] Generation 220 completed. Best fitness: 60. Elapsed time: 19.6189908981 seconds
+[07-Nov-2025 13:32:08 Asia/Manila] Generation 240 completed. Best fitness: 60. Elapsed time: 21.3259310722 seconds
+[07-Nov-2025 13:32:10 Asia/Manila] Generation 260 completed. Best fitness: 60. Elapsed time: 23.0906369686 seconds
+[07-Nov-2025 13:32:12 Asia/Manila] Generation 280 completed. Best fitness: 60. Elapsed time: 24.9063899517 seconds
+[07-Nov-2025 13:32:14 Asia/Manila] Generation 300 completed. Best fitness: 60. Elapsed time: 26.7597010136 seconds
+[07-Nov-2025 13:32:15 Asia/Manila] Generation 320 completed. Best fitness: 60. Elapsed time: 28.5463619232 seconds
+[07-Nov-2025 13:32:17 Asia/Manila] Generation 340 completed. Best fitness: 60. Elapsed time: 30.3121249676 seconds
+[07-Nov-2025 13:32:19 Asia/Manila] Generation 360 completed. Best fitness: 60. Elapsed time: 32.0614049435 seconds
+[07-Nov-2025 13:32:21 Asia/Manila] Generation 380 completed. Best fitness: 60. Elapsed time: 33.8170049191 seconds
+[07-Nov-2025 13:32:22 Asia/Manila] Generation 400 completed. Best fitness: 60. Elapsed time: 35.5188639164 seconds
+[07-Nov-2025 13:32:24 Asia/Manila] Generation 420 completed. Best fitness: 60. Elapsed time: 37.2124428749 seconds
+[07-Nov-2025 13:32:26 Asia/Manila] Generation 440 completed. Best fitness: 60. Elapsed time: 38.8844649792 seconds
+[07-Nov-2025 13:32:27 Asia/Manila] Generation 460 completed. Best fitness: 60. Elapsed time: 40.5578460693 seconds
+[07-Nov-2025 13:32:29 Asia/Manila] Generation 480 completed. Best fitness: 60. Elapsed time: 42.3501598835 seconds
+[07-Nov-2025 13:32:31 Asia/Manila] Genetic algorithm completed in 44.1088039875 seconds
+[07-Nov-2025 13:32:31 Asia/Manila] DEFENSE SCHEDULER: About to create notifications for schedule ID: 8, team: 1
+[07-Nov-2025 13:32:31 Asia/Manila] Defense approval notifications created for schedule ID: 8
+[07-Nov-2025 13:32:31 Asia/Manila] DEFENSE SCHEDULER: Approval notification creation result: SUCCESS
+[07-Nov-2025 13:32:31 Asia/Manila] Teams scheduled: 1 out of 1 expected
+[21-Nov-2025 13:40:22 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => defense room 1
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 09:00
+            [1] => 10:00
+            [2] => 11:00
+            [3] => 12:00
+            [4] => 13:00
+            [5] => 14:00
+            [6] => 15:00
+            [7] => 16:00
+            [8] => 17:00
+            [9] => 18:00
+            [10] => 19:00
+        )
+
+    [days] => Array
+        (
+            [0] => 11-21-2025
+        )
+
+    [program] => 
+    [confirm_overwrite] => false
+)
+
+[21-Nov-2025 13:40:22 Asia/Manila] Found 1 teams with existing schedules

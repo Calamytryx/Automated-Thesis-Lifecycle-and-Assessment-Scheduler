@@ -68,8 +68,7 @@
 
 <?php } ?>
 
-
-</body>
+    </body>
 
 </html>
 

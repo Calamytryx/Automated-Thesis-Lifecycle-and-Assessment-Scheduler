@@ -592,8 +592,8 @@ function xss_filter($data) {
             // Get user type from session
             const usertype = <?php echo $_SESSION['usertype']; ?>;
             
-            // Fields to validate (excluding password fields and non-editable fields)
-            const fieldsToValidate = ['headline', 'bio'];
+            // Fields to validate (excluding password fields)
+            const fieldsToValidate = ['first_name', 'last_name', 'username', 'headline', 'bio'];
             
             // Only validate email if user is admin
             if (usertype == 0) {
@@ -668,7 +668,7 @@ function xss_filter($data) {
     // Setup real-time validation
     document.addEventListener('DOMContentLoaded', function() {
         const usertype = <?php echo $_SESSION['usertype']; ?>;
-        const fieldsToValidate = ['headline', 'bio'];
+        const fieldsToValidate = ['first_name', 'last_name', 'username', 'headline', 'bio'];
         
         // Only validate email if user is admin
         if (usertype == 0) {

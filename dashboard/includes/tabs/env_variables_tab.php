@@ -86,7 +86,7 @@
                                                     </td>
                                                     <td>
                                                         <?php 
-                                                        if (strpos($variable['key'], 'PASSWORD') !== false) {
+                                                        if (strpos($variable['key'], 'PASSWORD') !== false || $variable['key'] == 'APP_GEMINI_API') {
                                                             echo '<span class="text-muted">••••••••</span>';
                                                         } elseif ($variable['key'] == 'ALLOWED_INACTIVITY_TIME') {
                                                             $hours = floor($variable['value'] / 3600);

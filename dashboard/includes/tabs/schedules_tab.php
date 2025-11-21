@@ -138,26 +138,35 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 $user_id = $_SESSION['id'];
                                 $stmt = $pdo->prepare("SELECT program FROM users WHERE id = ?");
                                 $stmt->execute([$user_id]);
-                                $user_program = trim($stmt->fetchColumn());
+$user_program = trim($stmt->fetchColumn());
 
-                                if ($user_program) {
-                                    $stmt2 = $pdo->prepare("
-                                        SELECT college FROM programs 
-                                        WHERE TRIM(CONCAT(name, CASE WHEN specialization IS NOT NULL AND specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END)) = ?
-                                    ");
-                                    $stmt2->execute([$user_program]);
-                                    $user_college = $stmt2->fetchColumn();
+if ($user_program) {
+    // Match program row directly by ID or by name only
+    $stmt2 = $pdo->prepare("
+        SELECT college 
+        FROM programs 
+        WHERE name = ?
+        LIMIT 1
+    ");
+    $stmt2->execute([$user_program]);
+    $user_college = $stmt2->fetchColumn();
 
-                                    if ($user_college) {
-                                        $stmt3 = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE college = ? ORDER BY name");
-                                        $stmt3->execute([$user_college]);
-                                        while ($row = $stmt3->fetch(PDO::FETCH_ASSOC)) {
-                                            echo "<option value=\"{$row['id']}\">" . htmlspecialchars($row['name']) .
-                                                ($row['specialization'] ? " - " . htmlspecialchars($row['specialization']) : "") .
-                                                "</option>";
-                                        }
-                                    }
-                                }
+    if ($user_college) {
+        $stmt3 = $pdo->prepare("
+            SELECT id, name, specialization 
+            FROM programs 
+            WHERE college = ? 
+            ORDER BY name
+        ");
+        $stmt3->execute([$user_college]);
+        while ($row = $stmt3->fetch(PDO::FETCH_ASSOC)) {
+            echo "<option value=\"{$row['id']}\">" . htmlspecialchars($row['name']) .
+                ($row['specialization'] ? " - " . htmlspecialchars($row['specialization']) : "") .
+                "</option>";
+        }
+    }
+}
+
                             }
                             ?>
                         </select>

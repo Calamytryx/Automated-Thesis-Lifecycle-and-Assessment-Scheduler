@@ -17,7 +17,16 @@ if (isset($_SESSION['auth']))
 
 generate_csrf_token();
 check_remember_me();
+try {
 
+    $stmt = $pdo->prepare("SELECT value FROM env_variables WHERE `key` = :key");
+    $stmt->execute(['key' => 'APP_GEMINI_API']);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $_SESSION['gemini_api'] = $row['value'];
+} catch (PDOException $e) {
+    die("DB Error: " . $e->getMessage());
+}
 ?>
 
 <!DOCTYPE html>

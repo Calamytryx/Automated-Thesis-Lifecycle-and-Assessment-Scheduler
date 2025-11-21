@@ -207,7 +207,7 @@ function fetchTeamOverview(teamId = null) {
                                         <div class="card-body pt-3">
                                             ${data.defense 
                                                 ? `
-                                                    <div class="row g-3">
+                                                    <div class="row g-3 d-flex justify-content-center">
                                                         <div class="col-sm-6 col-lg-3">
                                                             <div class="text-center p-3 bg-light rounded">
                                                                 <i class="bi bi-calendar3 text-muted mb-2 d-block"></i>
@@ -2640,6 +2640,3 @@ $(document).ready(function() {
     };
 });
 </script>
-</body>
-
-</html>
