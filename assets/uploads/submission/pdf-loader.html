@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>PDF Viewer</title>
+    <style>
+        body, html {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            font-family: Arial, sans-serif;
+        }
+        #pdf-container {
+            width: 100%;
+            height: 100%;
+        }
+        .loading {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        .error {
+            background-color: #fee;
+            color: #c33;
+            padding: 20px;
+            margin: 20px;
+            border: 1px solid #fcc;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div id="pdf-container"></div>
+
+    <script type="module">
+        import { getDocument, GlobalWorkerOptions } from '../../vendor/PDFJS/build/pdf.mjs';
+        GlobalWorkerOptions.workerSrc = '../../vendor/PDFJS/build/pdf.worker.mjs';
+
+        // Get the PDF filename from URL hash or query parameter
+        function getPdfFile() {
+            // Try hash first (e.g., #filename.pdf or #../filename.pdf)
+            if (window.location.hash) {
+                let hash = window.location.hash.substring(1);
+                // Remove ../ if present
+                hash = hash.replace(/^\.\.\//, '');
+                if (hash) return hash;
+            }
+            
+            // Try query parameter (e.g., ?file=filename.pdf)
+            const params = new URLSearchParams(window.location.search);
+            const file = params.get('file');
+            if (file) return file;
+            
+            return null;
+        }
+
+        const container = document.getElementById('pdf-container');
+        const pdfFile = getPdfFile();
+
+        if (!pdfFile) {
+            container.innerHTML = '<div class="error">No PDF file specified. Use ?file=filename.pdf or #filename.pdf</div>';
+        } else {
+            container.innerHTML = '<div class="loading">Loading PDF: ' + pdfFile + '</div>';
+
+            // Build the full path to the PDF
+            const pdfPath = './' + pdfFile;
+
+            (async function() {
+                try {
+                    const response = await fetch(pdfPath);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: Could not load ${pdfPath}`);
+                    }
+
+                    const arrayBuffer = await response.arrayBuffer();
+                    const pdf = await getDocument(arrayBuffer).promise;
+
+                    // Create a simple viewer using canvas
+                    container.innerHTML = '';
+                    
+                    let currentPage = 1;
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext('2d');
+                    
+                    canvas.style.width = '100%';
+                    canvas.style.maxWidth = '100%';
+                    canvas.style.display = 'block';
+                    canvas.style.margin = '0 auto';
+                    
+                    container.appendChild(canvas);
+
+                    // Add controls
+                    const controls = document.createElement('div');
+                    controls.style.cssText = 'position: fixed; bottom: 10px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); color: white; padding: 10px 20px; border-radius: 4px; z-index: 1000; display: flex; gap: 10px; align-items: center;';
+                    controls.innerHTML = `
+                        <button id="prevBtn" style="padding: 5px 10px; cursor: pointer;">← Previous</button>
+                        <span id="pageInfo" style="min-width: 100px; text-align: center;">Page 1 of ${pdf.numPages}</span>
+                        <button id="nextBtn" style="padding: 5px 10px; cursor: pointer;">Next →</button>
+                    `;
+                    document.body.appendChild(controls);
+
+                    async function renderPage(pageNum) {
+                        const page = await pdf.getPage(pageNum);
+                        const scale = window.devicePixelRatio || 1;
+                        const viewport = page.getViewport({ scale });
+                        
+                        canvas.width = viewport.width;
+                        canvas.height = viewport.height;
+                        
+                        await page.render({
+                            canvasContext: ctx,
+                            viewport
+                        }).promise;
+                        
+                        document.getElementById('pageInfo').textContent = `Page ${pageNum} of ${pdf.numPages}`;
+                    }
+
+                    renderPage(currentPage);
+
+                    document.getElementById('prevBtn').addEventListener('click', () => {
+                        if (currentPage > 1) {
+                            currentPage--;
+                            renderPage(currentPage);
+                        }
+                    });
+
+                    document.getElementById('nextBtn').addEventListener('click', () => {
+                        if (currentPage < pdf.numPages) {
+                            currentPage++;
+                            renderPage(currentPage);
+                        }
+                    });
+
+                } catch (error) {
+                    console.error('PDF Error:', error);
+                    container.innerHTML = '<div class="error">Error loading PDF: ' + error.message + '</div>';
+                }
+            })();
+        }
+    </script>
+</body>
+</html>
