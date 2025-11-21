@@ -120,55 +120,14 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     </div>
                     <!-- Program and Section Filters -->
                     <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
-                        <select class="form-select" id="programFilterSelect" style="width: 200px; display: none;">
+                        <!-- College select (required) -->
+                        <select class="form-select" id="collegeFilterSelect" style="width: 220px; display: none;">
+                            <option value="">Select College</option>
+                        </select>
+
+                        <!-- Program select (disabled until college selected) -->
+                        <select class="form-select" id="programFilterSelect" style="width: 200px; display: none;" disabled>
                             <option value="">Select Program</option>
-                            <?php
-                            if ($_SESSION['usertype'] == '0' && $_SESSION['id'] == '0') {
-                                // Super admin: show all programs
-                                $stmt = $pdo->query("SELECT id, name, specialization FROM programs WHERE name IS NOT NULL ORDER BY name");
-                                if ($stmt) {
-                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                        echo "<option value=\"{$row['id']}\">" . htmlspecialchars($row['name']) .
-                                            ($row['specialization'] ? " - " . htmlspecialchars($row['specialization']) : "") .
-                                            "</option>";
-                                    }
-                                }
-                            } else if ($_SESSION['usertype'] == '0' && $_SESSION['id'] != '0') {
-                                // Admin: show only programs from their college
-                                $user_id = $_SESSION['id'];
-                                $stmt = $pdo->prepare("SELECT program FROM users WHERE id = ?");
-                                $stmt->execute([$user_id]);
-$user_program = trim($stmt->fetchColumn());
-
-if ($user_program) {
-    // Match program row directly by ID or by name only
-    $stmt2 = $pdo->prepare("
-        SELECT college 
-        FROM programs 
-        WHERE name = ?
-        LIMIT 1
-    ");
-    $stmt2->execute([$user_program]);
-    $user_college = $stmt2->fetchColumn();
-
-    if ($user_college) {
-        $stmt3 = $pdo->prepare("
-            SELECT id, name, specialization 
-            FROM programs 
-            WHERE college = ? 
-            ORDER BY name
-        ");
-        $stmt3->execute([$user_college]);
-        while ($row = $stmt3->fetch(PDO::FETCH_ASSOC)) {
-            echo "<option value=\"{$row['id']}\">" . htmlspecialchars($row['name']) .
-                ($row['specialization'] ? " - " . htmlspecialchars($row['specialization']) : "") .
-                "</option>";
-        }
-    }
-}
-
-                            }
-                            ?>
                         </select>
                         <select class="form-select" id="sectionFilterSelect" style="width: 180px; display: none;"
                             disabled>
@@ -203,6 +162,7 @@ if ($user_program) {
                     document.addEventListener('DOMContentLoaded', function() {
                         const viewTypeButtons = document.querySelectorAll('.view-type-btn');
                         const viewTypeInput = document.getElementById('viewTypeSelect');
+                        const collegeSelect = document.getElementById("collegeFilterSelect");
                         const programSelect = document.getElementById("programFilterSelect");
                         const sectionSelect = document.getElementById("sectionFilterSelect");
                         const instructorSelect = document.getElementById("instructorFilterSelect");
@@ -211,6 +171,7 @@ if ($user_program) {
                             const selectedView = viewTypeInput.value;
 
                             if (selectedView === 'program') {
+                                collegeSelect.style.display = 'inline-block';
                                 programSelect.style.display = 'inline-block';
                                 sectionSelect.style.display = 'inline-block';
                                 instructorSelect.style.display = 'none';
@@ -270,6 +231,44 @@ if ($user_program) {
                                     });
                             }
                         });
+
+                        // 🔁 College select triggers program update
+                        collegeSelect.addEventListener('change', function() {
+                            const college = this.value;
+                            // Reset program and section
+                            programSelect.innerHTML = '<option value="">Select Program</option>';
+                            programSelect.disabled = true;
+                            sectionSelect.innerHTML = '<option value="">Select Section</option>';
+                            sectionSelect.disabled = true;
+
+                            if (college) {
+                                fetch(`includes/tabs/load_programs.php?college=${encodeURIComponent(college)}`)
+                                    .then(res => {
+                                        if (!res.ok) throw new Error('Network response was not ok');
+                                        return res.text();
+                                    })
+                                    .then(html => {
+                                        // html contains <option> tags
+                                        programSelect.innerHTML = '<option value="">Select Program</option>' + html;
+                                        programSelect.disabled = false;
+                                    })
+                                    .catch(err => {
+                                        console.error('Error loading programs for college:', err);
+                                        alert('Failed to load programs for selected college.');
+                                    });
+                            }
+
+                            // Clear board until user picks program & section
+                            loadSchedules();
+                        });
+
+                        // Populate colleges on load
+                        fetch('includes/tabs/load_colleges.php')
+                            .then(res => res.text())
+                            .then(html => {
+                                collegeSelect.innerHTML = '<option value="">Select College</option>' + html;
+                            })
+                            .catch(err => console.error('Failed to load colleges:', err));
 
                         // ✅ Select "By Program" as default on load
                         document.querySelector('.view-type-btn[data-view="program"]').click();

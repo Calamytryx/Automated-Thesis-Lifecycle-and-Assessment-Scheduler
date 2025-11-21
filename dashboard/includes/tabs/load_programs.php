@@ -3,7 +3,14 @@
 require_once '../../../assets/setup/db.inc.php';
 header('Content-Type: text/html');
 try {
-    $stmt = $pdo->query("SELECT id, name, specialization FROM programs ORDER BY name");
+    // Optional college filter (pass college name via ?college=College+Name)
+    if (isset($_GET['college']) && trim($_GET['college']) !== '') {
+        $college = trim($_GET['college']);
+        $stmt = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE college = ? ORDER BY name");
+        $stmt->execute([$college]);
+    } else {
+        $stmt = $pdo->query("SELECT id, name, specialization FROM programs ORDER BY name");
+    }
     $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($programs as $p) {
