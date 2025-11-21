@@ -895,13 +895,22 @@ function updateItem($pdo, $table, $id, $data) {
                     }
                 }
                 
+                // Get new requirement type and multi-submission fields
+                $requirementType = $data['requirement_type'] ?? 'general';
+                $allowMultipleSubmissions = isset($data['allow_multiple_submissions']) && $data['allow_multiple_submissions'] == '1' ? 1 : 0;
+                $maxSubmissions = intval($data['max_submissions'] ?? 1);
+                
+                // Validate max_submissions (max is 3)
+                if ($maxSubmissions < 1) $maxSubmissions = 1;
+                if ($maxSubmissions > 3) $maxSubmissions = 3;
+                
                 // Build SQL query
                 if ($updateTemplate) {
-                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ?, template_file = ?, template_original_name = ? WHERE id = ?";
-                    $params = [$data['name'], $data['description'], $data['due_date'], $templateFile, $templateOriginalName, $id];
+                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ?, template_file = ?, template_original_name = ?, requirement_type = ?, allow_multiple_submissions = ?, max_submissions = ? WHERE id = ?";
+                    $params = [$data['name'], $data['description'], $data['due_date'], $templateFile, $templateOriginalName, $requirementType, $allowMultipleSubmissions, $maxSubmissions, $id];
                 } else {
-                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ? WHERE id = ?";
-                    $params = [$data['name'], $data['description'], $data['due_date'], $id];
+                    $sql = "UPDATE requirements SET name = ?, description = ?, due_date = ?, requirement_type = ?, allow_multiple_submissions = ?, max_submissions = ? WHERE id = ?";
+                    $params = [$data['name'], $data['description'], $data['due_date'], $requirementType, $allowMultipleSubmissions, $maxSubmissions, $id];
                 }
                 
                 $stmt = $pdo->prepare($sql);

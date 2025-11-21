@@ -277,7 +277,7 @@ if ($requirement) {
                 </button>
               </div>
               <div class="panel-content">
-                <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo $fileName; ?>" 
+                <iframe id="pdf" src="../assets/uploads/submission/viewer.html#file=<?php echo urlencode($fileName); ?>" 
                   frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
                 </iframe>
               </div>

@@ -786,14 +786,27 @@ function addItem($pdo, $table, $data) {
                     }
                 }
                 
-                $sql = "INSERT INTO requirements (name, description, due_date, template_file, template_original_name) VALUES (?, ?, ?, ?, ?)";
+                // Get new requirement type and multi-submission fields
+                $requirementType = $data['requirement_type'] ?? 'general';
+                $allowMultipleSubmissions = isset($data['allow_multiple_submissions']) && $data['allow_multiple_submissions'] == '1' ? 1 : 0;
+                $maxSubmissions = intval($data['max_submissions'] ?? 1);
+                
+                // Validate max_submissions (max is 3)
+                if ($maxSubmissions < 1) $maxSubmissions = 1;
+                if ($maxSubmissions > 3) $maxSubmissions = 3;
+                
+                $sql = "INSERT INTO requirements (name, description, due_date, template_file, template_original_name, requirement_type, allow_multiple_submissions, max_submissions) 
+                        VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
                 $stmt = $pdo->prepare($sql);
                 $result = $stmt->execute([
                     $data['name'],
                     $data['description'],
                     $data['due_date'],
                     $templateFile,
-                    $templateOriginalName
+                    $templateOriginalName,
+                    $requirementType,
+                    $allowMultipleSubmissions,
+                    $maxSubmissions
                 ]);
                 return ['success' => $result, 'message' => $result ? 'Requirement added successfully' : 'Failed to add requirement'];
 

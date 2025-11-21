@@ -18,6 +18,7 @@ header('Content-Type: application/json');
 try {
     require_once __DIR__ . '/../../assets/setup/db.inc.php';
     require_once __DIR__ . '/../includes/edit_functions.php';
+    require_once __DIR__ . '/../includes/defense_type_functions.php'; // Add defense type helper
 
     if (!isset($pdo) || !($pdo instanceof PDO)) {
         throw new Exception('Database connection error');
