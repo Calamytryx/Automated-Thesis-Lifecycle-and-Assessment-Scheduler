@@ -23,12 +23,10 @@ PDO::ATTR_EMULATE_PREPARES   => false,
 // Attempt to connect using primary host, then fallback if needed
 try {
     $pdo = new PDO($dsnPrimary, $dbUser, $dbPass, $options);
-    $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_general_ci");
     // echo "Connected to primary host ($primaryHost)";
 } catch (PDOException $e1) {
     try {
         $pdo = new PDO($dsnFallback, $dbUser, $dbPass, $options);
-        $pdo->exec("SET NAMES utf8mb4 COLLATE utf8mb4_general_ci");
         // echo "Connected to fallback host ($fallbackHost)";
     } catch (PDOException $e2) {
         die("Database connection failed: " . $e2->getMessage());

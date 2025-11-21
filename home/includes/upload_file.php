@@ -6,7 +6,6 @@ ob_start(); // Start output buffering
 
 session_start();
 require_once __DIR__ . '/../../assets/setup/db.inc.php'; // Adjust path as needed
-require_once __DIR__ . '/../../dashboard/includes/defense_type_functions.php'; // Add defense type helper
 
 // Set header to return JSON - Moved after potential output from included files
 header('Content-Type: application/json');
@@ -145,138 +144,55 @@ if (!move_uploaded_file($fileTmpPath, $destPath)) {
     exit;
 }
 
-// 5. Update Database with multi-submission support
+// 5. Update Database
 try {
-    // Get requirement details to check if multiple submissions are allowed
-    $reqDetails = getRequirementDetails($pdo, $requirementId);
-    $allowMultipleSubmissions = $reqDetails['allow_multiple_submissions'] ?? 0;
-    $maxSubmissions = $reqDetails['max_submissions'] ?? 1;
-
-    // Check existing team_requirements record
+    // Check if a record exists and its current status
     $checkSql = "SELECT id, status FROM team_requirements WHERE team_id = :team_id AND requirement_id = :requirement_id";
     $stmtCheck = $pdo->prepare($checkSql);
     $stmtCheck->execute([':team_id' => $teamId, ':requirement_id' => $requirementId]);
     $existingRecord = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
-    // For multi-submission requirements, check how many files already submitted
-    if ($allowMultipleSubmissions) {
-        $countSql = "SELECT COUNT(*) as file_count FROM team_requirement_files 
-                     WHERE team_id = :team_id AND requirement_id = :requirement_id AND deleted_at IS NULL";
-        $stmtCount = $pdo->prepare($countSql);
-        $stmtCount->execute([':team_id' => $teamId, ':requirement_id' => $requirementId]);
-        $countRow = $stmtCount->fetch(PDO::FETCH_ASSOC);
-        $currentFileCount = $countRow['file_count'] ?? 0;
-
-        // Check if limit exceeded
-        if ($currentFileCount >= $maxSubmissions) {
-            if (file_exists($destPath)) {
-                unlink($destPath);
-            }
-            $response['error'] = "Maximum number of submissions ({$maxSubmissions}) already reached for this requirement.";
-            error_log("Upload Error: File limit exceeded. Team ID {$teamId}, Req ID {$requirementId}, Current: {$currentFileCount}, Max: {$maxSubmissions}");
-            ob_end_clean();
-            echo json_encode($response);
-            exit;
+    // Security check: Only allow uploads if status is pending or no record exists
+    if ($existingRecord && $existingRecord['status'] !== 'pending') {
+        // Delete the uploaded file since we won't process it
+        if (file_exists($destPath)) {
+            unlink($destPath);
         }
-
-        // Insert into team_requirement_files for multi-submission requirement
-        $insertFilesSql = "INSERT INTO team_requirement_files 
-                          (team_id, requirement_id, file_name, original_file_name, file_path, file_size, submission_number, status, submitted_by, submitted_at)
-                          VALUES (:team_id, :requirement_id, :file_name, :original_file_name, :file_path, :file_size, :submission_number, 'submitted', :submitted_by, NOW())";
-        $stmtInsertFiles = $pdo->prepare($insertFilesSql);
-        $stmtInsertFiles->execute([
-            ':team_id' => $teamId,
-            ':requirement_id' => $requirementId,
-            ':file_name' => $uniqueFileName,
-            ':original_file_name' => $fileName,
-            ':file_path' => $destPath,
-            ':file_size' => $fileSize,
-            ':submission_number' => $currentFileCount + 1,
-            ':submitted_by' => $userId
-        ]);
-
-        // Also update team_requirements to mark as submitted
-        if ($existingRecord) {
-            $updateMainSql = "UPDATE team_requirements 
-                             SET status = 'submitted', submitted_at = NOW(), file_name = :file_name
-                             WHERE id = :id";
-            $stmtUpdateMain = $pdo->prepare($updateMainSql);
-            $stmtUpdateMain->execute([
-                ':file_name' => $uniqueFileName,
-                ':id' => $existingRecord['id']
-            ]);
-        } else {
-            $insertMainSql = "INSERT INTO team_requirements (team_id, requirement_id, file_name, status, submitted_at)
-                             VALUES (:team_id, :requirement_id, :file_name, 'submitted', NOW())";
-            $stmtInsertMain = $pdo->prepare($insertMainSql);
-            $stmtInsertMain->execute([
-                ':team_id' => $teamId,
-                ':requirement_id' => $requirementId,
-                ':file_name' => $uniqueFileName
-            ]);
-        }
-
-        $response['success'] = true;
-        $response['submission_number'] = $currentFileCount + 1;
-        $response['max_submissions'] = $maxSubmissions;
-        unset($response['error']);
-        error_log("Upload Success (Multi): File #{$response['submission_number']}/{$maxSubmissions} '{$uniqueFileName}' uploaded for Team ID {$teamId}, Req ID {$requirementId}.");
-
-    } else {
-        // Single submission mode (original logic)
-        // Security check: Only allow uploads if status is pending or no record exists
-        if ($existingRecord && $existingRecord['status'] !== 'pending') {
-            // Delete the uploaded file since we won't process it
-            if (file_exists($destPath)) {
-                unlink($destPath);
-            }
-            $response['error'] = 'File upload not allowed. Requirement status does not permit new submissions.';
-            error_log("Upload Security Block: Team ID {$teamId}, Req ID {$requirementId} - Status: {$existingRecord['status']}");
-            ob_end_clean();
-            echo json_encode($response);
-            exit;
-        }
-
-        if ($existingRecord) {
-            // Update existing record (only if status was pending)
-            $sql = "UPDATE team_requirements
-                    SET file_name = :file_name, status = 'submitted', submitted_at = NOW(), feedback = NULL, feedback_file = NULL
-                    WHERE id = :id";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                ':file_name' => $uniqueFileName,
-                ':id' => $existingRecord['id']
-            ]);
-        } else {
-            // Insert new record
-            $sql = "INSERT INTO team_requirements (team_id, requirement_id, file_name, status, submitted_at)
-                    VALUES (:team_id, :requirement_id, :file_name, 'submitted', NOW())";
-            $stmt = $pdo->prepare($sql);
-            $stmt->execute([
-                ':team_id' => $teamId,
-                ':requirement_id' => $requirementId,
-                ':file_name' => $uniqueFileName
-            ]);
-        }
-
-        if ($stmt->rowCount() > 0) {
-            $response['success'] = true;
-            unset($response['error']);
-            error_log("Upload Success: File '{$uniqueFileName}' uploaded for Team ID {$teamId}, Req ID {$requirementId}. DB updated.");
-        } else {
-            if (file_exists($destPath)) {
-                 $response['success'] = true;
-                 unset($response['error']);
-                 error_log("Upload Warning: File '{$uniqueFileName}' uploaded, but DB record was not inserted/updated (or data was identical). Team ID {$teamId}, Req ID {$requirementId}.");
-            } else {
-                 $response['error'] = 'Database record not updated and file move failed.';
-                 error_log("Upload Error: File '{$uniqueFileName}' DB record not updated AND file move failed. Team ID {$teamId}, Req ID {$requirementId}.");
-            }
-        }
+        $response['error'] = 'File upload not allowed. Requirement status does not permit new submissions.';
+        error_log("Upload Security Block: Team ID {$teamId}, Req ID {$requirementId} - Status: {$existingRecord['status']}");
+        ob_end_clean();
+        echo json_encode($response);
+        exit;
     }
 
-    // Send requirement submission notification to advisers
-    if ($response['success']) {
+    if ($existingRecord) {
+        // Update existing record (only if status was pending)
+        $sql = "UPDATE team_requirements
+                SET file_name = :file_name, status = 'submitted', submitted_at = NOW(), feedback = NULL, feedback_file = NULL
+                WHERE id = :id";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':file_name' => $uniqueFileName,
+            ':id' => $existingRecord['id']
+        ]);
+    } else {
+        // Insert new record
+        $sql = "INSERT INTO team_requirements (team_id, requirement_id, file_name, status, submitted_at)
+                VALUES (:team_id, :requirement_id, :file_name, 'submitted', NOW())";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute([
+            ':team_id' => $teamId,
+            ':requirement_id' => $requirementId,
+            ':file_name' => $uniqueFileName
+        ]);
+    }
+
+    if ($stmt->rowCount() > 0) {
+        $response['success'] = true;
+        unset($response['error']); // Remove error key on success
+        error_log("Upload Success: File '{$uniqueFileName}' uploaded for Team ID {$teamId}, Req ID {$requirementId}. DB updated.");
+        
+        // Send requirement submission notification to advisers
         try {
             require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
             createRequirementSubmissionNotifications($pdo, $teamId, $requirementId, $uniqueFileName);
@@ -284,6 +200,18 @@ try {
         } catch (Exception $notifException) {
             // Don't fail the upload if notification fails, just log it
             error_log("Failed to create requirement submission notification: " . $notifException->getMessage());
+        }
+    } else {
+        // This might happen if the update didn't change any rows (e.g., data was the same)
+        // Or if the insert failed silently (less likely with PDO defaults)
+        // Check if the file exists as confirmation
+        if (file_exists($destPath)) {
+             $response['success'] = true; // Consider it success if file moved, even if DB didn't change
+             unset($response['error']);
+             error_log("Upload Warning: File '{$uniqueFileName}' uploaded, but DB record was not inserted/updated (or data was identical). Team ID {$teamId}, Req ID {$requirementId}.");
+        } else {
+             $response['error'] = 'Database record not updated and file move failed.';
+             error_log("Upload Error: File '{$uniqueFileName}' DB record not updated AND file move failed. Team ID {$teamId}, Req ID {$requirementId}.");
         }
     }
 

@@ -30,10 +30,6 @@ try {
     }
 
     foreach ($requirements as &$req) {
-        // Include multi-submission settings in the response
-        $req['allow_multiple_submissions'] = $req['allow_multiple_submissions'] ?? 0;
-        $req['max_submissions'] = $req['max_submissions'] ?? 1;
-        
         if (isset($teamReqMap[$req['id']])) {
             $teamReqData = $teamReqMap[$req['id']];
             // Merge explicitly while keeping `id`

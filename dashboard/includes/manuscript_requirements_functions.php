@@ -32,10 +32,10 @@ function getTeamApplicableManuscripts($pdo, $team_id) {
         $progStmt->execute([$team['program']]);
         $prog = $progStmt->fetch(PDO::FETCH_ASSOC);
 
-        // If no exact match, try partial match (team program contains program name)
+        // If no exact match, try case-insensitive match
         if (!$prog) {
-            error_log("getTeamApplicableManuscripts DEBUG: Exact match failed, trying partial match");
-            $progSql = "SELECT id, name FROM programs WHERE ? LIKE CONCAT('%', name, '%') LIMIT 1";
+            error_log("getTeamApplicableManuscripts DEBUG: Exact match failed, trying case-insensitive");
+            $progSql = "SELECT id, name FROM programs WHERE LOWER(name) = LOWER(?) LIMIT 1";
             $progStmt = $pdo->prepare($progSql);
             $progStmt->execute([$team['program']]);
             $prog = $progStmt->fetch(PDO::FETCH_ASSOC);
@@ -91,7 +91,7 @@ function getTeamApplicableManuscripts($pdo, $team_id) {
                     JOIN requirements r ON pmr.requirement_id = r.id
                     LEFT JOIN team_requirements tr ON r.id = tr.requirement_id AND tr.team_id = ?
                     WHERE pmr.program_id = ? 
-                      AND pmr.defense_type = ?
+                      AND pmr.defense_type COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
                       AND pmr.is_required = 1
                       AND r.is_defense_manuscript = 1
                     ORDER BY r.name";
@@ -168,7 +168,7 @@ function isManuscriptApplicableToTeam($pdo, $team_id, $requirement_id) {
         $manSql = "SELECT * FROM program_manuscript_requirements 
                    WHERE requirement_id = ? 
                    AND program_id = ? 
-                   AND defense_type = ?
+                   AND defense_type COLLATE utf8mb4_unicode_ci = ? COLLATE utf8mb4_unicode_ci
                    AND is_required = 1";
 
         $manStmt = $pdo->prepare($manSql);
@@ -215,7 +215,7 @@ function getProgramManuscriptsByDefenseType($pdo, $program_id) {
         $sql = "SELECT 
                     pmr.defense_type,
                     COUNT(*) as count,
-                    CAST(GROUP_CONCAT(r.name SEPARATOR ', ') AS CHAR CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci) as manuscripts
+                    GROUP_CONCAT(r.name SEPARATOR ', ') as manuscripts
                 FROM program_manuscript_requirements pmr
                 JOIN requirements r ON pmr.requirement_id = r.id
                 WHERE pmr.program_id = ? AND pmr.is_required = 1
@@ -317,7 +317,7 @@ function getProgramManuscripts($pdo, $program_id) {
                     r.id,
                     r.name,
                     r.description,
-                    CAST(GROUP_CONCAT(DISTINCT pmr.defense_type SEPARATOR ', ') AS CHAR CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci) as defense_types,
+                    GROUP_CONCAT(DISTINCT pmr.defense_type SEPARATOR ', ') as defense_types,
                     COUNT(DISTINCT pmr.defense_type) as num_types
                 FROM program_manuscript_requirements pmr
                 JOIN requirements r ON pmr.requirement_id = r.id

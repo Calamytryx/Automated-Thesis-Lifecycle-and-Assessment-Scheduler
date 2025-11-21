@@ -51,12 +51,11 @@ $rubrics_in_group = [];
 $existing_evaluation = null;
 $pdf_file_name = null;
 $adviser_name = null;
-$defense_type = null; // <-- NEW: Store defense type
 
 try {
     // 1. Fetch Defense Schedule Info & Team ID
     $stmt_schedule = $pdo->prepare("
-        SELECT ds.schedule_date, ds.start_time, ds.end_time, ds.room, ds.team_id, t.name as team_name, t.program as team_program, ds.defense_type
+        SELECT ds.schedule_date, ds.start_time, ds.end_time, ds.room, ds.team_id, t.name as team_name, t.program as team_program
         FROM defense_schedules ds
         JOIN teams t ON ds.team_id = t.id
         WHERE ds.id = ?
@@ -68,18 +67,10 @@ try {
         throw new Exception("Defense schedule not found for ID: {$schedule_id}. Verify the schedule ID is correct.");
     }
     $team_id = $schedule_info['team_id'];
-    $defense_type = $schedule_info['defense_type'] ?? 'general'; // <-- NEW: Get defense type from schedule
     if (!$team_id) {
         throw new Exception("Team ID missing for defense schedule ID: {$schedule_id}. Check data integrity.");
     }
-    error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}");
-
-    // <-- NEW: If no defense_type in schedule, try to get from function ---
-    if (!$defense_type || $defense_type === 'general') {
-        require_once '../dashboard/includes/defense_type_functions.php';
-        $defense_type = getTeamDefenseType($pdo, $team_id);
-        error_log("DS-Index: Determined defense type from function: {$defense_type}");
-    }
+    error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}");
 
     // Fetch Research Title (From Old Logic, using team_id)
     $researchTitleStmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
@@ -90,98 +81,15 @@ try {
         $researchTitle = "Research Title Not Found"; // Default value
     }
 
-    // Fetch PDF Filename - Get the correct requirement ID based on defense type
-    // First get the team's program name
-    $teamProgramStmt = $pdo->prepare("SELECT program FROM teams WHERE id = ?");
-    $teamProgramStmt->execute([$team_id]);
-    $teamProgram = $teamProgramStmt->fetchColumn();
-    
-    error_log("DS-Index DEBUG: Team ID={$team_id}, Team Program='{$teamProgram}', Defense Type='{$defense_type}'");
-    
-    // Find the requirement ID that's configured for this program + defense type
-    // Try multiple matching strategies
-    $reqIdRow = null;
-    $resolvedProgramId = null;
-    
-    // First, try to resolve the team's program string to a program_id
-    // Strategy 0: Check if team.program is actually a program_id (numeric)
-    if (is_numeric($teamProgram)) {
-        $resolvedProgramId = (int)$teamProgram;
-        error_log("DS-Index DEBUG: Team program is numeric, using as program_id: {$resolvedProgramId}");
-    } else {
-        // Strategy 0a: Try exact match on programs.name
-        $programLookup = $pdo->prepare("SELECT id, name FROM programs WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 1");
-        $programLookup->execute([$teamProgram]);
-        $programMatch = $programLookup->fetch(PDO::FETCH_ASSOC);
-        
-        if ($programMatch) {
-            $resolvedProgramId = $programMatch['id'];
-            error_log("DS-Index DEBUG: Resolved team program '{$teamProgram}' to program_id={$resolvedProgramId} ('{$programMatch['name']}')");
-        } else {
-            // Strategy 0b: Try partial match (team program might contain the program name)
-            $programLookup2 = $pdo->prepare("SELECT id, name FROM programs WHERE LOWER(TRIM(?)) LIKE CONCAT('%', LOWER(TRIM(name)), '%') ORDER BY LENGTH(name) DESC LIMIT 1");
-            $programLookup2->execute([$teamProgram]);
-            $programMatch = $programLookup2->fetch(PDO::FETCH_ASSOC);
-            
-            if ($programMatch) {
-                $resolvedProgramId = $programMatch['id'];
-                error_log("DS-Index DEBUG: Resolved team program '{$teamProgram}' via partial match to program_id={$resolvedProgramId} ('{$programMatch['name']}')");
-            } else {
-                error_log("DS-Index WARNING: Could not resolve team program '{$teamProgram}' to any program_id in programs table!");
-            }
-        }
-    }
-    
-    // Now use the resolved program_id to find the manuscript requirement
-    if ($resolvedProgramId) {
-        $reqIdStmt = $pdo->prepare("
-            SELECT pmr.requirement_id, pmr.program_id, p.name as program_name, r.name as requirement_name
-            FROM program_manuscript_requirements pmr
-            JOIN programs p ON pmr.program_id = p.id
-            JOIN requirements r ON pmr.requirement_id = r.id
-            WHERE pmr.program_id = ?
-              AND pmr.defense_type = ?
-              AND pmr.is_required = 1
-              AND pmr.visibility_to_panelist = 1
-            LIMIT 1
-        ");
-        $reqIdStmt->execute([$resolvedProgramId, $defense_type]);
-        $reqIdRow = $reqIdStmt->fetch(PDO::FETCH_ASSOC);
-        
-        if ($reqIdRow) {
-            error_log("DS-Index DEBUG: Found requirement via program_id lookup: requirement_id={$reqIdRow['requirement_id']} ('{$reqIdRow['requirement_name']}'), program_id={$reqIdRow['program_id']} ('{$reqIdRow['program_name']}')");
-        } else {
-            error_log("DS-Index WARNING: No manuscript requirement found for program_id={$resolvedProgramId}, defense_type='{$defense_type}'");
-        }
-    }
-    
-    $requirement_id = $reqIdRow['requirement_id'] ?? 5; // Fallback to 5 if not found
-    
-    if (!$reqIdRow) {
-        error_log("DS-Index WARNING: No manuscript requirement found for program='{$teamProgram}' (resolved_program_id=" . ($resolvedProgramId ?? 'NULL') . "), defense_type='{$defense_type}'. Falling back to requirement_id=5. Please configure program manuscript requirements in the dashboard.");
-    }
-    
-    error_log("DS-Index: Using requirement_id = {$requirement_id} for defense_type = {$defense_type}");
-    
-    // Now fetch the PDF using the correct requirement ID
-    $requirementStmt = $pdo->prepare("SELECT id, file_name FROM team_requirements WHERE team_id = ? AND requirement_id = ?");
-    $requirementStmt->execute([$team_id, $requirement_id]);
+    // Fetch PDF Filename (From Old Logic, using team_id and requirement_id = 5)
+    $requirementStmt = $pdo->prepare("SELECT file_name FROM team_requirements WHERE team_id = ? AND requirement_id = 5");
+    $requirementStmt->execute([$team_id]);
     $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
-    
-    // Also fetch ALL submitted files for this requirement (for multi-file selection)
-    $allFilesStmt = $pdo->prepare("SELECT id, file_name, original_file_name, submission_number, submitted_at FROM team_requirement_files WHERE team_id = ? AND requirement_id = ? ORDER BY submission_number DESC");
-    $allFilesStmt->execute([$team_id, $requirement_id]);
-    $submissionFiles = $allFilesStmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    $pdf_file_name = null;
-    $activeSubmissionId = null;
-    
     if ($requirement && !empty($requirement['file_name'])) {
         $pdf_file_name = $requirement['file_name'];
-        error_log("DS-Index: Fetched PDF filename: {$pdf_file_name} for team ID {$team_id}, requirement_id {$requirement_id}");
-        $activeSubmissionId = $requirement['id'] ?? null;
+        error_log("DS-Index: Fetched PDF filename: {$pdf_file_name} for team ID {$team_id}.");
     } else {
-        error_log("DS-Index: Warning - PDF requirement (ID {$requirement_id}) not found or filename empty for team ID: {$team_id}. PDF viewer may not work.");
+        error_log("DS-Index: Warning - PDF requirement (ID 5) not found or filename empty for team ID: {$team_id}. PDF viewer may not work.");
         // Don't throw an error, but the PDF tab might be non-functional
     }
 
@@ -805,20 +713,13 @@ include '../assets/layouts/header.php';
   const outputPdfTextarea = document.getElementById('output-pdf'); // Hidden textarea for AI
 
   window.extractText = async function(pdfUrl) {
-    if (!pdfUrl || pdfUrl.includes('/submission/') && pdfUrl.endsWith('/submission/')) {
-        console.log("PDF URL not set or empty, skipping text extraction.");
-        return;
-    }
-    if (!outputPdfTextarea) {
-        console.warn("Output element not available for text extraction.");
+    if (!pdfUrl || !outputPdfTextarea) {
+        console.warn("PDF URL or output element not available for text extraction.");
         return;
     }
     try {
       const response = await fetch(pdfUrl);
-      if (!response.ok) {
-        console.warn(`Failed to fetch PDF: HTTP ${response.status}. PDF might not be uploaded yet.`);
-        return;
-      }
+      if (!response.ok) throw new Error('Network response was not ok');
       const arrayBuffer = await response.arrayBuffer();
       const pdfData = new Uint8Array(arrayBuffer);
       const pdf = await getDocument(pdfData).promise;
@@ -842,15 +743,15 @@ include '../assets/layouts/header.php';
           window.initiateAiAnalysis();
       }
     } catch (error) {
-      console.warn('Could not extract text from PDF:', error.message);
+      console.error('Failed to load or extract text from PDF:', error);
     }
   }
 
   window.addEventListener('DOMContentLoaded', () => {
-    if (predefinedPdfUrl && !predefinedPdfUrl.endsWith('/submission/')) {
+    if (predefinedPdfUrl) {
         extractText(predefinedPdfUrl);
     } else {
-        console.log("No PDF file available for this evaluation.");
+        console.warn("PDF URL not set, skipping text extraction.");
     }
   });
 </script>
@@ -864,15 +765,16 @@ include '../assets/layouts/header.php';
     $stmt->execute([$schedule_id, $evaluator_id]);
     $done_evaluating = $stmt->fetchColumn() > 0;
     if ($done_evaluating) {
-        // CHANGED: Removed "You can no longer edit" message to allow re-evaluation
-        echo "<div class='container mt-5'><div class='alert alert-info'><i class='fas fa-info-circle'></i> You can update your previous evaluation by re-submitting below.</div></div>";
+        echo "<div class='container mt-5'><div class='alert alert-info'>You can no longer edit this evaluation.</div></div>";
+        $done_evaluating = true;
+
     }
 }
 
         ?>
         <div class="text-center mb-4">
             <h1 class="display-6 fw-bold mb-5" style="color: var(--main-black)"><?php echo htmlspecialchars($researchTitle); ?></h1>
-            <div class="d-flex justify-content-center gap-2 mb-4 flex-wrap">
+            <div class="d-flex justify-content-center gap-2 mb-4">
                 <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
                     <i class="fas fa-users me-2" style="color: inherit;"></i><?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?>
                 </span>
@@ -881,24 +783,6 @@ include '../assets/layouts/header.php';
                 </span>
                  <span class="badge px-3 py-2" style="background-color: var(--main-bg-dark)">
                     <i class="fas fa-clock me-2" style="color: inherit;"></i><?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?>
-                </span>
-                <!-- NEW: Defense Type Badge -->
-                <?php 
-                    $typeColor = [
-                        'title_proposal' => '#0dcaf0',
-                        'title_defense' => '#0d6efd',
-                        'final_defense' => '#198754'
-                    ];
-                    $typeLabel = [
-                        'title_proposal' => 'Title Proposal Defense',
-                        'title_defense' => 'Title Defense',
-                        'final_defense' => 'Final Defense'
-                    ];
-                    $bgColor = $typeColor[$defense_type] ?? '#6c757d';
-                    $label = $typeLabel[$defense_type] ?? ucfirst(str_replace('_', ' ', $defense_type));
-                ?>
-                <span class="badge px-3 py-2" style="background-color: <?php echo $bgColor; ?>;">
-                    <i class="fas fa-flag me-2" style="color: white;"></i><?php echo htmlspecialchars($label); ?>
                 </span>
             </div>
         </div>
@@ -991,56 +875,25 @@ include '../assets/layouts/header.php';
           </div>
 
           <div class="section-toggle" id="pdf-section">
-                         <?php if ($pdf_file_name): ?>
-                                <div class="card pdf-view-card" id="pdf-view-card">
-                                    <div class="card-body">
-                                        <div class="panel-header d-flex justify-content-between align-items-center">
-                                            <h4>PDF Document View</h4>
-                                            <div>
-                                                <button class="fullscreen-btn me-2" onclick="toggleFullScreen()"><i class="fas fa-expand"></i> Full Screen</button>
-                                                <?php if (isset($_SESSION['team_role']) && in_array($_SESSION['team_role'], ['leader','adviser']) || (isset($_SESSION['usertype']) && in_array($_SESSION['usertype'], [2,3]))): ?>
-                                                    <button id="setSelectedFileBtn" class="btn btn-sm btn-outline-primary">Set selected file for evaluation</button>
-                                                <?php endif; ?>
-                                            </div>
-                                        </div>
-
-                                        <?php if (!empty($submissionFiles) && count($submissionFiles) > 1): ?>
-                                        <div class="row">
-                                            <div class="col-md-4">
-                                                <div class="list-group" id="submissionFileList">
-                                                    <?php foreach ($submissionFiles as $sf): ?>
-                                                        <label class="list-group-item list-group-item-action d-flex justify-content-between align-items-center">
-                                                            <div>
-                                                                <input type="radio" name="selected_submission" value="<?php echo (int)$sf['id']; ?>" <?php echo ((int)$sf['id'] === $activeSubmissionId) ? 'checked' : ''; ?>>
-                                                                <strong> #<?php echo htmlspecialchars($sf['submission_number'] ?? ''); ?></strong>
-                                                                <div class="small"><?php echo htmlspecialchars($sf['original_file_name'] ?? $sf['file_name']); ?></div>
-                                                                <div class="small text-muted">Submitted: <?php echo htmlspecialchars($sf['submitted_at'] ?? ''); ?></div>
-                                                            </div>
-                                                            <a class="btn btn-sm btn-secondary" href="../assets/uploads/submission/<?php echo urlencode($sf['file_name']); ?>" download>Download</a>
-                                                        </label>
-                                                    <?php endforeach; ?>
-                                                </div>
-                                            </div>
-                                            <div class="col-md-8">
-                                                <div class="panel-content">
-                                                    <iframe id="pdf" src="../assets/uploads/submission/<?php echo urlencode($pdf_file_name); ?>"
-                                                        frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                                                    </iframe>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <?php else: ?>
-                                        <div class="panel-content">
-                                            <iframe id="pdf" src="../assets/uploads/submission/<?php echo urlencode($pdf_file_name); ?>"
-                                                frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
-                                            </iframe>
-                                        </div>
-                                        <?php endif; ?>
-                                    </div>
-                                </div>
-                         <?php else: ?>
-                                <div class="alert alert-warning">PDF file requirement not found or not submitted for this team. PDF viewer unavailable.</div>
-                         <?php endif; ?>
+             <?php if ($pdf_file_name): ?>
+                <div class="card pdf-view-card" id="pdf-view-card">
+                  <div class="card-body">
+                    <div class="panel-header">
+                      <h4>PDF Document View</h4>
+                      <button class="fullscreen-btn" onclick="toggleFullScreen()">
+                        <i class="fas fa-expand"></i> Full Screen
+                      </button>
+                    </div>
+                    <div class="panel-content">
+                      <iframe id="pdf" src="../assets/uploads/submission/viewer.html?file=<?php echo urlencode($pdf_file_name); ?>"
+                        frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
+                      </iframe>
+                    </div>
+                  </div>
+                </div>
+             <?php else: ?>
+                <div class="alert alert-warning">PDF file requirement not found or not submitted for this team. PDF viewer unavailable.</div>
+             <?php endif; ?>
           </div>
 
           <div class="section-toggle d-none" id="ai-section">
@@ -1151,12 +1004,9 @@ include '../assets/layouts/header.php';
                 </div>
 
                 <!-- Submit Button -->
-                <!-- CHANGED: Allow re-evaluation/updates by removing $done_evaluating check -->
-                <?php if (!empty($rubrics_in_group)): ?>
+                <?php if (!empty($rubrics_in_group) && !$done_evaluating): ?>
                     <div class="text-center mb-5">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <?php echo $done_evaluating ? 'Update Evaluation' : 'Submit Evaluation'; ?>
-                        </button>
+                        <button type="submit" class="btn btn-primary btn-lg">Submit Evaluation</button>
                     </div>
                 <?php endif; ?>
                 <div id="formStatus" class="mt-3"></div>
@@ -1204,52 +1054,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   });
-
-    // --- Submission files map for preview and selection ---
-    const submissionMap = <?php echo json_encode(array_reduce($submissionFiles, function($carry, $item){ $carry[$item['id']] = $item['file_name']; return $carry; }, []), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT); ?> || {};
-
-    // When a radio is selected, update preview iframe (client-side only)
-    document.querySelectorAll('input[name="selected_submission"]').forEach(radio => {
-        radio.addEventListener('change', function() {
-            const fid = this.value;
-            const fname = submissionMap[fid];
-            const iframe = document.getElementById('pdf');
-            if (iframe && fname) {
-                iframe.src = `../assets/uploads/submission/${encodeURIComponent(fname)}`;
-            }
-        });
-    });
-
-    // Set selected file for evaluation (persist to defense_schedule.related_requirement_files)
-    const setBtn = document.getElementById('setSelectedFileBtn');
-    if (setBtn) {
-        setBtn.addEventListener('click', function() {
-            const selected = document.querySelector('input[name="selected_submission"]:checked');
-            if (!selected) {
-                Swal.fire('No file selected', 'Please select a submitted file to set for evaluation.', 'warning');
-                return;
-            }
-            const fileId = selected.value;
-            // Send to server
-            fetch('link_file_to_schedule.php', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json' },
-                body: new URLSearchParams({ schedule_id: '<?php echo intval($schedule_id); ?>', 'file_ids[]': fileId })
-            })
-            .then(r => r.json())
-            .then(res => {
-                if (res.success) {
-                    Swal.fire('Updated', 'Selected file is now set for decision-support.', 'success');
-                } else {
-                    Swal.fire('Error', res.error || 'Failed to set file for evaluation.', 'error');
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                Swal.fire('Error', 'Server error while setting file.', 'error');
-            });
-        });
-    }
 
   const researchTab = document.getElementById('research-paper-tab');
   if (researchTab) {
