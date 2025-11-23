@@ -657,13 +657,9 @@
         checkAdviserTeamCount(userId, function (ok, count) {
             if (!ok) return; // silently ignore errors
             if (count >= 3) {
-                var message = 'Warning: This adviser already handles ' + count + ' teams. Are you sure you want to add them to another team? This will override the usual limit.';
-                if (!confirm(message)) {
-                    // User canceled; reset the role select
-                    $role.val('');
-                    // If a global role updater exists, try to call it to refresh UI. If not, just trigger change.
-                    try { if (typeof updateRoleDropdowns === 'function') updateRoleDropdowns(); } catch (e) {}
-                }
+                // Show warning modal
+                $('#adviserWarningTeamCount').text(count);
+                $('#adviserWarningModal').data('role-element', $role).data('action', 'reset-role').modal('show');
             }
         });
     });
@@ -678,47 +674,11 @@
             checkAdviserTeamCount(userId, function (ok, count) {
                 if (!ok) return;
                 if (count >= 3) {
-                    var message = 'Warning: This adviser already handles ' + count + ' teams. Are you sure you want to add them to another team? This will override the usual limit.';
-                    if (!confirm(message)) {
-                        // User canceled; clear the user select
-                        $user.val('');
-                    }
+                    // Show warning modal
+                    $('#adviserWarningTeamCount').text(count);
+                    $('#adviserWarningModal').data('user-element', $user).data('action', 'clear-user').modal('show');
                 }
             });
-        }
-    });
-
-    // Remove team member functionality
-    $(document).on('click', '.remove-member', function () {
-        var teamMember = $(this).closest('.team-member');
-        var userId = teamMember.data('user-id');
-        var teamId = $('input[name="id"]').val();
-        if (userId && teamId) {
-            if (confirm('Are you sure you want to remove this team member? This action cannot be undone.')) {
-                $.ajax({
-                    url: 'includes/remove_team_member.php',
-                    method: 'POST',
-                    data: {
-                        user_id: userId,
-                        team_id: teamId
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            teamMember.remove();
-                            alert('Team member removed successfully');
-                        } else {
-                            alert('Error: ' + response.message);
-                        }
-                    },
-                    error: function () {
-                        alert('Error: Unable to remove team member');
-                    }
-                });
-            }
-        } else {
-            // If it's a new member (not yet saved to database), just remove from form
-            teamMember.remove();
         }
     });
 
@@ -768,6 +728,96 @@
             $(this).remove();
         });
     }
+
+    // Adviser Warning Modal - Cancel button handler
+    $(document).on('click', '#adviserWarningCancel', function () {
+        var $modal = $('#adviserWarningModal');
+        var action = $modal.data('action');
+        
+        if (action === 'reset-role') {
+            var $role = $modal.data('role-element');
+            if ($role) {
+                $role.val('');
+                try { if (typeof updateRoleDropdowns === 'function') updateRoleDropdowns(); } catch (e) {}
+            }
+        } else if (action === 'clear-user') {
+            var $user = $modal.data('user-element');
+            if ($user) {
+                $user.val('');
+            }
+        }
+        
+        $modal.modal('hide');
+    });
+
+    // Remove Member Modal - Confirm button handler
+    $(document).on('click', '#confirmRemoveMember', function () {
+        var $modal = $('#removeMemberModal');
+        var teamMember = $modal.data('team-member');
+        var userId = $modal.data('user-id');
+        var teamId = $modal.data('team-id');
+        
+        $.ajax({
+            url: 'includes/remove_team_member.php',
+            method: 'POST',
+            data: {
+                user_id: userId,
+                team_id: teamId
+            },
+            dataType: 'json',
+            success: function (response) {
+                if (response.success) {
+                    teamMember.remove();
+                    showToast('Success', 'Team member removed successfully', 'success');
+                    $modal.modal('hide');
+                    
+                    // Re-enable add button and update dropdowns
+                    var $teamModal = $('.modal.show');
+                    if ($teamModal.find('#teamMembers .team-member').length < 6) {
+                        $teamModal.find('#addTeamMember').prop('disabled', false);
+                    }
+                    updateTeamMemberDropdowns();
+                } else {
+                    showToast('Error', response.message || 'Failed to remove member', 'error');
+                }
+            },
+            error: function () {
+                showToast('Error', 'Unable to remove team member', 'error');
+            }
+        });
+    });
+
+    // Nested modal backdrop management for teams confirmation modals
+    // Handle backdrop layering when nested modals are shown
+    $('#adviserWarningModal, #removeMemberModal').on('show.bs.modal', function () {
+        var $nestedModal = $(this);
+        
+        // Wait for modal to be fully rendered
+        setTimeout(function() {
+            // Find all backdrops
+            var $backdrops = $('.modal-backdrop');
+            
+            if ($backdrops.length > 1) {
+                // Remove duplicate backdrops and keep only the topmost
+                $backdrops.not(':last').remove();
+                
+                // Ensure the remaining backdrop has the correct z-index
+                $backdrops.last().css({
+                    'z-index': '1059',
+                    'background-color': 'rgba(0, 0, 0, 0.7)',
+                    'backdrop-filter': 'blur(2px)'
+                });
+            }
+            
+            // Dim the parent edit modal
+            $('.modal.show:not(.nested-team-modal)').css('opacity', '0.6');
+        }, 10);
+    });
+
+    // Restore parent modal opacity when nested modal is hidden
+    $('#adviserWarningModal, #removeMemberModal').on('hidden.bs.modal', function () {
+        $('.modal.show:not(.nested-team-modal)').css('opacity', '1');
+    });
 </script>
 
 <!-- AJAX Live Updates & Form Validation Functions -->
@@ -4328,34 +4378,11 @@
         var teamId = $('.modal.show').find('input[name="id"]').val(); // Get team ID from the current modal
 
         if (userId && teamId) {
-            if (confirm('Are you sure you want to remove this team member from the team? This action cannot be undone.')) {
-                $.ajax({
-                    url: 'includes/remove_team_member.php',
-                    method: 'POST',
-                    data: {
-                        user_id: userId,
-                        team_id: teamId
-                    },
-                    dataType: 'json',
-                    success: function (response) {
-                        if (response.success) {
-                            teamMember.remove();
-                            showToast('Success', 'Team member removed successfully', 'success');
-                            // Re-enable add button and update dropdowns
-                            var $modal = $('.modal.show');
-                            if ($modal.find('#teamMembers .team-member').length < 6) {
-                                $modal.find('#addTeamMember').prop('disabled', false);
-                            }
-                            updateTeamMemberDropdowns();
-                        } else {
-                            showToast('Error', response.message || 'Failed to remove member', 'error');
-                        }
-                    },
-                    error: function () {
-                        showToast('Error', 'Unable to remove team member via AJAX', 'error');
-                    }
-                });
-            }
+            // Show confirmation modal for existing members
+            $('#removeMemberModal').data('team-member', teamMember)
+                                   .data('user-id', userId)
+                                   .data('team-id', teamId)
+                                   .modal('show');
         } else {
             // If it's a new member, just remove from form
             teamMember.remove();
@@ -4780,6 +4807,62 @@
 
 
 </script>
+
+<!-- Adviser Warning Modal -->
+<div class="modal fade nested-team-modal" id="adviserWarningModal" tabindex="-1" aria-labelledby="adviserWarningModalLabel"
+    aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: #ffc107; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h4 class="fw-bold mb-3" id="adviserWarningModalLabel">Adviser Load Warning</h4>
+                <p>This adviser already handles <strong><span id="adviserWarningTeamCount"></span></strong> teams.</p>
+                <p>Are you sure you want to add them to another team? This will override the usual limit.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" id="adviserWarningCancel">Cancel</button>
+                <button type="button" class="btn btn-warning" data-bs-dismiss="modal">Continue Anyway</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Remove Member Confirmation Modal -->
+<div class="modal fade nested-team-modal" id="removeMemberModal" tabindex="-1" aria-labelledby="removeMemberModalLabel"
+    aria-hidden="true" data-bs-backdrop="static">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
+                        stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+                    </svg>
+                </div>
+                <h4 class="fw-bold mb-3" id="removeMemberModalLabel">Confirm Removal</h4>
+                <p>Are you sure you want to remove this team member from the team?</p>
+                <p class="text-muted">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmRemoveMember">Remove Member</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel"

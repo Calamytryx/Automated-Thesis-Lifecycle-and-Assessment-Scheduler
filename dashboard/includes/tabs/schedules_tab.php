@@ -121,22 +121,22 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     <!-- Program and Section Filters -->
                     <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
                         <!-- College select (required) -->
-                        <select class="form-select" id="collegeFilterSelect" style="width: 220px; display: none;">
+                        <select class="form-select user-control-height" id="collegeFilterSelect" style="width: 220px; display: none;">
                             <option value="">Select College</option>
                         </select>
 
                         <!-- Program select (disabled until college selected) -->
-                        <select class="form-select" id="programFilterSelect" style="width: 200px; display: none;" disabled>
+                        <select class="form-select user-control-height" id="programFilterSelect" style="width: 200px; display: none;" disabled>
                             <option value="">Select Program</option>
                         </select>
-                        <select class="form-select" id="sectionFilterSelect" style="width: 180px; display: none;"
+                        <select class="form-select user-control-height" id="sectionFilterSelect" style="width: 180px; display: none;"
                             disabled>
                             <option value="">Select Section</option>
                         </select>
                     </div>
                     <!-- Instructor Filter -->
                     <div class="d-flex gap-2 align-items-center" id="instructorFilters">
-                        <select class="form-select" id="instructorFilterSelect" style="width: 220px; display: none;">
+                        <select class="form-select user-control-height" id="instructorFilterSelect" style="width: 220px; display: none;">
                             <option value="">Select Instructors</option>
                             <?php
                             try {

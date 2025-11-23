@@ -10,13 +10,21 @@
         </div>
 
         <!-- Search/Filter Section -->
-        <div class="row mb-4">
-            <div class="col-md-6">
-                <input type="text" id="teamSearchInput" class="form-control" placeholder="Search team name...">
+        <div class="row g-2 mb-3 align-items-end">
+            <div class="col-12 col-md-6 col-lg-8">
+                <!-- Search container -->
+                <div class="users-search-container">
+                    <div class="input-group user-control-height m-0">
+                        <span class="input-group-text border-0"> 
+                            <i class="bi bi-search"></i>
+                        </span>
+                        <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search team name...">
+                    </div>
+                </div>
             </div>
-            <div class="col-md-6">
-                <button class="btn btn-primary" id="refreshTeamsBtn">
-                    <i class="fas fa-sync"></i> Refresh Teams
+            <div class="col-12 col-md-6 col-lg-4">
+                <button class="btn btn-outline-dark user-control-height w-100" id="refreshTeamsBtn" style="border: 1px solid var(--neutral-300); background-color: var(--neutral-100); color: var(--neutral-800);">
+                    <i class="fas fa-sync me-2"></i>Refresh Teams
                 </button>
             </div>
         </div>

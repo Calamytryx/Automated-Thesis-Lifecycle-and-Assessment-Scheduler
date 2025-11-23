@@ -75,18 +75,18 @@
                         
                         // Format defense type
                         const defenseTypeMap = {
-                            'title_proposal': '<span class="badge bg-info">Title Proposal</span>',
-                            'title_defense': '<span class="badge bg-primary">Title Defense</span>',
-                            'final_defense': '<span class="badge bg-success">Final Defense</span>',
-                            're-defense': '<span class="badge bg-warning">Re-Defense</span>',
-                            'general': '<span class="badge bg-secondary">General</span>'
+                            'title_proposal': '<span class="badge bg-info status-badge">Title Proposal</span>',
+                            'title_defense': '<span class="badge bg-primary status-badge">Title Defense</span>',
+                            'final_defense': '<span class="badge bg-success status-badge">Final Defense</span>',
+                            're-defense': '<span class="badge bg-warning status-badge">Re-Defense</span>',
+                            'general': '<span class="badge bg-secondary status-badge">General</span>'
                         };
                         let typeCell = defenseTypeMap[requirement.requirement_type] || '<span class="badge bg-secondary">General</span>';
                         
                         // Format multi-submission
                         let multiSubmitCell = requirement.allow_multiple_submissions 
-                            ? `<span class="badge bg-success">Yes (Max: ${requirement.max_submissions})</span>`
-                            : '<span class="badge bg-light text-dark">No</span>';
+                            ? `<span class="badge bg-success status-badge">Yes (Max: ${requirement.max_submissions})</span>`
+                            : '<span class="badge bg-warning status-badge">No</span>';
                         
                         tbody.innerHTML += `
                             <tr>
