@@ -15,15 +15,15 @@
                 <div class="user-controls-container p-0">
                     <div class="row g-2 mb-3 align-items-end">
                         <div class="col-12 col-md-4">
-                            <label for="sectionSelect" class="form-label">Section <span class="text-danger">*</span></label>
-                            <select class="form-select" id="sectionSelect" required>
+                            <label for="profAssignSectionSelect" class="form-label">Section <span class="text-danger">*</span></label>
+                            <select class="form-select" id="profAssignSectionSelect" required>
                                 <option value="">Select a section...</option>
                             </select>
                         </div>
                         
                         <div class="col-12 col-md-4">
-                            <label for="profSelect" class="form-label">Research Professor <span class="text-danger">*</span></label>
-                            <select class="form-select" id="profSelect" required>
+                            <label for="profAssignProfSelect" class="form-label">Research Professor <span class="text-danger">*</span></label>
+                            <select class="form-select" id="profAssignProfSelect" required>
                                 <option value="">Select a professor...</option>
                             </select>
                         </div>
@@ -66,10 +66,16 @@
 
 <script>
 $(document).ready(function() {
-    // Load all data
-    loadSections();
-    loadProfessors();
-    loadAssignments();
+    console.log('🚀 Professor Assignments Tab - Document Ready');
+    
+    // Small delay to ensure tab is visible
+    setTimeout(function() {
+        console.log('⏰ Starting data load after delay');
+        // Load all data
+        loadSections();
+        loadProfessors();
+        loadAssignments();
+    }, 100);
 
     // Event listeners
     $('#assignBtn').on('click', function() {
@@ -79,48 +85,103 @@ $(document).ready(function() {
     $('#refreshBtn').on('click', function() {
         loadAssignments();
     });
+    
+    // Also load when tab is shown
+    $('a[href="#professor-assignments"]').on('shown.bs.tab', function (e) {
+        console.log('📑 Professor Assignments tab shown - reloading data');
+        loadSections();
+        loadProfessors();
+        loadAssignments();
+    });
 });
 
 // Load all unique sections from users table
 function loadSections() {
+    console.log('🔍 loadSections() called');
+    
+    // Debug: Check if element exists BEFORE AJAX
+    const selectBefore = $('#profAssignSectionSelect');
+    console.log('🔍 BEFORE AJAX - Select element exists:', selectBefore.length);
+    console.log('🔍 BEFORE AJAX - Select element:', selectBefore[0]);
+    console.log('🔍 BEFORE AJAX - Is visible:', selectBefore.is(':visible'));
+    console.log('🔍 BEFORE AJAX - Parent visible:', selectBefore.parent().is(':visible'));
+    
     $.ajax({
         url: '/api/professor_assignments.php',
         type: 'GET',
         data: { action: 'list_sections' },
         dataType: 'json',
         success: function(response) {
+            console.log('✅ loadSections SUCCESS:', response);
             if (response.success && response.data) {
-                const select = $('#sectionSelect');
+                const select = $('#profAssignSectionSelect');
+                console.log('📍 AFTER AJAX - Select element found:', select.length > 0 ? 'YES' : 'NO');
+                console.log('📍 AFTER AJAX - Select element:', select[0]);
+                console.log('📍 AFTER AJAX - Current HTML:', select.html());
+                
                 select.find('option:not(:first)').remove();
+                console.log('🗑️ Cleared existing options');
+                
+                let optionsAdded = 0;
                 response.data.forEach(section => {
-                    select.append(`<option value="${section}">${section}</option>`);
+                    const option = $('<option></option>').val(section).text(section);
+                    select.append(option);
+                    optionsAdded++;
+                    console.log('➕ Added option:', section);
                 });
+                
+                console.log('📊 Added ' + optionsAdded + ' sections');
+                console.log('📊 Total options now:', select.find('option').length);
+                console.log('📊 Final HTML:', select.html());
+                
+                // Verify they're actually in the DOM
+                select.find('option').each(function(i, opt) {
+                    console.log('  Option ' + i + ':', opt.value, opt.text);
+                });
+                
+            } else {
+                console.warn('⚠️ loadSections: No data or not successful', response);
             }
         },
         error: function(xhr, status, error) {
-            console.error('Load sections error:', error);
+            console.error('❌ Load sections error:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                error: error,
+                responseText: xhr.responseText
+            });
         }
     });
 }
 
 // Load all professors (faculty users)
 function loadProfessors() {
+    console.log('🔍 loadProfessors() called');
     $.ajax({
         url: '/api/professor_assignments.php',
         type: 'GET',
         data: { action: 'list_professors' },
         dataType: 'json',
         success: function(response) {
+            console.log('✅ loadProfessors SUCCESS:', response);
             if (response.success && response.data) {
-                const select = $('#profSelect');
+                const select = $('#profAssignProfSelect');
                 select.find('option:not(:first)').remove();
                 response.data.forEach(prof => {
                     select.append(`<option value="${prof.id}">${prof.first_name} ${prof.last_name}</option>`);
                 });
+                console.log('📊 Loaded ' + response.data.length + ' professors');
+            } else {
+                console.warn('⚠️ loadProfessors: No data or not successful', response);
             }
         },
         error: function(xhr, status, error) {
-            console.error('Load professors error:', error);
+            console.error('❌ Load professors error:', {
+                status: xhr.status,
+                statusText: xhr.statusText,
+                error: error,
+                responseText: xhr.responseText
+            });
         }
     });
 }
@@ -175,13 +236,13 @@ function displayAssignments(assignments) {
 // Assign professor to section
 function assignProfessor() {
     console.log('=== ASSIGN FUNCTION CALLED ===');
-    const section = $('#sectionSelect').val();
-    const profId = $('#profSelect').val();
+    const section = $('#profAssignSectionSelect').val();
+    const profId = $('#profAssignProfSelect').val();
 
     console.log('Section value:', section, 'Type:', typeof section);
     console.log('Professor ID value:', profId, 'Type:', typeof profId);
-    console.log('Full dropdown contents - Section:', $('#sectionSelect').find('option').length, 'options');
-    console.log('Full dropdown contents - Professor:', $('#profSelect').find('option').length, 'options');
+    console.log('Full dropdown contents - Section:', $('#profAssignSectionSelect').find('option').length, 'options');
+    console.log('Full dropdown contents - Professor:', $('#profAssignProfSelect').find('option').length, 'options');
 
     if (!section || !profId) {
         console.log('❌ VALIDATION FAILED - section=' + section + ', profId=' + profId);
@@ -208,8 +269,8 @@ function assignProfessor() {
             console.log('✅ SUCCESS Response:', response);
             if (response.success) {
                 alert('Professor assigned successfully');
-                $('#sectionSelect').val('');
-                $('#profSelect').val('');
+                $('#profAssignSectionSelect').val('');
+                $('#profAssignProfSelect').val('');
                 loadAssignments();
             } else {
                 alert('Error: ' + (response.message || 'Failed to assign'));

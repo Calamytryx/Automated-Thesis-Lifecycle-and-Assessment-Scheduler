@@ -55,7 +55,7 @@
                             <script>
                                 // Define validateInputs and other functions at the global scope
                                 // Declare global variables
-                                let timeDurationInput, startTimeInput, endTimeInput, daysInput, roomsInput, programSelect, 
+                                let timeDurationInput, startTimeInput, endTimeInput, daysInput, roomsInput, sectionSelect, 
                                     saveButton, statusElement, includeLunchBreakCheckbox;
 
                                 // Define the correctTimeDuration function in global scope
@@ -121,7 +121,7 @@
 
                                     console.log('Validation - Start:', startTime, 'End:', endTime, 'Duration:', timeDuration, 'Days:', days, 'Rooms:', rooms, 'Teams:', numberOfTeams);
 
-                                    if (!startTime || !endTime || !timeDuration || days === 0 || rooms === 0 || !programSelect) {
+                                    if (!startTime || !endTime || !timeDuration || days === 0 || rooms === 0 || !sectionSelect) {
                                         isValid = false;
                                         warningMessage = 'All fields (Rooms, Duration, Start/End Time, Days) are required.';
                                     } else {
@@ -173,18 +173,18 @@
 
                                 // Define updateTeamCount in global scope
                                 function updateTeamCount(callback) {
-                                    if (!programSelect) {
-                                        console.error('programSelect is not initialized');
+                                    if (!sectionSelect) {
+                                        console.error('sectionSelect is not initialized');
                                         return;
                                     }
-                                    const selectedProgram = programSelect.value;
-                                    console.log('updateTeamCount - Selected program:', selectedProgram);
-                                    $('#selectedProgram').val(selectedProgram);
+                                    const selectedSection = sectionSelect.value;
+                                    console.log('updateTeamCount - Selected section:', selectedSection);
+                                    $('#selectedSection').val(selectedSection);
 
                                     $.ajax({
                                         url: '../dashboard/includes/get_team_count.php',
                                         method: 'POST',
-                                        data: { program: selectedProgram },
+                                        data: { section: selectedSection },
                                         dataType: 'json',
                                         success: function(response) {
                                             if (response.success) {
@@ -220,7 +220,7 @@
                                     endTimeInput = document.getElementById('endTime');
                                     daysInput = document.getElementById('days');
                                     roomsInput = document.getElementById('rooms');
-                                    programSelect = document.getElementById('programSelect');
+                                    sectionSelect = document.getElementById('sectionSelect');
                                     saveButton = document.getElementById('saveSchedulerSettings');
                                     statusElement = document.getElementById('scheduleGenerationStatus');
                                     includeLunchBreakCheckbox = document.getElementById('includeLunchBreak');
@@ -268,8 +268,8 @@
                                         includeLunchBreakCheckbox.addEventListener('change', () => updateTeamCount(validateInputs));
                                     }
                                     
-                                    if (programSelect) {
-                                        programSelect.addEventListener('change', () => updateTeamCount(validateInputs));
+                                    if (sectionSelect) {
+                                        sectionSelect.addEventListener('change', () => updateTeamCount(validateInputs));
                                     }
 
                                     console.log('DOM Content Loaded: All event listeners attached');
@@ -290,7 +290,7 @@
                                 <input type="text" class="form-control datepicker" id="days" name="days" required>
                                 <small id="daysHelp" class="form-text text-muted">Click to select dates. Multiple dates can be selected.</small>
                             </div>
-                            <input type="hidden" id="selectedProgram" name="selectedProgram" value="">
+                            <input type="hidden" id="selectedSection" name="selectedSection" value="">
                             <script>
                                 $(document).ready(function() {
                                     // Explicitly cancel any submit event on the form
@@ -435,11 +435,11 @@
                                         const startTime = document.getElementById("startTime").value;
                                         const endTime = document.getElementById("endTime").value;
                                         const days = document.getElementById("days").value.split(',');
-                                        const program = document.getElementById("selectedProgram").value;
+                                        const section = document.getElementById("selectedSection").value;
                                         const confirmOverwrite = document.getElementById("confirmOverwrite") ? 
                                             document.getElementById("confirmOverwrite").value : 'false';
                                             
-                                        console.log('Generate Schedule - Program selected:', program);
+                                        console.log('Generate Schedule - Section selected:', section);
 
                                         const increment = (duration % 1 === 0) ? 60 : 30;
                                         let currentTime = new Date(`1970-01-01T${startTime}`);
@@ -459,7 +459,7 @@
                                             timeDuration: duration,
                                             timeSlots: timeSlots,
                                             days: days,
-                                            program: program,
+                                            section: section,
                                             confirm_overwrite: confirmOverwrite
                                         };
                                         console.log('Request data for generateSchedule:', requestData);
@@ -534,7 +534,8 @@
                                             }
                                         });
                                     });
-                                    } else {
+                                    }
+                                    else {
                                         console.error('Generate button not found!');
                                     }
                                 });
@@ -545,18 +546,58 @@
                             </div>
 
                             <div class="mb-3">
-                                <label for="programSelect" class="form-label">Program Filter</label>
-                                <select class="form-select" id="programSelect" name="program">
-                                    <option value="">All Programs</option>
+                                <label for="sectionSelect" class="form-label">Section Filter</label>
+                                <select class="form-select" id="sectionSelect" name="section">
+                                    <option value="">All Accessible Sections</option>
                                     <?php
-                                    $stmt = $pdo->prepare("SELECT DISTINCT program FROM teams WHERE program IS NOT NULL ORDER BY program");
-                                    $stmt->execute();
-                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                        echo "<option value=\"" . htmlspecialchars($row['program']) . "\">" . htmlspecialchars($row['program']) . "</option>";
+                                    // Get accessible sections based on user role
+                                    $currentUserId = $_SESSION['id'] ?? 0;
+                                    $currentUsertype = $_SESSION['usertype'] ?? -1;
+
+                                    // Admin (id=0): All sections
+                                    if ($currentUserId === 0 && $currentUsertype === 0) {
+                                        $stmt = $pdo->prepare("SELECT DISTINCT section FROM users WHERE section IS NOT NULL ORDER BY section");
+                                        $stmt->execute();
+                                    }
+                                    // Program Chair (usertype=0, id!=0): All sections in their college
+                                    elseif ($currentUsertype === 0 && $currentUserId !== 0) {
+                                        require_once __DIR__ . '/../../../assets/includes/auth_functions.php';
+                                        $userCollege = get_user_college($pdo, $currentUserId);
+                                        if ($userCollege) {
+                                            $stmt = $pdo->prepare("
+                                                SELECT DISTINCT u.section FROM users u
+                                                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+                                                WHERE u.section IS NOT NULL AND p.college = :college
+                                                ORDER BY u.section
+                                            ");
+                                            $stmt->execute([':college' => $userCollege]);
+                                        } else {
+                                            $stmt = null;
+                                        }
+                                    }
+                                    // Faculty (usertype=2): Only their assigned sections
+                                    elseif ($currentUsertype === 2) {
+                                        require_once __DIR__ . '/../section_access.php';
+                                        $sections = getProfessorSections($pdo, $currentUserId);
+                                        if (!empty($sections)) {
+                                            $placeholders = implode(',', array_fill(0, count($sections), '?'));
+                                            $stmt = $pdo->prepare("SELECT DISTINCT section FROM users WHERE section IN ($placeholders) ORDER BY section");
+                                            $stmt->execute($sections);
+                                        } else {
+                                            $stmt = null;
+                                        }
+                                    } else {
+                                        $stmt = null;
+                                    }
+
+                                    if ($stmt) {
+                                        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                                            echo "<option value=\"" . htmlspecialchars($row['section']) . "\">" . htmlspecialchars($row['section']) . "</option>";
+                                        }
                                     }
                                     ?>
                                 </select>
-                                <small class="form-text text-muted">Select a program to filter teams for scheduling.</small>
+                                <small class="form-text text-muted">Select a section to filter teams for scheduling.</small>
                                 <input type="hidden" id="selectedTeamCount" name="selectedTeamCount" value="0">
                             </div>
                         </form>

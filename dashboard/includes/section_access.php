@@ -72,17 +72,18 @@ function getSectionFilterClause($pdo, $userType, $userId, $tableAlias = 'u') {
         return ['clause' => '', 'params' => []];
     }
     
-    $section = getProfessorSection($pdo, $userId);
-    
-    if (!$section) {
+    $sections = getProfessorSections($pdo, $userId);
+
+    if (empty($sections)) {
         // Professor has no section assignment, see all data
         return ['clause' => '', 'params' => []];
     }
-    
-    // Professor has section assignment, filter by it
+
+    // Professor has one or more section assignments, filter by them
+    $placeholders = implode(',', array_fill(0, count($sections), '?'));
     return [
-        'clause' => " AND {$tableAlias}.section = ?",
-        'params' => [$section]
+        'clause' => " AND {$tableAlias}.section IN ($placeholders)",
+        'params' => $sections
     ];
 }
 
@@ -94,21 +95,23 @@ function getSectionFilterClause($pdo, $userType, $userId, $tableAlias = 'u') {
  */
 function getVisibleStudentsForProfessor($pdo, $professor_id) {
     try {
-        $section = getProfessorSection($pdo, $professor_id);
+        $sections = getProfessorSections($pdo, $professor_id);
         
-        if (!$section) {
+        if (empty($sections)) {
             // No section assignment, return all students
             $stmt = $pdo->query("SELECT id FROM users WHERE usertype = 1");
             return $stmt->fetchAll(PDO::FETCH_COLUMN);
         }
         
-        // Return only students from assigned section
-        $stmt = $pdo->prepare("
+        // Return only students from all assigned sections
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
+        $sql = "
             SELECT id 
             FROM users 
-            WHERE usertype = 1 AND section = ?
-        ");
-        $stmt->execute([$section]);
+            WHERE usertype = 1 AND section IN ($placeholders)
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($sections);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     } catch (Exception $e) {
         error_log("Error getting visible students: " . $e->getMessage());
@@ -124,23 +127,25 @@ function getVisibleStudentsForProfessor($pdo, $professor_id) {
  */
 function getVisibleTeamsForProfessor($pdo, $professor_id) {
     try {
-        $section = getProfessorSection($pdo, $professor_id);
-        
-        if (!$section) {
+        $sections = getProfessorSections($pdo, $professor_id);
+
+        if (empty($sections)) {
             // No section assignment, return all teams
             $stmt = $pdo->query("SELECT id FROM teams");
             return $stmt->fetchAll(PDO::FETCH_COLUMN);
         }
-        
-        // Return only teams with members from assigned section
-        $stmt = $pdo->prepare("
+
+        // Return only teams with members from any of the assigned sections
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
+        $sql = "
             SELECT DISTINCT t.id
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id
             JOIN users u ON tm.user_id = u.id
-            WHERE u.section = ?
-        ");
-        $stmt->execute([$section]);
+            WHERE u.section IN ($placeholders)
+        ";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($sections);
         return $stmt->fetchAll(PDO::FETCH_COLUMN);
     } catch (Exception $e) {
         error_log("Error getting visible teams: " . $e->getMessage());
@@ -157,20 +162,19 @@ function getVisibleTeamsForProfessor($pdo, $professor_id) {
  */
 function canProfessorViewStudent($pdo, $professor_id, $student_id) {
     try {
-        $section = getProfessorSection($pdo, $professor_id);
-        
-        if (!$section) {
+        $sections = getProfessorSections($pdo, $professor_id);
+
+        if (empty($sections)) {
             // No section assignment, can view all
             return true;
         }
-        
-        // Check if student is in same section
-        $stmt = $pdo->prepare("
-            SELECT 1 
-            FROM users 
-            WHERE id = ? AND section = ?
-        ");
-        $stmt->execute([$student_id, $section]);
+
+        // Check if student is in any of the professor's sections
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
+        $sql = "SELECT 1 FROM users WHERE id = ? AND section IN ($placeholders)";
+        $params = array_merge([$student_id], $sections);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetch() !== false;
     } catch (Exception $e) {
         error_log("Error checking professor view permission: " . $e->getMessage());
@@ -187,22 +191,25 @@ function canProfessorViewStudent($pdo, $professor_id, $student_id) {
  */
 function canProfessorViewTeam($pdo, $professor_id, $team_id) {
     try {
-        $section = getProfessorSection($pdo, $professor_id);
-        
-        if (!$section) {
+        $sections = getProfessorSections($pdo, $professor_id);
+
+        if (empty($sections)) {
             // No section assignment, can view all
             return true;
         }
-        
-        // Check if team has members from assigned section
-        $stmt = $pdo->prepare("
+
+        // Check if team has members from any assigned section
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
+        $sql = "
             SELECT 1
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id
             JOIN users u ON tm.user_id = u.id
-            WHERE t.id = ? AND u.section = ?
-        ");
-        $stmt->execute([$team_id, $section]);
+            WHERE t.id = ? AND u.section IN ($placeholders)
+        ";
+        $params = array_merge([$team_id], $sections);
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
         return $stmt->fetch() !== false;
     } catch (Exception $e) {
         error_log("Error checking team view permission: " . $e->getMessage());
@@ -419,9 +426,9 @@ function getAvailableAdvisersForTeam($pdo, $teamProgram, $currentUserId = 0, $cu
         } elseif ($currentUserType === 2) {
             // Faculty (usertype=2): Access to section advisers only
             error_log("getAvailableAdvisersForTeam - Faculty (id=$currentUserId) accessing section advisers");
-            $section = getProfessorSection($pdo, $currentUserId);
+                $sections = getProfessorSections($pdo, $currentUserId);
             
-            if (!$section) {
+                if (empty($sections)) {
                 // No section assignment, see all college advisers
                 error_log("getAvailableAdvisersForTeam - Faculty has no section, accessing all college advisers: $college");
                 $stmt = $pdo->prepare("
@@ -436,18 +443,21 @@ function getAvailableAdvisersForTeam($pdo, $teamProgram, $currentUserId = 0, $cu
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
             }
             
-            // Faculty has section: only show advisers from same section
-            error_log("getAvailableAdvisersForTeam - Faculty has section: $section, filtering advisers");
-            $stmt = $pdo->prepare("
-                SELECT DISTINCT u.id, u.first_name, u.last_name, u.username
-                FROM users u
-                LEFT JOIN section_professors sp ON u.id = sp.professor_id
-                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' 
-                    THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
-                WHERE u.usertype = 2 AND sp.section = ? AND p.college = ?
-                ORDER BY u.first_name, u.last_name
-            ");
-            $stmt->execute([$section, $college]);
+                // Faculty has section(s): only show advisers from same section(s)
+                error_log("getAvailableAdvisersForTeam - Faculty has sections: " . json_encode($sections) . ", filtering advisers");
+                $placeholders = implode(',', array_fill(0, count($sections), '?'));
+                $sql = "
+                    SELECT DISTINCT u.id, u.first_name, u.last_name, u.username
+                    FROM users u
+                    LEFT JOIN section_professors sp ON u.id = sp.professor_id
+                    LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' 
+                        THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+                    WHERE u.usertype = 2 AND sp.section IN ($placeholders) AND p.college = ?
+                    ORDER BY u.first_name, u.last_name
+                ";
+                $stmt = $pdo->prepare($sql);
+                $params = array_merge($sections, [$college]);
+                $stmt->execute($params);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }
         

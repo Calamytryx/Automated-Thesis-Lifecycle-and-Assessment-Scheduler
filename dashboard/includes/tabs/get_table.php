@@ -221,12 +221,17 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
                 $params[':user_id'] = $userId;
                 
-                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see students from their assigned section
+                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see students from their assigned section(s)
                 if ($currentUsertype === 2) {
-                    $assignedSection = getProfessorSection($pdo, $userId);
-                    if ($assignedSection) {
-                        $collegeRestrictionClause .= " AND users.section = :assigned_section";
-                        $params[':assigned_section'] = $assignedSection;
+                    $assignedSections = getProfessorSections($pdo, $userId);
+                    if (!empty($assignedSections)) {
+                        $sectionPlaceholders = [];
+                        foreach ($assignedSections as $idx => $section) {
+                            $paramKey = ":section_$idx";
+                            $sectionPlaceholders[] = $paramKey;
+                            $params[$paramKey] = $section;
+                        }
+                        $collegeRestrictionClause .= " AND users.section IN (" . implode(',', $sectionPlaceholders) . ")";
                     }
                 }
                 break;
@@ -358,13 +363,19 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 LEFT JOIN users s ON ep.student_id = s.id
                                 JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                 
-                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see evaluations for their section's students
+                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see evaluations for their section(s) students
                 if ($currentUsertype === 2) {
-                    $assignedSection = getProfessorSection($pdo, $userId);
-                    if ($assignedSection) {
-                        $collegeRestrictionClause .= " AND s.section = :assigned_section";
-                        $countQuery .= " AND s.section = :assigned_section";
-                        $params[':assigned_section'] = $assignedSection;
+                    $assignedSections = getProfessorSections($pdo, $userId);
+                    if (!empty($assignedSections)) {
+                        $sectionPlaceholders = [];
+                        foreach ($assignedSections as $idx => $section) {
+                            $paramKey = ":eval_section_$idx";
+                            $sectionPlaceholders[] = $paramKey;
+                            $params[$paramKey] = $section;
+                        }
+                        $sectionInClause = " AND s.section IN (" . implode(',', $sectionPlaceholders) . ")";
+                        $collegeRestrictionClause .= $sectionInClause;
+                        $countQuery .= $sectionInClause;
                     }
                 }
                 break;

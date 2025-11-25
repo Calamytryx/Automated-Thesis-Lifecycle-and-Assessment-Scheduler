@@ -1,5 +1,7 @@
 <?php
 
+session_start(); // Required for access control
+
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
@@ -9,6 +11,7 @@ ini_set('error_log', __DIR__ . '/php_errors.log');
 set_time_limit(600); // 10 minutes
 error_log("=== SCHEDULER START === Execution time limit set to 600 seconds");
 error_log("POST data: " . print_r($_POST, true));
+error_log("SESSION data: " . print_r($_SESSION, true));
 
 // If the POST submission contains 'startTime', ignore this submission.
 if (isset($_POST['startTime'])) {
@@ -46,6 +49,53 @@ try {
         }
     }
 
+    /**
+     * Get accessible sections for current user based on role
+     * - Admin (id=0): All sections
+     * - Program Chair (usertype=0, id!=0): All sections in their college
+     * - Faculty (usertype=2): Only their assigned sections
+     */
+    function getAccessibleSections($pdo, $userId, $usertype) {
+        try {
+            // Admin (id=0): All sections
+            if ($userId === 0 && $usertype === 0) {
+                $stmt = $pdo->prepare("SELECT DISTINCT section FROM users WHERE section IS NOT NULL ORDER BY section");
+                $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            // Program Chair (usertype=0, id!=0): All sections in their college
+            if ($usertype === 0 && $userId !== 0) {
+                require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+                $userCollege = get_user_college($pdo, $userId);
+                
+                if (!$userCollege) {
+                    return [];
+                }
+
+                $stmt = $pdo->prepare("
+                    SELECT DISTINCT u.section FROM users u
+                    LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+                    WHERE u.section IS NOT NULL AND p.college = :college
+                    ORDER BY u.section
+                ");
+                $stmt->execute([':college' => $userCollege]);
+                return $stmt->fetchAll(PDO::FETCH_COLUMN);
+            }
+
+            // Faculty (usertype=2): Only their assigned sections
+            if ($usertype === 2) {
+                require_once __DIR__ . '/../../dashboard/includes/section_access.php';
+                return getProfessorSections($pdo, $userId);
+            }
+
+            return [];
+        } catch (Exception $e) {
+            error_log("Error getting accessible sections: " . $e->getMessage());
+            return [];
+        }
+    }
+
     // Main execution
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         // Generate unique progress ID for tracking
@@ -62,26 +112,50 @@ try {
 
         updateProgress($pdo, $progressId, 'running', 'Loading team data...', 10);
 
-        // Get the selected program(s) for filtering - now supports multiple programs
-        $selectedPrograms = [];
-        if (isset($_POST['program']) && !empty($_POST['program'])) {
-            if (is_array($_POST['program'])) {
-                $selectedPrograms = array_filter($_POST['program'], function($p) { return !empty(trim($p)); });
+        // Get the selected section(s) for filtering
+        $selectedSections = [];
+        if (isset($_POST['section']) && !empty($_POST['section'])) {
+            if (is_array($_POST['section'])) {
+                $selectedSections = array_filter($_POST['section'], function($s) { return !empty(trim($s)); });
             } else {
-                $selectedPrograms = [trim($_POST['program'])];
+                $selectedSections = [trim($_POST['section'])];
             }
-        } elseif (isset($_POST['selectedProgram']) && !empty($_POST['selectedProgram'])) {
-            if (is_array($_POST['selectedProgram'])) {
-                $selectedPrograms = array_filter($_POST['selectedProgram'], function($p) { return !empty(trim($p)); });
+        } elseif (isset($_POST['selectedSection']) && !empty($_POST['selectedSection'])) {
+            if (is_array($_POST['selectedSection'])) {
+                $selectedSections = array_filter($_POST['selectedSection'], function($s) { return !empty(trim($s)); });
             } else {
-                $selectedPrograms = [trim($_POST['selectedProgram'])];
+                $selectedSections = [trim($_POST['selectedSection'])];
             }
         }
+
+        // 🔐 APPLY ACCESS CONTROL: Get current user's accessible sections
+        $currentUserId = $_SESSION['id'] ?? 0;
+        $currentUsertype = $_SESSION['usertype'] ?? -1;
+        $accessibleSections = getAccessibleSections($pdo, $currentUserId, $currentUsertype);
+
+        // If user selected specific sections, validate they have access
+        if (!empty($selectedSections)) {
+            // Check if all selected sections are in accessible sections
+            $invalidSections = array_diff($selectedSections, $accessibleSections);
+            if (!empty($invalidSections)) {
+                updateProgress($pdo, $progressId, 'error', 'You do not have access to one or more selected sections', null);
+                echo json_encode([
+                    'success' => false,
+                    'message' => 'You do not have access to one or more selected sections'
+                ]);
+                exit;
+            }
+        } else {
+            // If no section selected, use all accessible sections
+            $selectedSections = $accessibleSections;
+        }
+
+        error_log("Scheduler Access Control: userId=$currentUserId, usertype=$currentUsertype, accessibleSections=" . implode(',', $accessibleSections) . ", selectedSections=" . implode(',', $selectedSections));
 
         updateProgress($pdo, $progressId, 'running', 'Checking for existing schedules...', 15);
 
         // Check for teams that already have schedules
-        $scheduledTeams = checkExistingSchedules($pdo, $selectedPrograms);
+        $scheduledTeams = checkExistingSchedules($pdo, $selectedSections);
         
         // If there are scheduled teams and overwrite confirmation is not received
         if (!empty($scheduledTeams) && (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true')) {
@@ -99,7 +173,7 @@ try {
 
         updateProgress($pdo, $progressId, 'running', 'Loading teams and panelists...', 20);
 
-        $teams = fetchTeams($pdo, $selectedPrograms);
+        $teams = fetchTeams($pdo, $selectedSections);
         $panelists = fetchPanelists($pdo);
         $duration = $_POST['timeDuration'];
         // Convert to a proper number
@@ -233,18 +307,20 @@ function validateInputs() {
 }
 
 // New function to check existing schedules instead of clearing them
-function checkExistingSchedules($pdo, $programs = []) {
+function checkExistingSchedules($pdo, $sections = []) {
     try {
         $query = "SELECT ds.*, t.name AS team_name 
                  FROM defense_schedules ds
                  JOIN teams t ON ds.team_id = t.id
+                 JOIN team_members tm ON t.id = tm.team_id
+                 JOIN users u ON tm.user_id = u.id
                  WHERE ds.status = 'scheduled'";
 
         $params = [];
-        if (!empty($programs)) {
-            $placeholders = implode(',', array_fill(0, count($programs), '?'));
-            $query .= " AND t.program IN ($placeholders)";
-            $params = $programs;
+        if (!empty($sections)) {
+            $placeholders = implode(',', array_fill(0, count($sections), '?'));
+            $query .= " AND u.section IN ($placeholders)";
+            $params = $sections;
         }
 
         $stmt = $pdo->prepare($query);
@@ -297,28 +373,32 @@ function removeExistingSchedules($pdo, $teamIds) {
     }
 }
 
-// Update fetchTeams to handle multiple programs
-function fetchTeams($pdo, $programs = [])
+// Update fetchTeams to handle multiple sections
+function fetchTeams($pdo, $sections = [])
 {
-    if (empty($programs)) {
+    if (empty($sections)) {
         $stmt = $pdo->query("
-            SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
             FROM teams t
-            JOIN team_members tm ON t.id = tm.team_id
-            WHERE tm.role = 'adviser'
+            JOIN team_members tm ON t.id = tm.team_id AND tm.role = 'adviser'
+            WHERE 1=1
         ");
     } else {
-        $placeholders = implode(',', array_fill(0, count($programs), '?'));
+        $placeholders = implode(',', array_fill(0, count($sections), '?'));
         $stmt = $pdo->prepare("
-            SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
             FROM teams t
-            JOIN team_members tm ON t.id = tm.team_id
-            WHERE tm.role = 'adviser' AND t.program IN ($placeholders)
+            JOIN team_members tm ON t.id = tm.team_id AND tm.role = 'adviser'
+            WHERE EXISTS (
+                SELECT 1 FROM team_members tm2
+                JOIN users u ON tm2.user_id = u.id
+                WHERE tm2.team_id = t.id AND u.section IN ($placeholders)
+            )
         ");
-        $stmt->execute($programs);
+        $stmt->execute($sections);
     }
     $teams = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    error_log("Fetched " . count($teams) . " teams for programs: " . (!empty($programs) ? implode(", ", $programs) : 'All Programs'));
+    error_log("Fetched " . count($teams) . " teams for sections: " . (!empty($sections) ? implode(", ", $sections) : 'All Sections'));
     return $teams;
 }
 

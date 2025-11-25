@@ -423,6 +423,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     Defense Management
                                 </div>
                                 <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="professor-assignments-tab" data-bs-toggle="pill" href="#professor-assignments" role="tab" aria-controls="professor-assignments" aria-selected="false">
+                                        <i class="bi bi-person-badge me-2 hollow"></i>
+                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Professor Assignments
+                                    </a>
                                     <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
                                         <i class="bi bi-calendar-event me-2 hollow"></i>
                                         <i class="bi bi-calendar-event-fill me-2 filled"></i>Defense Schedules
@@ -498,6 +502,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/rubrics_tab.php'; ?>
 
                             <?php include 'includes/tabs/programs_tab.php'; ?>
+                            <?php include 'includes/tabs/professor_assignments_tab.php'; ?>
 
                             <?php include 'includes/tabs/rubric_groups_tab.php'; ?>
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>

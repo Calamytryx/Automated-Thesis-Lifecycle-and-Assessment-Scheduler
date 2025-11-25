@@ -1,0 +1,122 @@
+Generating Faculty Schedules
+Faculty Members:
+ID: 284 - Renzo Castillo - Program: Bachelor of Science in Computer Science - Expertise: AI Research - Part-time: Yes
+ID: 282 - Harold Espinosa - Program: Bachelor of Science in Computer Science - Expertise: Machine Learning - Part-time: No
+ID: 272 - Teacher Four - Program: Bachelor of Science in Computer Science - Expertise: Web Dev - Part-time: No
+ID: 283 - Ivy Marquez - Program: Bachelor of Science in Computer Science - Expertise: Algorithms - Part-time: No
+ID: 279 - Jared Cruz - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Networking - Part-time: Yes
+ID: 281 - Francis Lopez - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Database Systems - Part-time: No
+ID: 269 - Adviser One - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Web Dev - Part-time: No
+ID: 280 - Kimberly Reyes - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: UI/UX - Part-time: No
+ID: 277 - Marc Santiago - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Systems Dev - Part-time: No
+ID: 285 - Mika Soriano - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Data Science - Part-time: No
+ID: 271 - Teacher Three - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Web Dev - Part-time: No
+ID: 278 - Louise Torres - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Cybersecurity - Part-time: No
+ID: 270 - Teacher Two - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: Web Dev - Part-time: No
+ID: 286 - Patrick Valdez - Program: Bachelor of Science in Information Technology - Web and Mobile Technology - Expertise: DevOps - Part-time: No
+Programs:
+ID: 78 - Bachelor of Science in Computer Science - Software Engineering
+ID: 80 - Bachelor of Science in Information Technology - Web and Mobile Technology
+ID: 86 - Bachelor of Science in Computer Engineering -
+Cleared existing schedules
+Phase 1: Primary sections (target 24-26 hours - close to minimum)
+Section IT401: 25 hours assigned
+Section IT402: 24 hours assigned
+Section IT403: 24 hours assigned
+Section CS401: 26 hours assigned
+Phase 2: Fill sections (target 27-30 hours - close to maximum)
+Section CpE401: 29 hours assigned
+Section CpE402: 29 hours assigned
+Section CpE403: 27 hours assigned
+Section CS402: 28 hours assigned
+Section CS403: 27 hours assigned
+Section CS301: 28 hours assigned
+Section CS302: 28 hours assigned
+Section CS303: 29 hours assigned
+Section IT301: 28 hours assigned
+Section IT302: 28 hours assigned
+Section IT303: 29 hours assigned
+Section CS201: 28 hours assigned
+Section CS202: 27 hours assigned
+Section CS203: 28 hours assigned
+Section IT201: 2 hours assigned
+Section IT202: 2 hours assigned
+Section IT203: 0 hours assigned
+Phase 3: Maximize faculty hours using fill sections
+Schedule Generation Complete!
+Inserted 187 schedules
+
+Faculty Hours Summary:
+✓ Faculty Renzo Castillo (Part-time) (ID: 284): 12 hours/week (min: 12, max: 12)
+✓ Faculty Harold Espinosa (Full-time) (ID: 282): 39 hours/week (min: 30, max: 40)
+✓ Faculty Teacher Four (Full-time) (ID: 272): 40 hours/week (min: 30, max: 40)
+✓ Faculty Ivy Marquez (Full-time) (ID: 283): 40 hours/week (min: 30, max: 40)
+✓ Faculty Jared Cruz (Part-time) (ID: 279): 12 hours/week (min: 12, max: 12)
+✓ Faculty Francis Lopez (Full-time) (ID: 281): 39 hours/week (min: 30, max: 40)
+✓ Faculty Adviser One (Full-time) (ID: 269): 39 hours/week (min: 30, max: 40)
+✓ Faculty Kimberly Reyes (Full-time) (ID: 280): 40 hours/week (min: 30, max: 40)
+✓ Faculty Marc Santiago (Full-time) (ID: 277): 39 hours/week (min: 30, max: 40)
+✓ Faculty Mika Soriano (Full-time) (ID: 285): 39 hours/week (min: 30, max: 40)
+✓ Faculty Teacher Three (Full-time) (ID: 271): 38 hours/week (min: 30, max: 40)
+✓ Faculty Louise Torres (Full-time) (ID: 278): 40 hours/week (min: 30, max: 40)
+✓ Faculty Teacher Two (Full-time) (ID: 270): 40 hours/week (min: 30, max: 40)
+✓ Faculty Patrick Valdez (Full-time) (ID: 286): 39 hours/week (min: 30, max: 40)
+Primary Section Hours Summary (target: 24-26 hours):
+✓ Section IT401: 25 hours/week
+✓ Section IT402: 24 hours/week
+✓ Section IT403: 24 hours/week
+✓ Section CS401: 26 hours/week
+Fill Section Hours Summary (target: 27-30 hours):
+✓ Section CpE401: 29 hours/week
+✓ Section CpE402: 29 hours/week
+✓ Section CpE403: 27 hours/week
+✓ Section CS402: 28 hours/week
+✓ Section CS403: 27 hours/week
+✓ Section CS301: 28 hours/week
+✓ Section CS302: 28 hours/week
+✓ Section CS303: 29 hours/week
+✓ Section IT301: 28 hours/week
+✓ Section IT302: 28 hours/week
+✓ Section IT303: 29 hours/week
+✓ Section CS201: 28 hours/week
+✓ Section CS202: 27 hours/week
+✓ Section CS203: 28 hours/week
+✗ Section IT201: 2 hours/week
+✗ Section IT202: 2 hours/week
+✗ Section IT203: 0 hours/week
+Overlap Verification:
+✓ No overlapping schedules found!
+
+Sample Schedules:
+Faculty	Section	Program	Day	Time	Room	Course
+Teacher Two	CpE401	86	Monday	08:30:00 - 11:30:00	L101	Computer Architecture (3-hour class)
+Mika Soriano	CpE401	86	Monday	18:00:00 - 21:00:00	L101	Microprocessors (3-hour laboratory)
+Mika Soriano	CpE401	86	Tuesday	09:30:00 - 11:30:00	L101	Computer Architecture (2-hour lecture)
+Patrick Valdez	CpE401	86	Tuesday	16:00:00 - 19:00:00	L101	Hardware Design (3-hour laboratory)
+Ivy Marquez	CpE401	86	Wednesday	07:30:00 - 10:30:00	L102	Digital Signal Processing (3-hour class)
+Francis Lopez	CpE401	86	Wednesday	13:00:00 - 16:00:00	L101	Hardware Design (3-hour laboratory)
+Harold Espinosa	CpE401	86	Wednesday	18:00:00 - 21:00:00	L102	VLSI Design (3-hour laboratory)
+Mika Soriano	CpE401	86	Thursday	16:30:00 - 18:30:00	L101	Embedded Systems (2-hour lecture)
+Teacher Four	CpE401	86	Friday	16:00:00 - 18:00:00	L101	Embedded Systems (2-hour lecture)
+Mika Soriano	CpE401	86	Saturday	07:00:00 - 10:00:00	L102	Hardware Design (3-hour laboratory)
+Teacher Two	CpE401	86	Saturday	14:00:00 - 16:00:00	L101	Digital Signal Processing (2-hour lecture)
+Harold Espinosa	CpE402	86	Monday	15:00:00 - 18:00:00	L102	Robotics (3-hour class)
+Patrick Valdez	CpE402	86	Tuesday	07:30:00 - 09:30:00	L101	Hardware Design (2-hour lecture)
+Teacher Four	CpE402	86	Tuesday	13:30:00 - 15:30:00	L101	Digital Signal Processing (2-hour lecture)
+Francis Lopez	CpE402	86	Tuesday	16:00:00 - 19:00:00	L102	VLSI Design (3-hour laboratory)
+Ivy Marquez	CpE402	86	Wednesday	13:00:00 - 15:00:00	L102	Hardware Design (2-hour lecture)
+Teacher Two	CpE402	86	Wednesday	15:00:00 - 18:00:00	L102	Hardware Design (3-hour class)
+Kimberly Reyes	CpE402	86	Wednesday	18:00:00 - 21:00:00	L103	Robotics (3-hour class)
+Renzo Castillo	CpE402	86	Friday	07:00:00 - 09:00:00	L101	Control Systems (2-hour lecture)
+Patrick Valdez	CpE402	86	Friday	13:30:00 - 15:30:00	L101	Control Systems (2-hour lecture)
+Renzo Castillo	CpE402	86	Friday	18:00:00 - 20:00:00	L101	Embedded Systems (2-hour lecture)
+Patrick Valdez	CpE402	86	Saturday	10:00:00 - 12:00:00	L102	IoT Systems (2-hour lecture)
+Jared Cruz	CpE402	86	Saturday	14:30:00 - 17:30:00	L102	IoT Systems (3-hour class)
+Teacher Four	CpE403	86	Monday	07:30:00 - 10:30:00	L102	Control Systems (3-hour class)
+Harold Espinosa	CpE403	86	Tuesday	08:00:00 - 11:00:00	L102	Digital Signal Processing (3-hour laboratory)
+Mika Soriano	CpE403	86	Tuesday	13:00:00 - 16:00:00	L102	Computer Architecture (3-hour class)
+Marc Santiago	CpE403	86	Tuesday	16:30:00 - 19:30:00	L103	Robotics (3-hour class)
+Teacher Two	CpE403	86	Wednesday	09:00:00 - 12:00:00	L103	Microprocessors (3-hour laboratory)
+Francis Lopez	CpE403	86	Friday	13:00:00 - 16:00:00	L102	IoT Systems (3-hour class)
+Adviser One	CpE403	86	Friday	19:00:00 - 21:00:00	L102	IoT Systems (2-hour lecture)
+Check sections and teams

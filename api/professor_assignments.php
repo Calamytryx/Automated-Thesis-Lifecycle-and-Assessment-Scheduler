@@ -337,9 +337,11 @@ function deleteSectionAssignment() {
 
 /**
  * List all sections (for dropdown in admin interface)
+ * - Admin (id=0): All sections
+ * - Program Chair (usertype=0, id!=0): Sections in their college only
  */
 function listSections() {
-    global $pdo, $userType;
+    global $pdo, $userId, $userType;
     
     if ($userType !== 0) {
         http_response_code(403);
@@ -347,14 +349,45 @@ function listSections() {
         return;
     }
 
-    $stmt = $pdo->prepare("
-        SELECT DISTINCT section
-        FROM users
-        WHERE section IS NOT NULL AND section != ''
-        ORDER BY section ASC
-    ");
-    $stmt->execute();
+    // Admin (id=0): Get all sections
+    if ($userId === 0) {
+        $stmt = $pdo->prepare("
+            SELECT DISTINCT section
+            FROM users
+            WHERE section IS NOT NULL AND section != ''
+            ORDER BY section ASC
+        ");
+        $stmt->execute();
+    }
+    // Program Chair (usertype=0, id!=0): Get sections in their college
+    else {
+        require_once '../assets/includes/auth_functions.php';
+        $userCollege = get_user_college($pdo, $userId);
+        
+        if (!$userCollege) {
+            echo json_encode(['success' => true, 'data' => [], 'message' => 'No college found for user']);
+            return;
+        }
+        
+        error_log("listSections - Program Chair (userId=$userId) college: $userCollege");
+        
+        $stmt = $pdo->prepare("
+            SELECT DISTINCT u.section
+            FROM users u
+            LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+            WHERE u.section IS NOT NULL 
+              AND u.section != ''
+              AND p.college = ?
+            ORDER BY u.section ASC
+        ");
+        $stmt->execute([$userCollege]);
+        
+        error_log("listSections - Query executed for college: $userCollege");
+    }
+    
     $sections = $stmt->fetchAll(PDO::FETCH_COLUMN);
+    
+    error_log("listSections - Found " . count($sections) . " sections: " . implode(', ', $sections));
     
     echo json_encode(['success' => true, 'data' => $sections]);
 }
