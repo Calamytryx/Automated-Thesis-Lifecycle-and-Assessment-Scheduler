@@ -106,6 +106,7 @@ CREATE TABLE IF NOT EXISTS `rubric_criteria` (
 CREATE TABLE IF NOT EXISTS `teams` (
   `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT,
   `name` varchar(100) NOT NULL,
+  `title_proposal` TINYINT DEFAULT 0,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

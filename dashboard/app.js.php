@@ -1,4 +1,8 @@
 <script>
+    // 🔐 Pass PHP variables to JavaScript
+    const currentUserType = <?php echo isset($_SESSION['usertype']) ? $_SESSION['usertype'] : '-1'; ?>;
+    const currentUserId = <?php echo isset($_SESSION['id']) ? $_SESSION['id'] : '0'; ?>;
+    const currentUserName = "<?php echo isset($_SESSION['first_name']) && isset($_SESSION['last_name']) ? htmlspecialchars($_SESSION['first_name'] . ' ' . $_SESSION['last_name']) : 'Unknown'; ?>";
 
     // Time adjustment functions for both add and edit modals
     function adjustTime(id, type, step) {
@@ -192,19 +196,15 @@
     // Add helper function to dynamically populate program dropdowns
     // Add helper function to dynamically populate program dropdowns
     function populateProgramDropdown(selectElement, selectedValue) {
-        //     if (selectedValue != null) {
-        //     selectElement.html('<option value="' + selectedValue + '">' + selectedValue + '</option>');
-        // } else {
-        //     selectElement.html('<option value="">Loading programs...</option>');
-        // }
-        console.log(selectedValue)
-
+        console.log('populateProgramDropdown called with selected:', selectedValue);
+        console.log('Current user type:', currentUserType, 'Current user ID:', currentUserId);
 
         $.ajax({
             url: 'includes/get_programs_grouped.php',
             method: 'GET',
             dataType: 'json',
             success: function (response) {
+                console.log('Program API response:', response);
 
                 if (response.success && response.programs.length > 0) {
                     let currentCollege = null;
@@ -511,11 +511,45 @@
             }
         });
 
+        // 🔐 For professors: load students from their assigned section(s)
+        // For others: load all available users
+        var usersUrl = 'includes/get_available_users.php?type=students';
+        if (currentUserType !== 2) {
+            // Non-professors use legacy endpoint
+            usersUrl = 'includes/get_users.php';
+        }
+
         $.ajax({
-            url: 'includes/get_users.php',
+            url: usersUrl,
             method: 'GET',
             dataType: 'json',
-            success: function (users) {
+            success: function (response) {
+                // Handle both response formats:
+                // 1. New format: { success: true, data: [...] }
+                // 2. Legacy format: [...]
+                var users = [];
+                
+                if (response && typeof response === 'object') {
+                    if (Array.isArray(response)) {
+                        // Legacy format: direct array
+                        users = response;
+                    } else if (response.data && Array.isArray(response.data)) {
+                        // New format with data wrapper
+                        users = response.data;
+                    } else if (response.error) {
+                        // Error in response
+                        showToast('Error', response.error, 'error');
+                        return;
+                    }
+                }
+
+                if (!Array.isArray(users)) users = [];
+                
+                if (users.length === 0) {
+                    showToast('Warning', 'No users available for selection', 'warning');
+                    return;
+                }
+
                 // Determine available roles
                 var availableRoles = [];
                 if (roleCount.adviser < 1) availableRoles.push('adviser');
@@ -532,7 +566,7 @@
                         <div class="col-sm-5">
                             <select class="form-select user-select" name="new_user_id[]" style="display:block;">
                                 <option value="">Select a user</option>
-                                ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}</option>`).join('')}
+                                ${users.map(user => `<option value="${user.id}">${user.first_name} ${user.last_name}${user.section ? ' (' + user.section + ')' : ''}</option>`).join('')}
                             </select>
                             <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
                             <a href="#" class="toggle-input">Switch to manual</a>
@@ -579,8 +613,9 @@
                 // Initial update
                 updateRoleDropdowns();
             },
-            error: function () {
-                showToast('Error', 'Error loading users', 'error');
+            error: function (xhr, status, error) {
+                console.error('AJAX Error:', error, xhr.responseText);
+                showToast('Error', 'Failed to load users: ' + error, 'error');
             }
         });
 
@@ -602,6 +637,44 @@
                 $select.find('option[value="adviser"]').prop('disabled', adviserSelected && $select.val() !== 'adviser');
                 $select.find('option[value="leader"]').prop('disabled', leaderSelected && $select.val() !== 'leader');
             });
+        }
+    }
+
+    // 📋 Handle Title Proposal checkbox change
+    function handleTitleProposalChange() {
+        var $modal = $('.modal.show');
+        var isTitleProposal = $modal.find('#title_proposal').is(':checked');
+        var $teamMembersContainer = $modal.find('#teamMembers');
+        var $professorField = $modal.find('#professor_field');
+        var $professorName = $modal.find('#professor_name');
+        
+        if (isTitleProposal) {
+            // Title Proposal mode: Hide adviser option, show professor field
+            $professorField.show();
+            $professorName.val(currentUserName);
+            
+            // Disable adviser option for team members
+            $teamMembersContainer.find('.role-select').each(function() {
+                // Disable adviser option
+                $(this).find('option[value="adviser"]').prop('disabled', true).prop('hidden', true);
+                
+                // If this select has adviser selected, change it to leader
+                if ($(this).val() === 'adviser') {
+                    $(this).val('leader');
+                }
+            });
+            
+            // Mark team members as in title proposal mode (for reference)
+            $teamMembersContainer.find('.team-member').addClass('title-proposal-mode');
+        } else {
+            // Normal mode: Show all role options, hide professor field
+            $professorField.hide();
+            
+            $teamMembersContainer.find('.role-select').each(function() {
+                $(this).find('option[value="adviser"]').prop('disabled', false).prop('hidden', false);
+            });
+            
+            $teamMembersContainer.find('.team-member').removeClass('title-proposal-mode');
         }
     }
 
@@ -1802,6 +1875,18 @@
                                 <input type="text" class="form-control" id="title" name="title" value="${response.data.title}">
                             </div>
                             <div class="mb-3">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="title_proposal" name="title_proposal" value="1" ${response.data.title_proposal ? 'checked' : ''} onchange="handleTitleProposalChange()">
+                                    <label class="form-check-label" for="title_proposal">
+                                        <strong>Title Proposal</strong> - Automatically sets professor as instructor (only Leader and Member roles editable)
+                                    </label>
+                                </div>
+                            </div>
+                            <div class="mb-3" id="professor_field" style="display: ${response.data.title_proposal ? 'block' : 'none'};">
+                                <label for="professor_name" class="form-label">Professor</label>
+                                <input type="text" class="form-control" id="professor_name" name="professor_name" readonly>
+                            </div>
+                            <div class="mb-3">
                                 <label for="area_of_expertise" class="form-label">Area of Expertise</label>
                                 <div class="input-group">
                                     <input type="text" class="form-control" id="area_of_expertise" name="area_of_expertise" value="${response.data.area_of_expertise || ''}">
@@ -1832,7 +1917,7 @@
                                         <input type="hidden" name="member_ids[]" value="${member.id}">
                                     </div>
                                     <div class="col-sm-5">
-                                        <select class="form-select" name="member_role[]">
+                                        <select class="form-select role-select" name="member_role[]">
                                             <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
                                             <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
                                             <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
@@ -3163,6 +3248,18 @@
                         <option value="">Choose a program...</option>
                     </select>
                     </div>
+                    <div class="mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="checkbox" id="title_proposal" name="title_proposal" value="1" onchange="handleTitleProposalChange()">
+                        <label class="form-check-label" for="title_proposal">
+                            <strong>Title Proposal</strong> - Automatically sets professor as instructor (only Leader and Member roles editable)
+                        </label>
+                    </div>
+                    </div>
+                    <div class="mb-3" id="professor_field" style="display: none;">
+                        <label for="professor_name" class="form-label">Professor</label>
+                        <input type="text" class="form-control" id="professor_name" name="professor_name" readonly>
+                    </div>
                     <h5 class="mt-4">Team Members</h5>
                     <div id="teamMembers">
                     <!-- Team members will be added here -->
@@ -4092,27 +4189,61 @@
 
         // Get the current team ID if editing (for excluding current members)
         var teamId = $modal.find('input[name="id"]').val() || 0;
+        
+        // Get the team's program for adviser filtering
+        var teamProgram = $modal.find('input[name="program"]').val() || '';
+
+        var requestUrl = 'includes/get_available_users.php?team_id=' + teamId +
+            '&team_program=' + encodeURIComponent(teamProgram) +
+            '&include_advisers=1';
 
         $.ajax({
-            url: 'includes/get_available_users.php?team_id=' + teamId + '&include_advisers=1',
+            url: requestUrl,
             method: 'GET',
-            dataType: 'json',
-            success: function (users) {
-                var $modal = $('.modal.show'); // Target the current modal
-                var $teamMembersContainer = $modal.find('#teamMembers');
+            dataType: 'json'
+        }).done(function(response) {
+            var users = [];
 
-                // Check current role counts
-                var roleCount = getRoleCount($teamMembersContainer);
+            if (response && Array.isArray(response.data)) {
+                users = response.data;
+            } else if (Array.isArray(response)) {
+                users = response;
+            }
 
-                // Determine available roles
-                var availableRoles = getAvailableRoles(roleCount);
-
-                if (availableRoles.length === 0) {
-                    showToast('Warning', 'All required roles are filled. You can only add more members (max 4 total).', 'warning');
-                    return;
+            var seenUsers = {};
+            users = users.filter(function(user) {
+                if (!user || typeof user.id === 'undefined') {
+                    return false;
                 }
+                if (seenUsers[user.id]) {
+                    return false;
+                }
+                seenUsers[user.id] = true;
+                return true;
+            });
 
-                var newMemberHtml = `
+            var $modal = $('.modal.show'); // Target the current modal
+            var $teamMembersContainer = $modal.find('#teamMembers');
+
+            // Check current role counts
+            var roleCount = getRoleCount($teamMembersContainer);
+
+            // Determine available roles
+            var availableRoles = getAvailableRoles(roleCount);
+
+            if (availableRoles.length === 0) {
+                showToast('Warning', 'All required roles are filled. You can only add more members (max 4 total).', 'warning');
+                return;
+            }
+
+            if (users.length === 0) {
+                showToast('Warning', 'No users available for selection', 'warning');
+                return;
+            }
+                // Handle both response formats:
+                // 1. New format: { success: true, data: [...] }
+                // 2. Legacy format: [...]
+            var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
                         <select class="form-select role-select" name="new_role[]" onchange="filterUsersByRole(this)">
@@ -4198,10 +4329,9 @@
                 if ($teamMembersContainer.find('.team-member').length >= 6) {
                     $modal.find('#addTeamMember').prop('disabled', true);
                 }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                showToast('Error', 'Error loading users', 'error');
-            }
+        }).fail(function(xhr, status, error) {
+            console.error('Error loading users:', error);
+            showToast('Error', 'Error loading users', 'error');
         });
     }
 

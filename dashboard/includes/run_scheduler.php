@@ -4,6 +4,10 @@ error_reporting(E_ALL);
 ini_set('display_errors', 1);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
+
+// Increase PHP timeout for long-running scheduler
+set_time_limit(600); // 10 minutes
+error_log("=== SCHEDULER START === Execution time limit set to 600 seconds");
 error_log("POST data: " . print_r($_POST, true));
 
 // If the POST submission contains 'startTime', ignore this submission.
@@ -129,13 +133,14 @@ try {
 
         updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
 
-        updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
-
         // Optimize parameters for better performance-quality balance
-        $populationSize = 200;     // Reduced from 200 for faster execution
-        $generations = 500;       // Reduced from 500 for faster execution
+        // REDUCED for faster execution to prevent timeout
+        $populationSize = 50;      // Reduced from 200 for faster execution
+        $generations = 100;        // Reduced from 500 for faster execution  
         $mutationRate = 0.2;
-        $earlyStopGenerations = 500; // Stop if no improvements after 30 generations
+        $earlyStopGenerations = 50; // Stop if no improvements after 50 generations
+        
+        error_log("Genetic Algorithm Parameters: Population=$populationSize, Generations=$generations, EarlyStop=$earlyStopGenerations");
 
         $bestSchedule = geneticAlgorithm(
             $pdo,
@@ -151,8 +156,11 @@ try {
             $earlyStopGenerations,
             $progressId // Pass progress ID for tracking
         );
+        
+        error_log("Genetic Algorithm completed successfully");
 
         updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
+        error_log("About to save schedule to database");
 
         if (saveScheduleToDatabase($pdo, $bestSchedule)) {
             updateProgress($pdo, $progressId, 'completed', 'Schedule generated and saved successfully!', 100);

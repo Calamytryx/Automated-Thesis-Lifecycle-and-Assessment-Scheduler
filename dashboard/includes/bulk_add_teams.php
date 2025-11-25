@@ -1,5 +1,13 @@
 <?php
+// CRITICAL: Start session FIRST before accessing $_SESSION
+session_start();
+
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/section_access.php';
+
+// Get current user info for section-based permission checks
+$userId = $_SESSION['id'] ?? 0;
+$usertype = $_SESSION['usertype'] ?? -1;
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // NEW: Determine upload method similar to bulk add users
@@ -61,6 +69,33 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $pdo->beginTransaction();
     try {
         foreach ($teams as $team) {
+            // 🔐 Section-based permission check for professors (usertype 2)
+            if ($usertype == 2 && $userId != 0) {
+                // Get all member IDs for this team to check their sections
+                $memberIds = [];
+                if (!empty($team['members'])) {
+                    $membersStr = $team['members'];
+                    $membersList = array_filter(array_map('trim', explode(';', $membersStr)));
+                    foreach ($membersList as $memberEntry) {
+                        list($username, $role) = array_map('trim', explode(':', $memberEntry, 2));
+                        if ($username) {
+                            $stmtLookup = $pdo->prepare("SELECT id FROM users WHERE username = :username LIMIT 1");
+                            $stmtLookup->execute(['username' => $username]);
+                            $result = $stmtLookup->fetch(PDO::FETCH_ASSOC);
+                            if ($result) {
+                                $memberIds[] = $result['id'];
+                            }
+                        }
+                    }
+                }
+                
+                // Check permission
+                $permCheck = canProfessorCreateTeam($pdo, $userId, $memberIds);
+                if (!$permCheck['canCreate']) {
+                    throw new Exception($permCheck['message']);
+                }
+            }
+            
             // Insert into teams table
             $stmt = $pdo->prepare("INSERT INTO teams (name, area_of_expertise, program) VALUES (:name, :area_of_expertise, :program)");
             $stmt->execute([
@@ -77,6 +112,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'team_id' => $teamId,
                 'title' => $team['title']
             ]);
+            
+            // 🎓 TITLE PROPOSAL AUTO-ASSIGNMENT: If professor bulk creates a title proposal team, auto-assign them as adviser
+            if ($usertype == 2 && isTitleProposal($team['title'])) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                    $stmt->execute([
+                        'team_id' => $teamId,
+                        'user_id' => $userId,
+                        'role' => 'adviser'
+                    ]);
+                } catch (PDOException $adviserError) {
+                    error_log("Note: Could not auto-assign professor as adviser in bulk add: " . $adviserError->getMessage());
+                }
+            }
             
             // NEW: If team members are provided, process them; otherwise, insert a default leader
             if (!empty($team['members'])) {

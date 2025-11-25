@@ -1,4 +1,7 @@
 <?php
+// CRITICAL: Start session FIRST before accessing $_SESSION
+session_start();
+
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
@@ -9,6 +12,7 @@ $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 
 // At the beginning of the file, after starting the session and including required files:
 require_once '../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
 
 // Current user info
 $userId = $_SESSION['id'] ?? 0;
@@ -27,7 +31,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $data = $_POST;
     unset($data['table']);
 
-    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules', 'page_content'];
+    $allowedTables = ['users', 'thesis_topics', 'research_titles', 'defense_schedules', 'rubrics', 'teams', 'requirements', 'evaluations', 'env_variables', 'programs', 'default_schedules', 'user_schedules', 'page_content', 'team_members'];
 
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
@@ -428,6 +432,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         }
     }
 
+    // 🔐 Section-based permission check for professors (usertype 2)
+    if ($table === 'teams' && $usertype == 2 && $userId != 0) {
+        // Collect all member IDs that will be added to this team
+        $memberIds = [];
+        
+        // Get member IDs from 'members' field if provided (JSON or array format)
+        if (isset($data['members']) && !empty($data['members'])) {
+            $members = $data['members'];
+            if (is_string($members)) {
+                $members = json_decode($members, true);
+            }
+            if (is_array($members)) {
+                foreach ($members as $member) {
+                    if (isset($member['id'])) {
+                        $memberIds[] = $member['id'];
+                    }
+                }
+            }
+        }
+        
+        // Get member IDs from 'new_user_id' field (form input)
+        if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
+            foreach ($data['new_user_id'] as $userId_member) {
+                if (!empty($userId_member)) {
+                    $memberIds[] = $userId_member;
+                }
+            }
+        }
+        
+        // Check if professor can create team with these members
+        $permCheck = canProfessorCreateTeam($pdo, $userId, $memberIds);
+        if (!$permCheck['canCreate']) {
+            echo json_encode([
+                'success' => false, 
+                'message' => $permCheck['message']
+            ]);
+            exit;
+        }
+    }
+
     if ($table === 'teams') {
         // Sanitize text fields to prevent HTML/script injection
         $textFields = ['name', 'program', 'area_of_expertise', 'title'];
@@ -449,12 +493,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!isset($data['program']) || $data['program'] === '') {
                 $data['program'] = 'Unspecified';
             }
+            
+            // Handle title_proposal checkbox
+            $titleProposal = isset($data['title_proposal']) && $data['title_proposal'] == 1 ? 1 : 0;
 
-            $stmt = $pdo->prepare("INSERT INTO teams (name, program, area_of_expertise, created_at) VALUES (:name, :program, :area_of_expertise, NOW())");
+            $stmt = $pdo->prepare("INSERT INTO teams (name, program, area_of_expertise, title_proposal, created_at) VALUES (:name, :program, :area_of_expertise, :title_proposal, NOW())");
             $stmt->execute([
                 'name' => $data['name'],
                 'program' => $data['program'],
-                'area_of_expertise' => $data['area_of_expertise'] ?? null
+                'area_of_expertise' => $data['area_of_expertise'] ?? null,
+                'title_proposal' => $titleProposal
             ]);
 
             $teamId = $pdo->lastInsertId();
@@ -467,6 +515,22 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 'team_id' => $teamId,
                 'title' => $title
             ]);
+
+            // 🎓 TITLE PROPOSAL AUTO-ASSIGNMENT: If title_proposal=1, auto-assign current user as adviser
+            if ($titleProposal == 1) {
+                try {
+                    $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                    $stmt->execute([
+                        'team_id' => $teamId,
+                        'user_id' => $userId,
+                        'role' => 'adviser'
+                    ]);
+                    error_log("Title proposal team created: Auto-assigned current user (ID: $userId) as adviser to team $teamId");
+                } catch (PDOException $adviserError) {
+                    error_log("Note: Could not auto-assign user as adviser: " . $adviserError->getMessage());
+                    // Don't fail the team creation if adviser assignment fails
+                }
+            }
 
             // Improved team member handling with better error messages
             if (isset($data['members']) && !empty($data['members'])) {
@@ -553,6 +617,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $response['message'] = 'Error adding team: ' . $e->getMessage();
             }
             error_log('Error adding team: ' . $e->getMessage());
+        }
+
+        echo json_encode($response);
+        exit;
+    }
+
+    // 🎓 Special handling for team_members (to add adviser to teams)
+    if ($table === 'team_members') {
+        try {
+            // Required fields for adding team member
+            $teamId = $data['team_id'] ?? null;
+            $userId = $data['user_id'] ?? null;
+            $role = $data['role'] ?? 'member';
+            
+            if (!$teamId || !$userId) {
+                $response['message'] = 'Team ID and User ID are required.';
+                echo json_encode($response);
+                exit;
+            }
+            
+            // Insert team member
+            $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+            $stmt->execute([
+                'team_id' => $teamId,
+                'user_id' => $userId,
+                'role' => $role
+            ]);
+            
+            $response['success'] = true;
+            $response['message'] = 'Team member added successfully.';
+        } catch (Exception $e) {
+            if ($e instanceof PDOException && $e->getCode() == '23000') {
+                if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
+                    $response['message'] = "Error: This team member is already in the team.";
+                } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
+                    $response['message'] = "Error: Team or user does not exist.";
+                } else {
+                    $response['message'] = "Error: Database constraint violation.";
+                }
+            } else {
+                $response['message'] = 'Error adding team member: ' . $e->getMessage();
+            }
+            error_log('Error adding team member: ' . $e->getMessage());
         }
 
         echo json_encode($response);

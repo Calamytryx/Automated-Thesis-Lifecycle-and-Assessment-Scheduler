@@ -1,6 +1,7 @@
 <?php
 require_once '../../../assets/setup/db.inc.php';
 require_once '../../../assets/includes/auth_functions.php';
+require_once '../section_access.php';
 
 header('Content-Type: application/json');
 
@@ -219,6 +220,15 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 $countQuery = "SELECT COUNT(users.id) FROM users
                                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
                 $params[':user_id'] = $userId;
+                
+                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see students from their assigned section
+                if ($currentUsertype === 2) {
+                    $assignedSection = getProfessorSection($pdo, $userId);
+                    if ($assignedSection) {
+                        $collegeRestrictionClause .= " AND users.section = :assigned_section";
+                        $params[':assigned_section'] = $assignedSection;
+                    }
+                }
                 break;
             case 'teams':
                 // Select t.program directly. Keep JOIN programs p for filtering.
@@ -237,6 +247,9 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                JOIN team_members tm ON t.id = tm.team_id
                                JOIN users u ON tm.user_id = u.id
                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering
+                
+                // 🔐 NOTE: Faculty (usertype 2) can see ALL teams (no section filter)
+                // But permission checks on CREATE/EDIT are handled in teams_tab.php
                 break;
             case 'programs':
                 $baseQuery = "SELECT id, college, department, name, specialization FROM programs";
@@ -277,7 +290,10 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
                                JOIN teams t ON ds.team_id = t.id
                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                // No need for LEFT JOIN research_titles or panelist joins in count query
+                
+                // 🔐 NOTE: Faculty (usertype 2) can see ALL defense schedules (no section filter)
+                // Full visibility into all schedules while other restrictions still apply
+                // No need for LEFT JOIN team_members in count query
                 break;
             case 'rubrics':
                 $baseQuery = "SELECT DISTINCT r.*
@@ -341,6 +357,16 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 LEFT JOIN users e ON ep.evaluator_id = e.id
                                 LEFT JOIN users s ON ep.student_id = s.id
                                 JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                
+                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see evaluations for their section's students
+                if ($currentUsertype === 2) {
+                    $assignedSection = getProfessorSection($pdo, $userId);
+                    if ($assignedSection) {
+                        $collegeRestrictionClause .= " AND s.section = :assigned_section";
+                        $countQuery .= " AND s.section = :assigned_section";
+                        $params[':assigned_section'] = $assignedSection;
+                    }
+                }
                 break;
             case 'evaluation_per_panel':
                 $baseQuery = "SELECT * FROM evaluation_per_panel";

@@ -59,6 +59,13 @@ check_verified();
 // Include database connection
 require '../assets/setup/db.inc.php';
 require_once 'includes/edit_functions.php';
+require_once '../assets/includes/title_proposal_setup.php';
+require_once '../assets/includes/program_filter.php';
+
+// Ensure title_proposal column exists in teams table
+if (function_exists('ensure_title_proposal_column')) {
+    ensure_title_proposal_column($pdo);
+}
 
 if ($_SESSION['usertype'] === 1){
     // block students
@@ -70,41 +77,14 @@ if ($_SESSION['usertype'] === 1){
 // Assume $active_tab is set based on user interaction or the default tab.
 $active_tab = isset($_GET['active_tab']) ? $_GET['active_tab'] : 'overview_tab';  // Default to 'overview_tab'
 
-// Function to fetch all users with college restriction
+// Function to fetch all users with program-based restrictions
 function fetchAllUsers($pdo)
 {
     $userId = $_SESSION['id'];
     $usertype = $_SESSION['usertype'];
     
-    // If superadmin or non-admin, no restrictions
-    if ($userId === 0 || $usertype != 0) {
-        $stmt = $pdo->prepare("SELECT * FROM users");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    // Get admin's college
-    require_once '../assets/includes/auth_functions.php';
-    $userCollege = get_user_college($pdo, $userId);
-    
-    if (!$userCollege) {
-        // If we can't determine the admin's college, return empty result
-        return [];
-    }
-    
-    // Get users from the same college
-    $stmt = $pdo->prepare("
-        SELECT u.* FROM users u
-        LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' 
-            THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
-        WHERE p.college = :college OR u.id = :user_id
-    ");
-    $stmt->execute([
-        ':college' => $userCollege,
-        ':user_id' => $userId // Always include the current user
-    ]);
-    
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Use program filter to get visible users
+    return getVisibleUsers($pdo, $userId, $usertype);
 }
 
 
@@ -132,38 +112,14 @@ function fetchAllRubrics($pdo)
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-// Function to fetch all teams with college restriction
+// Function to fetch all teams with program-based restrictions
 function fetchAllTeams($pdo)
 {
     $userId = $_SESSION['id'];
     $usertype = $_SESSION['usertype'];
     
-    // If superadmin or non-admin, no restrictions
-    if ($userId === 0 || $usertype != 0) {
-        $stmt = $pdo->prepare("SELECT t.*, rt.title FROM teams t LEFT JOIN research_titles rt ON t.id = rt.team_id");
-        $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    }
-    
-    // Get admin's college
-    require_once '../assets/includes/auth_functions.php';
-    $userCollege = get_user_college($pdo, $userId);
-    
-    if (!$userCollege) {
-        // If we can't determine the admin's college, return empty result
-        return [];
-    }
-    
-    // Get teams from the same college
-    $stmt = $pdo->prepare("
-        SELECT t.*, rt.title FROM teams t 
-        LEFT JOIN research_titles rt ON t.id = rt.team_id
-        JOIN programs p ON t.program = p.id
-        WHERE p.college = :college
-    ");
-    $stmt->execute([':college' => $userCollege]);
-    
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    // Use program filter to get visible teams
+    return getVisibleTeams($pdo, $userId, $usertype);
 }
 
 // Function to fetch all requirements
@@ -647,6 +603,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     Defense Management
                                 </div>
                                 <div class="sidebar-items">
+                                    <a class="nav-link my-1" id="professor-assignments-tab" data-bs-toggle="pill" href="#professor-assignments" role="tab" aria-controls="professor-assignments" aria-selected="false">
+                                        <i class="bi bi-person-badge me-2 hollow"></i>
+                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Professor Assignments
+                                    </a>
                                     <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
                                         <i class="bi bi-calendar-event me-2 hollow"></i>
                                         <i class="bi bi-calendar-event-fill me-2 filled"></i>Defense Schedules
@@ -727,6 +687,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
                             <?php include 'includes/tabs/team_management_tab.php'; ?>
+                            <?php include 'includes/tabs/professor_assignments_tab.php'; ?>
                             
                             <?php include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>

@@ -372,7 +372,9 @@
                             padding: 4px 0;
                             display: none;
                         `;
-                        dropdownPortal.innerHTML = `
+                        
+                        // Build dropdown items based on user type and team state
+                        let dropdownHTML = `
                             <button class="meatball-dropdown-item edit-item edit-btn" data-table="teams" data-id="${team.id}">
                                 <i class="fas fa-edit"></i>
                                 Edit
@@ -382,6 +384,23 @@
                                 Delete
                             </button>
                         `;
+                        
+                        // 🎓 ADD ADVISER OPTION: For professors on non-title-proposal teams
+                        // Check if: user is professor (usertype 2), professor is not already adviser, and title is not "title proposal"
+                        if (currentUserType === 2 && team.adviser !== '<span class="text-muted">No adviser</span>' && team.adviser && !team.adviser.toLowerCase().includes(currentUserId)) {
+                            // Professor is not yet adviser and someone is already adviser (so we can't become adviser)
+                            // Skip adding button
+                        } else if (currentUserType === 2 && (!team.adviser || team.adviser === '<span class="text-muted">No adviser</span>') && team.research_title && !team.research_title.toLowerCase().includes('title proposal')) {
+                            // Professor can become adviser if: no adviser exists and title is not a title proposal
+                            dropdownHTML += `
+                                <button class="meatball-dropdown-item become-adviser-btn" data-team-id="${team.id}">
+                                    <i class="fas fa-user-tie"></i>
+                                    Become Adviser
+                                </button>
+                            `;
+                        }
+                        
+                        dropdownPortal.innerHTML = dropdownHTML;
                         document.body.appendChild(dropdownPortal);
                     });
 
@@ -718,6 +737,42 @@
                 const dropdown = item.closest('.meatball-dropdown-portal');
                 if (dropdown) {
                     dropdown.style.display = 'none';
+                }
+                
+                // Handle "Become Adviser" action
+                if (item.classList.contains('become-adviser-btn')) {
+                    e.preventDefault();
+                    const teamId = item.getAttribute('data-team-id');
+                    
+                    // Add professor as adviser to team
+                    fetch('includes/add_items.php', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded'
+                        },
+                        body: new URLSearchParams({
+                            table: 'team_members',
+                            team_id: teamId,
+                            user_id: currentUserId,
+                            role: 'adviser'
+                        })
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            showToast('Success', 'You are now the adviser for this team!', 'success');
+                            // Reload teams table
+                            window.reloadCurrentTeamsView();
+                        } else {
+                            showToast('Error', data.message || 'Failed to become adviser', 'error');
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showToast('Error', 'An error occurred while trying to become adviser', 'error');
+                    });
+                    
+                    return; // Stop event propagation
                 }
                 
                 // The existing edit-btn and delete-btn event handlers will handle the action

@@ -1,0 +1,268 @@
+<?php
+/**
+ * API endpoint to get available users for team member/adviser selection
+ * Respects section-based and college-based filtering
+ * 
+ * Query Parameters:
+ * - type: 'students' (return students from professor's assigned sections)
+ *         'advisers' (return professors from same college)
+ * - team_program: Required for type='advisers'
+ * - team_id: Optional, current team being edited (for exclusion checks)
+ */
+
+// CRITICAL: Start session FIRST before accessing $_SESSION
+session_start();
+
+require_once '../../assets/setup/db.inc.php';
+require_once 'section_access.php';
+
+header('Content-Type: application/json');
+
+$response = ['success' => false, 'data' => [], 'message' => ''];
+
+// Get parameters
+$type = $_GET['type'] ?? 'all';
+$teamId = isset($_GET['team_id']) ? intval($_GET['team_id']) : 0;
+$program = $_GET['program'] ?? '';
+
+$userId = $_SESSION['id'] ?? 0;
+$usertype = $_SESSION['usertype'] ?? -1;
+
+error_log("get_available_users.php - type: $type, userId: $userId, usertype: $usertype, program: $program");
+
+try {
+    $allUsers = [];
+
+    // Simple: Get ALL available users based on current user's access level
+    if ($type === 'all') {
+        // Build base query for students and professors
+        $sql = "SELECT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email
+                FROM users u
+                WHERE u.id != 0";
+        
+        // Apply access control based on current user's role
+        if ($userId === 0) {
+            // Admin (id=0): Full access to all users
+            $sql .= " AND u.usertype IN (0, 1, 2)";
+        } elseif ($usertype === 0) {
+            // Program Chair (type=0): College access
+            // Get users from same college as current user
+            $sql .= " AND u.usertype IN (1, 2) 
+                     AND u.program IN (
+                        SELECT program FROM users WHERE id = ?
+                     )";
+        } elseif ($usertype === 2) {
+            // Professor (type=2): Section access
+            // Get students from assigned section + all professors
+            $sql .= " AND (
+                        (u.usertype = 1 AND u.section IN (
+                            SELECT section FROM section_professors WHERE professor_id = ?
+                        ))
+                        OR u.usertype = 2
+                     )";
+        } else {
+            // Student: can only see advisers (professors)
+            $sql .= " AND u.usertype = 2";
+        }
+        
+        // Exclude already assigned members (but not for edit mode)
+        if ($teamId === 0) {
+            $sql .= " AND u.id NOT IN (SELECT DISTINCT user_id FROM team_members)";
+        } else {
+            $sql .= " AND u.id NOT IN (
+                        SELECT DISTINCT tm.user_id FROM team_members tm 
+                        JOIN teams t ON tm.team_id = t.id 
+                        WHERE t.id != ?
+                    )";
+        }
+        
+        $sql .= " ORDER BY u.last_name, u.first_name";
+        
+        $stmt = $pdo->prepare($sql);
+        $params = [];
+        
+        if ($userId === 0) {
+            // Admin - no params needed
+            $stmt->execute();
+        } elseif ($usertype === 0) {
+            // Program Chair - need current user id
+            $params = [$userId];
+            if ($teamId > 0) $params[] = $teamId;
+            $stmt->execute($params);
+        } elseif ($usertype === 2) {
+            // Professor - need current user id  
+            $params = [$userId];
+            if ($teamId > 0) $params[] = $teamId;
+            $stmt->execute($params);
+        } else {
+            // Student - no additional params
+            if ($teamId > 0) {
+                $stmt->execute([$teamId]);
+            } else {
+                $stmt->execute();
+            }
+        }
+        
+        $allUsers = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        $response['success'] = true;
+        $response['data'] = $allUsers;
+    } 
+    
+    // Legacy: type === 'students'
+    elseif ($type === 'students') {
+        // 🎓 Get available STUDENTS for team member selection
+        // Only students from professor's assigned section(s)
+        if ($usertype === 2) {
+            // Professor selecting students for their team
+            error_log("get_available_users.php - Calling getAvailableStudentsForProfessor for userId: $userId");
+            $students = getAvailableStudentsForProfessor($pdo, $userId);
+            error_log("get_available_users.php - getAvailableStudentsForProfessor returned " . count($students) . " students");
+            $response['success'] = true;
+            $response['data'] = $students;
+        } else {
+            // Non-professor requesting type=students - fall back to legacy all-students logic
+            $sql = "SELECT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email
+                    FROM users u
+                    WHERE u.id != 0 AND u.usertype = 1";
+            
+            if ($currentTeamId) {
+                $sql .= " AND u.id NOT IN (
+                            SELECT DISTINCT tm.user_id FROM team_members tm JOIN teams t ON tm.team_id = t.id WHERE t.id != ?
+                        )";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$currentTeamId]);
+            } else {
+                $sql .= " AND u.id NOT IN (
+                            SELECT DISTINCT tm.user_id FROM team_members tm
+                        )";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute();
+            }
+            
+            $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            $response['success'] = true;
+            $response['data'] = $students;
+        }
+    } elseif ($type === 'advisers') {
+        // 👨‍🏫 Get available ADVISERS for team adviser selection
+        // Advisers from SAME COLLEGE only, with access control
+        // Access: Admin (id=0) full, Program Chair (type=0) college, Faculty (type=2) section
+        if (!$teamProgram) {
+            $response['message'] = 'Team program is required for adviser selection';
+            echo json_encode($response);
+            exit;
+        }
+        
+        error_log("get_available_users.php - Calling getAvailableAdvisersForTeam for userId: $userId, usertype: $usertype, program: $teamProgram");
+        $advisers = getAvailableAdvisersForTeam($pdo, $teamProgram, $userId, $usertype);
+        error_log("get_available_users.php - getAvailableAdvisersForTeam returned " . count($advisers) . " advisers");
+        $response['success'] = true;
+        $response['data'] = $advisers;
+    } else {
+        // LEGACY: Fall back to original behavior if type not specified
+        // This maintains backward compatibility
+        $usertype_filter = isset($_GET['usertype']) ? intval($_GET['usertype']) : null;
+        
+        $params = [];
+        if ($usertype_filter === 2) {
+            // For advisers, return faculty users and include how many teams they currently advise.
+            $sql = "SELECT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email,
+                        (
+                            SELECT COUNT(*) FROM team_members tm2 JOIN teams t2 ON tm2.team_id = t2.id
+                            WHERE tm2.user_id = u.id AND tm2.role = 'adviser'";
+
+            if ($currentTeamId) {
+                $sql .= " AND t2.id != ?";
+                $params[] = $currentTeamId;
+            }
+
+            $sql .= ") AS adviser_count
+                    FROM users u
+                    WHERE u.id != 0 AND u.usertype = 2
+                    ORDER BY u.last_name, u.first_name";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } else {
+            // Default: return users who are not assigned to any team (excluding current team if provided)
+            $sql = "SELECT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email
+                    FROM users u
+                    WHERE u.id != 0";
+
+            // Exclude users who are assigned to any team other than currentTeamId
+            if ($currentTeamId) {
+                $sql .= " AND u.id NOT IN (
+                            SELECT DISTINCT tm.user_id FROM team_members tm JOIN teams t ON tm.team_id = t.id WHERE t.id != ?
+                        )";
+                $params[] = $currentTeamId;
+            } else {
+                $sql .= " AND u.id NOT IN (
+                            SELECT DISTINCT tm.user_id FROM team_members tm
+                        )";
+            }
+
+            // Filter by usertype if specified
+            if ($usertype_filter !== null) {
+                $sql .= " AND u.usertype = ?";
+                $params[] = $usertype_filter;
+            } else {
+                $sql .= " AND u.usertype IN (0,1,2)";
+            }
+
+            $sql .= " ORDER BY u.usertype, u.last_name, u.first_name";
+
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+            // If caller requested to include advisers even if they are assigned elsewhere
+            if ($includeAdvisers) {
+                $advParams = [];
+                $advSql = "SELECT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email,
+                            (
+                                SELECT COUNT(*) FROM team_members tm2 JOIN teams t2 ON tm2.team_id = t2.id
+                                WHERE tm2.user_id = u.id AND tm2.role = 'adviser'";
+                if ($currentTeamId) {
+                    $advSql .= " AND t2.id != ?";
+                    $advParams[] = $currentTeamId;
+                }
+                $advSql .= ") AS adviser_count
+                        FROM users u
+                        WHERE u.id != 0 AND u.usertype = 2
+                        ORDER BY u.last_name, u.first_name";
+
+                $stmt2 = $pdo->prepare($advSql);
+                $stmt2->execute($advParams);
+                $advisers = $stmt2->fetchAll(PDO::FETCH_ASSOC);
+
+                // Merge advisers into users list (adviser records overwrite by id)
+                $byId = [];
+                foreach ($users as $u) {
+                    $byId[$u['id']] = $u;
+                }
+                foreach ($advisers as $a) {
+                    $byId[$a['id']] = $a; // overwrite or add
+                }
+
+                // Rebuild users array preserving alphabetical order by last_name
+                $users = array_values($byId);
+                usort($users, function ($a, $b) {
+                    return strcmp($a['last_name'] . $a['first_name'], $b['last_name'] . $b['first_name']);
+                });
+            }
+        }
+        
+        $response['success'] = true;
+        $response['data'] = $users;
+    }
+
+} catch (Exception $e) {
+    error_log('Error fetching available users: ' . $e->getMessage());
+    $response['message'] = 'Error: ' . $e->getMessage();
+}
+
+echo json_encode($response);
+?>
+

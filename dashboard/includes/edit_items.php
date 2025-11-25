@@ -1,4 +1,7 @@
 <?php
+// CRITICAL: Start session FIRST before accessing $_SESSION
+session_start();
+
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
@@ -532,18 +535,24 @@ function handleRequirementTemplateUpload($file) {
                 $data['program'] = 'Unspecified';
             }
             
+            // Handle title_proposal checkbox
+            $titleProposal = isset($data['title_proposal']) && $data['title_proposal'] == 1 ? 1 : 0;
+            unset($data['title_proposal']); // Remove from data array
+            
             // Update the teams table
             $teamUpdateSql = "UPDATE teams SET 
                              name = :name, 
                              area_of_expertise = :area_of_expertise, 
-                             program = :program 
+                             program = :program,
+                             title_proposal = :title_proposal
                              WHERE id = :id";
             $stmtTeam = $pdo->prepare($teamUpdateSql);
             $teamData = [
                 ':id' => $id,
                 ':name' => $data['name'],
                 ':area_of_expertise' => $data['area_of_expertise'] ?? null,
-                ':program' => $data['program']
+                ':program' => $data['program'],
+                ':title_proposal' => $titleProposal
             ];
             $stmtTeam->execute($teamData);
             
@@ -554,6 +563,43 @@ function handleRequirementTemplateUpload($file) {
                     ':title' => $data['title'],
                     ':team_id' => $id
                 ]);
+            }
+            
+            // 🎓 TITLE PROPOSAL AUTO-ASSIGNMENT: If title_proposal changed to 1, auto-assign current user as adviser if not already assigned
+            if ($titleProposal == 1) {
+                // Check if current user is already in the team
+                $stmtCheck = $pdo->prepare("SELECT role FROM team_members WHERE team_id = :team_id AND user_id = :user_id");
+                $stmtCheck->execute([':team_id' => $id, ':user_id' => $userId]);
+                $existingRole = $stmtCheck->fetchColumn();
+                
+                if (!$existingRole) {
+                    // User not in team, add them as adviser
+                    try {
+                        $stmt = $pdo->prepare("INSERT INTO team_members (team_id, user_id, role) VALUES (:team_id, :user_id, :role)");
+                        $stmt->execute([
+                            'team_id' => $id,
+                            'user_id' => $userId,
+                            'role' => 'adviser'
+                        ]);
+                        error_log("Title proposal enabled: Auto-assigned current user (ID: $userId) as adviser to team $id");
+                    } catch (PDOException $adviserError) {
+                        error_log("Note: Could not auto-assign user as adviser: " . $adviserError->getMessage());
+                        // Don't fail the update if adviser assignment fails
+                    }
+                } else if ($existingRole !== 'adviser') {
+                    // User exists but not as adviser, update their role
+                    try {
+                        $stmtUpdate = $pdo->prepare("UPDATE team_members SET role = :role WHERE team_id = :team_id AND user_id = :user_id");
+                        $stmtUpdate->execute([
+                            ':role' => 'adviser',
+                            ':team_id' => $id,
+                            ':user_id' => $userId
+                        ]);
+                        error_log("Title proposal enabled: Updated current user (ID: $userId) role to adviser in team $id");
+                    } catch (PDOException $adviserError) {
+                        error_log("Note: Could not update user role to adviser: " . $adviserError->getMessage());
+                    }
+                }
             }
             
             // Get all current members in the team
