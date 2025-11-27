@@ -46,7 +46,21 @@
                         <form id="schedulerSettingsForm" novalidate onsubmit="event.preventDefault(); event.stopImmediatePropagation(); return false;">
                             <div class="mb-3">
                                 <label for="rooms" class="form-label">Rooms (comma-separated)</label>
-                                <input type="text" class="form-control" id="rooms" name="rooms" required>
+                                <div class="input-group mb-2">
+                                    <input type="text" class="form-control" id="rooms" name="rooms" required placeholder="e.g., Defense Room 1, J201, S205">
+                                </div>
+                                <small class="form-text text-muted d-block mb-2">
+                                    Valid formats: Defense Room [1-2], J[2-4][0-9][0-9], S[2-4][0-9][0-9], C[2-3,5-11][0-9][0-9], L[1-3][0-9][0-9]
+                                </small>
+                                <div class="d-flex flex-wrap gap-1" style="gap: 0.25rem;">
+                                    <button type="button" class="btn btn-sm btn-outline-primary room-preset" data-room="Defense Room 1" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Defense Room 1</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary room-preset" data-room="Defense Room 2" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Defense Room 2</button>
+                                    <button type="button" class="btn btn-sm btn-outline-primary room-preset" data-room="Accreditation Room" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Accreditation Room</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary room-preset" data-room="C" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Coecsa Building</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary room-preset" data-room="L" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Laboratory Building</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary room-preset" data-room="J" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">JPL Building</button>
+                                    <button type="button" class="btn btn-sm btn-outline-secondary room-preset" data-room="S" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">SHL Building</button>
+                                </div>
                             </div>
                             <div class="mb-3">
                                 <label for="timeDuration" class="form-label">Time Duration (hours)</label>
@@ -111,8 +125,8 @@
                                     const daysArray = daysValue ? daysValue.split(',') : [];
                                     const days = daysArray.filter(date => date.trim() !== '').length;
                                     const roomsValue = roomsInput.value;
-                                    const roomsArray = roomsValue ? roomsValue.split(',') : [];
-                                    const rooms = roomsArray.filter(room => room.trim() !== '').length;
+                                    const roomsArray = roomsValue ? roomsValue.split(',').map(r => r.trim()).filter(r => r !== '') : [];
+                                    const rooms = roomsArray.length;
                                     const includeLunchBreak = includeLunchBreakCheckbox.checked;
                                     const numberOfTeams = parseInt(document.getElementById('selectedTeamCount').value) || 0;
 
@@ -121,10 +135,76 @@
 
                                     console.log('Validation - Start:', startTime, 'End:', endTime, 'Duration:', timeDuration, 'Days:', days, 'Rooms:', rooms, 'Teams:', numberOfTeams);
 
-                                    if (!startTime || !endTime || !timeDuration || days === 0 || rooms === 0 || !sectionSelect) {
+                                    // Validate rooms first
+                                    if (roomsValue && rooms > 0) {
+                                        // Strict room validation function
+                                        const isValidRoomFormat = (room) => {
+                                            // Defense Room 1 or Defense Room 2
+                                            if (/^Defense Room [12]$/i.test(room)) {
+                                                return true;
+                                            }
+
+                                            if (/^Accreditation Room$/i.test(room)) {
+                                                return true;
+                                            }
+                                            
+                                            // J[2-4][0-9][0-9] (J201-J499, excluding J1##)
+                                            if (/^J[2-4]\d{2}$/i.test(room)) {
+                                                return true;
+                                            }
+                                            
+                                            // S[2-4][0-9][0-9] (S201-S499, excluding S1##)
+                                            if (/^S[2-4]\d{2}$/i.test(room)) {
+                                                return true;
+                                            }
+                                            
+                                            // C[2-3,5-11][0-9][0-9] (C201-C399, C501-C1199, excluding C4##)
+                                            if (/^C([23]|[5-9]|1[01])\d{2}$/i.test(room)) {
+                                                return true;
+                                            }
+                                            
+                                            // L[1-3][0-9][0-9] (L101-L399)
+                                            if (/^L[1-3]\d{2}$/i.test(room)) {
+                                                return true;
+                                            }
+                                            
+                                            return false;
+                                        };
+
+                                        const normalizeRoomName = (name) => {
+                                            return name
+                                                .toLowerCase()
+                                                .replace(/\s+/g, ''); // Only remove spaces for comparison
+                                        };
+
+                                        const normalizedSet = new Set();
+                                        const seenRooms = [];
+
+                                        for (let room of roomsArray) {
+                                            // Check if room matches valid format
+                                            if (!isValidRoomFormat(room)) {
+                                                isValid = false;
+                                                warningMessage = `Invalid room format: "${room}". Must be Defense Room [1-2], Accreditation Room, J[2-4]##, S[1-4]##, C[2-3,5-11]##, or L[1-3]##`;
+                                                break;
+                                            }
+
+                                            const normalized = normalizeRoomName(room);
+                                            if (normalizedSet.has(normalized)) {
+                                                const duplicateIndex = seenRooms.findIndex(r => normalizeRoomName(r) === normalized);
+                                                const originalRoom = seenRooms[duplicateIndex];
+                                                isValid = false;
+                                                warningMessage = `Duplicate room detected: "${room}" is the same as "${originalRoom}"`;
+                                                break;
+                                            }
+                                            normalizedSet.add(normalized);
+                                            seenRooms.push(room);
+                                        }
+                                    }
+
+                                    if (isValid && (!startTime || !endTime || !timeDuration || days === 0 || rooms === 0 || !sectionSelect)) {
                                         isValid = false;
                                         warningMessage = 'All fields (Rooms, Duration, Start/End Time, Days) are required.';
-                                    } else {
+                                    } else if (isValid) {
                                         const startTimeParts = startTime.split(':');
                                         const endTimeParts = endTime.split(':');
                                         const startHour = parseInt(startTimeParts[0]) + parseInt(startTimeParts[1]) / 60;
@@ -272,6 +352,26 @@
                                         sectionSelect.addEventListener('change', () => updateTeamCount(validateInputs));
                                     }
 
+                                    // Room preset button handlers
+                                    document.querySelectorAll('.room-preset').forEach(button => {
+                                        button.addEventListener('click', function() {
+                                            const roomName = this.getAttribute('data-room');
+                                            const currentValue = roomsInput.value.trim();
+                                            
+                                            if (currentValue === '') {
+                                                roomsInput.value = roomName;
+                                            } else {
+                                                // Check if room already exists
+                                                const rooms = currentValue.split(',').map(r => r.trim());
+                                                if (!rooms.includes(roomName)) {
+                                                    roomsInput.value = currentValue + ', ' + roomName;
+                                                }
+                                            }
+                                            // Trigger validation
+                                            updateTeamCount(validateInputs);
+                                        });
+                                    });
+
                                     console.log('DOM Content Loaded: All event listeners attached');
                                 });
                             </script>
@@ -304,7 +404,8 @@
                                         format: 'mm-dd-yyyy',
                                         multidate: true,
                                         startDate: new Date(),
-                                        todayHighlight: true
+                                        todayHighlight: true,
+                                        daysOfWeekDisabled: [0] // Disable Sundays (0 = Sunday)
                                     });
 
                                     // Initial count update and validation on load
@@ -542,7 +643,7 @@
                             </script>
                             <div class="mb-3 form-check">
                                 <input type="checkbox" class="form-check-input" id="includeLunchBreak" name="includeLunchBreak">
-                                <label class="form-check-label" for="includeLunchBreak">Include Lunch Break (12 PM - 1 PM)</label>
+                                <label class="form-check-label" for="includeLunchBreak" data-bs-toggle="tooltip" data-bs-placement="right" title="When enabled, no defense schedules will be generated between 12:00 PM and 1:00 PM">Include Lunch Break (12 PM - 1 PM)</label>
                             </div>
 
                             <div class="mb-3">

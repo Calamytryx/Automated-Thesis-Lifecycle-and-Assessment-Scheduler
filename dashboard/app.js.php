@@ -1032,30 +1032,67 @@
                     break;
 
                 case 'rooms':
-                    // Multiple rooms validation (comma-separated)
-                    const roomsList = trimmedValue.split(',').map(room => room.trim()).filter(room => room !== '');
-                    if (roomsList.length === 0) {
-                        errors.push('At least one room is required');
-                    }
-                    for (let room of roomsList) {
-                        if (room.length < 2) {
-                            errors.push('Each room name must be at least 2 characters long');
-                            break;
-                        }
-                        if (room.length > 50) {
-                            errors.push('Each room name cannot exceed 50 characters');
-                            break;
-                        }
-                        if (/^\d+$/.test(room)) {
-                            errors.push('Room names cannot be only numbers');
-                            break;
-                        }
-                        if (!/^[a-zA-Z0-9\s\-\.\,\_\(\)]+$/.test(room)) {
-                            errors.push('Room names contain invalid characters');
-                            break;
-                        }
-                    }
-                    break;
+    const roomsList = trimmedValue.split(',')
+        .map(room => room.trim())
+        .filter(room => room !== '');
+
+    if (roomsList.length === 0) {
+        errors.push('At least one room is required');
+        break;
+    }
+
+    // Helper function to normalize room names for duplicate detection
+    // This catches variations like "Defense Room 1", "D3f3ns3 R00m 1", "DEFENSEROOM1", etc.
+    const normalizeRoomName = (name) => {
+        return name
+            .toLowerCase()                           // Convert to lowercase
+            .replace(/[^a-z0-9]/g, '')              // Remove all non-alphanumeric characters (spaces, dashes, etc.)
+            .replace(/0/g, 'o')                     // Replace 0 with o
+            .replace(/1/g, 'i')                     // Replace 1 with i
+            .replace(/3/g, 'e')                     // Replace 3 with e
+            .replace(/4/g, 'a')                     // Replace 4 with a
+            .replace(/5/g, 's')                     // Replace 5 with s
+            .replace(/7/g, 't')                     // Replace 7 with t
+            .replace(/8/g, 'b')                     // Replace 8 with b
+            .replace(/9/g, 'g');                    // Replace 9 with g
+    };
+
+    const normalizedSet = new Set();
+    const seenRooms = []; // Track original room names for better error messages
+
+    for (let room of roomsList) {
+        // Remove all non-alphanumeric characters to check actual content
+        const alphanumericOnly = room.replace(/[^a-zA-Z0-9]/g, '');
+        
+        if (alphanumericOnly.length < 2) {
+            errors.push(`Room name "${room}" must contain at least 2 alphanumeric characters`);
+            continue;
+        }
+        if (room.length > 50) {
+            errors.push(`Room name "${room}" is too long (maximum 50 characters)`);
+            continue;
+        }
+        if (/^\d+$/.test(room)) {
+            errors.push(`Room name "${room}" cannot contain only numbers`);
+            continue;
+        }
+        if (!/^[a-zA-Z0-9\s\-\.\,\_\(\)]+$/.test(room)) {
+            errors.push(`Room name "${room}" contains invalid characters`);
+            continue;
+        }
+
+        const normalized = normalizeRoomName(room);
+        if (normalizedSet.has(normalized)) {
+            const duplicateIndex = seenRooms.findIndex(r => normalizeRoomName(r) === normalized);
+            const originalRoom = seenRooms[duplicateIndex];
+            errors.push(`Duplicate room detected: "${room}" is similar to "${originalRoom}"`);
+            continue;
+        }
+        normalizedSet.add(normalized);
+        seenRooms.push(room);
+    }
+    break;
+
 
                 case 'password':
                     // Comprehensive password validation matching system requirements
