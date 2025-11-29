@@ -64,6 +64,17 @@ function getProgramsForCollege(PDO $pdo, string $college): array {
 function fetchAccessibleStudents(PDO $pdo, int $userId, int $userType, ?int $currentTeamId, ?string $teamProgram = null, ?string $sessionCollege = null): array {
     $teamCollege = getCollegeForProgram($pdo, $teamProgram);
 
+    // 🔓 Super Admin (userId === 0): See ALL students without restrictions
+    if ($userId === 0) {
+        $sql = "SELECT DISTINCT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email, u.section
+                FROM users u
+                WHERE u.id != 0 AND u.usertype = 1
+                ORDER BY u.last_name, u.first_name";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     if ($userType === 2) {
         $students = getAvailableStudentsForProfessor($pdo, $userId);
     } else {
@@ -149,6 +160,22 @@ function fetchAccessibleStudents(PDO $pdo, int $userId, int $userType, ?int $cur
 }
 
 function fetchAccessibleAdvisers(PDO $pdo, int $userId, int $userType, ?string $teamProgram, ?string $sessionCollege = null): array {
+    // 🔓 Super Admin (userId === 0): See ALL advisers without restrictions
+    if ($userId === 0) {
+        $sql = "SELECT DISTINCT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email,
+                (
+                    SELECT COUNT(*) FROM team_members tm2
+                    JOIN teams t2 ON tm2.team_id = t2.id
+                    WHERE tm2.user_id = u.id AND tm2.role = 'adviser'
+                ) AS adviser_count
+            FROM users u
+            WHERE u.id != 0 AND u.usertype = 2
+            ORDER BY u.last_name, u.first_name";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
     $teamCollege = getCollegeForProgram($pdo, $teamProgram);
     $sql = "SELECT DISTINCT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email,
                 (

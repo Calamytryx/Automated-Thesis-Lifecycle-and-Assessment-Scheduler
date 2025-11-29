@@ -206,32 +206,44 @@
             success: function (response) {
                 console.log('Program API response:', response);
 
+                // Clear the select element first
+                selectElement.empty();
+                selectElement.append('<option value="">Select Program</option>');
+
                 if (response.success && response.programs.length > 0) {
-                    let currentCollege = null;
-                    let optgroup = null;
-
+                    // Group programs by college to avoid duplicate optgroups
+                    const programsByCollege = {};
+                    
                     $.each(response.programs, function (i, program) {
-                        // Create new optgroup when college changes
-                        if (program.college !== currentCollege) {
-                            currentCollege = program.college;
-                            optgroup = $('<optgroup>', {
-                                label: currentCollege
-                            });
-                            selectElement.append(optgroup);
+                        const college = program.college.trim(); // Trim whitespace
+                        if (!programsByCollege[college]) {
+                            programsByCollege[college] = [];
                         }
+                        programsByCollege[college].push(program);
+                    });
 
-                        // Add program option to current optgroup
-                        const option = $('<option>', {
-                            value: program.display_name,
-                            text: program.display_name
+                    // Create optgroups for each college
+                    $.each(programsByCollege, function (college, programs) {
+                        const optgroup = $('<optgroup>', {
+                            label: college
                         });
 
-                        // Set selected if matches by program name
-                        if (selectedValue !== null && selectedValue === program.display_name) {
-                            option.prop('selected', true);
-                        }
+                        // Add all programs for this college
+                        $.each(programs, function (i, program) {
+                            const option = $('<option>', {
+                                value: program.display_name,
+                                text: program.display_name
+                            });
 
-                        optgroup.append(option);
+                            // Set selected if matches by program name
+                            if (selectedValue !== null && selectedValue === program.display_name) {
+                                option.prop('selected', true);
+                            }
+
+                            optgroup.append(option);
+                        });
+
+                        selectElement.append(optgroup);
                     });
                 } else {
                     selectElement.html('<option value="">No programs available</option>');
