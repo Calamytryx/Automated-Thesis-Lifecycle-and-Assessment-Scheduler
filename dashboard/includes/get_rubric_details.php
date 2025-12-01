@@ -37,9 +37,13 @@ if (isset($_GET['id'])) {
                 $criteria = $stmtCriteria->fetchAll(PDO::FETCH_ASSOC);
                 error_log("Fetched rubric criteria for ID " . $rubricId . ". Count: " . count($criteria));
 
-                // Cast boolean flag for consistency if needed
+                // Cast boolean flag for consistency and map max_score/min_score to criterion_score/criterion_min_score for frontend
                 foreach ($criteria as &$crit) {
                     $crit['is_individual'] = (bool)$crit['is_individual'];
+                    // Map max_score to criterion_score for frontend compatibility
+                    $crit['criterion_score'] = $crit['max_score'];
+                    // Map min_score to criterion_min_score for frontend compatibility
+                    $crit['criterion_min_score'] = $crit['min_score'];
                 }
                 unset($crit); // Unset reference
 

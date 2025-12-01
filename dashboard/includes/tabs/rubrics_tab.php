@@ -697,7 +697,7 @@
 
         // Numerical Type
         if (rubricType === 'numerical' && individualEnabled) {
-            headerRow.append('<th>Criteria</th><th>Score</th>');
+            headerRow.append('<th>Criteria</th><th>Range (Min - Max)</th>');
             rebuildPreviewTable();
             return;
         }
@@ -750,19 +750,33 @@
         var individualEnabled = $('#is_individual_enabled').is(':checked');
         var row = $('<tr class="criterion-row"></tr>');
         var rowCount = $('#rubricPreviewBody tr').length + 1; // For unique radio names
-        var maxScore = $('#max_score_per_criterion').val() || 0;
 
         if (rubricType === 'numerical' && individualEnabled) {
             row.append(`
                 <td><input type="text" class="form-control" name="criterion_description[]" required></td>
                 <td>
-                    <input type="number"
-                           class="form-control"
-                           name="criterion_score[]"
-                           value="0"
-                           min="0"
-                           max="${maxScore}"
-                           required>
+                    <div class="d-flex gap-2">
+                        <div class="flex-fill">
+                            <label class="form-label small mb-1">Min</label>
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   name="criterion_min_score[]"
+                                   value="0"
+                                   min="0"
+                                   step="0.01"
+                                   required>
+                        </div>
+                        <div class="flex-fill">
+                            <label class="form-label small mb-1">Max</label>
+                            <input type="number"
+                                   class="form-control form-control-sm"
+                                   name="criterion_score[]"
+                                   value="0"
+                                   min="0"
+                                   step="0.01"
+                                   required>
+                        </div>
+                    </div>
                 </td>`);
         } else if (rubricType === 'numerical') {
             var qualityCriteriaCount = parseInt($('#qualityCriteriaCount').val()) || 1;
@@ -1109,12 +1123,15 @@
                                 // --- MODIFIED: Use correct selector for individual description ---
                                 if (individualEnabled) {
                                     lastRow.find('input[name="criterion_description[]"]').val(crit.criterion_text);
+                                    // Set the min and max scores for this individual criterion
+                                    lastRow.find('input[name="criterion_min_score[]"]').val(crit.criterion_min_score || 0);
+                                    lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
                                 } else {
                                     lastRow.find('.criterion-description').val(crit.criterion_text);
+                                    // For group scoring, set the readonly score (calculated from levels)
+                                    lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
                                 }
                                 // --- END MODIFIED ---
-
-                                lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
 
                                 // --- MODIFIED: Uncomment and refine level input population ---
                                 if (!individualEnabled) {
@@ -1368,7 +1385,8 @@
                     if (individualEnabled) {
                         isIndividual = 1; // Individual
                         criterionDetail = null; // No level detail saved per criterion
-                        criterionScore = $(this).find('input[name="criterion_score[]"]').val(); // Get score for individual
+                        criterionScore = $(this).find('input[name="criterion_score[]"]').val(); // Get max score for individual
+                        var criterionMinScore = $(this).find('input[name="criterion_min_score[]"]').val(); // Get min score for individual
                     } else {
                         isIndividual = 0; // Group scoring
                         // Collect level descriptions for group scoring
@@ -1378,23 +1396,27 @@
                         });
                         criterionDetail = JSON.stringify(levelValues); // Store as JSON string
                         criterionScore = $(this).find('input.score-input').val(); // Get score for group (readonly)
+                        var criterionMinScore = null; // Not used for group scoring
                     }
                 } else { // yesno
                     criterionText = $(this).find('.criterion-input').val();
                     criterionDetail = $(this).find('.description-input').val();
                     // criterionScore remains null for yes/no
+                    var criterionMinScore = null; // Not used for yes/no
                 }
 
                 // console.log("Criterion Text: ", criterionText);
                 // console.log("Criterion Detail: ", criterionDetail);
                 // console.log("Criterion Score: ", criterionScore);
+                // console.log("Criterion Min Score: ", criterionMinScore);
                 // console.log("Is Individual: ", isIndividual);
 
                 criteriaData.push({
                     order_index: index,
                     criterion_text: criterionText,
                     criterion_detail: criterionDetail,
-                    criterion_score: criterionScore, // Send score (null for yes/no)
+                    criterion_score: criterionScore, // Send max score (null for yes/no)
+                    criterion_min_score: criterionMinScore, // Send min score (null for yes/no and group)
                     is_individual: isIndividual
                 });
             });

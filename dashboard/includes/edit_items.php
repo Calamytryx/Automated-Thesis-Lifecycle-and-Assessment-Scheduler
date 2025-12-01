@@ -420,8 +420,8 @@ function handleRequirementTemplateUpload($file) {
             if (($data['rubric_type'] === 'numerical' || $data['rubric_type'] === 'yesno') && isset($data['criteria'])) {
                 $criteria = json_decode($data['criteria'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($criteria)) {
-                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index, is_individual)
-                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index, :is_individual)";
+                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index, is_individual, max_score, min_score)
+                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index, :is_individual, :max_score, :min_score)";
                     $stmtCriteria = $pdo->prepare($criteriaSql);
                     foreach ($criteria as $criterion) {
                         // Only save is_individual flag if the rubric itself has individual scoring enabled
@@ -450,12 +450,34 @@ function handleRequirementTemplateUpload($file) {
                             }
                         }
 
+                        // Handle max_score and min_score for individual criteria
+                        $maxScore = null;
+                        $minScore = null;
+                        if ($criterion_is_individual) {
+                            if (isset($criterion['criterion_score'])) {
+                                $maxScore = filter_var($criterion['criterion_score'], FILTER_VALIDATE_FLOAT);
+                                if ($maxScore === false || $maxScore < 0) {
+                                    $maxScore = null;
+                                }
+                            }
+                            if (isset($criterion['criterion_min_score'])) {
+                                $minScore = filter_var($criterion['criterion_min_score'], FILTER_VALIDATE_FLOAT);
+                                if ($minScore === false || $minScore < 0) {
+                                    $minScore = 0.00; // Default to 0 if invalid
+                                }
+                            } else {
+                                $minScore = 0.00; // Default min score
+                            }
+                        }
+
                         $stmtCriteria->execute([
                             ':rubric_id' => $id, // Use the existing rubric ID
                             ':criterion_text' => $criterionText,
                             ':criterion_detail' => empty($criterionDetail) ? null : $criterionDetail,
                             ':order_index' => $criterion['order_index'] ?? 0,
-                            ':is_individual' => $criterion_is_individual // Store flag conditionally
+                            ':is_individual' => $criterion_is_individual, // Store flag conditionally
+                            ':max_score' => $maxScore, // Store max score for individual criteria
+                            ':min_score' => $minScore // Store min score for individual criteria
                         ]);
                     }
                     error_log("Re-inserted " . count($criteria) . " rows into rubric_criteria for ID: " . $id);
