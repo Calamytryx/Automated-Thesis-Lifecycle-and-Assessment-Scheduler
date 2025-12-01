@@ -332,18 +332,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $minScore = null;
                         if ($criterion_is_individual) {
                             if (isset($criterion['criterion_score'])) {
-                                $maxScore = filter_var($criterion['criterion_score'], FILTER_VALIDATE_FLOAT);
+                                $maxScore = filter_var($criterion['criterion_score'], FILTER_VALIDATE_INT);
                                 if ($maxScore === false || $maxScore < 0) {
                                     $maxScore = null;
                                 }
                             }
                             if (isset($criterion['criterion_min_score'])) {
-                                $minScore = filter_var($criterion['criterion_min_score'], FILTER_VALIDATE_FLOAT);
+                                $minScore = filter_var($criterion['criterion_min_score'], FILTER_VALIDATE_INT);
                                 if ($minScore === false || $minScore < 0) {
-                                    $minScore = 0.00; // Default to 0 if invalid
+                                    $minScore = 0; // Default to 0 if invalid
                                 }
                             } else {
-                                $minScore = 0.00; // Default min score
+                                $minScore = 0; // Default min score
                             }
                         }
 

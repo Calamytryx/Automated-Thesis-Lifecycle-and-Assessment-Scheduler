@@ -763,7 +763,7 @@
                                    name="criterion_min_score[]"
                                    value="0"
                                    min="0"
-                                   step="0.01"
+                                   step="1"
                                    required>
                         </div>
                         <div class="flex-fill">
@@ -773,7 +773,7 @@
                                    name="criterion_score[]"
                                    value="0"
                                    min="0"
-                                   step="0.01"
+                                   step="1"
                                    required>
                         </div>
                     </div>
@@ -1422,6 +1422,24 @@
             });
             formData.append('criteria', JSON.stringify(criteriaData));
         }
+
+        // --- Calculate max_total_score for individual rubrics ---
+        if (rubricType === 'numerical' && individualEnabled) {
+            var totalMaxScore = 0;
+            criteriaData.forEach(function(criterion) {
+                var maxScore = parseFloat(criterion.criterion_score) || 0;
+                totalMaxScore += maxScore;
+            });
+            // Override the max_total_score in formData with calculated value
+            formData.set('max_total_score', totalMaxScore);
+        } else if (rubricType === 'numerical' && !individualEnabled) {
+            // For group scoring, ensure max_total_score has a valid value
+            var groupMaxTotal = formData.get('max_total_score');
+            if (!groupMaxTotal || groupMaxTotal === '') {
+                formData.set('max_total_score', 0);
+            }
+        }
+        // --- End max_total_score calculation ---
 
         // Determine endpoint based on whether it's an add or edit
         var url = rubricId ? 'includes/edit_items.php' : 'includes/add_items.php';

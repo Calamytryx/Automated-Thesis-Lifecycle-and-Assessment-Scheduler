@@ -5,7 +5,7 @@
 USE icei_38697196_coecsathesis;
 
 ALTER TABLE `rubric_criteria` 
-ADD COLUMN `max_score` DECIMAL(5,2) NULL DEFAULT NULL 
+ADD COLUMN `max_score` INT NULL DEFAULT NULL 
 COMMENT 'Maximum score for this criterion (used for individual scoring in numerical rubrics)' 
 AFTER `is_individual`;
 

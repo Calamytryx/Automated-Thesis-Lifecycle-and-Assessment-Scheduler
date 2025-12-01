@@ -342,7 +342,7 @@ try {
         $levels_all = $stmt_levels->fetchAll(PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
 
         $stmt_criteria = $pdo->prepare("
-        SELECT rubric_id, id, criterion_text, criterion_detail, order_index, is_individual
+        SELECT rubric_id, id, criterion_text, criterion_detail, order_index, is_individual, min_score, max_score
             FROM rubric_criteria
         WHERE rubric_id IN ($placeholders)
         ORDER BY rubric_id, order_index
@@ -564,21 +564,27 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
 
         if ($is_individual_criterion) {
             $rubric['levels'] = $levels_with_original_index; // Use the sorted levels with original index for individual rubrics
-            // pre‐compute overall min/max from levels for this criterion
-            $level_points_min = PHP_INT_MAX;
-            $level_points_max = PHP_INT_MIN;
-            foreach ($levels_with_original_index as $lvl) {
-                $min = $lvl['points_min'] ?? 0;
-                $max = $lvl['points_max'] ?? $min;
-                $level_points_min = min($level_points_min, $min);
-                $level_points_max = max($level_points_max, $max);
+            
+            // Use criterion's own min_score and max_score if available
+            $criterion_min = $criterion['min_score'] ?? 0;
+            $criterion_max = $criterion['max_score'] ?? 100;
+            
+            // Fallback: If min/max not set in criterion, compute from levels
+            if ($criterion_min === null && $criterion_max === null) {
+                $level_points_min = PHP_INT_MAX;
+                $level_points_max = PHP_INT_MIN;
+                foreach ($levels_with_original_index as $lvl) {
+                    $min = $lvl['points_min'] ?? 0;
+                    $max = $lvl['points_max'] ?? $min;
+                    $level_points_min = min($level_points_min, $min);
+                    $level_points_max = max($level_points_max, $max);
+                }
+                // Handle case where no levels defined min/max properly
+                if ($level_points_min === PHP_INT_MAX) $level_points_min = 0;
+                if ($level_points_max === PHP_INT_MIN) $level_points_max = 0;
+                $criterion_min = $level_points_min;
+                $criterion_max = $level_points_max;
             }
-            // Handle case where no levels defined min/max properly
-            if ($level_points_min === PHP_INT_MAX) $level_points_min = 0;
-            if ($level_points_max === PHP_INT_MIN) $level_points_max = 0;
-
-            // *** NEW: Adjust min if min equals max ***
-            $input_min_value = ($level_points_min == $level_points_max) ? 0 : $level_points_min;
 
             $student_count = 0;
             foreach ($students as $student) {
@@ -595,8 +601,9 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
                                     name="' . $input_name . '"
                                     id="r' . $rubric_id . 'c' . $criterion_id . 's' . $student_id . '"
                                     value="' . htmlspecialchars($existing_score, ENT_QUOTES) . '"
-                                    min="' . $input_min_value . '"
-                                    max="' . $level_points_max . '"
+                                    min="' . $criterion_min . '"
+                                    max="' . $criterion_max . '"
+                                    step="1"
                                     data-rubric-id="' . $rubric_id . '"
                                     data-criterion-id="' . $criterion_id . '"
                                     data-student-id="' . $student_id . '"
