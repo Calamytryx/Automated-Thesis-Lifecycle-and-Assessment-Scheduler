@@ -73,7 +73,7 @@ try {
     <script type="importmap">
         {
             "imports": {
-                "@google/generative-ai": "https://esm.run/@google/generative-ai"
+                "@google/generative-ai": "https://cdn.jsdelivr.net/npm/@google/generative-ai@0.21.0/+esm"
             }
         }
     </script>

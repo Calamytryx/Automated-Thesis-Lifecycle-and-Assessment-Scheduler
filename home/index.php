@@ -1445,14 +1445,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             ds.end_time,
                                                             ds.room,
                                                             t.name AS team_name,
-                                                            t.program AS team_program,
-                                                            (
-                                                                SELECT rgi.group_id
-                                                                FROM rubric_programs rp
-                                                                JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                                WHERE rp.program_name COLLATE utf8mb4_general_ci = t.program COLLATE utf8mb4_general_ci
-                                                                LIMIT 1
-                                                            ) AS rubric_group_id
+                                                            t.program AS team_program
                                                         FROM defense_schedules ds
                                                         JOIN teams t ON ds.team_id = t.id
                                                         JOIN team_members tm ON t.id = tm.team_id
@@ -1468,14 +1461,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             ds.end_time,
                                                             ds.room,
                                                             t.name AS team_name,
-                                                            t.program AS team_program,
-                                                            (
-                                                                SELECT rgi.group_id
-                                                                FROM rubric_programs rp
-                                                                JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                                                                WHERE rp.program_name COLLATE utf8mb4_general_ci = t.program COLLATE utf8mb4_general_ci
-                                                                LIMIT 1
-                                                            ) AS rubric_group_id
+                                                            t.program AS team_program
                                                         FROM defense_schedules ds
                                                         JOIN teams t ON ds.team_id = t.id
                                                         WHERE
@@ -1511,7 +1497,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                                 $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                                 $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
-                                                                $rubric_group_id = $schedule['rubric_group_id'];
                                                                 $schedule_id = $schedule['schedule_id'];
 
                                                                 $onclick_attr = '';
@@ -1520,12 +1505,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 
                                                                 // Only allow faculty to access evaluation system
                                                                 if ($_SESSION['usertype'] == 2) { // Faculty
-                                                                    if ($rubric_group_id !== null) {
-                                                                        $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', ' . $rubric_group_id . ')"';
-                                                                    } else {
-                                                                        $item_class .= ' disabled';
-                                                                        $disabled_message = '<small class="text-muted d-block mt-1">Evaluation not available (Rubric group not configured)</small>';
-                                                                    }
+                                                                    // Let decision-support auto-determine group_id based on defense_type and program
+                                                                    $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ')"';
                                                                 } else { // Student
                                                                     // Students can view but not evaluate
                                                                     $item_class .= ' defense-item-student';
@@ -2458,17 +2439,24 @@ function getNextDateForDay(day) {
 
 
 /**
- * Function to redirect to decision-support with the team_id as a POST value.
- * @param {number} teamId - The ID of the team to send via POST.
+ * Function to redirect to decision-support with the schedule_id.
+ * The decision-support page will auto-determine the correct rubric group based on defense_type and program.
+ * @param {number} scheduleId - The ID of the defense schedule.
+ * @param {number} groupId - (Optional) The rubric group ID. If not provided, will be auto-determined.
  */
-function redirectToDecisionSupport(scheduleId, groupId) {
-    if (!scheduleId || !groupId) {
-        console.error('Missing scheduleId or groupId for redirection.');
-        alert('Error: Cannot navigate to evaluation page. Missing information.');
+function redirectToDecisionSupport(scheduleId, groupId = null) {
+    if (!scheduleId) {
+        console.error('Missing scheduleId for redirection.');
+        alert('Error: Cannot navigate to evaluation page. Missing schedule information.');
         return;
     }
-    // Construct the URL with both parameters
-    const url = `../decision-support/index.php?schedule_id=${scheduleId}&group_id=${groupId}`;
+    
+    // Construct the URL - groupId is optional, decision-support will auto-determine if not provided
+    let url = `../decision-support/index.php?schedule_id=${scheduleId}`;
+    if (groupId) {
+        url += `&group_id=${groupId}`;
+    }
+    
     console.log(`Redirecting to: ${url}`);
     window.location.href = url;
 }

@@ -11,9 +11,13 @@ async function initializeGemini() {
     });
     const data = await response.json();
     const API_KEY = data.apiKey;
+    
+    // Log which API key is being used (just the index, not the actual key)
+    console.log(`Using API key ${data.keyIndex + 1} of ${data.totalKeys}`);
+    
     genAI = new GoogleGenerativeAI(API_KEY);
     model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash-exp",
+        model: "gemini-2.0-flash-lite",
         systemInstruction: `You are ATLAS: Advanced Thesis Logistics and AI System for Lyceum of the Philippines University Cavite. 
         Your primary function is to assist with the "AI-Driven System for Efficient Scheduling and Performance Assessment of College Research Presentations in the College of Engineering, Computer Studies, and Architecture (COECSA) at Lyceum of the Philippines University-Cavite Campus (LPU-C)".
         
@@ -60,18 +64,19 @@ const safetySettings = [
     }
 ];
 
-// Function to initialize the chat session (only done once)
-export async function initializeChatSession() {
-    if (!model) {
+export async function initializeChatSession(resetModel = false) {
+    if (resetModel || !model) {
         await initializeGemini();
     }
-    if (!chatSession) {
-        chatSession = model.startChat({
-            generationConfig,
-            safetySettings,
-        });
-    }
+
+    chatSession = model.startChat({
+        generationConfig,
+        safetySettings,
+    });
+
+    return chatSession;
 }
+
 
 
 // Add this function to log all API calls
@@ -84,9 +89,16 @@ function logApiCall(functionName, input, output) {
 // Modify the sendMessageToModel function in mainModule.js to include logging
 export async function sendMessageToModel(userMessage) {
     try {
-        if (!chatSession || !model) {
-            await initializeChatSession();
+        // Create a fresh chat session for each message to avoid context accumulation
+        if (!model) {
+            await initializeGemini();
         }
+        
+        // Create new chat session for this request (uses rotated API key)
+        chatSession = model.startChat({
+            generationConfig,
+            safetySettings,
+        });
 
         console.log("Sending message to AI model:", userMessage);
         const result = await chatSession.sendMessage(userMessage);
@@ -96,6 +108,14 @@ export async function sendMessageToModel(userMessage) {
         return response;
     } catch (error) {
         console.error("Error in sendMessageToModel:", error);
+        
+        // If quota exceeded, reinitialize with next API key
+        if (error.message && error.message.includes('quota')) {
+            console.log("Quota exceeded, rotating to next API key...");
+            await initializeGemini(); // This will get the next API key
+            return sendMessageToModel(userMessage); // Retry with new key
+        }
+        
         throw new Error(`Error in chat session: ${error.message}`);
     }
 }

@@ -11,10 +11,10 @@ define('TITLE', $page_title); // Define TITLE for header layout
 
 // --- Get Input Parameters (New Logic) ---
 $schedule_id = filter_input(INPUT_GET, 'schedule_id', FILTER_VALIDATE_INT);
-$group_id = filter_input(INPUT_GET, 'group_id', FILTER_VALIDATE_INT);
+$group_id = filter_input(INPUT_GET, 'group_id', FILTER_VALIDATE_INT); // Optional - will be auto-determined if not provided
 
 echo '<script>';
-echo '  console.log("Rubric Group ID:", ' . json_encode($group_id, JSON_NUMERIC_CHECK) . ');';
+echo '  console.log("Rubric Group ID (from URL):", ' . json_encode($group_id, JSON_NUMERIC_CHECK) . ');';
 echo '</script>';
 
 $evaluator_id = $_SESSION['id'] ?? null;
@@ -30,18 +30,18 @@ function fetchevaluations($pdo) {
 $done_evaluating = false;
 
 // --- Validate Input (New Logic) ---
-if (!$schedule_id || !$group_id || !$evaluator_id) {
+if (!$schedule_id || !$evaluator_id) {
     $missing = [];
     if (!$schedule_id) $missing[] = 'Schedule ID';
-    if (!$group_id) $missing[] = 'Group ID';
     if (!$evaluator_id) $missing[] = 'Evaluator ID (Session)';
-    error_log("Missing parameters for decision-support: Schedule={$schedule_id}, Group={$group_id}, Evaluator={$evaluator_id}");
+    error_log("Missing required parameters for decision-support: Schedule={$schedule_id}, Evaluator={$evaluator_id}");
     // Redirect or display error using layout if possible
     include '../assets/layouts/header.php';
-    echo "<div class='container mt-5'><div class='alert alert-danger'>Error: Missing required parameters. Please ensure you are logged in and accessing this page with valid schedule and group IDs. Missing: " . implode(', ', $missing) . "</div></div>";
+    echo "<div class='container mt-5'><div class='alert alert-danger'>Error: Missing required parameters. Please ensure you are logged in and accessing this page with a valid schedule ID. Missing: " . implode(', ', $missing) . "</div></div>";
     include '../assets/layouts/footer.php';
     exit;
 }
+// Note: group_id is optional and will be auto-determined based on defense type and program
 
 // --- Data Fetching (New Logic + PDF Filename Fetch + Rubric Group Details) ---
 $schedule_info = null;
@@ -74,12 +74,68 @@ try {
     }
     error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}");
 
+    // <-- NEW: Check for admin override in defense_type_overrides table ---
+    $overrideStmt = $pdo->prepare("SELECT override_type FROM defense_type_overrides WHERE team_id = ? AND active = 1 ORDER BY created_at DESC LIMIT 1");
+    $overrideStmt->execute([$team_id]);
+    $override = $overrideStmt->fetch(PDO::FETCH_ASSOC);
+    
+    if ($override && !empty($override['override_type'])) {
+        $original_defense_type = $defense_type;
+        $defense_type = $override['override_type'];
+        error_log("DS-Index: OVERRIDE APPLIED - Changed defense_type from '{$original_defense_type}' to '{$defense_type}' for team {$team_id} (admin override)");
+    }
+
     // <-- NEW: If no defense_type in schedule, try to get from function ---
     if (!$defense_type || $defense_type === 'general') {
         require_once '../dashboard/includes/defense_type_functions.php';
         $defense_type = getTeamDefenseType($pdo, $team_id);
         error_log("DS-Index: Determined defense type from function: {$defense_type}");
     }
+    
+    // *** AUTO-DETERMINE GROUP_ID if not provided ***
+    if (!$group_id) {
+        // Get team's program to help determine the correct rubric group
+        $teamProgramStmt = $pdo->prepare("SELECT program FROM teams WHERE id = ?");
+        $teamProgramStmt->execute([$team_id]);
+        $teamProgram = $teamProgramStmt->fetchColumn();
+        
+        // Try to resolve program string to program_id
+        $resolvedProgramId = null;
+        if (is_numeric($teamProgram)) {
+            $resolvedProgramId = (int)$teamProgram;
+        } else {
+            $programLookup = $pdo->prepare("SELECT id FROM programs WHERE LOWER(TRIM(name)) = LOWER(TRIM(?)) LIMIT 1");
+            $programLookup->execute([$teamProgram]);
+            $resolvedProgramId = $programLookup->fetchColumn();
+        }
+        
+        // Find appropriate rubric group based on defense_type and program_id
+        $groupStmt = $pdo->prepare("
+            SELECT id FROM rubric_groups 
+            WHERE defense_type = ? 
+              AND (program_id = ? OR program_id IS NULL)
+            ORDER BY program_id DESC
+            LIMIT 1
+        ");
+        $groupStmt->execute([$defense_type, $resolvedProgramId]);
+        $group_id = $groupStmt->fetchColumn();
+        
+        // Fallback: try with general defense type
+        if (!$group_id) {
+            $groupStmt = $pdo->prepare("SELECT id FROM rubric_groups WHERE defense_type = 'general' LIMIT 1");
+            $groupStmt->execute();
+            $group_id = $groupStmt->fetchColumn();
+        }
+        
+        if (!$group_id) {
+            throw new Exception("No rubric group found for defense_type='{$defense_type}' and program_id=" . ($resolvedProgramId ?? 'NULL') . ". Please configure rubric groups in the admin dashboard.");
+        }
+        
+        error_log("DS-Index: Auto-determined group_id={$group_id} for defense_type='{$defense_type}', program_id=" . ($resolvedProgramId ?? 'NULL'));
+    } else {
+        error_log("DS-Index: Using manually provided group_id={$group_id}");
+    }
+    // *** END AUTO-DETERMINE GROUP_ID ***
 
     // Fetch Research Title (From Old Logic, using team_id)
     $researchTitleStmt = $pdo->prepare("SELECT title FROM research_titles WHERE team_id = ?");
@@ -163,26 +219,46 @@ try {
     
     error_log("DS-Index: Using requirement_id = {$requirement_id} for defense_type = {$defense_type}");
     
-    // Now fetch the PDF using the correct requirement ID
-    $requirementStmt = $pdo->prepare("SELECT id, file_name FROM team_requirements WHERE team_id = ? AND requirement_id = ?");
-    $requirementStmt->execute([$team_id, $requirement_id]);
-    $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
-    
-    // Also fetch ALL submitted files for this requirement (for multi-file selection)
-    $allFilesStmt = $pdo->prepare("SELECT id, file_name, original_file_name, submission_number, submitted_at FROM team_requirement_files WHERE team_id = ? AND requirement_id = ? ORDER BY submission_number DESC");
-    $allFilesStmt->execute([$team_id, $requirement_id]);
-    $submissionFiles = $allFilesStmt->fetchAll(PDO::FETCH_ASSOC);
+    // First, check if there are files explicitly linked to this defense schedule
+    require_once '../dashboard/includes/defense_type_functions.php';
+    $linkedFiles = getDefenseScheduleFiles($pdo, $schedule_id);
     
     $pdf_file_name = null;
     $activeSubmissionId = null;
+    $submissionFiles = [];
     
-    if ($requirement && !empty($requirement['file_name'])) {
-        $pdf_file_name = $requirement['file_name'];
-        error_log("DS-Index: Fetched PDF filename: {$pdf_file_name} for team ID {$team_id}, requirement_id {$requirement_id}");
-        $activeSubmissionId = $requirement['id'] ?? null;
+    if (!empty($linkedFiles)) {
+        // Use explicitly linked files (preferred method)
+        error_log("DS-Index: Found " . count($linkedFiles) . " file(s) explicitly linked to defense schedule {$schedule_id}");
+        $submissionFiles = $linkedFiles;
+        
+        // Use the first linked file as the active one
+        $firstLinked = $linkedFiles[0];
+        $pdf_file_name = $firstLinked['file_name'];
+        $activeSubmissionId = $firstLinked['id'];
+        error_log("DS-Index: Using explicitly linked file: {$pdf_file_name} (ID: {$activeSubmissionId})");
     } else {
-        error_log("DS-Index: Warning - PDF requirement (ID {$requirement_id}) not found or filename empty for team ID: {$team_id}. PDF viewer may not work.");
-        // Don't throw an error, but the PDF tab might be non-functional
+        // Fallback: lookup based on requirement_id from program_manuscript_requirements
+        error_log("DS-Index: No explicitly linked files for schedule {$schedule_id}, falling back to requirement_id lookup");
+        
+        // Now fetch the PDF using the correct requirement ID
+        $requirementStmt = $pdo->prepare("SELECT id, file_name FROM team_requirements WHERE team_id = ? AND requirement_id = ?");
+        $requirementStmt->execute([$team_id, $requirement_id]);
+        $requirement = $requirementStmt->fetch(PDO::FETCH_ASSOC);
+        
+        // Also fetch ALL submitted files for this requirement (for multi-file selection)
+        $allFilesStmt = $pdo->prepare("SELECT id, file_name, original_file_name, submission_number, submitted_at FROM team_requirement_files WHERE team_id = ? AND requirement_id = ? ORDER BY submission_number DESC");
+        $allFilesStmt->execute([$team_id, $requirement_id]);
+        $submissionFiles = $allFilesStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        if ($requirement && !empty($requirement['file_name'])) {
+            $pdf_file_name = $requirement['file_name'];
+            error_log("DS-Index: Fetched PDF filename: {$pdf_file_name} for team ID {$team_id}, requirement_id {$requirement_id}");
+            $activeSubmissionId = $requirement['id'] ?? null;
+        } else {
+            error_log("DS-Index: Warning - PDF requirement (ID {$requirement_id}) not found or filename empty for team ID: {$team_id}. PDF viewer may not work.");
+            // Don't throw an error, but the PDF tab might be non-functional
+        }
     }
 
     // 2. Fetch Team Members (Students) (New Logic)
@@ -1039,7 +1115,30 @@ include '../assets/layouts/header.php';
                                     </div>
                                 </div>
                          <?php else: ?>
-                                <div class="alert alert-warning">PDF file requirement not found or not submitted for this team. PDF viewer unavailable.</div>
+                                <div class="alert alert-warning">
+                                    <h5 class="alert-heading"><i class="bi bi-file-earmark-pdf"></i> PDF File Not Available</h5>
+                                    <p><strong>Defense Type:</strong> <?php echo htmlspecialchars($defense_type); ?></p>
+                                    <p><strong>Team ID:</strong> <?php echo htmlspecialchars($team_id); ?></p>
+                                    <p><strong>Requirement ID Used:</strong> <?php echo htmlspecialchars($requirement_id); ?></p>
+                                    
+                                    <hr>
+                                    
+                                    <p class="mb-0"><strong>Possible causes:</strong></p>
+                                    <ul class="mb-2">
+                                        <li>The team has not submitted the required manuscript for this defense type</li>
+                                        <li>The defense schedule does not have files explicitly linked to it</li>
+                                        <li>No manuscript requirement is configured for this program and defense type combination</li>
+                                        <li>The manuscript requirement configuration is incorrect in <code>program_manuscript_requirements</code> table</li>
+                                    </ul>
+                                    
+                                    <p class="mb-0"><strong>To fix this issue:</strong></p>
+                                    <ol class="mb-0">
+                                        <li>Ensure the team has submitted their manuscript (check Team Requirements in Dashboard)</li>
+                                        <li>Verify the defense type matches the submitted requirement</li>
+                                        <li>If multiple files exist, an admin can explicitly link the correct file to this defense schedule</li>
+                                        <li>Check that manuscript requirements are properly configured for this program</li>
+                                    </ol>
+                                </div>
                          <?php endif; ?>
           </div>
 
@@ -1083,10 +1182,26 @@ include '../assets/layouts/header.php';
                 ?>
                 <?php if (empty($rubrics_in_group)): ?>
                     <div class="alert alert-warning">
-                        No active rubrics found for this evaluation group
-                        <strong><?php echo htmlspecialchars($rubric_group_details['name']); ?></strong>
-                        (Group ID: <?php echo $group_id; ?>).<br>
-                        Rubric IDs associated: <?php echo implode(', ', $rubric_ids ?: ['none']); ?>.
+                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> No Active Rubrics Found</h5>
+                        <p><strong>Evaluation Group:</strong> <?php echo htmlspecialchars($rubric_group_details['name']); ?> (Group ID: <?php echo $group_id; ?>)</p>
+                        <p><strong>Expected Rubric IDs:</strong> <?php echo implode(', ', $rubric_ids ?: ['none']); ?></p>
+                        
+                        <hr>
+                        
+                        <p class="mb-0"><strong>Possible causes:</strong></p>
+                        <ul class="mb-2">
+                            <li>The rubrics with these IDs do not exist in the database</li>
+                            <li>The rubrics are marked as inactive (<code>is_active = 0</code>)</li>
+                            <li>The rubric group items table has incorrect rubric IDs</li>
+                        </ul>
+                        
+                        <p class="mb-0"><strong>To fix this issue:</strong></p>
+                        <ol class="mb-0">
+                            <li>Verify rubrics exist: <code>SELECT id, name, is_active FROM rubrics WHERE id IN (<?php echo implode(', ', $rubric_ids ?: [0]); ?>)</code></li>
+                            <li>Check if rubrics are active in the database</li>
+                            <li>Run the migration script: <code>/assets/setup/fix_missing_rubrics.sql</code></li>
+                            <li>Contact your system administrator if the problem persists</li>
+                        </ol>
                     </div>
                 <?php else: ?>
                     <?php foreach ($rubrics_in_group as $rubric_id => $rubric): // This loop now iterates in the correct order ?>

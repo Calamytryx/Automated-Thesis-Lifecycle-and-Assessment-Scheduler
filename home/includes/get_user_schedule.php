@@ -65,6 +65,7 @@ try {
         }
     } elseif ($user_type == 2) {
         // Fetch defense schedules where the user is a panelist
+        // Note: rubric_group_id is no longer needed - decision-support auto-determines it
         $defense_stmt = $pdo->prepare("
             SELECT 
                 ds.id as defense_schedule_id,
@@ -73,20 +74,7 @@ try {
                 ds.end_time,
                 ds.room,
                 ds.team_id,
-                CONCAT('Defense with team: ', t.name) as description,
-                (
-                    SELECT rgi.group_id
-                    FROM rubric_programs rp
-                    JOIN rubric_group_items rgi ON rp.rubric_id = rgi.rubric_id
-                    WHERE rp.program_name = t.program
-                    GROUP BY rgi.group_id
-                    HAVING COUNT(DISTINCT rp.rubric_id) = (
-                        SELECT COUNT(DISTINCT rp_inner.rubric_id)
-                        FROM rubric_programs rp_inner
-                        WHERE rp_inner.program_name = t.program
-                    )
-                    LIMIT 1
-                ) AS rubric_group_id
+                CONCAT('Defense with team: ', t.name) as description
             FROM defense_schedules ds
             JOIN teams t ON ds.team_id = t.id
             WHERE ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?

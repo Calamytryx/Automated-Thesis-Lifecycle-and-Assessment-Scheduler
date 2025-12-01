@@ -26,12 +26,12 @@ async function analyzeTitle(title, field, problem) {
         const sanitizedTitle = title.replace(/<[^>]*>/g, '').trim();
         const sanitizedField = field.replace(/<[^>]*>/g, '').trim();
         const sanitizedProblem = problem.replace(/<[^>]*>/g, '').trim();
-        
+
         // Additional validation before API calls
         if (!sanitizedTitle || !sanitizedField || !sanitizedProblem) {
             throw new Error('Invalid input data after sanitization');
         }
-        
+
 
         // Get web search results for the research title
         let webSearchResults = '';
@@ -60,13 +60,13 @@ async function analyzeTitle(title, field, problem) {
 
         const [similarityScore, similarTitleMatch] = similarityResponse.split(':');
         console.log("Similarity Score:", similarityScore)
-    const scoreMatch = similarityScore.match(/\d+/);
-    // Convert score (1-10) to percentage (10-100%)
-    let similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
-    let similarityPercent = Math.round((similarityScoreFloat / 10) * 100);
-    const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
-        
-    if (similarityPercent < 50) {
+        const scoreMatch = similarityScore.match(/\d+/);
+        // Convert score (1-10) to percentage (10-100%)
+        let similarityScoreFloat = scoreMatch ? parseFloat(scoreMatch[0]) : 0;
+        let similarityPercent = Math.round((similarityScoreFloat / 10) * 100);
+        const similarTitle = similarTitleMatch ? similarTitleMatch.trim().replace(/['"]/g, '') : 'N/A';
+
+        if (similarityPercent < 50) {
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
                 Provide feedback on its 1. clarity, 2. specificity, and 3. potential impact. 
@@ -88,11 +88,11 @@ async function analyzeTitle(title, field, problem) {
                 3. (title 3)
                 
                 Ensure the feedback is clear, concise, and actionable. Do not use tilde or code blocks.`;
-        
+
             console.log("Sending analysis prompt to AI:", analysisPrompt);
             const aiResponse = await sendMessageToModel(analysisPrompt);
             console.log("Received AI response:", aiResponse);
-            
+
             // Update uniqueness result
             document.getElementById('uniquenessResult').innerHTML = `
                 <div class="d-flex align-items-center mb-3">
@@ -107,11 +107,11 @@ async function analyzeTitle(title, field, problem) {
                 </div>
                 ${similarTitle !== 'N/A' ? `<p class="text-muted mb-0"><strong>Most similar title:</strong> ${similarTitle}</p>` : ''}
             `;
-            
+
             // Update AI suggestions
             document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
-            
-    } else if (confirm(`The title is similar to an existing title (${similarityPercent}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
+
+        } else if (confirm(`The title is similar to an existing title (${similarityPercent}% similarity): '${similarTitle}'. Do you still want to proceed with the analysis?`)) {
             // separated the two conditions so this confirm will only show if similarity is higher than 5.
             // Proceed to analyze as usual
             const analysisPrompt = `Analyze the following research title in the field of ${sanitizedField}: "${sanitizedTitle}" with the problem to solve of ${sanitizedProblem}. 
@@ -134,11 +134,11 @@ async function analyzeTitle(title, field, problem) {
                 3. (title 3)
                 
                 Ensure the feedback is clear, concise, and actionable. Do not use tilde or code blocks.`;
-        
+
             console.log("Sending analysis prompt to AI:", analysisPrompt);
             const aiResponse = await sendMessageToModel(analysisPrompt);
             console.log("Received AI response:", aiResponse);
-            
+
             // Update uniqueness result with warning
             document.getElementById('uniquenessResult').innerHTML = `
                 <div class="d-flex align-items-center mb-3">
@@ -156,10 +156,10 @@ async function analyzeTitle(title, field, problem) {
                     <br><small>You may want to revise your title to improve uniqueness.</small>
                 </div>
             `;
-            
+
             // Update AI suggestions
             document.getElementById('aiSuggestions').innerHTML = marked.parse(aiResponse);
-            
+
         } else {
             // User canceled analysis
             document.getElementById('uniquenessResult').innerHTML = `
@@ -178,7 +178,7 @@ async function analyzeTitle(title, field, problem) {
                     <br><small>Please revise your title to ensure uniqueness and avoid potential issues.</small>
                 </div>
             `;
-            
+
             document.getElementById('aiSuggestions').innerHTML = `
                 <div class="text-center py-4">
                     <i class="bi bi-lightbulb text-muted mb-3" style="font-size: 2.5rem;"></i>
@@ -213,11 +213,11 @@ function validateForm() {
     const problem = document.getElementById('problem')?.value.trim();
     const submitBtn = document.getElementById('submitTitleBtn');
     const statusText = document.querySelector('.research-title-status small');
-    
+
     // Check if all fields have content and are valid
     const hasContent = title && field && problem;
     const isValid = hasContent && ValidationUtils.validateForm();
-    
+
     if (isValid) {
         if (submitBtn) {
             submitBtn.disabled = false;
@@ -243,7 +243,7 @@ function validateForm() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("Document ready, initializing chat session...");
     // Initialize chat session only if in the relevant page
     if (typeof initializeChatSession === 'function') {
@@ -253,38 +253,38 @@ document.addEventListener('DOMContentLoaded', function() {
     // Only add these event listeners if the elements exist
     const submitTitleBtn = document.getElementById('submitTitleBtn');
     if (submitTitleBtn) {
-        submitTitleBtn.addEventListener('click', function() {
+        submitTitleBtn.addEventListener('click', function () {
             console.log("Submit button clicked");
-            
+
             // First validate all fields using ValidationUtils
             if (!validateResearchTitleForm()) {
                 console.log("Form validation failed");
                 return;
             }
-            
+
             var title = document.getElementById('researchTitle').value.trim();
             var field = document.getElementById('researchField').value.trim();
             var problem = document.getElementById('problem').value.trim();
-            
+
             // Basic presence validation (already checked by ValidationUtils, but kept for consistency)
             if (!title || !field || !problem) {
                 alert('Please fill in all fields before analyzing your title.');
                 return;
             }
-            
+
             console.log("Analyzing title:", title, "in field:", field + " with problem to solve of " + problem);
-            
+
             // Hide empty state and show loading
             document.getElementById('emptyState').style.display = 'none';
             showLoadingState();
-            
+
             // Show result cards
             document.getElementById('uniquenessCard').style.display = 'block';
             document.getElementById('suggestionsCard').style.display = 'block';
 
             analyzeTitle(title, field, problem);
         });
-        
+
         // Add input validation listeners using ValidationUtils
         const requiredFields = ['researchTitle', 'researchField', 'problem'];
         requiredFields.forEach(fieldId => {
@@ -293,7 +293,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 field.addEventListener('input', validateForm);
             }
         });
-        
+
         // Setup real-time validation
         ValidationUtils.setupRealTimeValidation();
     }
@@ -301,7 +301,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Add reset button functionality
     const resetFieldsBtn = document.getElementById('resetFieldsBtn');
     if (resetFieldsBtn) {
-        resetFieldsBtn.addEventListener('click', function() {
+        resetFieldsBtn.addEventListener('click', function () {
             console.log("Reset button clicked");
             resetResearchTitleForm();
         });
@@ -315,7 +315,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function showLoadingState() {
     const uniquenessResult = document.getElementById('uniquenessResult');
     const aiSuggestions = document.getElementById('aiSuggestions');
-    
+
     if (uniquenessResult) {
         uniquenessResult.innerHTML = `
             <div class="research-title-loading">
@@ -324,7 +324,7 @@ function showLoadingState() {
             </div>
         `;
     }
-    
+
     if (aiSuggestions) {
         aiSuggestions.innerHTML = `
             <div class="research-title-loading">
@@ -340,15 +340,15 @@ function resetResearchTitleForm() {
     // Hide result cards
     document.getElementById('uniquenessCard').style.display = 'none';
     document.getElementById('suggestionsCard').style.display = 'none';
-    
+
     // Show empty state
     document.getElementById('emptyState').style.display = 'block';
-    
+
     // Clear form fields
     document.getElementById('researchTitle').value = '';
     document.getElementById('researchField').value = '';
     document.getElementById('problem').value = '';
-    
+
     // Reset validation
     validateForm();
 }
@@ -358,16 +358,16 @@ const formFields = ['researchTitle', 'researchField', 'problem'];
 formFields.forEach(fieldId => {
     const field = document.getElementById(fieldId);
     if (field) {
-        field.addEventListener('input', function() {
+        field.addEventListener('input', function () {
             // If all fields are empty, show empty state
-            const allEmpty = formFields.every(id => 
+            const allEmpty = formFields.every(id =>
                 !document.getElementById(id)?.value.trim()
             );
-            
+
             if (allEmpty) {
                 setTimeout(() => {
                     const cardsVisible = document.getElementById('uniquenessCard').style.display !== 'none' ||
-                                      document.getElementById('suggestionsCard').style.display !== 'none';
+                        document.getElementById('suggestionsCard').style.display !== 'none';
                     if (cardsVisible) {
                         resetResearchTitleForm();
                     }
@@ -409,20 +409,20 @@ async function getTopThesisTopics(field) {
         console.log("Sending thesis topic prompt to AI:", prompt);
         const aiResponse = await sendMessageToModel(prompt);
         console.log("Received AI response for thesis topics:", aiResponse);
-        
+
         // Replace the default table with a Bootstrap styled table
         let formattedResponse = aiResponse.replace('<table>', '<table class="table table-hover table-bordered table-striped rounded overflow-hidden">');
 
         // Wrap the table in a responsive div
         formattedResponse = `<div class="table-responsive">${formattedResponse}</div>`;
-        
+
         // Add a note about the nature of the topics
         formattedResponse = `
             <p class="text-muted mb-3">These are broad research areas in ${field} based on current trends and AI analysis. Each area can encompass multiple specific thesis topics.</p>
             ${formattedResponse}
             <p class="text-muted mt-3">Consider these areas as starting points for developing more specific thesis topics aligned with your interests and the latest developments in ${field}.</p>
         `;
-        
+
         document.getElementById('topicAnalysisResult').innerHTML = formattedResponse;
     } catch (error) {
         console.error('Error in getTopThesisTopics:', error);
@@ -430,21 +430,21 @@ async function getTopThesisTopics(field) {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const getTopicsBtn = document.getElementById('getTopicsBtn');
     if (getTopicsBtn) {
-        getTopicsBtn.addEventListener('click', function() {
+        getTopicsBtn.addEventListener('click', function () {
             const field = document.getElementById('thesisField').value;
-            
+
             if (!field) {
                 alert('Please select a field');
                 return;
             }
 
-        console.log("Getting top thesis topics for field:", field);
-        document.getElementById('topicAnalysisResult').innerHTML = '<p>Generating top thesis topics...</p>';
+            console.log("Getting top thesis topics for field:", field);
+            document.getElementById('topicAnalysisResult').innerHTML = '<p>Generating top thesis topics...</p>';
 
-        getTopThesisTopics(field);
+            getTopThesisTopics(field);
         });
     }
 });
@@ -453,20 +453,20 @@ document.addEventListener('DOMContentLoaded', function() {
 async function processOutputToAI() {
     const aiOutputElement = document.getElementById('ai-output');
     const outputPdfElement = document.getElementById('output-pdf');
-    
+
     // Check if elements exist before trying to use them
     if (!aiOutputElement || !outputPdfElement) {
         console.log('Required elements are not available on this page');
         return;
     }
-    
+
     aiOutputElement.innerHTML = 'Processing output...';
     let outputValue = '';
     while (!outputValue) {
         await new Promise(resolve => setTimeout(resolve, 1000));
         outputValue = outputPdfElement.value;
     }
-    
+
     try {
         const prompt = `Analyze the following thesis content and provide a chapter-by-chapter summary and analysis:
 
@@ -475,27 +475,30 @@ async function processOutputToAI() {
         For each chapter and its major sections (background, statement of the problem, objectives, etc.), provide:
         1. A brief summary (2-3 sentences)
         2. Key points identified
+        3. Missing elements or areas that need improvement (if necessary)
         
         Then provide an overall analysis with:
         - Strengths
         - Weaknesses
         - Suggested revisions
+
+        atleast a paragraph 
         
         Format your response in markdown as follows:
-        H2 Chapter-by-Chapter Summary of [Proposal/Final] Paper: [TITLE]
+        <H2> Chapter-by-Chapter Summary of [Proposal/Final] Paper: [TITLE]
         
-        H3 Chapter 1: Introduction
-        H4 Background of the Study
+        <H3> Chapter 1: Introduction
+        <H4> Background of the Study
         - Summary: [brief summary]
         - Key points: [bullet points]
         
-        H4 Statement of the Problem
+        <H4> Statement of the Problem
         - Summary: [brief summary]
         - Key points: [bullet points]
         
         [Continue for each section and chapter]
         
-        H3 Overall Analysis
+        <H3> Overall Analysis
         strong Strengths:
         - [list strengths]
         
@@ -515,8 +518,8 @@ async function processOutputToAI() {
     }
 }
 
-document.addEventListener('DOMContentLoaded', function() {
-        processOutputToAI();
+document.addEventListener('DOMContentLoaded', function () {
+    processOutputToAI();
 });
 
 // ============================================
@@ -527,29 +530,29 @@ document.addEventListener('DOMContentLoaded', function() {
  * Universal validation framework for consistent input validation across all dashboard tabs
  * Provides field-level error messages and prevents form submission until issues are resolved
  */
-window.UniversalValidator = (function() {
-    
+window.UniversalValidator = (function () {
+
     // Simple patterns for client-side validation (server-side has comprehensive patterns)
     const PATTERNS = {
         HTML: /<[^>]*>/g,
         // Simplified emoji pattern covering most common emoji ranges
         EMOJI: /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/u
     };
-    
+
     /**
      * Check if string contains HTML tags
      */
     function containsHtml(str) {
         return PATTERNS.HTML.test(str);
     }
-    
+
     /**
      * Check if string contains emojis
      */
     function containsEmojis(str) {
         return PATTERNS.EMOJI.test(str);
     }
-    
+
     /**
      * Clear validation errors for a specific input
      */
@@ -557,7 +560,7 @@ window.UniversalValidator = (function() {
         $input.removeClass('is-invalid');
         $input.siblings('.invalid-feedback').remove();
     }
-    
+
     /**
      * Show validation error for a specific input
      */
@@ -565,7 +568,7 @@ window.UniversalValidator = (function() {
         $input.addClass('is-invalid');
         $input.after(`<div class="invalid-feedback">${message}</div>`);
     }
-    
+
     /**
      * Validate a text field for HTML and emoji content
      * @param {jQuery} $input - The input element to validate
@@ -580,25 +583,25 @@ window.UniversalValidator = (function() {
         const allowHtml = options.allowHtml || false;
         const allowEmojis = options.allowEmojis || false;
         let isValid = true;
-        
+
         // Clear any previous validation errors
         clearValidationErrors($input);
-        
+
         // Check for HTML tags (unless explicitly allowed)
         if (!allowHtml && containsHtml(value)) {
             showValidationError($input, `HTML tags are not allowed in ${fieldName}.`);
             isValid = false;
         }
-        
+
         // Check for emojis (unless explicitly allowed)
         if (!allowEmojis && containsEmojis(value)) {
             showValidationError($input, `Emojis are not allowed in ${fieldName}.`);
             isValid = false;
         }
-        
+
         return isValid;
     }
-    
+
     /**
      * Validate multiple text fields at once
      * @param {Array} fieldsConfig - Array of field configuration objects
@@ -606,12 +609,12 @@ window.UniversalValidator = (function() {
      */
     function validateMultipleFields(fieldsConfig) {
         let allValid = true;
-        
+
         fieldsConfig.forEach(config => {
             const $input = $(config.selector);
             const fieldName = config.fieldName;
             const options = config.options || {};
-            
+
             if ($input.length > 0) {
                 const isValid = validateTextField($input, fieldName, options);
                 if (!isValid) {
@@ -619,10 +622,10 @@ window.UniversalValidator = (function() {
                 }
             }
         });
-        
+
         return allValid;
     }
-    
+
     /**
      * Setup real-time validation for a form (prevents duplicate listeners)
      * @param {string} formSelector - CSS selector for the form container
@@ -630,26 +633,26 @@ window.UniversalValidator = (function() {
     function setupRealtimeValidation(formSelector) {
         // Remove any existing validation listeners for this form to prevent duplicates
         $(document).off('blur.universalValidation input.universalValidation', formSelector + ' input, ' + formSelector + ' textarea');
-        
+
         // Set up validation for text inputs and textareas within the specified form
-        $(document).on('blur.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function() {
+        $(document).on('blur.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function () {
             const $input = $(this);
             const fieldName = $input.attr('name') || $input.attr('id') || 'field';
             validateTextField($input, fieldName);
         });
-        
+
         // Also validate on input to clear errors as user types valid content
-        $(document).on('input.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function() {
+        $(document).on('input.universalValidation', formSelector + ' input[type="text"], ' + formSelector + ' input[name="name"], ' + formSelector + ' input[name="college"], ' + formSelector + ' input[name="department"], ' + formSelector + ' input[name="specialization"], ' + formSelector + ' textarea', function () {
             const $input = $(this);
             const value = $input.val();
-            
+
             // Only clear errors if the content is now valid
             if (!containsHtml(value) && !containsEmojis(value)) {
                 clearValidationErrors($input);
             }
         });
     }
-    
+
     // Public API
     return {
         containsHtml: containsHtml,
@@ -666,19 +669,19 @@ window.UniversalValidator = (function() {
 function validateResearchTitleForm() {
     let isValid = true;
     const fields = ['researchTitle', 'researchField', 'problem'];
-    
+
     fields.forEach(fieldId => {
         const input = document.getElementById(fieldId);
         if (input && !ValidationUtils.validateField(input)) {
             isValid = false;
         }
     });
-    
+
     return isValid;
 }
 
 // Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     console.log("DOM loaded - initializing research title validation");
     // ValidationUtils handles real-time validation setup
     ValidationUtils.setupRealTimeValidation();
