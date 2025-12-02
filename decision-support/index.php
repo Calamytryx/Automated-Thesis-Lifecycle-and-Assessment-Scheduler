@@ -607,7 +607,11 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
                                     data-rubric-id="' . $rubric_id . '"
                                     data-criterion-id="' . $criterion_id . '"
                                     data-student-id="' . $student_id . '"
+                                    title="Score range: ' . $criterion_min . ' - ' . $criterion_max . ' points"
+                                    data-bs-toggle="tooltip"
+                                    data-bs-placement="top"
                                 >'; // Close input tag
+                $html .= '<small class="text-muted d-block mt-1">(' . $criterion_min . '-' . $criterion_max . ')</small>';
                 $html .= '</td>'; // Close td tag
             } // Close foreach ($students as $student)
         } else {
@@ -648,6 +652,9 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
             $html .= '<input type="number" class="entered-score form-control form-control-sm"
                              name="' . $input_name . '"
                              id="r'.$rubric_id.'c'.$criterion_id.'g_score"
+                             title="Score range: ' . $group_min_score . ' - ' . $group_max_score . ' points"
+                             data-bs-toggle="tooltip"
+                             data-bs-placement="top"
                              value="' . htmlspecialchars($existing_score ?? '', ENT_QUOTES) . '"
                              min="' . $group_min_score . '"
                              max="' . $group_max_score . '"
@@ -796,80 +803,61 @@ function render_yes_no_rubric($rubric, $students, $existing_details) {
     return $html;
 }
 
-// --- NEW Helper Function to Render Pass/Fail Rubric ---
+// --- NEW Helper Function to Render Pass/Fail Rubric (Automated based on score) ---
 function render_passfail_rubric($rubric, $existing_details) {
     $rubric_id = $rubric['id'];
     $levels = $rubric['levels'] ?? []; // These are the pass options
-    // Get recommendation texts and fail option text from the main rubric data
+    
+    // Get recommendation texts and thresholds from the main rubric data
     $pass_recommendation_text = $rubric['pass_recommendation_text'] ?? 'Pass Recommendation';
     $fail_recommendation_text = $rubric['fail_recommendation_text'] ?? 'Fail Recommendation';
-    $fail_option_text = $rubric['fail_option_text'] ?? 'Fail'; // Description for the fail radio button
+    $fail_option_text = $rubric['fail_option_text'] ?? 'Fail';
+    
+    // Get thresholds for different pass levels
+    $threshold_1 = $rubric['pass_threshold_1'] ?? 100; // Total Pass
+    $threshold_2 = $rubric['pass_threshold_2'] ?? 75;  // Minor Revision Pass
+    $threshold_3 = $rubric['pass_threshold_3'] ?? 65;  // Major Revision Pass
 
     // Basic validation
     if (empty($levels)) {
         return "<p class='text-danger'>Cannot render Pass/Fail rubric '{$rubric['name']}': Missing pass option definitions (levels).</p>";
     }
 
-    // Find the existing selected option for this rubric (stored under 'overall' key)
-    $existing_option = $existing_details['overall'] ?? null;
-
-    $html = '<div class="table-responsive"><table class="table table-bordered table-hover rubric-table passfail-rubric">';
-    $html .= '<thead><tr>';
-    $html .= '<th style="width: 30%;">Recommendation</th>';
-    $html .= '<th style="width: 70%;">Select Option</th>';
-    $html .= '</tr></thead>';
-    $html .= '<tbody>';
-
-    $radio_group_name = "selected_option[{$rubric_id}]"; // One selection per rubric
-
-    // --- Row 1: Pass Recommendation and Options ---
-    $html .= '<tr>';
-    $html .= '<td>' . htmlspecialchars($pass_recommendation_text) . '</td>';
-    $html .= '<td class="passfail-options-cell">';
-    $html .= '<div class="d-flex flex-column gap-2">'; // Changed to flex-column for better vertical stacking
-
-    // Sort levels (pass options) by level_index
+    // Sort levels (pass options) by level_index in descending order (highest threshold first)
     usort($levels, function($a, $b) {
-        return ($a['level_index'] ?? 0) <=> ($b['level_index'] ?? 0);
+        return ($b['level_index'] ?? 0) <=> ($a['level_index'] ?? 0);
     });
 
-    foreach ($levels as $level) {
-        $level_index = $level['level_index']; // Use level_index as the value
-        // --- MODIFIED: Use description as the primary label text ---
-        $level_description = htmlspecialchars($level['description'] ?? "Pass Option {$level_index}"); // Use description, fallback to generic
-        // --- END MODIFIED ---
-        $checked = ($existing_option !== null && $existing_option == $level_index) ? ' checked' : '';
-
-        $html .= '<div class="form-check">';
-        $html .= '<input class="form-check-input passfail-option" type="radio" name="' . $radio_group_name . '" id="r' . $rubric_id . '_l' . $level_index . '" value="' . $level_index . '"' . $checked . ' required>'; // Added required class
-        $html .= '<label class="form-check-label" for="r' . $rubric_id . '_l' . $level_index . '">';
-        // --- MODIFIED: Display description directly ---
-        $html .= $level_description;
-        // --- END MODIFIED ---
-        $html .= '</label>';
-        $html .= '</div>';
+    $html = '<div class="alert alert-info">';
+    $html .= '<h6 class="alert-heading"><i class="bi bi-info-circle"></i> Automated Pass/Fail Determination</h6>';
+    $html .= '<p class="mb-2">This rubric automatically determines pass/fail status based on your total numerical score:</p>';
+    $html .= '<ul class="mb-0">';
+    
+    // Display threshold information
+    foreach ($levels as $index => $level) {
+        $level_index = $level['level_index'];
+        $level_description = htmlspecialchars($level['description'] ?? "Pass Option {$level_index}");
+        
+        // Map level_index to threshold
+        $threshold = 0;
+        if ($level_index == 1) $threshold = $threshold_1;
+        elseif ($level_index == 2) $threshold = $threshold_2;
+        elseif ($level_index == 3) $threshold = $threshold_3;
+        
+        $html .= '<li><strong>' . $level_description . ':</strong> ' . $threshold . '% or higher</li>';
     }
-    $html .= '</div>'; // End flexbox container
-    $html .= '</td>';
-    $html .= '</tr>';
-
-    // --- Row 2: Fail Recommendation and Option ---
-    // Define a conventional value for the fail option, e.g., 0.
-    $fail_option_value = 0;
-    $fail_checked = ($existing_option !== null && $existing_option == $fail_option_value) ? ' checked' : '';
-
-    $html .= '<tr>';
-    $html .= '<td>' . htmlspecialchars($fail_recommendation_text) . '</td>';
-    $html .= '<td class="passfail-options-cell">';
-    $html .= '<div class="form-check">';
-    $html .= '<input class="form-check-input passfail-option" type="radio" name="' . $radio_group_name . '" id="r' . $rubric_id . '_fail" value="' . $fail_option_value . '"' . $fail_checked . ' required>'; // Added required class
-    $html .= '<label class="form-check-label" for="r' . $rubric_id . '_fail">' . htmlspecialchars($fail_option_text) . '</label>';
+    
+    $html .= '<li><strong>' . htmlspecialchars($fail_option_text) . ':</strong> Below ' . min($threshold_3, $threshold_2, $threshold_1) . '%</li>';
+    $html .= '</ul>';
     $html .= '</div>';
-    $html .= '</td>';
-    $html .= '</tr>';
-
-    $html .= '</tbody>';
-    $html .= '</table></div>';
+    
+    // Hidden input that will be auto-populated by JavaScript based on calculated score
+    $html .= '<input type="hidden" class="auto-passfail-result" name="selected_option[' . $rubric_id . ']" id="passfail_result_' . $rubric_id . '" value="0" data-threshold-1="' . $threshold_1 . '" data-threshold-2="' . $threshold_2 . '" data-threshold-3="' . $threshold_3 . '" data-level-count="' . count($levels) . '">';
+    
+    // Display current status (will be updated by JavaScript)
+    $html .= '<div class="alert alert-secondary" id="passfail_status_' . $rubric_id . '">';
+    $html .= '<strong>Current Status:</strong> <span class="passfail-status-text">Calculating...</span>';
+    $html .= '</div>';
 
     return $html;
 }
@@ -1213,7 +1201,7 @@ include '../assets/layouts/header.php';
                 <?php else: ?>
                     <?php foreach ($rubrics_in_group as $rubric_id => $rubric): // This loop now iterates in the correct order ?>
                         <!-- Rubric Card -->
-                        <div class="card mb-4 rubric-card" data-rubric-id="<?php echo $rubric_id; ?>" data-rubric-type="<?php echo $rubric['rubric_type']; ?>">
+                        <div class="card mb-4 rubric-card" data-rubric-id="<?php echo $rubric_id; ?>" data-rubric-type="<?php echo $rubric['rubric_type']; ?>" data-weight="<?php echo isset($rubric['weight']) && $rubric['weight'] !== null ? $rubric['weight'] : 0; ?>">
                             <div class="card-header d-flex justify-content-between align-items-center">
                                 <div>
                                     <h5><?php echo htmlspecialchars($rubric['name']); ?></h5>
@@ -1267,7 +1255,7 @@ include '../assets/layouts/header.php';
 
                 <!-- Overall Comments Section -->
                 <div class="mb-3">
-                    <label for="comments" class="form-label">Overall Comments for <?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Group'); ?></label>
+                    <label for="comments" class="form-label">Overall Comments</label>
                     <textarea class="form-control" id="comments" name="comments" rows="4"><?php echo htmlspecialchars($existing_evaluation['comments'] ?? ''); ?></textarea>
                     <small class="form-text text-muted">Provide overall feedback, strengths, weaknesses, and recommendations based on the rubrics above.</small>
                 </div>
@@ -1516,10 +1504,102 @@ document.addEventListener('DOMContentLoaded', function() {
         };
 
         // Validate on input event
-        input.addEventListener('input', () => validateValue('Input'));
+        input.addEventListener('input', () => {
+            validateValue('Input');
+            updateTotalScore(); // Update total score on input change
+        });
 
         // Validate and potentially clear invalid input on blur event
-        input.addEventListener('blur', () => validateValue('Blur'));
+        input.addEventListener('blur', () => {
+            validateValue('Blur');
+            updateTotalScore(); // Update total score on blur
+        });
+    });
+
+    // -------------------------------------------------------------------
+    // CALCULATE SCORE AND AUTO-DETERMINE PASS/FAIL STATUS
+    // -------------------------------------------------------------------
+    function updateTotalScore() {
+        let totalScore = 0;
+        let maxPossibleScore = 0;
+        
+        // Sum all numerical scores from entered-score inputs
+        evaluationForm.querySelectorAll('.entered-score').forEach(input => {
+            const value = parseFloat(input.value) || 0;
+            const max = parseFloat(input.max) || 0;
+            totalScore += value;
+            maxPossibleScore += max;
+        });
+        
+        // Calculate percentage from numerical rubrics only
+        const percentage = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
+        
+        // Auto-determine pass/fail status for all pass/fail rubrics based on percentage
+        evaluationForm.querySelectorAll('.auto-passfail-result').forEach(input => {
+            const threshold1 = parseFloat(input.dataset.threshold1) || 100;
+            const threshold2 = parseFloat(input.dataset.threshold2) || 75;
+            const threshold3 = parseFloat(input.dataset.threshold3) || 65;
+            const levelCount = parseInt(input.dataset.levelCount) || 3;
+            const rubricId = input.id.replace('passfail_result_', '');
+            
+            let selectedValue = 0; // Default to fail (0)
+            let statusText = '';
+            let statusClass = 'alert-danger';
+            
+            // Determine which pass level applies (check highest threshold first)
+            if (percentage >= threshold1) {
+                selectedValue = 1; // Highest pass level
+                statusText = `<i class="bi bi-check-circle-fill text-success"></i> <strong>PASSED</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold1}%)`;
+                statusClass = 'alert-success';
+            } else if (levelCount >= 2 && percentage >= threshold2) {
+                selectedValue = 2; // Medium pass level
+                statusText = `<i class="bi bi-check-circle text-warning"></i> <strong>PASSED with Minor Revisions</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold2}%)`;
+                statusClass = 'alert-warning';
+            } else if (levelCount >= 3 && percentage >= threshold3) {
+                selectedValue = 3; // Lower pass level
+                statusText = `<i class="bi bi-check-circle text-info"></i> <strong>PASSED with Major Revisions</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold3}%)`;
+                statusClass = 'alert-info';
+            } else {
+                selectedValue = 0; // Fail
+                const lowestThreshold = Math.min(threshold1, threshold2, threshold3);
+                statusText = `<i class="bi bi-x-circle-fill text-danger"></i> <strong>FAILED</strong> (Score: ${percentage.toFixed(1)}% < ${lowestThreshold}%)`;
+                statusClass = 'alert-danger';
+            }
+            
+            // Update hidden input value
+            input.value = selectedValue;
+            
+            // Update status display
+            const statusDiv = document.getElementById('passfail_status_' + rubricId);
+            if (statusDiv) {
+                statusDiv.className = 'alert ' + statusClass;
+                const statusSpan = statusDiv.querySelector('.passfail-status-text');
+                if (statusSpan) {
+                    statusSpan.innerHTML = statusText;
+                }
+            }
+            
+            // Also update the weight contribution to total if needed
+            const card = evaluationForm.querySelector(`.rubric-card[data-rubric-id="${rubricId}"]`);
+            if (card) {
+                const weight = parseFloat(card.dataset.weight) || 0;
+                if (selectedValue > 0) {
+                    totalScore += weight;
+                }
+                maxPossibleScore += weight;
+            }
+        });
+    }
+    
+    // Initialize on page load
+    updateTotalScore();
+
+    // -------------------------------------------------------------------
+    // Initialize Bootstrap Tooltips for score range indicators
+    // -------------------------------------------------------------------
+    const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+    tooltipTriggerList.map(function (tooltipTriggerEl) {
+        return new bootstrap.Tooltip(tooltipTriggerEl);
     });
 
     // -------------------------------------------------------------------
@@ -1540,8 +1620,14 @@ document.addEventListener('DOMContentLoaded', function() {
             evaluationForm.querySelectorAll('input[required], select[required], textarea[required]').forEach(input => {
                 var isRadio = input.type === 'radio';
                 var isNumber = input.type === 'number';
+                var isHidden = input.type === 'hidden';
                 var groupName = input.name;
                 var needsValidation = true;
+
+                // Skip validation for auto-passfail hidden inputs (they're auto-populated)
+                if (isHidden && input.classList.contains('auto-passfail-result')) {
+                    return;
+                }
 
                 if (isRadio) {
                     // Check radio groups only once per group
@@ -1600,6 +1686,27 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
                 return; // Stop submission
             }
+
+            // Show confirmation dialog before submitting
+            Swal.fire({
+                title: 'Confirm Evaluation Submission',
+                html: '<p>Are you sure you want to submit this evaluation?</p><p class="text-muted small">Once submitted, you can still update it later if needed.</p>',
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#198754',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, Submit',
+                cancelButtonText: 'Cancel'
+            }).then((result) => {
+                if (!result.isConfirmed) {
+                    return; // User cancelled
+                }
+                // Proceed with submission
+                submitEvaluationForm();
+            });
+        });
+
+        function submitEvaluationForm() {
             // --- End Form Validation ---
 
 
@@ -1739,7 +1846,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     icon: 'error' // Use error icon
                 });
             });
-        });
+        } // end submitEvaluationForm function
     } // end if(evaluationForm)
 
 }); // end DOMContentLoaded

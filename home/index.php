@@ -47,6 +47,11 @@ error_reporting(E_ALL);
 <script>
 // Move fetchTeamOverview to global scope
 function fetchTeamOverview(teamId = null) {
+    <?php if ($_SESSION['usertype'] == 2): ?>
+    // Faculty: Show advisee teams and paneling defenses
+    fetchFacultyDashboard();
+    <?php else: ?>
+    // Students: Show team overview
     const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
 
     fetch(url)
@@ -272,7 +277,319 @@ function fetchTeamOverview(teamId = null) {
                     </div>
                 `;
         });
+    <?php endif; ?>
 }
+
+<?php if ($_SESSION['usertype'] == 2): ?>
+// Faculty Dashboard: Show advisee teams and paneling defenses
+function fetchFacultyDashboard() {
+    const dashboardContent = document.getElementById('teamOverviewContent');
+    
+    dashboardContent.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading dashboard...</p>
+        </div>
+    `;
+    
+    fetch('includes/get_faculty_dashboard.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let content = '';
+                
+                // Advisee Teams Section
+                content += `
+                    <div class="row mb-4">
+                        <div class="col-12">
+                            <h4 class="mb-3">
+                                <i class="bi bi-people-fill me-2"></i>
+                                Advisee Teams
+                                <span class="badge bg-primary ms-2">${data.advisee_teams.length}</span>
+                            </h4>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.advisee_teams.length === 0) {
+                    content += `
+                        <div class="alert alert-info mb-4">
+                            <i class="bi bi-info-circle me-2"></i>
+                            You are not currently advising any teams.
+                        </div>
+                    `;
+                } else {
+                    content += `<div class="row mb-4">`;
+                    data.advisee_teams.forEach(team => {
+                        const progress = team.total_requirements > 0 ? 
+                            Math.round((team.completed_count / team.total_requirements) * 100) : 0;
+                        const progressClass = progress >= 75 ? 'bg-success' : 
+                                            progress >= 50 ? 'bg-warning' : 'bg-danger';
+                        
+                        content += `
+                            <div class="col-md-6 col-lg-4 mb-3">
+                                <div class="card h-100 shadow-sm">
+                                    <div class="card-body">
+                                        <h5 class="card-title">${team.name}</h5>
+                                        <p class="text-muted small mb-2">${team.program}</p>
+                                        <p class="card-text small text-truncate" title="${team.research_title || 'No research title yet'}">
+                                            <i class="bi bi-file-text me-1"></i>
+                                            ${team.research_title || '<em>No research title yet</em>'}
+                                        </p>
+                                        <div class="mb-3">
+                                            <div class="d-flex justify-content-between mb-1">
+                                                <small class="text-muted">Progress</small>
+                                                <small class="text-muted">${progress}%</small>
+                                            </div>
+                                            <div class="progress" style="height: 6px;">
+                                                <div class="progress-bar ${progressClass}" style="width: ${progress}%"></div>
+                                            </div>
+                                        </div>
+                                        <div class="d-flex justify-content-between align-items-center">
+                                            <span class="badge bg-secondary">${team.member_count} members</span>
+                                            ${team.next_defense_id ? 
+                                                `<button class="btn btn-sm btn-primary" onclick="redirectToDecisionSupport(${team.next_defense_id})">
+                                                    <i class="bi bi-clipboard-check me-1"></i>Evaluate
+                                                </button>` :
+                                                `<span class="text-muted small">No upcoming defense</span>`
+                                            }
+                                        </div>
+                                        ${team.next_defense_date ? 
+                                            `<div class="mt-2 text-center">
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar-event me-1"></i>
+                                                    Next: ${new Date(team.next_defense_date).toLocaleDateString()}
+                                                </small>
+                                            </div>` : ''
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                    content += `</div>`;
+                }
+                
+                // Paneling Defenses Section
+                content += `
+                    <div class="row mb-4 mt-5">
+                        <div class="col-12">
+                            <h4 class="mb-3">
+                                <i class="bi bi-calendar-check me-2"></i>
+                                Defense Schedules (Panelist)
+                                <span class="badge bg-success ms-2">${data.paneling_defenses.length}</span>
+                            </h4>
+                        </div>
+                    </div>
+                `;
+                
+                if (data.paneling_defenses.length === 0) {
+                    content += `
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No defense schedules assigned to you as panelist.
+                        </div>
+                    `;
+                } else {
+                    content += `
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Team</th>
+                                        <th>Research Title</th>
+                                        <th>Defense Type</th>
+                                        <th>Room</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-center">Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.paneling_defenses.forEach(defense => {
+                        const defenseDate = new Date(defense.schedule_date);
+                        const isUpcoming = defenseDate >= new Date();
+                        const hasEvaluated = parseInt(defense.has_evaluated) > 0;
+                        
+                        let actionButton = '';
+                        if (hasEvaluated) {
+                            actionButton = `
+                                <button class="btn btn-sm btn-outline-primary" onclick="redirectToDecisionSupport(${defense.schedule_id}, true)">
+                                    <i class="bi bi-eye me-1"></i>View
+                                </button>
+                            `;
+                        } else if (!isUpcoming) {
+                            actionButton = `
+                                <button class="btn btn-sm btn-primary" onclick="redirectToDecisionSupport(${defense.schedule_id})">
+                                    <i class="bi bi-clipboard-check me-1"></i>Evaluate
+                                </button>
+                            `;
+                        } else {
+                            actionButton = `<span class="text-muted small">Upcoming</span>`;
+                        }
+                        
+                        const statusBadge = hasEvaluated ? 
+                            '<span class="badge bg-success">Evaluated</span>' :
+                            isUpcoming ? '<span class="badge bg-info">Scheduled</span>' :
+                            '<span class="badge bg-warning">Pending</span>';
+                        
+                        content += `
+                            <tr class="${!isUpcoming ? 'table-active' : ''}">
+                                <td>
+                                    <strong>${defenseDate.toLocaleDateString()}</strong><br>
+                                    <small class="text-muted">${defense.start_time} - ${defense.end_time}</small>
+                                </td>
+                                <td>
+                                    <strong>${defense.team_name}</strong><br>
+                                    <small class="text-muted">${defense.team_members}</small>
+                                </td>
+                                <td><small>${defense.research_title || 'No title'}</small></td>
+                                <td><span class="badge bg-secondary">${defense.defense_type || 'N/A'}</span></td>
+                                <td>${defense.room}</td>
+                                <td class="text-center">${statusBadge}</td>
+                                <td class="text-center">${actionButton}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    content += `
+                                </tbody>
+                            </table>
+                        </div>
+                    `;
+                }
+                
+                dashboardContent.innerHTML = content;
+            } else {
+                dashboardContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${data.message}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading faculty dashboard:', error);
+            dashboardContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    Failed to load dashboard. Please try again.
+                </div>
+            `;
+        });
+}
+
+// Load class record for faculty
+function loadClassRecord() {
+    const classRecordContent = document.getElementById('classRecordContent');
+    
+    // Show loading state
+    classRecordContent.innerHTML = `
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status">
+                <span class="visually-hidden">Loading...</span>
+            </div>
+            <p class="mt-3 text-muted">Loading class records...</p>
+        </div>
+    `;
+    
+    fetch('includes/get_class_record.php')
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                let content = '';
+                
+                if (Object.keys(data.sections).length === 0) {
+                    content = `
+                        <div class="alert alert-info">
+                            <i class="bi bi-info-circle me-2"></i>
+                            No students found in your assigned sections.
+                        </div>
+                    `;
+                } else {
+                    // Loop through each section
+                    for (const [section, students] of Object.entries(data.sections)) {
+                        content += `
+                            <div class="card mb-4">
+                                <div class="card-header bg-primary text-white">
+                                    <h5 class="mb-0">
+                                        <i class="bi bi-people-fill me-2"></i>
+                                        Section: ${section}
+                                        <span class="badge bg-light text-primary ms-2">${students.length} students</span>
+                                    </h5>
+                                </div>
+                                <div class="card-body p-0">
+                                    <div class="table-responsive">
+                                        <table class="table table-hover table-striped mb-0">
+                                            <thead class="table-light">
+                                                <tr>
+                                                    <th>Last Name</th>
+                                                    <th>First Name</th>
+                                                    <th>Team</th>
+                                                    <th>Research Title</th>
+                                                    <th>Latest Defense</th>
+                                                    <th class="text-center">Evaluations</th>
+                                                    <th class="text-center">Avg Score</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                        `;
+                        
+                        students.forEach(student => {
+                            const avgScore = student.avg_score ? parseFloat(student.avg_score).toFixed(2) : 'N/A';
+                            const scoreClass = student.avg_score >= 75 ? 'text-success' : 
+                                             student.avg_score >= 60 ? 'text-warning' : 
+                                             student.avg_score ? 'text-danger' : 'text-muted';
+                            
+                            content += `
+                                <tr>
+                                    <td><strong>${student.last_name}</strong></td>
+                                    <td>${student.first_name}</td>
+                                    <td><small class="text-muted">${student.team_name || 'No team'}</small></td>
+                                    <td><small>${student.research_title || 'No title'}</small></td>
+                                    <td><span class="badge bg-secondary">${student.latest_defense_type || 'None'}</span></td>
+                                    <td class="text-center">${student.evaluation_count || 0}</td>
+                                    <td class="text-center ${scoreClass}"><strong>${avgScore}</strong></td>
+                                </tr>
+                            `;
+                        });
+                        
+                        content += `
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                        `;
+                    }
+                }
+                
+                classRecordContent.innerHTML = content;
+            } else {
+                classRecordContent.innerHTML = `
+                    <div class="alert alert-warning">
+                        <i class="bi bi-exclamation-triangle me-2"></i>
+                        ${data.message}
+                    </div>
+                `;
+            }
+        })
+        .catch(error => {
+            console.error('Error loading class record:', error);
+            classRecordContent.innerHTML = `
+                <div class="alert alert-danger">
+                    <i class="bi bi-exclamation-circle me-2"></i>
+                    Failed to load class records. Please try again.
+                </div>
+            `;
+        });
+}
+<?php endif; ?>
 
 document.addEventListener("DOMContentLoaded", function() {
     // Check if there's a previously selected tab stored in localStorage
@@ -320,10 +637,27 @@ document.addEventListener("DOMContentLoaded", function() {
         fetchTeamOverview();
     });
 
+    // Load class record when the class record tab is clicked (faculty only)
+    <?php if ($_SESSION['usertype'] == 2): ?>
+    const classRecordLink = document.getElementById('class-record-link');
+    if (classRecordLink) {
+        classRecordLink.addEventListener('click', function() {
+            loadClassRecord();
+        });
+    }
+    <?php endif; ?>
+
     // Fetch team overview content on page load if the overview tab is active
     if (activeTab === "overview") {
         fetchTeamOverview();
     }
+
+    // Load class record on page load if that tab is active
+    <?php if ($_SESSION['usertype'] == 2): ?>
+    if (activeTab === "class-record") {
+        loadClassRecord();
+    }
+    <?php endif; ?>
 
     // Handle view mode switching between Dashboard and Calendar
     document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
@@ -596,6 +930,15 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <i class="bi bi-chat-dots-fill me-2 filled"></i>
                                         <span class="nav-text">Research Evaluation</span>
                                     </a>
+                                    <?php if ($_SESSION['usertype'] == 2): ?>
+                                    <a class="nav-link" id="class-record-link" data-bs-toggle="pill"
+                                        href="#class-record" role="tab" aria-controls="class-record"
+                                        aria-selected="false">
+                                        <i class="bi bi-table me-2 hollow"></i>
+                                        <i class="bi bi-table me-2 filled"></i>
+                                        <span class="nav-text">Class Record</span>
+                                    </a>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                         </div>
@@ -1268,6 +1611,29 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
 
+                        <?php if ($_SESSION['usertype'] == 2): ?>
+                        <div class="tab-pane fade" id="class-record" role="tabpanel"
+                            aria-labelledby="class-record-link">
+                            <div class="container-fluid py-4 content-container">
+                                <div class="row mb-4">
+                                    <div class="col-12">
+                                        <h3 class="mb-2">Class Record</h3>
+                                        <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                    </div>
+                                </div>
+                                
+                                <div id="classRecordContent">
+                                    <div class="text-center py-5">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                        <p class="mt-3 text-muted">Loading class records...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <?php endif; ?>
+
                         <div class="tab-pane fade show active" id="overview" role="tabpanel"
                             aria-labelledby="overview-link">
                             <div class="container-fluid py-4 content-container team-overview">
@@ -1460,8 +1826,15 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             ds.start_time,
                                                             ds.end_time,
                                                             ds.room,
+                                                            ds.defense_type,
                                                             t.name AS team_name,
-                                                            t.program AS team_program
+                                                            t.program AS team_program,
+                                                            (SELECT COUNT(*) FROM evaluation_per_panel epp WHERE epp.defense_schedule_id = ds.id AND epp.evaluator_id = :eval_check_id) as has_evaluated,
+                                                            CASE 
+                                                                WHEN CONCAT(ds.schedule_date, ' ', ds.end_time) < NOW() THEN 'past'
+                                                                WHEN CONCAT(ds.schedule_date, ' ', ds.start_time) <= NOW() AND CONCAT(ds.schedule_date, ' ', ds.end_time) >= NOW() THEN 'ongoing'
+                                                                ELSE 'upcoming'
+                                                            END as defense_status
                                                         FROM defense_schedules ds
                                                         JOIN teams t ON ds.team_id = t.id
                                                         WHERE
@@ -1469,12 +1842,18 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             OR ds.panelist_id2 = :user_id2
                                                             OR ds.panelist_id3 = :user_id3
                                                         ORDER BY
+                                                            CASE 
+                                                                WHEN CONCAT(ds.schedule_date, ' ', ds.end_time) < NOW() THEN 3
+                                                                WHEN CONCAT(ds.schedule_date, ' ', ds.start_time) <= NOW() AND CONCAT(ds.schedule_date, ' ', ds.end_time) >= NOW() THEN 1
+                                                                ELSE 2
+                                                            END,
                                                             ds.schedule_date, ds.start_time";
                                                 $stmt = $pdo->prepare($query);
                                                 $stmt->execute([
                                                     'user_id1' => $userId,
                                                     'user_id2' => $userId,
-                                                    'user_id3' => $userId
+                                                    'user_id3' => $userId,
+                                                    'eval_check_id' => $userId
                                                 ]);
                                             }
                                             $schedules = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -1493,20 +1872,65 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
                                                             <ul class="list-group">
-                                                                <?php foreach ($schedules as $schedule):
+                                                                <?php 
+                                                                $current_status = null;
+                                                                foreach ($schedules as $schedule):
                                                                 $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                                 $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
                                                                 $formatted_end_time = date('g:i a', strtotime($schedule['end_time']));
                                                                 $schedule_id = $schedule['schedule_id'];
+                                                                
+                                                                $defense_status = $schedule['defense_status'] ?? 'upcoming';
+                                                                $has_evaluated = isset($schedule['has_evaluated']) ? $schedule['has_evaluated'] > 0 : false;
+                                                                $defense_type = $schedule['defense_type'] ?? 'general';
+                                                                
+                                                                // Add section headers for different statuses
+                                                                if ($_SESSION['usertype'] == 2 && $current_status !== $defense_status) {
+                                                                    $current_status = $defense_status;
+                                                                    $status_icon = $defense_status === 'ongoing' ? 'bi-clock-history text-warning' : 
+                                                                                 ($defense_status === 'upcoming' ? 'bi-calendar-event text-primary' : 'bi-calendar-check text-muted');
+                                                                    $status_label = $defense_status === 'ongoing' ? 'Ongoing' : 
+                                                                                  ($defense_status === 'upcoming' ? 'Upcoming' : 'Past');
+                                                                    echo '<li class="list-group-item bg-light"><strong><i class="bi ' . $status_icon . ' me-2"></i>' . $status_label . ' Defenses</strong></li>';
+                                                                }
 
                                                                 $onclick_attr = '';
                                                                 $item_class = 'list-group-item defense-item';
                                                                 $disabled_message = '';
                                                                 
+                                                                // Badge for defense type
+                                                                $type_badge = '';
+                                                                $type_color = 'secondary';
+                                                                switch ($defense_type) {
+                                                                    case 'title_proposal':
+                                                                        $type_color = 'info';
+                                                                        $type_badge = 'Title Proposal';
+                                                                        break;
+                                                                    case 'title_defense':
+                                                                        $type_color = 'primary';
+                                                                        $type_badge = 'Title Defense';
+                                                                        break;
+                                                                    case 'final_defense':
+                                                                        $type_color = 'success';
+                                                                        $type_badge = 'Final Defense';
+                                                                        break;
+                                                                    case 're-defense':
+                                                                        $type_color = 'warning';
+                                                                        $type_badge = 'Re-Defense';
+                                                                        break;
+                                                                    default:
+                                                                        $type_badge = ucfirst($defense_type);
+                                                                }
+                                                                
                                                                 // Only allow faculty to access evaluation system
                                                                 if ($_SESSION['usertype'] == 2) { // Faculty
-                                                                    // Let decision-support auto-determine group_id based on defense_type and program
-                                                                    $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ')"';
+                                                                    // For past defenses, make read-only if already evaluated
+                                                                    if ($defense_status === 'past' && $has_evaluated) {
+                                                                        $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', true)"';
+                                                                        $item_class .= ' defense-item-completed';
+                                                                    } else {
+                                                                        $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ')"';
+                                                                    }
                                                                 } else { // Student
                                                                     // Students can view but not evaluate
                                                                     $item_class .= ' defense-item-student';
@@ -1515,9 +1939,19 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 <li class="<?php echo $item_class; ?>"
                                                                     <?php echo $onclick_attr; ?>>
                                                                     <div class="defense-content">
-                                                                        <h6 class="team-name mb-2">
-                                                                            <?php echo htmlspecialchars($schedule['team_name']); ?>
-                                                                        </h6>
+                                                                        <div class="d-flex justify-content-between align-items-start mb-2">
+                                                                            <h6 class="team-name mb-0">
+                                                                                <?php echo htmlspecialchars($schedule['team_name']); ?>
+                                                                            </h6>
+                                                                            <div>
+                                                                                <span class="badge bg-<?php echo $type_color; ?> me-1"><?php echo $type_badge; ?></span>
+                                                                                <?php if ($_SESSION['usertype'] == 2 && $has_evaluated): ?>
+                                                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Evaluated</span>
+                                                                                <?php elseif ($_SESSION['usertype'] == 2 && $defense_status !== 'upcoming'): ?>
+                                                                                    <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Pending</span>
+                                                                                <?php endif; ?>
+                                                                            </div>
+                                                                        </div>
                                                                         <div class="defense-details">
                                                                             <div class="detail-item">
                                                                                 <i class="far fa-calendar me-2"></i>
@@ -1532,6 +1966,9 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                                 <?php echo htmlspecialchars($schedule['room']); ?>
                                                                             </div>
                                                                         </div>
+                                                                        <?php if ($_SESSION['usertype'] == 2 && $defense_status === 'past' && $has_evaluated): ?>
+                                                                            <small class="text-muted"><i class="bi bi-info-circle"></i> Click to view your evaluation (read-only)</small>
+                                                                        <?php endif; ?>
                                                                         <?php echo $disabled_message; ?>
                                                                     </div>
                                                                 </li>
@@ -2442,19 +2879,21 @@ function getNextDateForDay(day) {
  * Function to redirect to decision-support with the schedule_id.
  * The decision-support page will auto-determine the correct rubric group based on defense_type and program.
  * @param {number} scheduleId - The ID of the defense schedule.
- * @param {number} groupId - (Optional) The rubric group ID. If not provided, will be auto-determined.
+ * @param {boolean} viewOnly - (Optional) If true, indicates the evaluation is completed and should be read-only.
  */
-function redirectToDecisionSupport(scheduleId, groupId = null) {
+function redirectToDecisionSupport(scheduleId, viewOnly = false) {
     if (!scheduleId) {
         console.error('Missing scheduleId for redirection.');
         alert('Error: Cannot navigate to evaluation page. Missing schedule information.');
         return;
     }
     
-    // Construct the URL - groupId is optional, decision-support will auto-determine if not provided
+    // Construct the URL
     let url = `../decision-support/index.php?schedule_id=${scheduleId}`;
-    if (groupId) {
-        url += `&group_id=${groupId}`;
+    
+    // Add view-only parameter if needed (future enhancement for read-only mode)
+    if (viewOnly) {
+        url += `&view_only=1`;
     }
     
     console.log(`Redirecting to: ${url}`);

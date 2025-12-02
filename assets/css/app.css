@@ -1182,6 +1182,15 @@ border-top: solid 1px var(--main-bg-dark);
     margin-bottom: 0;
 }
 
+.defense-item-completed {
+    background-color: #f8f9fa;
+    border-left: 4px solid #198754;
+}
+
+.defense-item-completed:hover {
+    background-color: #e9ecef;
+}
+
 .defense-content {
     display: flex;
     flex-direction: column;
