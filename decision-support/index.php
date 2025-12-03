@@ -592,7 +592,7 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
 
                 $student_id     = $student['id'];
                 $input_name     = "score[{$rubric_id}][{$criterion_id}][{$student_id}]";
-                $existing_score = $existing_details[$criterion_id][$student_id] ?? 0;
+                $existing_score = $existing_details[$criterion_id][$student_id] ?? '';
 
                 $html .= '<td class="text-center student-score-cell">';
                 $html .=    '<input
@@ -618,20 +618,30 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
             $input_name = "score[{$rubric_id}][{$criterion_id}][group]";
             $existing_score = $existing_details[$criterion_id]['group'] ?? null;
 
-            // Determine overall min/max for the group input
-            $group_min_score = PHP_INT_MAX;
-            $group_max_score = PHP_INT_MIN;
-            // --- MODIFICATION: Use sorted levels array for min/max calculation ---
-            foreach ($levels_with_original_index as $level) {
-            // --- END MODIFICATION ---
-                $min = $level['points_min'] ?? 0;
-                $max = $level['points_max'] ?? $min;
-                $group_min_score = min($group_min_score, $min);
-                $group_max_score = max($group_max_score, $max);
+            // Check if criterion has its own min/max limits
+            $criterion_min = $criterion['min_score'] ?? null;
+            $criterion_max = $criterion['max_score'] ?? null;
+            
+            // If criterion has custom limits, use them; otherwise calculate from quality levels
+            if ($criterion_min !== null && $criterion_max !== null) {
+                $group_min_score = $criterion_min;
+                $group_max_score = $criterion_max;
+            } else {
+                // Determine overall min/max from quality levels
+                $group_min_score = PHP_INT_MAX;
+                $group_max_score = PHP_INT_MIN;
+                // --- MODIFICATION: Use sorted levels array for min/max calculation ---
+                foreach ($levels_with_original_index as $level) {
+                // --- END MODIFICATION ---
+                    $min = $level['points_min'] ?? 0;
+                    $max = $level['points_max'] ?? $min;
+                    $group_min_score = min($group_min_score, $min);
+                    $group_max_score = max($group_max_score, $max);
+                }
+                // Handle case where no levels defined min/max properly
+                if ($group_min_score === PHP_INT_MAX) $group_min_score = 0;
+                if ($group_max_score === PHP_INT_MIN) $group_max_score = 0;
             }
-            // Handle case where no levels defined min/max properly
-            if ($group_min_score === PHP_INT_MAX) $group_min_score = 0;
-            if ($group_max_score === PHP_INT_MIN) $group_max_score = 0;
 
             // --- MODIFICATION: Use sorted levels array and display specific detail ---
             foreach ($levels_with_original_index as $level) { // Use the sorted array with original index

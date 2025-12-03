@@ -331,6 +331,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                         $maxScore = null;
                         $minScore = null;
                         if ($criterion_is_individual) {
+                            // For individual criteria, use criterion_score as max_score
                             if (isset($criterion['criterion_score'])) {
                                 $maxScore = filter_var($criterion['criterion_score'], FILTER_VALIDATE_INT);
                                 if ($maxScore === false || $maxScore < 0) {
@@ -344,6 +345,31 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 }
                             } else {
                                 $minScore = 0; // Default min score
+                            }
+                        } else {
+                            // For group scoring criteria, check if optional limits are provided
+                            if (isset($criterion['criterion_score']) && isset($criterion['criterion_min_score'])) {
+                                // Both min and max limits provided
+                                $maxScore = filter_var($criterion['criterion_score'], FILTER_VALIDATE_INT);
+                                $minScore = filter_var($criterion['criterion_min_score'], FILTER_VALIDATE_INT);
+                                
+                                // Validate both are valid numbers
+                                if ($maxScore === false || $maxScore < 0) {
+                                    $maxScore = null;
+                                }
+                                if ($minScore === false || $minScore < 0) {
+                                    $minScore = null;
+                                }
+                                
+                                // If one is null, set both to null (require both or neither)
+                                if ($maxScore === null || $minScore === null) {
+                                    $maxScore = null;
+                                    $minScore = null;
+                                }
+                            } else {
+                                // No limits for group scoring
+                                $maxScore = null;
+                                $minScore = null;
                             }
                         }
 

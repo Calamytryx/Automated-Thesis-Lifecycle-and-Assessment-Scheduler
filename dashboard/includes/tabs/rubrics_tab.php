@@ -784,12 +784,24 @@
             // Criterion Description Column (Common for both group and individual)
             row.append(`
             <td>
-                <div class="d-flex justify-content-between align-items-center">
-                    <input type="text" class="form-control criterion-description"
-                           name="criterion_description[]" placeholder="Enter criterion description" required>
-                    <button type="button" class="btn btn-sm btn-danger ms-2 delete-criterion">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                <div class="d-flex flex-column gap-2">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <input type="text" class="form-control criterion-description"
+                               name="criterion_description[]" placeholder="Enter criterion description" required>
+                        <button type="button" class="btn btn-sm btn-danger ms-2 delete-criterion">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center">
+                        <small class="text-muted" style="white-space: nowrap;">Optional Limits:</small>
+                        <input type="number" class="form-control form-control-sm criterion-min-limit"
+                               name="criterion_min_limit[]" placeholder="Min" min="0" step="1"
+                               title="Optional minimum score for this criterion">
+                        <span class="text-muted">to</span>
+                        <input type="number" class="form-control form-control-sm criterion-max-limit"
+                               name="criterion_max_limit[]" placeholder="Max" min="0" step="1"
+                               title="Optional maximum score for this criterion">
+                    </div>
                 </div>
             </td>
         `);
@@ -1130,6 +1142,14 @@
                                     lastRow.find('.criterion-description').val(crit.criterion_text);
                                     // For group scoring, set the readonly score (calculated from levels)
                                     lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
+                                    
+                                    // Populate optional criterion-level min/max limits if they exist
+                                    if (crit.criterion_min_score !== null && crit.criterion_min_score !== undefined) {
+                                        lastRow.find('input[name="criterion_min_limit[]"]').val(crit.criterion_min_score);
+                                    }
+                                    if (crit.max_score !== null && crit.max_score !== undefined) {
+                                        lastRow.find('input[name="criterion_max_limit[]"]').val(crit.max_score);
+                                    }
                                 }
                                 // --- END MODIFIED ---
 
@@ -1395,8 +1415,22 @@
                             levelValues.push($(this).val());
                         });
                         criterionDetail = JSON.stringify(levelValues); // Store as JSON string
-                        criterionScore = $(this).find('input.score-input').val(); // Get score for group (readonly)
-                        var criterionMinScore = null; // Not used for group scoring
+                        
+                        // Get the calculated score from quality levels (readonly field)
+                        var calculatedScore = $(this).find('input.score-input').val();
+                        
+                        // Collect optional criterion-level min/max limits for group scoring
+                        var criterionMinLimit = $(this).find('input[name="criterion_min_limit[]"]').val();
+                        var criterionMaxLimit = $(this).find('input[name="criterion_max_limit[]"]').val();
+                        
+                        // Only set custom limits if both values are provided and valid
+                        if (criterionMinLimit !== '' && criterionMaxLimit !== '') {
+                            var criterionMinScore = parseInt(criterionMinLimit) || null;
+                            criterionScore = parseInt(criterionMaxLimit) || null; // Use custom max as criterion_score
+                        } else {
+                            var criterionMinScore = null; // Not set for group scoring without limits
+                            criterionScore = calculatedScore; // Use calculated score from quality levels
+                        }
                     }
                 } else { // yesno
                     criterionText = $(this).find('.criterion-input').val();
