@@ -163,3 +163,145 @@ tr:nth-child(n) td:contains("PERCENTAGE") {
 }
 
 /* Note: This only hides visual displays. Backend submission continues to work correctly. */
+
+/* ============================================================================
+   EVALUATION SUMMARY MODAL STYLING
+   ============================================================================ */
+
+#evaluationSummaryModal .modal-content {
+    border: none;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+}
+
+#evaluationSummaryModal .modal-header {
+    border-radius: 12px 12px 0 0;
+    padding: 1.5rem;
+    border-bottom: none;
+}
+
+#evaluationSummaryModal .modal-body {
+    padding: 2rem;
+    background-color: var(--neutral-50, #f8f9fa);
+}
+
+#evaluationSummaryModal .modal-footer {
+    border-top: 2px solid var(--neutral-300, #dee2e6);
+    padding: 1.5rem;
+    background-color: white;
+    border-radius: 0 0 12px 12px;
+}
+
+/* Summary content sections */
+#summaryContent h4 {
+    font-weight: 600;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+}
+
+#summaryContent .card {
+    border: 1px solid var(--neutral-300, #dee2e6);
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+#summaryContent .card-header {
+    background-color: var(--neutral-100, #e9ecef);
+    border-bottom: 1px solid var(--neutral-300, #dee2e6);
+    padding: 1rem 1.25rem;
+}
+
+#summaryContent .card-body {
+    padding: 1.25rem;
+}
+
+#summaryContent .table {
+    margin-bottom: 0;
+}
+
+#summaryContent .table th {
+    background-color: var(--neutral-100, #e9ecef);
+    font-weight: 600;
+    border-bottom: 2px solid var(--neutral-400, #ced4da);
+}
+
+#summaryContent .table td {
+    vertical-align: middle;
+}
+
+#summaryContent .badge {
+    font-size: 0.875rem;
+    padding: 0.5em 0.75em;
+}
+
+/* Responsive modal for smaller screens */
+@media (max-width: 768px) {
+    #evaluationSummaryModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    #evaluationSummaryModal .modal-body {
+        padding: 1rem;
+        max-height: 60vh;
+    }
+    
+    #summaryContent .table-responsive {
+        font-size: 0.875rem;
+    }
+}
+
+/* ============================================================================
+   SIMPLIFIED SUMMARY TABLE STYLING
+   ============================================================================ */
+
+#summaryContent .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 10px;
+    margin-bottom: 15px;
+}
+
+#summaryContent .summary-table thead th {
+    background-color: #f0f0f0;
+    border: 1px solid #999;
+    padding: 8px;
+    font-weight: bold;
+    text-align: left;
+}
+
+#summaryContent .summary-table tbody td {
+    border: 1px solid #999;
+    padding: 8px;
+}
+
+#summaryContent .summary-section {
+    margin-bottom: 30px;
+}
+
+#summaryContent .rubric-summary {
+    margin-bottom: 25px;
+}
+
+#summaryContent h3 {
+    font-size: 1.2em;
+    font-weight: bold;
+    margin-bottom: 15px;
+    border-bottom: 2px solid #333;
+    padding-bottom: 8px;
+}
+
+#summaryContent h4 {
+    font-size: 1.1em;
+    font-weight: bold;
+    margin-bottom: 10px;
+}
+
+#summaryContent ul {
+    margin: 5px 0;
+    padding-left: 20px;
+}
+
+#summaryContent strong {
+    font-weight: 600;
+}

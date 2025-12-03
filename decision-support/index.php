@@ -1287,10 +1287,43 @@ include '../assets/layouts/header.php';
   </div>
 </main>
 
+<!-- Evaluation Summary Modal -->
+<div class="modal fade" id="evaluationSummaryModal" tabindex="-1" aria-labelledby="evaluationSummaryModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-xl modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header" style="background-color: var(--main-white); color: white; border-bottom: 1px solid var(--neutral-300);">
+        <h5 class="modal-title" id="evaluationSummaryModalLabel">
+          <i class="fas fa-clipboard-check me-2"></i>Evaluation Summary - Review Before Submitting
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body" style="max-height: 70vh; overflow-y: auto;">
+        <div id="summaryContent">
+          <!-- Content will be populated by JavaScript -->
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+          <i class="fas fa-arrow-left me-2"></i>Back to Edit
+        </button>
+        <button type="button" class="btn btn-info" id="downloadPdfBtn" title="Download summary as PDF">
+          <i class="fas fa-file-pdf me-2"></i>Download PDF
+        </button>
+        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
+          <i class="fas fa-paper-plane me-2"></i><?php echo $done_evaluating ? 'Confirm Update' : 'Confirm Submission'; ?>
+        </button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script> <!-- Keep jQuery for now if other parts rely on it -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<!-- PDF Generation Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -1431,6 +1464,472 @@ document.addEventListener('DOMContentLoaded', function() {
         console.log("Individual score updated for rubric:", rubric_id);
     }
 
+
+    // -------------------------------------------------------------------
+    // EVALUATION SUMMARY GENERATION
+    // -------------------------------------------------------------------
+    window.showEvaluationSummary = function() {
+        const summaryContent = document.getElementById('summaryContent');
+        if (!summaryContent) return;
+        
+        let html = '';
+        
+        // Group Details Section
+        html += '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">GROUP DETAILS</h3>';
+        
+        // Research Title
+        html += '<div style="margin-bottom: 15px;">';
+        html += '<strong>Research Title:</strong><br>';
+        html += '<span style="font-size: 1.1em;"><?php echo htmlspecialchars($researchTitle); ?></span>';
+        html += '</div>';
+        
+        // Basic Information
+        html += '<div style="margin-bottom: 15px;">';
+        html += '<strong>Team Name:</strong> <?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?><br>';
+        html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
+        html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
+        <?php 
+            $typeLabel = [
+                'title_proposal' => 'Title Proposal Defense',
+                'title_defense' => 'Title Defense',
+                'final_defense' => 'Final Defense'
+            ];
+            $label = $typeLabel[$defense_type] ?? ucfirst(str_replace('_', ' ', $defense_type));
+        ?>
+        html += '<strong>Defense Type:</strong> <?php echo htmlspecialchars($label); ?>';
+        html += '</div>';
+        
+        // Team Members
+        html += '<div style="margin-bottom: 15px;">';
+        html += '<strong>Team Members:</strong><br>';
+        <?php if (!empty($students)): ?>
+            html += '<ul style="margin: 5px 0; padding-left: 20px;">';
+            <?php foreach ($students as $student): ?>
+            html += '<li><?php echo htmlspecialchars($student['fullname']); ?></li>';
+            <?php endforeach; ?>
+            html += '</ul>';
+        <?php else: ?>
+            html += '<span style="font-style: italic; color: #666;">No members found</span>';
+        <?php endif; ?>
+        html += '</div>';
+        
+        // Adviser and Program
+        html += '<div style="margin-bottom: 15px;">';
+        html += '<strong>Adviser:</strong> <?php echo htmlspecialchars($adviser_name); ?><br>';
+        html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>';
+        html += '</div>';
+        html += '</div>';
+        
+        // Rubrics/Score Sheets Section
+        html += '<div class="summary-section" style="margin-bottom: 30px;">';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">EVALUATION SCORE SHEETS</h3>';
+        
+        // Iterate through each rubric card
+        const rubricCards = document.querySelectorAll('.rubric-card');
+        rubricCards.forEach((card, index) => {
+            const rubricId = card.dataset.rubricId;
+            const rubricType = card.dataset.rubricType;
+            const rubricWeight = card.dataset.weight;
+            const rubricName = card.querySelector('.card-header h5')?.textContent?.trim() || 'Rubric ' + (index + 1);
+            const rubricDesc = card.querySelector('.card-header small')?.textContent?.trim() || '';
+            
+            html += '<div class="rubric-summary" style="margin-bottom: 25px; page-break-inside: avoid;">';
+            html += '<h4 style="margin-bottom: 10px; font-weight: bold;">' + (index + 1) + '. ' + rubricName;
+            if (rubricWeight && rubricWeight != '0') {
+                html += ' (Weight: ' + parseFloat(rubricWeight).toFixed(1) + '%)';
+            }
+            html += '</h4>';
+            if (rubricDesc) {
+                html += '<p style="font-style: italic; color: #555; margin-bottom: 10px;">' + rubricDesc + '</p>';
+            }
+            
+            if (rubricType === 'numerical') {
+                html += generateNumericalSummary(card);
+            } else if (rubricType === 'yesno') {
+                html += generateYesNoSummary(card);
+            } else if (rubricType === 'passfail') {
+                html += generatePassFailSummary(card);
+            }
+            
+            html += '</div>';
+        });
+        
+        html += '</div>';
+        
+        // Comments Section
+        html += '<div class="summary-section" style="margin-bottom: 20px; page-break-inside: avoid;">';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">OVERALL COMMENTS</h3>';
+        const comments = document.getElementById('comments')?.value || 'No comments provided.';
+        html += '<div style="padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; font-family: inherit;">' + escapeHtml(comments) + '</div>';
+        html += '</div>';
+        
+        summaryContent.innerHTML = html;
+        
+        // Show the modal
+        const summaryModal = new bootstrap.Modal(document.getElementById('evaluationSummaryModal'));
+        summaryModal.show();
+    };
+    
+    function generateNumericalSummary(card) {
+        let html = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: avoid;" class="summary-table">';
+        html += '<thead><tr style="background-color: #f0f0f0;">';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: left; font-weight: bold;">Criteria</th>';
+        
+        const tbody = card.querySelector('tbody');
+        if (!tbody) return '<p style="font-style: italic; color: #666;">No data available</p>';
+        
+        const firstRow = tbody.querySelector('tr[data-criterion-id]');
+        if (!firstRow) return '<p style="font-style: italic; color: #666;">No criteria found</p>';
+        
+        const isIndividual = firstRow.dataset.isIndividual === '1';
+        
+        if (isIndividual) {
+            // Individual scoring - show student columns
+            firstRow.querySelectorAll('.student-score-cell').forEach(cell => {
+                const input = cell.querySelector('input');
+                const studentId = input?.dataset?.studentId;
+                if (studentId) {
+                    const studentName = getStudentName(studentId);
+                    html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">' + studentName + '</th>';
+                }
+            });
+        } else {
+            // Group scoring - show score column
+            html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Score</th>';
+        }
+        
+        html += '</tr></thead><tbody>';
+        
+        // Iterate through criteria rows
+        tbody.querySelectorAll('tr[data-criterion-id]').forEach(row => {
+            const criterionText = row.querySelector('td:first-child')?.textContent?.trim() || 'N/A';
+            html += '<tr><td style="border: 1px solid #999; padding: 8px;">' + criterionText + '</td>';
+            
+            if (isIndividual) {
+                row.querySelectorAll('.criterion-score-input').forEach(input => {
+                    const value = input.value || '—';
+                    const min = input.min || '0';
+                    const max = input.max || '0';
+                    html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">';
+                    html += '<strong>' + value + '</strong><br>';
+                    html += '<span style="font-size: 0.85em; color: #666;">(' + min + '-' + max + ')</span>';
+                    html += '</td>';
+                });
+            } else {
+                const scoreInput = row.querySelector('.entered-score');
+                const value = scoreInput?.value || '—';
+                const min = scoreInput?.min || '0';
+                const max = scoreInput?.max || '0';
+                html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">';
+                html += '<strong style="font-size: 1.1em;">' + value + '</strong><br>';
+                html += '<span style="font-size: 0.85em; color: #666;">(' + min + '-' + max + ')</span>';
+                html += '</td>';
+            }
+            
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        return html;
+    }
+    
+    function generateYesNoSummary(card) {
+        let html = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: avoid;" class="summary-table">';
+        html += '<thead><tr style="background-color: #f0f0f0;">';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: left; font-weight: bold;">Criteria</th>';
+        
+        const tbody = card.querySelector('tbody');
+        if (!tbody) return '<p style="font-style: italic; color: #666;">No data available</p>';
+        
+        const firstRow = tbody.querySelector('tr[data-criterion-id]');
+        if (!firstRow) return '<p style="font-style: italic; color: #666;">No criteria found</p>';
+        
+        const isIndividual = firstRow.dataset.isIndividual === '1';
+        
+        if (isIndividual) {
+            // Individual - show student columns
+            firstRow.querySelectorAll('td[class*="text-center"]:not(:first-child)').forEach((cell, idx) => {
+                const radioInputs = cell.querySelectorAll('input[type="radio"]');
+                if (radioInputs.length > 0) {
+                    const studentId = radioInputs[0].name.match(/\[(\d+)\]$/)?.[1];
+                    if (studentId) {
+                        const studentName = getStudentName(studentId);
+                        html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">' + studentName + '</th>';
+                    }
+                }
+            });
+        } else {
+            html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Selection</th>';
+        }
+        
+        html += '</tr></thead><tbody>';
+        
+        tbody.querySelectorAll('tr[data-criterion-id]').forEach(row => {
+            const criterionText = row.querySelector('td:first-child')?.textContent?.trim() || 'N/A';
+            html += '<tr><td style="border: 1px solid #999; padding: 8px;">' + criterionText + '</td>';
+            
+            if (isIndividual) {
+                row.querySelectorAll('td[class*="text-center"]:not(:first-child)').forEach(cell => {
+                    const checked = cell.querySelector('input[type="radio"]:checked');
+                    const value = checked ? (checked.value === '1' ? 'Yes' : 'No') : '—';
+                    html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;"><strong>' + value + '</strong></td>';
+                });
+            } else {
+                const checked = row.querySelector('input[type="radio"]:checked');
+                const value = checked ? (checked.value === '1' ? 'Yes' : 'No') : '—';
+                html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;"><strong>' + value + '</strong></td>';
+            }
+            
+            html += '</tr>';
+        });
+        
+        html += '</tbody></table>';
+        return html;
+    }
+    
+    function generatePassFailSummary(card) {
+        const statusDiv = card.querySelector('[id^="passfail_status_"]');
+        const statusText = statusDiv?.querySelector('.passfail-status-text')?.textContent || 'Status not determined';
+        
+        let html = '<div style="padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd; margin-top: 10px;">';
+        html += '<strong>Pass/Fail Determination:</strong><br>';
+        html += '<span style="font-size: 1.1em;">' + statusText + '</span>';
+        html += '</div>';
+        
+        return html;
+    }
+    
+    function getStudentName(studentId) {
+        // Map student IDs to names from PHP data
+        const studentMap = {
+            <?php foreach ($students as $student): ?>
+            <?php echo $student['id']; ?>: '<?php echo htmlspecialchars($student['first_name']); ?>',
+            <?php endforeach; ?>
+        };
+        return studentMap[studentId] || 'Student ' + studentId;
+    }
+    
+    function escapeHtml(text) {
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+    
+    // -------------------------------------------------------------------
+    // PDF DOWNLOAD FUNCTIONALITY
+    // -------------------------------------------------------------------
+    window.downloadEvaluationPDF = function() {
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        const originalBtnHtml = downloadBtn?.innerHTML;
+        
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
+        }
+        
+        const summaryContent = document.getElementById('summaryContent');
+        if (!summaryContent) {
+            Swal.fire('Error', 'Summary content not found', 'error');
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = originalBtnHtml;
+            }
+            return;
+        }
+        
+        // Clone the content for PDF generation
+        const clonedContent = summaryContent.cloneNode(true);
+        
+        // Create a temporary container with better styling for PDF
+        const tempContainer = document.createElement('div');
+        tempContainer.style.position = 'absolute';
+        tempContainer.style.left = '-9999px';
+        tempContainer.style.top = '0';
+        tempContainer.style.width = '210mm'; // A4 width
+        tempContainer.style.padding = '20px';
+        tempContainer.style.backgroundColor = 'white';
+        tempContainer.style.fontFamily = 'Arial, sans-serif';
+        tempContainer.style.fontSize = '11px';
+        tempContainer.style.color = '#000';
+        tempContainer.style.lineHeight = '1.4';
+        tempContainer.appendChild(clonedContent);
+        document.body.appendChild(tempContainer);
+        
+        // Enhance table styling for PDF with page break handling
+        const tables = tempContainer.querySelectorAll('.summary-table');
+        tables.forEach(table => {
+            table.style.width = '100%';
+            table.style.borderCollapse = 'collapse';
+            table.style.marginBottom = '15px';
+            table.style.pageBreakInside = 'avoid';
+            
+            // Style table headers
+            table.querySelectorAll('thead th').forEach(th => {
+                th.style.backgroundColor = '#e0e0e0';
+                th.style.fontWeight = 'bold';
+                th.style.border = '1px solid #333';
+                th.style.padding = '8px';
+                th.style.fontSize = '10px';
+            });
+            
+            // Style table cells
+            table.querySelectorAll('tbody td').forEach(td => {
+                td.style.border = '1px solid #666';
+                td.style.padding = '6px 8px';
+                td.style.fontSize = '10px';
+            });
+            
+            // Prevent table rows from breaking across pages
+            table.querySelectorAll('tr').forEach(tr => {
+                tr.style.pageBreakInside = 'avoid';
+                tr.style.pageBreakAfter = 'auto';
+            });
+        });
+        
+        // Ensure sections don't break
+        const sections = tempContainer.querySelectorAll('.summary-section, .rubric-summary');
+        sections.forEach(section => {
+            section.style.pageBreakInside = 'avoid';
+            section.style.marginBottom = '20px';
+        });
+        
+        // Style headings
+        tempContainer.querySelectorAll('h3').forEach(h => {
+            h.style.fontSize = '14px';
+            h.style.fontWeight = 'bold';
+            h.style.marginTop = '10px';
+            h.style.marginBottom = '10px';
+            h.style.pageBreakAfter = 'avoid';
+        });
+        
+        tempContainer.querySelectorAll('h4').forEach(h => {
+            h.style.fontSize = '12px';
+            h.style.fontWeight = 'bold';
+            h.style.marginTop = '8px';
+            h.style.marginBottom = '8px';
+            h.style.pageBreakAfter = 'avoid';
+        });
+        
+        // Use html2canvas with better settings
+        html2canvas(tempContainer, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            backgroundColor: '#ffffff',
+            windowWidth: tempContainer.scrollWidth,
+            windowHeight: tempContainer.scrollHeight,
+            onclone: (clonedDoc) => {
+                // Additional styling adjustments in the cloned document if needed
+                const clonedContainer = clonedDoc.querySelector('body > div');
+                if (clonedContainer) {
+                    clonedContainer.style.display = 'block';
+                }
+            }
+        }).then(canvas => {
+            document.body.removeChild(tempContainer);
+            
+            const imgData = canvas.toDataURL('image/png');
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4',
+                compress: true
+            });
+            
+            const imgWidth = 210; // A4 width in mm
+            const pageHeight = 297; // A4 height in mm
+            const imgHeight = (canvas.height * imgWidth) / canvas.width;
+            let heightLeft = imgHeight;
+            let position = 0;
+            
+            // Add first page
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+            heightLeft -= pageHeight;
+            
+            // Add additional pages if content is longer than one page
+            while (heightLeft > 0) {
+                position = heightLeft - imgHeight;
+                pdf.addPage();
+                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
+                heightLeft -= pageHeight;
+            }
+            
+            // Generate filename with timestamp
+            const researchTitle = '<?php echo addslashes($researchTitle ?? "Evaluation"); ?>';
+            const date = new Date();
+            const timestamp = date.getFullYear() + 
+                             String(date.getMonth() + 1).padStart(2, '0') + 
+                             String(date.getDate()).padStart(2, '0') + '_' +
+                             String(date.getHours()).padStart(2, '0') + 
+                             String(date.getMinutes()).padStart(2, '0');
+            
+            // Sanitize filename
+            const sanitizedTitle = researchTitle.substring(0, 50).replace(/[^a-z0-9]/gi, '_');
+            const filename = `Evaluation_Summary_${sanitizedTitle}_${timestamp}.pdf`;
+            
+            // Save the PDF
+            pdf.save(filename);
+            
+            // Reset button
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = originalBtnHtml;
+            }
+            
+            Swal.fire({
+                title: 'Success!',
+                text: 'PDF downloaded successfully',
+                icon: 'success',
+                timer: 2000,
+                showConfirmButton: false
+            });
+        }).catch(error => {
+            console.error('PDF generation error:', error);
+            if (document.body.contains(tempContainer)) {
+                document.body.removeChild(tempContainer);
+            }
+            
+            if (downloadBtn) {
+                downloadBtn.disabled = false;
+                downloadBtn.innerHTML = originalBtnHtml;
+            }
+            
+            Swal.fire('Error', 'Failed to generate PDF. Please try again.', 'error');
+        });
+    };
+    
+    // Handle download PDF button click
+    document.getElementById('downloadPdfBtn')?.addEventListener('click', function() {
+        downloadEvaluationPDF();
+    });
+    
+    // Handle confirm submit button in modal
+    document.getElementById('confirmSubmitBtn')?.addEventListener('click', function() {
+        // Close the modal
+        const summaryModal = bootstrap.Modal.getInstance(document.getElementById('evaluationSummaryModal'));
+        if (summaryModal) {
+            summaryModal.hide();
+        }
+        
+        // Show final confirmation
+        Swal.fire({
+            title: 'Final Confirmation',
+            html: '<p>Are you sure you want to submit this evaluation?</p><p class="text-muted small">Once submitted, you can still update it later if needed.</p>',
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#198754',
+            cancelButtonColor: '#6c757d',
+            confirmButtonText: 'Yes, Submit',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Proceed with actual submission
+                submitEvaluationForm();
+            }
+        });
+    });
 
     // -------------------------------------------------------------------
     // PDF Fullscreen Toggle
@@ -1697,23 +2196,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 return; // Stop submission
             }
 
-            // Show confirmation dialog before submitting
-            Swal.fire({
-                title: 'Confirm Evaluation Submission',
-                html: '<p>Are you sure you want to submit this evaluation?</p><p class="text-muted small">Once submitted, you can still update it later if needed.</p>',
-                icon: 'question',
-                showCancelButton: true,
-                confirmButtonColor: '#198754',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Yes, Submit',
-                cancelButtonText: 'Cancel'
-            }).then((result) => {
-                if (!result.isConfirmed) {
-                    return; // User cancelled
-                }
-                // Proceed with submission
-                submitEvaluationForm();
-            });
+            // Show summary modal before submission
+            showEvaluationSummary();
         });
 
         function submitEvaluationForm() {
