@@ -2416,6 +2416,25 @@ body.has-collapsed-home-sidebar #homeMainContent {
         margin-bottom: 0.5rem;
         margin-right: 0 !important;
     }
+    
+    /* Class Record Table Extra Small Screens */
+    #classRecordTable {
+        font-size: 0.8rem;
+    }
+    
+    #classRecordTable th,
+    #classRecordTable td {
+        padding: 8px 6px;
+    }
+    
+    #classRecordTable .badge {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .user-controls-container .col-12 {
+        margin-bottom: 0.5rem;
+    }
 }
 
 /* Additional mobile refinements for better proportion */
@@ -2549,6 +2568,8 @@ body.has-collapsed-home-sidebar #homeMainContent {
         font-size: 0.7rem;
     }
 }
+
+/* End of responsive adjustments for requirement cards */
 
 /* ==========================================
    REQUIREMENT CHECKER CARDS - STUDENTS
@@ -2842,6 +2863,20 @@ body.has-collapsed-home-sidebar #homeMainContent {
     
     .requirement-status-select {
         font-size: 0.85rem;
+    }
+    
+    /* Class Record Table Responsive */
+    #classRecordTable {
+        font-size: 0.875rem;
+    }
+    
+    #classRecordTable th,
+    #classRecordTable td {
+        padding: 10px 8px;
+    }
+    
+    #classRecordTable .badge {
+        font-size: 0.75rem;
         padding: 10px 12px;
     }
     
@@ -3699,4 +3734,67 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 .requirement-student-card[data-status="rejected"] .card-header::before {
     content: "❌ ";
+}
+
+/* Sortable table styles */
+#sortableClassTable th.sortable {
+    cursor: pointer;
+    user-select: none;
+    transition: background-color 0.2s ease;
+}
+
+#sortableClassTable th.sortable:hover {
+    background-color: var(--neutral-200, #e9ecef);
+}
+
+#sortableClassTable th.sortable i {
+    font-size: 0.75rem;
+    opacity: 0.6;
+}
+
+#sortableClassTable th.sortable:hover i {
+    opacity: 1;
+}
+
+/* Class Record Controls Styling */
+.user-controls-container .form-select.user-control-height {
+    height: 38px;
+}
+
+/* View selector styling */
+#classRecordViewSelect,
+#classRecordSortSelect {
+    border: 1px solid var(--neutral-300, #dee2e6);
+    border-radius: 4px;
+    padding: 0.375rem 0.75rem;
+    transition: all 0.2s ease;
+}
+
+#classRecordViewSelect:focus,
+#classRecordSortSelect:focus {
+    border-color: var(--main-primary, #007bff);
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Class Record Table Styles */
+.class-record-row {
+    transition: background-color 0.2s ease;
+}
+
+.class-record-row:hover {
+    background-color: var(--neutral-100, #f8f9fa) !important;
+}
+
+/* Student Details Modal */
+.student-details-card {
+    font-size: 0.95rem;
+}
+
+.student-details-card .row {
+    margin-bottom: 0;
+}
+
+.student-details-card hr {
+    margin: 1rem 0;
+    border-top: 1px solid var(--neutral-300, #dee2e6);
 }

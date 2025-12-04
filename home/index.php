@@ -485,8 +485,16 @@ function fetchFacultyDashboard() {
 }
 
 // Load class record for faculty
-function loadClassRecord() {
+function loadClassRecord(page = 1) {
     const classRecordContent = document.getElementById('classRecordContent');
+    const viewType = document.getElementById('classRecordViewSelect')?.value || 'team';
+    const sortSelect = document.getElementById('classRecordSortSelect');
+    const sortContainer = document.getElementById('classRecordSortContainer');
+    
+    // Show/hide sort dropdown based on view
+    if (sortContainer) {
+        sortContainer.style.display = viewType === 'class' ? '' : 'none';
+    }
     
     // Show loading state
     classRecordContent.innerHTML = `
@@ -511,62 +519,330 @@ function loadClassRecord() {
                             No students found in your assigned sections.
                         </div>
                     `;
-                } else {
-                    // Loop through each section
-                    for (const [section, students] of Object.entries(data.sections)) {
+                } else if (viewType === 'team') {
+                    // TEAM VIEW - Students grouped by teams
+                    for (const [section, teams] of Object.entries(data.sections)) {
                         content += `
-                            <div class="card mb-4">
-                                <div class="card-header bg-primary text-white">
+                            <div class="mb-4">
+                                <div class="d-flex align-items-center mb-3">
                                     <h5 class="mb-0">
-                                        <i class="bi bi-people-fill me-2"></i>
+                                        <i class="bi bi-people-fill me-2 text-primary"></i>
                                         Section: ${section}
-                                        <span class="badge bg-light text-primary ms-2">${students.length} students</span>
                                     </h5>
                                 </div>
-                                <div class="card-body p-0">
-                                    <div class="table-responsive">
-                                        <table class="table table-hover table-striped mb-0">
-                                            <thead class="table-light">
-                                                <tr>
-                                                    <th>Last Name</th>
-                                                    <th>First Name</th>
-                                                    <th>Team</th>
-                                                    <th>Research Title</th>
-                                                    <th>Latest Defense</th>
-                                                    <th class="text-center">Evaluations</th>
-                                                    <th class="text-center">Avg Score</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
                         `;
                         
-                        students.forEach(student => {
-                            const avgScore = student.avg_score ? parseFloat(student.avg_score).toFixed(2) : 'N/A';
-                            const scoreClass = student.avg_score >= 75 ? 'text-success' : 
-                                             student.avg_score >= 60 ? 'text-warning' : 
-                                             student.avg_score ? 'text-danger' : 'text-muted';
+                        // Loop through each team in the section
+                        for (const [teamId, teamData] of Object.entries(teams)) {
+                            const students = teamData.students;
+                            
+                            // Get all unique panelists from all students in this team
+                            const panelistsMap = new Map();
+                            students.forEach(student => {
+                                if (student.panelist_grades) {
+                                    student.panelist_grades.forEach(grade => {
+                                        if (!panelistsMap.has(grade.evaluator_id)) {
+                                            panelistsMap.set(grade.evaluator_id, grade.panelist_name);
+                                        }
+                                    });
+                                }
+                            });
+                            const panelists = Array.from(panelistsMap.entries());
                             
                             content += `
-                                <tr>
-                                    <td><strong>${student.last_name}</strong></td>
-                                    <td>${student.first_name}</td>
-                                    <td><small class="text-muted">${student.team_name || 'No team'}</small></td>
-                                    <td><small>${student.research_title || 'No title'}</small></td>
-                                    <td><span class="badge bg-secondary">${student.latest_defense_type || 'None'}</span></td>
-                                    <td class="text-center">${student.evaluation_count || 0}</td>
-                                    <td class="text-center ${scoreClass}"><strong>${avgScore}</strong></td>
-                                </tr>
+                                <div class="card mb-3">
+                                    <div class="card-header bg-light">
+                                        <h6 class="mb-0 text-dark">
+                                            <i class="bi bi-diagram-3 me-2"></i>
+                                            ${teamData.team_name}
+                                            <span class="badge bg-secondary ms-2">${students.length} ${students.length === 1 ? 'member' : 'members'}</span>
+                                        </h6>
+                                        <small class="text-muted d-block mt-1">
+                                            <i class="bi bi-book me-1"></i>
+                                            ${teamData.research_title}
+                                        </small>
+                                    </div>
+                                    <div class="card-body p-0">
+                                        <div class="table-responsive">
+                                            <table class="db-table">
+                                                <thead>
+                                                    <tr>
+                                                        <th>Student No.</th>
+                                                        <th>Student Name</th>
+                                                        ${panelists.map(([id, name]) => `<th class="text-center">${name}</th>`).join('')}
+                                                        <th class="text-center">Average</th>
+                                                        <th class="text-center">Status</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
                             `;
-                        });
-                        
-                        content += `
-                                            </tbody>
-                                        </table>
+                            
+                            students.forEach(student => {
+                                const avgScore = student.avg_score ? parseFloat(student.avg_score).toFixed(2) : null;
+                                
+                                // Determine status based on average score
+                                let status = 'Pending';
+                                let statusClass = 'bg-secondary';
+                                
+                                if (avgScore !== null) {
+                                    if (avgScore >= 75) {
+                                        status = 'Passed';
+                                        statusClass = 'bg-success';
+                                    } else if (avgScore < 75) {
+                                        status = 'Failed';
+                                        statusClass = 'bg-danger';
+                                    }
+                                }
+                                
+                                // Create grade columns
+                                let gradeColumns = '';
+                                panelists.forEach(([panelistId]) => {
+                                    const grade = student.panelist_grades?.find(g => g.evaluator_id == panelistId);
+                                    if (grade && grade.total_score !== null) {
+                                        const gradeValue = parseFloat(grade.total_score).toFixed(2);
+                                        const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
+                                        gradeColumns += `<td class="text-center ${gradeClass}"><strong>${gradeValue}</strong></td>`;
+                                    } else {
+                                        gradeColumns += `<td class="text-center text-muted">-</td>`;
+                                    }
+                                });
+                                
+                                const avgScoreClass = avgScore >= 75 ? 'text-success' : avgScore >= 60 ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
+                                const avgScoreDisplay = avgScore !== null ? `<strong>${avgScore}</strong>` : '-';
+                                
+                                content += `
+                                    <tr>
+                                        <td><small class="text-muted">${student.student_number || 'N/A'}</small></td>
+                                        <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                        ${gradeColumns}
+                                        <td class="text-center ${avgScoreClass}">${avgScoreDisplay}</td>
+                                        <td class="text-center">
+                                            <span class="badge ${statusClass}">${status}</span>
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            
+                            content += `
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
-                        `;
+                            `;
+                        }
+                        
+                        content += `</div>`;
                     }
+                } else {
+                    // CLASS VIEW - Simple sortable table of all students
+                    // Flatten all students from all sections and teams
+                    let allStudents = [];
+                    for (const [section, teams] of Object.entries(data.sections)) {
+                        for (const [teamId, teamData] of Object.entries(teams)) {
+                            teamData.students.forEach(student => {
+                                allStudents.push({
+                                    ...student,
+                                    section: section,
+                                    team_name: teamData.team_name,
+                                    research_title: teamData.research_title
+                                });
+                            });
+                        }
+                    }
+                    
+                    // Apply sorting if sort select exists
+                    if (sortSelect && sortSelect.value) {
+                        const [sortField, sortOrder] = sortSelect.value.split(':');
+                        allStudents.sort((a, b) => {
+                            let aVal, bVal;
+                            
+                            switch(sortField) {
+                                case 'student_number':
+                                    aVal = a.student_number || '';
+                                    bVal = b.student_number || '';
+                                    break;
+                                case 'last_name':
+                                    aVal = a.last_name || '';
+                                    bVal = b.last_name || '';
+                                    break;
+                                case 'team_name':
+                                    aVal = a.team_name || '';
+                                    bVal = b.team_name || '';
+                                    break;
+                                case 'total_score':
+                                    aVal = parseFloat(a.avg_total_score) || 0;
+                                    bVal = parseFloat(b.avg_total_score) || 0;
+                                    break;
+                                case 'status':
+                                    // Passed=0, Failed=1, Pending=2
+                                    const getStatusValue = (score) => {
+                                        if (!score) return 2;
+                                        return parseFloat(score) >= 75 ? 0 : 1;
+                                    };
+                                    aVal = getStatusValue(a.avg_total_score);
+                                    bVal = getStatusValue(b.avg_total_score);
+                                    break;
+                                default:
+                                    aVal = '';
+                                    bVal = '';
+                            }
+                            
+                            // Convert to lowercase for string comparison
+                            if (typeof aVal === 'string') {
+                                aVal = aVal.toLowerCase();
+                                bVal = bVal.toLowerCase();
+                            }
+                            
+                            if (sortOrder === 'asc') {
+                                return aVal < bVal ? -1 : aVal > bVal ? 1 : 0;
+                            } else {
+                                return aVal > bVal ? -1 : aVal < bVal ? 1 : 0;
+                            }
+                        });
+                    }
+                    
+                    // Pagination logic
+                    const itemsPerPage = 10;
+                    const totalStudents = allStudents.length;
+                    const totalPages = Math.ceil(totalStudents / itemsPerPage);
+                    const startIndex = (page - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const paginatedStudents = allStudents.slice(startIndex, endIndex);
+                    
+                    content += `
+                        <div class="card">
+                            <div class="card-body p-0">
+                                <div class="table-responsive">
+                                    <table class="db-table" id="classRecordTable">
+                                        <thead>
+                                            <tr>
+                                                <th class="d-none d-md-table-cell">Student No.</th>
+                                                <th>Student Name</th>
+                                                <th class="d-none d-lg-table-cell">Team</th>
+                                                <th class="text-center">Group</th>
+                                                <th class="text-center">Individual</th>
+                                                <th class="text-center">Total</th>
+                                                <th class="text-center">Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                    `;
+                    
+                    paginatedStudents.forEach(student => {
+                        // Use avg_total_score instead of avg_score for consistency
+                        const avgTotalScore = student.avg_total_score ? parseFloat(student.avg_total_score).toFixed(2) : null;
+                        const avgGroupScore = student.avg_group_score ? parseFloat(student.avg_group_score).toFixed(2) : null;
+                        const avgSoloScore = student.avg_solo_score ? parseFloat(student.avg_solo_score).toFixed(2) : null;
+                        
+                        let status = 'Pending';
+                        let statusClass = 'bg-secondary';
+                        let statusValue = 2; // For sorting
+                        
+                        if (avgTotalScore !== null) {
+                            if (avgTotalScore >= 75) {
+                                status = 'Passed';
+                                statusClass = 'bg-success';
+                                statusValue = 0;
+                            } else if (avgTotalScore < 75) {
+                                status = 'Failed';
+                                statusClass = 'bg-danger';
+                                statusValue = 1;
+                            }
+                        }
+                        
+                        // Score display helpers
+                        const getScoreClass = (score) => {
+                            if (!score) return 'text-muted';
+                            const val = parseFloat(score);
+                            return val >= 75 ? 'text-success' : val >= 60 ? 'text-warning' : 'text-danger';
+                        };
+                        
+                        const groupScoreClass = getScoreClass(avgGroupScore);
+                        const soloScoreClass = getScoreClass(avgSoloScore);
+                        const totalScoreClass = getScoreClass(avgTotalScore);
+                        
+                        const groupScoreDisplay = avgGroupScore !== null ? `<strong>${avgGroupScore}</strong>` : '-';
+                        const soloScoreDisplay = avgSoloScore !== null ? `<strong>${avgSoloScore}</strong>` : '-';
+                        const totalScoreDisplay = avgTotalScore !== null ? `<strong>${avgTotalScore}</strong>` : '-';
+                        
+                        // Build panelist details for modal (keep for detailed view)
+                        let panelistDetailsHTML = '';
+                        if (student.panelist_grades && student.panelist_grades.length > 0) {
+                            student.panelist_grades.forEach(grade => {
+                                if (grade.total_score !== null) {
+                                    const gradeValue = parseFloat(grade.total_score).toFixed(2);
+                                    const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
+                                    panelistDetailsHTML += `${grade.panelist_name}: <span class="${gradeClass}">${gradeValue}</span> (G:${grade.group_score || 'N/A'} I:${grade.solo_score || 'N/A'}); `;
+                                } else {
+                                    panelistDetailsHTML += `${grade.panelist_name}: <span class="text-muted">No grade</span>; `;
+                                }
+                            });
+                        }
+                        
+                        content += `
+                            <tr class="class-record-row" 
+                                data-student-number="${student.student_number || ''}" 
+                                data-last-name="${student.last_name}" 
+                                data-first-name="${student.first_name}"
+                                data-team-name="${student.team_name}" 
+                                data-research-title="${student.research_title || 'No title'}"
+                                data-group-score="${avgGroupScore || 0}"
+                                data-solo-score="${avgSoloScore || 0}"
+                                data-total-score="${avgTotalScore || 0}" 
+                                data-status="${statusValue}"
+                                data-status-text="${status}"
+                                data-status-class="${statusClass}"
+                                data-panelist-details="${panelistDetailsHTML.replace(/"/g, '&quot;')}"
+                                style="cursor: pointer;">
+                                <td class="d-none d-md-table-cell"><small class="text-muted">${student.student_number || 'N/A'}</small></td>
+                                <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                <td class="d-none d-lg-table-cell"><small class="text-muted">${student.team_name}</small></td>
+                                <td class="text-center ${groupScoreClass}">${groupScoreDisplay}</td>
+                                <td class="text-center ${soloScoreClass}">${soloScoreDisplay}</td>
+                                <td class="text-center ${totalScoreClass}">${totalScoreDisplay}</td>
+                                <td class="text-center">
+                                    <span class="badge ${statusClass}">${status}</span>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                    
+                    content += `
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center flex-wrap mt-2" id="classRecordPagination"></ul>
+                        </nav>
+                    `;
+                    
+                    // Build pagination after rendering content
+                    setTimeout(() => {
+                        const pagination = document.querySelector('#classRecordPagination');
+                        if (pagination && totalPages > 0) {
+                            pagination.innerHTML = '';
+                            pagination.innerHTML += `
+                                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
+                                </li>
+                            `;
+                            for (let i = 1; i <= totalPages; i++) {
+                                pagination.innerHTML += `
+                                    <li class="page-item ${page === i ? 'active' : ''}">
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                    </li>
+                                `;
+                            }
+                            pagination.innerHTML += `
+                                <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
+                                </li>
+                            `;
+                        }
+                    }, 0);
                 }
                 
                 classRecordContent.innerHTML = content;
@@ -589,6 +865,7 @@ function loadClassRecord() {
             `;
         });
 }
+
 <?php endif; ?>
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -642,7 +919,147 @@ document.addEventListener("DOMContentLoaded", function() {
     const classRecordLink = document.getElementById('class-record-link');
     if (classRecordLink) {
         classRecordLink.addEventListener('click', function() {
-            loadClassRecord();
+            loadClassRecord(1);
+        });
+    }
+    
+    // Add event listener for view toggle
+    const classRecordViewSelect = document.getElementById('classRecordViewSelect');
+    if (classRecordViewSelect) {
+        classRecordViewSelect.addEventListener('change', function() {
+            loadClassRecord(1);
+        });
+    }
+    
+    // Add event listener for sort dropdown
+    const classRecordSortSelect = document.getElementById('classRecordSortSelect');
+    if (classRecordSortSelect) {
+        classRecordSortSelect.addEventListener('change', function() {
+            loadClassRecord(1);
+        });
+    }
+    
+    // Add event listener for pagination clicks
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#classRecordPagination a.page-link')) {
+            e.preventDefault();
+            const pageLink = e.target.closest('a.page-link');
+            const page = parseInt(pageLink.getAttribute('data-page'));
+            if (!isNaN(page) && page > 0) {
+                loadClassRecord(page);
+            }
+        }
+        
+        // Handle student row click in Class View
+        if (e.target.closest('.class-record-row')) {
+            const row = e.target.closest('.class-record-row');
+            showStudentDetailsModal(row);
+        }
+    });
+    
+    // Function to show student details modal
+    function showStudentDetailsModal(row) {
+        const studentNumber = row.getAttribute('data-student-number');
+        const lastName = row.getAttribute('data-last-name');
+        const firstName = row.getAttribute('data-first-name');
+        const teamName = row.getAttribute('data-team-name');
+        const researchTitle = row.getAttribute('data-research-title');
+        const groupScore = row.getAttribute('data-group-score');
+        const soloScore = row.getAttribute('data-solo-score');
+        const totalScore = row.getAttribute('data-total-score');
+        const statusText = row.getAttribute('data-status-text');
+        const statusClass = row.getAttribute('data-status-class');
+        const panelistDetails = row.getAttribute('data-panelist-details');
+        
+        // Score display helpers
+        const getScoreDisplay = (score, label) => {
+            const scoreFloat = parseFloat(score);
+            if (scoreFloat > 0) {
+                const scoreClass = scoreFloat >= 75 ? 'text-success' : scoreFloat >= 60 ? 'text-warning' : 'text-danger';
+                return `<strong class="${scoreClass}">${scoreFloat.toFixed(2)}</strong>`;
+            }
+            return '<span class="text-muted">No grade yet</span>';
+        };
+        
+        const modalHTML = `
+            <div class="modal fade" id="studentDetailsModal" tabindex="-1" aria-labelledby="studentDetailsModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h5 class="modal-title" id="studentDetailsModalLabel">
+                                <i class="bi bi-person-circle me-2"></i>Student Details
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="student-details-card">
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Student No.:</div>
+                                    <div class="col-8">${studentNumber || 'N/A'}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Name:</div>
+                                    <div class="col-8"><strong>${lastName}, ${firstName}</strong></div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Team:</div>
+                                    <div class="col-8">${teamName}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Research Title:</div>
+                                    <div class="col-8"><em>${researchTitle}</em></div>
+                                </div>
+                                <hr>
+                                <h6 class="mb-3"><i class="bi bi-clipboard-data me-2"></i>Evaluation Scores</h6>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Group Score:</div>
+                                    <div class="col-8">${getScoreDisplay(groupScore, 'Group')}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Individual Score:</div>
+                                    <div class="col-8">${getScoreDisplay(soloScore, 'Individual')}</div>
+                                </div>
+                                <div class="row mb-3">
+                                    <div class="col-4 fw-semibold text-muted">Total Score:</div>
+                                    <div class="col-8">${getScoreDisplay(totalScore, 'Total')}</div>
+                                </div>
+                                <div class="row mb-0">
+                                    <div class="col-4 fw-semibold text-muted">Status:</div>
+                                    <div class="col-8"><span class="badge ${statusClass}">${statusText}</span></div>
+                                </div>
+                                ${panelistDetails ? `
+                                    <hr>
+                                    <h6 class="mb-3"><i class="bi bi-people me-2"></i>Panelist Breakdown</h6>
+                                    <div class="row mb-0">
+                                        <div class="col-12"><small>${panelistDetails}</small></div>
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        // Remove existing modal if any
+        const existingModal = document.getElementById('studentDetailsModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+        
+        // Append new modal to body
+        document.body.insertAdjacentHTML('beforeend', modalHTML);
+        
+        // Show modal
+        const modal = new bootstrap.Modal(document.getElementById('studentDetailsModal'));
+        modal.show();
+        
+        // Remove modal from DOM after it's hidden
+        document.getElementById('studentDetailsModal').addEventListener('hidden.bs.modal', function() {
+            this.remove();
         });
     }
     <?php endif; ?>
@@ -655,7 +1072,7 @@ document.addEventListener("DOMContentLoaded", function() {
     // Load class record on page load if that tab is active
     <?php if ($_SESSION['usertype'] == 2): ?>
     if (activeTab === "class-record") {
-        loadClassRecord();
+        loadClassRecord(1);
     }
     <?php endif; ?>
 
@@ -1511,6 +1928,37 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <div class="col-12">
                                         <h3 class="mb-2">Class Record</h3>
                                         <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                    </div>
+                                </div>
+                                
+                                <!-- Class Record Controls -->
+                                <div class="row">
+                                    <div class="col-12">
+                                        <div class="user-controls-container p-0 mt-3 mb-3">
+                                            <div class="row g-2 align-items-end">
+                                                <div class="col-12 col-md-3 col-lg-2">
+                                                    <!-- View Toggle Dropdown -->
+                                                    <select class="form-select user-control-height" id="classRecordViewSelect">
+                                                        <option value="team">Team View</option>
+                                                        <option value="class">Class View</option>
+                                                    </select>
+                                                </div>
+                                                
+                                                <div class="col-12 col-md-4 col-lg-3" id="classRecordSortContainer" style="display: none;">
+                                                    <!-- Sort Dropdown (only for Class View) -->
+                                                    <select class="form-select user-control-height" id="classRecordSortSelect">
+                                                        <option value="last_name:asc">Last Name (A-Z)</option>
+                                                        <option value="last_name:desc">Last Name (Z-A)</option>
+                                                        <option value="team_name:asc">Team (A-Z)</option>
+                                                        <option value="team_name:desc">Team (Z-A)</option>
+                                                        <option value="total_score:desc">Total Score (High to Low)</option>
+                                                        <option value="total_score:asc">Total Score (Low to High)</option>
+                                                        <option value="status:asc">Status (Passed First)</option>
+                                                        <option value="status:desc">Status (Failed First)</option>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 

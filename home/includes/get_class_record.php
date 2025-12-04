@@ -22,18 +22,27 @@ try {
         exit;
     }
     
-    // Fetch students with their evaluation scores grouped by section
+    // Fetch students with their evaluation scores grouped by section and team
     $placeholders = implode(',', array_fill(0, count($accessibleSections), '?'));
     
     $query = "
         SELECT 
             u.id,
+            u.username as student_number,
             u.first_name,
             u.last_name,
             u.section,
             t.id as team_id,
             t.name as team_name,
             rt.title as research_title,
+            -- Get latest defense schedule
+            (
+                SELECT ds.id
+                FROM defense_schedules ds
+                WHERE ds.team_id = t.id
+                ORDER BY ds.schedule_date DESC
+                LIMIT 1
+            ) as latest_defense_id,
             -- Get average score from evaluations
             (
                 SELECT AVG(ep.total_score)
@@ -62,21 +71,77 @@ try {
         LEFT JOIN research_titles rt ON t.id = rt.team_id
         WHERE u.usertype = 1 
         AND u.section IN ($placeholders)
-        ORDER BY u.section ASC, u.last_name ASC, u.first_name ASC
+        ORDER BY u.section ASC, t.name ASC, u.last_name ASC, u.first_name ASC
     ";
     
     $stmt = $pdo->prepare($query);
     $stmt->execute($accessibleSections);
     $students = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Group students by section
+    // Get panelist grades and average scores (group, individual, total) for each student
+    foreach ($students as &$student) {
+        if ($student['latest_defense_id']) {
+            $gradeQuery = "
+                SELECT 
+                    ep.evaluator_id,
+                    ep.group_score,
+                    ep.solo_score,
+                    ep.total_score,
+                    CONCAT(u.first_name, ' ', u.last_name) as panelist_name
+                FROM evaluation_per_panel ep
+                JOIN users u ON ep.evaluator_id = u.id
+                WHERE ep.defense_schedule_id = ? AND ep.student_id = ?
+                ORDER BY ep.evaluator_id ASC
+            ";
+            $gradeStmt = $pdo->prepare($gradeQuery);
+            $gradeStmt->execute([$student['latest_defense_id'], $student['id']]);
+            $student['panelist_grades'] = $gradeStmt->fetchAll(PDO::FETCH_ASSOC);
+            
+            // Calculate average group_score, solo_score, and total_score
+            if (!empty($student['panelist_grades'])) {
+                $groupScores = array_filter(array_column($student['panelist_grades'], 'group_score'), function($val) {
+                    return $val !== null;
+                });
+                $soloScores = array_filter(array_column($student['panelist_grades'], 'solo_score'), function($val) {
+                    return $val !== null;
+                });
+                $totalScores = array_filter(array_column($student['panelist_grades'], 'total_score'), function($val) {
+                    return $val !== null;
+                });
+                
+                $student['avg_group_score'] = !empty($groupScores) ? round(array_sum($groupScores) / count($groupScores), 2) : null;
+                $student['avg_solo_score'] = !empty($soloScores) ? round(array_sum($soloScores) / count($soloScores), 2) : null;
+                $student['avg_total_score'] = !empty($totalScores) ? round(array_sum($totalScores) / count($totalScores), 2) : null;
+            } else {
+                $student['avg_group_score'] = null;
+                $student['avg_solo_score'] = null;
+                $student['avg_total_score'] = null;
+            }
+        } else {
+            $student['panelist_grades'] = [];
+            $student['avg_group_score'] = null;
+            $student['avg_solo_score'] = null;
+            $student['avg_total_score'] = null;
+        }
+    }
+    
+    // Group students by section and then by team
     $recordsBySection = [];
     foreach ($students as $student) {
         $section = $student['section'] ?: 'No Section';
+        $teamId = $student['team_id'] ?: 'no_team';
+        
         if (!isset($recordsBySection[$section])) {
             $recordsBySection[$section] = [];
         }
-        $recordsBySection[$section][] = $student;
+        if (!isset($recordsBySection[$section][$teamId])) {
+            $recordsBySection[$section][$teamId] = [
+                'team_name' => $student['team_name'] ?: 'No Team',
+                'research_title' => $student['research_title'] ?: 'No Title',
+                'students' => []
+            ];
+        }
+        $recordsBySection[$section][$teamId]['students'][] = $student;
     }
     
     // Sort sections alphabetically
