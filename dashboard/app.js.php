@@ -1753,6 +1753,18 @@
 
             console.log('Main app: Edit button clicked. Table:', table, 'ID:', id);
 
+            // Skip if this is a view-team-details button (evaluations tab)
+            if ($(this).hasClass('view-team-details')) {
+                console.log('Main app: Skipping - evaluation view button has its own handler');
+                return;
+            }
+
+            // Check if table and id are defined
+            if (!table || !id) {
+                console.log('Main app: Skipping - no table or id specified');
+                return;
+            }
+
             // Special handling for rubrics
             if (table === 'rubrics') {
                 console.log('Main app: Delegating rubric edit to rubrics_tab.php handler');

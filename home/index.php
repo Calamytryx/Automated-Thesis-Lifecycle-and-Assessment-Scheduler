@@ -923,13 +923,15 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <i class="bi bi-list-check me-2 filled"></i>
                                         <span class="nav-text">Requirement Checker</span>
                                     </a>
+                                    <?php if ($_SESSION['usertype'] != 0): // Hide evaluations for admins - they use dashboard ?>
                                     <a class="nav-link" id="research-evaluation-link" data-bs-toggle="pill"
                                         href="#research-evaluation" role="tab" aria-controls="research-evaluation"
                                         aria-selected="false">
                                         <i class="bi bi-chat-dots me-2 hollow"></i>
                                         <i class="bi bi-chat-dots-fill me-2 filled"></i>
-                                        <span class="nav-text">Research Evaluation</span>
+                                        <span class="nav-text">Team Evaluations</span>
                                     </a>
+                                    <?php endif; ?>
                                     <?php if ($_SESSION['usertype'] == 2): ?>
                                     <a class="nav-link" id="class-record-link" data-bs-toggle="pill"
                                         href="#class-record" role="tab" aria-controls="class-record"
@@ -1441,172 +1443,62 @@ document.addEventListener("DOMContentLoaded", function() {
                         <div class="tab-pane fade" id="research-evaluation" role="tabpanel"
                             aria-labelledby="research-evaluation-link">
                             <div class="home-sidebar-box">
-                                <div class="d-flex align-items-center mb-4">
-                                    <!-- <div class="feature-icon bg-primary bg-opacity-10 p-3 rounded-circle me-3">
-                                <i class="fas fa-comments text-primary fs-4"></i>
-                            </div> -->
+                                <div class="d-flex align-items-center justify-content-between mb-4">
                                     <div>
-                                        <h4 class="mb-1 feature-title">Research Evaluation Comments</h4>
-                                        <p class="text-muted mb-0">View evaluation feedback and comments from panelists
+                                        <h4 class="mb-1 feature-title">Team Evaluations</h4>
+                                        <p class="text-muted mb-0" id="evaluations-subtitle">
+                                            <?php 
+                                            if ($_SESSION['usertype'] == 1) {
+                                                echo "View your team's evaluation results and feedback";
+                                            } elseif ($_SESSION['usertype'] == 2) {
+                                                echo "View evaluations for teams you advise or evaluated as panelist";
+                                            }
+                                            ?>
                                         </p>
                                     </div>
                                 </div>
 
-                                <div class="table-responsive">
-                                    <table class="table table-hover table-sm research-evaluation-table"
-                                        id="researchEvaluationTable">
-                                        <thead>
-                                            <tr>
-                                                <th class="d-none d-lg-table-cell">Team Name</th>
-                                                <th class="d-table-cell d-lg-none">Evaluation</th>
-                                                <th class="d-none d-lg-table-cell">Research Title</th>
-                                                <?php if ($_SESSION['usertype'] != 1): ?>
-                                                <th class="d-none d-md-table-cell">Student Name</th>
-                                                <?php endif; ?>
-                                                <th class="d-none d-sm-table-cell">Evaluator</th>
-                                                <th class="d-none d-lg-table-cell">Comments</th>
-                                                <th class="d-none d-sm-table-cell">Score</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            <?php
-                                    if ($_SESSION['usertype'] == 1) { // Student
-                                        $query = "SELECT 
-                                            t.name AS team_name,
-                                            rt.title AS research_title,
-                                            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
-                                            ep.comments,
-                                            ep.total_score
-                                        FROM evaluation_per_panel ep
-                                        JOIN users e ON ep.evaluator_id = e.id
-                                        JOIN users s ON ep.student_id = s.id
-                                        JOIN team_members tm ON tm.user_id = s.id
-                                        JOIN teams t ON tm.team_id = t.id
-                                        JOIN research_titles rt ON t.id = rt.team_id
-                                        WHERE s.id = ? AND ep.created_at <= NOW() - INTERVAL 7 DAY
-                                        ORDER BY ep.created_at DESC";
-                                        
-                                        $stmt = $pdo->prepare($query);
-                                        $stmt->execute([$_SESSION['id']]);
-                                        $results = $stmt->fetchAll();
+                                <!-- Loading State -->
+                                <div id="evaluations-loading" class="text-center py-5">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                    <p class="mt-3 text-muted">Loading evaluations...</p>
+                                </div>
 
-                                        if (empty($results)) {
-                                            echo "<td>Please wait until 1 week after the defense to view your evaluation scores.</td>";
-                                        } 
-                                    } elseif ($_SESSION['usertype'] == 2) { // Faculty (Adviser/Panelist)
-                                        $query = "SELECT 
-                                            t.name AS team_name,
-                                            rt.title AS research_title,
-                                            CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-                                            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
-                                            ep.comments,
-                                            ep.total_score
-                                        FROM evaluation_per_panel ep
-                                        JOIN users s ON ep.student_id = s.id
-                                        JOIN team_members tm_s ON tm_s.user_id = s.id
-                                        JOIN teams t ON tm_s.team_id = t.id
-                                        JOIN research_titles rt ON t.id = rt.team_id
-                                        JOIN users e ON ep.evaluator_id = e.id
-                                        LEFT JOIN team_members tm_f ON t.id = tm_f.team_id AND tm_f.user_id = ?
-                                        WHERE ep.evaluator_id = ? OR (tm_f.role = 'Adviser' AND tm_f.user_id = ?)
-                                        ORDER BY ep.created_at DESC";
+                                <!-- Table Container -->
+                                <div id="evaluations-content" style="display: none;">
+                                    <div class="table-responsive">
+                                        <table class="table db-table" id="evaluationsTable">
+                                            <thead>
+                                                <tr>
+                                                    <th>Team Name</th>
+                                                    <th class="d-none d-md-table-cell">Research Title</th>
+                                                    <th class="d-none d-lg-table-cell">Program</th>
+                                                    <th class="d-none d-md-table-cell">Adviser</th>
+                                                    <th class="text-center">Evaluations</th>
+                                                    <th class="text-center d-none d-sm-table-cell">Avg Score</th>
+                                                    <th class="text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody id="evaluations-table-body">
+                                                <!-- Populated via JavaScript -->
+                                            </tbody>
+                                        </table>
+                                    </div>
 
-                                        $stmt = $pdo->prepare($query);
-                                        $stmt->execute([$_SESSION['id'], $_SESSION['id'], $_SESSION['id']]);
+                                    <!-- Pagination -->
+                                    <nav aria-label="Evaluations pagination" id="evaluations-pagination-container">
+                                        <ul class="pagination justify-content-center" id="evaluations-pagination">
+                                            <!-- Populated via JavaScript -->
+                                        </ul>
+                                    </nav>
+                                </div>
 
-                                    } else { // Admin or Program Chair
-                                        if ($_SESSION['id'] == 0) {
-                                            // Super Admin sees all
-                                            $query = "SELECT 
-                                                t.name AS team_name,
-                                                rt.title AS research_title,
-                                                CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-                                                CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
-                                                ep.comments,
-                                                ep.total_score
-                                            FROM evaluation_per_panel ep
-                                            JOIN users s ON ep.student_id = s.id
-                                            JOIN team_members tm ON tm.user_id = s.id
-                                            JOIN teams t ON tm.team_id = t.id
-                                            JOIN research_titles rt ON t.id = rt.team_id
-                                            JOIN users e ON ep.evaluator_id = e.id
-                                            ORDER BY ep.created_at DESC";
-
-                                            $stmt = $pdo->prepare($query);
-                                            $stmt->execute();
-                                        } else {
-                                            // Program Chair sees evaluations only from their college
-                                            require_once '../assets/includes/auth_functions.php';
-                                            $userCollege = get_user_college($pdo, $_SESSION['id']);
-
-                                            if ($userCollege) {
-                                                $query = "SELECT 
-                                                    t.name AS team_name,
-                                                    rt.title AS research_title,
-                                                    CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-                                                    CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
-                                                    ep.comments,
-                                                    ep.total_score
-                                                FROM evaluation_per_panel ep
-                                                JOIN users s ON ep.student_id = s.id
-                                                JOIN team_members tm ON tm.user_id = s.id
-                                                JOIN teams t ON tm.team_id = t.id
-                                                JOIN research_titles rt ON t.id = rt.team_id
-                                                JOIN users e ON ep.evaluator_id = e.id
-                                                JOIN programs p ON t.program COLLATE utf8mb4_general_ci = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) COLLATE utf8mb4_general_ci
-                                                WHERE p.college = ?
-                                                ORDER BY ep.created_at DESC";
-
-                                                $stmt = $pdo->prepare($query);
-                                                $stmt->execute([$userCollege]);
-                                            } else {
-                                                // No college info
-                                                $stmt = $pdo->prepare("SELECT NULL AS team_name, NULL AS research_title, NULL AS student_name, NULL AS evaluator_name, NULL AS comments, NULL AS total_score WHERE 1=0");
-                                                $stmt->execute();
-                                            }
-                                        }
-                                    }
-                                    
-                                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)):
-                                    ?>
-                                            <tr class="evaluation-row"
-                                                data-team="<?php echo htmlspecialchars($row['team_name']); ?>"
-                                                data-title="<?php echo htmlspecialchars($row['research_title']); ?>"
-                                                <?php if ($_SESSION['usertype'] != 1): ?>
-                                                data-student="<?php echo htmlspecialchars($row['student_name']); ?>"
-                                                <?php endif; ?>
-                                                data-evaluator="<?php echo htmlspecialchars($row['evaluator_name']); ?>"
-                                                data-comments="<?php echo htmlspecialchars($row['comments']); ?>"
-                                                data-score="<?php echo htmlspecialchars($row['total_score']); ?>">
-
-                                                <td class="d-none d-lg-table-cell">
-                                                    <?php echo htmlspecialchars($row['team_name']); ?></td>
-                                                <td class="d-table-cell d-lg-none">
-                                                    <div class="mobile-evaluation-info">
-                                                        <strong
-                                                            class="d-block"><?php echo htmlspecialchars($row['team_name']); ?></strong>
-                                                        <small
-                                                            class="text-muted"><?php echo htmlspecialchars($row['evaluator_name']); ?></small>
-                                                        <br><small class="text-muted">Score:
-                                                            <?php echo htmlspecialchars($row['total_score']); ?></small>
-                                                    </div>
-                                                </td>
-                                                <td class="d-none d-lg-table-cell">
-                                                    <?php echo htmlspecialchars($row['research_title']); ?></td>
-                                                <?php if ($_SESSION['usertype'] != 1): ?>
-                                                <td class="d-none d-md-table-cell">
-                                                    <?php echo htmlspecialchars($row['student_name']); ?></td>
-                                                <?php endif; ?>
-                                                <td class="d-none d-sm-table-cell">
-                                                    <?php echo htmlspecialchars($row['evaluator_name']); ?></td>
-                                                <td class="d-none d-lg-table-cell">
-                                                    <?php echo nl2br(htmlspecialchars($row['comments'])); ?></td>
-                                                <td class="d-none d-sm-table-cell">
-                                                    <?php echo htmlspecialchars($row['total_score']); ?></td>
-                                            </tr>
-                                            <?php endwhile; ?>
-                                        </tbody>
-                                    </table>
+                                <!-- Empty State -->
+                                <div id="evaluations-empty" class="text-center py-5" style="display: none;">
+                                    <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
+                                    <p class="text-muted mb-0">No evaluations available yet.</p>
                                 </div>
                             </div>
                         </div>
@@ -2898,6 +2790,331 @@ function redirectToDecisionSupport(scheduleId, viewOnly = false) {
     
     console.log(`Redirecting to: ${url}`);
     window.location.href = url;
+}
+
+// ==========================================
+// EVALUATIONS TAB FUNCTIONALITY
+// ==========================================
+let currentEvaluationsPage = 1;
+
+// Load evaluations when tab is clicked
+$(document).on('click', '#research-evaluation-link', function() {
+    loadEvaluations(1);
+});
+
+// Also check if evaluations tab is active on page load (e.g., after refresh)
+$(document).ready(function() {
+    // Check if evaluations tab is active (either by hash or Bootstrap tab state)
+    const hash = window.location.hash;
+    const isEvaluationsTabActive = hash === '#research-evaluation' || 
+                                   $('#research-evaluation-link').hasClass('active') ||
+                                   $('#research-evaluation').hasClass('show active');
+    
+    if (isEvaluationsTabActive) {
+        loadEvaluations(1);
+    }
+});
+
+function loadEvaluations(page = 1) {
+    currentEvaluationsPage = page;
+    
+    $('#evaluations-loading').show();
+    $('#evaluations-content').hide();
+    $('#evaluations-empty').hide();
+
+    $.ajax({
+        url: 'includes/tabs/get_evaluations.php',
+        method: 'GET',
+        data: { page: page },
+        dataType: 'json',
+        success: function(response) {
+            $('#evaluations-loading').hide();
+            
+            if (response.error) {
+                showToast('Error', response.error, 'error');
+                $('#evaluations-empty').show();
+                return;
+            }
+
+            if (!response.data || response.data.length === 0) {
+                $('#evaluations-empty').show();
+                return;
+            }
+
+            renderEvaluationsTable(response.data, response.usertype);
+            renderEvaluationsPagination(response.page, response.total_pages);
+            $('#evaluations-content').show();
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading evaluations:', error);
+            $('#evaluations-loading').hide();
+            $('#evaluations-empty').show();
+            showToast('Error', 'Failed to load evaluations', 'error');
+        }
+    });
+}
+
+function renderEvaluationsTable(data, usertype) {
+    const tbody = $('#evaluations-table-body');
+    tbody.empty();
+
+    data.forEach(function(team) {
+        const evalCount = team.evaluation_count || 0;
+        const avgScore = team.avg_total_score ? parseFloat(team.avg_total_score).toFixed(2) : 'N/A';
+        const adviserCol = `<td class="d-none d-md-table-cell">${team.adviser || 'No adviser'}</td>`;
+        const researchTitle = team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>';
+        
+        const row = `
+            <tr class="evaluation-team-row" data-team-id="${team.team_id}">
+                <td>
+                    <strong>${escapeHtml(team.team_name)}</strong>
+                    ${team.role ? `<span class="badge bg-info ms-2">${team.role}</span>` : ''}
+                    <small class="d-block d-md-none text-muted">${researchTitle}</small>
+                </td>
+                <td class="d-none d-md-table-cell">${researchTitle}</td>
+                <td class="d-none d-lg-table-cell">
+                    <small>${escapeHtml(team.program)}</small>
+                </td>
+                ${adviserCol}
+                <td class="text-center">
+                    <span class="badge bg-primary">${evalCount}</span>
+                </td>
+                <td class="text-center d-none d-sm-table-cell">
+                    ${avgScore !== 'N/A' ? `<strong>${avgScore}</strong>` : '<em class="text-muted">N/A</em>'}
+                </td>
+                <td class="text-center">
+                    <button class="btn btn-sm edit-btn view-eval-details" data-team-id="${team.team_id}">
+                        <i class="fas fa-eye"></i><span class="d-none d-sm-inline"> View</span>
+                    </button>
+                </td>
+            </tr>
+        `;
+        tbody.append(row);
+    });
+}
+
+function renderEvaluationsPagination(currentPage, totalPages) {
+    const pagination = $('#evaluations-pagination');
+    pagination.empty();
+
+    if (totalPages <= 1) return;
+
+    // Previous button
+    const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+    pagination.append(`
+        <li class="page-item ${prevDisabled}">
+            <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
+        </li>
+    `);
+
+    // Page numbers
+    const maxPages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+    let endPage = Math.min(totalPages, startPage + maxPages - 1);
+
+    if (endPage === totalPages) {
+        startPage = Math.max(1, endPage - maxPages + 1);
+    }
+
+    if (startPage > 1) {
+        pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+        if (startPage > 2) {
+            pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+        }
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+        const active = i === currentPage ? 'active' : '';
+        pagination.append(`
+            <li class="page-item ${active}">
+                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            </li>
+        `);
+    }
+
+    if (endPage < totalPages) {
+        if (endPage < totalPages - 1) {
+            pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+        }
+        pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+    }
+
+    // Next button
+    const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+    pagination.append(`
+        <li class="page-item ${nextDisabled}">
+            <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
+        </li>
+    `);
+}
+
+// Handle pagination clicks
+$(document).on('click', '#evaluations-pagination a.page-link', function(e) {
+    e.preventDefault();
+    const page = parseInt($(this).data('page'));
+    if (page && page > 0) {
+        loadEvaluations(page);
+    }
+});
+
+// Handle view details button
+$(document).on('click', '.view-eval-details', function() {
+    const teamId = $(this).data('team-id');
+    showEvaluationDetails(teamId);
+});
+
+function showEvaluationDetails(teamId) {
+    // Create and show modal
+    const modalHtml = `
+        <div class="modal fade" id="evaluationDetailsModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-xl modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">
+                            <i class="fas fa-chart-bar me-2"></i>Team Evaluation Details
+                        </h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body" id="evaluationDetailsBody">
+                        <div class="text-center py-5">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <p class="mt-3">Loading evaluation details...</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    `;
+
+    // Remove existing modal if any
+    $('#evaluationDetailsModal').remove();
+    $('body').append(modalHtml);
+    
+    const modal = new bootstrap.Modal(document.getElementById('evaluationDetailsModal'));
+    modal.show();
+
+    // Load details
+    $.ajax({
+        url: 'includes/tabs/get_evaluation_details.php',
+        method: 'GET',
+        data: { team_id: teamId },
+        dataType: 'json',
+        success: function(response) {
+            if (response.error) {
+                $('#evaluationDetailsBody').html(`
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-circle me-2"></i>${response.error}
+                    </div>
+                `);
+                return;
+            }
+
+            renderEvaluationDetails(response);
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading evaluation details:', error);
+            $('#evaluationDetailsBody').html(`
+                <div class="alert alert-danger">
+                    <i class="fas fa-exclamation-circle me-2"></i>Failed to load evaluation details
+                </div>
+            `);
+        }
+    });
+}
+
+function renderEvaluationDetails(data) {
+    const team = data.team_info;
+    const evaluations = data.evaluations;
+    const members = data.members;
+    
+    let detailsHtml = `
+        <div class="mb-4">
+            <h5 class="border-bottom pb-2">${escapeHtml(team.team_name)}</h5>
+            <p class="mb-1"><strong>Research Title:</strong> ${team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>'}</p>
+            <p class="mb-1"><strong>Program:</strong> ${escapeHtml(team.program)}</p>
+            <p class="mb-0"><strong>Adviser:</strong> ${team.adviser || '<em class="text-muted">No adviser</em>'}</p>
+        </div>
+
+        <div class="mb-4">
+            <h6 class="text-primary">Team Members</h6>
+            <div class="row">
+    `;
+
+    members.forEach(member => {
+        const badgeClass = member.role === 'Adviser' ? 'bg-success' : (member.role === 'Leader' ? 'bg-primary' : 'bg-secondary');
+        detailsHtml += `
+            <div class="col-md-4 mb-2">
+                <span class="badge ${badgeClass} me-2">${member.role}</span>
+                ${escapeHtml(member.name)}
+            </div>
+        `;
+    });
+
+    detailsHtml += `
+            </div>
+        </div>
+
+        <h6 class="text-primary mb-3">Evaluation Records</h6>
+    `;
+
+    if (evaluations.length === 0) {
+        detailsHtml += `
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle me-2"></i>No evaluations recorded yet for this team.
+            </div>
+        `;
+    } else {
+        detailsHtml += `
+            <div class="table-responsive">
+                <table class="table table-sm table-hover">
+                    <thead>
+                        <tr>
+                            <th>Evaluator</th>
+                            <th>Student</th>
+                            <th class="text-center">Group Score</th>
+                            <th class="text-center">Individual Score</th>
+                            <th class="text-center">Total Score</th>
+                            <th>Comments</th>
+                            <th>Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+        `;
+
+        evaluations.forEach(eval => {
+            detailsHtml += `
+                <tr>
+                    <td>${escapeHtml(eval.evaluator_name)}</td>
+                    <td>${escapeHtml(eval.student_name)}</td>
+                    <td class="text-center">${eval.group_score !== null ? eval.group_score : 'N/A'}</td>
+                    <td class="text-center">${eval.solo_score !== null ? eval.solo_score : 'N/A'}</td>
+                    <td class="text-center"><strong>${eval.total_score !== null ? eval.total_score : 'N/A'}</strong></td>
+                    <td><small>${eval.comments ? escapeHtml(eval.comments) : '<em class="text-muted">No comments</em>'}</small></td>
+                    <td><small>${eval.schedule_date ? new Date(eval.schedule_date).toLocaleDateString() : 'N/A'}</small></td>
+                </tr>
+            `;
+        });
+
+        detailsHtml += `
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+
+    $('#evaluationDetailsBody').html(detailsHtml);
+}
+
+function escapeHtml(text) {
+    if (!text) return '';
+    const map = {
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#039;'
+    };
+    return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
 
 // Defense Approval Modal System
