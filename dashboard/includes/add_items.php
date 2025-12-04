@@ -296,13 +296,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (($data['rubric_type'] === 'numerical' || $data['rubric_type'] === 'yesno') && isset($data['criteria'])) {
                 $criteria = json_decode($data['criteria'], true);
                 if (json_last_error() === JSON_ERROR_NONE && is_array($criteria)) {
-                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index, is_individual, max_score, min_score)
-                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index, :is_individual, :max_score, :min_score)";
+                    $criteriaSql = "INSERT INTO rubric_criteria (rubric_id, criterion_text, criterion_detail, order_index, is_individual, max_score, min_score, is_blank)
+                                    VALUES (:rubric_id, :criterion_text, :criterion_detail, :order_index, :is_individual, :max_score, :min_score, :is_blank)";
                     $stmtCriteria = $pdo->prepare($criteriaSql);
 
                     foreach ($criteria as $criterion) {
                         // Determine if the criterion is individual (only applicable for numerical rubrics)
                         $criterion_is_individual = ($data['rubric_type'] === 'numerical' && $is_individual_enabled && isset($criterion['is_individual']) && $criterion['is_individual'] == '1') ? 1 : 0;
+                        
+                        // Determine if this is a blank/section header criterion
+                        $criterion_is_blank = isset($criterion['is_blank']) && $criterion['is_blank'] == 1 ? 1 : 0;
 
                         // Sanitize criterion fields
                         $criterionText = sanitize_html_input($criterion['criterion_text'] ?? 'Unnamed Criterion');
@@ -380,7 +383,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             ':order_index' => $criterion['order_index'] ?? 0,
                             ':is_individual' => $criterion_is_individual, // Store flag conditionally
                             ':max_score' => $maxScore, // Store max score for individual criteria
-                            ':min_score' => $minScore // Store min score for individual criteria
+                            ':min_score' => $minScore, // Store min score for individual criteria
+                            ':is_blank' => $criterion_is_blank // Store blank/section header flag
                         ]);
                     }
                     error_log("Inserted " . count($criteria) . " rows into rubric_criteria.");

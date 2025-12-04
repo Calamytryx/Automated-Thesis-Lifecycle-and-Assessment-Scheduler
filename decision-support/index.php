@@ -331,6 +331,14 @@ try {
         ");
         $stmt_rubrics->execute($rubric_ids);
         $rubrics_main = $stmt_rubrics->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Debug: Log which rubrics were fetched vs requested
+        $fetched_ids = array_column($rubrics_main, 'id');
+        $missing_ids = array_diff($rubric_ids, $fetched_ids);
+        if (!empty($missing_ids)) {
+            error_log("DS-Index: WARNING - Some rubrics not fetched (possibly inactive): " . implode(', ', $missing_ids));
+        }
+        error_log("DS-Index: Fetched " . count($rubrics_main) . " active rubrics: " . implode(', ', array_map(function($r) { return "ID {$r['id']} ({$r['name']})"; }, $rubrics_main)));
 
         $stmt_levels = $pdo->prepare("
         SELECT rubric_id, id, level_index, name, description, points_min, points_max, is_range
@@ -342,7 +350,7 @@ try {
         $levels_all = $stmt_levels->fetchAll(PDO::FETCH_ASSOC | PDO::FETCH_GROUP);
 
         $stmt_criteria = $pdo->prepare("
-        SELECT rubric_id, id, criterion_text, criterion_detail, order_index, is_individual, min_score, max_score
+        SELECT rubric_id, id, criterion_text, criterion_detail, order_index, is_individual, min_score, max_score, is_blank
             FROM rubric_criteria
         WHERE rubric_id IN ($placeholders)
         ORDER BY rubric_id, order_index
@@ -387,6 +395,7 @@ try {
         });
 
         error_log("DS-Index: Finished combining and sorting rubric details into \$rubrics_in_group by order_index.");
+        error_log("DS-Index: Final rubrics_in_group contains " . count($rubrics_in_group) . " rubrics: " . implode(', ', array_map(function($r) { return "ID {$r['id']} ({$r['name']})"; }, $rubrics_in_group)));
     } else {
         error_log("DS-Index: No rubric IDs were found associated with Group ID {$group_id} in 'rubric_group_items'.");
     }
@@ -549,6 +558,10 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
     foreach ($criteria as $index => $criterion) {
         $criterion_id = $criterion['id'];
         $criterion_text = htmlspecialchars($criterion['criterion_text']);
+        
+        // Check if this is a blank/section header criterion
+        $is_blank = !empty($criterion['is_blank']);
+        
         // --- MODIFICATION: Decode criterion_detail JSON ---
         $criterion_detail_json = $criterion['criterion_detail'];
         $criterion_details_array = json_decode($criterion_detail_json, true);
@@ -558,6 +571,24 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
         }
         // --- END MODIFICATION ---
         $is_individual_criterion = $is_individual_rubric && !empty($criterion['is_individual']);
+
+        // Render blank/section header row if is_blank is set
+        if ($is_blank) {
+            // Calculate colspan based on rubric type
+            if ($is_individual_rubric) {
+                // For individual rubrics: 1 (criteria) + number of students
+                $student_count_for_colspan = min(count($students), $max_members);
+                $colspan = 1 + $student_count_for_colspan;
+            } else {
+                // For group rubrics: 1 (criteria) + quality levels + 1 (score)
+                $colspan = 1 + count($levels_with_original_index) + 1;
+            }
+            
+            $html .= '<tr class="table-active blank-criterion-row" data-criterion-id="' . $criterion_id . '">';
+            $html .= '<td colspan="' . $colspan . '" style="font-weight: bold; background-color: #e9ecef; padding: 12px;">' . $criterion_text . '</td>';
+            $html .= '</tr>';
+            continue; // Skip normal rendering for blank criteria
+        }
 
         $html .= '<tr data-criterion-id="' . $criterion_id . '" data-is-individual="' . ($is_individual_criterion ? '1' : '0') . '">';
         $html .= '<td>' . $criterion_text . '</td>';
@@ -607,6 +638,7 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
                                     data-rubric-id="' . $rubric_id . '"
                                     data-criterion-id="' . $criterion_id . '"
                                     data-student-id="' . $student_id . '"
+                                    onchange="updateIndividualTotalScore(' . $rubric_id . ', ' . $student_id . ')"
                                     title="Score range: ' . $criterion_min . ' - ' . $criterion_max . ' points"
                                     data-bs-toggle="tooltip"
                                     data-bs-placement="top"
@@ -669,7 +701,6 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
                              min="' . $group_min_score . '"
                              max="' . $group_max_score . '"
                              onchange="updateGroupTotalScore('.$rubric_id.')"
-                             oninput="updateGroupTotalScore('.$rubric_id.')"
                              data-rubric-id="'.$rubric_id.'"
                              data-criterion-id="'.$criterion_id.'"
                              required
@@ -681,10 +712,27 @@ function render_numerical_rubric($rubric, $students, $existing_details) {
     }
 
     $html .= '</tbody>';
+    
+    // Add subtotal row at the bottom of the table
+    $html .= '<tfoot>';
+    $html .= '<tr class="table-secondary" style="font-weight: bold;">';
+    if ($is_individual_rubric) {
+        $html .= '<td>Subtotal</td>';
+        $student_count = 0;
+        foreach ($students as $student) {
+            if ($student_count >= $max_members) break;
+            $html .= '<td class="text-center" id="r' . $rubric_id . '-student-' . $student['id'] . '-subtotal">0</td>';
+            $student_count++;
+        }
+    } else {
+        $colspan = count($levels_with_original_index) + 1;
+        $html .= '<td colspan="' . $colspan . '" class="text-right">Subtotal Score:</td>';
+        $html .= '<td class="text-center" id="r' . $rubric_id . '-subtotal">0</td>';
+    }
+    $html .= '</tr>';
+    $html .= '</tfoot>';
+    
     $html .= '</table></div>';
-
-    // Display total score area (can be updated by JS)
-    $html .= '<div class="text-right mt-3">Group Score: <span id="r' . $rubric_id . 'group-score-total">0</span></div>'; // Keep this for JS updates
 
     return $html;
 }
@@ -981,6 +1029,10 @@ include '../assets/layouts/header.php';
                 <span class="badge px-3 py-2" style="background-color: <?php echo $bgColor; ?>;">
                     <i class="fas fa-flag me-2" style="color: white;"></i><?php echo htmlspecialchars($label); ?>
                 </span>
+                <!-- Rubric Group Badge for debugging -->
+                <span class="badge px-3 py-2" style="background-color: #6c757d;">
+                    <i class="fas fa-clipboard-list me-2" style="color: white;"></i><?php echo htmlspecialchars($rubric_group_details['name'] ?? 'Unknown Group'); ?>
+                </span>
             </div>
         </div>
 
@@ -1209,6 +1261,73 @@ include '../assets/layouts/header.php';
                         </ol>
                     </div>
                 <?php else: ?>
+                    <?php 
+                    // Prepare weight summary data
+                    $total_configured_weight = 0;
+                    $total_actual_weight = 0;
+                    $weight_summary = [];
+                    $seen_rubric_ids = []; // Track which rubric IDs we've added to prevent duplicates
+                    
+                    // Only include numerical rubrics in the weight summary
+                    foreach ($rubrics_in_group as $rubric_id => $rubric) {
+                        // Skip non-numerical rubrics (pass/fail, yes/no)
+                        if ($rubric['rubric_type'] !== 'numerical') {
+                            error_log("DS-Index: Skipping rubric '{$rubric['name']}' (ID: {$rubric_id}) from weight summary - type is '{$rubric['rubric_type']}'");
+                            continue;
+                        }
+                        
+                        // Skip duplicates
+                        if (in_array($rubric_id, $seen_rubric_ids)) {
+                            error_log("DS-Index: WARNING - Duplicate rubric ID {$rubric_id} ('{$rubric['name']}') detected in rubrics_in_group, skipping duplicate");
+                            continue;
+                        }
+                        $seen_rubric_ids[] = $rubric_id;
+                        
+                        $configured_weight = isset($rubric['weight']) && $rubric['weight'] !== null ? floatval($rubric['weight']) : 0;
+                        $total_configured_weight += $configured_weight;
+                        
+                        // Check if this is an individual scoring rubric
+                        $is_individual_rubric = !empty($rubric['is_individual_enabled']);
+                        $max_members = $rubric['max_members'] ?? count($students);
+                        
+                        // Collect student IDs for individual rubrics
+                        $student_ids_for_rubric = [];
+                        if ($is_individual_rubric && !empty($students)) {
+                            $student_count = 0;
+                            foreach ($students as $student) {
+                                if ($student_count >= $max_members) break;
+                                $student_ids_for_rubric[] = $student['id'];
+                                $student_count++;
+                            }
+                        }
+                        
+                        error_log("DS-Index: Adding rubric '{$rubric['name']}' (ID: {$rubric_id}) to weight summary - weight: {$configured_weight}%, is_individual: " . ($is_individual_rubric ? 'yes' : 'no'));
+                        $weight_summary[] = [
+                            'name' => $rubric['name'],
+                            'configured' => $configured_weight,
+                            'rubric_id' => $rubric_id,
+                            'rubric_type' => $rubric['rubric_type'],
+                            'is_individual' => $is_individual_rubric,
+                            'student_ids' => $student_ids_for_rubric // Array of student IDs for individual rubrics
+                        ];
+                    }
+                    
+                    // Calculate actual weights (normalized to 100%)
+                    if ($total_configured_weight > 0) {
+                        foreach ($weight_summary as $key => $item) {
+                            $weight_summary[$key]['actual'] = ($item['configured'] / $total_configured_weight) * 100;
+                            $total_actual_weight += $weight_summary[$key]['actual'];
+                        }
+                    }
+                    
+                    // Debug: show exactly what's in the array
+                    echo '<!-- FINAL weight_summary (' . count($weight_summary) . ' items): ';
+                    foreach ($weight_summary as $idx => $ws) {
+                        echo "[$idx] ID=" . $ws['rubric_id'] . " " . $ws['name'] . " " . $ws['configured'] . "% | ";
+                    }
+                    echo '-->';
+                    ?>
+                    
                     <?php foreach ($rubrics_in_group as $rubric_id => $rubric): // This loop now iterates in the correct order ?>
                         <!-- Rubric Card -->
                         <div class="card mb-4 rubric-card" data-rubric-id="<?php echo $rubric_id; ?>" data-rubric-type="<?php echo $rubric['rubric_type']; ?>" data-weight="<?php echo isset($rubric['weight']) && $rubric['weight'] !== null ? $rubric['weight'] : 0; ?>">
@@ -1261,6 +1380,70 @@ include '../assets/layouts/header.php';
                             </div>
                         </div> <!-- End Rubric Card -->
                     <?php endforeach; ?>
+                    
+                    <!-- Weight Summary Card - Rendered ONCE after all rubrics -->
+                    <?php if (!empty($weight_summary)): ?>
+                    <div class="card mb-4" id="rubric-weight-summary-card" style="background-color: #f8f9fa;">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Rubric Weight Summary</h5>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-responsive">
+                                <table class="table table-bordered table-sm mb-0" id="weight-summary-table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th style="width: 30%;">Rubric</th>
+                                            <th class="text-center" style="width: 15%;">Configured Weight</th>
+                                            <th class="text-center" style="width: 35%;">Current Score(s)</th>
+                                            <th class="text-center" style="width: 20%;">Actual %</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <!-- PHP RENDERING START - <?php echo date('Y-m-d H:i:s'); ?> - <?php echo count($weight_summary); ?> items -->
+                                        <?php $row_num = 0; foreach ($weight_summary as $item): $row_num++; 
+                                            $is_individual = !empty($item['is_individual']);
+                                            $student_ids = $item['student_ids'] ?? [];
+                                        ?>
+                                        <!-- ROW <?php echo $row_num; ?>: ID=<?php echo $item['rubric_id']; ?> IS_INDIVIDUAL=<?php echo $is_individual ? 'yes' : 'no'; ?> NAME=<?php echo $item['name']; ?> -->
+                                        <tr data-rubric-id="<?php echo $item['rubric_id']; ?>" data-is-individual="<?php echo $is_individual ? '1' : '0'; ?>" data-row-num="<?php echo $row_num; ?>">
+                                            <td><?php echo htmlspecialchars($item['name']); ?></td>
+                                            <td class="text-center"><?php echo number_format($item['configured'], 1); ?>%</td>
+                                            <td class="text-center rubric-current-score">
+                                                <?php if ($is_individual && !empty($student_ids)): ?>
+                                                    <!-- Individual scores displayed horizontally -->
+                                                    <div class="d-flex justify-content-center align-items-center flex-wrap gap-1">
+                                                        <?php foreach ($student_ids as $idx => $sid): ?>
+                                                            <span class="badge bg-light text-dark border" id="weight-score-<?php echo $item['rubric_id']; ?>-s<?php echo $sid; ?>" title="Student ID: <?php echo $sid; ?>">0</span>
+                                                            <?php if ($idx < count($student_ids) - 1): ?><span class="text-muted">|</span><?php endif; ?>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    <!-- Group score - single value -->
+                                                    <span id="weight-score-<?php echo $item['rubric_id']; ?>">0</span>
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center rubric-actual-percent" id="weight-percent-<?php echo $item['rubric_id']; ?>">0.0%</td>
+                                        </tr>
+                                        <?php endforeach; ?>
+                                        <!-- PHP RENDERING END - rendered <?php echo $row_num; ?> rows -->
+                                    </tbody>
+                                    <tfoot class="table-secondary" style="font-weight: bold;">
+                                        <tr>
+                                            <td>Total</td>
+                                            <td class="text-center"><?php echo number_format($total_configured_weight, 1); ?>%</td>
+                                            <td class="text-center" id="weight-total-score">0</td>
+                                            <td class="text-center" id="weight-total-percent">0.0%</td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                            <div class="alert alert-info mt-3 mb-0">
+                                <small><i class="bi bi-info-circle"></i> <strong>Note:</strong> For individual scoring rubrics, scores are shown per student (e.g., <code>40 | 35 | 42 | 38</code>). "Actual %" shows the weighted percentage contribution based on the average.</small>
+                            </div>
+                        </div>
+                    </div>
+                    <?php endif; ?>
+                    
                 <?php endif; ?>
 
                 <!-- Overall Comments Section -->
@@ -1413,29 +1596,29 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
     // -------------------------------------------------------------------
-    // FOR DISPLAY OF GROUP SCORE DATA (Numerical) - DISABLED DUE TO VISUAL CALCULATION ISSUES
-    // Backend submission and validation continue to work correctly
+    // FOR DISPLAY OF GROUP SCORE DATA (Numerical)
     // -------------------------------------------------------------------
     window.updateGroupTotalScore = function(rubric_id) {
-        // DISABLED: Visual total calculations showing incorrect values
-        // Backend submission still works correctly with proper validation
-        console.log("Visual total calculation disabled for rubric:", rubric_id);
-        return;
-        
-        /* ORIGINAL CODE - DISABLED
         let total = 0;
         // Select only number inputs associated with the specific rubric's group score
+        // Exclude blank criteria (they don't have score inputs)
         document.querySelectorAll(`#evaluationForm input[type="number"][data-rubric-id="${rubric_id}"][name*="[group]"]`).forEach(input => {
             let val = parseFloat(input.value);
             if (!isNaN(val)) {
                 total += val;
             }
         });
-        const totalSpan = document.getElementById(`r${rubric_id}group-score-total`);
-        if (totalSpan) {
-            totalSpan.textContent = total;
+        
+        // Update subtotal display in the table footer
+        const subtotalCell = document.getElementById(`r${rubric_id}-subtotal`);
+        if (subtotalCell) {
+            subtotalCell.textContent = total.toFixed(2);
         }
-        */
+        
+        // Update weight summary table
+        updateWeightSummary();
+        
+        console.log("Subtotal calculated for rubric", rubric_id, ":", total);
     }
 
     // -------------------------------------------------------------------
@@ -1457,13 +1640,148 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     // -------------------------------------------------------------------
-    // FOR DISPLAY OF INDIVIDUAL SCORE DATA (Numerical) - Optional, if needed
+    // FOR DISPLAY OF INDIVIDUAL SCORE DATA (Numerical) - Calculate subtotals per student
     // -------------------------------------------------------------------
-    window.updateIndividualTotalScore = function(rubric_id) {
-        // Placeholder: Add logic here if you need to calculate/display totals for individual scores
-        console.log("Individual score updated for rubric:", rubric_id);
+    window.updateIndividualTotalScore = function(rubric_id, student_id) {
+        let total = 0;
+        // Get all score inputs for this rubric and student
+        document.querySelectorAll(`#evaluationForm input[type="number"][data-rubric-id="${rubric_id}"][data-student-id="${student_id}"]`).forEach(input => {
+            let val = parseFloat(input.value);
+            if (!isNaN(val)) {
+                total += val;
+            }
+        });
+        
+        // Update subtotal display for this student
+        const subtotalCell = document.getElementById(`r${rubric_id}-student-${student_id}-subtotal`);
+        if (subtotalCell) {
+            subtotalCell.textContent = total.toFixed(2);
+        }
+        
+        // Update weight summary table (for individual scoring, we need to recalculate)
+        updateWeightSummary();
+        
+        console.log("Individual subtotal calculated for rubric", rubric_id, "student", student_id, ":", total);
     }
 
+
+    // -------------------------------------------------------------------
+    // UPDATE WEIGHT SUMMARY TABLE
+    // -------------------------------------------------------------------
+    window.updateWeightSummary = function() {
+        const summaryTable = document.getElementById('weight-summary-table');
+        if (!summaryTable) return;
+        
+        let totalWeightedScore = 0;
+        let totalCurrentScore = 0;
+        
+        // Process each row in the weight summary table
+        summaryTable.querySelectorAll('tbody tr[data-rubric-id]').forEach(row => {
+            const rubricId = row.dataset.rubricId;
+            const isIndividual = row.dataset.isIndividual === '1';
+            
+            let currentScore = 0;
+            let maxPossibleScore = 0;
+            let configuredWeight = 0;
+            
+            // Get configured weight from the row
+            const weightCell = row.querySelector('td:nth-child(2)');
+            if (weightCell) {
+                configuredWeight = parseFloat(weightCell.textContent) || 0;
+            }
+            
+            // Find the rubric card
+            const card = document.querySelector(`.rubric-card[data-rubric-id="${rubricId}"]`);
+            if (card) {
+                const rubricType = card.dataset.rubricType;
+                
+                if (rubricType === 'numerical') {
+                    if (isIndividual) {
+                        // Individual scoring - get scores for ALL students and update each badge
+                        const subtotalCells = card.querySelectorAll('[id^="r' + rubricId + '-student-"][id$="-subtotal"]');
+                        let totalStudentScores = 0;
+                        let studentCount = 0;
+                        
+                        subtotalCells.forEach(cell => {
+                            const score = parseFloat(cell.textContent) || 0;
+                            totalStudentScores += score;
+                            studentCount++;
+                            
+                            // Extract student ID from cell ID (format: r{rubricId}-student-{studentId}-subtotal)
+                            const match = cell.id.match(/r\d+-student-(\d+)-subtotal/);
+                            if (match) {
+                                const studentId = match[1];
+                                // Update the individual score badge in weight summary
+                                const scoreBadge = document.getElementById(`weight-score-${rubricId}-s${studentId}`);
+                                if (scoreBadge) {
+                                    scoreBadge.textContent = score.toFixed(0);
+                                }
+                            }
+                        });
+                        
+                        // Calculate average score for percentage calculation
+                        currentScore = studentCount > 0 ? totalStudentScores / studentCount : 0;
+                        
+                        // Calculate max possible score (same for all students, use first student)
+                        const firstStudentInput = card.querySelector('input[type="number"][data-rubric-id="' + rubricId + '"][data-student-id]');
+                        if (firstStudentInput) {
+                            const firstStudentId = firstStudentInput.dataset.studentId;
+                            card.querySelectorAll(`input[type="number"][data-rubric-id="${rubricId}"][data-student-id="${firstStudentId}"]`).forEach(input => {
+                                const max = parseFloat(input.getAttribute('max')) || 0;
+                                maxPossibleScore += max;
+                            });
+                        }
+                    } else {
+                        // Group scoring - get the single subtotal
+                        const subtotalCell = document.getElementById(`r${rubricId}-subtotal`);
+                        if (subtotalCell) {
+                            currentScore = parseFloat(subtotalCell.textContent) || 0;
+                        }
+                        
+                        // Update the score display
+                        const scoreCell = document.getElementById(`weight-score-${rubricId}`);
+                        if (scoreCell) {
+                            scoreCell.textContent = currentScore.toFixed(2);
+                        }
+                        
+                        // Calculate max possible score for group
+                        card.querySelectorAll(`input[type="number"][data-rubric-id="${rubricId}"][name*="[group]"]`).forEach(input => {
+                            const max = parseFloat(input.getAttribute('max')) || 0;
+                            maxPossibleScore += max;
+                        });
+                    }
+                }
+            }
+            
+            // Calculate weighted score for this row
+            let weightedScore = 0;
+            if (maxPossibleScore > 0) {
+                const scorePercentage = (currentScore / maxPossibleScore);
+                weightedScore = scorePercentage * configuredWeight;
+            }
+            
+            // Update percentage cell - show the weighted contribution
+            const percentCell = document.getElementById(`weight-percent-${rubricId}`);
+            if (percentCell) {
+                percentCell.textContent = weightedScore.toFixed(1) + '%';
+            }
+            
+            totalCurrentScore += currentScore;
+            totalWeightedScore += weightedScore;
+        });
+        
+        // Update total score
+        const totalScoreCell = document.getElementById('weight-total-score');
+        if (totalScoreCell) {
+            totalScoreCell.textContent = totalCurrentScore.toFixed(2);
+        }
+        
+        // Update total percentage - sum of all weighted scores
+        const totalPercentCell = document.getElementById('weight-total-percent');
+        if (totalPercentCell) {
+            totalPercentCell.textContent = totalWeightedScore.toFixed(1) + '%';
+        }
+    };
 
     // -------------------------------------------------------------------
     // EVALUATION SUMMARY GENERATION
@@ -1476,7 +1794,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Group Details Section
         html += '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
-        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">GROUP DETAILS</h3>';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?></h3>';
         
         // Research Title
         html += '<div style="margin-bottom: 15px;">';
@@ -1604,6 +1922,17 @@ document.addEventListener('DOMContentLoaded', function() {
         // Iterate through criteria rows
         tbody.querySelectorAll('tr[data-criterion-id]').forEach(row => {
             const criterionText = row.querySelector('td:first-child')?.textContent?.trim() || 'N/A';
+            
+            // Check if this is a section header (blank criterion row)
+            const isBlankRow = row.classList.contains('blank-criterion-row');
+            
+            if (isBlankRow) {
+                // Section header row - render as a spanning row without score
+                const colspan = isIndividual ? (row.querySelectorAll('.student-score-cell').length || 1) + 1 : 2;
+                html += '<tr style="background-color: #e9ecef;"><td colspan="' + colspan + '" style="border: 1px solid #999; padding: 10px; font-weight: bold;">' + criterionText + '</td></tr>';
+                return; // Skip to next row
+            }
+            
             html += '<tr><td style="border: 1px solid #999; padding: 8px;">' + criterionText + '</td>';
             
             if (isIndividual) {
@@ -2342,6 +2671,39 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         } // end submitEvaluationForm function
     } // end if(evaluationForm)
+
+    // -------------------------------------------------------------------
+    // INITIALIZE SUBTOTALS AND WEIGHT SUMMARY ON PAGE LOAD
+    // -------------------------------------------------------------------
+    // Initialize subtotal calculations for all rubrics on page load
+    document.querySelectorAll('.rubric-card').forEach(card => {
+        const rubricId = card.dataset.rubricId;
+        const rubricType = card.dataset.rubricType;
+        
+        if (rubricType === 'numerical') {
+            // Check if it's an individual scoring rubric
+            const hasIndividualScores = card.querySelector('input[data-student-id]');
+            
+            if (hasIndividualScores) {
+                // Calculate subtotals for each student
+                const studentIds = new Set();
+                card.querySelectorAll('input[data-student-id]').forEach(input => {
+                    studentIds.add(input.dataset.studentId);
+                });
+                studentIds.forEach(studentId => {
+                    updateIndividualTotalScore(rubricId, studentId);
+                });
+            } else {
+                // Calculate group subtotal
+                updateGroupTotalScore(rubricId);
+            }
+        }
+    });
+    
+    // Initialize weight summary table
+    if (typeof updateWeightSummary === 'function') {
+        updateWeightSummary();
+    }
 
 }); // end DOMContentLoaded
 </script>

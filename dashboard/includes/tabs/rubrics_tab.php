@@ -313,7 +313,30 @@
     </div>
 </div>
 
+<!-- jQuery UI for Sortable -->
+<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+
 <style>
+    .drag-over {
+        background-color: #f0f0f0;
+        border-top: 2px solid #007bff;
+    }
+    .drag-handle {
+        cursor: move;
+    }
+    .drag-handle:hover {
+        color: #007bff !important;
+    }
+    #rubricPreviewBody tr.criterion-row {
+        transition: background-color 0.2s;
+    }
+    #rubricPreviewBody tr.criterion-row:hover {
+        background-color: #f8f9fa;
+    }
+    #rubricPreviewBody tr.criterion-row[draggable="true"] {
+        cursor: move;
+    }
     .quality-level-input {
         width: 100%;
         padding: 5px;
@@ -742,6 +765,75 @@
             headerRow.append('<th style="width: 60%;">Options</th>');
         }
         rebuildPreviewTable(); // Rebuild rows to match new header
+        
+        // Reinitialize sortable after rebuilding
+        initializeSortable();
+    }
+
+    // Initialize sortable for rubric criteria rows using native HTML5 drag and drop
+    function initializeSortable() {
+        try {
+            var tbody = document.getElementById('rubricPreviewBody');
+            if (!tbody) {
+                console.warn('rubricPreviewBody not found');
+                return;
+            }
+            
+            var draggedRow = null;
+            
+            // Remove existing listeners
+            var rows = tbody.querySelectorAll('tr.criterion-row');
+            rows.forEach(function(row) {
+                row.draggable = true;
+                
+                row.ondragstart = function(e) {
+                    draggedRow = this;
+                    this.style.opacity = '0.5';
+                    e.dataTransfer.effectAllowed = 'move';
+                };
+                
+                row.ondragend = function(e) {
+                    this.style.opacity = '1';
+                    rows.forEach(function(r) {
+                        r.classList.remove('drag-over');
+                    });
+                };
+                
+                row.ondragover = function(e) {
+                    if (e.preventDefault) e.preventDefault();
+                    e.dataTransfer.dropEffect = 'move';
+                    return false;
+                };
+                
+                row.ondragenter = function(e) {
+                    this.classList.add('drag-over');
+                };
+                
+                row.ondragleave = function(e) {
+                    this.classList.remove('drag-over');
+                };
+                
+                row.ondrop = function(e) {
+                    if (e.stopPropagation) e.stopPropagation();
+                    if (draggedRow !== this) {
+                        var allRows = Array.from(tbody.querySelectorAll('tr.criterion-row'));
+                        var draggedIndex = allRows.indexOf(draggedRow);
+                        var targetIndex = allRows.indexOf(this);
+                        
+                        if (draggedIndex < targetIndex) {
+                            this.parentNode.insertBefore(draggedRow, this.nextSibling);
+                        } else {
+                            this.parentNode.insertBefore(draggedRow, this);
+                        }
+                    }
+                    return false;
+                };
+            });
+            
+            console.log('Sortable initialized for ' + rows.length + ' rows');
+        } catch (error) {
+            console.error('Error initializing sortable:', error);
+        }
     }
 
     // Add a new criterion row to the rubric preview based on type
@@ -753,9 +845,22 @@
 
         if (rubricType === 'numerical' && individualEnabled) {
             row.append(`
-                <td><input type="text" class="form-control" name="criterion_description[]" required></td>
                 <td>
-                    <div class="d-flex gap-2">
+                    <div class="d-flex flex-column gap-2">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-grip-vertical text-muted drag-handle" style="cursor: move;" title="Drag to reorder"></i>
+                            <input type="text" class="form-control" name="criterion_description[]" placeholder="Enter criterion" required>
+                        </div>
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input criterion-is-blank"
+                                   name="criterion_is_blank[]" value="1"
+                                   title="Make this a blank row (section header)">
+                            <label class="form-check-label small text-muted">Section Header</label>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <div class="d-flex gap-2 score-inputs-container">
                         <div class="flex-fill">
                             <label class="form-label small mb-1">Min</label>
                             <input type="number"
@@ -786,13 +891,24 @@
             <td>
                 <div class="d-flex flex-column gap-2">
                     <div class="d-flex justify-content-between align-items-center">
-                        <input type="text" class="form-control criterion-description"
-                               name="criterion_description[]" placeholder="Enter criterion description" required>
+                        <div class="d-flex align-items-center gap-2 flex-grow-1">
+                            <i class="fas fa-grip-vertical text-muted drag-handle" style="cursor: move;" title="Drag to reorder"></i>
+                            <input type="text" class="form-control criterion-description"
+                                   name="criterion_description[]" placeholder="Enter criterion description" required>
+                        </div>
                         <button type="button" class="btn btn-sm btn-danger ms-2 delete-criterion">
                             <i class="fas fa-trash"></i>
                         </button>
                     </div>
                     <div class="d-flex gap-2 align-items-center">
+                        <div class="form-check">
+                            <input type="checkbox" class="form-check-input criterion-is-blank"
+                                   name="criterion_is_blank[]" value="1"
+                                   title="Make this a blank row (section header)">
+                            <label class="form-check-label small text-muted">Section Header</label>
+                        </div>
+                    </div>
+                    <div class="d-flex gap-2 align-items-center score-inputs-container">
                         <small class="text-muted" style="white-space: nowrap;">Optional Limits:</small>
                         <input type="number" class="form-control form-control-sm criterion-min-limit"
                                name="criterion_min_limit[]" placeholder="Min" min="0" step="1"
@@ -837,8 +953,11 @@
             row.append(`
             <td>
                  <div class="d-flex justify-content-between align-items-center">
-                    <input type="text" class="form-control criterion-input"
-                           name="criterion_description[]" placeholder="Enter criterion" required>
+                    <div class="d-flex align-items-center gap-2 flex-grow-1">
+                        <i class="fas fa-grip-vertical text-muted drag-handle" style="cursor: move;" title="Drag to reorder"></i>
+                        <input type="text" class="form-control criterion-input"
+                               name="criterion_description[]" placeholder="Enter criterion" required>
+                    </div>
                      <button type="button" class="btn btn-sm btn-danger ms-2 delete-criterion"> <!-- Added delete button -->
                         <i class="fas fa-trash"></i>
                     </button>
@@ -1138,6 +1257,10 @@
                                     // Set the min and max scores for this individual criterion
                                     lastRow.find('input[name="criterion_min_score[]"]').val(crit.criterion_min_score || 0);
                                     lastRow.find('input[name="criterion_score[]"]').val(crit.criterion_score || 0);
+                                    // Populate is_blank checkbox if it exists for individual rubrics too
+                                    if (crit.is_blank && crit.is_blank == 1) {
+                                        lastRow.find('.criterion-is-blank').prop('checked', true).trigger('change');
+                                    }
                                 } else {
                                     lastRow.find('.criterion-description').val(crit.criterion_text);
                                     // For group scoring, set the readonly score (calculated from levels)
@@ -1149,6 +1272,11 @@
                                     }
                                     if (crit.max_score !== null && crit.max_score !== undefined) {
                                         lastRow.find('input[name="criterion_max_limit[]"]').val(crit.max_score);
+                                    }
+                                    
+                                    // Populate is_blank checkbox if it exists
+                                    if (crit.is_blank && crit.is_blank == 1) {
+                                        lastRow.find('.criterion-is-blank').prop('checked', true).trigger('change');
                                     }
                                 }
                                 // --- END MODIFIED ---
@@ -1225,6 +1353,14 @@
                     }
 
                     updateTotalScoreDisplay(); // Recalculate score if numerical
+                    
+                    // Initialize sortable after loading criteria
+                    setTimeout(function() {
+                        if (typeof initializeSortable === 'function') {
+                            initializeSortable();
+                        }
+                    }, 200);
+                    
                     $('#rubricModal').modal('show');
 
                 } else {
@@ -1444,6 +1580,9 @@
                 // console.log("Criterion Score: ", criterionScore);
                 // console.log("Criterion Min Score: ", criterionMinScore);
                 // console.log("Is Individual: ", isIndividual);
+                
+                // Check if this is a blank/section header criterion
+                var isBlank = $(this).find('.criterion-is-blank').is(':checked') ? 1 : 0;
 
                 criteriaData.push({
                     order_index: index,
@@ -1451,7 +1590,8 @@
                     criterion_detail: criterionDetail,
                     criterion_score: criterionScore, // Send max score (null for yes/no)
                     criterion_min_score: criterionMinScore, // Send min score (null for yes/no and group)
-                    is_individual: isIndividual
+                    is_individual: isIndividual,
+                    is_blank: isBlank
                 });
             });
             formData.append('criteria', JSON.stringify(criteriaData));
@@ -1674,6 +1814,8 @@
             // Check type just in case it was re-enabled incorrectly
             if ($('#rubric_type').val() !== 'passfail') {
                 addCriterionRow();
+                // Reinitialize sortable after adding row
+                setTimeout(initializeSortable, 100);
             }
         });
 
@@ -1723,6 +1865,31 @@
             });
         });
 
+        // Handle section header checkbox toggle
+        $(document).off('change.sectionHeader').on('change.sectionHeader', '.criterion-is-blank', function() {
+            var $checkbox = $(this);
+            var $row = $checkbox.closest('tr');
+            var isChecked = $checkbox.is(':checked');
+            var $scoreInputsContainer = $row.find('.score-inputs-container');
+            var $levelInputs = $row.find('.criterion-level-input');
+            
+            if (isChecked) {
+                // Hide score inputs and level inputs
+                $scoreInputsContainer.hide();
+                $levelInputs.closest('td').hide();
+                // Remove required attribute from inputs when hidden
+                $scoreInputsContainer.find('input').prop('required', false);
+                $levelInputs.prop('required', false);
+            } else {
+                // Show score inputs and level inputs
+                $scoreInputsContainer.show();
+                $levelInputs.closest('td').show();
+                // Restore required attribute
+                $scoreInputsContainer.find('input').prop('required', true);
+                $levelInputs.prop('required', true);
+            }
+        });
+
         // Handle delete criterion button click (Now disabled for pass/fail)
         $(document).off('click.deleteCriterion').on('click.deleteCriterion', '.delete-criterion', function() {
             // Check type just in case
@@ -1730,6 +1897,12 @@
                 if (confirm('Are you sure you want to remove this criterion?')) {
                     $(this).closest('tr').remove();
                     updateTotalScoreDisplay();
+                    // Reinitialize sortable after deletion
+                    setTimeout(function() {
+                        if (typeof initializeSortable === 'function') {
+                            initializeSortable();
+                        }
+                    }, 100);
                 }
             }
         });
