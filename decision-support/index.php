@@ -54,11 +54,16 @@ $adviser_name = null;
 $defense_type = null; // <-- NEW: Store defense type
 
 try {
-    // 1. Fetch Defense Schedule Info & Team ID
+    // 1. Fetch Defense Schedule Info & Team ID (including college from team leader's program)
     $stmt_schedule = $pdo->prepare("
-        SELECT ds.schedule_date, ds.start_time, ds.end_time, ds.room, ds.team_id, t.name as team_name, t.program as team_program, ds.defense_type
+        SELECT ds.schedule_date, ds.start_time, ds.end_time, ds.room, ds.team_id, 
+               t.name as team_name, t.program as team_program, ds.defense_type,
+               p.college as team_college
         FROM defense_schedules ds
         JOIN teams t ON ds.team_id = t.id
+        LEFT JOIN team_members tm ON tm.team_id = t.id AND LOWER(tm.role) = 'leader'
+        LEFT JOIN users u ON u.id = tm.user_id
+        LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
         WHERE ds.id = ?
     ");
     $stmt_schedule->execute([$schedule_id]);
@@ -72,7 +77,7 @@ try {
     if (!$team_id) {
         throw new Exception("Team ID missing for defense schedule ID: {$schedule_id}. Check data integrity.");
     }
-    error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}");
+    error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}, Team Program: " . ($schedule_info['team_program'] ?? 'NULL') . ", Team College: " . ($schedule_info['team_college'] ?? 'NULL'));
 
     // <-- NEW: Check for admin override in defense_type_overrides table ---
     $overrideStmt = $pdo->prepare("SELECT override_type FROM defense_type_overrides WHERE team_id = ? AND active = 1 ORDER BY created_at DESC LIMIT 1");
@@ -1794,7 +1799,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Group Details Section
         html += '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
-        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?></h3>';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><?php echo htmlspecialchars($schedule_info['team_college'] ?? 'N/A'); ?></h3>';
         
         // Research Title
         html += '<div style="margin-bottom: 15px;">';
@@ -1897,27 +1902,45 @@ document.addEventListener('DOMContentLoaded', function() {
         const tbody = card.querySelector('tbody');
         if (!tbody) return '<p style="font-style: italic; color: #666;">No data available</p>';
         
-        const firstRow = tbody.querySelector('tr[data-criterion-id]');
+        const firstRow = tbody.querySelector('tr[data-criterion-id]:not(.blank-criterion-row)');
         if (!firstRow) return '<p style="font-style: italic; color: #666;">No criteria found</p>';
         
         const isIndividual = firstRow.dataset.isIndividual === '1';
         
+        // Get student info for individual rubrics
+        let studentIds = [];
         if (isIndividual) {
             // Individual scoring - show student columns
             firstRow.querySelectorAll('.student-score-cell').forEach(cell => {
                 const input = cell.querySelector('input');
                 const studentId = input?.dataset?.studentId;
                 if (studentId) {
+                    studentIds.push(studentId);
                     const studentName = getStudentName(studentId);
                     html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">' + studentName + '</th>';
                 }
             });
         } else {
-            // Group scoring - show score column
+            // Group scoring - show level description columns and score column
+            // Get level headers from thead
+            const thead = card.querySelector('thead tr');
+            if (thead) {
+                const levelHeaders = thead.querySelectorAll('th.level-col');
+                levelHeaders.forEach(header => {
+                    const levelName = header.innerHTML.split('<')[0].trim();
+                    html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">' + levelName + '</th>';
+                });
+            }
             html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Score</th>';
         }
         
         html += '</tr></thead><tbody>';
+        
+        // For individual rubrics, track subtotals per student
+        let studentSubtotals = {};
+        if (isIndividual) {
+            studentIds.forEach(id => { studentSubtotals[id] = 0; });
+        }
         
         // Iterate through criteria rows
         tbody.querySelectorAll('tr[data-criterion-id]').forEach(row => {
@@ -1928,7 +1951,14 @@ document.addEventListener('DOMContentLoaded', function() {
             
             if (isBlankRow) {
                 // Section header row - render as a spanning row without score
-                const colspan = isIndividual ? (row.querySelectorAll('.student-score-cell').length || 1) + 1 : 2;
+                let colspan;
+                if (isIndividual) {
+                    colspan = studentIds.length + 1;
+                } else {
+                    // Count level columns + criteria + score
+                    const levelCount = card.querySelectorAll('thead th.level-col').length;
+                    colspan = levelCount + 2;
+                }
                 html += '<tr style="background-color: #e9ecef;"><td colspan="' + colspan + '" style="border: 1px solid #999; padding: 10px; font-weight: bold;">' + criterionText + '</td></tr>';
                 return; // Skip to next row
             }
@@ -1936,28 +1966,46 @@ document.addEventListener('DOMContentLoaded', function() {
             html += '<tr><td style="border: 1px solid #999; padding: 8px;">' + criterionText + '</td>';
             
             if (isIndividual) {
-                row.querySelectorAll('.criterion-score-input').forEach(input => {
-                    const value = input.value || '—';
-                    const min = input.min || '0';
-                    const max = input.max || '0';
+                // For individual scoring, iterate through each student
+                studentIds.forEach(studentId => {
+                    const input = row.querySelector(`.criterion-score-input[data-student-id="${studentId}"]`);
+                    const value = input?.value || '—';
+                    const min = input?.min || '0';
+                    const max = input?.max || '0';
                     html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">';
                     html += '<strong>' + value + '</strong><br>';
                     html += '<span style="font-size: 0.85em; color: #666;">(' + min + '-' + max + ')</span>';
                     html += '</td>';
+                    // Add to subtotal
+                    if (value !== '—' && !isNaN(parseFloat(value))) {
+                        studentSubtotals[studentId] += parseFloat(value);
+                    }
                 });
             } else {
+                // Group scoring - show level descriptions then score
+                row.querySelectorAll('.level-cell').forEach(cell => {
+                    const description = cell.textContent?.trim() || '';
+                    html += '<td style="border: 1px solid #999; padding: 8px; font-size: 0.9em;">' + description + '</td>';
+                });
+                
                 const scoreInput = row.querySelector('.entered-score');
                 const value = scoreInput?.value || '—';
-                const min = scoreInput?.min || '0';
-                const max = scoreInput?.max || '0';
                 html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">';
-                html += '<strong style="font-size: 1.1em;">' + value + '</strong><br>';
-                html += '<span style="font-size: 0.85em; color: #666;">(' + min + '-' + max + ')</span>';
+                html += '<strong style="font-size: 1.1em;">' + value + '</strong>';
                 html += '</td>';
             }
             
             html += '</tr>';
         });
+        
+        // Add subtotal row for individual rubrics
+        if (isIndividual && studentIds.length > 0) {
+            html += '<tr style="background-color: #f0f0f0; font-weight: bold;"><td style="border: 1px solid #999; padding: 8px;">Subtotal</td>';
+            studentIds.forEach(studentId => {
+                html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + studentSubtotals[studentId].toFixed(2) + '</td>';
+            });
+            html += '</tr>';
+        }
         
         html += '</tbody></table>';
         return html;
