@@ -49,17 +49,23 @@ try {
         $placeholders = implode(',', array_fill(0, count($teams), '?'));
         
         // Get team evaluations with average scores
+        // For students: Only include scores from evaluations older than 1 week
+        $oneWeekAgo = date('Y-m-d H:i:s', strtotime('-1 week'));
+        
         $query = "SELECT 
             t.id AS team_id,
             t.name AS team_name,
             rt.title AS research_title,
             t.program,
             COUNT(DISTINCT ep.id) AS evaluation_count,
-            ROUND(AVG(ep.group_score), 2) AS avg_group_score,
-            ROUND(AVG(ep.solo_score), 2) AS avg_individual_score,
-            ROUND(AVG(ep.total_score), 2) AS avg_total_score,
+            -- Only show scores for evaluations older than 1 week
+            ROUND(AVG(CASE WHEN ep.created_at <= ? THEN ep.group_score ELSE NULL END), 2) AS avg_group_score,
+            ROUND(AVG(CASE WHEN ep.created_at <= ? THEN ep.solo_score ELSE NULL END), 2) AS avg_individual_score,
+            ROUND(AVG(CASE WHEN ep.created_at <= ? THEN ep.total_score ELSE NULL END), 2) AS avg_total_score,
             MAX(ep.created_at) AS latest_evaluation,
-            GROUP_CONCAT(DISTINCT CONCAT(adv.first_name, ' ', adv.last_name) SEPARATOR ', ') AS adviser
+            GROUP_CONCAT(DISTINCT CONCAT(adv.first_name, ' ', adv.last_name) SEPARATOR ', ') AS adviser,
+            -- Flag to indicate if scores are hidden (any evaluation less than 1 week old)
+            CASE WHEN MAX(ep.created_at) > ? THEN 1 ELSE 0 END AS scores_pending
         FROM teams t
         LEFT JOIN research_titles rt ON t.id = rt.team_id
         LEFT JOIN evaluation_per_panel ep ON ep.student_id IN (
@@ -72,7 +78,9 @@ try {
         ORDER BY latest_evaluation DESC";
 
         $stmt = $pdo->prepare($query);
-        $stmt->execute($teams);
+        // Prepend the date parameters before team IDs
+        $params = array_merge([$oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $oneWeekAgo], $teams);
+        $stmt->execute($params);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
         $totalRows = count($data);
 

@@ -78,28 +78,116 @@ try {
     }
 
     // Get detailed evaluations for this team
-    $evaluationsQuery = "SELECT 
-        ep.id AS evaluation_id,
-        CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
-        CONCAT(s.first_name, ' ', s.last_name) AS student_name,
-        s.id AS student_id,
-        ep.group_score,
-        ep.solo_score,
-        ep.total_score,
-        ep.comments,
-        ep.created_at,
-        ds.schedule_date,
-        ds.defense_type
+    // For students: Hide scores from evaluations less than 1 week old
+    $oneWeekAgo = date('Y-m-d H:i:s', strtotime('-1 week'));
+    
+    if ($usertype == 1) {
+        // Student view - mask scores for recent evaluations (< 1 week)
+        $evaluationsQuery = "SELECT 
+            ep.id AS evaluation_id,
+            e.id AS evaluator_id,
+            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
+            CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+            s.id AS student_id,
+            CASE WHEN ep.created_at <= ? THEN ep.group_score ELSE NULL END AS group_score,
+            CASE WHEN ep.created_at <= ? THEN ep.solo_score ELSE NULL END AS solo_score,
+            CASE WHEN ep.created_at <= ? THEN ep.total_score ELSE NULL END AS total_score,
+            ep.comments,
+            ep.created_at,
+            ds.schedule_date,
+            ds.defense_type,
+            CASE WHEN ep.created_at > ? THEN 1 ELSE 0 END AS score_pending
+        FROM evaluation_per_panel ep
+        JOIN users e ON ep.evaluator_id = e.id
+        JOIN users s ON ep.student_id = s.id
+        JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
+        LEFT JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+        ORDER BY s.last_name ASC, s.first_name ASC, e.last_name ASC";
+        
+        $evalStmt = $pdo->prepare($evaluationsQuery);
+        $evalStmt->execute([$oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $teamId]);
+    } else {
+        // Faculty view - show all scores immediately
+        $evaluationsQuery = "SELECT 
+            ep.id AS evaluation_id,
+            e.id AS evaluator_id,
+            CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name,
+            CONCAT(s.first_name, ' ', s.last_name) AS student_name,
+            s.id AS student_id,
+            ep.group_score,
+            ep.solo_score,
+            ep.total_score,
+            ep.comments,
+            ep.created_at,
+            ds.schedule_date,
+            ds.defense_type,
+            0 AS score_pending
+        FROM evaluation_per_panel ep
+        JOIN users e ON ep.evaluator_id = e.id
+        JOIN users s ON ep.student_id = s.id
+        JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
+        LEFT JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+        ORDER BY s.last_name ASC, s.first_name ASC, e.last_name ASC";
+        
+        $evalStmt = $pdo->prepare($evaluationsQuery);
+        $evalStmt->execute([$teamId]);
+    }
+    $rawEvaluations = $evalStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get unique panelists who have evaluated this team
+    $panelistsQuery = "SELECT DISTINCT 
+        e.id AS evaluator_id,
+        CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name
     FROM evaluation_per_panel ep
     JOIN users e ON ep.evaluator_id = e.id
-    JOIN users s ON ep.student_id = s.id
     JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
-    LEFT JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-    ORDER BY ds.schedule_date DESC, e.last_name ASC, s.last_name ASC";
-
-    $evalStmt = $pdo->prepare($evaluationsQuery);
-    $evalStmt->execute([$teamId]);
-    $evaluations = $evalStmt->fetchAll(PDO::FETCH_ASSOC);
+    ORDER BY e.last_name ASC";
+    
+    $panelistsStmt = $pdo->prepare($panelistsQuery);
+    $panelistsStmt->execute([$teamId]);
+    $panelists = $panelistsStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Get student members only (exclude advisers)
+    $studentsQuery = "SELECT 
+        u.id AS student_id,
+        CONCAT(u.first_name, ' ', u.last_name) AS student_name,
+        tm.role
+    FROM team_members tm
+    JOIN users u ON tm.user_id = u.id
+    WHERE tm.team_id = ? AND tm.role != 'Adviser'
+    ORDER BY u.last_name ASC, u.first_name ASC";
+    
+    $studentsStmt = $pdo->prepare($studentsQuery);
+    $studentsStmt->execute([$teamId]);
+    $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
+    
+    // Group evaluations by student, then by panelist
+    $evaluationsByStudent = [];
+    foreach ($rawEvaluations as $eval) {
+        $studentId = $eval['student_id'];
+        $evaluatorId = $eval['evaluator_id'];
+        
+        if (!isset($evaluationsByStudent[$studentId])) {
+            $evaluationsByStudent[$studentId] = [
+                'student_name' => $eval['student_name'],
+                'panelist_scores' => [],
+                'has_pending' => false
+            ];
+        }
+        
+        $evaluationsByStudent[$studentId]['panelist_scores'][$evaluatorId] = [
+            'evaluator_name' => $eval['evaluator_name'],
+            'group_score' => $eval['group_score'],
+            'solo_score' => $eval['solo_score'],
+            'total_score' => $eval['total_score'],
+            'comments' => $eval['comments'],
+            'score_pending' => $eval['score_pending']
+        ];
+        
+        if ($eval['score_pending'] == 1) {
+            $evaluationsByStudent[$studentId]['has_pending'] = true;
+        }
+    }
 
     // Get team members
     $membersQuery = "SELECT 
@@ -123,7 +211,9 @@ try {
 
     echo json_encode([
         'team_info' => $teamInfo,
-        'evaluations' => $evaluations,
+        'evaluations_by_student' => $evaluationsByStudent,
+        'panelists' => $panelists,
+        'students' => $students,
         'members' => $members,
         'usertype' => $usertype
     ]);

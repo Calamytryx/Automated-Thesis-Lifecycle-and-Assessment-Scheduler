@@ -17,25 +17,24 @@ try {
     ];
     
     if ($userType == 2) { // Faculty only
-        // 1. Fetch teams where user is adviser
+        // 1. Fetch teams where user is adviser with detailed evaluation data
         $adviseeStmt = $pdo->prepare("
             SELECT 
                 t.id,
                 t.name,
                 t.program,
                 rt.title as research_title,
-                COUNT(DISTINCT tm.user_id) as member_count,
+                COUNT(DISTINCT tm_students.user_id) as member_count,
                 -- Get completed requirements count
                 (SELECT COUNT(*) FROM team_requirements tr 
                  WHERE tr.team_id = t.id AND tr.status = 'approved') as completed_count,
-                -- Get total requirements count (program-specific manuscripts)
+                -- Get total requirements count
                 (SELECT COUNT(*) FROM requirements r 
-                 LEFT JOIN program_manuscript_requirements pmr ON r.id = pmr.requirement_id
-                 WHERE r.is_defense_manuscript = 0 
-                 OR pmr.program_id = (
-                     SELECT id FROM programs 
-                     WHERE name = t.program LIMIT 1
-                 )) as total_requirements,
+                 WHERE r.is_defense_manuscript = 0) as total_requirements,
+                -- Get latest defense type
+                (SELECT ds.defense_type FROM defense_schedules ds 
+                 WHERE ds.team_id = t.id 
+                 ORDER BY ds.schedule_date DESC LIMIT 1) as latest_defense_type,
                 -- Get next defense schedule
                 (SELECT ds.id FROM defense_schedules ds 
                  WHERE ds.team_id = t.id 
@@ -45,14 +44,35 @@ try {
                  WHERE ds.team_id = t.id 
                  AND ds.schedule_date >= CURDATE()
                  ORDER BY ds.schedule_date ASC LIMIT 1) as next_defense_date,
-                (SELECT ds.defense_type FROM defense_schedules ds 
-                 WHERE ds.team_id = t.id 
-                 ORDER BY ds.schedule_date DESC LIMIT 1) as latest_defense_type
+                -- Get override status
+                (SELECT dto.override_type FROM defense_type_overrides dto 
+                 WHERE dto.team_id = t.id AND dto.active = 1
+                 ORDER BY dto.created_at DESC LIMIT 1) as override_defense_type,
+                -- Get evaluation counts
+                (SELECT COUNT(DISTINCT ep.id) FROM evaluation_per_panel ep 
+                 JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                 WHERE ds.team_id = t.id) as total_evaluations,
+                -- Get average score
+                (SELECT ROUND(AVG(ep.total_score), 2) FROM evaluation_per_panel ep 
+                 JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+                 WHERE ds.team_id = t.id) as avg_score,
+                -- Get student member list
+                (SELECT GROUP_CONCAT(CONCAT(u.first_name, ' ', u.last_name) ORDER BY u.last_name SEPARATOR ', ')
+                 FROM team_members tm2
+                 JOIN users u ON tm2.user_id = u.id
+                 WHERE tm2.team_id = t.id AND u.usertype = 1) as student_names,
+                -- Get pending requirements count
+                (SELECT COUNT(*) FROM team_requirements tr 
+                 WHERE tr.team_id = t.id AND tr.status = 'pending') as pending_requirements,
+                -- Get research title status
+                rt.approved_at as title_approved_at
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id
+            LEFT JOIN team_members tm_students ON t.id = tm_students.team_id 
+                AND tm_students.user_id IN (SELECT id FROM users WHERE usertype = 1)
             LEFT JOIN research_titles rt ON t.id = rt.team_id
             WHERE tm.user_id = ? AND tm.role = 'adviser'
-            GROUP BY t.id, t.name, t.program, rt.title
+            GROUP BY t.id, t.name, t.program, rt.title, rt.approved_at
             ORDER BY t.name ASC
         ");
         $adviseeStmt->execute([$userId]);
