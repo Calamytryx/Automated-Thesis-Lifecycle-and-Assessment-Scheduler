@@ -295,6 +295,18 @@ try {
     $adviser_name = $adviser['fullname'] ?? 'No adviser assigned';
     error_log("DS-Index: Fetched adviser name: {$adviser_name} for team ID {$team_id}.");
 
+    // Fetch Evaluator Name (Currently logged in user)
+    $evaluatorStmt = $pdo->prepare("
+        SELECT CONCAT(last_name, ', ', first_name) AS evaluator_fullname
+        FROM users
+        WHERE id = ?
+        LIMIT 1
+    ");
+    $evaluatorStmt->execute([$evaluator_id]);
+    $evaluator = $evaluatorStmt->fetch(PDO::FETCH_ASSOC);
+    $evaluator_name = $evaluator['evaluator_fullname'] ?? 'Unknown Evaluator';
+    error_log("DS-Index: Fetched evaluator name: {$evaluator_name} for evaluator ID {$evaluator_id}.");
+
     // *** NEW: Fetch Rubric Group Details ***
     $stmt_group = $pdo->prepare("SELECT name, description FROM rubric_groups WHERE id = ?");
     $stmt_group->execute([$group_id]);
@@ -877,9 +889,9 @@ function render_passfail_rubric($rubric, $existing_details) {
     $fail_option_text = $rubric['fail_option_text'] ?? 'Fail';
     
     // Get thresholds for different pass levels
-    $threshold_1 = $rubric['pass_threshold_1'] ?? 100; // Total Pass
-    $threshold_2 = $rubric['pass_threshold_2'] ?? 75;  // Minor Revision Pass
-    $threshold_3 = $rubric['pass_threshold_3'] ?? 65;  // Major Revision Pass
+    $threshold_1 = $rubric['pass_threshold_1'] ?? 81; // Total Pass
+    $threshold_2 = $rubric['pass_threshold_2'] ?? 80;  // Minor Revision Pass
+    $threshold_3 = $rubric['pass_threshold_3'] ?? 75;  // Major Revision Pass
 
     // Basic validation
     if (empty($levels)) {
@@ -1436,14 +1448,48 @@ include '../assets/layouts/header.php';
                                         <tr>
                                             <td>Total</td>
                                             <td class="text-center"><?php echo number_format($total_configured_weight, 1); ?>%</td>
-                                            <td class="text-center" id="weight-total-score">0</td>
-                                            <td class="text-center" id="weight-total-percent">0.0%</td>
+                                            <td class="text-center" id="weight-total-score">
+                                                <?php 
+                                                // Check if we have individual scoring rubrics
+                                                $hasIndividualRubrics = false;
+                                                foreach ($weight_summary as $item) {
+                                                    if (!empty($item['is_individual'])) {
+                                                        $hasIndividualRubrics = true;
+                                                        break;
+                                                    }
+                                                }
+                                                if ($hasIndividualRubrics && !empty($students)): 
+                                                ?>
+                                                    <!-- Display individual totals for each student -->
+                                                    <div class="d-flex justify-content-center align-items-center flex-wrap gap-1" id="weight-total-individual">
+                                                        <?php foreach ($students as $idx => $student): ?>
+                                                            <span class="badge bg-primary" id="weight-total-s<?php echo $student['id']; ?>">0</span>
+                                                            <?php if ($idx < count($students) - 1): ?><span class="text-muted">|</span><?php endif; ?>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    0
+                                                <?php endif; ?>
+                                            </td>
+                                            <td class="text-center" id="weight-total-percent">
+                                                <?php if ($hasIndividualRubrics && !empty($students)): ?>
+                                                    <!-- Display individual percentages for each student -->
+                                                    <div class="d-flex justify-content-center align-items-center flex-wrap gap-1" id="weight-total-percent-individual">
+                                                        <?php foreach ($students as $idx => $student): ?>
+                                                            <span class="badge bg-success" id="weight-percent-s<?php echo $student['id']; ?>">0.0%</span>
+                                                            <?php if ($idx < count($students) - 1): ?><span class="text-muted">|</span><?php endif; ?>
+                                                        <?php endforeach; ?>
+                                                    </div>
+                                                <?php else: ?>
+                                                    0.0%
+                                                <?php endif; ?>
+                                            </td>
                                         </tr>
                                     </tfoot>
                                 </table>
                             </div>
                             <div class="alert alert-info mt-3 mb-0">
-                                <small><i class="bi bi-info-circle"></i> <strong>Note:</strong> For individual scoring rubrics, scores are shown per student (e.g., <code>40 | 35 | 42 | 38</code>). "Actual %" shows the weighted percentage contribution based on the average.</small>
+                                <small><i class="bi bi-info-circle"></i> <strong>Note:</strong> Rubrics are marked as <span class="badge bg-info" style="font-size: 0.7em;">Individual</span> or <span class="badge bg-secondary" style="font-size: 0.7em;">Group</span>. For individual scoring, scores are shown per student (e.g., <code>40 | 35 | 42 | 38</code>). "Actual %" shows the weighted percentage contribution. Total row shows individual student totals when applicable.</small>
                             </div>
                         </div>
                     </div>
@@ -1623,6 +1669,9 @@ document.addEventListener('DOMContentLoaded', function() {
         // Update weight summary table
         updateWeightSummary();
         
+        // Update pass/fail status based on new totals
+        updatePassFailStatus();
+        
         console.log("Subtotal calculated for rubric", rubric_id, ":", total);
     }
 
@@ -1665,6 +1714,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Update weight summary table (for individual scoring, we need to recalculate)
         updateWeightSummary();
+        
+        // Update pass/fail status based on new totals
+        updatePassFailStatus();
         
         console.log("Individual subtotal calculated for rubric", rubric_id, "student", student_id, ":", total);
     }
@@ -1775,16 +1827,124 @@ document.addEventListener('DOMContentLoaded', function() {
             totalWeightedScore += weightedScore;
         });
         
-        // Update total score
-        const totalScoreCell = document.getElementById('weight-total-score');
-        if (totalScoreCell) {
-            totalScoreCell.textContent = totalCurrentScore.toFixed(2);
-        }
+        // Check if we have individual scoring - need to calculate per-student totals
+        const hasIndividualScoring = summaryTable.querySelector('tbody tr[data-is-individual="1"]') !== null;
         
-        // Update total percentage - sum of all weighted scores
-        const totalPercentCell = document.getElementById('weight-total-percent');
-        if (totalPercentCell) {
-            totalPercentCell.textContent = totalWeightedScore.toFixed(1) + '%';
+        if (hasIndividualScoring) {
+            // Calculate individual student totals and percentages
+            const studentTotals = {};
+            const studentWeightedScores = {};
+            
+            // Iterate through all rubrics again to collect per-student data
+            summaryTable.querySelectorAll('tbody tr[data-rubric-id]').forEach(row => {
+                const rubricId = row.dataset.rubricId;
+                const isIndividual = row.dataset.isIndividual === '1';
+                const card = document.querySelector(`.rubric-card[data-rubric-id="${rubricId}"]`);
+                
+                if (!card) return;
+                
+                const rubricType = card.dataset.rubricType;
+                let configuredWeight = 0;
+                const weightCell = row.querySelector('td:nth-child(2)');
+                if (weightCell) {
+                    configuredWeight = parseFloat(weightCell.textContent) || 0;
+                }
+                
+                if (rubricType === 'numerical') {
+                    if (isIndividual) {
+                        // Individual rubric - get each student's score
+                        const subtotalCells = card.querySelectorAll('[id^="r' + rubricId + '-student-"][id$="-subtotal"]');
+                        
+                        // Get max possible score
+                        let maxPossibleScore = 0;
+                        const firstStudentInput = card.querySelector('input[type="number"][data-rubric-id="' + rubricId + '"][data-student-id]');
+                        if (firstStudentInput) {
+                            const firstStudentId = firstStudentInput.dataset.studentId;
+                            card.querySelectorAll(`input[type="number"][data-rubric-id="${rubricId}"][data-student-id="${firstStudentId}"]`).forEach(input => {
+                                maxPossibleScore += parseFloat(input.getAttribute('max')) || 0;
+                            });
+                        }
+                        
+                        subtotalCells.forEach(cell => {
+                            const score = parseFloat(cell.textContent) || 0;
+                            const match = cell.id.match(/r\d+-student-(\d+)-subtotal/);
+                            if (match) {
+                                const studentId = match[1];
+                                if (!studentTotals[studentId]) {
+                                    studentTotals[studentId] = 0;
+                                    studentWeightedScores[studentId] = 0;
+                                }
+                                studentTotals[studentId] += score;
+                                
+                                // Calculate this student's weighted score for this rubric
+                                if (maxPossibleScore > 0) {
+                                    const scorePercentage = score / maxPossibleScore;
+                                    studentWeightedScores[studentId] += scorePercentage * configuredWeight;
+                                }
+                            }
+                        });
+                    } else {
+                        // Group rubric - apply same score to all students
+                        const subtotalCell = document.getElementById(`r${rubricId}-subtotal`);
+                        const score = subtotalCell ? parseFloat(subtotalCell.textContent) || 0 : 0;
+                        
+                        // Get max possible score
+                        let maxPossibleScore = 0;
+                        card.querySelectorAll(`input[type="number"][data-rubric-id="${rubricId}"][name*="[group]"]`).forEach(input => {
+                            maxPossibleScore += parseFloat(input.getAttribute('max')) || 0;
+                        });
+                        
+                        // Apply to all students
+                        const allStudentIds = Array.from(summaryTable.querySelectorAll('tbody tr[data-is-individual="1"]')).map(r => {
+                            const scoreCell = r.querySelector('.rubric-current-score');
+                            const badges = scoreCell ? scoreCell.querySelectorAll('.badge[id*="-s"]') : [];
+                            return Array.from(badges).map(b => {
+                                const match = b.id.match(/weight-score-\d+-s(\d+)/);
+                                return match ? match[1] : null;
+                            }).filter(id => id !== null);
+                        }).flat();
+                        
+                        // Use unique student IDs
+                        const uniqueStudentIds = [...new Set(allStudentIds)];
+                        uniqueStudentIds.forEach(studentId => {
+                            if (!studentTotals[studentId]) {
+                                studentTotals[studentId] = 0;
+                                studentWeightedScores[studentId] = 0;
+                            }
+                            studentTotals[studentId] += score;
+                            
+                            if (maxPossibleScore > 0) {
+                                const scorePercentage = score / maxPossibleScore;
+                                studentWeightedScores[studentId] += scorePercentage * configuredWeight;
+                            }
+                        });
+                    }
+                }
+            });
+            
+            // Update individual student totals in footer
+            Object.keys(studentTotals).forEach(studentId => {
+                const totalBadge = document.getElementById(`weight-total-s${studentId}`);
+                if (totalBadge) {
+                    totalBadge.textContent = studentTotals[studentId].toFixed(0);
+                }
+                
+                const percentBadge = document.getElementById(`weight-percent-s${studentId}`);
+                if (percentBadge) {
+                    percentBadge.textContent = studentWeightedScores[studentId].toFixed(1) + '%';
+                }
+            });
+        } else {
+            // No individual scoring - update single totals
+            const totalScoreCell = document.getElementById('weight-total-score');
+            if (totalScoreCell && !totalScoreCell.querySelector('.badge')) {
+                totalScoreCell.textContent = totalCurrentScore.toFixed(2);
+            }
+            
+            const totalPercentCell = document.getElementById('weight-total-percent');
+            if (totalPercentCell && !totalPercentCell.querySelector('.badge')) {
+                totalPercentCell.textContent = totalWeightedScore.toFixed(1) + '%';
+            }
         }
     };
 
@@ -1792,6 +1952,9 @@ document.addEventListener('DOMContentLoaded', function() {
     // EVALUATION SUMMARY GENERATION
     // -------------------------------------------------------------------
     window.showEvaluationSummary = function() {
+        // Update weight summary first to ensure latest scores are calculated
+        updateWeightSummary();
+        
         const summaryContent = document.getElementById('summaryContent');
         if (!summaryContent) return;
         
@@ -1887,12 +2050,156 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<div style="padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; font-family: inherit;">' + escapeHtml(comments) + '</div>';
         html += '</div>';
         
+        // Evaluator Section
+        html += '<div class="summary-section" style="margin-bottom: 20px; page-break-inside: avoid;">';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">EVALUATED BY</h3>';
+        html += '<div style="padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd;">';
+        html += '<strong><?php echo htmlspecialchars($evaluator_name); ?></strong>';
+        html += '</div>';
+        html += '</div>';
+        
         summaryContent.innerHTML = html;
         
         // Show the modal
         const summaryModal = new bootstrap.Modal(document.getElementById('evaluationSummaryModal'));
         summaryModal.show();
     };
+    
+    function generateWeightSummaryForModal() {
+        console.log('=== generateWeightSummaryForModal() called ==='); // Debug
+        
+        let html = '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
+        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><i class="bi bi-bar-chart"></i> RUBRIC WEIGHT SUMMARY</h3>';
+        
+        // Get data from the weight summary table
+        const summaryTable = document.getElementById('weight-summary-table');
+        
+        console.log('Weight summary table found:', summaryTable); // Debug log
+        
+        if (!summaryTable) {
+            console.warn('Weight summary table not found - ID: weight-summary-table');
+            html += '<div style="padding: 15px; background-color: #fff3cd; border: 1px solid #ffc107;">';
+            html += '<p style="margin: 0; color: #856404;"><strong>⚠️ Weight summary table not found</strong></p>';
+            html += '</div>';
+            html += '</div>';
+            return html;
+        }
+        
+        const rows = summaryTable.querySelectorAll('tbody tr[data-rubric-id]');
+        console.log('Number of rubric rows found:', rows.length); // Debug log
+        
+        if (rows.length === 0) {
+            html += '<p style="font-style: italic; color: #666;">No rubric data available</p>';
+            html += '</div>';
+            return html;
+        }
+        
+        html += '<table style="width: 100%; border-collapse: collapse; margin-top: 10px;" class="summary-table">';
+        html += '<thead><tr style="background-color: #f0f0f0;">';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: left; font-weight: bold;">Rubric</th>';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Configured Weight</th>';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Current Score(s)</th>';
+        html += '<th style="border: 1px solid #999; padding: 8px; text-align: center; font-weight: bold;">Actual %</th>';
+        html += '</tr></thead><tbody>';
+        
+        // Process each row
+        rows.forEach(row => {
+            const rubricId = row.dataset.rubricId;
+            const isIndividual = row.dataset.isIndividual === '1';
+            
+            // Rubric name
+            const rubricName = row.querySelector('td:nth-child(1)')?.textContent?.trim() || 'N/A';
+            
+            // Configured weight
+            const configWeight = row.querySelector('td:nth-child(2)')?.textContent?.trim() || '0%';
+            
+            // Current scores
+            let currentScores = '';
+            if (isIndividual) {
+                // Get individual scores from badges
+                const badges = row.querySelectorAll('.rubric-current-score .badge');
+                const scores = [];
+                badges.forEach(badge => {
+                    if (badge.textContent.trim() !== '|') {
+                        scores.push(badge.textContent.trim());
+                    }
+                });
+                currentScores = scores.join(' | ');
+            } else {
+                // Group score
+                const scoreSpan = row.querySelector('.rubric-current-score span:not(.badge)');
+                currentScores = scoreSpan?.textContent?.trim() || '0';
+            }
+            
+            // Actual percentage
+            const actualPercent = row.querySelector('.rubric-actual-percent')?.textContent?.trim() || '0.0%';
+            
+            html += '<tr>';
+            html += '<td style="border: 1px solid #999; padding: 8px;">' + rubricName + '</td>';
+            html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + configWeight + '</td>';
+            html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + currentScores + '</td>';
+            html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + actualPercent + '</td>';
+            html += '</tr>';
+        });
+        
+        // Total row
+        const totalConfigWeight = summaryTable.querySelector('tfoot td:nth-child(2)')?.textContent?.trim() || '0%';
+        
+        // Check if we have individual scoring
+        const hasIndividualScoring = summaryTable.querySelector('tbody tr[data-is-individual="1"]') !== null;
+        
+        let totalScore = '';
+        let totalPercent = '';
+        
+        if (hasIndividualScoring) {
+            // Get individual student totals
+            const totalScoreDiv = document.getElementById('weight-total-score');
+            const totalPercentDiv = document.getElementById('weight-total-percent');
+            
+            if (totalScoreDiv && totalScoreDiv.querySelector('.badge')) {
+                const scoreBadges = totalScoreDiv.querySelectorAll('.badge');
+                const scores = [];
+                scoreBadges.forEach(badge => {
+                    if (badge.textContent.trim() !== '|') {
+                        scores.push(badge.textContent.trim());
+                    }
+                });
+                totalScore = scores.join(' | ');
+            } else {
+                totalScore = document.getElementById('weight-total-score')?.textContent?.trim() || '0';
+            }
+            
+            if (totalPercentDiv && totalPercentDiv.querySelector('.badge')) {
+                const percentBadges = totalPercentDiv.querySelectorAll('.badge');
+                const percents = [];
+                percentBadges.forEach(badge => {
+                    if (badge.textContent.trim() !== '|') {
+                        percents.push(badge.textContent.trim());
+                    }
+                });
+                totalPercent = percents.join(' | ');
+            } else {
+                totalPercent = document.getElementById('weight-total-percent')?.textContent?.trim() || '0.0%';
+            }
+        } else {
+            totalScore = document.getElementById('weight-total-score')?.textContent?.trim() || '0';
+            totalPercent = document.getElementById('weight-total-percent')?.textContent?.trim() || '0.0%';
+        }
+        
+        html += '</tbody><tfoot><tr style="background-color: #f0f0f0; font-weight: bold;">';
+        html += '<td style="border: 1px solid #999; padding: 8px;">Total</td>';
+        html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + totalConfigWeight + '</td>';
+        html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + totalScore + '</td>';
+        html += '<td style="border: 1px solid #999; padding: 8px; text-align: center;">' + totalPercent + '</td>';
+        html += '</tr></tfoot></table>';
+        
+        html += '<div style="padding: 10px; background-color: #e7f3ff; border-left: 4px solid #0066cc; margin-top: 15px;">';
+        html += '<small><i class="bi bi-info-circle"></i> <strong>Note:</strong> For individual scoring rubrics, scores are shown per student (e.g., <code>40 | 35 | 42 | 38</code>). "Actual %" shows the weighted percentage contribution based on the average.</small>';
+        html += '</div>';
+        
+        html += '</div>';
+        return html;
+    }
     
     function generateNumericalSummary(card) {
         let html = '<table style="width: 100%; border-collapse: collapse; margin-top: 10px; page-break-inside: avoid;" class="summary-table">';
@@ -2069,10 +2376,46 @@ document.addEventListener('DOMContentLoaded', function() {
         const statusDiv = card.querySelector('[id^="passfail_status_"]');
         const statusText = statusDiv?.querySelector('.passfail-status-text')?.textContent || 'Status not determined';
         
+        // Get the hidden input with threshold data
+        const hiddenInput = card.querySelector('.auto-passfail-result');
+        const threshold1 = hiddenInput?.dataset?.threshold1 || '0';
+        const threshold2 = hiddenInput?.dataset?.threshold2 || '0';
+        const threshold3 = hiddenInput?.dataset?.threshold3 || '0';
+        
+        // Get the current percentage from the weight summary
+        const totalPercentElement = document.getElementById('weight-total-percent');
+        const currentPercentage = totalPercentElement ? parseFloat(totalPercentElement.textContent) : 0;
+        
+        // Get threshold descriptions from the alert
+        const alertDiv = card.querySelector('.alert-info');
+        const thresholdDescriptions = [];
+        if (alertDiv) {
+            const listItems = alertDiv.querySelectorAll('li');
+            listItems.forEach(li => {
+                thresholdDescriptions.push(li.textContent.trim());
+            });
+        }
+        
         let html = '<div style="padding: 15px; background-color: #f9f9f9; border: 1px solid #ddd; margin-top: 10px;">';
-        html += '<strong>Pass/Fail Determination:</strong><br>';
-        html += '<span style="font-size: 1.1em;">' + statusText + '</span>';
+        html += '<h5 style="font-weight: bold; margin-bottom: 10px;"><i class="bi bi-info-circle"></i> Automated Pass/Fail Determination</h5>';
+        html += '<p style="margin-bottom: 10px;">This rubric automatically determines pass/fail status based on your total numerical score:</p>';
+        
+        if (thresholdDescriptions.length > 0) {
+            html += '<ul style="margin-bottom: 15px;">';
+            thresholdDescriptions.forEach(desc => {
+                html += '<li>' + desc + '</li>';
+            });
+            html += '</ul>';
+        }
+        
+        html += '<div style="padding: 12px; background-color: #d1ecf1; border: 2px solid #0c5460; border-radius: 5px; margin-top: 15px;">';
+        html += '<strong style="font-size: 1.1em;">Current Status:</strong> <span style="font-size: 1.1em; color: #0c5460;">' + statusText + '</span>';
         html += '</div>';
+        
+        html += '</div>';
+
+        // Rubric Weight Summary Section - ADD BEFORE SCORE SHEETS
+        html += generateWeightSummaryForModal();
         
         return html;
     }
@@ -2405,26 +2748,42 @@ document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------------
     // CALCULATE SCORE AND AUTO-DETERMINE PASS/FAIL STATUS
     // -------------------------------------------------------------------
-    function updateTotalScore() {
-        let totalScore = 0;
-        let maxPossibleScore = 0;
+    function updatePassFailStatus() {
+        // Get the weighted percentage from the weight summary total
+        // Check if we have individual scoring to get the correct percentage
+        const totalPercentDiv = document.getElementById('weight-total-percent');
+        let percentage = 0;
         
-        // Sum all numerical scores from entered-score inputs
-        evaluationForm.querySelectorAll('.entered-score').forEach(input => {
-            const value = parseFloat(input.value) || 0;
-            const max = parseFloat(input.max) || 0;
-            totalScore += value;
-            maxPossibleScore += max;
-        });
+        if (totalPercentDiv) {
+            const individualPercentDiv = document.getElementById('weight-total-percent-individual');
+            if (individualPercentDiv && individualPercentDiv.querySelectorAll('.badge').length > 0) {
+                // Individual scoring - calculate average of all student percentages
+                const percentBadges = individualPercentDiv.querySelectorAll('.badge');
+                let totalPercentage = 0;
+                let count = 0;
+                percentBadges.forEach(badge => {
+                    const text = badge.textContent.trim();
+                    if (text && text !== '|') {
+                        const value = parseFloat(text.replace('%', ''));
+                        if (!isNaN(value)) {
+                            totalPercentage += value;
+                            count++;
+                        }
+                    }
+                });
+                percentage = count > 0 ? totalPercentage / count : 0;
+            } else {
+                // Group scoring or single total - get the percentage directly
+                const percentText = totalPercentDiv.textContent.trim().replace('%', '');
+                percentage = parseFloat(percentText) || 0;
+            }
+        }
         
-        // Calculate percentage from numerical rubrics only
-        const percentage = maxPossibleScore > 0 ? (totalScore / maxPossibleScore) * 100 : 0;
-        
-        // Auto-determine pass/fail status for all pass/fail rubrics based on percentage
+        // Auto-determine pass/fail status for all pass/fail rubrics based on weighted percentage
         evaluationForm.querySelectorAll('.auto-passfail-result').forEach(input => {
             const threshold1 = parseFloat(input.dataset.threshold1) || 100;
             const threshold2 = parseFloat(input.dataset.threshold2) || 75;
-            const threshold3 = parseFloat(input.dataset.threshold3) || 65;
+            const threshold3 = parseFloat(input.dataset.threshold3) || 70;
             const levelCount = parseInt(input.dataset.levelCount) || 3;
             const rubricId = input.id.replace('passfail_result_', '');
             
@@ -2435,20 +2794,20 @@ document.addEventListener('DOMContentLoaded', function() {
             // Determine which pass level applies (check highest threshold first)
             if (percentage >= threshold1) {
                 selectedValue = 1; // Highest pass level
-                statusText = `<i class="bi bi-check-circle-fill text-success"></i> <strong>PASSED</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold1}%)`;
+                statusText = `<i class="bi bi-check-circle-fill text-success"></i> <strong>PASSED</strong> (Score: ${percentage.toFixed(2)}% ≥ ${threshold1}%)`;
                 statusClass = 'alert-success';
             } else if (levelCount >= 2 && percentage >= threshold2) {
                 selectedValue = 2; // Medium pass level
-                statusText = `<i class="bi bi-check-circle text-warning"></i> <strong>PASSED with Minor Revisions</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold2}%)`;
+                statusText = `<i class="bi bi-check-circle text-warning"></i> <strong>PASSED with Minor Revisions</strong> (Score: ${percentage.toFixed(2)}% ≥ ${threshold2}%)`;
                 statusClass = 'alert-warning';
             } else if (levelCount >= 3 && percentage >= threshold3) {
                 selectedValue = 3; // Lower pass level
-                statusText = `<i class="bi bi-check-circle text-info"></i> <strong>PASSED with Major Revisions</strong> (Score: ${percentage.toFixed(1)}% ≥ ${threshold3}%)`;
+                statusText = `<i class="bi bi-check-circle text-info"></i> <strong>PASSED with Major Revisions</strong> (Score: ${percentage.toFixed(2)}% ≥ ${threshold3}%)`;
                 statusClass = 'alert-info';
             } else {
                 selectedValue = 0; // Fail
                 const lowestThreshold = Math.min(threshold1, threshold2, threshold3);
-                statusText = `<i class="bi bi-x-circle-fill text-danger"></i> <strong>FAILED</strong> (Score: ${percentage.toFixed(1)}% < ${lowestThreshold}%)`;
+                statusText = `<i class="bi bi-x-circle-fill text-danger"></i> <strong>FAILED</strong> (Score: ${percentage.toFixed(2)}% < ${lowestThreshold}%)`;
                 statusClass = 'alert-danger';
             }
             
@@ -2464,17 +2823,15 @@ document.addEventListener('DOMContentLoaded', function() {
                     statusSpan.innerHTML = statusText;
                 }
             }
-            
-            // Also update the weight contribution to total if needed
-            const card = evaluationForm.querySelector(`.rubric-card[data-rubric-id="${rubricId}"]`);
-            if (card) {
-                const weight = parseFloat(card.dataset.weight) || 0;
-                if (selectedValue > 0) {
-                    totalScore += weight;
-                }
-                maxPossibleScore += weight;
-            }
         });
+    }
+    
+    function updateTotalScore() {
+        // First, update the weight summary to get the correct weighted percentage
+        updateWeightSummary();
+        
+        // Then update the pass/fail status based on the weighted percentage
+        updatePassFailStatus();
     }
     
     // Initialize on page load
