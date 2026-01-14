@@ -110,6 +110,7 @@ if (!isset($_POST['loginsubmit'])) {
                 $_SESSION['gender'] = $row['gender'];
                 $_SESSION['headline'] = $row['headline'];
                 $_SESSION['bio'] = $row['bio'];
+                $_SESSION['area_of_expertise'] = $row['area_of_expertise'];
                 $_SESSION['profile_image'] = $row['profile_image'];
                 $_SESSION['banner_image'] = $row['banner_image'];
                 $_SESSION['verified_at'] = $row['verified_at'];

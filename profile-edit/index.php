@@ -131,6 +131,17 @@ function xss_filter($data) {
                                         <textarea type="text" id="bio" name="bio" class="form-control" placeholder="Tell us about yourself..." rows="4"><?php echo xss_filter($_SESSION['bio']); ?></textarea>
                                         <div class="validation-error" id="bio-error" style="display: none;"></div>
                                     </div>
+                                    <?php if ($_SESSION['usertype'] == 0 || $_SESSION['usertype'] == 2): // Only for admins and faculty ?>
+                                    <div class="form-group">
+                                        <label for="area_of_expertise">Area of Expertise / Specialization</label>
+                                        <div id="area_of_expertise_container" class="specialization-container">
+                                            <div class="text-muted">Loading specializations...</div>
+                                        </div>
+                                        <input type="hidden" id="area_of_expertise_hidden" name="area_of_expertise_text" value="<?php echo isset($_SESSION['area_of_expertise']) ? xss_filter($_SESSION['area_of_expertise']) : ''; ?>">
+                                        <small class="form-text text-muted">Click specializations to select/deselect</small>
+                                        <div class="validation-error" id="area_of_expertise-error" style="display: none;"></div>
+                                    </div>
+                                    <?php endif; ?>
                                     <div class="password-section">
                                         <h3 class="password-title">Change Password</h3>
                                         <sub class="text-danger mb-4">
@@ -178,6 +189,65 @@ function xss_filter($data) {
 <?php include '../assets/layouts/footer.php'; ?>
 
 <script type="text/javascript">
+    // Load specializations from the pool
+    $(document).ready(function() {
+        <?php if ($_SESSION['usertype'] == 0 || $_SESSION['usertype'] == 2): ?>
+        // Load specializations for admins and faculty
+        $.ajax({
+            url: '../dashboard/includes/specialization_pool_api.php?action=get_active',
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                if (response.success && response.data) {
+                    const container = $('#area_of_expertise_container');
+                    container.empty();
+                    
+                    // Get current user's specializations
+                    const currentExpertise = $('#area_of_expertise_hidden').val();
+                    const currentArray = currentExpertise ? currentExpertise.split(',').map(s => s.trim()) : [];
+                    
+                    // Create toggle buttons for each specialization
+                    response.data.forEach(function(spec) {
+                        const isSelected = currentArray.includes(spec.name);
+                        const badge = $('<div></div>')
+                            .addClass('specialization-badge')
+                            .attr('data-spec-name', spec.name)
+                            .toggleClass('selected', isSelected)
+                            .text(spec.name + (spec.college ? ' (' + spec.college + ')' : ''));
+                        
+                        container.append(badge);
+                    });
+                    
+                    // Add click handler for toggle
+                    $('.specialization-badge').on('click', function() {
+                        $(this).toggleClass('selected');
+                        updateHiddenField();
+                    });
+                } else {
+                    $('#area_of_expertise_container').html('<div class="text-muted">No specializations available</div>');
+                }
+            },
+            error: function() {
+                $('#area_of_expertise_container').html('<div class="text-danger">Error loading specializations</div>');
+            }
+        });
+        
+        // Function to update hidden field with selected specializations
+        function updateHiddenField() {
+            const selectedNames = [];
+            $('.specialization-badge.selected').each(function() {
+                selectedNames.push($(this).attr('data-spec-name'));
+            });
+            $('#area_of_expertise_hidden').val(selectedNames.join(', '));
+        }
+        
+        // On form submit, ensure hidden field is up to date
+        $('.form-auth').on('submit', function(e) {
+            updateHiddenField();
+        });
+        <?php endif; ?>
+    });
+
     // Helper function for showing toasts (dashboard style)
     function showToast(title, message, type = 'success') {
         // Create toast container if it doesn't exist
@@ -495,7 +565,7 @@ function xss_filter($data) {
             const errors = [];
             
             if (!value || value.trim() === '') {
-                if (fieldName !== 'headline' && fieldName !== 'bio') { // These can be optional
+                if (fieldName !== 'headline' && fieldName !== 'bio' && fieldName !== 'username' && fieldName !== 'first_name' && fieldName !== 'last_name') { // These can be optional
                     return ['This field is required'];
                 }
                 return [];
@@ -742,5 +812,50 @@ function xss_filter($data) {
 .is-invalid:focus {
     border-color: #dc3545 !important;
     box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
+}
+
+/* Area of expertise click-toggle styles */
+.specialization-container {
+    border: 1px solid #ced4da;
+    border-radius: 0.25rem;
+    padding: 10px;
+    min-height: 150px;
+    max-height: 300px;
+    overflow-y: auto;
+    background-color: #fff;
+}
+
+.specialization-badge {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 4px;
+    border-radius: 20px;
+    border: 2px solid #dee2e6;
+    background-color: #f8f9fa;
+    color: #495057;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+    word-wrap: break-word;
+    white-space: normal;
+    max-width: 100%;
+    text-align: center;
+}
+
+.specialization-badge:hover {
+    border-color: #0066cc;
+    background-color: #e7f3ff;
+    transform: translateY(-1px);
+}
+
+.specialization-badge.selected {
+    background: linear-gradient(135deg, #0066cc, #0052a3);
+    color: white;
+    border-color: #0066cc;
+    font-weight: 500;
+}
+
+.specialization-badge.selected:hover {
+    background: linear-gradient(135deg, #0052a3, #004080);
 }
 </style>

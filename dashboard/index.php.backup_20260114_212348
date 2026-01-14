@@ -414,11 +414,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
                                         <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
                                     </a>
-                                    <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
-                                        <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
-                                    </a>
-</div>
+                                </div>
                             </div>
 
                             <!-- Defense Management -->
@@ -514,7 +510,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/program_requirements_tab.php'; ?>
                             <?php include 'includes/tabs/team_management_tab.php'; ?>
                             
-                            <?php include 'includes/tabs/specialization_management_tab.php'; ?>
+                            <?php include 'includes/tabs/specialization_pool_tab.php'; ?>
+                            <?php include 'includes/tabs/specialization_assignment_tab.php'; ?>
                             
                             <?php //include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>
@@ -605,11 +602,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
                                         <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
                                     </a>
-                                    <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
-                                        <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
-                                    </a>
-</div>
+                                </div>
                             </div>
 
                             <!-- Defense Management -->
@@ -704,7 +697,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php include 'includes/tabs/team_management_tab.php'; ?>
                             <?php include 'includes/tabs/professor_assignments_tab.php'; ?>
                             
-                            <?php include 'includes/tabs/specialization_management_tab.php'; ?>
+                            <?php include 'includes/tabs/specialization_pool_tab.php'; ?>
+                            <?php include 'includes/tabs/specialization_assignment_tab.php'; ?>
                             
                             <?php include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>
@@ -796,10 +790,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
                                         <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
                                     </a> -->
-                                    <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
-                                        <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
-                                    </a>
                                 </div>
                             </div>
 
@@ -828,6 +818,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <a class="nav-link my-1" id="requirements-tab" data-bs-toggle="pill" href="#requirements" role="tab" aria-controls="requirements" aria-selected="false">
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
+                                    </a>
+                                    <a class="nav-link my-1" id="specialization-assignment-tab" data-bs-toggle="pill" href="#specialization-assignment" role="tab" aria-controls="specialization-assignment" aria-selected="false">
+                                        <i class="bi bi-diagram-3 me-2 hollow"></i>
+                                        <i class="bi bi-diagram-3-fill me-2 filled"></i>Assign Specializations
                                     </a>
                                 </div>
                             </div>
@@ -885,7 +879,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                             <?php //include 'includes/tabs/evaluations_tab.php'; ?>
                             <?php include 'includes/tabs/requirements_tab.php'; ?>
                             
-                            <?php include 'includes/tabs/specialization_management_tab.php'; ?>
+                            <?php include 'includes/tabs/specialization_assignment_tab.php'; ?>
                             
                             <?php //include 'includes/tabs/env_variables_tab.php'; ?>
                             <?php include 'includes/tabs/guide_tab.php'; ?>

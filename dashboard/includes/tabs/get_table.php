@@ -236,25 +236,85 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 }
                 break;
             case 'teams':
-                // Select t.program directly. Keep JOIN programs p for filtering.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
-                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
-                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
-                               FROM teams t
-                               LEFT JOIN research_titles rt ON t.id = rt.team_id
-                               JOIN team_members tm ON t.id = tm.team_id
-                               JOIN users u ON tm.user_id = u.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering, assuming t.program stores name string
-                $collegeRestrictionClause = "WHERE p.college = :college";
-                // Count query needs the join for filtering
-                $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
-                               LEFT JOIN research_titles rt ON t.id = rt.team_id
-                               JOIN team_members tm ON t.id = tm.team_id
-                               JOIN users u ON tm.user_id = u.id
-                               JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)"; // Keep JOIN for filtering
-                
-                // 🔐 NOTE: Faculty (usertype 2) can see ALL teams (no section filter)
-                // But permission checks on CREATE/EDIT are handled in teams_tab.php
+                // 🔐 SECTION FILTER: Faculty (usertype 2) can only see teams from their assigned section(s)
+                if ($currentUsertype === 2) {
+                    $professorSections = getProfessorSections($pdo, $userId);
+                    if (!empty($professorSections)) {
+                        // Get team IDs that have students from professor's sections
+                        $visibleTeamIds = getVisibleTeamsForProfessor($pdo, $userId);
+                        
+                        if (empty($visibleTeamIds)) {
+                            // No teams visible to this professor
+                            echo json_encode([
+                                'data' => [],
+                                'page' => $page,
+                                'per_page' => $perPage,
+                                'total_rows' => 0,
+                                'total_pages' => 0,
+                            ]);
+                            exit;
+                        }
+                        
+                        // Filter to only these team IDs
+                        $teamIdPlaceholders = [];
+                        foreach ($visibleTeamIds as $idx => $teamId) {
+                            $paramKey = ":visible_team_$idx";
+                            $teamIdPlaceholders[] = $paramKey;
+                            $params[$paramKey] = $teamId;
+                        }
+                        
+                        // Select t.program directly.
+                        $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                                       GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
+                                       GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
+                                       FROM teams t
+                                       LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                       JOIN team_members tm ON t.id = tm.team_id
+                                       JOIN users u ON tm.user_id = u.id
+                                       JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                        $collegeRestrictionClause = "WHERE p.college = :college AND t.id IN (" . implode(',', $teamIdPlaceholders) . ")";
+                        
+                        $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
+                                       LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                       JOIN team_members tm ON t.id = tm.team_id
+                                       JOIN users u ON tm.user_id = u.id
+                                       JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                    } else {
+                        // Professor has no section assignment - show all teams in their college
+                        $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                                       GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
+                                       GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
+                                       FROM teams t
+                                       LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                       JOIN team_members tm ON t.id = tm.team_id
+                                       JOIN users u ON tm.user_id = u.id
+                                       JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                        $collegeRestrictionClause = "WHERE p.college = :college";
+                        
+                        $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
+                                       LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                       JOIN team_members tm ON t.id = tm.team_id
+                                       JOIN users u ON tm.user_id = u.id
+                                       JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                    }
+                } else {
+                    // Admin or super admin - see all teams in college
+                    $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                                   GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
+                                   GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
+                                   FROM teams t
+                                   LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                   JOIN team_members tm ON t.id = tm.team_id
+                                   JOIN users u ON tm.user_id = u.id
+                                   JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                    $collegeRestrictionClause = "WHERE p.college = :college";
+                    
+                    $countQuery = "SELECT COUNT(DISTINCT t.id) FROM teams t
+                                   LEFT JOIN research_titles rt ON t.id = rt.team_id
+                                   JOIN team_members tm ON t.id = tm.team_id
+                                   JOIN users u ON tm.user_id = u.id
+                                   JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                }
                 break;
             case 'programs':
                 $baseQuery = "SELECT id, college, department, name, specialization FROM programs";

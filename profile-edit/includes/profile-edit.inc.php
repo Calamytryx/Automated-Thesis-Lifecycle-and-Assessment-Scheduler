@@ -47,7 +47,7 @@ if (isset($_POST['update-profile'])) {
         $errors = [];
         
         if (empty(trim($value))) {
-            if ($field_name !== 'headline' && $field_name !== 'bio') { // These can be optional
+            if ($field_name !== 'headline' && $field_name !== 'bio' && $field_name !== 'username' && $field_name !== 'first_name' && $field_name !== 'last_name') { // These can be optional
                 return ['This field is required'];
             }
             return [];
@@ -124,6 +124,9 @@ if (isset($_POST['update-profile'])) {
     $last_name = $_SESSION['last_name']; // Non-editable
     $headline = sanitize_html_input($_POST['headline']);
     $bio = sanitize_html_input($_POST['bio']);
+    
+    // Handle area_of_expertise from hidden field (comma-separated from multi-select)
+    $area_of_expertise = isset($_POST['area_of_expertise_text']) ? sanitize_html_input($_POST['area_of_expertise_text']) : null;
 
     if (isset($_POST['gender'])) 
         $gender = $_POST['gender'];
@@ -393,6 +396,7 @@ if (isset($_POST['update-profile'])) {
             gender=?, 
             headline=?, 
             bio=?, 
+            area_of_expertise=?,
             profile_image=?";
 
         if ($passwordUpdated){
@@ -422,6 +426,7 @@ if (isset($_POST['update-profile'])) {
                     $gender,
                     $headline,
                     $bio,
+                    $area_of_expertise,
                     $FileNameNew,
                     $hashedPwd,
                     $_SESSION['id']
@@ -436,6 +441,7 @@ if (isset($_POST['update-profile'])) {
                     $gender,
                     $headline,
                     $bio,
+                    $area_of_expertise,
                     $FileNameNew,
                     $_SESSION['id']
                 ]);
@@ -448,6 +454,7 @@ if (isset($_POST['update-profile'])) {
             $_SESSION['gender'] = $gender;
             $_SESSION['headline'] = $headline;
             $_SESSION['bio'] = $bio;
+            $_SESSION['area_of_expertise'] = $area_of_expertise;
             $_SESSION['profile_image'] = $FileNameNew;
 
             $_SESSION['STATUS']['editstatus'] = 'profile successfully updated';

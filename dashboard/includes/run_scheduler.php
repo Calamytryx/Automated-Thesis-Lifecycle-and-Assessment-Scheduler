@@ -1053,6 +1053,16 @@ function calculateDefenseFitness($pdo, $defense)
         $fitness -= 100; // Heavy penalty for no expertise match
     }
 
+    // NEW: Add specialization matching to fitness
+    $teamSpecializations = getTeamSpecializations($pdo, $defense['team_id']);
+    if (!empty($teamSpecializations)) {
+        foreach ($defense['panelist_ids'] as $panelist_id) {
+            $panelistSpecializations = getUserSpecializations($pdo, $panelist_id);
+            $specializationScore = calculateSpecializationMatch($teamSpecializations, $panelistSpecializations);
+            $fitness += $specializationScore; // Add specialization matching bonus
+        }
+    }
+
     $fitnessCache[$key] = $fitness;
     return $fitness;
 }
@@ -1347,6 +1357,68 @@ function getDepartment($program) {
     return "Computer Studies";
 }
 
+/**
+ * Get specializations for a team (from area_of_expertise field)
+ */
+function getTeamSpecializations($pdo, $teamId) {
+    static $cache = [];
+    
+    if (!isset($cache[$teamId])) {
+        $stmt = $pdo->prepare("
+            SELECT area_of_expertise 
+            FROM teams
+            WHERE id = ?
+        ");
+        $stmt->execute([$teamId]);
+        $team = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($team && !empty($team['area_of_expertise'])) {
+            $cache[$teamId] = array_filter(array_map('trim', explode(',', $team['area_of_expertise'])));
+        } else {
+            $cache[$teamId] = [];
+        }
+    }
+    
+    return $cache[$teamId];
+}
+
+/**
+ * Get specializations for a user/panelist (from area_of_expertise field)
+ */
+function getUserSpecializations($pdo, $userId) {
+    static $cache = [];
+    
+    if (!isset($cache[$userId])) {
+        $stmt = $pdo->prepare("
+            SELECT area_of_expertise 
+            FROM users
+            WHERE id = ?
+        ");
+        $stmt->execute([$userId]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if ($user && !empty($user['area_of_expertise'])) {
+            $cache[$userId] = array_filter(array_map('trim', explode(',', $user['area_of_expertise'])));
+        } else {
+            $cache[$userId] = [];
+        }
+    }
+    
+    return $cache[$userId];
+}
+
+/**
+ * Calculate specialization match score between team and panelist
+ */
+function calculateSpecializationMatch($teamSpecializations, $panelistSpecializations) {
+    if (empty($teamSpecializations) || empty($panelistSpecializations)) {
+        return 0; // No bonus if either has no specializations
+    }
+    
+    $matchCount = count(array_intersect($teamSpecializations, $panelistSpecializations));
+    return $matchCount * 10; // 10 points per matching specialization
+}
+
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
 {
     global $pdo; // needed to call getPanelistData()
@@ -1367,66 +1439,86 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     
     $teamProgram = (string)$teamData['program'];
     $teamDepartment = getDepartment($teamProgram);
+    $teamSpecializations = getTeamSpecializations($pdo, $teamData['id']);
 
-    // Candidate 0: Panelist from the exact team program (same defense title)
-    $pool0 = [];
+    // Score all panelists based on multiple criteria
+    $panelistScores = [];
     foreach (array_keys($allPanelists) as $id) {
         if ($id == $adviserId) continue;
+        
         $pdata = getPanelistData($pdo, $id);
+        $score = 0;
+        
+        // Same program (highest priority)
         if (strcasecmp((string)($pdata['program'] ?? ''), $teamProgram) === 0) {
-            $pool0[] = $id;
+            $score += 100;
         }
-    }
-    if (!empty($pool0)) {
-        $selectedPanelists[] = $pool0[array_rand($pool0)];
-    } else {
-        // Fallback: choose from those in the same department
-        $poolDept = [];
-        foreach (array_keys($allPanelists) as $id) {
-            if ($id == $adviserId) continue;
-            $pdata = getPanelistData($pdo, $id);
-            if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) {
-                $poolDept[] = $id;
-            }
-        }
-        $selectedPanelists[] = !empty($poolDept) ? $poolDept[array_rand($poolDept)] 
-                                                 : array_rand($allPanelists);
-    }
-
-    // Candidate 1: Panelist from the same department
-    $pool1 = [];
-    foreach (array_keys($allPanelists) as $id) {
-        if ($id == $adviserId || in_array($id, $selectedPanelists)) continue;
-        $pdata = getPanelistData($pdo, $id);
+        
+        // Same department
         if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) {
-            $pool1[] = $id;
+            $score += 50;
         }
+        
+        // Specialization matching (new!)
+        $panelistSpecializations = getUserSpecializations($pdo, $id);
+        $specializationScore = calculateSpecializationMatch($teamSpecializations, $panelistSpecializations);
+        $score += $specializationScore;
+        
+        $panelistScores[$id] = $score;
     }
-    if (!empty($pool1)) {
-        $selectedPanelists[] = $pool1[array_rand($pool1)];
-    } else {
-        // Fallback: choose a remaining candidate
-        $remaining = array_diff(array_keys($allPanelists), array_merge([$adviserId], $selectedPanelists));
-        $selectedPanelists[] = !empty($remaining) ? array_rand(array_flip($remaining)) 
-                                                  : array_rand($allPanelists);
+    
+    // Sort panelists by score (descending)
+    arsort($panelistScores);
+    
+    // Select top 3 panelists with some randomization for diversity
+    $topCandidates = array_keys($panelistScores);
+    
+    // Candidate 0: Best match (top scorer or random from top 3)
+    $top3 = array_slice($topCandidates, 0, min(3, count($topCandidates)));
+    if (!empty($top3)) {
+        $selectedPanelists[] = $top3[array_rand($top3)];
     }
-
-    // Candidate 2: Panelist from a different department
-    $pool2 = [];
-    foreach (array_keys($allPanelists) as $id) {
-        if ($id == $adviserId || in_array($id, $selectedPanelists)) continue;
+    
+    // Candidate 1: From same department (prefer not already selected)
+    $sameDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
+        if (in_array($id, $selectedPanelists)) return false;
         $pdata = getPanelistData($pdo, $id);
-        if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) !== 0) {
-            $pool2[] = $id;
+        return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0;
+    });
+    
+    if (!empty($sameDept)) {
+        $selectedPanelists[] = array_values($sameDept)[array_rand($sameDept)];
+    } else {
+        $remaining = array_diff($topCandidates, $selectedPanelists);
+        if (!empty($remaining)) {
+            $selectedPanelists[] = array_values($remaining)[0];
         }
     }
-    if (!empty($pool2)) {
-        $selectedPanelists[] = $pool2[array_rand($pool2)];
+    
+    // Candidate 2: From different department for diversity
+    $diffDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
+        if (in_array($id, $selectedPanelists)) return false;
+        $pdata = getPanelistData($pdo, $id);
+        return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) !== 0;
+    });
+    
+    if (!empty($diffDept)) {
+        $selectedPanelists[] = array_values($diffDept)[array_rand($diffDept)];
     } else {
-        // Fallback: choose a remaining candidate
-        $remaining = array_diff(array_keys($allPanelists), array_merge([$adviserId], $selectedPanelists));
-        $selectedPanelists[] = !empty($remaining) ? array_rand(array_flip($remaining)) 
-                                                  : array_rand($allPanelists);
+        $remaining = array_diff($topCandidates, $selectedPanelists);
+        if (!empty($remaining)) {
+            $selectedPanelists[] = array_values($remaining)[0];
+        }
+    }
+    
+    // Ensure we have exactly 3 panelists
+    while (count($selectedPanelists) < 3 && count($selectedPanelists) < count($topCandidates)) {
+        $remaining = array_diff($topCandidates, $selectedPanelists);
+        if (!empty($remaining)) {
+            $selectedPanelists[] = array_values($remaining)[0];
+        } else {
+            break;
+        }
     }
 
     return $selectedPanelists;
