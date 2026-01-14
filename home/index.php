@@ -986,20 +986,29 @@ function loadClassRecord(page = 1) {
                         </div>
                     `;
                 } else if (viewType === 'team') {
-                    // TEAM VIEW - Students grouped by teams
+                    // TEAM VIEW - Students grouped by teams with pagination
+                    const itemsPerPage = 5; // Teams per page
+                    
                     for (const [section, teams] of Object.entries(data.sections)) {
+                        const teamsArray = Object.entries(teams);
+                        const totalTeams = teamsArray.length;
+                        const totalPages = Math.ceil(totalTeams / itemsPerPage);
+                        const currentPage = window.classRecordCurrentPage || 1;
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        const paginatedTeams = teamsArray.slice(startIndex, endIndex);
+                        
                         content += `
                             <div class="mb-4">
                                 <div class="d-flex align-items-center mb-3">
                                     <h5 class="mb-0">
-                                        <i class="bi bi-people-fill me-2 text-primary"></i>
                                         Section: ${section}
                                     </h5>
                                 </div>
                         `;
                         
-                        // Loop through each team in the section
-                        for (const [teamId, teamData] of Object.entries(teams)) {
+                        // Loop through paginated teams
+                        for (const [teamId, teamData] of paginatedTeams) {
                             const students = teamData.students;
                             
                             // Get all unique panelists from all students in this team
@@ -1019,21 +1028,18 @@ function loadClassRecord(page = 1) {
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">
                                         <h6 class="mb-0 text-dark">
-                                            <i class="bi bi-diagram-3 me-2"></i>
                                             ${teamData.team_name}
                                             <span class="badge bg-secondary ms-2">${students.length} ${students.length === 1 ? 'member' : 'members'}</span>
                                         </h6>
-                                        <small class="text-muted d-block mt-1">
-                                            <i class="bi bi-book me-1"></i>
+                                        <strong class="text-muted d-block mt-1">
                                             ${teamData.research_title}
-                                        </small>
+                                        </strong>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
                                             <table class="db-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Student No.</th>
                                                         <th>Student Name</th>
                                                         ${panelists.map(([id, name]) => `<th class="text-center">${name}</th>`).join('')}
                                                         <th class="text-center">Average</th>
@@ -1066,8 +1072,7 @@ function loadClassRecord(page = 1) {
                                     const grade = student.panelist_grades?.find(g => g.evaluator_id == panelistId);
                                     if (grade && grade.total_score !== null) {
                                         const gradeValue = parseFloat(grade.total_score).toFixed(2);
-                                        const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
-                                        gradeColumns += `<td class="text-center ${gradeClass}"><strong>${gradeValue}</strong></td>`;
+                                        gradeColumns += `<td class="text-center text-dark">${gradeValue}</td>`;
                                     } else {
                                         gradeColumns += `<td class="text-center text-muted">-</td>`;
                                     }
@@ -1078,8 +1083,7 @@ function loadClassRecord(page = 1) {
                                 
                                 content += `
                                     <tr>
-                                        <td><small class="text-muted">${student.student_number || 'N/A'}</small></td>
-                                        <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                        <td>${student.last_name}, ${student.first_name}</td>
                                         ${gradeColumns}
                                         <td class="text-center ${avgScoreClass}">${avgScoreDisplay}</td>
                                         <td class="text-center">
@@ -1095,6 +1099,67 @@ function loadClassRecord(page = 1) {
                                         </div>
                                     </div>
                                 </div>
+                            `;
+                        }
+                        
+                        // Add pagination controls
+                        if (totalPages > 1) {
+                            content += `
+                                <nav aria-label="Teams pagination" class="mt-4">
+                                    <ul class="pagination justify-content-center" id="team-view-pagination">
+                            `;
+                            
+                            // Previous button
+                            const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+                            content += `
+                                <li class="page-item ${prevDisabled}">
+                                    <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
+                                </li>
+                            `;
+                            
+                            // Page numbers
+                            const maxPages = 5;
+                            let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+                            let endPage = Math.min(totalPages, startPage + maxPages - 1);
+                            
+                            if (endPage === totalPages) {
+                                startPage = Math.max(1, endPage - maxPages + 1);
+                            }
+                            
+                            if (startPage > 1) {
+                                content += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                                if (startPage > 2) {
+                                    content += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                            }
+                            
+                            for (let i = startPage; i <= endPage; i++) {
+                                const active = i === currentPage ? 'active' : '';
+                                content += `
+                                    <li class="page-item ${active}">
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                    </li>
+                                `;
+                            }
+                            
+                            if (endPage < totalPages) {
+                                if (endPage < totalPages - 1) {
+                                    content += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                                content += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                            }
+                            
+                            // Next button
+                            const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+                            content += `
+                                <li class="page-item ${nextDisabled}">
+                                    <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
+                                </li>
+                            `;
+                            
+                            content += `
+                                    </ul>
+                                </nav>
                             `;
                         }
                         
@@ -1156,13 +1221,6 @@ function loadClassRecord(page = 1) {
                                  id="section-pane-${idx}" 
                                  role="tabpanel">
                                 <div class="card">
-                                    <div class="card-header bg-light">
-                                        <h6 class="mb-0">
-                                            <i class="bi bi-mortarboard me-2"></i>
-                                            Section ${section}
-                                            <span class="badge bg-primary ms-2">${students.length} students</span>
-                                        </h6>
-                                    </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
                                             <table class="db-table" id="classRecordTable-${idx}">
@@ -1214,8 +1272,8 @@ function loadClassRecord(page = 1) {
                         const soloScoreClass = getScoreClass(avgSoloScore);
                         const totalScoreClass = getScoreClass(avgTotalScore);
                         
-                        const groupScoreDisplay = avgGroupScore !== null ? `<strong>${avgGroupScore}</strong>` : '-';
-                        const soloScoreDisplay = avgSoloScore !== null ? `<strong>${avgSoloScore}</strong>` : '-';
+                        const groupScoreDisplay = avgGroupScore !== null ? `${avgGroupScore}` : '-';
+                        const soloScoreDisplay = avgSoloScore !== null ? `${avgSoloScore}` : '-';
                         const totalScoreDisplay = avgTotalScore !== null ? `<strong>${avgTotalScore}</strong>` : '-';
                         
                         // Build panelist details for modal (keep for detailed view)
@@ -1249,10 +1307,10 @@ function loadClassRecord(page = 1) {
                                     style="cursor: pointer;">
                                     <td class="text-center text-muted">${studentIdx + 1}</td>
                                     <td class="d-none d-md-table-cell"><small class="text-muted">${student.student_number || 'N/A'}</small></td>
-                                    <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                    <td>${student.last_name}, ${student.first_name}</td>
                                     <td class="d-none d-lg-table-cell"><small class="text-muted">${student.team_name}</small></td>
-                                    <td class="text-center ${groupScoreClass}">${groupScoreDisplay}</td>
-                                    <td class="text-center ${soloScoreClass}">${soloScoreDisplay}</td>
+                                    <td class="text-center text-dark">${groupScoreDisplay}</td>
+                                    <td class="text-center text-dark">${soloScoreDisplay}</td>
                                     <td class="text-center ${totalScoreClass}">${totalScoreDisplay}</td>
                                     <td class="text-center">
                                         <span class="badge ${statusClass}">${status}</span>
@@ -1352,6 +1410,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const classRecordLink = document.getElementById('class-record-link');
     if (classRecordLink) {
         classRecordLink.addEventListener('click', function() {
+            window.classRecordCurrentPage = 1; // Initialize page 1
             loadClassRecord(1);
         });
     }
@@ -1360,9 +1419,23 @@ document.addEventListener("DOMContentLoaded", function() {
     const classRecordViewSelect = document.getElementById('classRecordViewSelect');
     if (classRecordViewSelect) {
         classRecordViewSelect.addEventListener('change', function() {
+            window.classRecordCurrentPage = 1; // Reset to page 1 when changing view
             loadClassRecord(1);
         });
     }
+    
+    // Add event listener for team view pagination
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#team-view-pagination a.page-link')) {
+            e.preventDefault();
+            const link = e.target.closest('a.page-link');
+            const page = parseInt(link.getAttribute('data-page'));
+            if (page && page > 0) {
+                window.classRecordCurrentPage = page;
+                loadClassRecord(page);
+            }
+        }
+    });
     
     // Add event listener for row clicks in class record
     document.addEventListener('click', function(e) {
