@@ -65,7 +65,7 @@ main.container-fluid {
     border-radius: 0.5rem !important;
 }
 .table-responsive {
-    border-radius: 0.5rem;
+    /* border-radius: 0.5rem; */
     overflow: hidden;
 }
 
@@ -1127,6 +1127,102 @@ body.has-collapsed-home-sidebar #homeMainContent {
     font-family: 'Helvetica Neue', Arial, sans-serif;
 }
 
+/* Advisee Team Selector Dropdown - Matches Dashboard Users Tab */
+.advisee-team-select {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-radius: 8px;
+    border: 1px solid var(--neutral-300);
+    background-color: var(--white-500);
+    padding: 0.5rem 1rem;
+    font-size: 0.95rem;
+    min-width: 200px;
+    max-width: 300px;
+    width: auto;
+}
+
+/* Program Pill Styling */
+.program-pill {
+    display: inline-block;
+    background-color: var(--main-white);
+    color: var(--main-black);
+    border: 1px solid var(--neutral-300);
+    border-radius: 50px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+    vertical-align: middle;
+    cursor: default;
+}
+
+/* Defense Stage Badge Styling */
+.defense-stage-badge {
+    display: inline-block;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+
+.defense-stage-title-proposal {
+    background-color: #e0f2fe;
+    color: #075985;
+}
+
+.defense-stage-title-defense {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.defense-stage-final-defense {
+    background-color: #ede9fe;
+    color: #6b21a8;
+}
+
+.defense-stage-re-defense {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+/* View Evaluation Details Link */
+.view-team-summary-link {
+    font-size: 0.875rem;
+    color: var(--primary-500);
+    text-decoration: underline;
+    transition: color 0.2s ease;
+}
+
+.view-team-summary-link:hover {
+    color: var(--primary-600);
+    text-decoration: underline;
+}
+
+.advisee-team-select:focus {
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+    border-color: var(--primary-500);
+    background-color: var(--white-500);
+    outline: none;
+}
+
+.advisee-team-select:hover {
+    border-color: var(--neutral-400);
+}
+
+/* Responsive adjustments for advisee team selector */
+@media (max-width: 767.98px) {
+    .advisee-team-select {
+        min-width: 150px;
+        max-width: 100%;
+        font-size: 0.9rem;
+        padding: 0.45rem 0.75rem;
+    }
+}
+
 /* Container responsive padding */
 .content-container.team-overview {
     padding: 3rem !important;
@@ -1204,6 +1300,149 @@ body.has-collapsed-home-sidebar #homeMainContent {
     border-radius: 6px;
 }
 
+/* Defense Schedule Count Badge */
+.defense-schedule-count {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    background-color: var(--neutral-200);
+    color: var(--neutral-700);
+    border-radius: 50%;
+    font-size: 0.875rem;
+    font-weight: 600;
+    margin-left: 0.5rem;
+}
+
+/* Defense Type Pills */
+.defense-type-pill {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.defense-type-pill.type-proposal {
+    color: #0891b2;
+    background-color: #cffafe;
+    border-color: #0891b2;
+}
+
+.defense-type-pill.type-title {
+    color: #2563eb;
+    background-color: #dbeafe;
+    border-color: #2563eb;
+}
+
+.defense-type-pill.type-final {
+    color: #16a34a;
+    background-color: #dcfce7;
+    border-color: #16a34a;
+}
+
+.defense-type-pill.type-redefense {
+    color: #ea580c;
+    background-color: #ffedd5;
+    border-color: #ea580c;
+}
+
+.defense-type-pill.type-general {
+    color: var(--neutral-700);
+    background-color: var(--neutral-50);
+    border-color: var(--neutral-400);
+}
+
+/* Defense Status Pills */
+.defense-status-pill {
+    display: inline-block;
+    padding: 0.25rem 0.6rem;
+    border-radius: 12px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    border: 1px solid;
+    white-space: nowrap;
+}
+
+.defense-status-pill.status-evaluated {
+    color: #16a34a;
+    background-color: #dcfce7;
+    border-color: #16a34a;
+}
+
+.defense-status-pill.status-scheduled {
+    color: #0891b2;
+    background-color: #cffafe;
+    border-color: #0891b2;
+}
+
+.defense-status-pill.status-pending {
+    color: #ea580c;
+    background-color: #ffedd5;
+    border-color: #ea580c;
+}
+
+/* Defense Schedule Table Styling */
+.defense-schedule-table {
+    border: 1px solid var(--neutral-300);
+    border-collapse: separate;
+    border-spacing: 0;
+    width: 100%;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.defense-schedule-table th {
+    color: var(--main-bg-dark);
+    text-align: left;
+    padding: 16px 20px;
+    white-space: nowrap;
+    border-bottom: 1px solid var(--neutral-300);
+    background-color: var(--white-50);
+    border: none;
+    font-weight: 600;
+}
+
+.defense-schedule-table thead tr th:first-child {
+    border-top-left-radius: 4px;
+}
+
+.defense-schedule-table thead tr th:last-child {
+    border-top-right-radius: 4px;
+}
+
+.defense-schedule-table td {
+    padding: 14px 20px;
+    vertical-align: middle;
+    background-color: var(--white-50);
+    border: none;
+}
+
+.defense-schedule-table tbody tr {
+    background-color: var(--white-50);
+    transition: all 0.3s ease;
+}
+
+.defense-schedule-table tbody tr:hover {
+    background-color: var(--neutral-100);
+}
+
+.defense-schedule-table tbody tr:hover td {
+    background-color: var(--neutral-100);
+}
+
+/* Fixed width for action buttons */
+.defense-action-btn {
+    min-width: 90px;
+    display: inline-block;
+}
+
+
+
 .team-overview .rounded-circle {
     width: 40px;
     height: 40px;
@@ -1274,9 +1513,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
     background-color: var(--secondary-500);
 }
 
-.team-overview .status-pending {
+/* .team-overview .status-pending {
     background-color: var(--neutral-700);
-}
+} */
 
 .team-overview .status-rejected {
     background-color: var(--primary-500);
@@ -1423,6 +1662,60 @@ body.has-collapsed-home-sidebar #homeMainContent {
         padding: 0.75rem 1rem;
     }
     
+    /* Program pill mobile adjustments */
+    .program-pill {
+        font-size: 0.8125rem;
+        padding: 0.2rem 0.65rem;
+    }
+    
+    /* Defense stage badge mobile adjustments */
+    .defense-stage-badge {
+        font-size: 0.8125rem;
+        padding: 0.2rem 0.65rem;
+    }
+    
+    /* Team member list responsive adjustments */
+    .team-info-member-li {
+        padding: 0.65rem 0.85rem !important;
+        margin-bottom: 0.4rem !important;
+        font-size: 0.9rem;
+    }
+    
+    /* Requirement list responsive adjustments */
+    .requirement-list-item {
+        padding: 0.65rem 0.85rem !important;
+        margin-bottom: 0.4rem !important;
+        font-size: 0.9rem;
+    }
+    
+    .requirement-list-item .req-deadline {
+        font-size: 0.7rem;
+        margin-left: 0.5rem;
+    }
+    
+    .requirements-scroll-container {
+        max-height: 260px;
+    }
+    
+    /* Requirement filter legend mobile adjustments */
+    .req-filter-legend {
+        gap: 0.5rem;
+    }
+    
+    .req-filter-btn {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    .req-filter-btn i {
+        font-size: 0.813rem;
+    }
+    
+    /* View evaluation link mobile adjustments */
+    .view-team-summary-link {
+        font-size: 0.8rem;
+    }
+    
     /* Adjust info boxes for mobile */
     .team-overview .info-box {
         padding: 1rem;
@@ -1441,6 +1734,47 @@ body.has-collapsed-home-sidebar #homeMainContent {
     .team-overview .badge {
         font-size: 0.75rem;
         padding: 0.375rem 0.625rem;
+    }
+    
+    /* Team evaluation table mobile adjustments */
+    .team-eval-table {
+        font-size: 0.875rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.5rem 0.4rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.75rem;
+    }
+    
+    #teamSummaryModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    #teamSummaryModal h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Defense schedule table responsive */
+    .defense-schedule-table th,
+    .defense-schedule-table td {
+        padding: 12px 14px;
+        font-size: 0.875rem;
+    }
+    
+    .defense-type-pill,
+    .defense-status-pill {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    .defense-action-btn {
+        min-width: 75px;
+        font-size: 0.8125rem;
     }
 }
 
@@ -1498,6 +1832,65 @@ body.has-collapsed-home-sidebar #homeMainContent {
         font-size: 1.5rem !important;
     }
     
+    /* Program pill extra small screen adjustments */
+    .program-pill {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    /* Defense stage badge extra small screen adjustments */
+    .defense-stage-badge {
+        font-size: 0.75rem;
+        padding: 0.2rem 0.5rem;
+    }
+    
+    /* Team member list extra small screen adjustments */
+    .team-info-member-li {
+        padding: 0.5rem 0.65rem !important;
+        margin-bottom: 0.35rem !important;
+        font-size: 0.85rem;
+    }
+    
+    /* Requirement list extra small screen adjustments */
+    .requirement-list-item {
+        padding: 0.5rem 0.65rem !important;
+        margin-bottom: 0.35rem !important;
+        font-size: 0.85rem;
+    }
+    
+    .requirement-list-item .req-name {
+        font-size: 0.85rem;
+    }
+    
+    .requirement-list-item .req-deadline {
+        font-size: 0.65rem;
+        margin-left: 0.35rem;
+    }
+    
+    .requirements-scroll-container {
+        max-height: 240px;
+    }
+    
+    /* Requirement filter legend extra small screen adjustments */
+    .req-filter-legend {
+        gap: 0.35rem;
+        margin-top: 0.5rem;
+    }
+    
+    .req-filter-btn {
+        font-size: 0.7rem;
+        padding: 0.15rem 0.35rem;
+    }
+    
+    .req-filter-btn i {
+        font-size: 0.75rem;
+    }
+    
+    /* View evaluation link extra small screen adjustments */
+    .view-team-summary-link {
+        font-size: 0.75rem;
+    }
+    
     /* Compact requirement items */
     .team-overview .requirement-item {
         padding: 0.5rem 0;
@@ -1507,6 +1900,56 @@ body.has-collapsed-home-sidebar #homeMainContent {
         margin: 0 -0.75rem;
         padding-left: 0.75rem;
         padding-right: 0.75rem;
+    }
+    
+    /* Team evaluation table extra small screen adjustments */
+    .team-eval-table {
+        font-size: 0.75rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.4rem 0.25rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.7rem;
+    }
+    
+    #teamSummaryModal .modal-dialog {
+        margin: 0.25rem;
+    }
+    
+    #teamSummaryModal h3 {
+        font-size: 1.25rem;
+    }
+    
+    #teamSummaryModal .modal-body {
+        padding: 0.75rem;
+    }
+    
+    #teamSummaryModal p {
+        font-size: 0.875rem;
+    }
+    
+    /* Defense schedule table extra small responsive */
+    .defense-schedule-table th,
+    .defense-schedule-table td {
+        padding: 10px 8px;
+        font-size: 0.8125rem;
+    }
+    
+    .defense-type-pill,
+    .defense-status-pill {
+        font-size: 0.7rem;
+        padding: 0.18rem 0.45rem;
+    }
+    
+    .defense-action-btn {
+        min-width: 70px;
+        font-size: 0.75rem;
+        padding: 0.35rem 0.5rem;
     }
 }
 
@@ -3797,4 +4240,147 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .student-details-card hr {
     margin: 1rem 0;
     border-top: 1px solid var(--neutral-300, #dee2e6);
+}
+
+.team-info-member-li {
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.5rem !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px !important;
+    background-color: var(--white-50) !important;
+    transition: all 0.2s ease;
+    list-style: none;
+}
+
+.team-info-member-li:hover {
+    background-color: var(--neutral-50) !important;
+    border-color: var(--neutral-400) !important;
+}
+
+/* Team Evaluation Table Styling */
+.team-eval-table {
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.team-eval-table thead th:first-child {
+    border-top-left-radius: 4px;
+}
+
+.team-eval-table thead th:last-child {
+    border-top-right-radius: 4px;
+}
+
+.team-eval-table tbody tr:last-child td:first-child {
+    border-bottom-left-radius: 4px;
+}
+
+.team-eval-table tfoot tr:last-child th:first-child {
+    border-bottom-left-radius: 4px;
+}
+
+.team-eval-table tfoot tr:last-child th:last-child {
+    border-bottom-right-radius: 4px;
+}
+
+/* Requirement List Item Styling */
+.requirement-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem !important;
+    margin-bottom: 0.5rem !important;
+    border: 1px solid var(--neutral-300) !important;
+    border-radius: 4px !important;
+    background-color: var(--white-50) !important;
+    transition: all 0.2s ease;
+    list-style: none;
+}
+
+.requirement-list-item:hover {
+    background-color: var(--neutral-50) !important;
+    border-color: var(--neutral-400) !important;
+}
+
+.requirement-list-item .req-content {
+    display: flex;
+    align-items: center;
+    flex: 1;
+    min-width: 0;
+}
+
+.requirement-list-item .req-name {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.requirement-list-item .req-deadline {
+    font-size: 0.813rem;
+    color: var(--neutral-700);
+    white-space: nowrap;
+    margin-left: 1rem;
+}
+
+/* Requirements Scroll Container */
+.requirements-scroll-container {
+    max-height: 280px;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+/* Requirement Filter Legend */
+.req-filter-legend {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.req-filter-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    background: none;
+    border: none;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.813rem;
+    color: var(--neutral-700);
+    transition: all 0.2s ease;
+}
+
+.req-filter-btn:hover {
+    background-color: var(--neutral-100);
+}
+
+.req-filter-btn.active span {
+    font-weight: 700;
+}
+
+.req-filter-btn:not(.active) {
+    opacity: 0.6;
+}
+
+.req-filter-btn i {
+    font-size: 0.875rem;
+}
+
+.requirements-scroll-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.requirements-scroll-container::-webkit-scrollbar-track {
+    background: var(--neutral-100);
+    border-radius: 3px;
+}
+
+.requirements-scroll-container::-webkit-scrollbar-thumb {
+    background: var(--neutral-400);
+    border-radius: 3px;
+}
+
+.requirements-scroll-container::-webkit-scrollbar-thumb:hover {
+    background: var(--neutral-500);
 }
