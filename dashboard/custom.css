@@ -2766,3 +2766,101 @@ body.modal-open {
         max-width: calc(100% - 1rem);
     }
 }
+
+/* ========================================
+   Professor Assignments Tab Styles
+   ======================================== */
+
+/* Professor Assignments Add Button - matches other add buttons */
+.feature-btn.prof-assign-add-btn {
+    height: 48px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--main-primary);
+    color: var(--main-white);
+    border: 1px solid var(--main-primary);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.feature-btn.prof-assign-add-btn i {
+    color: inherit;
+}
+
+.feature-btn.prof-assign-add-btn:hover {
+    background-color: var(--primary-600);
+    transform: translateY(-1px);
+    color: var(--main-white);
+}
+
+.feature-btn.prof-assign-add-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Professor Assignments Refresh Button */
+.prof-assign-refresh-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--main-white);
+    color: var(--neutral-600);
+    border: 1px solid var(--neutral-300);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.prof-assign-refresh-btn:hover {
+    background-color: var(--neutral-100);
+    color: var(--neutral-700);
+    border-color: var(--neutral-400);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prof-assign-refresh-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.prof-assign-refresh-btn i {
+    font-size: 1rem;
+}
+
+/* Professor Assignments Delete Button */
+.prof-assign-delete-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background-color: var(--main-white);
+    color: var(--danger-600);
+    border: 1px solid var(--danger-300);
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+}
+
+.prof-assign-delete-btn:hover {
+    background-color: var(--danger-50);
+    color: var(--danger-700);
+    border-color: var(--danger-400);
+    transform: translateY(-1px);
+}
+
+.prof-assign-delete-btn:active {
+    transform: translateY(0);
+}
+
+.prof-assign-delete-btn i {
+    font-size: 0.875rem;
+}
