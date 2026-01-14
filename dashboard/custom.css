@@ -1725,6 +1725,22 @@ footer {
         padding: 0.375rem 0.75rem;
         font-size: 0.875rem;
     }
+
+    /* Team Management Modals - Tablet */
+    #overrideModal .modal-dialog,
+    #panelistLockModal .modal-dialog {
+        max-width: 90%;
+    }
+
+    #overrideModal .modal-footer,
+    #panelistLockModal .modal-footer {
+        gap: 0.5rem;
+    }
+
+    #overrideModal .modal-footer .btn,
+    #panelistLockModal .modal-footer .btn {
+        padding: 0.5rem 1rem;
+    }
 }
 
 @media (max-width: 575.98px) {
@@ -1749,6 +1765,66 @@ footer {
     .pagination {
         gap: 0.25rem;
     }
+
+    /* Team Management Modals - Extra Small Screens */
+    #overrideModal .modal-title,
+    #panelistLockModal .modal-title {
+        font-size: 1rem;
+    }
+
+    #overrideModal .modal-footer .btn,
+    #panelistLockModal .modal-footer .btn {
+        padding: 0.5rem;
+        font-size: 0.875rem;
+    }
+
+    #panelistsList .list-group-item {
+        padding: 0.5rem;
+        font-size: 0.8125rem;
+    }
+    
+    /* Team evaluation table extra small screen adjustments */
+    .team-eval-table {
+        font-size: 0.75rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.4rem 0.25rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.7rem;
+    }
+    
+    #evaluationDetailsModal .modal-dialog {
+        margin: 0.25rem;
+    }
+    
+    #evaluationDetailsModal h3 {
+        font-size: 1.25rem;
+    }
+    
+    #evaluationDetailsModal .modal-body {
+        padding: 0.75rem;
+    }
+    
+    #evaluationDetailsModal p {
+        font-size: 0.875rem;
+    }
+    
+    /* Evaluator comments extra small screen adjustments */
+    .evaluator-comment-item .accordion-button {
+        padding: 0.625rem;
+        font-size: 0.875rem;
+    }
+    
+    .evaluator-comment-item .accordion-body {
+        padding: 0.625rem;
+        padding-top: 0.4rem;
+        font-size: 0.8125rem;
+    }
     
     .pagination .page-item {
         margin: 0;
@@ -1757,6 +1833,47 @@ footer {
     .pagination .page-link {
         padding: 0.25rem 0.5rem;
         font-size: 0.8125rem;
+    }
+
+    /* Team Management Modals - Mobile */
+    #overrideModal .modal-dialog,
+    #panelistLockModal .modal-dialog {
+        margin: 0.5rem;
+    }
+
+    #overrideModal .modal-footer,
+    #panelistLockModal .modal-footer {
+        flex-direction: column;
+        gap: 0.5rem;
+    }
+
+    #overrideModal .modal-footer .btn,
+    #panelistLockModal .modal-footer .btn {
+        width: 100%;
+        margin: 0;
+    }
+
+    #overrideModal .modal-body,
+    #panelistLockModal .modal-body {
+        padding: 1rem;
+    }
+
+    #overrideModal .form-label,
+    #panelistLockModal .form-label {
+        font-size: 0.875rem;
+    }
+
+    #overrideModal .form-control,
+    #overrideModal .form-select,
+    #panelistLockModal .form-control,
+    #panelistLockModal .form-select {
+        font-size: 0.875rem;
+    }
+
+    #overrideModal .alert,
+    #panelistLockModal .alert {
+        font-size: 0.8125rem;
+        padding: 0.625rem;
     }
 
     /* Schedules tab responsive - extra small screens */
@@ -1797,6 +1914,41 @@ footer {
     .meatball-dropdown-item i {
         font-size: 12px !important;
         margin-right: 6px !important;
+    }
+    
+    /* Team evaluation table mobile adjustments */
+    .team-eval-table {
+        font-size: 0.875rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.5rem 0.4rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.75rem;
+    }
+    
+    #evaluationDetailsModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    #evaluationDetailsModal h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Evaluator comments mobile adjustments */
+    .evaluator-comment-item .accordion-button {
+        padding: 0.75rem;
+        font-size: 0.9375rem;
+    }
+    
+    .evaluator-comment-item .accordion-body {
+        padding: 0.75rem;
+        padding-top: 0.5rem;
+        font-size: 0.875rem;
     }
 }
 
@@ -2765,4 +2917,232 @@ body.modal-open {
         margin: 0.5rem;
         max-width: calc(100% - 1rem);
     }
+}
+
+/* ========================================
+   Professor Assignments Tab Styles
+   ======================================== */
+
+/* Professor Assignments Add Button - matches other add buttons */
+.feature-btn.prof-assign-add-btn {
+    height: 48px;
+    border-radius: 6px;
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    background-color: var(--main-primary);
+    color: var(--main-white);
+    border: 1px solid var(--main-primary);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.feature-btn.prof-assign-add-btn i {
+    color: inherit;
+}
+
+.feature-btn.prof-assign-add-btn:hover {
+    background-color: var(--primary-600);
+    transform: translateY(-1px);
+    color: var(--main-white);
+}
+
+.feature-btn.prof-assign-add-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+/* Professor Assignments Refresh Button */
+.prof-assign-refresh-btn {
+    width: 48px;
+    height: 48px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--main-white);
+    color: var(--neutral-600);
+    border: 1px solid var(--neutral-300);
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.prof-assign-refresh-btn:hover {
+    background-color: var(--neutral-100);
+    color: var(--neutral-700);
+    border-color: var(--neutral-400);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.prof-assign-refresh-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.prof-assign-refresh-btn i {
+    font-size: 1rem;
+}
+
+/* Professor Assignments Delete Button */
+.prof-assign-delete-btn {
+    padding: 6px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+    background-color: var(--main-white);
+    color: var(--danger-600);
+    border: 1px solid var(--danger-300);
+    transition: all 0.2s ease;
+    font-size: 0.875rem;
+}
+
+/* Base Defense Type Badge */
+.defense-type-badge {
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    display: inline-block;
+}
+
+/* Defense Type Badge Variants */
+.defense-type-title-proposal {
+    background-color: #e0f2fe;
+    color: #075985;
+}
+
+.defense-type-title-defense {
+    background-color: #dbeafe;
+    color: #1e40af;
+}
+
+.defense-type-final-defense {
+    background-color: #ede9fe;
+    color: #6b21a8;
+}
+
+.defense-type-re-defense {
+    background-color: #fed7aa;
+    color: #9a3412;
+}
+
+.defense-type-default {
+    background-color: #f3f4f6;
+    color: #6b7280;
+}
+
+/* Override Status Badges */
+.override-badge-active {
+    background-color: #fee2e2;
+    color: #991b1b;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.override-badge-none {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+/* Panelist Status Badges */
+.panelist-badge-locked {
+    background-color: #d1fae5;
+    color: #065f46;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.panelist-badge-unlocked {
+    background-color: #f3f4f6;
+    color: #6b7280;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.prof-assign-delete-btn:hover {
+    background-color: var(--danger-50);
+    color: var(--danger-700);
+    border-color: var(--danger-400);
+    transform: translateY(-1px);
+}
+
+.prof-assign-delete-btn:active {
+    transform: translateY(0);
+}
+
+.prof-assign-delete-btn i {
+    font-size: 0.875rem;
+}
+
+/* Team Evaluation Table Styling */
+.team-eval-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.team-eval-table thead th,
+.team-eval-table tbody td,
+.team-eval-table tfoot th {
+    border: 1px solid var(--neutral-300);
+}
+
+.team-eval-table thead th small {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+#evaluationDetailsModal .table-sm td {
+    padding: 0.75rem 0.5rem;
+}
+
+/* Evaluator Comments Styling */
+.evaluator-comment-item {
+    background-color: var(--white-50);
+}
+
+.evaluator-comment-item .accordion-button {
+    padding: 1rem;
+    font-weight: 500;
+    background-color: transparent;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px 4px 0 0;
+}
+
+.evaluator-comment-item .accordion-button:not(.collapsed) {
+    background-color: transparent;
+    color: var(--main-bg-dark);
+    border-bottom: none;
+}
+
+.evaluator-comment-item .accordion-button.collapsed {
+    border-radius: 4px !important;
+}
+
+.evaluator-comment-item .accordion-body {
+    padding: 1rem;
+    padding-top: 0.75rem;
+    border: 1px solid var(--neutral-300);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
 }

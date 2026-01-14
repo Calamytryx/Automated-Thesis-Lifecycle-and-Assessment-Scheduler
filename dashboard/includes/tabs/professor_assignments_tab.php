@@ -15,24 +15,24 @@
                 <div class="user-controls-container p-0">
                     <div class="row g-2 mb-3 align-items-end">
                         <div class="col-12 col-md-4">
-                            <label for="profAssignSectionSelect" class="form-label">Section <span class="text-danger">*</span></label>
-                            <select class="form-select" id="profAssignSectionSelect" required>
+                            <label for="profAssignSectionSelect" class="form-label">Select a section</label>
+                            <select class="form-select user-control-height" id="profAssignSectionSelect" required>
                                 <option value="">Select a section...</option>
                             </select>
                         </div>
                         
                         <div class="col-12 col-md-4">
-                            <label for="profAssignProfSelect" class="form-label">Research Professor <span class="text-danger">*</span></label>
-                            <select class="form-select" id="profAssignProfSelect" required>
+                            <label for="profAssignProfSelect" class="form-label">Select a research professor</label>
+                            <select class="form-select user-control-height" id="profAssignProfSelect" required>
                                 <option value="">Select a professor...</option>
                             </select>
                         </div>
                         
                         <div class="col-12 col-md-4 d-flex gap-2">
-                            <button class="btn feature-btn user-control-height flex-fill" id="assignBtn" style="background-color: #0d6efd; color: white;">
+                            <button class="btn feature-btn prof-assign-add-btn user-control-height flex-fill" id="assignBtn">
                                 <i class="fas fa-plus me-1"></i>Assign
                             </button>
-                            <button class="btn btn-secondary user-control-height" id="refreshBtn">
+                            <button class="btn prof-assign-refresh-btn user-control-height" id="refreshBtn">
                                 <i class="fas fa-sync"></i>
                             </button>
                         </div>
@@ -223,8 +223,8 @@ function displayAssignments(assignments) {
             <td>${profName}</td>
             <td>${email}</td>
             <td class="text-center">
-                <button class="btn btn-sm btn-outline-danger" onclick="deleteAssignment(${assignment.id})" title="Remove">
-                    <i class="fas fa-trash"></i>
+                <button class="btn btn-sm prof-assign-delete-btn" onclick="deleteAssignment(${assignment.id})" title="Remove assignment">
+                    <i class="fas fa-trash me-1"></i>Remove
                 </button>
             </td>
         </tr>`;

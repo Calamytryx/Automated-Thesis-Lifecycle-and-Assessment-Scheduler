@@ -302,14 +302,28 @@ function fetchFacultyDashboard() {
                 
                 // Advisee Teams Section - Card-based layout like student overview
                 content += `
-                    <div class="row mb-4">
-                        <div class="col-12">
-                            <h4 class="mb-3">
-                                <i class="bi bi-people-fill me-2"></i>
+                    <div class="row mb-4 align-items-center">
+                        <div class="col-auto">
+                            <h4 class="mb-0">
                                 Advisee Teams
-                                <span class="badge bg-primary ms-2">${data.advisee_teams.length}</span>
                             </h4>
                         </div>
+                `;
+                
+                // Add dropdown beside header if multiple teams
+                if (data.advisee_teams.length > 1) {
+                    content += `
+                        <div class="col-auto">
+                            <select id="adviseeTeamSelector" class="form-select advisee-team-select">
+                                ${data.advisee_teams.map((team, index) => 
+                                    `<option value="${index}" ${index === 0 ? 'selected' : ''}>${team.name}</option>`
+                                ).join('')}
+                            </select>
+                        </div>
+                    `;
+                }
+                
+                content += `
                     </div>
                 `;
                 
@@ -321,26 +335,6 @@ function fetchFacultyDashboard() {
                         </div>
                     `;
                 } else {
-                    // Team selector if multiple teams
-                    if (data.advisee_teams.length > 1) {
-                        content += `
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="card team-selector-card">
-                                        <div class="card-body">
-                                            <h6 class="card-subtitle mb-3 text-muted">Select Team to View</h6>
-                                            <select id="adviseeTeamSelector" class="form-select">
-                                                ${data.advisee_teams.map((team, index) => 
-                                                    `<option value="${index}" ${index === 0 ? 'selected' : ''}>${team.name}</option>`
-                                                ).join('')}
-                                            </select>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                    
                     // Store teams data for dynamic switching
                     window.adviseeTeamsData = data.advisee_teams;
                     
@@ -353,9 +347,8 @@ function fetchFacultyDashboard() {
                     <div class="row mb-4 mt-5">
                         <div class="col-12">
                             <h4 class="mb-3">
-                                <i class="bi bi-calendar-check me-2"></i>
-                                Defense Schedules (Panelist)
-                                <span class="badge bg-success ms-2">${data.paneling_defenses.length}</span>
+                                Panel Defense Schedule
+                                <span class="defense-schedule-count">${data.paneling_defenses.length}</span>
                             </h4>
                         </div>
                     </div>
@@ -371,8 +364,8 @@ function fetchFacultyDashboard() {
                 } else {
                     content += `
                         <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
+                            <table class="db-table defense-schedule-table">
+                                <thead>
                                     <tr>
                                         <th>Date & Time</th>
                                         <th>Team</th>
@@ -394,14 +387,14 @@ function fetchFacultyDashboard() {
                         let actionButton = '';
                         if (hasEvaluated) {
                             actionButton = `
-                                <button class="btn btn-sm btn-outline-primary" onclick="redirectToDecisionSupport(${defense.schedule_id}, true)">
-                                    <i class="bi bi-eye me-1"></i>View
+                                <button class="btn btn-sm btn-outline-primary defense-action-btn" onclick="redirectToDecisionSupport(${defense.schedule_id}, true)">
+                                    View
                                 </button>
                             `;
                         } else if (!isUpcoming) {
                             actionButton = `
-                                <button class="btn btn-sm btn-primary" onclick="redirectToDecisionSupport(${defense.schedule_id})">
-                                    <i class="bi bi-clipboard-check me-1"></i>Evaluate
+                                <button class="btn btn-sm btn-primary defense-action-btn" onclick="redirectToDecisionSupport(${defense.schedule_id})">
+                                    Evaluate
                                 </button>
                             `;
                         } else {
@@ -409,22 +402,35 @@ function fetchFacultyDashboard() {
                         }
                         
                         const statusBadge = hasEvaluated ? 
-                            '<span class="badge bg-success">Evaluated</span>' :
-                            isUpcoming ? '<span class="badge bg-info">Scheduled</span>' :
-                            '<span class="badge bg-warning">Pending</span>';
+                            '<span class="defense-status-pill status-evaluated">Evaluated</span>' :
+                            isUpcoming ? '<span class="defense-status-pill status-scheduled">Scheduled</span>' :
+                            '<span class="defense-status-pill status-pending">Pending</span>';
+                        
+                        let defenseTypePill = '';
+                        const defenseTypeText = defense.defense_type || 'N/A';
+                        let typeClass = 'type-general';
+                        if (defenseTypeText.toLowerCase().includes('title proposal')) {
+                            typeClass = 'type-proposal';
+                        } else if (defenseTypeText.toLowerCase().includes('title defense')) {
+                            typeClass = 'type-title';
+                        } else if (defenseTypeText.toLowerCase().includes('final')) {
+                            typeClass = 'type-final';
+                        } else if (defenseTypeText.toLowerCase().includes('re-defense')) {
+                            typeClass = 'type-redefense';
+                        }
+                        defenseTypePill = `<span class="defense-type-pill ${typeClass}">${defenseTypeText}</span>`;
                         
                         content += `
-                            <tr class="${!isUpcoming ? 'table-active' : ''}">
+                            <tr>
                                 <td>
                                     <strong>${defenseDate.toLocaleDateString()}</strong><br>
                                     <small class="text-muted">${defense.start_time} - ${defense.end_time}</small>
                                 </td>
                                 <td>
-                                    <strong>${defense.team_name}</strong><br>
-                                    <small class="text-muted">${defense.team_members}</small>
+                                    <strong>${defense.team_name}</strong>
                                 </td>
                                 <td><small>${defense.research_title || 'No title'}</small></td>
-                                <td><span class="badge bg-secondary">${defense.defense_type || 'N/A'}</span></td>
+                                <td>${defenseTypePill}</td>
                                 <td>${defense.room}</td>
                                 <td class="text-center">${statusBadge}</td>
                                 <td class="text-center">${actionButton}</td>
@@ -506,12 +512,12 @@ function renderAdviseeTeamCard(teamIndex) {
     // Determine current defense stage
     const defenseType = team.override_defense_type || team.latest_defense_type || 'title_proposal';
     const defenseStageLabels = {
-        'title_proposal': { label: 'Title Proposal', class: 'bg-info', icon: 'bi-file-earmark-text' },
-        'title_defense': { label: 'Title Defense', class: 'bg-primary', icon: 'bi-shield-check' },
-        'final_defense': { label: 'Final Defense', class: 'bg-success', icon: 'bi-trophy' },
-        're-defense': { label: 'Re-Defense', class: 'bg-warning', icon: 'bi-arrow-repeat' }
+        'title_proposal': { label: 'Title Proposal', class: 'defense-stage-title-proposal' },
+        'title_defense': { label: 'Title Defense', class: 'defense-stage-title-defense' },
+        'final_defense': { label: 'Final Defense', class: 'defense-stage-final-defense' },
+        're-defense': { label: 'Re-Defense', class: 'defense-stage-re-defense' }
     };
-    const stageInfo = defenseStageLabels[defenseType] || { label: 'Title Proposal', class: 'bg-secondary', icon: 'bi-file-earmark-text' };
+    const stageInfo = defenseStageLabels[defenseType] || { label: 'Title Proposal', class: 'defense-stage-title-proposal' };
     
     // Score display
     const avgScore = team.avg_score ? parseFloat(team.avg_score).toFixed(2) : null;
@@ -527,10 +533,13 @@ function renderAdviseeTeamCard(teamIndex) {
     let membersList = '';
     if (team.student_names) {
         const members = team.student_names.split(', ');
-        membersList = members.map(m => `<li class="list-group-item py-2"><i class="bi bi-person me-2"></i>${m}</li>`).join('');
+        membersList = members.map(m => `<li class="team-info-member-li"><i class="bi bi-person me-2"></i>${m}</li>`).join('');
     } else {
         membersList = '<li class="list-group-item text-muted py-2">No members found</li>';
     }
+    
+    // Build requirements list placeholder
+    let requirementsList = '<li class="text-muted small py-2">Loading requirements...</li>';
     
     let html = `
         <div class="row">
@@ -538,24 +547,17 @@ function renderAdviseeTeamCard(teamIndex) {
             <div class="col-md-6 mb-4">
                 <div class="card h-100 team-info-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h6 class="mb-0"><i class="bi bi-info-circle me-2"></i>Team Information</h6>
-                        ${titleBadge}
+                        <h5 class="mb-0">Team Information</h5>
                     </div>
                     <div class="card-body">
-                        <h5 class="card-title text-primary">${team.name}</h5>
+                        <h3 class="card-title">${team.name}</h3>
                         <p class="card-text mb-2">
-                            <strong>Research Title:</strong><br>
-                            <span class="${team.research_title ? '' : 'text-muted fst-italic'}">
-                                ${team.research_title || 'No title yet'}
-                            </span>
-                        </p>
-                        <p class="card-text mb-2">
-                            <strong>Program:</strong> ${team.program || 'N/A'}
+                            <span class="program-pill" title="${team.program || 'N/A'}">${team.program || 'N/A'}</span>
                         </p>
                         <p class="card-text mb-0">
                             <strong>Members:</strong>
                         </p>
-                        <ul class="list-group list-group-flush mt-2">
+                        <ul class="list-group mt-2">
                             ${membersList}
                         </ul>
                     </div>
@@ -565,62 +567,43 @@ function renderAdviseeTeamCard(teamIndex) {
             <!-- Defense Stage & Progress Card -->
             <div class="col-md-6 mb-4">
                 <div class="card h-100 progress-overview-card">
-                    <div class="card-header">
-                        <h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Progress Overview</h6>
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Progress Overview</h5>
+                        ${team.total_evaluations && team.total_evaluations > 0 ? 
+                            `<a href="#" class="view-team-summary-link" data-team-id="${team.id}" data-team-name="${team.name}">View Evaluation Details</a>` : 
+                            `<span class="text-muted small">No evaluations available</span>`
+                        }
                     </div>
                     <div class="card-body">
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Current Defense Stage</label>
+                        <div class="mb-2">
+                            <label class="form-label fw-bold">Defense Stage:</label>
                             <p class="mb-0">
-                                <span class="badge <?php /* stageInfo is from JS template, use template variable */ ?> ${stageInfo.class}">
-                                    <i class="bi ${stageInfo.icon} me-1"></i> ${stageInfo.label}
+                                <span class="defense-stage-badge ${stageInfo.class}">
+                                    ${stageInfo.label}
                                 </span>
                             </p>
                         </div>
                         
-                        <div class="mb-4">
-                            <label class="form-label fw-bold">Requirements Progress</label>
-                            <div class="progress mb-2" style="height: 25px;">
-                                <div class="progress-bar ${progressClass}" role="progressbar" style="width: ${progress}%;" 
-                                     aria-valuenow="${progress}" aria-valuemin="0" aria-valuemax="100">
-                                    ${progress}%
+                        <div class="mb-0">
+                            <div class="d-flex justify-content-between align-items-center flex-wrap mb-2">
+                                <label class="form-label fw-bold mb-0">Requirements:</label>
+                                <div class="req-filter-legend">
+                                    <button class="req-filter-btn" data-filter="completed" data-team-id="${team.id}">
+                                        <i class="bi bi-check-circle-fill text-success"></i> <span>Submitted</span>
+                                    </button>
+                                    <button class="req-filter-btn" data-filter="pending" data-team-id="${team.id}">
+                                        <i class="bi bi-clock-fill text-warning"></i> <span>No Submission</span>
+                                    </button>
+                                    <button class="req-filter-btn" data-filter="overdue" data-team-id="${team.id}">
+                                        <i class="bi bi-exclamation-circle-fill text-danger"></i> <span>Overdue</span>
+                                    </button>
                                 </div>
                             </div>
-                            <div class="d-flex justify-content-between text-muted small">
-                                <span><i class="bi bi-check-circle text-success me-1"></i>${team.completed_count} Completed</span>
-                                <span><i class="bi bi-clock text-warning me-1"></i>${team.pending_requirements || 0} Pending</span>
-                                <span><i class="bi bi-list-check me-1"></i>${team.total_requirements} Total</span>
+                            <div class="requirements-scroll-container">
+                                <ul class="list-group mt-2" id="teamRequirementsList-${team.id}">
+                                    ${requirementsList}
+                                </ul>
                             </div>
-                        </div>
-                        
-                        <div class="row text-center">
-                            <div class="col-6">
-                                <div class="border rounded p-3">
-                                    <h4 class="${scoreClass}">${avgScore || '-'}</h4>
-                                    <small class="text-muted">Average Score</small>
-                                </div>
-                            </div>
-                            <div class="col-6">
-                                <div class="border rounded p-3">
-                                    <h4 class="text-primary">${team.total_evaluations || 0}</h4>
-                                    <small class="text-muted">Evaluations</small>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-        
-        <!-- Actions Row -->
-        <div class="row">
-            <div class="col-12">
-                <div class="card mb-4">
-                    <div class="card-body">
-                        <div class="d-flex flex-wrap gap-2 justify-content-center">
-                            <button class="btn btn-outline-primary view-team-summary" data-team-id="${team.id}" data-team-name="${team.name}">
-                                <i class="bi bi-clipboard-data me-2"></i>View Evaluation Details
-                            </button>
                         </div>
                     </div>
                 </div>
@@ -629,6 +612,29 @@ function renderAdviseeTeamCard(teamIndex) {
     `;
     
     container.innerHTML = html;
+    
+    // Fetch and render requirements for the team
+    fetchTeamRequirements(team.id);
+    
+    // Add event listeners for requirement filters
+    container.querySelectorAll('.req-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const teamId = this.dataset.teamId;
+            const isActive = this.classList.contains('active');
+            
+            // Deactivate all filters for this team
+            container.querySelectorAll(`.req-filter-btn[data-team-id="${teamId}"]`).forEach(b => {
+                b.classList.remove('active');
+            });
+            
+            // If clicked button was not active, activate it
+            if (!isActive) {
+                this.classList.add('active');
+            }
+            
+            renderTeamRequirements(teamId);
+        });
+    });
     
     // Re-attach event listeners for this card
     container.querySelectorAll('.defense-stage-select').forEach(select => {
@@ -646,6 +652,123 @@ function renderAdviseeTeamCard(teamIndex) {
             showTeamSummaryModal(teamId, teamName);
         });
     });
+    
+    container.querySelectorAll('.view-team-summary-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            const teamId = this.dataset.teamId;
+            const teamName = this.dataset.teamName;
+            showTeamSummaryModal(teamId, teamName);
+        });
+    });
+}
+
+// Fetch and render team requirements
+function fetchTeamRequirements(teamId) {
+    const listElement = document.getElementById(`teamRequirementsList-${teamId}`);
+    if (!listElement) return;
+    
+    fetch(`includes/get_team_requirements.php?team_id=${teamId}`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.requirements) {
+                if (data.requirements.length === 0) {
+                    listElement.innerHTML = '<li class="text-muted small py-2">No requirements found</li>';
+                    return;
+                }
+                
+                // Store requirements data globally for filtering
+                window[`teamRequirements_${teamId}`] = data.requirements;
+                
+                // Render requirements with default filters (all active)
+                renderTeamRequirements(teamId);
+            } else {
+                listElement.innerHTML = '<li class="text-muted small py-2">Failed to load requirements</li>';
+            }
+        })
+        .catch(error => {
+            console.error('Error fetching requirements:', error);
+            listElement.innerHTML = '<li class="text-muted small py-2">Error loading requirements</li>';
+        });
+}
+
+// Render team requirements based on active filters
+function renderTeamRequirements(teamId) {
+    const listElement = document.getElementById(`teamRequirementsList-${teamId}`);
+    const requirements = window[`teamRequirements_${teamId}`];
+    
+    if (!listElement || !requirements) return;
+    
+    // Get active filter (only one or none)
+    const activeFilterBtn = document.querySelector(`.req-filter-btn[data-team-id="${teamId}"].active`);
+    const activeFilter = activeFilterBtn ? activeFilterBtn.dataset.filter : null;
+    
+    const now = new Date();
+    
+    // Filter requirements based on active filter
+    let filteredRequirements;
+    
+    if (!activeFilter) {
+        // No filter selected - show all requirements
+        filteredRequirements = requirements;
+    } else {
+        // Filter by selected status
+        filteredRequirements = requirements.filter(req => {
+            const dueDate = req.due_date ? new Date(req.due_date) : null;
+            const isOverdue = dueDate && now > dueDate && req.status !== 'completed';
+            
+            if (activeFilter === 'completed' && req.status === 'completed') return true;
+            if (activeFilter === 'overdue' && isOverdue) return true;
+            if (activeFilter === 'pending' && req.status !== 'completed' && !isOverdue) return true;
+            
+            return false;
+        });
+    }
+    
+    // Sort by due date, newest first
+    filteredRequirements.sort((a, b) => {
+        const dateA = a.due_date ? new Date(a.due_date) : new Date(0);
+        const dateB = b.due_date ? new Date(b.due_date) : new Date(0);
+        return dateB - dateA;
+    });
+    
+    if (filteredRequirements.length === 0) {
+        listElement.innerHTML = '<li class="text-muted small py-2">No requirements found</li>';
+        return;
+    }
+    
+    const requirementItems = filteredRequirements.map(req => {
+        const dueDate = req.due_date ? new Date(req.due_date) : null;
+        const isOverdue = dueDate && now > dueDate && req.status !== 'completed';
+        
+        let icon = '';
+        let statusClass = '';
+        
+        if (req.status === 'completed') {
+            icon = '<i class="bi bi-check-circle-fill text-success me-2"></i>';
+            statusClass = 'req-completed';
+        } else if (isOverdue) {
+            icon = '<i class="bi bi-exclamation-circle-fill text-danger me-2"></i>';
+            statusClass = 'req-overdue';
+        } else {
+            icon = '<i class="bi bi-clock-fill text-warning me-2"></i>';
+            statusClass = 'req-pending';
+        }
+        
+        const deadline = dueDate ? dueDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : 'No deadline';
+        
+        return `
+            <li class="requirement-list-item ${statusClass}">
+                <div class="req-content">
+                    ${icon}
+                    <span class="req-name">${req.name}</span>
+                </div>
+                <span class="req-deadline">${deadline}</span>
+            </li>
+        `;
+    }).join('');
+    
+    listElement.innerHTML = requirementItems;
 }
 
 // Update team defense stage
@@ -693,7 +816,7 @@ function showTeamSummaryModal(teamId, teamName) {
                 <div class="modal-dialog modal-lg modal-dialog-scrollable">
                     <div class="modal-content">
                         <div class="modal-header">
-                            <h5 class="modal-title"><i class="bi bi-people me-2"></i>Team Summary</h5>
+                            <h5 class="modal-title">Team Summary</h5>
                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                         </div>
                         <div class="modal-body" id="teamSummaryBody">
@@ -747,33 +870,23 @@ function showTeamSummaryModal(teamId, teamName) {
             
             let html = `
                 <div class="mb-4">
-                    <h5 class="border-bottom pb-2">${teamName}</h5>
+                    <h3 class="border-bottom pb-2">${teamName}</h3>
                     <p class="mb-1"><strong>Research Title:</strong> ${team.research_title || '<em class="text-muted">No title yet</em>'}</p>
                     <p class="mb-1"><strong>Program:</strong> ${team.program || 'N/A'}</p>
                     <p class="mb-0"><strong>Adviser:</strong> ${team.adviser || 'N/A'}</p>
                 </div>
                 
-                <div class="mb-4">
-                    <h6 class="text-primary"><i class="bi bi-people me-2"></i>Team Members</h6>
-                    <div class="row">
+                <!-- Team Members section removed -->
+                
+                <h6 class="text-dark mb-3">Evaluation Summary:</h6>
             `;
-            
-            members.forEach(member => {
-                const badgeClass = member.role === 'Adviser' ? 'bg-success' : member.role === 'Leader' ? 'bg-primary' : 'bg-secondary';
-                html += `<div class="col-md-4 mb-2"><span class="badge ${badgeClass} me-2">${member.role}</span>${member.name}</div>`;
-            });
-            
-            html += `</div></div>`;
-            
-            // Evaluation summary
-            html += `<h6 class="text-primary mb-3"><i class="bi bi-clipboard-data me-2"></i>Evaluation Summary</h6>`;
             
             if (panelists.length === 0 || Object.keys(evaluationsByStudent).length === 0) {
                 html += `<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No evaluations recorded yet.</div>`;
             } else {
                 html += `
                     <div class="table-responsive">
-                        <table class="table table-sm table-bordered">
+                        <table class="table table-sm table-bordered team-eval-table">
                             <thead class="table-light">
                                 <tr>
                                     <th>Student</th>
@@ -794,8 +907,7 @@ function showTeamSummaryModal(teamId, teamName) {
                         if (scoreData && scoreData.total_score !== null) {
                             const score = parseFloat(scoreData.total_score);
                             scores.push(score);
-                            const scoreClass = score >= 75 ? 'text-success' : score >= 60 ? 'text-warning' : 'text-danger';
-                            return `<td class="text-center ${scoreClass}"><strong>${score.toFixed(2)}</strong></td>`;
+                            return `<td class="text-center text-dark">${score.toFixed(2)}</td>`;
                         }
                         return '<td class="text-center text-muted">-</td>';
                     }).join('');
@@ -808,7 +920,7 @@ function showTeamSummaryModal(teamId, teamName) {
                         avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
                     }
                     
-                    html += `<tr><td><strong>${student.student_name}</strong></td>${cells}<td class="text-center table-primary">${avgDisplay}</td></tr>`;
+                    html += `<tr><td>${student.student_name}</td>${cells}<td class="text-center table-primary">${avgDisplay}</td></tr>`;
                 });
                 
                 // Team average
@@ -874,20 +986,29 @@ function loadClassRecord(page = 1) {
                         </div>
                     `;
                 } else if (viewType === 'team') {
-                    // TEAM VIEW - Students grouped by teams
+                    // TEAM VIEW - Students grouped by teams with pagination
+                    const itemsPerPage = 5; // Teams per page
+                    
                     for (const [section, teams] of Object.entries(data.sections)) {
+                        const teamsArray = Object.entries(teams);
+                        const totalTeams = teamsArray.length;
+                        const totalPages = Math.ceil(totalTeams / itemsPerPage);
+                        const currentPage = window.classRecordCurrentPage || 1;
+                        const startIndex = (currentPage - 1) * itemsPerPage;
+                        const endIndex = startIndex + itemsPerPage;
+                        const paginatedTeams = teamsArray.slice(startIndex, endIndex);
+                        
                         content += `
                             <div class="mb-4">
                                 <div class="d-flex align-items-center mb-3">
                                     <h5 class="mb-0">
-                                        <i class="bi bi-people-fill me-2 text-primary"></i>
                                         Section: ${section}
                                     </h5>
                                 </div>
                         `;
                         
-                        // Loop through each team in the section
-                        for (const [teamId, teamData] of Object.entries(teams)) {
+                        // Loop through paginated teams
+                        for (const [teamId, teamData] of paginatedTeams) {
                             const students = teamData.students;
                             
                             // Get all unique panelists from all students in this team
@@ -907,21 +1028,18 @@ function loadClassRecord(page = 1) {
                                 <div class="card mb-3">
                                     <div class="card-header bg-light">
                                         <h6 class="mb-0 text-dark">
-                                            <i class="bi bi-diagram-3 me-2"></i>
                                             ${teamData.team_name}
                                             <span class="badge bg-secondary ms-2">${students.length} ${students.length === 1 ? 'member' : 'members'}</span>
                                         </h6>
-                                        <small class="text-muted d-block mt-1">
-                                            <i class="bi bi-book me-1"></i>
+                                        <strong class="text-muted d-block mt-1">
                                             ${teamData.research_title}
-                                        </small>
+                                        </strong>
                                     </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
                                             <table class="db-table">
                                                 <thead>
                                                     <tr>
-                                                        <th>Student No.</th>
                                                         <th>Student Name</th>
                                                         ${panelists.map(([id, name]) => `<th class="text-center">${name}</th>`).join('')}
                                                         <th class="text-center">Average</th>
@@ -954,8 +1072,7 @@ function loadClassRecord(page = 1) {
                                     const grade = student.panelist_grades?.find(g => g.evaluator_id == panelistId);
                                     if (grade && grade.total_score !== null) {
                                         const gradeValue = parseFloat(grade.total_score).toFixed(2);
-                                        const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
-                                        gradeColumns += `<td class="text-center ${gradeClass}"><strong>${gradeValue}</strong></td>`;
+                                        gradeColumns += `<td class="text-center text-dark">${gradeValue}</td>`;
                                     } else {
                                         gradeColumns += `<td class="text-center text-muted">-</td>`;
                                     }
@@ -966,8 +1083,7 @@ function loadClassRecord(page = 1) {
                                 
                                 content += `
                                     <tr>
-                                        <td><small class="text-muted">${student.student_number || 'N/A'}</small></td>
-                                        <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                        <td>${student.last_name}, ${student.first_name}</td>
                                         ${gradeColumns}
                                         <td class="text-center ${avgScoreClass}">${avgScoreDisplay}</td>
                                         <td class="text-center">
@@ -983,6 +1099,67 @@ function loadClassRecord(page = 1) {
                                         </div>
                                     </div>
                                 </div>
+                            `;
+                        }
+                        
+                        // Add pagination controls
+                        if (totalPages > 1) {
+                            content += `
+                                <nav aria-label="Teams pagination" class="mt-4">
+                                    <ul class="pagination justify-content-center" id="team-view-pagination">
+                            `;
+                            
+                            // Previous button
+                            const prevDisabled = currentPage <= 1 ? 'disabled' : '';
+                            content += `
+                                <li class="page-item ${prevDisabled}">
+                                    <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
+                                </li>
+                            `;
+                            
+                            // Page numbers
+                            const maxPages = 5;
+                            let startPage = Math.max(1, currentPage - Math.floor(maxPages / 2));
+                            let endPage = Math.min(totalPages, startPage + maxPages - 1);
+                            
+                            if (endPage === totalPages) {
+                                startPage = Math.max(1, endPage - maxPages + 1);
+                            }
+                            
+                            if (startPage > 1) {
+                                content += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                                if (startPage > 2) {
+                                    content += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                            }
+                            
+                            for (let i = startPage; i <= endPage; i++) {
+                                const active = i === currentPage ? 'active' : '';
+                                content += `
+                                    <li class="page-item ${active}">
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                    </li>
+                                `;
+                            }
+                            
+                            if (endPage < totalPages) {
+                                if (endPage < totalPages - 1) {
+                                    content += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                                content += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                            }
+                            
+                            // Next button
+                            const nextDisabled = currentPage >= totalPages ? 'disabled' : '';
+                            content += `
+                                <li class="page-item ${nextDisabled}">
+                                    <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
+                                </li>
+                            `;
+                            
+                            content += `
+                                    </ul>
+                                </nav>
                             `;
                         }
                         
@@ -1044,13 +1221,6 @@ function loadClassRecord(page = 1) {
                                  id="section-pane-${idx}" 
                                  role="tabpanel">
                                 <div class="card">
-                                    <div class="card-header bg-light">
-                                        <h6 class="mb-0">
-                                            <i class="bi bi-mortarboard me-2"></i>
-                                            Section ${section}
-                                            <span class="badge bg-primary ms-2">${students.length} students</span>
-                                        </h6>
-                                    </div>
                                     <div class="card-body p-0">
                                         <div class="table-responsive">
                                             <table class="db-table" id="classRecordTable-${idx}">
@@ -1102,8 +1272,8 @@ function loadClassRecord(page = 1) {
                         const soloScoreClass = getScoreClass(avgSoloScore);
                         const totalScoreClass = getScoreClass(avgTotalScore);
                         
-                        const groupScoreDisplay = avgGroupScore !== null ? `<strong>${avgGroupScore}</strong>` : '-';
-                        const soloScoreDisplay = avgSoloScore !== null ? `<strong>${avgSoloScore}</strong>` : '-';
+                        const groupScoreDisplay = avgGroupScore !== null ? `${avgGroupScore}` : '-';
+                        const soloScoreDisplay = avgSoloScore !== null ? `${avgSoloScore}` : '-';
                         const totalScoreDisplay = avgTotalScore !== null ? `<strong>${avgTotalScore}</strong>` : '-';
                         
                         // Build panelist details for modal (keep for detailed view)
@@ -1137,10 +1307,10 @@ function loadClassRecord(page = 1) {
                                     style="cursor: pointer;">
                                     <td class="text-center text-muted">${studentIdx + 1}</td>
                                     <td class="d-none d-md-table-cell"><small class="text-muted">${student.student_number || 'N/A'}</small></td>
-                                    <td><strong>${student.last_name}, ${student.first_name}</strong></td>
+                                    <td>${student.last_name}, ${student.first_name}</td>
                                     <td class="d-none d-lg-table-cell"><small class="text-muted">${student.team_name}</small></td>
-                                    <td class="text-center ${groupScoreClass}">${groupScoreDisplay}</td>
-                                    <td class="text-center ${soloScoreClass}">${soloScoreDisplay}</td>
+                                    <td class="text-center text-dark">${groupScoreDisplay}</td>
+                                    <td class="text-center text-dark">${soloScoreDisplay}</td>
                                     <td class="text-center ${totalScoreClass}">${totalScoreDisplay}</td>
                                     <td class="text-center">
                                         <span class="badge ${statusClass}">${status}</span>
@@ -1221,9 +1391,12 @@ document.addEventListener("DOMContentLoaded", function() {
     const tabs = document.querySelectorAll('#v-pills-tab .nav-link');
     tabs.forEach(tab => {
         tab.addEventListener('click', function(event) {
-            // Store the ID of the clicked tab-pane
-            const clickedTabId = event.target.getAttribute('href').substring(1);
-            localStorage.setItem('activeTab', clickedTabId);
+            // Store the ID of the clicked tab-pane (use currentTarget to get the link itself, not child elements)
+            const href = event.currentTarget.getAttribute('href');
+            if (href) {
+                const clickedTabId = href.substring(1);
+                localStorage.setItem('activeTab', clickedTabId);
+            }
         });
     });
 
@@ -1237,6 +1410,7 @@ document.addEventListener("DOMContentLoaded", function() {
     const classRecordLink = document.getElementById('class-record-link');
     if (classRecordLink) {
         classRecordLink.addEventListener('click', function() {
+            window.classRecordCurrentPage = 1; // Initialize page 1
             loadClassRecord(1);
         });
     }
@@ -1245,9 +1419,23 @@ document.addEventListener("DOMContentLoaded", function() {
     const classRecordViewSelect = document.getElementById('classRecordViewSelect');
     if (classRecordViewSelect) {
         classRecordViewSelect.addEventListener('change', function() {
+            window.classRecordCurrentPage = 1; // Reset to page 1 when changing view
             loadClassRecord(1);
         });
     }
+    
+    // Add event listener for team view pagination
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('#team-view-pagination a.page-link')) {
+            e.preventDefault();
+            const link = e.target.closest('a.page-link');
+            const page = parseInt(link.getAttribute('data-page'));
+            if (page && page > 0) {
+                window.classRecordCurrentPage = page;
+                loadClassRecord(page);
+            }
+        }
+    });
     
     // Add event listener for row clicks in class record
     document.addEventListener('click', function(e) {
@@ -2193,9 +2381,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <th>Team Name</th>
                                                     <th class="d-none d-md-table-cell">Research Title</th>
                                                     <th class="d-none d-lg-table-cell">Program</th>
-                                                    <th class="d-none d-md-table-cell">Adviser</th>
-                                                    <th class="text-center">Evaluations</th>
-                                                    <th class="text-center d-none d-sm-table-cell">Avg Score</th>
                                                     <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
@@ -3077,9 +3262,6 @@ $(document).ready(function() {
         });
     }
 
-    // Call loadRequirements after the function is defined
-    loadRequirements();
-
     $(document).on('submit', '#requirementChecklistForm', function(event) {
             event.preventDefault();
             var formData = new FormData(this);
@@ -3160,7 +3342,10 @@ $(document).ready(function() {
                     if (response.success) {
                         showToast("Success!", response.message, "success");
                         // Reload requirements to show updated status
-                        loadRequirements();
+                        var selectedTeamId = $('#teamSelect').val();
+                        if (selectedTeamId) {
+                            loadRequirements(selectedTeamId);
+                        }
                     } else {
                         showToast("Error", response.message, "error");
                     }
@@ -3608,47 +3793,32 @@ function renderEvaluationsTable(data, usertype) {
     tbody.empty();
 
     data.forEach(function(team) {
-        const evalCount = team.evaluation_count || 0;
-        const scoresPending = team.scores_pending == 1;
-        const adviserCol = `<td class="d-none d-md-table-cell">${team.adviser || 'No adviser'}</td>`;
         const researchTitle = team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>';
         
-        // For students: show "Pending" if scores are less than 1 week old
-        let avgScoreDisplay;
-        if (usertype == 1 && scoresPending) {
-            // Student with pending scores - show pending message
-            if (team.avg_total_score) {
-                avgScoreDisplay = '<span class="badge bg-warning text-dark" title="Scores will be visible 1 week after evaluation"><i class="fas fa-clock me-1"></i>Pending</span>';
+        let roleBadge = '';
+        if (team.role) {
+            const roleText = team.role.toLowerCase();
+            if (roleText.includes('panelist')) {
+                roleBadge = '<span class="badge bg-secondary text-white eval-role-badge">Panelist</span>';
+            } else if (roleText.includes('advisee')) {
+                roleBadge = '<span class="badge bg-primary text-white eval-role-badge">Advisee</span>';
             } else {
-                avgScoreDisplay = '<em class="text-muted">N/A</em>';
+                roleBadge = `<span class="badge bg-info text-white eval-role-badge">${team.role}</span>`;
             }
-        } else {
-            // Faculty or scores are old enough to show
-            const avgScore = team.avg_total_score ? parseFloat(team.avg_total_score).toFixed(2) : 'N/A';
-            avgScoreDisplay = avgScore !== 'N/A' ? `<strong>${avgScore}</strong>` : '<em class="text-muted">N/A</em>';
         }
         
         const row = `
             <tr class="evaluation-team-row" data-team-id="${team.team_id}">
                 <td>
-                    <strong>${escapeHtml(team.team_name)}</strong>
-                    ${team.role ? `<span class="badge bg-info ms-2">${team.role}</span>` : ''}
-                    <small class="d-block d-md-none text-muted">${researchTitle}</small>
+                    <div>${escapeHtml(team.team_name)}</div>
+                    ${roleBadge ? `<div class="mt-1">${roleBadge}</div>` : ''}
+                    <small class="d-block d-md-none text-muted mt-1">${researchTitle}</small>
                 </td>
                 <td class="d-none d-md-table-cell">${researchTitle}</td>
-                <td class="d-none d-lg-table-cell">
-                    <small>${escapeHtml(team.program)}</small>
-                </td>
-                ${adviserCol}
+                <td class="d-none d-lg-table-cell">${escapeHtml(team.program)}</td>
                 <td class="text-center">
-                    <span class="badge bg-primary">${evalCount}</span>
-                </td>
-                <td class="text-center d-none d-sm-table-cell">
-                    ${avgScoreDisplay}
-                </td>
-                <td class="text-center">
-                    <button class="btn btn-sm edit-btn view-eval-details" data-team-id="${team.team_id}">
-                        <i class="fas fa-eye"></i><span class="d-none d-sm-inline"> View</span>
+                    <button class="btn btn-sm btn-outline-primary view-eval-details" data-team-id="${team.team_id}">
+                        View
                     </button>
                 </td>
             </tr>
@@ -3735,7 +3905,7 @@ function showEvaluationDetails(teamId) {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
-                            <i class="fas fa-chart-bar me-2"></i>Team Evaluation Details
+                            Team Evaluation Details
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -3791,37 +3961,17 @@ function renderEvaluationDetails(data) {
     const evaluationsByStudent = data.evaluations_by_student || {};
     const panelists = data.panelists || [];
     const students = data.students || [];
-    const members = data.members;
     const usertype = data.usertype;
     
     let detailsHtml = `
         <div class="mb-4">
-            <h5 class="border-bottom pb-2">${escapeHtml(team.team_name)}</h5>
+            <h3 class="border-bottom pb-2">${escapeHtml(team.team_name)}</h3>
             <p class="mb-1"><strong>Research Title:</strong> ${team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>'}</p>
             <p class="mb-1"><strong>Program:</strong> ${escapeHtml(team.program)}</p>
             <p class="mb-0"><strong>Adviser:</strong> ${team.adviser || '<em class="text-muted">No adviser</em>'}</p>
         </div>
 
-        <div class="mb-4">
-            <h6 class="text-primary">Team Members</h6>
-            <div class="row">
-    `;
-
-    members.forEach(member => {
-        const badgeClass = member.role === 'Adviser' ? 'bg-success' : (member.role === 'Leader' ? 'bg-primary' : 'bg-secondary');
-        detailsHtml += `
-            <div class="col-md-4 mb-2">
-                <span class="badge ${badgeClass} me-2">${member.role}</span>
-                ${escapeHtml(member.name)}
-            </div>
-        `;
-    });
-
-    detailsHtml += `
-            </div>
-        </div>
-
-        <h6 class="text-primary mb-3">Evaluation Scores by Student</h6>
+        <h6 class="text-dark mb-3">Evaluation Summary:</h6>
     `;
     
     // Check if any evaluations have pending scores (for students)
@@ -3847,10 +3997,10 @@ function renderEvaluationDetails(data) {
         // Build dynamic table with panelist columns
         detailsHtml += `
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-bordered">
+                <table class="table table-sm table-bordered team-eval-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Student Name</th>
+                            <th>Student</th>
                             ${panelists.map(p => `<th class="text-center"><small>${escapeHtml(p.evaluator_name)}</small></th>`).join('')}
                             <th class="text-center table-primary"><strong>Average</strong></th>
                         </tr>
@@ -3881,8 +4031,7 @@ function renderEvaluationDetails(data) {
                     } else if (scoreData.total_score !== null) {
                         const score = parseFloat(scoreData.total_score);
                         studentScores.push(score);
-                        const scoreClass = score >= 75 ? 'text-success' : score >= 60 ? 'text-warning' : 'text-danger';
-                        return `<td class="text-center ${scoreClass}"><strong>${score.toFixed(2)}</strong></td>`;
+                        return `<td class="text-center text-dark">${score.toFixed(2)}</td>`;
                     }
                 }
                 return `<td class="text-center text-muted">-</td>`;
@@ -3903,7 +4052,7 @@ function renderEvaluationDetails(data) {
             
             detailsHtml += `
                 <tr>
-                    <td><strong>${escapeHtml(student.student_name)}</strong></td>
+                    <td>${escapeHtml(student.student_name)}</td>
                     ${panelistCells}
                     <td class="text-center table-primary">${avgDisplay}</td>
                 </tr>
@@ -3933,40 +4082,46 @@ function renderEvaluationDetails(data) {
             </div>
         `;
         
-        // Add comments section if there are any
-        let hasComments = false;
-        let commentsHtml = `
-            <h6 class="text-primary mt-4 mb-3">Evaluator Comments</h6>
-            <div class="accordion" id="commentsAccordion">
-        `;
+        // Add comments section if there are any (one per evaluator to avoid duplication)
+        const evaluatorComments = new Map();
         
-        let accordionIndex = 0;
         Object.entries(evaluationsByStudent).forEach(([studentId, studentData]) => {
             Object.entries(studentData.panelist_scores || {}).forEach(([panelistId, scoreData]) => {
-                if (scoreData.comments && scoreData.comments.trim()) {
-                    hasComments = true;
-                    commentsHtml += `
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#comment${accordionIndex}">
-                                    <small><strong>${escapeHtml(scoreData.evaluator_name)}</strong> → ${escapeHtml(studentData.student_name)}</small>
-                                </button>
-                            </h2>
-                            <div id="comment${accordionIndex}" class="accordion-collapse collapse" data-bs-parent="#commentsAccordion">
-                                <div class="accordion-body py-2">
-                                    <small>${escapeHtml(scoreData.comments)}</small>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    accordionIndex++;
+                if (scoreData.comments && scoreData.comments.trim() && !evaluatorComments.has(panelistId)) {
+                    evaluatorComments.set(panelistId, {
+                        evaluator_name: scoreData.evaluator_name,
+                        comments: scoreData.comments
+                    });
                 }
             });
         });
         
-        commentsHtml += `</div>`;
-        
-        if (hasComments) {
+        if (evaluatorComments.size > 0) {
+            let commentsHtml = `
+                <h6 class="text-dark mt-4 mb-3">Evaluator Comments</h6>
+                <div class="accordion accordion-flush" id="commentsAccordion">
+            `;
+            
+            let accordionIndex = 0;
+            evaluatorComments.forEach((commentData, panelistId) => {
+                commentsHtml += `
+                    <div class="accordion-item evaluator-comment-item mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comment${accordionIndex}">
+                                ${escapeHtml(commentData.evaluator_name)}
+                            </button>
+                        </h2>
+                        <div id="comment${accordionIndex}" class="accordion-collapse collapse" data-bs-parent="#commentsAccordion">
+                            <div class="accordion-body">
+                                ${escapeHtml(commentData.comments)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                accordionIndex++;
+            });
+            
+            commentsHtml += `</div>`;
             detailsHtml += commentsHtml;
         }
     }

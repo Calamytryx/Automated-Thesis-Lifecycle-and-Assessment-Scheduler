@@ -214,25 +214,27 @@
                                     const panelists = defenseInfo.panelists || [];
 
                                     const overrideStatus = override && override.active 
-                                        ? `<span class="badge bg-danger">${override.override_type}</span> (Active)`
-                                        : '<span class="badge bg-secondary">None</span>';
+                                        ? `<span class="badge override-badge-active">${override.override_type}</span>`
+                                        : '<span class="badge override-badge-none">None</span>';
 
                                     const lockedCount = panelists.filter(p => p.locked).length;
                                     const panelistsInfo = lockedCount > 0
-                                        ? `<span class="badge bg-success">${lockedCount} Locked</span>`
-                                        : '<span class="badge bg-light text-dark">Not locked</span>';
+                                        ? `<span class="badge panelist-badge-locked">${lockedCount} Locked</span>`
+                                        : '<span class="badge panelist-badge-unlocked">Not locked</span>';
 
-                                    const typeColor = {
-                                        'title_proposal': 'info',
-                                        'title_defense': 'primary',
-                                        'final_defense': 'success',
-                                        're-defense': 'warning'
+                                    const typeClasses = {
+                                        'title_proposal': 'defense-type-title-proposal',
+                                        'title_defense': 'defense-type-title-defense',
+                                        'final_defense': 'defense-type-final-defense',
+                                        're-defense': 'defense-type-re-defense'
                                     };
+
+                                    const defenseTypeLabel = defenseType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase());
 
                                     tbody.innerHTML += `
                                         <tr>
                                             <td>${team.name}</td>
-                                            <td><span class="badge bg-${typeColor[defenseType] || 'secondary'}">${defenseType}</span></td>
+                                            <td><span class="defense-type-badge ${typeClasses[defenseType] || 'defense-type-default'}">${defenseTypeLabel}</span></td>
                                             <td>${overrideStatus}</td>
                                             <td>${panelistsInfo}</td>
                                             <td class="action-buttons text-center">
@@ -262,7 +264,7 @@
                     // Previous
                     paginationList.innerHTML += `
                         <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page - 1}">Previous</a>
+                            <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
                         </li>
                     `;
 
@@ -278,7 +280,7 @@
                     // Next
                     paginationList.innerHTML += `
                         <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page + 1}">Next</a>
+                            <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
                         </li>
                     `;
 
