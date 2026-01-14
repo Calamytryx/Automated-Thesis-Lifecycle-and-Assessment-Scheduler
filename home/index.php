@@ -878,7 +878,7 @@ function showTeamSummaryModal(teamId, teamName) {
                 
                 <!-- Team Members section removed -->
                 
-                <h6 class="text-dark mb-3">Evaluation Summary</h6>
+                <h6 class="text-dark mb-3">Evaluation Summary:</h6>
             `;
             
             if (panelists.length === 0 || Object.keys(evaluationsByStudent).length === 0) {
@@ -2308,9 +2308,6 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <th>Team Name</th>
                                                     <th class="d-none d-md-table-cell">Research Title</th>
                                                     <th class="d-none d-lg-table-cell">Program</th>
-                                                    <th class="d-none d-md-table-cell">Adviser</th>
-                                                    <th class="text-center">Evaluations</th>
-                                                    <th class="text-center d-none d-sm-table-cell">Avg Score</th>
                                                     <th class="text-center">Action</th>
                                                 </tr>
                                             </thead>
@@ -3723,47 +3720,32 @@ function renderEvaluationsTable(data, usertype) {
     tbody.empty();
 
     data.forEach(function(team) {
-        const evalCount = team.evaluation_count || 0;
-        const scoresPending = team.scores_pending == 1;
-        const adviserCol = `<td class="d-none d-md-table-cell">${team.adviser || 'No adviser'}</td>`;
         const researchTitle = team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>';
         
-        // For students: show "Pending" if scores are less than 1 week old
-        let avgScoreDisplay;
-        if (usertype == 1 && scoresPending) {
-            // Student with pending scores - show pending message
-            if (team.avg_total_score) {
-                avgScoreDisplay = '<span class="badge bg-warning text-dark" title="Scores will be visible 1 week after evaluation"><i class="fas fa-clock me-1"></i>Pending</span>';
+        let roleBadge = '';
+        if (team.role) {
+            const roleText = team.role.toLowerCase();
+            if (roleText.includes('panelist')) {
+                roleBadge = '<span class="badge bg-secondary text-white eval-role-badge">Panelist</span>';
+            } else if (roleText.includes('advisee')) {
+                roleBadge = '<span class="badge bg-primary text-white eval-role-badge">Advisee</span>';
             } else {
-                avgScoreDisplay = '<em class="text-muted">N/A</em>';
+                roleBadge = `<span class="badge bg-info text-white eval-role-badge">${team.role}</span>`;
             }
-        } else {
-            // Faculty or scores are old enough to show
-            const avgScore = team.avg_total_score ? parseFloat(team.avg_total_score).toFixed(2) : 'N/A';
-            avgScoreDisplay = avgScore !== 'N/A' ? `<strong>${avgScore}</strong>` : '<em class="text-muted">N/A</em>';
         }
         
         const row = `
             <tr class="evaluation-team-row" data-team-id="${team.team_id}">
                 <td>
-                    <strong>${escapeHtml(team.team_name)}</strong>
-                    ${team.role ? `<span class="badge bg-info ms-2">${team.role}</span>` : ''}
-                    <small class="d-block d-md-none text-muted">${researchTitle}</small>
+                    <div>${escapeHtml(team.team_name)}</div>
+                    ${roleBadge ? `<div class="mt-1">${roleBadge}</div>` : ''}
+                    <small class="d-block d-md-none text-muted mt-1">${researchTitle}</small>
                 </td>
                 <td class="d-none d-md-table-cell">${researchTitle}</td>
-                <td class="d-none d-lg-table-cell">
-                    <small>${escapeHtml(team.program)}</small>
-                </td>
-                ${adviserCol}
+                <td class="d-none d-lg-table-cell">${escapeHtml(team.program)}</td>
                 <td class="text-center">
-                    <span class="badge bg-primary">${evalCount}</span>
-                </td>
-                <td class="text-center d-none d-sm-table-cell">
-                    ${avgScoreDisplay}
-                </td>
-                <td class="text-center">
-                    <button class="btn btn-sm edit-btn view-eval-details" data-team-id="${team.team_id}">
-                        <i class="fas fa-eye"></i><span class="d-none d-sm-inline"> View</span>
+                    <button class="btn btn-sm btn-outline-primary view-eval-details" data-team-id="${team.team_id}">
+                        View
                     </button>
                 </td>
             </tr>
@@ -3850,7 +3832,7 @@ function showEvaluationDetails(teamId) {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
-                            <i class="fas fa-chart-bar me-2"></i>Team Evaluation Details
+                            Team Evaluation Details
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -3906,37 +3888,17 @@ function renderEvaluationDetails(data) {
     const evaluationsByStudent = data.evaluations_by_student || {};
     const panelists = data.panelists || [];
     const students = data.students || [];
-    const members = data.members;
     const usertype = data.usertype;
     
     let detailsHtml = `
         <div class="mb-4">
-            <h5 class="border-bottom pb-2">${escapeHtml(team.team_name)}</h5>
+            <h3 class="border-bottom pb-2">${escapeHtml(team.team_name)}</h3>
             <p class="mb-1"><strong>Research Title:</strong> ${team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>'}</p>
             <p class="mb-1"><strong>Program:</strong> ${escapeHtml(team.program)}</p>
             <p class="mb-0"><strong>Adviser:</strong> ${team.adviser || '<em class="text-muted">No adviser</em>'}</p>
         </div>
 
-        <div class="mb-4">
-            <h6 class="text-primary">Team Members</h6>
-            <div class="row">
-    `;
-
-    members.forEach(member => {
-        const badgeClass = member.role === 'Adviser' ? 'bg-success' : (member.role === 'Leader' ? 'bg-primary' : 'bg-secondary');
-        detailsHtml += `
-            <div class="col-md-4 mb-2">
-                <span class="badge ${badgeClass} me-2">${member.role}</span>
-                ${escapeHtml(member.name)}
-            </div>
-        `;
-    });
-
-    detailsHtml += `
-            </div>
-        </div>
-
-        <h6 class="text-primary mb-3">Evaluation Scores by Student</h6>
+        <h6 class="text-dark mb-3">Evaluation Summary:</h6>
     `;
     
     // Check if any evaluations have pending scores (for students)
@@ -3962,10 +3924,10 @@ function renderEvaluationDetails(data) {
         // Build dynamic table with panelist columns
         detailsHtml += `
             <div class="table-responsive">
-                <table class="table table-sm table-hover table-bordered">
+                <table class="table table-sm table-bordered team-eval-table">
                     <thead class="table-light">
                         <tr>
-                            <th>Student Name</th>
+                            <th>Student</th>
                             ${panelists.map(p => `<th class="text-center"><small>${escapeHtml(p.evaluator_name)}</small></th>`).join('')}
                             <th class="text-center table-primary"><strong>Average</strong></th>
                         </tr>
@@ -3996,8 +3958,7 @@ function renderEvaluationDetails(data) {
                     } else if (scoreData.total_score !== null) {
                         const score = parseFloat(scoreData.total_score);
                         studentScores.push(score);
-                        const scoreClass = score >= 75 ? 'text-success' : score >= 60 ? 'text-warning' : 'text-danger';
-                        return `<td class="text-center ${scoreClass}"><strong>${score.toFixed(2)}</strong></td>`;
+                        return `<td class="text-center text-dark">${score.toFixed(2)}</td>`;
                     }
                 }
                 return `<td class="text-center text-muted">-</td>`;
@@ -4018,7 +3979,7 @@ function renderEvaluationDetails(data) {
             
             detailsHtml += `
                 <tr>
-                    <td><strong>${escapeHtml(student.student_name)}</strong></td>
+                    <td>${escapeHtml(student.student_name)}</td>
                     ${panelistCells}
                     <td class="text-center table-primary">${avgDisplay}</td>
                 </tr>
@@ -4048,40 +4009,46 @@ function renderEvaluationDetails(data) {
             </div>
         `;
         
-        // Add comments section if there are any
-        let hasComments = false;
-        let commentsHtml = `
-            <h6 class="text-primary mt-4 mb-3">Evaluator Comments</h6>
-            <div class="accordion" id="commentsAccordion">
-        `;
+        // Add comments section if there are any (one per evaluator to avoid duplication)
+        const evaluatorComments = new Map();
         
-        let accordionIndex = 0;
         Object.entries(evaluationsByStudent).forEach(([studentId, studentData]) => {
             Object.entries(studentData.panelist_scores || {}).forEach(([panelistId, scoreData]) => {
-                if (scoreData.comments && scoreData.comments.trim()) {
-                    hasComments = true;
-                    commentsHtml += `
-                        <div class="accordion-item">
-                            <h2 class="accordion-header">
-                                <button class="accordion-button collapsed py-2" type="button" data-bs-toggle="collapse" data-bs-target="#comment${accordionIndex}">
-                                    <small><strong>${escapeHtml(scoreData.evaluator_name)}</strong> → ${escapeHtml(studentData.student_name)}</small>
-                                </button>
-                            </h2>
-                            <div id="comment${accordionIndex}" class="accordion-collapse collapse" data-bs-parent="#commentsAccordion">
-                                <div class="accordion-body py-2">
-                                    <small>${escapeHtml(scoreData.comments)}</small>
-                                </div>
-                            </div>
-                        </div>
-                    `;
-                    accordionIndex++;
+                if (scoreData.comments && scoreData.comments.trim() && !evaluatorComments.has(panelistId)) {
+                    evaluatorComments.set(panelistId, {
+                        evaluator_name: scoreData.evaluator_name,
+                        comments: scoreData.comments
+                    });
                 }
             });
         });
         
-        commentsHtml += `</div>`;
-        
-        if (hasComments) {
+        if (evaluatorComments.size > 0) {
+            let commentsHtml = `
+                <h6 class="text-dark mt-4 mb-3">Evaluator Comments</h6>
+                <div class="accordion accordion-flush" id="commentsAccordion">
+            `;
+            
+            let accordionIndex = 0;
+            evaluatorComments.forEach((commentData, panelistId) => {
+                commentsHtml += `
+                    <div class="accordion-item evaluator-comment-item mb-3">
+                        <h2 class="accordion-header">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#comment${accordionIndex}">
+                                ${escapeHtml(commentData.evaluator_name)}
+                            </button>
+                        </h2>
+                        <div id="comment${accordionIndex}" class="accordion-collapse collapse" data-bs-parent="#commentsAccordion">
+                            <div class="accordion-body">
+                                ${escapeHtml(commentData.comments)}
+                            </div>
+                        </div>
+                    </div>
+                `;
+                accordionIndex++;
+            });
+            
+            commentsHtml += `</div>`;
             detailsHtml += commentsHtml;
         }
     }
