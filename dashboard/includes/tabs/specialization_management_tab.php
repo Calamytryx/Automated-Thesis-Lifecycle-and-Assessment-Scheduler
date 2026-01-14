@@ -1,5 +1,5 @@
 <!-- Unified Specialization Management Tab (Pool + Assignment) -->
-<div class="tab-pane fade" id="specialization-management" role="tabpanel" aria-labelledby="specialization-management-tab">
+<div class="tab-pane fade show active" id="specialization-management" role="tabpanel" aria-labelledby="specialization-management-tab">
 <style>
 .specialization-badge {
     display: inline-block;
@@ -51,19 +51,19 @@
     <ul class="nav nav-tabs mb-4" id="specializationManagementTabs" role="tablist">
         <?php if ($_SESSION['usertype'] == 0): ?>
         <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pool-management-tab" data-bs-toggle="tab" data-bs-target="#poolManagement" type="button" role="tab">
+            <button class="nav-link active" id="pool-management-tab" data-bs-toggle="tab" data-bs-target="#poolManagement" type="button" role="tab" aria-selected="true">
                 <i class="bi bi-collection me-2"></i>Specialization Pool
             </button>
         </li>
         <?php endif; ?>
         <li class="nav-item" role="presentation">
-            <button class="nav-link <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" id="team-assignment-tab" data-bs-toggle="tab" data-bs-target="#teamAssignment" type="button" role="tab">
+            <button class="nav-link <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" id="team-assignment-tab" data-bs-toggle="tab" data-bs-target="#teamAssignment" type="button" role="tab" aria-selected="<?php echo ($_SESSION['usertype'] == 2) ? 'true' : 'false'; ?>">
                 <i class="bi bi-people-fill me-2"></i>Assign to Teams
             </button>
         </li>
         <?php if ($_SESSION['usertype'] == 0): ?>
         <li class="nav-item" role="presentation">
-            <button class="nav-link" id="user-assignment-tab" data-bs-toggle="tab" data-bs-target="#userAssignment" type="button" role="tab">
+            <button class="nav-link" id="user-assignment-tab" data-bs-toggle="tab" data-bs-target="#userAssignment" type="button" role="tab" aria-selected="false">
                 <i class="bi bi-person-fill me-2"></i>Assign to Users
             </button>
         </li>
@@ -977,6 +977,34 @@ $(document).ready(function() {
     }
 
     // ==================== INITIALIZATION ====================
+    
+    // Load data when main Specializations nav is clicked/shown
+    $('a[href="#specialization-management"]').on('shown.bs.tab shown.bs.pill click', function() {
+        console.log('Specializations tab shown - loading data for usertype:', <?php echo $_SESSION['usertype']; ?>);
+        <?php if ($_SESSION['usertype'] == 0): ?>
+        // Admin: Load specialization pool
+        loadSpecializations();
+        // Also force active tab
+        $('#pool-management-tab').tab('show');
+        <?php else: ?>
+        // Faculty: Load teams
+        loadAllAssignmentData();
+        // Also force active tab
+        $('#team-assignment-tab').tab('show');
+        <?php endif; ?>
+    });
+
+    // Auto-load on page ready if this is the active tab (useful if page refreshed)
+    if ($('#specialization-management-tab').hasClass('active')) {
+        <?php if ($_SESSION['usertype'] == 0): ?>
+        loadSpecializations();
+        $('#pool-management-tab').tab('show');
+        <?php else: ?>
+        loadAllAssignmentData();
+        $('#team-assignment-tab').tab('show');
+        <?php endif; ?>
+    }
+
     // Load pool data when pool tab is shown
     $('#pool-management-tab').on('shown.bs.tab', function() {
         if (specializationsData.length === 0) {
@@ -990,9 +1018,6 @@ $(document).ready(function() {
             loadAllAssignmentData();
         }
     });
-
-    // Initial load for first tab
-    loadSpecializations();
 });
 </script>
 </div>
