@@ -1750,6 +1750,50 @@ footer {
         gap: 0.25rem;
     }
     
+    /* Team evaluation table extra small screen adjustments */
+    .team-eval-table {
+        font-size: 0.75rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.4rem 0.25rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.7rem;
+    }
+    
+    #evaluationDetailsModal .modal-dialog {
+        margin: 0.25rem;
+    }
+    
+    #evaluationDetailsModal h3 {
+        font-size: 1.25rem;
+    }
+    
+    #evaluationDetailsModal .modal-body {
+        padding: 0.75rem;
+    }
+    
+    #evaluationDetailsModal p {
+        font-size: 0.875rem;
+    }
+    
+    /* Evaluator comments extra small screen adjustments */
+    .evaluator-comment-item .accordion-button {
+        padding: 0.625rem;
+        font-size: 0.875rem;
+    }
+    
+    .evaluator-comment-item .accordion-body {
+        padding: 0.625rem;
+        padding-top: 0.4rem;
+        font-size: 0.8125rem;
+    }
+}
+    
     .pagination .page-item {
         margin: 0;
     }
@@ -1797,6 +1841,41 @@ footer {
     .meatball-dropdown-item i {
         font-size: 12px !important;
         margin-right: 6px !important;
+    }
+    
+    /* Team evaluation table mobile adjustments */
+    .team-eval-table {
+        font-size: 0.875rem;
+    }
+    
+    .team-eval-table thead th,
+    .team-eval-table tbody td,
+    .team-eval-table tfoot th {
+        padding: 0.5rem 0.4rem;
+    }
+    
+    .team-eval-table thead th small {
+        font-size: 0.75rem;
+    }
+    
+    #evaluationDetailsModal .modal-dialog {
+        margin: 0.5rem;
+    }
+    
+    #evaluationDetailsModal h3 {
+        font-size: 1.5rem;
+    }
+    
+    /* Evaluator comments mobile adjustments */
+    .evaluator-comment-item .accordion-button {
+        padding: 0.75rem;
+        font-size: 0.9375rem;
+    }
+    
+    .evaluator-comment-item .accordion-body {
+        padding: 0.75rem;
+        padding-top: 0.5rem;
+        font-size: 0.875rem;
     }
 }
 
@@ -2863,4 +2942,56 @@ body.modal-open {
 
 .prof-assign-delete-btn i {
     font-size: 0.875rem;
+}
+
+/* Team Evaluation Table Styling */
+.team-eval-table {
+    border-collapse: separate;
+    border-spacing: 0;
+}
+
+.team-eval-table thead th,
+.team-eval-table tbody td,
+.team-eval-table tfoot th {
+    border: 1px solid var(--neutral-300);
+}
+
+.team-eval-table thead th small {
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+#evaluationDetailsModal .table-sm td {
+    padding: 0.75rem 0.5rem;
+}
+
+/* Evaluator Comments Styling */
+.evaluator-comment-item {
+    background-color: var(--white-50);
+}
+
+.evaluator-comment-item .accordion-button {
+    padding: 1rem;
+    font-weight: 500;
+    background-color: transparent;
+    border: 1px solid var(--neutral-300);
+    border-radius: 4px 4px 0 0;
+}
+
+.evaluator-comment-item .accordion-button:not(.collapsed) {
+    background-color: transparent;
+    color: var(--main-bg-dark);
+    border-bottom: none;
+}
+
+.evaluator-comment-item .accordion-button.collapsed {
+    border-radius: 4px !important;
+}
+
+.evaluator-comment-item .accordion-body {
+    padding: 1rem;
+    padding-top: 0.75rem;
+    border: 1px solid var(--neutral-300);
+    border-top: none;
+    border-radius: 0 0 4px 4px;
 }
