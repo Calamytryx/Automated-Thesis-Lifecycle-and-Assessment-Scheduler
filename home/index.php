@@ -3100,7 +3100,9 @@ $(document).ready(function() {
             ?>
 
     $(document).ready(function() {
-        var teamSelectHtml = '<select id="teamSelect" class="form-select mb-3">';
+        var teamSelectHtml = '<div class="d-flex align-items-center mb-4">';
+        teamSelectHtml += '<label for="teamSelect" class="me-3 mb-0 fw-semibold">Select Team:</label>';
+        teamSelectHtml += '<select id="teamSelect" class="form-select advisee-team-select">';
         <?php if (!empty($teams)) { ?>
         <?php foreach ($teams as $team) { ?>
         teamSelectHtml +=
@@ -3109,7 +3111,7 @@ $(document).ready(function() {
         <?php } else { ?>
         teamSelectHtml += '<option value="">No teams available</option>';
         <?php } ?>
-        teamSelectHtml += '</select>';
+        teamSelectHtml += '</select></div>';
         console.log(teamSelectHtml);
         $('#teamSelectorContainer').html(teamSelectHtml);
 
@@ -3149,15 +3151,16 @@ $(document).ready(function() {
                                     <div class="d-flex justify-content-between align-items-start requirement-header-section">
                                         <div class="requirement-content requirement-info-section">
                                             <label class="form-check-label requirement-title-label" for="req${req.id}">
-                                                <strong class="requirement-name">${req.name}</strong>
-                                                <p class="mb-1 text-muted requirement-description">${req.description || 'No description provided.'}</p>
+                                                <h5 class="requirement-name mb-2">${req.name}</h5>
+                                                <p class="mb-2 text-muted requirement-description">${req.description || 'No description provided.'}</p>
                                                 ${req.template_file 
-                                                    ? `<a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>
-                                                        <i class="bi bi-download"></i> Template
-                                                    </a>` 
+                                                    ? `<div class="mb-2 d-flex align-items-center">
+                                                        <i class="bi bi-download requirement-template-icon"></i>
+                                                        <a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>Template Available</a>
+                                                    </div>` 
                                                     : ``
                                                 }
-                                                <small class="text-muted requirement-due-date">Due: ${new Date(req.due_date).toLocaleDateString()}</small>
+                                                <div class="requirement-due-date">Due Date: <strong>${new Date(req.due_date).toLocaleDateString()}</strong></div>
                                             </label>
                                         </div>
                                         <div class="form-check requirement-checkbox-section">
@@ -3169,39 +3172,66 @@ $(document).ready(function() {
                                     
                                     <!-- Status Section -->
                                     <div class="requirement-status-section">
-                                        <label for="status${req.id}" class="form-label requirement-status-label">Status:</label>
-                                        <select id="status${req.id}" name="status[${req.id}]" class="form-select form-select-sm requirement-status-select">
-                                            <option value="pending" ${req.status === 'pending' ? 'selected' : ''}>Pending</option>
-                                            <option value="submitted" ${req.status === 'submitted' ? 'selected' : ''}>Submitted</option>
-                                            <option value="approved" ${req.status === 'approved' ? 'selected' : ''}>Approved</option>
-                                            <option value="rejected" ${req.status === 'rejected' ? 'selected' : ''}>Rejected</option>
-                                        </select>
+                                        <label class="requirement-status-label">Status:</label>
+                                        <div class="requirement-status-options">
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input requirement-status-radio" type="radio" 
+                                                       name="status[${req.id}]" id="status-approved-${req.id}" 
+                                                       value="approved" ${req.status === 'approved' ? 'checked' : ''}>
+                                                <label class="form-check-label requirement-status-option-label" for="status-approved-${req.id}">
+                                                    Approved
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input requirement-status-radio" type="radio" 
+                                                       name="status[${req.id}]" id="status-submitted-${req.id}" 
+                                                       value="submitted" ${req.status === 'submitted' ? 'checked' : ''}>
+                                                <label class="form-check-label requirement-status-option-label" for="status-submitted-${req.id}">
+                                                    Submitted
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input requirement-status-radio" type="radio" 
+                                                       name="status[${req.id}]" id="status-pending-${req.id}" 
+                                                       value="pending" ${req.status === 'pending' ? 'checked' : ''}>
+                                                <label class="form-check-label requirement-status-option-label" for="status-pending-${req.id}">
+                                                    Pending
+                                                </label>
+                                            </div>
+                                            <div class="form-check form-check-inline">
+                                                <input class="form-check-input requirement-status-radio" type="radio" 
+                                                       name="status[${req.id}]" id="status-rejected-${req.id}" 
+                                                       value="rejected" ${req.status === 'rejected' ? 'checked' : ''}>
+                                                <label class="form-check-label requirement-status-option-label" for="status-rejected-${req.id}">
+                                                    Rejected
+                                                </label>
+                                            </div>
+                                        </div>
                                     </div>
                                     
                                     <!-- Instructor Feedback Section -->
                                     <div class="requirement-feedback-section">
-                                        <div class="requirement-feedback-header">
-                                            <i class="bi bi-chat-dots"></i>
-                                            <label for="feedback${req.id}" class="requirement-feedback-label">Instructor Feedback</label>
+                                        <!-- Upload Feedback File Section -->
+                                        <div class="requirement-upload-section">
+                                            <div class="requirement-upload-header">
+                                                <label class="requirement-upload-label">Upload Feedback:</label>
+                                                <label for="feedbackFile${req.id}" class="requirement-add-file-btn">
+                                                    + Add file
+                                                </label>
+                                                <input class="d-none" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]" accept=".pdf,.doc,.docx">
+                                                <div class="requirement-file-pill-container" id="filePillContainer${req.id}">
+                                                    ${req.feedback_file ? `
+                                                    <div class="requirement-file-pill">
+                                                        <a href="./feedback/${req.feedback_file}" class="requirement-file-name" download>${req.feedback_file}</a>
+                                                        <button type="button" class="requirement-remove-file-btn" data-req-id="${req.id}">&times;</button>
+                                                    </div>
+                                                    ` : ''}
+                                                </div>
+                                            </div>
                                         </div>
-                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea" rows="3" placeholder="Enter your feedback here...">${req.feedback}</textarea>
                                         
-                                        <!-- Upload Updated Feedback File Section -->
-                                        <div class="requirement-upload-header mt-3">
-                                            <i class="bi bi-cloud-upload"></i>
-                                            <label for="feedbackFile${req.id}" class="requirement-upload-label">Upload Updated Feedback File</label>
-                                        </div>
-                                        <div class="upload-controls">
-                                            <input class="form-control requirement-file-input" type="file" id="feedbackFile${req.id}" name="feedbackFile[${req.id}]">
-                                        </div>
-                                        
-                                        ${req.feedback_file ? `
-                                        <div class="requirement-feedback-file-section">
-                                            <a href="./feedback/${req.feedback_file}" class="requirement-feedback-download-btn" download>
-                                                <i class="bi bi-download"></i> Download Feedback File
-                                            </a>
-                                        </div>
-                                        ` : ''}
+                                        <!-- Instructor Feedback Textarea -->
+                                        <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea mt-3" rows="1" placeholder="Enter your feedback here...">${req.feedback}</textarea>
                                     </div>
                                     
                                     ${req.file_name && req.status !== 'pending'
@@ -3209,21 +3239,19 @@ $(document).ready(function() {
                                             <!-- Submitted File Section -->
                                             <div class="requirement-submitted-file-section">
                                                 <div class="submitted-file-header">
-                                                    <i class="bi bi-file-earmark-text"></i>
-                                                    <h6>Submitted File</h6>
+                                                    <h6>Submitted File:</h6>
                                                 </div>
-                                                <div class="submitted-file-name">${req.file_name}</div>
+                                                <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download>
+                                                    ${req.file_name}
+                                                </a>
                                                 <div class="requirement-file-actions">
-                                                    <a href="../assets/uploads/submission/${req.file_name}" class="requirement-download-btn" download>
-                                                        <i class="bi bi-download"></i> Download
-                                                    </a>
                                                     <a href="../assets/uploads/submission/viewer.html#file=${encodeURIComponent(req.file_name)}" class="requirement-view-btn">
-                                                        <i class="far fa-eye"></i> View File
+                                                        <i class="far fa-eye"></i> View
                                                     </a>
-                                                    <button type="button" class="btn btn-warning btn-sm revert-submission-btn" 
+                                                    <button type="button" class="btn btn-sm revert-submission-btn" 
                                                             data-req-id="${req.id}" data-req-name="${req.name}" 
                                                             title="Revert submission to allow resubmission">
-                                                        <i class="bi bi-arrow-counterclockwise"></i> Revert Submission
+                                                        <i class="bi bi-arrow-counterclockwise"></i> Revert
                                                     </button>
                                                 </div>
                                             </div>
@@ -3232,7 +3260,6 @@ $(document).ready(function() {
                                             <!-- No Submission Section -->
                                             <div class="requirement-no-submission-section">
                                                 <div class="no-submission-header">
-                                                    <i class="bi bi-file-earmark-x text-muted"></i>
                                                     <h6 class="text-muted">No Submitted File</h6>
                                                 </div>
                                                 <p class="text-muted small mb-0">No file has been submitted for this requirement yet.</p>
@@ -3359,6 +3386,47 @@ $(document).ready(function() {
                     button.prop('disabled', false).html('<i class="bi bi-arrow-counterclockwise"></i> Revert Submission');
                 }
             });
+        });
+
+        // Handle feedback file selection and pill display
+        $(document).on('change', 'input[type="file"][id^="feedbackFile"]', function() {
+            const fileInput = $(this);
+            const reqId = fileInput.attr('id').replace('feedbackFile', '');
+            const pillContainer = $(`#filePillContainer${reqId}`);
+            const file = fileInput[0].files[0];
+            
+            if (file) {
+                // Clear existing pills
+                pillContainer.empty();
+                
+                // Create new pill
+                const pill = $(`
+                    <div class="requirement-file-pill">
+                        <span class="requirement-file-name">${file.name}</span>
+                        <button type="button" class="requirement-remove-file-btn" data-req-id="${reqId}">&times;</button>
+                    </div>
+                `);
+                
+                pillContainer.append(pill);
+            }
+        });
+
+        // Handle remove file button click
+        $(document).on('click', '.requirement-remove-file-btn', function() {
+            const reqId = $(this).data('req-id');
+            const fileInput = $(`#feedbackFile${reqId}`);
+            const pillContainer = $(`#filePillContainer${reqId}`);
+            
+            // Clear file input and pill
+            fileInput.val('');
+            pillContainer.empty();
+        });
+
+        // Auto-resize textarea (grow from 1 to 2 lines max)
+        $(document).on('input', '.requirement-feedback-textarea', function() {
+            this.style.height = 'auto';
+            const newHeight = Math.min(this.scrollHeight, 80); // 80px = ~2 lines
+            this.style.height = newHeight + 'px';
         });
     <?php
             }

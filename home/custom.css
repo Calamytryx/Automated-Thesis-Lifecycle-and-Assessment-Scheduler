@@ -1130,7 +1130,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 /* Advisee Team Selector Dropdown - Matches Dashboard Users Tab */
 .advisee-team-select {
     box-shadow: 0 2px 6px rgba(0,0,0,0.05);
-    border-radius: 8px;
+    border-radius: 4px;
     border: 1px solid var(--neutral-300);
     background-color: var(--white-500);
     padding: 0.5rem 1rem;
@@ -2981,12 +2981,12 @@ body.has-collapsed-home-sidebar #homeMainContent {
     }
     
     .requirement-description {
-        font-size: 0.8rem !important;
+        font-size: 0.95rem !important;
         margin-bottom: 6px !important;
     }
     
     .requirement-due-date {
-        font-size: 0.75rem !important;
+        font-size: 0.95rem !important;
     }
     
     .requirement-template-btn {
@@ -2996,23 +2996,24 @@ body.has-collapsed-home-sidebar #homeMainContent {
     
     .requirement-download-btn,
     .requirement-view-btn {
-        font-size: 0.75rem;
+        font-size: 0.9rem;
         padding: 6px 10px;
     }
     
     .requirement-feedback-textarea {
-        min-height: 80px;
-        font-size: 0.8rem;
+        font-size: 0.9rem;
     }
     
-    .requirement-status-select {
-        font-size: 0.8rem;
-        padding: 8px 10px;
+    .requirement-status-option-label {
+        font-size: 0.9rem;
     }
     
-    .requirement-file-input {
-        font-size: 0.8rem;
-        padding: 8px 10px;
+    .requirement-add-file-btn {
+        font-size: 0.9rem;
+    }
+    
+    .requirement-file-name {
+        font-size: 0.7rem;
     }
     
     .requirement-submit-btn {
@@ -3323,8 +3324,9 @@ body.has-collapsed-home-sidebar #homeMainContent {
         width: 100%;
     }
     
-    .requirement-status-select {
-        font-size: 0.85rem;
+    .requirement-status-options {
+        flex-direction: column;
+        gap: 8px;
     }
     
     /* Class Record Table Responsive */
@@ -3597,7 +3599,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .requirement-header-section {
     /* margin-bottom: 20px; */
     padding: 15px;
-    border-bottom: 1px solid var(--neutral-200);
+    border-bottom: 1px solid var(--neutral-300);
     background-color: var(--white-50);
 }
 
@@ -3606,24 +3608,29 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .requirement-name {
-    font-size: 1.1rem;
+    font-size: 1.25rem;
     font-weight: 600;
     color: var(--main-bg-dark);
-    margin-bottom: 5px;
+    margin-bottom: 0.5rem;
     display: block;
 }
 
 .requirement-description {
-    font-size: 0.9rem;
+    font-size: 1rem;
     color: var(--neutral-700);
     margin-bottom: 8px !important;
     line-height: 1.4;
 }
 
 .requirement-due-date {
-    font-size: 0.85rem;
-    color: var(--neutral-700);
-    font-weight: 500;
+    font-size: 1rem;
+    color: var(--main-black);
+    font-weight: 400;
+}
+
+.requirement-due-date strong {
+    font-weight: 600;
+    color: var(--main-black);
 }
 
 .requirement-checkbox-section {
@@ -3642,35 +3649,60 @@ body.has-collapsed-home-sidebar #homeMainContent {
     border-color: var(--bs-success);
 }
 
-/* Status badge styling */
+/* Status section styling */
 .requirement-status-section {
-    padding: 15px;
-    border-bottom: 1px solid var(--neutral-200);
+    padding: 15px 15px 0px 15px;
+    /* border-bottom: 1px solid var(--neutral-200); */
     background-color: var(--white-50);
 }
 
 .requirement-status-label {
     font-weight: 600;
-    color: var(--neutral-700);
-    margin-bottom: 8px;
-    font-size: 0.9rem;
+    color: var(--main-black);
+    margin-bottom: 12px;
+    font-size: 1rem;
+    display: block;
 }
 
-.requirement-status-select {
-    border-radius: 8px;
-    border: 1px solid var(--neutral-300);
-    font-size: 0.9rem;
-    padding: 8px 12px;
+.requirement-status-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
 }
 
-.requirement-status-select:focus {
+.requirement-status-radio {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    cursor: pointer;
+}
+
+.requirement-status-radio:checked {
+    background-color: var(--main-primary);
+    border-color: var(--main-primary);
+}
+
+.requirement-status-radio:focus {
     border-color: var(--main-primary);
     box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.25);
 }
 
+.requirement-status-option-label {
+    font-size: 1rem;
+    color: var(--main-black);
+    cursor: pointer;
+    margin-left: 6px;
+}
+
+.form-check-inline {
+    display: inline-flex;
+    align-items: center;
+    margin-right: 0;
+}
+
 /* Submitted File Section */
 .requirement-submitted-file-section {
-    background-color: var(--neutral-50);
+    background-color: var(--white-50);
     /* border-radius: 8px; */
     padding: 15px;
     /* margin-bottom: 20px; */
@@ -3679,28 +3711,44 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .submitted-file-header {
-    display: flex;
-    align-items: center;
     margin-bottom: 10px;
-}
-
-.submitted-file-header i {
-    font-size: 1.2rem;
-    color: var(--main-black);
-    margin-right: 8px;
 }
 
 .submitted-file-header h6 {
     margin: 0;
     font-weight: 600;
-    color: var(--neutral-700);
+    color: var(--main-black);
+    font-size: 1rem;
 }
 
-.submitted-file-name {
-    font-size: 0.9rem;
-    color: var(--neutral-700);
-    margin-bottom: 10px;
-    word-break: break-all;
+.requirement-submitted-file-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background-color: var(--white-50);
+    border: 1px solid var(--neutral-200);
+    border-radius: 16px;
+    padding: 6px 12px;
+    font-size: 0.75rem;
+    color: var(--main-black);
+    max-width: 250px;
+    text-decoration: underline;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 12px;
+}
+
+.requirement-submitted-file-pill:hover {
+    background-color: var(--neutral-50);
+    border-color: var(--neutral-300);
+    color: var(--main-black);
+    transform: translateY(-1px);
+}
+
+.requirement-submitted-file-pill i {
+    flex-shrink: 0;
 }
 
 /* File action buttons */
@@ -3708,17 +3756,18 @@ body.has-collapsed-home-sidebar #homeMainContent {
     display: flex;
     gap: 8px;
     flex-wrap: wrap;
+    justify-content: flex-end;
 }
 
 .requirement-download-btn,
 .requirement-view-btn {
-    font-size: 0.85rem;
+    font-size: 1rem;
     padding: 6px 12px;
     border-radius: 6px;
     text-decoration: none;
     border: 1px solid var(--neutral-300);
     background-color: var(--main-white);
-    color: var(--neutral-700);
+    color: var(--main-black);
     transition: all 0.2s ease;
     display: inline-flex;
     align-items: center;
@@ -3739,106 +3788,136 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 /* Instructor Feedback Section */
 .requirement-feedback-section {
-    background-color: var(--neutral-50);
-    /* border-radius: 8px; */
+    background-color: var(--white-50);
     padding: 15px;
-    /* margin-bottom: 20px; */
-    /* border-left: 4px solid #007bff; */
-    border-bottom: 1px solid var(--neutral-200);
-}
-
-.requirement-feedback-header {
-    display: flex;
-    align-items: center;
-    margin-bottom: 12px;
-}
-
-.requirement-feedback-header i {
-    font-size: 1.1rem;
-    color: var(--main-black);
-    margin-right: 8px;
-}
-
-.requirement-feedback-label {
-    font-weight: 600;
-    color: var(--neutral-700);
-    margin: 0;
-    font-size: 0.95rem;
+    border-bottom: 1px solid var(--neutral-300);
 }
 
 .requirement-feedback-textarea {
     border-radius: 6px;
     border: 1px solid var(--neutral-300);
-    resize: vertical;
-    min-height: 80px;
-    font-size: 0.9rem;
+    resize: none;
+    min-height: 2.5rem;
+    max-height: 5rem;
+    overflow-y: auto;
+    font-size: 1rem;
+    line-height: 1.5;
+    padding: 0.5rem 0.75rem;
 }
 
 .requirement-feedback-textarea:focus {
-    border-color: var(--bs-success);
-    box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+    border-color: var(--main-primary);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.15);
+    outline: none;
 }
 
-/* Upload Section */
+/* Upload Feedback Section */
+.requirement-upload-section {
+    margin-bottom: 0.75rem;
+}
+
 .requirement-upload-header {
     display: flex;
     align-items: center;
-    margin-bottom: 12px;
-}
-
-.requirement-upload-header i {
-    font-size: 1.1rem;
-    color: var(--main-black);
-    margin-right: 8px;
+    gap: 8px;
+    flex-wrap: wrap;
 }
 
 .requirement-upload-label {
     font-weight: 600;
-    color: var(--neutral-700);
+    color: var(--main-black);
     margin: 0;
-    font-size: 0.95rem;
+    font-size: 1rem;
 }
 
-.upload-controls {
-    display: flex;
-    gap: 10px;
-    align-items: center;
+.requirement-add-file-btn {
+    color: var(--neutral-700);
+    font-size: 1rem;
+    font-weight: 400;
+    cursor: pointer;
+    margin: 0;
+    transition: color 0.2s ease;
+}
+
+.requirement-add-file-btn:hover {
+    color: var(--main-primary);
+    text-decoration: underline;
+}
+
+/* File Pill */
+.requirement-file-pill-container {
+    display: inline-flex;
     flex-wrap: wrap;
+    gap: 8px;
 }
 
-.requirement-file-input {
-    flex: 1;
-    min-width: 200px;
-    border-radius: 6px;
+.requirement-file-pill {
+    display: inline-flex;
+    align-items: center;
+    background-color: var(--white-50);
     border: 1px solid var(--neutral-300);
-    font-size: 0.9rem;
+    border-radius: 20px;
+    padding: 6px 8px 6px 12px;
+    max-width: 250px;
+    gap: 8px;
 }
 
-.requirement-file-input:focus {
-    border-color: var(--bs-warning);
-    box-shadow: 0 0 0 0.2rem rgba(253, 126, 20, 0.25);
+.requirement-file-name {
+    color: var(--main-black);
+    text-decoration: underline;
+    font-size: 0.75rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    flex: 1;
+    min-width: 0;
+}
+
+.requirement-file-name:hover {
+    color: var(--main-primary);
+    text-decoration: underline;
+}
+
+.requirement-remove-file-btn {
+    background: none;
+    border: none;
+    color: var(--neutral-700);
+    font-size: 1.5rem;
+    line-height: 1;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: color 0.2s ease;
+    flex-shrink: 0;
+}
+
+.requirement-remove-file-btn:hover {
+    color: var(--main-primary);
 }
 
 /* Template download section - styled as link */
 .requirement-template-link {
-    color: var(--neutral-700);
-    text-decoration: none;
-    font-size: 0.85rem;
-    display: block;
-    align-items: center;
-    gap: 5px;
-    margin-bottom: 8px;
+    color: var(--main-black);
+    text-decoration: underline;
+    font-size: 1rem;
+    display: inline;
     transition: all 0.2s ease;
 }
 
 .requirement-template-link:hover {
-    color: var(--neutral-700);
+    color: var(--main-primary);
     text-decoration: underline;
 }
 
-.requirement-template-link i {
-    font-size: 0.8rem;
-    margin-right: 5px;
+.requirement-template-icon {
+    font-size: 1rem;
+    margin-right: 6px;
+    color: var(--main-black);
+    flex-shrink: 0;
 }
 
 /* Template button styling for students - override Bootstrap button to look like link */
@@ -4079,18 +4158,19 @@ body.has-collapsed-home-sidebar #homeMainContent {
 
 /* Revert submission button */
 .revert-submission-btn {
-    background-color: var(--bs-warning);
-    border-color: var(--neutral-300);
-    color: var(--main-black);
-    font-size: 0.75rem;
-    padding: 0.375rem 0.75rem;
+    background-color: #FEEDD9;
+    border: 1px solid #E47200;
+    color: #E47200;
+    font-size: 1rem;
+    padding: 6px 12px;
+    border-radius: 4px;
     transition: all 0.2s ease;
 }
 
 .revert-submission-btn:hover {
-    background-color: var(--bs-warning);
-    border-color: var(--neutral-400);
-    color: var(--main-black);
+    background-color: #FEE5C8;
+    border-color: #D06600;
+    color: #D06600;
     transform: translateY(-1px);
 }
 
@@ -4108,15 +4188,18 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .no-submission-header {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.5rem;
     margin-bottom: 0.5rem;
 }
 
-.no-submission-header i {
-    font-size: 1.25rem;
+.no-submission-header h6 {
+    font-size: 1rem;
+    font-weight: 600;
+    color: var(--black-400) !important;
+}
+
+.requirement-no-submission-section p {
+    font-size: 1rem;
+    color: var(--black-400) !important;
 }
 
 /* Student submission sections */
