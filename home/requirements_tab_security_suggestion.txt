@@ -1,0 +1,45 @@
+REQUIREMENTS TAB - SECURITY IMPROVEMENTS NEEDED as suggested by besfren
+==============================================
+
+FILE UPLOAD SECURITY
+--------------------
+
+1. File Type Validation
+   - Only allow: PDF, DOC, DOCX, ZIP
+   - Check file extension AND actual file content
+   - Reject executable files (.exe, .php, .js, etc.)
+
+2. File Size Limits
+   - Set maximum upload size (e.g., 10MB per file or idk higher?)
+   - Prevent server overload from large files
+   - Show clear error message when limit exceeded
+
+3. File Name Sanitization
+   - Remove special characters from uploaded file names
+   - Prevent path traversal attacks (../, ..\)
+   - Use unique file names to avoid conflicts
+
+4. Secure File Storage
+   - Store uploaded files outside web root directory
+   - Use non-guessable file names (hash-based)
+   - Set proper file permissions (read-only after upload)
+
+CRITICAL VULNERABILITIES TO FIX
+--------------------------------
+
+Priority 1 (High Risk):
+- Missing file type validation in upload
+- No access control check for file downloads
+- SQL injection risk in requirement ID parameter
+- Files stored in publicly accessible directory
+
+Priority 2 (Medium Risk):
+- No file size limit enforcement
+- Missing CSRF token validation
+- Inadequate session timeout handling
+- No logging of file access/changes
+
+Priority 3 (Low Risk):
+- Generic error messages could be more specific
+- File names not sanitized properly
+- No rate limiting on uploads

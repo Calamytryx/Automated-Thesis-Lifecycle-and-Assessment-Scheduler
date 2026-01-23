@@ -2339,7 +2339,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <div id="teamSelectorContainer" class="mb-4">
                                         <!-- The dropdown will be dynamically inserted here -->
                                     </div>
-                                    <div id="requirementChecklist" class="row g-4">
+                                    <div id="requirementChecklist" class="row g-4 g-lg-5">
                                         <!-- Checklist items will be dynamically added here in a grid -->
                                     </div>
                                 </div>
@@ -2913,7 +2913,23 @@ document.addEventListener("DOMContentLoaded", function() {
     </div>
 </div>
 
-
+<!-- Feedback Modal -->
+<div class="modal fade" id="feedbackModal" tabindex="-1" aria-labelledby="feedbackModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="feedbackModalLabel">Feedback Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <p id="feedbackModalContent" style="white-space: pre-wrap; line-height: 1.6; color: var(--neutral-800);"></p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 <?php
@@ -3141,10 +3157,10 @@ $(document).ready(function() {
                 console.log("AJAX request successful. Response:", response);
                 if (response.success) {
                     var checklistHtml =
-                        '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4">';
+                        '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4 g-lg-5">';
                     response.requirements.forEach(function(req) {
                         checklistHtml += `
-                        <div class="col-12 col-lg-6 requirement-card-wrapper">
+                        <div class="col-12 col-md-6 requirement-card-wrapper">
                             <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
                                 <div class="card-body requirement-card-body">
                                     <!-- Header Section with Title, Due Date, and Checkbox -->
@@ -3153,13 +3169,14 @@ $(document).ready(function() {
                                             <label class="form-check-label requirement-title-label" for="req${req.id}">
                                                 <h5 class="requirement-name mb-2">${req.name}</h5>
                                                 <p class="mb-2 text-muted requirement-description">${req.description || 'No description provided.'}</p>
-                                                ${req.template_file 
-                                                    ? `<div class="mb-2 d-flex align-items-center">
-                                                        <i class="bi bi-download requirement-template-icon"></i>
-                                                        <a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>Template Available</a>
-                                                    </div>` 
-                                                    : ``
-                                                }
+                                                <div class="mb-2 d-flex align-items-center">
+                                                    ${req.template_file 
+                                                        ? `<i class="bi bi-download requirement-template-icon"></i>
+                                                        <a href="/dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>Template Available</a>` 
+                                                        : `<i class="bi bi-file-earmark requirement-template-icon text-muted"></i>
+                                                        <span class="requirement-template-placeholder">No template</span>`
+                                                    }
+                                                </div>
                                                 <div class="requirement-due-date">Due Date: <strong>${new Date(req.due_date).toLocaleDateString()}</strong></div>
                                             </label>
                                         </div>
@@ -3271,7 +3288,7 @@ $(document).ready(function() {
                         </div>`;
                     });
                     checklistHtml +=
-                        '<div class="col-12"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
+                        '<div class="col-12 d-flex justify-content-end"><button type="submit" class="btn btn-primary mt-3" id="updateReqsBtn">Update Requirements</button></div></form>';
                     // Insert the generated HTML into the container
                     $('#requirementChecklist').html(checklistHtml);
                 } else {
@@ -3428,6 +3445,16 @@ $(document).ready(function() {
             const newHeight = Math.min(this.scrollHeight, 80); // 80px = ~2 lines
             this.style.height = newHeight + 'px';
         });
+
+        // Function to show feedback in modal
+        window.showFeedbackModal = function(element) {
+            const feedback = $(element).data('feedback');
+            if (feedback && feedback !== 'No feedback provided yet.') {
+                $('#feedbackModalContent').text(feedback);
+                const feedbackModal = new bootstrap.Modal(document.getElementById('feedbackModal'));
+                feedbackModal.show();
+            }
+        };
     <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>
@@ -3446,67 +3473,92 @@ $(document).ready(function() {
                     response.requirements.forEach(function(req) {
                         <?php if ($role === 'leader' || $role === 'member') { ?>
                             displayHtml += `
-                                <div class="col-md-6 mb-4 requirement-student-wrapper">
-                                    <div class="card requirement-student-card h-100 rounded" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
-                                        <div class="card-body requirement-student-body rct-cbody">
-                                            <h5 class="card-title requirement-student-title rct-ctitle">${req.name}</h5>
-                                            <p class="card-text requirement-student-description">${req.description}</p>
-                                            ${req.template_file 
-                                                ? `<a href="../dashboard/uploads/requirements/${req.template_file}" class="requirement-template-btn" download>
-                                                    <i class="bi bi-download"></i> Template
-                                                </a>` 
-                                                : ``
-                                            }
-                                            <p class="card-text requirement-student-due-date"><strong>Due date:</strong> ${new Date(req.due_date).toLocaleDateString()}</p>
-                                            <p class="card-text requirement-student-status"><strong>Status:</strong> ${req.status}</p>
-                                            <p class="card-text requirement-student-feedback"><strong>Feedback:</strong> ${req.feedback}</p>
-                                        </div>
-                                        
-                                        <div class="card-footer requirement-student-feedback-footer">
-                                            ${req.feedback_file ? 
-                                                `<a href="./feedback/${req.feedback_file}" class="btn btn-secondary requirement-feedback-download-btn" download>Download Feedback File</a>` 
-                                                : '<span class="requirement-no-feedback-file">No Uploaded Feedback File</span>'}
-                                        </div> 
-                                        <!-- Current Submission Section (styled like feedback file) -->
-                                        <div class="card-footer requirement-student-submission-footer">
-                                            ${req.file_name ? 
-                                                `<div class="requirement-current-submission-section">
-                                                    <strong>Current Submission:</strong>
-                                                    <div class="d-flex align-items-center gap-2">
-                                                        <a href="../assets/uploads/submission/${req.file_name}" class="requirement-current-file-link" download title="${req.file_name}">
-                                                            <span class="filename-text">${req.file_name}</span>
-                                                            <i class="bi bi-download"></i>
-                                                        </a>
-                                                        ${req.status === 'pending' ? `
-                                                            <button type="button" class="remove-current-file-btn" data-req-id="${req.id}" title="Remove current file">
-                                                                <i class="bi bi-trash"></i>
-                                                            </button>
-                                                        ` : ''}
+                                <div class="col-md-6 mb-4 requirement-card-wrapper">
+                                    <div class="card requirement-student-card h-100" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
+                                        <div class="card-body requirement-card-body">
+                                            <!-- Header Section -->
+                                            <div class="requirement-header-section">
+                                                <div class="requirement-info-section">
+                                                    <h5 class="requirement-name">${req.name}</h5>
+                                                    <p class="requirement-description">${req.description || 'No description provided.'}</p>
+                                                    <div class="mb-2 d-flex align-items-center">
+                                                        ${req.template_file 
+                                                            ? `<i class="bi bi-download requirement-template-icon"></i>
+                                                            <a href="../dashboard/uploads/requirements/${req.template_file}" class="requirement-template-link" download>Template Available</a>` 
+                                                            : `<i class="bi bi-file-earmark requirement-template-icon text-muted"></i>
+                                                            <span class="requirement-template-placeholder">No template</span>`
+                                                        }
                                                     </div>
-                                                </div>` 
-                                                : '<span class="requirement-no-submission-file">No Submitted File</span>'}
-                                        </div> 
-                                        <?php if ($role === 'leader') { ?>
-                                        <div class="card-footer requirement-student-upload-footer rct-cfooter">
-                                            <!-- Upload File Form - Allow multiple if allow_multiple_submissions is true -->
-                                            <div class="upload-file-section ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'upload-disabled' : ''}">
-                                                <strong>Upload ${req.file_name ? 'New' : ''} File:</strong>
-                                                <form class="upload-form requirement-upload-form mt-2" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
-                                                    <input type="hidden" name="document_name" value="${req.name}">
-                                                    <input type="hidden" name="requirement_id" value="${req.id}">
-                                                    <div class="mb-3 requirement-file-input-section">
-                                                        <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" 
-                                                               ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'disabled' : 'required'}>
-                                                    </div>
-                                                    <button type="submit" class="btn btn-primary feature-btn requirement-submit-btn" 
-                                                            ${req.file_name && req.status !== 'pending' && !req.allow_multiple_submissions ? 'disabled' : ''}>
-                                                        Submit ${req.file_name ? 'New' : ''} File
-                                                    </button>
-                                                    <span class="upload-status requirement-upload-status ms-2 small"></span> 
-                                                </form>
+                                                    <div class="requirement-due-date">Due Date: <strong>${new Date(req.due_date).toLocaleDateString()}</strong></div>
+                                                </div>
                                             </div>
+                                            
+                                            <!-- Status Section -->
+                                            <div class="requirement-status-section requirement-status-readonly">
+                                                <label class="requirement-status-label">Status:</label>
+                                                <div class="requirement-status-display">
+                                                    <span class="badge status-badge status-${req.status}">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Feedback Section -->
+                                            <div class="requirement-feedback-section requirement-feedback-readonly">
+                                                <label class="requirement-upload-label">Feedback:</label>
+                                                <div class="requirement-feedback-display">
+                                                    <p class="requirement-feedback-text" data-feedback="${(req.feedback || 'No feedback provided yet.').replace(/"/g, '&quot;')}" onclick="showFeedbackModal(this)">${req.feedback || 'No feedback provided yet.'}</p>
+                                                    ${req.feedback_file ? 
+                                                        `<div class="requirement-file-pill-container">
+                                                            <div class="requirement-file-pill">
+                                                                <a href="./feedback/${req.feedback_file}" class="requirement-file-name" download>${req.feedback_file}</a>
+                                                            </div>
+                                                        </div>` 
+                                                        : ''
+                                                    }
+                                                </div>
+                                            </div>
+                                            
+                                            <!-- Current Submission Section -->
+                                            ${req.file_name ? 
+                                                `<div class="requirement-submitted-file-section">
+                                                    <div class="submitted-file-header">
+                                                        <h6>Current Submission:</h6>
+                                                    </div>
+                                                    <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">
+                                                        ${req.file_name}
+                                                    </a>
+                                                    ${req.status === 'pending' ? `
+                                                        <div class="requirement-file-actions">
+                                                            <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" title="Remove current file">
+                                                                <i class="bi bi-trash"></i> Remove
+                                                            </button>
+                                                        </div>
+                                                    ` : ''}
+                                                </div>` 
+                                                : ''
+                                            }
+                                            
+                                            <!-- Upload Section (Leader Only) -->
+                                            <?php if ($role === 'leader') { ?>
+                                            ${req.file_name 
+                                                ? '' 
+                                                : `<div class="requirement-upload-section-student">
+                                                    <label class="requirement-upload-label">Upload File:</label>
+                                                    <form class="upload-form requirement-upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
+                                                        <input type="hidden" name="document_name" value="${req.name}">
+                                                        <input type="hidden" name="requirement_id" value="${req.id}">
+                                                        <div class="requirement-file-input-section mb-2">
+                                                            <input class="form-control requirement-file-input" type="file" id="file-${req.id}" name="file" required>
+                                                        </div>
+                                                        <div class="d-flex justify-content-end">
+                                                            <button type="submit" class="btn btn-primary requirement-submit-btn">
+                                                                Submit File
+                                                            </button>
+                                                        </div>
+                                                    </form>
+                                                </div>`
+                                            }
+                                            <?php } ?>
                                         </div>
-                                        <?php } ?>
                                     </div>
                                 </div>
                             `;
@@ -3534,67 +3586,39 @@ $(document).ready(function() {
     <?php } ?>
 
     // --- AJAX submission handler for student file uploads ---
-    // Moved outside the usertype condition, uses delegation
     $(document).on('submit', '#requirementChecklist .upload-form', function(event) {
-        console.log('Student upload form submission intercepted.'); // Added log
-        event.preventDefault(); // Prevent default form submission
+        event.preventDefault();
 
         var form = $(this);
-        var uploadSection = form.closest('.upload-file-section');
-        
-        // Security check: Prevent submission if upload section is disabled
-        if (uploadSection.hasClass('upload-disabled')) {
-            console.log('Upload blocked: Section is disabled');
-            showToast("Upload Blocked", "File upload is not allowed for this requirement.", "error");
-            return false;
-        }
-        
-        // Additional security: Check if submit button is disabled
         var submitButton = form.find('button[type="submit"]');
-        if (submitButton.prop('disabled') && !submitButton.hasClass('uploading')) {
-            console.log('Upload blocked: Submit button is disabled');
-            showToast("Upload Blocked", "File upload is not allowed at this time.", "error");
-            return false;
-        }
-
         var formData = new FormData(this);
-        var statusSpan = form.find('.upload-status');
+        var originalText = submitButton.html();
 
-        statusSpan.text('Uploading...').removeClass('text-danger text-success');
-        submitButton.prop('disabled', true).addClass('uploading');
-        console.log('Initiating AJAX upload...'); // Added log
+        submitButton.prop('disabled', true).html('<i class="bi bi-arrow-repeat spinner-border spinner-border-sm"></i> Uploading...');
 
         $.ajax({
             url: form.attr('action'),
             method: form.attr('method'),
             data: formData,
-            processData: false, // Important for FormData
-            contentType: false, // Important for FormData
-            dataType: 'json', // Expect JSON response from upload_file.php
+            processData: false,
+            contentType: false,
+            dataType: 'json',
             success: function(response) {
-                console.log('AJAX upload success response:', response); // Added log
                 if (response.success) {
-                    statusSpan.text('Upload successful!').addClass('text-success');
                     showToast("Success!", "File uploaded successfully!", "success");
-                    // Refresh the requirements list after a short delay
-                    setTimeout(loadRequirements, 1500);
+                    setTimeout(loadRequirements, 1000);
                 } else {
-                    statusSpan.text('Error: ' + (response.error || 'Unknown error')).addClass('text-danger');
                     showToast("Upload Failed", response.error || 'Unknown error', "error");
-                    submitButton.prop('disabled', false).removeClass('uploading');
+                    submitButton.prop('disabled', false).html(originalText);
                 }
             },
             error: function(jqXHR, textStatus, errorThrown) {
-                // Log the raw response text to see what the server actually sent
-                console.log('Raw response:', jqXHR.responseText);
-                statusSpan.text('Upload failed. Please try again.').addClass('text-danger');
                 showToast("Upload Failed", "Upload failed. Please try again.", "error");
-                console.error("AJAX upload error:", textStatus, errorThrown);
-                submitButton.prop('disabled', false).removeClass('uploading');
+                console.error("Upload error:", textStatus, errorThrown);
+                submitButton.prop('disabled', false).html(originalText);
             }
         });
     });
-    // --- End AJAX submission handler ---
 
     // --- Handle remove current file button ---
     $(document).on('click', '.remove-current-file-btn', function(event) {

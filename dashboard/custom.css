@@ -728,7 +728,7 @@ body {
     flex-grow: 1;
     position: relative; /* Back to relative for dropdown positioning */
     border-right: 1px solid var(--neutral-300);
-    padding: 8px 12px 8px 1.5rem;
+    padding: 8px 0px 8px 1.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
