@@ -250,7 +250,7 @@ main {
 /* Ensure navbar has lower z-index than sidebar on mobile */
 @media (max-width: 768px) {
     .navbar {
-        z-index: 1041; /* Lower than sidebar's 1050 */
+        z-index: 1040; /* Lower than sidebar's 1050 */
     }
 }
 

@@ -190,9 +190,9 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                 
                 <div class="col-12 mt-4">
                     <div class="row req-prog-row-con">
-                        <!-- Completed - with bold title -->
+                        <!-- Submitted - with bold title -->
                         <div class="col-md-4 mb-4">
-                            <h3 class="title-bold">Completed</h3>
+                            <h3 class="title-bold">Submitted</h3>
                             <div class="d-flex align-items-center mt-3 completion-status-item" data-status="completed" style="cursor: pointer;">
                                 <div class="bg-success rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
                                     <i class="bi bi-check-lg text-white fs-4"></i>
@@ -203,9 +203,9 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                             </div>
                         </div>
                         
-                        <!-- Partial - regular title -->
+                        <!-- Pending - regular title -->
                         <div class="col-md-4 mb-4">
-                            <h3>Partial</h3>
+                            <h3>Pending</h3>
                             <div class="d-flex align-items-center mt-3 completion-status-item" data-status="partial" style="cursor: pointer;">
                                 <div class="bg-warning rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
                                     <i class="bi bi-circle-half text-white fs-4"></i>
@@ -216,9 +216,9 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                             </div>
                         </div>
                         
-                        <!-- None - regular title -->
+                        <!-- No Submission - regular title -->
                         <div class="col-md-4 mb-4">
-                            <h3>None</h3>
+                            <h3>No Submission</h3>
                             <div class="d-flex align-items-center mt-3 completion-status-item" data-status="none" style="cursor: pointer;">
                                 <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center" style="width: 50px; height: 50px; min-width: 50px;">
                                     <i class="bi bi-x-lg text-white fs-4"></i>
@@ -596,11 +596,11 @@ document.addEventListener('DOMContentLoaded', function() {
     function getStatusBadge(category, percentage) {
         switch (category) {
             case 'completed':
-                return '<span class="badge bg-success">Completed</span>';
+                return '<span class="badge bg-success">Submitted</span>';
             case 'partial':
-                return `<span class="badge bg-warning">${percentage}% Complete</span>`;
+                return `<span class="badge bg-warning">${percentage}% Pending</span>`;
             case 'none':
-                return '<span class="badge bg-secondary">Not Started</span>';
+                return '<span class="badge bg-secondary">No Submission</span>';
             default:
                 return '<span class="badge bg-secondary">Unknown</span>';
         }
@@ -739,9 +739,9 @@ document.addEventListener('DOMContentLoaded', function() {
             modalContent.innerHTML = `
                 <div class="row">
                     <div class="col-12 mb-4">
-                        <h5 class="text-success">
-                            <i class="bi bi-check-circle-fill me-2"></i>
-                            Completed Requirements (${completed.length})
+                        <h5 class="overview-text-black">
+                            <i class="bi bi-check-circle-fill text-success me-2"></i>
+                            Submitted Requirements (${completed.length})
                         </h5>
                         ${completed.length > 0 ? `
                             <ul class="list-group">
@@ -752,12 +752,12 @@ document.addEventListener('DOMContentLoaded', function() {
                                     </li>
                                 `).join('')}
                             </ul>
-                        ` : '<p class="text-muted">No completed requirements</p>'}
+                        ` : '<p class="text-muted">No submitted requirements</p>'}
                     </div>
                     
                     <div class="col-12 mb-4">
-                        <h5 class="text-warning">
-                            <i class="bi bi-clock-fill me-2"></i>
+                        <h5 class="overview-text-black">
+                            <i class="bi bi-clock-fill text-warning me-2"></i>
                             Pending Requirements (${pending.length})
                         </h5>
                         ${pending.length > 0 ? `
@@ -773,16 +773,16 @@ document.addEventListener('DOMContentLoaded', function() {
                     </div>
                     
                     <div class="col-12">
-                        <h5 class="text-danger">
-                            <i class="bi bi-x-circle-fill me-2"></i>
-                            Remaining/Not Yet Submitted (${remaining.length})
+                        <h5 class="overview-text-black">
+                            <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                            No Submission (${remaining.length})
                         </h5>
                         ${remaining.length > 0 ? `
                             <ul class="list-group">
                                 ${remaining.map(req => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         ${req.name}
-                                        <span class="badge bg-secondary rounded-pill">Not Submitted</span>
+                                        <span class="badge bg-secondary rounded-pill">No Submission</span>
                                     </li>
                                 `).join('')}
                             </ul>
@@ -907,17 +907,17 @@ document.addEventListener('DOMContentLoaded', function() {
                                 <span class="badge bg-primary rounded-pill">${totalTeams}</span>
                             </div>
                             <div class="mt-2">
-                                <small class="text-success me-3">
-                                    <i class="bi bi-check-circle-fill me-1"></i>
-                                    ${details.completed?.length || 0} Completed
+                                <small class="overview-label-black">
+                                    <i class="bi bi-check-circle-fill text-success me-1"></i>
+                                    ${details.completed?.length || 0} Submitted
                                 </small>
-                                <small class="text-warning me-3">
-                                    <i class="bi bi-clock-fill me-1"></i>
+                                <small class="ms-3 overview-label-black">
+                                    <i class="bi bi-clock-fill text-warning me-1"></i>
                                     ${details.pending?.length || 0} Pending
                                 </small>
-                                <small class="text-danger">
-                                    <i class="bi bi-x-circle-fill me-1"></i>
-                                    ${details.missing?.length || 0} Missing
+                                <small class="ms-3 overview-label-black">
+                                    <i class="bi bi-x-circle-fill text-danger me-1"></i>
+                                    ${details.missing?.length || 0} No Submission
                                 </small>
                             </div>
                         </div>
@@ -963,25 +963,25 @@ document.addEventListener('DOMContentLoaded', function() {
         const content = `
             <div class="row">
                 <div class="col-12 mb-4">
-                    <h5 class="text-success">
-                        <i class="bi bi-check-circle-fill me-2"></i>
-                        Completed Teams (${requirement.completed.length})
+                    <h5 class="overview-text-black">
+                        <i class="bi bi-check-circle-fill text-success me-2"></i>
+                        Submitted Teams (${requirement.completed.length})
                     </h5>
                     ${requirement.completed.length > 0 ? `
                         <ul class="list-group">
                             ${requirement.completed.map(team => `
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     ${team.name}
-                                    <span class="badge bg-success rounded-pill">Completed</span>
+                                    <span class="badge bg-success rounded-pill">Submitted</span>
                                 </li>
                             `).join('')}
                         </ul>
-                    ` : '<p class="text-muted">No teams have completed this requirement</p>'}
+                    ` : '<p class="text-muted">No teams have submitted this requirement</p>'}
                 </div>
                 
                 <div class="col-12 mb-4">
-                    <h5 class="text-warning">
-                        <i class="bi bi-clock-fill me-2"></i>
+                    <h5 class="overview-text-black">
+                        <i class="bi bi-clock-fill text-warning me-2"></i>
                         Pending Teams (${requirement.pending.length})
                     </h5>
                     ${requirement.pending.length > 0 ? `
@@ -997,16 +997,16 @@ document.addEventListener('DOMContentLoaded', function() {
                 </div>
                 
                 <div class="col-12 mb-4">
-                    <h5 class="text-danger">
-                        <i class="bi bi-x-circle-fill me-2"></i>
-                        Missing Teams (${requirement.missing.length})
+                    <h5 class="overview-text-black">
+                        <i class="bi bi-x-circle-fill text-danger me-2"></i>
+                        No Submission Teams (${requirement.missing.length})
                     </h5>
                     ${requirement.missing.length > 0 ? `
                         <ul class="list-group">
                             ${requirement.missing.map(team => `
                                 <li class="list-group-item d-flex justify-content-between align-items-center">
                                     ${team.name}
-                                    <span class="badge bg-secondary rounded-pill">Missing</span>
+                                    <span class="badge bg-secondary rounded-pill">No Submission</span>
                                 </li>
                             `).join('')}
                         </ul>
@@ -1071,31 +1071,31 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Prepare modal content based on status
         if (status === 'completed') {
-            modalTitle.textContent = 'Teams with All Requirements Completed';
+            modalTitle.textContent = 'Teams with All Requirements Submitted';
             modalContent.innerHTML = `
                 <div class="row">
                     <div class="col-12">
-                        <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Completed Teams (${fullCompletionTeams.length})</h5>
+                        <h5 class="overview-text-black"><i class="bi bi-check-circle-fill text-success me-2"></i>Submitted Teams (${fullCompletionTeams.length})</h5>
                         ${generateTeamList(fullCompletionTeams, true)}
                     </div>
                 </div>
             `;
         } else if (status === 'partial') {
-            modalTitle.textContent = 'Teams with Partial Completion';
+            modalTitle.textContent = 'Teams with Pending Requirements';
             modalContent.innerHTML = `
                 <div class="row">
                     <div class="col-12">
-                        <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Partial Completion Teams (${partialCompletionTeams.length})</h5>
+                        <h5 class="overview-text-black"><i class="bi bi-clock-fill text-warning me-2"></i>Pending Teams (${partialCompletionTeams.length})</h5>
                         ${generateTeamList(partialCompletionTeams, false)}
                     </div>
                 </div>
             `;
         } else if (status === 'none') {
-            modalTitle.textContent = 'Teams with No Requirements Completed';
+            modalTitle.textContent = 'Teams with No Submissions';
             modalContent.innerHTML = `
                 <div class="row">
                     <div class="col-12">
-                        <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Teams with No Completion (${noCompletionTeams.length})</h5>
+                        <h5 class="overview-text-black"><i class="bi bi-x-circle-fill text-danger me-2"></i>Teams with No Submission (${noCompletionTeams.length})</h5>
                         ${generateTeamList(noCompletionTeams, false)}
                     </div>
                 </div>
@@ -1138,17 +1138,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalContent.innerHTML = `
                     <div class="row">
                         <div class="col-12 mb-4">
-                            <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Teams with All Requirements Completed (${fullCompletionTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-check-circle-fill text-success me-2"></i>Teams with All Requirements Submitted (${fullCompletionTeams.length})</h5>
                             ${generateTeamList(fullCompletionTeams, true)}
                         </div>
                         
                         <div class="col-12 mb-4">
-                            <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Teams with Partial Completion (${partialCompletionTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-clock-fill text-warning me-2"></i>Teams with Pending Requirements (${partialCompletionTeams.length})</h5>
                             ${generateTeamList(partialCompletionTeams, false)}
                         </div>
                         
                         <div class="col-12">
-                            <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Teams with No Requirements Completed (${noCompletionTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-x-circle-fill text-danger me-2"></i>Teams with No Submissions (${noCompletionTeams.length})</h5>
                             ${generateTeamList(noCompletionTeams, false)}
                         </div>
                     </div>
@@ -1165,19 +1165,19 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalContent.innerHTML = `
                     <div class="row">
                         <div class="col-12 mb-4">
-                            <h5 class="text-success"><i class="bi bi-check-circle-fill me-2"></i>Completed Teams (${completedTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-check-circle-fill text-success me-2"></i>Submitted Teams (${completedTeams.length})</h5>
                             <ul class="list-group">
                                 ${completedTeams.length ? completedTeams.map(team => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         ${team.name}
-                                        <span class="badge bg-success rounded-pill">Completed</span>
+                                        <span class="badge bg-success rounded-pill">Submitted</span>
                                     </li>
-                                `).join('') : '<li class="list-group-item">No teams have completed this requirement</li>'}
+                                `).join('') : '<li class="list-group-item">No teams have submitted this requirement</li>'}
                             </ul>
                         </div>
                         
                         <div class="col-12 mb-4">
-                            <h5 class="text-warning"><i class="bi bi-clock-fill me-2"></i>Pending Teams (${pendingTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-clock-fill text-warning me-2"></i>Pending Teams (${pendingTeams.length})</h5>
                             <ul class="list-group">
                                 ${pendingTeams.length ? pendingTeams.map(team => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
@@ -1189,12 +1189,12 @@ document.addEventListener('DOMContentLoaded', function() {
                         </div>
                         
                         <div class="col-12">
-                            <h5 class="text-danger"><i class="bi bi-x-circle-fill me-2"></i>Missing Teams (${missingTeams.length})</h5>
+                            <h5 class="overview-text-black"><i class="bi bi-x-circle-fill text-danger me-2"></i>No Submission Teams (${missingTeams.length})</h5>
                             <ul class="list-group">
                                 ${missingTeams.length ? missingTeams.map(team => `
                                     <li class="list-group-item d-flex justify-content-between align-items-center">
                                         ${team.name}
-                                        <span class="badge bg-danger rounded-pill">Missing</span>
+                                        <span class="badge bg-secondary rounded-pill">No Submission</span>
                                     </li>
                                 `).join('') : '<li class="list-group-item">No teams are missing this requirement</li>'}
                             </ul>

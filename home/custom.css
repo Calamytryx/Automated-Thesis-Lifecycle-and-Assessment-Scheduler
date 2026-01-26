@@ -257,31 +257,12 @@ main.container-fluid {
 /* Make chevron point right when sidebar is collapsed */
 #homeSidebarContainer.collapsed #toggleHomeSidebar i {
     transform: rotate(180deg);
-}
-
-/* Adjust toggle button position when collapsed */
-#homeSidebarContainer.collapsed #toggleHomeSidebar {
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto;
-    padding: 10px;
-    background-color: transparent;
-    box-shadow: none;
-    width: 40px;
-    height: 40px;
-    color: var(--neutral-700);
-    visibility: visible !important;
-}
-
-/* Center the toggle button icon when collapsed */
-#homeSidebarContainer.collapsed #toggleHomeSidebar i {
     margin: 0;
-    font-size: 14px;
+     font-size: 16px;
     color: var(--main-primary); 
     transition: all 0.3s ease;
-    transform: rotate(180deg);
+    line-height: 1;
+    display: block;
 }
 
 /* Home Profile Header Styles */
@@ -299,7 +280,7 @@ main.container-fluid {
     position: relative;
 }
 
-.home-profile-dropdown-container {
+.home-profile-dropdown-container {                                 
     flex-grow: 1;
     position: relative;
     border-right: 1px solid var(--neutral-300);
@@ -434,8 +415,9 @@ main.container-fluid {
     align-items: center;
     justify-content: center;
     margin: 0;
-    width: 100%;
-    height: 100%;
+    width: 54px;
+    height: 54px;
+    flex-shrink: 0;
 }
 
 #homeSidebarContainer.collapsed .home-profile-header #toggleHomeSidebar {
@@ -446,13 +428,13 @@ main.container-fluid {
     height: 100%;
 }
 
-/* Update toggle button styles for new container */
+/* Update toggle button styles for collapsed state */
 #homeSidebarContainer.collapsed #toggleHomeSidebar {
     position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
-    margin: 0 auto;
+    margin: 0;
     padding: 0;
     background-color: transparent;
     box-shadow: none;
@@ -469,6 +451,11 @@ main.container-fluid {
 #homeSidebarContainer.collapsed #toggleHomeSidebar:hover {
     background-color: var(--neutral-100);
     color: var(--main-primary);
+}
+
+#homeSidebarContainer.collapsed #toggleHomeSidebar:hover i {
+    color: var(--primary-600);
+    transform: rotate(180deg) scale(1.1);
 }
 
 /* Ensure dropdown works properly on collapsed sidebar by hiding it */
@@ -727,6 +714,7 @@ main.container-fluid {
         display: flex;
         align-items: center;
         justify-content: center;
+        flex-shrink: 0;
         transition: all 0.3s ease;
     }
     
