@@ -44,99 +44,285 @@
     background: linear-gradient(#0066cc, #0066cc);
     color: white;
 }
+
+/* Meatball menu for specialization table */
+#specialization-management .meatball-btn {
+    background: none;
+    border: none;
+    padding: 8px 12px;
+    border-radius: 6px;
+    cursor: pointer;
+    color: #6c757d;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#specialization-management .meatball-btn:hover {
+    background-color: #f8f9fa;
+    color: #495057;
+}
+
+#specialization-management .meatball-dropdown-item {
+    display: flex;
+    align-items: center;
+    width: 100%;
+    padding: 8px 16px;
+    border: none;
+    background: none;
+    text-align: left;
+    cursor: pointer;
+    font-size: 14px;
+    color: #495057;
+    transition: all 0.2s ease;
+    gap: 8px;
+}
+
+#specialization-management .meatball-dropdown-item:hover {
+    background-color: #f8f9fa;
+    color: #212529;
+}
+
+#specialization-management .meatball-dropdown-item.edit-item {
+    color: #0d6efd;
+}
+
+#specialization-management .meatball-dropdown-item.edit-item i {
+    color: #0d6efd;
+}
+
+#specialization-management .meatball-dropdown-item.delete-item {
+    color: #dc3545;
+}
+
+#specialization-management .meatball-dropdown-item.delete-item i {
+    color: #dc3545;
+}
+
+#specialization-management .meatball-dropdown-item.edit-item:hover {
+    background-color: #e7f3ff;
+}
+
+#specialization-management .meatball-dropdown-item.edit-item:hover i {
+    color: #0d6efd;
+}
+
+#specialization-management .meatball-dropdown-item.delete-item:hover {
+    background-color: #f8d7da;
+}
+
+#specialization-management .meatball-dropdown-item.delete-item:hover i {
+    color: #dc3545;
+}
+
+#specialization-management .meatball-dropdown-item i {
+    width: 16px;
+    text-align: center;
+}
+
+/* Specialization tab navigation buttons */
+.spec-tab-btn {
+    background-color: var(--main-white);
+    color: var(--main-black);
+    padding: 0.5rem 1rem;
+    border-radius: 4px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid var(--main-primary);
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+.spec-tab-btn.active {
+    background-color: var(--white-600);
+    color: var(--main-black);
+    font-weight: 700;
+    border: 1px solid var(--main-primary);
+}
+
+.spec-tab-btn.active i{
+    color: var(--main-primary);
+}
+
+.spec-tab-btn:hover {
+    background-color: var(--white-600);
+    color: var(--main-black);
+    border: 1px solid var(--main-primary);
+}
+
+/* Specialization tab navigation container */
+.spec-nav-container {
+    display: flex;
+    width: 100%;
+}
+
+.spec-tab-group {
+    display: flex;
+    gap: 0;
+    width: 100%;
+}
+
+@media (min-width: 769px) {
+    .spec-tab-btn {
+        height: 48px;
+        flex: 1;
+    }
+
+    .spec-tab-btn:first-child {
+        border-top-left-radius: 4px;
+        border-bottom-left-radius: 4px;
+        border-top-right-radius: 0;
+        border-bottom-right-radius: 0;
+    }
+    
+    .spec-tab-btn:not(:first-child):not(:last-child) {
+        border-radius: 0;
+    }
+    
+    .spec-tab-btn:last-child {
+        border-top-right-radius: 4px;
+        border-bottom-right-radius: 4px;
+        border-top-left-radius: 0;
+        border-bottom-left-radius: 0;
+    }
+    
+    .spec-tab-btn:not(:first-child) {
+        margin-left: -1px;
+    }
+}
+
+@media (max-width: 768px) {
+    .spec-nav-container {
+        justify-content: stretch;
+    }
+    
+    .spec-tab-group {
+        flex-direction: column;
+        width: 100%;
+    }
+    
+    .spec-tab-btn {
+        width: 100%;
+        border-radius: 4px !important;
+        margin-bottom: 0.5rem;
+        text-align: center;
+    }
+    
+    .spec-tab-btn:last-child {
+        margin-bottom: 0;
+    }
+}
+
+/* Specialization tab panes */
+.spec-tab-pane {
+    display: none;
+}
+.spec-tab-pane.active {
+    display: block;
+}
 </style>
 
-<div class="container-fluid">
+<div class="container-fluid py-4 content-container">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h3 class="mb-2">Specialization Management</h3>
+            <p class="text-muted">Manage specialization pool and its assignment to Teams and Users</p>
+        </div>
+    </div>
+
     <!-- Navigation Tabs -->
-    <ul class="nav nav-tabs mb-4" id="specializationManagementTabs" role="tablist">
-        <?php if ($_SESSION['usertype'] == 0): ?>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link active" id="pool-management-tab" data-bs-toggle="tab" data-bs-target="#poolManagement" type="button" role="tab" aria-selected="true">
-                <i class="bi bi-collection me-2"></i>Specialization Pool
+    <div class="spec-nav-container mb-4">
+        <div class="spec-tab-group" role="group" aria-label="Specialization tabs">
+            <?php if ($_SESSION['usertype'] == 0): ?>
+            <button type="button" class="btn spec-tab-btn active" data-spec-tab="poolManagement">
+                <i class="bi bi-collection-fill me-2"></i>Specialization Pool
             </button>
-        </li>
-        <?php endif; ?>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" id="team-assignment-tab" data-bs-toggle="tab" data-bs-target="#teamAssignment" type="button" role="tab" aria-selected="<?php echo ($_SESSION['usertype'] == 2) ? 'true' : 'false'; ?>">
+            <?php endif; ?>
+            <button type="button" class="btn spec-tab-btn <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" data-spec-tab="teamAssignment">
                 <i class="bi bi-people-fill me-2"></i>Assign to Teams
             </button>
-        </li>
-        <?php if ($_SESSION['usertype'] == 0): ?>
-        <li class="nav-item" role="presentation">
-            <button class="nav-link" id="user-assignment-tab" data-bs-toggle="tab" data-bs-target="#userAssignment" type="button" role="tab" aria-selected="false">
+            <?php if ($_SESSION['usertype'] == 0): ?>
+            <button type="button" class="btn spec-tab-btn" data-spec-tab="userAssignment">
                 <i class="bi bi-person-fill me-2"></i>Assign to Users
             </button>
-        </li>
-        <?php endif; ?>
-    </ul>
+            <?php endif; ?>
+        </div>
+    </div>
 
-    <div class="tab-content" id="specializationManagementContent">
+    <div id="specializationManagementContent">
         <!-- Pool Management Tab (Admin Only) -->
         <?php if ($_SESSION['usertype'] == 0): ?>
-        <div class="tab-pane fade show active" id="poolManagement" role="tabpanel">
-            <div class="row mb-4">
+        <div class="spec-tab-pane active" id="poolManagement">
+            <div class="row">
                 <div class="col-12">
-                    <div class="card border-0 shadow-sm">
-                        <div class="card-header bg-white border-bottom">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <h5 class="mb-0">
-                                    <i class="bi bi-mortarboard-fill me-2"></i>
-                                    Specialization Pool Management
-                                </h5>
-                                <button class="btn btn-primary" id="addSpecializationBtn">
-                                    <i class="bi bi-plus-circle me-1"></i>
-                                    Add Specialization
-                                </button>
+                    <!-- Controls Container -->
+                    <div class="user-controls-container p-0 mt-3">
+                        <!-- Filter and Add Button Row -->
+                        <div class="row g-2 mb-3 align-items-end">
+                            <div class="col-12 col-md-3 col-lg-3">
+                                <!-- College Filter -->
+                                <select class="form-select user-control-height" id="filterCollege">
+                                    <option value="">All Colleges</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 col-md-3 col-lg-3">
+                                <!-- Department Filter -->
+                                <select class="form-select user-control-height" id="filterDepartment">
+                                    <option value="">All Departments</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 col-md-3 col-lg-3">
+                                <!-- Status Filter -->
+                                <select class="form-select user-control-height" id="filterStatus">
+                                    <option value="">All Status</option>
+                                    <option value="1">Active</option>
+                                    <option value="0">Inactive</option>
+                                </select>
+                            </div>
+                            
+                            <div class="col-12 col-md-3 col-lg-3">
+                                <!-- Add Button -->
+                                <div class="d-flex gap-2 justify-content-end">
+                                    <button class="btn feature-btn add-btn user-control-height w-100 w-md-auto" id="addSpecializationBtn">
+                                        <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
+                                        <span class="d-none d-sm-inline">Add Specialization</span>
+                                        <span class="d-sm-none">Add</span>
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="card-body">
-                            <!-- Filter Controls -->
-                            <div class="row mb-3">
-                                <div class="col-md-4">
-                                    <select class="form-select" id="filterCollege">
-                                        <option value="">All Colleges</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <select class="form-select" id="filterDepartment">
-                                        <option value="">All Departments</option>
-                                    </select>
-                                </div>
-                                <div class="col-md-4">
-                                    <select class="form-select" id="filterStatus">
-                                        <option value="">All Status</option>
-                                        <option value="1">Active</option>
-                                        <option value="0">Inactive</option>
-                                    </select>
-                                </div>
-                            </div>
+                    </div>
+                </div>
+            </div>
 
-                            <!-- Specializations Table -->
-                            <div class="table-responsive">
-                                <table class="table table-hover" id="specializationsTable">
-                                    <thead class="table-light">
-                                        <tr>
-                                            <th>Name</th>
-                                            <th>Description</th>
-                                            <th>Department</th>
-                                            <th>College</th>
-                                            <th>Status</th>
-                                            <th>Created By</th>
-                                            <th class="text-center">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody id="specializationsTableBody">
-                                        <tr>
-                                            <td colspan="7" class="text-center">
-                                                <div class="spinner-border text-primary" role="status">
-                                                    <span class="visually-hidden">Loading...</span>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
+            <!-- Specializations Table -->
+            <div class="row mt-3">
+                <div class="col-12">
+                    <div class="table-responsive">
+                        <table class="table table-hover db-table" id="specializationsTable">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Description</th>
+                                    <th>Department</th>
+                                    <th>College</th>
+                                    <th>Status</th>
+                                    <th>Created By</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="specializationsTableBody">
+                                <tr>
+                                    <td colspan="7" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -144,7 +330,7 @@
         <?php endif; ?>
 
         <!-- Team Assignment Tab -->
-        <div class="tab-pane fade <?php echo ($_SESSION['usertype'] == 2) ? 'show active' : ''; ?>" id="teamAssignment" role="tabpanel">
+        <div class="spec-tab-pane <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" id="teamAssignment">
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card h-100">
@@ -193,7 +379,7 @@
 
         <!-- User Assignment Tab (Admin Only) -->
         <?php if ($_SESSION['usertype'] == 0): ?>
-        <div class="tab-pane fade" id="userAssignment" role="tabpanel">
+        <div class="spec-tab-pane" id="userAssignment">
             <div class="row">
                 <div class="col-md-6 mb-4">
                     <div class="card h-100">
@@ -245,9 +431,8 @@
         </div>
         <?php endif; ?>
     </div>
-</div>
 
-<!-- Add/Edit Specialization Modal -->
+    <!-- Add/Edit Specialization Modal -->
 <div class="modal fade" id="specializationModal" tabindex="-1" aria-labelledby="specializationModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -296,9 +481,35 @@
         </div>
     </div>
 </div>
+</div>
 
 <script>
 $(document).ready(function() {
+    // ==================== TAB SWITCHING ====================
+    const specTabButtons = document.querySelectorAll('.spec-tab-btn');
+    const specTabPanes = document.querySelectorAll('.spec-tab-pane');
+
+    specTabButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const targetTab = this.getAttribute('data-spec-tab');
+            
+            // Remove active class from all buttons
+            specTabButtons.forEach(btn => btn.classList.remove('active'));
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            
+            // Hide all tab panes
+            specTabPanes.forEach(pane => pane.classList.remove('active'));
+            
+            // Show target tab pane
+            const targetPane = document.getElementById(targetTab);
+            if (targetPane) {
+                targetPane.classList.add('active');
+            }
+        });
+    });
+
     // ==================== POOL MANAGEMENT ====================
     let specializationsData = [];
     let modal = null;
@@ -334,6 +545,14 @@ $(document).ready(function() {
     function renderSpecializations() {
         const tbody = $('#specializationsTableBody');
         tbody.empty();
+
+        // Clear any existing dropdowns - use native JS for better reliability
+        const existingDropdowns = document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-spec-"]');
+        existingDropdowns.forEach(dropdown => {
+            if (dropdown && dropdown.parentNode) {
+                dropdown.parentNode.removeChild(dropdown);
+            }
+        });
 
         if (specializationsData.length === 0) {
             tbody.append(`
@@ -373,20 +592,48 @@ $(document).ready(function() {
                     <td>${escapeHtml(spec.college || '-')}</td>
                     <td>${statusBadge}</td>
                     <td>${escapeHtml(spec.created_by_name || '-')}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-outline-primary edit-spec-btn" data-id="${spec.id}">
-                            <i class="bi bi-pencil"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-${spec.is_active == 1 ? 'warning' : 'success'} toggle-status-btn" data-id="${spec.id}">
-                            <i class="bi bi-toggle-${spec.is_active == 1 ? 'on' : 'off'}"></i>
-                        </button>
-                        <button class="btn btn-sm btn-outline-danger delete-spec-btn" data-id="${spec.id}">
-                            <i class="bi bi-trash"></i>
+                    <td class="action-buttons text-center">
+                        <button class="meatball-btn" data-spec-id="${spec.id}" aria-label="Actions">
+                            <i class="fas fa-ellipsis-h"></i>
                         </button>
                     </td>
                 </tr>
             `;
             tbody.append(row);
+            
+            // Create dropdown portal outside table
+            const dropdownPortal = document.createElement('div');
+            dropdownPortal.className = 'meatball-dropdown-portal';
+            dropdownPortal.id = `dropdown-spec-${spec.id}`;
+            dropdownPortal.setAttribute('data-spec-id', spec.id);
+            dropdownPortal.style.cssText = `
+                position: fixed;
+                background: white;
+                border: 1px solid #dee2e6;
+                border-radius: 6px;
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+                z-index: 9999;
+                min-width: 120px;
+                padding: 4px 0;
+                display: none;
+            `;
+            dropdownPortal.innerHTML = `
+                <button class="meatball-dropdown-item edit-item edit-spec-btn" data-id="${spec.id}">
+                    <i class="fas fa-edit"></i>
+                    Edit
+                </button>
+                <button class="meatball-dropdown-item delete-item delete-spec-btn" data-id="${spec.id}">
+                    <i class="fas fa-trash-alt"></i>
+                    Delete
+                </button>
+            `;
+            
+            // Ensure it's appended to body
+            try {
+                document.body.appendChild(dropdownPortal);
+            } catch (error) {
+                console.error('Error appending dropdown portal:', error);
+            }
         });
     }
 
@@ -480,29 +727,134 @@ $(document).ready(function() {
         });
     });
 
-    // Toggle status
-    $(document).on('click', '.toggle-status-btn', function() {
-        const id = $(this).data('id');
-        
-        if (confirm('Are you sure you want to toggle the status of this specialization?')) {
-            $.ajax({
-                url: 'includes/specialization_pool_api.php',
-                method: 'POST',
-                data: { action: 'toggle_status', id: id },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', response.message);
-                        loadSpecializations();
-                        loadActiveSpecializations(); // Reload for assignment dropdowns
-                    } else {
-                        showAlert('danger', response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    showAlert('danger', 'Error: ' + error);
+    // Meatball menu functionality
+    $(document).on('click', function(e) {
+        // Only handle clicks in specialization-management tab
+        if (!$(e.target).closest('#specialization-management').length) {
+            return;
+        }
+
+        // Handle meatball button clicks
+        if ($(e.target).closest('.meatball-btn').length) {
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const btn = $(e.target).closest('.meatball-btn')[0];
+            const specId = $(btn).data('spec-id');
+            
+            if (!specId) {
+                console.error('No spec-id found on button');
+                return;
+            }
+            
+            const dropdown = document.getElementById(`dropdown-spec-${specId}`);
+            
+            if (!dropdown) {
+                console.error('Dropdown not found for spec:', specId);
+                // Try to recreate dropdown if missing
+                const spec = specializationsData.find(s => s.id == specId);
+                if (spec) {
+                    console.log('Attempting to recreate dropdown for spec:', specId);
+                    createDropdownForSpec(spec);
+                    // Try again
+                    setTimeout(() => {
+                        const retryDropdown = document.getElementById(`dropdown-spec-${specId}`);
+                        if (retryDropdown) {
+                            positionAndShowDropdown(retryDropdown, btn);
+                        }
+                    }, 10);
                 }
+                return;
+            }
+            
+            const isCurrentlyOpen = dropdown.style.display === 'block';
+            
+            // Close all other dropdowns first
+            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                dd.style.display = 'none';
             });
+            
+            // Toggle current dropdown
+            if (!isCurrentlyOpen) {
+                positionAndShowDropdown(dropdown, btn);
+            }
+        }
+        // Close dropdowns when clicking outside
+        else if (!$(e.target).closest('.meatball-dropdown-portal').length && !$(e.target).closest('.meatball-btn').length) {
+            document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => {
+                dd.style.display = 'none';
+            });
+        }
+    });
+
+    // Helper function to position and show dropdown
+    function positionAndShowDropdown(dropdown, btn) {
+        const btnRect = btn.getBoundingClientRect();
+        const viewportWidth = window.innerWidth;
+        const dropdownWidth = 120;
+        
+        // Calculate position
+        let left = btnRect.right - dropdownWidth;
+        let top = btnRect.bottom + 5;
+        
+        // Adjust for mobile screens
+        if (viewportWidth < 768) {
+            left = btnRect.left + (btnRect.width / 2) - (dropdownWidth / 2);
+        }
+        
+        // Ensure dropdown doesn't go off-screen
+        if (left < 10) left = 10;
+        if (left + dropdownWidth > viewportWidth - 10) {
+            left = viewportWidth - dropdownWidth - 10;
+        }
+        
+        dropdown.style.position = 'fixed';
+        dropdown.style.top = `${top}px`;
+        dropdown.style.left = `${left}px`;
+        dropdown.style.display = 'block';
+    }
+
+    // Helper function to create dropdown for a spec
+    function createDropdownForSpec(spec) {
+        // Remove existing if any
+        const existing = document.getElementById(`dropdown-spec-${spec.id}`);
+        if (existing && existing.parentNode) {
+            existing.parentNode.removeChild(existing);
+        }
+        
+        const dropdownPortal = document.createElement('div');
+        dropdownPortal.className = 'meatball-dropdown-portal';
+        dropdownPortal.id = `dropdown-spec-${spec.id}`;
+        dropdownPortal.setAttribute('data-spec-id', spec.id);
+        dropdownPortal.style.cssText = `
+            position: fixed;
+            background: white;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            z-index: 9999;
+            min-width: 120px;
+            padding: 4px 0;
+            display: none;
+        `;
+        dropdownPortal.innerHTML = `
+            <button class="meatball-dropdown-item edit-item edit-spec-btn" data-id="${spec.id}">
+                <i class="fas fa-edit"></i>
+                Edit
+            </button>
+            <button class="meatball-dropdown-item delete-item delete-spec-btn" data-id="${spec.id}">
+                <i class="fas fa-trash-alt"></i>
+                Delete
+            </button>
+        `;
+        document.body.appendChild(dropdownPortal);
+    }
+
+    // Handle meatball dropdown item clicks
+    $(document).on('click', '.meatball-dropdown-item', function() {
+        const dropdown = $(this).closest('.meatball-dropdown-portal')[0];
+        if (dropdown) {
+            dropdown.style.display = 'none';
         }
     });
 
@@ -985,12 +1337,12 @@ $(document).ready(function() {
         // Admin: Load specialization pool
         loadSpecializations();
         // Also force active tab
-        $('#pool-management-tab').tab('show');
+        $('.spec-tab-btn[data-spec-tab="poolManagement"]').click();
         <?php else: ?>
         // Faculty: Load teams
         loadAllAssignmentData();
         // Also force active tab
-        $('#team-assignment-tab').tab('show');
+        $('.spec-tab-btn[data-spec-tab="teamAssignment"]').click();
         <?php endif; ?>
     });
 
@@ -998,22 +1350,22 @@ $(document).ready(function() {
     if ($('#specialization-management-tab').hasClass('active')) {
         <?php if ($_SESSION['usertype'] == 0): ?>
         loadSpecializations();
-        $('#pool-management-tab').tab('show');
+        $('.spec-tab-btn[data-spec-tab="poolManagement"]').click();
         <?php else: ?>
         loadAllAssignmentData();
-        $('#team-assignment-tab').tab('show');
+        $('.spec-tab-btn[data-spec-tab="teamAssignment"]').click();
         <?php endif; ?>
     }
 
-    // Load pool data when pool tab is shown
-    $('#pool-management-tab').on('shown.bs.tab', function() {
+    // Load pool data when pool tab button is clicked
+    $('.spec-tab-btn[data-spec-tab="poolManagement"]').on('click', function() {
         if (specializationsData.length === 0) {
             loadSpecializations();
         }
     });
 
-    // Load assignment data when assignment tabs are shown
-    $('#team-assignment-tab, #user-assignment-tab').on('shown.bs.tab', function() {
+    // Load assignment data when assignment tab buttons are clicked
+    $('.spec-tab-btn[data-spec-tab="teamAssignment"], .spec-tab-btn[data-spec-tab="userAssignment"]').on('click', function() {
         if (myTeams.length === 0 && assignableUsers.length === 0) {
             loadAllAssignmentData();
         }

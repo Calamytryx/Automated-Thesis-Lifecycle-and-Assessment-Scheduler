@@ -1079,7 +1079,7 @@ body {
         scrollbar-width: none; /* Firefox */
         -ms-overflow-style: none; /* Internet Explorer 10+ */
         position: relative;
-        z-index: 1040; /* Below sidebar */
+        /* z-index removed to prevent stacking context issues with modals */
     }
     
     #mainContent.expanded {
@@ -1087,7 +1087,7 @@ body {
         margin-top: 0;
         margin-left: 0; 
         height: 100vh;
-        z-index: 1040; /* Below sidebar */
+        /* z-index removed to prevent stacking context issues with modals */
     }
     
     /* Sidebar items are still full-width on mobile */

@@ -49,9 +49,8 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add/Edit Rubric Modal -->
+    <!-- Add/Edit Rubric Modal -->
 <div class="modal fade" id="rubricModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -311,6 +310,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- jQuery UI for Sortable -->

@@ -51,22 +51,22 @@
             <p class="text-muted mb-0">No evaluations available yet.</p>
         </div>
     </div>
-</div>
 
-<!-- Evaluation Details Modal -->
-<div class="modal fade" id="evaluationDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    Team Evaluation Details:
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="evaluationDetailsBody">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-3">Loading evaluation details...</p>
+    <!-- Evaluation Details Modal -->
+    <div class="modal fade" id="evaluationDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Team Evaluation Details:
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="evaluationDetailsBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-3">Loading evaluation details...</p>
+                    </div>
                 </div>
             </div>
         </div>

@@ -750,6 +750,10 @@ border-top: solid 1px var(--main-bg-dark);
     color: var(--bs-danger);
 }
 
+.meatball-dropdown-item.delete-item i{
+    color: var(--bs-danger);
+}
+
 .meatball-dropdown-item.edit-item:hover {
     background-color: rgba(var(--bs-primary-rgb), 0.1);
     color: var(--bs-primary);

@@ -47,9 +47,8 @@
         </div>
         <!-- No pagination for now, assuming fewer groups -->
     </div>
-</div>
 
-<!-- Add/Edit Rubric Group Modal -->
+    <!-- Add/Edit Rubric Group Modal -->
 <div class="modal fade" id="rubricGroupModal" tabindex="-1">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
@@ -124,7 +123,7 @@
         </div>
     </div>
 </div>
-
+</div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Sortable/1.15.0/Sortable.min.js"></script>
 
