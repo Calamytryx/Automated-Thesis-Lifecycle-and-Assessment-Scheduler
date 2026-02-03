@@ -324,6 +324,9 @@
                             </tbody>
                         </table>
                     </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center flex-wrap mt-2" id="poolPagination"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -332,47 +335,33 @@
         <!-- Team Assignment Tab -->
         <div class="spec-tab-pane <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" id="teamAssignment">
             <div class="row">
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-primary text-white">
-                            <h5 class="mb-0">
-                                <i class="bi bi-people me-2"></i>My Teams
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="teamsList"></div>
-                        </div>
+                <div class="col-12">
+                    <!-- Teams Table -->
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-hover table-sm db-table" id="teamsSpecTable">
+                            <thead>
+                                <tr>
+                                    <th>Team Name</th>
+                                    <th class="d-none d-md-table-cell">Program</th>
+                                    <th class="d-none d-lg-table-cell">Adviser</th>
+                                    <th class="d-none d-lg-table-cell">Members</th>
+                                    <th class="text-center">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="teamsSpecTableBody">
+                                <tr>
+                                    <td colspan="5" class="text-center">
+                                        <div class="spinner-border text-primary" role="status">
+                                            <span class="visually-hidden">Loading...</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
                     </div>
-                </div>
-                <div class="col-md-6 mb-4">
-                    <div class="card h-100">
-                        <div class="card-header bg-success text-white">
-                            <h5 class="mb-0">
-                                <i class="bi bi-mortarboard me-2"></i>Team Specializations
-                            </h5>
-                        </div>
-                        <div class="card-body">
-                            <div id="selectedTeamInfo" class="mb-3 text-muted">
-                                <i class="bi bi-arrow-left"></i> Select a team to view and manage specializations
-                            </div>
-                            <div id="teamSpecializations"></div>
-                            <div id="addTeamSpecSection" style="display: none;">
-                                <hr>
-                                <h6>Assign New Specialization</h6>
-                                <div class="mb-3">
-                                    <select class="form-select" id="teamSpecializationSelect">
-                                        <option value="">Select Specialization</option>
-                                    </select>
-                                </div>
-                                <div class="mb-3">
-                                    <textarea class="form-control" id="teamSpecNotes" placeholder="Notes (optional)" rows="2"></textarea>
-                                </div>
-                                <button class="btn btn-success btn-sm" id="assignToTeamBtn">
-                                    <i class="bi bi-plus-circle me-1"></i>Assign Specialization
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                    <nav aria-label="Page navigation">
+                        <ul class="pagination justify-content-center flex-wrap mt-2" id="teamsSpecPagination"></ul>
+                    </nav>
                 </div>
             </div>
         </div>
@@ -481,6 +470,49 @@
         </div>
     </div>
 </div>
+
+<!-- Team Specialization Assignment Modal -->
+<div class="modal fade" id="teamSpecAssignmentModal" tabindex="-1" aria-labelledby="teamSpecAssignmentModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="teamSpecAssignmentModalLabel">
+                    <i class="bi bi-mortarboard me-2"></i>Manage Team Specializations
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="selectedTeamInfoModal" class="mb-3 alert alert-info">
+                    <strong id="selectedTeamNameModal"></strong>
+                </div>
+                
+                <!-- Current Specializations -->
+                <h6 class="mb-3">Current Specializations</h6>
+                <div id="teamSpecializationsModal" class="mb-4"></div>
+                
+                <!-- Assign New Specialization -->
+                <hr>
+                <h6 class="mb-3">Assign New Specialization</h6>
+                <div class="mb-3">
+                    <label for="teamSpecializationSelect" class="form-label">Select Specialization</label>
+                    <select class="form-select" id="teamSpecializationSelect">
+                        <option value="">Select Specialization</option>
+                    </select>
+                </div>
+                <div class="mb-3">
+                    <label for="teamSpecNotes" class="form-label">Notes (optional)</label>
+                    <textarea class="form-control" id="teamSpecNotes" placeholder="Add notes about this specialization assignment..." rows="2"></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <button type="button" class="btn btn-success" id="assignToTeamBtn">
+                    <i class="bi bi-plus-circle me-1"></i>Assign Specialization
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 </div>
 
 <script>
@@ -513,6 +545,8 @@ $(document).ready(function() {
     // ==================== POOL MANAGEMENT ====================
     let specializationsData = [];
     let modal = null;
+    let currentPoolPage = 1;
+    const poolItemsPerPage = 10;
 
     // Initialize modal
     const modalElement = document.getElementById('specializationModal');
@@ -542,7 +576,8 @@ $(document).ready(function() {
     }
 
     // Render specializations table
-    function renderSpecializations() {
+    function renderSpecializations(page = 1) {
+        currentPoolPage = page;
         const tbody = $('#specializationsTableBody');
         tbody.empty();
 
@@ -560,6 +595,7 @@ $(document).ready(function() {
                     <td colspan="7" class="text-center text-muted">No specializations found</td>
                 </tr>
             `);
+            $('#poolPagination').empty();
             return;
         }
 
@@ -579,7 +615,13 @@ $(document).ready(function() {
             filtered = filtered.filter(s => s.is_active == statusFilter);
         }
 
-        filtered.forEach(spec => {
+        // Pagination calculations
+        const totalPages = Math.ceil(filtered.length / poolItemsPerPage);
+        const startIndex = (page - 1) * poolItemsPerPage;
+        const endIndex = startIndex + poolItemsPerPage;
+        const paginatedItems = filtered.slice(startIndex, endIndex);
+
+        paginatedItems.forEach(spec => {
             const statusBadge = spec.is_active == 1 
                 ? '<span class="specialization-badge active">Active</span>'
                 : '<span class="specialization-badge inactive">Inactive</span>';
@@ -635,7 +677,71 @@ $(document).ready(function() {
                 console.error('Error appending dropdown portal:', error);
             }
         });
+
+        // Render pagination
+        renderPoolPagination(totalPages, page, filtered.length);
     }
+
+    // Render pool pagination
+    function renderPoolPagination(totalPages, currentPage, totalItems) {
+        const pagination = $('#poolPagination');
+        pagination.empty();
+
+        if (totalPages <= 1) return;
+
+        // Previous button
+        pagination.append(`
+            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        `);
+
+        // Page numbers with ellipsis
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pagination.append(`
+                <li class="page-item ${currentPage === i ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+        }
+
+        // Next button
+        pagination.append(`
+            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        `);
+    }
+
+    // Handle pool pagination clicks
+    $(document).on('click', '#poolPagination a.page-link', function(e) {
+        e.preventDefault();
+        const page = parseInt($(this).data('page'));
+        if (!isNaN(page) && page !== currentPoolPage) {
+            renderSpecializations(page);
+        }
+    });
 
     // Populate filters
     function populateFilters() {
@@ -886,7 +992,7 @@ $(document).ready(function() {
 
     // Filter changes
     $('#filterCollege, #filterDepartment, #filterStatus').change(function() {
-        renderSpecializations();
+        renderSpecializations(1);
     });
 
     // ==================== ASSIGNMENT MANAGEMENT ====================
@@ -895,6 +1001,8 @@ $(document).ready(function() {
     let activeSpecializations = [];
     let selectedTeamId = null;
     let selectedUserId = null;
+    let currentTeamsPage = 1;
+    const teamsPerPage = 10;
 
     // Load all assignment data
     function loadAllAssignmentData() {
@@ -924,32 +1032,132 @@ $(document).ready(function() {
     }
 
     // Render teams
-    function renderTeams() {
-        const container = $('#teamsList');
-        container.empty();
+    function renderTeams(page = 1) {
+        currentTeamsPage = page;
+        const tbody = $('#teamsSpecTableBody');
+        tbody.empty();
 
         if (myTeams.length === 0) {
-            container.html('<p class="text-muted">No teams assigned</p>');
+            tbody.html(`
+                <tr>
+                    <td colspan="5" class="text-center text-muted">No teams assigned</td>
+                </tr>
+            `);
+            $('#teamsSpecPagination').empty();
             return;
         }
 
-        myTeams.forEach(team => {
-            const card = `
-                <div class="card assignment-card mb-2 team-card" data-team-id="${team.id}" style="cursor: pointer;">
-                    <div class="card-body">
-                        <h6 class="mb-1">${escapeHtml(team.name)}</h6>
-                        <small class="text-muted">
-                            <i class="bi bi-book me-1"></i>${escapeHtml(team.program || 'No program')}
-                        </small><br>
-                        <small class="text-muted">
-                            <i class="bi bi-people me-1"></i>${escapeHtml(team.members || 'No members')}
-                        </small>
-                    </div>
-                </div>
+        // Pagination calculations
+        const totalPages = Math.ceil(myTeams.length / teamsPerPage);
+        const startIndex = (page - 1) * teamsPerPage;
+        const endIndex = startIndex + teamsPerPage;
+        const paginatedTeams = myTeams.slice(startIndex, endIndex);
+
+        paginatedTeams.forEach(team => {
+            // Parse members from comma-separated string
+            let adviser = '';
+            let leader = '';
+            const members = [];
+            
+            if (team.members) {
+                const membersList = team.members.split(', ');
+                membersList.forEach((member, index) => {
+                    if (index === 0) {
+                        adviser = member; // First is always adviser
+                    } else if (index === 1) {
+                        leader = member; // Second is always leader
+                        members.push({ name: member }); // Include leader in members list
+                    } else {
+                        members.push({ name: member }); // Rest are members
+                    }
+                });
+            }
+            
+            // Build members HTML as bulleted list
+            const membersHtml = members.length > 0 
+                ? '<ul class="mb-0 ps-3 small">' + members.map(m => `<li>${escapeHtml(m.name)}</li>`).join('') + '</ul>'
+                : '<span class="text-muted">No members</span>';
+            
+            const row = `
+                <tr>
+                    <td><strong>${escapeHtml(team.name)}</strong></td>
+                    <td class="d-none d-md-table-cell">${escapeHtml(team.program || '-')}</td>
+                    <td class="d-none d-lg-table-cell">${adviser ? escapeHtml(adviser) : '<span class="text-muted">No adviser</span>'}</td>
+                    <td class="d-none d-lg-table-cell">${membersHtml}</td>
+                    <td class="text-center">
+                        <button class="btn btn-sm btn-primary assign-team-spec-btn" data-team-id="${team.id}" data-team-name="${escapeHtml(team.name)}">
+                            <i class="bi bi-mortarboard me-1"></i>Assign
+                        </button>
+                    </td>
+                </tr>
             `;
-            container.append(card);
+            tbody.append(row);
         });
+
+        // Render pagination
+        renderTeamsPagination(totalPages, page);
     }
+
+    // Render teams pagination
+    function renderTeamsPagination(totalPages, currentPage) {
+        const pagination = $('#teamsSpecPagination');
+        pagination.empty();
+
+        if (totalPages <= 1) return;
+
+        // Previous button
+        pagination.append(`
+            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
+                    <span aria-hidden="true">&laquo;</span>
+                </a>
+            </li>
+        `);
+
+        // Page numbers with ellipsis
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+        }
+
+        for (let i = startPage; i <= endPage; i++) {
+            pagination.append(`
+                <li class="page-item ${currentPage === i ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
+        }
+
+        // Next button
+        pagination.append(`
+            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
+                    <span aria-hidden="true">&raquo;</span>
+                </a>
+            </li>
+        `);
+    }
+
+    // Handle teams pagination clicks
+    $(document).on('click', '#teamsSpecPagination a.page-link', function(e) {
+        e.preventDefault();
+        const page = parseInt($(this).data('page'));
+        if (!isNaN(page) && page !== currentTeamsPage) {
+            renderTeams(page);
+        }
+    });
 
     // Load assignable users
     function loadAssignableUsers() {
@@ -1038,23 +1246,66 @@ $(document).ready(function() {
         });
     }
 
-    // Team click handler
-    $(document).on('click', '.team-card', function() {
-        $('.team-card').removeClass('border-primary');
-        $(this).addClass('border-primary');
+    // Team assign button handler - Opens modal
+    $(document).on('click', '.assign-team-spec-btn', function() {
+        const teamId = $(this).data('team-id');
+        const teamName = $(this).data('team-name');
         
-        selectedTeamId = $(this).data('team-id');
-        const team = myTeams.find(t => t.id == selectedTeamId);
+        selectedTeamId = teamId;
+        const team = myTeams.find(t => t.id == teamId);
         
         if (team) {
-            $('#selectedTeamInfo').html(`
-                <strong>${escapeHtml(team.name)}</strong><br>
-                <small class="text-muted">${escapeHtml(team.program || 'No program')}</small>
-            `);
-            $('#addTeamSpecSection').show();
-            loadTeamSpecializations(selectedTeamId);
+            $('#selectedTeamNameModal').html(`${escapeHtml(teamName)}<br><small class="text-muted">${escapeHtml(team.program || 'No program')}</small>`);
+            $('#teamSpecNotes').val('');
+            $('#teamSpecializationSelect').val('');
+            loadTeamSpecializationsInModal(teamId);
+            
+            // Open modal
+            const modal = new bootstrap.Modal(document.getElementById('teamSpecAssignmentModal'));
+            modal.show();
         }
     });
+
+    // Load team specializations in modal
+    function loadTeamSpecializationsInModal(teamId) {
+        $.ajax({
+            url: 'includes/specialization_assignment_api.php?action=get_team_specializations&team_id=' + teamId,
+            method: 'GET',
+            dataType: 'json',
+            success: function(response) {
+                renderTeamSpecializationsInModal(response.data || []);
+            },
+            error: function() {
+                $('#teamSpecializationsModal').html('<p class="text-danger">Error loading specializations</p>');
+            }
+        });
+    }
+
+    // Render team specializations in modal
+    function renderTeamSpecializationsInModal(specs) {
+        const container = $('#teamSpecializationsModal');
+        container.empty();
+
+        if (specs.length === 0) {
+            container.html('<p class="text-muted">No specializations assigned</p>');
+            return;
+        }
+
+        specs.forEach(spec => {
+            const item = `
+                <div class="d-flex justify-content-between align-items-start mb-2 p-2 border rounded">
+                    <div>
+                        <strong>${escapeHtml(spec.specialization_name)}</strong><br>
+                        <small class="text-muted">${escapeHtml(spec.notes || 'No notes')}</small>
+                    </div>
+                    <button class="btn btn-sm btn-outline-danger remove-team-spec-btn" data-spec-name="${escapeHtml(spec.specialization_name)}">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            `;
+            container.append(item);
+        });
+    }
 
     // User click handler
     $(document).on('click', '.user-card', function() {
@@ -1074,44 +1325,7 @@ $(document).ready(function() {
         }
     });
 
-    // Load team specializations
-    function loadTeamSpecializations(teamId) {
-        $.ajax({
-            url: 'includes/specialization_assignment_api.php?action=get_team_specializations&team_id=' + teamId,
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                renderTeamSpecializations(response.data || []);
-            }
-        });
-    }
-
-    // Render team specializations
-    function renderTeamSpecializations(specs) {
-        const container = $('#teamSpecializations');
-        container.empty();
-
-        if (specs.length === 0) {
-            container.html('<p class="text-muted">No specializations assigned</p>');
-            return;
-        }
-
-        specs.forEach(spec => {
-            const item = `
-                <div class="d-flex justify-content-between align-items-start mb-2 p-2 border rounded">
-                    <div>
-                        <span class="spec-tag">${escapeHtml(spec.specialization_name)}</span>
-                        ${spec.notes ? `<br><small class="text-muted ms-2">${escapeHtml(spec.notes)}</small>` : ''}
-                        <br><small class="text-muted ms-2">Assigned by: ${escapeHtml(spec.assigned_by_name || 'Unknown')}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger remove-team-spec-btn" data-spec-name="${escapeHtml(spec.specialization_name)}">
-                        <i class="bi bi-x"></i>
-                    </button>
-                </div>
-            `;
-            container.append(item);
-        });
-    }
+    // Old team specializations functions removed - now using modal versions (loadTeamSpecializationsInModal, renderTeamSpecializationsInModal)
 
     // Load user specializations
     function loadUserSpecializations(userId) {
@@ -1177,7 +1391,7 @@ $(document).ready(function() {
                     showAlert('success', response.message);
                     $('#teamSpecializationSelect').val('');
                     $('#teamSpecNotes').val('');
-                    loadTeamSpecializations(selectedTeamId);
+                    loadTeamSpecializationsInModal(selectedTeamId);
                 } else {
                     showAlert('danger', response.message);
                 }
@@ -1259,7 +1473,7 @@ $(document).ready(function() {
                 success: function(response) {
                     if (response.success) {
                         showAlert('success', response.message);
-                        loadTeamSpecializations(selectedTeamId);
+                        loadTeamSpecializationsInModal(selectedTeamId);
                     } else {
                         showAlert('danger', response.message);
                     }
