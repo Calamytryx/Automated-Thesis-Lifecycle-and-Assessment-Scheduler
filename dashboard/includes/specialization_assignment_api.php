@@ -480,6 +480,9 @@ function getAssignableUsers($pdo, $userId, $usertype) {
             $stmt = $pdo->prepare("
                 SELECT 
                     id,
+                    username,
+                    first_name,
+                    last_name,
                     CONCAT(first_name, ' ', last_name) as name,
                     email,
                     program,
@@ -504,6 +507,9 @@ function getAssignableUsers($pdo, $userId, $usertype) {
             $stmt = $pdo->prepare("
                 SELECT DISTINCT
                     u.id,
+                    u.username,
+                    u.first_name,
+                    u.last_name,
                     CONCAT(u.first_name, ' ', u.last_name) as name,
                     u.email,
                     u.program,
