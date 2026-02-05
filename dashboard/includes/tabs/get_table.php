@@ -63,7 +63,8 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 break;
             case 'teams':
                 // Select t.program directly. Remove JOIN to programs for name selection.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
+                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                              t.locked_panelist1, t.locked_panelist2, t.locked_panelist3,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
                               FROM teams t

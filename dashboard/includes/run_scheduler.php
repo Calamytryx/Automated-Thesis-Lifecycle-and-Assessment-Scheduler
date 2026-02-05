@@ -156,25 +156,221 @@ try {
 
         // Check for teams that already have schedules
         $scheduledTeams = checkExistingSchedules($pdo, $selectedSections);
+        error_log("SCHEDULER: checkExistingSchedules returned " . count($scheduledTeams) . " teams");
+        error_log("SCHEDULER: scheduledTeams data: " . json_encode($scheduledTeams));
         
-        // If there are scheduled teams and overwrite confirmation is not received
-        if (!empty($scheduledTeams) && (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true')) {
-            updateProgress($pdo, $progressId, 'error', 'Confirmation required for overwriting existing schedules', null);
-            $teamNames = getTeamNames($pdo, array_keys($scheduledTeams));
-            // FIX: Don't use return, actually echo the JSON response and exit
+        // Separate schedules into past and future
+        $currentDate = date('Y-m-d');
+        $pastSchedules = [];
+        $futureSchedules = [];
+        $upcomingDefenses = []; // Defenses that haven't started yet (pending status)
+        $teamsNeedingGradeCheck = [];
+        $teamsToAutoProgress = [];
+        
+        error_log("SCHEDULER: Current date for comparison: $currentDate");
+        error_log("SCHEDULER: Starting to process " . count($scheduledTeams) . " scheduled teams");
+        
+        foreach ($scheduledTeams as $teamId => $schedule) {
+            $scheduleDate = $schedule['defense_date'] ?? 'NO_DATE';
+            $defenseStatus = $schedule['defense_status'] ?? 'pending';
+            error_log("SCHEDULER: Processing Team $teamId - defense_date: $scheduleDate, defense_status: $defenseStatus");
+            
+            // Normalize schedule date to Y-m-d format
+            if ($scheduleDate !== 'NO_DATE') {
+                $parsedDate = parseDate($scheduleDate);
+                if ($parsedDate) {
+                    $scheduleDate = $parsedDate->format('Y-m-d');
+                    error_log("SCHEDULER: Team $teamId normalized date: $scheduleDate");
+                } else {
+                    error_log("SCHEDULER: Team $teamId - FAILED to parse date: " . $schedule['defense_date']);
+                }
+            }
+            
+            if ($scheduleDate < $currentDate) {
+                // Past schedule
+                $pastSchedules[$teamId] = $schedule;
+                error_log("SCHEDULER: Team $teamId marked as PAST schedule ($scheduleDate < $currentDate)");
+                
+                // Check if defense has been evaluated (passed/failed)
+                if (in_array($defenseStatus, ['passed', 'failed'])) {
+                    // Need to check if team has all grades before progression
+                    $teamsNeedingGradeCheck[$teamId] = [
+                        'old_schedule' => $schedule,
+                        'status' => $defenseStatus
+                    ];
+                    error_log("SCHEDULER: Team $teamId needs grade check for progression (status: $defenseStatus)");
+                } else {
+                    error_log("SCHEDULER: Team $teamId has past schedule but status is '$defenseStatus' (not passed/failed) - skipping progression");
+                }
+            } else {
+                // Future schedule
+                $futureSchedules[$teamId] = $schedule;
+                error_log("SCHEDULER: Team $teamId marked as FUTURE schedule ($scheduleDate >= $currentDate)");
+                
+                // Only ask for override if defense is still pending (hasn't started)
+                if ($defenseStatus === 'pending') {
+                    $upcomingDefenses[$teamId] = $schedule;
+                    error_log("SCHEDULER: Team $teamId has UPCOMING defense (pending)");
+                } else {
+                    error_log("SCHEDULER: Team $teamId has future schedule but status is '$defenseStatus' (not pending) - will not ask for override");
+                }
+            }
+        }
+        
+        error_log("SCHEDULER: Finished processing teams loop");
+        
+        error_log("SCHEDULER: Summary - Past: " . count($pastSchedules) . ", Future: " . count($futureSchedules) . ", Upcoming/Pending: " . count($upcomingDefenses) . ", Needs grade check: " . count($teamsNeedingGradeCheck));
+        error_log("SCHEDULER: POST confirm_upgrade = " . (isset($_POST['confirm_upgrade']) ? $_POST['confirm_upgrade'] : 'NOT SET'));
+        error_log("SCHEDULER: POST confirm_overwrite = " . (isset($_POST['confirm_overwrite']) ? $_POST['confirm_overwrite'] : 'NOT SET'));
+        
+        // Check if we need to ask for defense type upgrade confirmation
+        if (!empty($teamsNeedingGradeCheck) && (!isset($_POST['confirm_upgrade']) || $_POST['confirm_upgrade'] !== 'true')) {
+            error_log("SCHEDULER: Need to check grades for " . count($teamsNeedingGradeCheck) . " teams");
+            
+            // Verify all teams have complete grades
+            $teamsReadyForUpgrade = [];
+            $teamsMissingGrades = [];
+            
+            foreach ($teamsNeedingGradeCheck as $teamId => $data) {
+                if (teamHasCompleteGrades($pdo, $teamId, $data['old_schedule']['id'])) {
+                    $teamsReadyForUpgrade[$teamId] = $data;
+                } else {
+                    $teamsMissingGrades[$teamId] = $data;
+                }
+            }
+            
+            error_log("SCHEDULER: Teams ready for upgrade: " . count($teamsReadyForUpgrade) . ", Missing grades: " . count($teamsMissingGrades));
+            
+            if (!empty($teamsReadyForUpgrade)) {
+                // Ask for confirmation to upgrade defense types
+                updateProgress($pdo, $progressId, 'info', 'Defense type upgrades require confirmation', null);
+                $upgradeInfo = [];
+                foreach ($teamsReadyForUpgrade as $teamId => $data) {
+                    $currentType = $data['old_schedule']['defense_type'] ?? 'title_proposal';
+                    $status = $data['status'];
+                    $newType = '';
+                    if ($status === 'passed') {
+                        switch ($currentType) {
+                            case 'title_proposal': $newType = 'title_defense'; break;
+                            case 'title_defense': $newType = 'final_defense'; break;
+                            case 'final_defense': $newType = '(completed)'; break;
+                        }
+                    } else {
+                        $newType = 're_defense';
+                    }
+                    
+                    $teamNames = getTeamNames($pdo, [$teamId]);
+                    $upgradeInfo[] = [
+                        'team_id' => $teamId,
+                        'team_name' => $teamNames[$teamId] ?? "Team $teamId",
+                        'current_type' => ucwords(str_replace('_', ' ', $currentType)),
+                        'new_type' => ucwords(str_replace('_', ' ', $newType)),
+                        'status' => $status
+                    ];
+                }
+                
+                error_log("SCHEDULER: Asking for upgrade confirmation for " . count($upgradeInfo) . " teams");
+                echo json_encode([
+                    'success' => false,
+                    'requireUpgradeConfirmation' => true,
+                    'message' => 'Some teams have completed defenses and are ready for progression. Proceed with defense type upgrades?',
+                    'upgradeInfo' => $upgradeInfo,
+                    'missingGrades' => !empty($teamsMissingGrades) ? array_keys($teamsMissingGrades) : []
+                ]);
+                exit;
+            }
+            
+            // If all teams missing grades, skip progression
+            if (empty($teamsReadyForUpgrade)) {
+                error_log("SCHEDULER: No teams ready for upgrade (all missing grades) - proceeding without upgrade");
+                $teamsToAutoProgress = [];
+            }
+        } elseif (!empty($teamsNeedingGradeCheck) && isset($_POST['confirm_upgrade']) && $_POST['confirm_upgrade'] === 'true') {
+            error_log("SCHEDULER: Upgrade confirmed, processing teams with complete grades");
+            // Upgrade confirmed, filter teams with complete grades
+            foreach ($teamsNeedingGradeCheck as $teamId => $data) {
+                if (teamHasCompleteGrades($pdo, $teamId, $data['old_schedule']['id'])) {
+                    $teamsToAutoProgress[$teamId] = $data;
+                }
+            }
+        } else {
+            error_log("SCHEDULER: No teams needing grade check or already processed");
+        }
+        
+        // If there are upcoming defenses (pending) and overwrite confirmation is not received
+        if (!empty($upcomingDefenses) && (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true')) {
+            error_log("SCHEDULER: Asking for overwrite confirmation for " . count($upcomingDefenses) . " upcoming defenses");
+            updateProgress($pdo, $progressId, 'error', 'Confirmation required for overwriting upcoming defenses', null);
+            $teamNames = getTeamNames($pdo, array_keys($upcomingDefenses));
             echo json_encode([
                 'success' => false,
                 'requireConfirmation' => true,
-                'message' => 'The following teams already have schedules and will be overwritten:',
+                'message' => 'The following teams have UPCOMING defenses that have not started yet. Do you want to overwrite them?',
                 'scheduledTeams' => $teamNames
             ]);
-            exit; // Make sure we exit after sending the response
+            exit;
+        } else {
+            error_log("SCHEDULER: No upcoming defenses to confirm or confirmation received");
+        }
+        
+        // Process automatic defense type progression for past schedules
+        if (!empty($teamsToAutoProgress)) {
+            updateProgress($pdo, $progressId, 'running', 'Processing defense progressions...', 18);
+            $progressedTeams = handleDefenseProgression($pdo, $teamsToAutoProgress);
+            error_log("SCHEDULER: Auto-progressed " . count($progressedTeams) . " teams based on past defense results");
+        }
+        
+        // Remove ONLY upcoming/pending future schedules (past schedules and completed future schedules are kept)
+        if (!empty($upcomingDefenses)) {
+            updateProgress($pdo, $progressId, 'running', 'Removing upcoming schedules...', 20);
+            removeExistingSchedules($pdo, array_keys($upcomingDefenses));
+            error_log("SCHEDULER: Removed " . count($upcomingDefenses) . " upcoming schedules for re-scheduling");
         }
 
-        updateProgress($pdo, $progressId, 'running', 'Loading teams and panelists...', 20);
+        // NOW fetch teams AFTER processing progressions and removing schedules
+        updateProgress($pdo, $progressId, 'running', 'Loading teams and panelists...', 22);
 
         $teams = fetchTeams($pdo, $selectedSections);
         $panelists = fetchPanelists($pdo);
+        
+        // Filter out teams that should NOT be scheduled:
+        // 1. Teams with future pending schedules that were NOT confirmed for overwrite
+        // 2. Teams that have completed final_defense and passed
+        $teamsWithFuturePending = [];
+        if (!isset($_POST['confirm_overwrite']) || $_POST['confirm_overwrite'] !== 'true') {
+            // Get teams that still have future pending schedules
+            $currentDate = date('Y-m-d');
+            $placeholders = implode(',', array_fill(0, count($selectedSections ?: ['ALL']), '?'));
+            $sectionFilter = !empty($selectedSections) ? 
+                "AND EXISTS (SELECT 1 FROM team_members tm2 JOIN users u ON tm2.user_id = u.id WHERE tm2.team_id = ds.team_id AND u.section IN ($placeholders))" : "";
+            
+            $checkStmt = $pdo->prepare("
+                SELECT DISTINCT ds.team_id 
+                FROM defense_schedules ds 
+                WHERE ds.status = 'scheduled' 
+                AND ds.schedule_date >= ?
+                AND ds.defense_status = 'pending'
+                $sectionFilter
+            ");
+            $params = [$currentDate];
+            if (!empty($selectedSections)) {
+                $params = array_merge($params, $selectedSections);
+            }
+            $checkStmt->execute($params);
+            $teamsWithFuturePending = $checkStmt->fetchAll(PDO::FETCH_COLUMN);
+            error_log("SCHEDULER: Teams with future pending schedules (NOT overwriting): " . implode(', ', $teamsWithFuturePending));
+        }
+        
+        // Filter teams to schedule
+        $originalTeamCount = count($teams);
+        $teams = array_filter($teams, function($team) use ($teamsWithFuturePending) {
+            // Exclude teams with future pending schedules
+            return !in_array($team['id'], $teamsWithFuturePending);
+        });
+        $teams = array_values($teams); // Re-index array
+        
+        error_log("SCHEDULER: After filtering - " . count($teams) . " teams to schedule (excluded " . ($originalTeamCount - count($teams)) . " with future pending schedules)");
+        
         $duration = $_POST['timeDuration'];
         // Convert to a proper number
         if (!is_numeric($duration) || floatval($duration) <= 0) {
@@ -199,11 +395,7 @@ try {
             throw new Exception("No teams or panelists available for scheduling");
         }
 
-        // If confirmed, now remove existing schedules for the affected teams
-        if (!empty($scheduledTeams)) {
-            updateProgress($pdo, $progressId, 'running', 'Removing existing schedules...', 30);
-            removeExistingSchedules($pdo, array_keys($scheduledTeams));
-        }
+        error_log("SCHEDULER: About to generate schedules for " . count($teams) . " teams");
 
         updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
 
@@ -306,15 +498,20 @@ function validateInputs() {
     return true;
 }
 
-// New function to check existing schedules instead of clearing them
+// Check existing schedules with detailed information (date, status, defense_type)
 function checkExistingSchedules($pdo, $sections = []) {
     try {
-        $query = "SELECT ds.*, t.name AS team_name 
-                 FROM defense_schedules ds
-                 JOIN teams t ON ds.team_id = t.id
-                 JOIN team_members tm ON t.id = tm.team_id
-                 JOIN users u ON tm.user_id = u.id
-                 WHERE ds.status = 'scheduled'";
+        $query = "SELECT ds.*, t.name AS team_name,
+                         ds.schedule_date AS defense_date,
+                         ds.defense_status,
+                         ds.defense_type,
+                         ds.start_time AS time_slot,
+                         ds.room
+                  FROM defense_schedules ds
+                  JOIN teams t ON ds.team_id = t.id
+                  JOIN team_members tm ON t.id = tm.team_id
+                  JOIN users u ON tm.user_id = u.id
+                  WHERE ds.status = 'scheduled'";
 
         $params = [];
         if (!empty($sections)) {
@@ -331,10 +528,15 @@ function checkExistingSchedules($pdo, $sections = []) {
             $scheduledTeams[$row['team_id']] = $row;
         }
         
-        error_log("Found " . count($scheduledTeams) . " teams with existing schedules");
+        error_log("checkExistingSchedules: Found " . count($scheduledTeams) . " teams with existing schedules");
+        if (!empty($scheduledTeams)) {
+            foreach ($scheduledTeams as $teamId => $schedule) {
+                error_log("  - Team $teamId: defense_date={$schedule['defense_date']}, defense_type={$schedule['defense_type']}, defense_status={$schedule['defense_status']}");
+            }
+        }
         return $scheduledTeams;
     } catch (PDOException $e) {
-        error_log("Error checking existing schedules: " . $e->getMessage());
+        error_log("checkExistingSchedules ERROR: " . $e->getMessage());
         return [];
     }
 }
@@ -359,26 +561,167 @@ function getTeamNames($pdo, $teamIds) {
     }
 }
 
-// Function to remove existing schedules for specific teams
+// Function to remove existing FUTURE schedules for specific teams (preserves past schedules)
 function removeExistingSchedules($pdo, $teamIds) {
-    if (empty($teamIds)) return;
+    if (empty($teamIds)) {
+        error_log("removeExistingSchedules: No team IDs provided");
+        return;
+    }
     
     try {
+        $currentDate = date('Y-m-d');
+        error_log("removeExistingSchedules: Attempting to remove FUTURE schedules (after $currentDate) for teams: " . implode(', ', $teamIds));
         $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
-        $stmt = $pdo->prepare("DELETE FROM defense_schedules WHERE team_id IN ($placeholders) AND status = 'scheduled'");
-        $stmt->execute($teamIds);
-        error_log("Removed schedules for " . count($teamIds) . " teams");
+        
+        // Only delete FUTURE schedules that are still pending
+        // Never delete past schedules or schedules that are passed/failed
+        $stmt = $pdo->prepare("
+            DELETE FROM defense_schedules 
+            WHERE team_id IN ($placeholders) 
+            AND status = 'scheduled' 
+            AND schedule_date >= ?
+            AND defense_status = 'pending'
+        ");
+        $params = array_merge($teamIds, [$currentDate]);
+        $stmt->execute($params);
+        $deletedCount = $stmt->rowCount();
+        error_log("removeExistingSchedules: Successfully removed $deletedCount FUTURE schedule(s) for " . count($teamIds) . " team(s)");
     } catch (PDOException $e) {
-        error_log("Error removing existing schedules: " . $e->getMessage());
+        error_log("removeExistingSchedules ERROR: " . $e->getMessage());
+        throw $e;
     }
 }
 
-// Update fetchTeams to handle multiple sections
+/**
+ * Check if team has complete grades from all panelists
+ * @param PDO $pdo Database connection
+ * @param int $teamId Team ID
+ * @param int $scheduleId Defense schedule ID
+ * @return bool True if all panelists have submitted grades
+ */
+function teamHasCompleteGrades($pdo, $teamId, $scheduleId) {
+    try {
+        // Get the schedule with panelists
+        $stmt = $pdo->prepare("
+            SELECT panelist_id, panelist_id2, panelist_id3
+            FROM defense_schedules
+            WHERE id = ?
+        ");
+        $stmt->execute([$scheduleId]);
+        $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$schedule) {
+            error_log("teamHasCompleteGrades: Schedule $scheduleId not found");
+            return false;
+        }
+        
+        $panelists = [
+            $schedule['panelist_id'],
+            $schedule['panelist_id2'],
+            $schedule['panelist_id3']
+        ];
+        
+        // Check if all panelists have submitted evaluations
+        foreach ($panelists as $panelistId) {
+            if (empty($panelistId)) continue;
+            
+            $stmt = $pdo->prepare("
+                SELECT COUNT(*) as count
+                FROM evaluations
+                WHERE team_id = ? AND evaluator_id = ? AND defense_schedule_id = ?
+            ");
+            $stmt->execute([$teamId, $panelistId, $scheduleId]);
+            $result = $stmt->fetch(PDO::FETCH_ASSOC);
+            
+            if ($result['count'] == 0) {
+                error_log("teamHasCompleteGrades: Team $teamId missing evaluation from panelist $panelistId");
+                return false;
+            }
+        }
+        
+        error_log("teamHasCompleteGrades: Team $teamId has all grades from all panelists");
+        return true;
+    } catch (PDOException $e) {
+        error_log("teamHasCompleteGrades ERROR: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Handle defense type progression for teams with past schedules
+ * - If passed: Move defense type up one level
+ *   title_proposal → title_defense → final_defense
+ * - If failed: Set as re_defense
+ */
+function handleDefenseProgression($pdo, $teamsToProgress) {
+    $progressedTeams = [];
+    
+    foreach ($teamsToProgress as $teamId => $data) {
+        $oldSchedule = $data['old_schedule'];
+        $status = $data['status'];
+        $currentDefenseType = $oldSchedule['defense_type'] ?? 'title_proposal';
+        
+        // Determine new defense type based on status
+        if ($status === 'passed') {
+            // Progress to next defense level
+            switch ($currentDefenseType) {
+                case 'title_proposal':
+                    $newDefenseType = 'title_defense';
+                    break;
+                case 'title_defense':
+                    $newDefenseType = 'final_defense';
+                    break;
+                case 'final_defense':
+                    // Already at final level, no progression needed
+                    error_log("Team $teamId already completed final_defense, skipping progression");
+                    continue 2;
+                default:
+                    $newDefenseType = 'title_defense';
+            }
+            error_log("Team $teamId passed $currentDefenseType, progressing to $newDefenseType");
+        } else {
+            // Failed: Create re_defense
+            $newDefenseType = 're_defense';
+            error_log("Team $teamId failed $currentDefenseType, scheduling re_defense");
+        }
+        
+        // Store the new defense type in team metadata or mark team for re-scheduling
+        // The actual schedule will be created by the genetic algorithm
+        try {
+            // Update team's next defense type (you may need to add this field to teams table)
+            // For now, we'll track it in a way that the scheduler can pick it up
+            $stmt = $pdo->prepare("
+                UPDATE teams 
+                SET next_defense_type = ? 
+                WHERE id = ?
+            ");
+            $stmt->execute([$newDefenseType, $teamId]);
+            
+            $progressedTeams[] = [
+                'team_id' => $teamId,
+                'old_defense_type' => $currentDefenseType,
+                'new_defense_type' => $newDefenseType,
+                'status' => $status
+            ];
+        } catch (PDOException $e) {
+            // If column doesn't exist, log and continue
+            error_log("Could not update next_defense_type for team $teamId: " . $e->getMessage());
+            error_log("Consider adding 'next_defense_type' column to teams table");
+        }
+    }
+    
+    return $progressedTeams;
+}
+
+// Update fetchTeams to handle multiple sections and respect next_defense_type
+// Also includes locked panelists for panelist lock feature
 function fetchTeams($pdo, $sections = [])
 {
     if (empty($sections)) {
         $stmt = $pdo->query("
-            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise,
+                   COALESCE(t.next_defense_type, 'title_proposal') as defense_type,
+                   t.locked_panelist1, t.locked_panelist2, t.locked_panelist3
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id AND tm.role = 'adviser'
             WHERE 1=1
@@ -386,7 +729,9 @@ function fetchTeams($pdo, $sections = [])
     } else {
         $placeholders = implode(',', array_fill(0, count($sections), '?'));
         $stmt = $pdo->prepare("
-            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+            SELECT DISTINCT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise,
+                   COALESCE(t.next_defense_type, 'title_proposal') as defense_type,
+                   t.locked_panelist1, t.locked_panelist2, t.locked_panelist3
             FROM teams t
             JOIN team_members tm ON t.id = tm.team_id AND tm.role = 'adviser'
             WHERE EXISTS (
@@ -787,6 +1132,7 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
 function saveScheduleToDatabase($pdo, $schedule)
 {
     try {
+        error_log("saveScheduleToDatabase: Starting transaction");
         $pdo->beginTransaction();
 
         // Get all teams that should be scheduled
@@ -795,6 +1141,7 @@ function saveScheduleToDatabase($pdo, $schedule)
             $expectedTeams[] = $team['id'];
         }
         $expectedTeamCount = count($expectedTeams);
+        error_log("saveScheduleToDatabase: Expecting to schedule $expectedTeamCount teams: " . implode(', ', $expectedTeams));
 
         // Track teams that have been scheduled to prevent duplicates
         $scheduledTeams = [];
@@ -811,8 +1158,8 @@ function saveScheduleToDatabase($pdo, $schedule)
 
         $stmt = $pdo->prepare("
             INSERT INTO defense_schedules 
-            (team_id, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, status, approval_status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'scheduled', 'pending')
+            (team_id, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, defense_type, status, approval_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         // Include notification functions
@@ -838,6 +1185,15 @@ function saveScheduleToDatabase($pdo, $schedule)
             // === PROBLEMATIC LINE END ===
             $endTime->modify('+' . $duration . ' hour');
 
+            // Get defense type from defense array (set during initialization)
+            $defenseType = $defense['defense_type'] ?? 'title_proposal';
+
+            // Validate panelist_ids array has exactly 3 elements
+            if (!isset($defense['panelist_ids']) || count($defense['panelist_ids']) < 3) {
+                error_log("ERROR: Defense for team {$defense['team_id']} has invalid panelist_ids: " . json_encode($defense['panelist_ids'] ?? 'null'));
+                continue; // Skip this defense
+            }
+
             $stmt->execute([
                 $defense['team_id'],
                 $defense['panelist_ids'][0],
@@ -846,7 +1202,10 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $date,
                 $startTime->format('H:i:s'),
                 $endTime->format('H:i:s'),
-                $defense['room']
+                $defense['room'],
+                $defenseType,      // defense_type
+                'scheduled',       // status
+                'pending'          // approval_status
             ]);
 
             // CREATE DEFENSE SCHEDULE NOTIFICATIONS
@@ -878,7 +1237,9 @@ function saveScheduleToDatabase($pdo, $schedule)
             $teamMemberIds = getTeamMembersForNotifications($defense['team_id']);
             $formattedDate = date('F j, Y', strtotime($date));
             $formattedTime = date('g:i A', strtotime($startTime->format('H:i'))) . ' - ' . date('g:i A', strtotime($endTime->format('H:i')));
-            $messageForTeam = "Your team's defense has been scheduled for {$formattedDate} at {$formattedTime} in {$defense['room']}. Waiting for panelist approval.";
+            // Include defense type in the notification message
+            $defenseTypeLabel = ucwords(str_replace('_', ' ', $defenseType));
+            $messageForTeam = "Your team's {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime} in {$defense['room']}. Waiting for panelist approval.";
             
             foreach ($teamMemberIds as $userId) {
                 createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
@@ -955,6 +1316,15 @@ function saveScheduleToDatabase($pdo, $schedule)
                 // === PROBLEMATIC LINE END ===
                 $endTime->modify('+' . $duration . ' hour');
 
+                // Get defense type for missing team
+                $defenseType = $teamDefense['defense_type'] ?? 'title_proposal';
+
+                // Validate panelist_ids array has exactly 3 elements
+                if (!isset($teamDefense['panelist_ids']) || count($teamDefense['panelist_ids']) < 3) {
+                    error_log("ERROR: Defense for missing team {$teamDefense['team_id']} has invalid panelist_ids: " . json_encode($teamDefense['panelist_ids'] ?? 'null'));
+                    continue; // Skip this defense
+                }
+
                 $stmt->execute([
                     $teamDefense['team_id'],
                     $teamDefense['panelist_ids'][0],
@@ -963,7 +1333,10 @@ function saveScheduleToDatabase($pdo, $schedule)
                     $date,
                     $startTime->format('H:i:s'),
                     $endTime->format('H:i:s'),
-                    $teamDefense['room']
+                    $teamDefense['room'],
+                    $defenseType,      // defense_type
+                    'scheduled',       // status
+                    'pending'          // approval_status
                 ]);
 
                 // CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MISSING TEAMS
@@ -979,17 +1352,19 @@ function saveScheduleToDatabase($pdo, $schedule)
         }
 
         $scheduledCount = count($scheduledTeams);
-        error_log("Teams scheduled: $scheduledCount out of $expectedTeamCount expected");
+        error_log("saveScheduleToDatabase: Scheduled $scheduledCount out of $expectedTeamCount expected teams");
 
         if ($scheduledCount < $expectedTeamCount) {
-            error_log("WARNING: Not all teams were scheduled!");
+            error_log("saveScheduleToDatabase WARNING: Not all teams were scheduled! Missing " . ($expectedTeamCount - $scheduledCount) . " teams");
         }
 
+        error_log("saveScheduleToDatabase: Committing transaction...");
         $pdo->commit();
+        error_log("saveScheduleToDatabase: Transaction committed successfully. Total schedules created: $scheduledCount");
         return true;
     } catch (PDOException $e) {
         $pdo->rollBack();
-        error_log("Error saving schedule to database: " . $e->getMessage());
+        error_log("saveScheduleToDatabase ERROR: " . $e->getMessage());
         error_log("Error location: " . $e->getFile() . " on line " . $e->getLine());
         error_log("Stack trace: " . $e->getTraceAsString());
         error_log("Failed transaction details: " . json_encode([
@@ -1089,12 +1464,16 @@ class DefenseSchedule
             $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
             $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
 
+            // Use defense_type from team data (set by progression logic)
+            $defenseType = $team['defense_type'] ?? 'title_proposal';
+
             $defense = [
                 'team_id' => $team['id'],
                 'panelist_ids' => $selectedPanelists,
                 'room' => $rooms[array_rand($rooms)],
                 'time_slot' => $timeSlots[array_rand($timeSlots)],
-                'day' => $days[array_rand($days)]
+                'day' => $days[array_rand($days)],
+                'defense_type' => $defenseType
             ];
             $this->chromosomes[] = $defense;
             $this->all_defenses[] = $defense;
@@ -1437,6 +1816,31 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
         return array_slice($remaining, 0, 3);
     }
     
+    // CHECK FOR LOCKED PANELISTS FIRST
+    // If team has locked panelists, use them instead of auto-assigning
+    $lockedPanelists = [];
+    if (!empty($teamData['locked_panelist1'])) {
+        $lockedPanelists[] = (int)$teamData['locked_panelist1'];
+    }
+    if (!empty($teamData['locked_panelist2'])) {
+        $lockedPanelists[] = (int)$teamData['locked_panelist2'];
+    }
+    if (!empty($teamData['locked_panelist3'])) {
+        $lockedPanelists[] = (int)$teamData['locked_panelist3'];
+    }
+    
+    // If all 3 panelists are locked, return them directly
+    if (count($lockedPanelists) >= 3) {
+        error_log("Team {$teamData['id']}: Using all 3 locked panelists: " . implode(', ', $lockedPanelists));
+        return array_slice($lockedPanelists, 0, 3);
+    }
+    
+    // If some panelists are locked, start with them
+    if (!empty($lockedPanelists)) {
+        $selectedPanelists = $lockedPanelists;
+        error_log("Team {$teamData['id']}: Starting with " . count($lockedPanelists) . " locked panelists: " . implode(', ', $lockedPanelists));
+    }
+    
     $teamProgram = (string)$teamData['program'];
     $teamDepartment = getDepartment($teamProgram);
     $teamSpecializations = getTeamSpecializations($pdo, $teamData['id']);
@@ -1483,15 +1887,18 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     $sameDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
         if (in_array($id, $selectedPanelists)) return false;
         $pdata = getPanelistData($pdo, $id);
+        if (!$pdata) return false;
         return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0;
     });
     
     if (!empty($sameDept)) {
-        $selectedPanelists[] = array_values($sameDept)[array_rand($sameDept)];
+        $sameDeptValues = array_values($sameDept);
+        $selectedPanelists[] = $sameDeptValues[array_rand($sameDeptValues)];
     } else {
         $remaining = array_diff($topCandidates, $selectedPanelists);
         if (!empty($remaining)) {
-            $selectedPanelists[] = array_values($remaining)[0];
+            $remainingValues = array_values($remaining);
+            $selectedPanelists[] = $remainingValues[0];
         }
     }
     
@@ -1499,15 +1906,18 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     $diffDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
         if (in_array($id, $selectedPanelists)) return false;
         $pdata = getPanelistData($pdo, $id);
+        if (!$pdata) return false;
         return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) !== 0;
     });
     
     if (!empty($diffDept)) {
-        $selectedPanelists[] = array_values($diffDept)[array_rand($diffDept)];
+        $diffDeptValues = array_values($diffDept);
+        $selectedPanelists[] = $diffDeptValues[array_rand($diffDeptValues)];
     } else {
         $remaining = array_diff($topCandidates, $selectedPanelists);
         if (!empty($remaining)) {
-            $selectedPanelists[] = array_values($remaining)[0];
+            $remainingValues = array_values($remaining);
+            $selectedPanelists[] = $remainingValues[0];
         }
     }
     
@@ -1515,7 +1925,8 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     while (count($selectedPanelists) < 3 && count($selectedPanelists) < count($topCandidates)) {
         $remaining = array_diff($topCandidates, $selectedPanelists);
         if (!empty($remaining)) {
-            $selectedPanelists[] = array_values($remaining)[0];
+            $remainingValues = array_values($remaining);
+            $selectedPanelists[] = $remainingValues[0];
         } else {
             break;
         }

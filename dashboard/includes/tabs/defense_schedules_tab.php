@@ -571,6 +571,7 @@
                                             data: requestData,
                                             dataType: 'json',
                                             success: function(response) {
+                                                console.log('AJAX Success Response:', response);
                                                 if (response.success) {
                                                     if (response.progressId) {
                                                         // Start polling for progress if backend supports it
@@ -588,6 +589,86 @@
                                                             }
                                                         }, 1000);
                                                     }
+                                                } else if (response.requireUpgradeConfirmation) {
+                                                    hideLoadingState(false, 'Defense type upgrade confirmation required');
+                                                    // Show defense upgrade confirmation dialog
+                                                    let upgradeList = '<ul>';
+                                                    response.upgradeInfo.forEach(function(team) {
+                                                        upgradeList += `<li><strong>${team.team_name}:</strong> ${team.current_type} → ${team.new_type} (${team.status})</li>`;
+                                                    });
+                                                    upgradeList += '</ul>';
+                                                    
+                                                    if (response.missingGrades && response.missingGrades.length > 0) {
+                                                        upgradeList += `<p class="text-muted"><small>Note: ${response.missingGrades.length} team(s) cannot be upgraded because grades are missing.</small></p>`;
+                                                    }
+                                                    
+                                                    // Create or update confirmation UI
+                                                    let confirmationDiv = document.getElementById('scheduleConfirmationDialog');
+                                                    if (!confirmationDiv) {
+                                                        confirmationDiv = document.createElement('div');
+                                                        confirmationDiv.id = 'scheduleConfirmationDialog';
+                                                        confirmationDiv.className = 'alert alert-info mt-3';
+                                                        document.getElementById('generationSetting').after(confirmationDiv);
+                                                    }
+                                                    
+                                                    confirmationDiv.innerHTML = `
+                                                        <p><strong>Defense Type Upgrade:</strong> ${response.message}</p>
+                                                        ${upgradeList}
+                                                        <div class="mt-2">
+                                                            <button id="confirmUpgrade" class="btn btn-primary btn-sm">Proceed with Upgrade</button>
+                                                            <button id="cancelUpgrade" class="btn btn-secondary btn-sm ml-2">Cancel</button>
+                                                            <input type="hidden" id="confirmUpgradeFlag" value="false">
+                                                        </div>
+                                                    `;
+                                                    
+                                                    // Add event listeners for confirm/cancel buttons
+                                                    document.getElementById('confirmUpgrade').addEventListener('click', function() {
+                                                        // Re-submit with confirm_upgrade flag
+                                                        let formData = new FormData(document.getElementById('generationSetting'));
+                                                        formData.append('confirm_upgrade', 'true');
+                                                        
+                                                        let requestData = {};
+                                                        formData.forEach((value, key) => {
+                                                            if (requestData[key]) {
+                                                                if (!Array.isArray(requestData[key])) {
+                                                                    requestData[key] = [requestData[key]];
+                                                                }
+                                                                requestData[key].push(value);
+                                                            } else {
+                                                                requestData[key] = value;
+                                                            }
+                                                        });
+                                                        
+                                                        $.ajax({
+                                                            url: '../dashboard/includes/run_scheduler.php',
+                                                            method: 'POST',
+                                                            data: requestData,
+                                                            dataType: 'json',
+                                                            success: function(response) {
+                                                                if (response.success && response.progressId) {
+                                                                    pollScheduleProgress(response.progressId);
+                                                                } else if (response.success) {
+                                                                    hideLoadingState(true, 'Schedule generated successfully!');
+                                                                    setTimeout(() => {
+                                                                        if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                                                                            window.reloadCurrentDefenseSchedulesView(1);
+                                                                        }
+                                                                    }, 1000);
+                                                                } else {
+                                                                    hideLoadingState(false, response.message || 'Unknown error occurred');
+                                                                }
+                                                            },
+                                                            error: function(xhr, status, error) {
+                                                                hideLoadingState(false, `Server error: ${error}`);
+                                                            }
+                                                        });
+                                                        
+                                                        confirmationDiv.style.display = 'none';
+                                                    });
+                                                    
+                                                    document.getElementById('cancelUpgrade').addEventListener('click', function() {
+                                                        confirmationDiv.style.display = 'none';
+                                                    });
                                                 } else if (response.requireConfirmation) {
                                                     hideLoadingState(false, 'Confirmation required');
                                                     // Show confirmation dialog with list of teams to be overwritten
