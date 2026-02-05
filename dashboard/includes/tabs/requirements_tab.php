@@ -6,6 +6,14 @@
             <div class="col">
                 <h3 class="mb-2">Requirements Management</h3>
                 <p class="text-muted">Manage thesis and project requirements, including deadlines and submission guidelines for students.</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#defense-schedules" class="text-decoration-none text-primary" onclick="document.getElementById('defense-schedules-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                        <span>Manage Defense schedules</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 

@@ -155,6 +155,20 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
 
 <div class="tab-pane fade show active" id="overview" role="tabpanel" aria-labelledby="overview-tab">
     <div class="container-fluid p-0">
+        <?php if ($_SESSION['usertype'] == 0): ?>
+        <!-- Get Started Section -->
+        <div class="content-container get-started-container mb-4">
+            <div class="row">
+                <div class="col-12">
+                    <h2 class="mb-2">Get Started</h2>
+                    <a href="#programs" class="text-decoration-none text-primary" onclick="document.getElementById('programs-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                        <span>Manage Programs</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        <?php endif; ?>
         <!-- Requirements Completion Graph -->
         <div class="content-container mb-4">
             <div class="row">

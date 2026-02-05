@@ -6,6 +6,14 @@
             <div class="col-8 col-md-9">
                 <h3 class="mb-2">Team Management</h3>
                 <p class="text-muted">Manage research teams, advisers, and team members</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#rubrics" class="text-decoration-none text-primary" onclick="document.getElementById('rubrics-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                        <span>Manage Program Rubrics</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
             <div class="col-4 col-md-3 text-end">
                 <button type="button" class="btn btn-warning btn-sm position-relative" id="warningTeamsBtn" style="display: none;" title="Teams without research titles" data-bs-toggle="tooltip" data-bs-placement="left">

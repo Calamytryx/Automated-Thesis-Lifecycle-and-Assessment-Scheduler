@@ -6,6 +6,14 @@
       <div class="col-12">
         <h3 class="mb-2">Programs</h3>
         <p class="text-muted">Manage academic programs and their associated colleges</p>
+        <?php if ($_SESSION['usertype'] == 0): ?>
+        <div class="mt-2">
+          <a href="#users" class="text-decoration-none text-primary" onclick="document.getElementById('users-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+            <span>Create new users and assign created programs</span>
+            <i class="bi bi-arrow-right ms-1"></i>
+          </a>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
 

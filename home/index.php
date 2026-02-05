@@ -1555,13 +1555,19 @@ document.addEventListener("DOMContentLoaded", function() {
 
     // Fetch team overview content on page load if the overview tab is active
     if (activeTab === "overview") {
-        fetchTeamOverview();
+        // Use setTimeout to ensure tab transition completes before loading content
+        setTimeout(() => {
+            fetchTeamOverview();
+        }, 150);
     }
 
     // Load class record on page load if that tab is active
     <?php if ($_SESSION['usertype'] == 2): ?>
     if (activeTab === "class-record") {
-        loadClassRecord(1);
+        // Use setTimeout to ensure tab transition completes before loading content
+        setTimeout(() => {
+            loadClassRecord(1);
+        }, 150);
     }
     <?php endif; ?>
 
@@ -2468,6 +2474,14 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <div class="col-md-8">
                                         <h3 class="mb-2">Dashboard</h3>
                                         <p class="text-muted">Track your requirement progress and defense schedule</p>
+                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
+                                        <div class="mt-2">
+                                            <a href="#requirement-checker" class="text-decoration-none text-primary" onclick="document.getElementById('requirement-checker-link').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                                                <span>View Team requirements</span>
+                                                <i class="bi bi-arrow-right ms-1"></i>
+                                            </a>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="col-md-4 text-end">
                                         <div class="btn-group z-0" role="group">

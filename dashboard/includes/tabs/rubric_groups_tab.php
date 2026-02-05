@@ -14,6 +14,14 @@
             <div class="col">
                 <h3 class="mb-2">Rubric Groups Management</h3>
                 <p class="text-muted">Organize rubrics into groups for streamlined assessment management and evaluation workflows.</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#schedules" class="text-decoration-none text-primary" onclick="document.getElementById('schedules-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                        <span>Manage Professor schedule</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 

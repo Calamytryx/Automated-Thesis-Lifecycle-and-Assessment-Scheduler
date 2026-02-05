@@ -6,6 +6,14 @@
             <div class="col-12">
                 <h3 class="mb-2">User Management</h3>
                 <p class="text-muted">Manage system users, including admins, students, and staff members</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#teams" class="text-decoration-none text-primary" onclick="document.getElementById('teams-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                        <span>Manage Research Teams</span>
+                        <i class="bi bi-arrow-right ms-1"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 

@@ -22,6 +22,15 @@ body {
     background-color: var(--primary-400);
 }   */
 
+/* Get Started container styling */
+.get-started-container {
+    background-color: var(--black-500);
+}
+
+.get-started-container h2 {
+    color: var(--white-600) !important;
+}
+
 /* Requirements progress section styling */
 .content-container h2.fs-1 {
     font-size: 2.5rem;
@@ -328,8 +337,6 @@ body {
         font-size: 12px;
     }
 }
-
-
 
 /* Category titles styling */
 .content-container h3 {
