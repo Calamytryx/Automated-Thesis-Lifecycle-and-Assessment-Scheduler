@@ -260,6 +260,8 @@ function showDashboardEvaluationDetails(teamId) {
             const panelists = data.panelists || [];
             const students = data.students || [];
             const evaluationsByStudent = data.evaluations_by_student || {};
+            const passThreshold = data.pass_threshold_3 || 75;
+            const warningThreshold = Math.max(passThreshold - 15, 60);
             
             let html = `
                 <div class="mb-4">
@@ -307,7 +309,7 @@ function showDashboardEvaluationDetails(teamId) {
                     if (scores.length > 0) {
                         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
                         allAverages.push(avg);
-                        const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                        const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                         avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
                     }
                     
@@ -318,7 +320,7 @@ function showDashboardEvaluationDetails(teamId) {
                 let teamAvgDisplay = '<span class="text-muted">-</span>';
                 if (allAverages.length > 0) {
                     const teamAvg = allAverages.reduce((a, b) => a + b, 0) / allAverages.length;
-                    const teamAvgClass = teamAvg >= 75 ? 'text-success' : teamAvg >= 60 ? 'text-warning' : 'text-danger';
+                    const teamAvgClass = teamAvg >= passThreshold ? 'text-success' : teamAvg >= warningThreshold ? 'text-warning' : 'text-danger';
                     teamAvgDisplay = `<strong class="${teamAvgClass}">${teamAvg.toFixed(2)}</strong>`;
                 }
                 

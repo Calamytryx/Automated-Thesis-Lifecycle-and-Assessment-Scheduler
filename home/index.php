@@ -519,9 +519,11 @@ function renderAdviseeTeamCard(teamIndex) {
     };
     const stageInfo = defenseStageLabels[defenseType] || { label: 'Title Proposal', class: 'defense-stage-title-proposal' };
     
-    // Score display
+    // Score display with dynamic thresholds
     const avgScore = team.avg_score ? parseFloat(team.avg_score).toFixed(2) : null;
-    const scoreClass = avgScore >= 75 ? 'text-success' : avgScore >= 60 ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
+    const teamPassThreshold = team.pass_threshold_3 || 75;
+    const teamWarningThreshold = Math.max(teamPassThreshold - 15, 60);
+    const scoreClass = avgScore >= teamPassThreshold ? 'text-success' : avgScore >= teamWarningThreshold ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
     
     // Title status
     const titleApproved = team.title_approved_at ? true : false;
@@ -866,6 +868,8 @@ function showTeamSummaryModal(teamId, teamName) {
             const panelists = data.panelists || [];
             const students = data.students || [];
             const evaluationsByStudent = data.evaluations_by_student || {};
+            const passThreshold = data.pass_threshold_3 || 75;
+            const warningThreshold = Math.max(passThreshold - 15, 60);
             const members = data.members || [];
             
             let html = `
@@ -916,7 +920,7 @@ function showTeamSummaryModal(teamId, teamName) {
                     if (scores.length > 0) {
                         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
                         allAverages.push(avg);
-                        const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                        const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                         avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
                     }
                     
@@ -927,7 +931,7 @@ function showTeamSummaryModal(teamId, teamName) {
                 let teamAvgDisplay = '<span class="text-muted">-</span>';
                 if (allAverages.length > 0) {
                     const teamAvg = allAverages.reduce((a, b) => a + b, 0) / allAverages.length;
-                    const teamAvgClass = teamAvg >= 75 ? 'text-success' : teamAvg >= 60 ? 'text-warning' : 'text-danger';
+                    const teamAvgClass = teamAvg >= passThreshold ? 'text-success' : teamAvg >= warningThreshold ? 'text-warning' : 'text-danger';
                     teamAvgDisplay = `<strong class="${teamAvgClass}">${teamAvg.toFixed(2)}</strong>`;
                 }
                 
@@ -1050,17 +1054,22 @@ function loadClassRecord(page = 1) {
                             `;
                             
                             students.forEach(student => {
-                                const avgScore = student.avg_score ? parseFloat(student.avg_score).toFixed(2) : null;
+                                // Use avg_total_score (from latest defense panelist grades) for consistency
+                                const avgScore = student.avg_total_score ? parseFloat(student.avg_total_score).toFixed(2) : (student.avg_score ? parseFloat(student.avg_score).toFixed(2) : null);
+                                
+                                // Get dynamic pass threshold from rubric (default to 75 if not set)
+                                const passThreshold = student.pass_threshold_3 || 75;
+                                const warningThreshold = Math.max(passThreshold - 15, 60);
                                 
                                 // Determine status based on average score
                                 let status = 'Pending';
                                 let statusClass = 'bg-secondary';
                                 
                                 if (avgScore !== null) {
-                                    if (avgScore >= 75) {
+                                    if (avgScore >= passThreshold) {
                                         status = 'Passed';
                                         statusClass = 'bg-success';
-                                    } else if (avgScore < 75) {
+                                    } else if (avgScore < passThreshold) {
                                         status = 'Failed';
                                         statusClass = 'bg-danger';
                                     }
@@ -1078,7 +1087,7 @@ function loadClassRecord(page = 1) {
                                     }
                                 });
                                 
-                                const avgScoreClass = avgScore >= 75 ? 'text-success' : avgScore >= 60 ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
+                                const avgScoreClass = avgScore >= passThreshold ? 'text-success' : avgScore >= warningThreshold ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
                                 const avgScoreDisplay = avgScore !== null ? `<strong>${avgScore}</strong>` : '-';
                                 
                                 content += `
@@ -1245,27 +1254,31 @@ function loadClassRecord(page = 1) {
                         const avgGroupScore = student.avg_group_score ? parseFloat(student.avg_group_score).toFixed(2) : null;
                         const avgSoloScore = student.avg_solo_score ? parseFloat(student.avg_solo_score).toFixed(2) : null;
                         
+                        // Get dynamic pass threshold from rubric (default to 75 if not set)
+                        const passThreshold = student.pass_threshold_3 || 75;
+                        const warningThreshold = Math.max(passThreshold - 15, 60);
+                        
                         let status = 'Pending';
                         let statusClass = 'bg-secondary';
                         let statusValue = 2; // For sorting
                         
                         if (avgTotalScore !== null) {
-                            if (avgTotalScore >= 75) {
+                            if (avgTotalScore >= passThreshold) {
                                 status = 'Passed';
                                 statusClass = 'bg-success';
                                 statusValue = 0;
-                            } else if (avgTotalScore < 75) {
+                            } else if (avgTotalScore < passThreshold) {
                                 status = 'Failed';
                                 statusClass = 'bg-danger';
                                 statusValue = 1;
                             }
                         }
                         
-                        // Score display helpers
+                        // Score display helpers (using dynamic thresholds)
                         const getScoreClass = (score) => {
                             if (!score) return 'text-muted';
                             const val = parseFloat(score);
-                            return val >= 75 ? 'text-success' : val >= 60 ? 'text-warning' : 'text-danger';
+                            return val >= passThreshold ? 'text-success' : val >= warningThreshold ? 'text-warning' : 'text-danger';
                         };
                         
                         const groupScoreClass = getScoreClass(avgGroupScore);
@@ -1282,7 +1295,7 @@ function loadClassRecord(page = 1) {
                             student.panelist_grades.forEach(grade => {
                                 if (grade.total_score !== null) {
                                     const gradeValue = parseFloat(grade.total_score).toFixed(2);
-                                    const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
+                                    const gradeClass = gradeValue >= passThreshold ? 'text-success' : gradeValue >= warningThreshold ? 'text-warning' : 'text-danger';
                                     panelistDetailsHTML += `${grade.panelist_name}: <span class="${gradeClass}">${gradeValue}</span> (G:${grade.group_score || 'N/A'} I:${grade.solo_score || 'N/A'}); `;
                                 } else {
                                     panelistDetailsHTML += `${grade.panelist_name}: <span class="text-muted">No grade</span>; `;
@@ -1304,6 +1317,7 @@ function loadClassRecord(page = 1) {
                                     data-status-text="${status}"
                                     data-status-class="${statusClass}"
                                     data-panelist-details="${panelistDetailsHTML.replace(/"/g, '&quot;')}"
+                                    data-pass-threshold="${passThreshold}"
                                     style="cursor: pointer;">
                                     <td class="text-center text-muted">${studentIdx + 1}</td>
                                     <td class="d-none d-md-table-cell"><small class="text-muted">${student.student_number || 'N/A'}</small></td>
@@ -1460,11 +1474,15 @@ document.addEventListener("DOMContentLoaded", function() {
         const statusClass = row.getAttribute('data-status-class');
         const panelistDetails = row.getAttribute('data-panelist-details');
         
-        // Score display helpers
+        // Get dynamic thresholds from the row data
+        const passThreshold = parseFloat(row.getAttribute('data-pass-threshold')) || 75;
+        const warningThreshold = Math.max(passThreshold - 15, 60);
+        
+        // Score display helpers (using dynamic thresholds)
         const getScoreDisplay = (score, label) => {
             const scoreFloat = parseFloat(score);
             if (scoreFloat > 0) {
-                const scoreClass = scoreFloat >= 75 ? 'text-success' : scoreFloat >= 60 ? 'text-warning' : 'text-danger';
+                const scoreClass = scoreFloat >= passThreshold ? 'text-success' : scoreFloat >= warningThreshold ? 'text-warning' : 'text-danger';
                 return `<strong class="${scoreClass}">${scoreFloat.toFixed(2)}</strong>`;
             }
             return '<span class="text-muted">No grade yet</span>';
@@ -4068,6 +4086,8 @@ function renderEvaluationDetails(data) {
     const panelists = data.panelists || [];
     const students = data.students || [];
     const usertype = data.usertype;
+    const passThreshold = data.pass_threshold_3 || 75;
+    const warningThreshold = Math.max(passThreshold - 15, 60);
     
     let detailsHtml = `
         <div class="mb-4">
@@ -4150,7 +4170,7 @@ function renderEvaluationDetails(data) {
             } else if (studentScores.length > 0) {
                 const avg = studentScores.reduce((a, b) => a + b, 0) / studentScores.length;
                 allStudentAverages.push(avg);
-                const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                 avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
             } else {
                 avgDisplay = '<span class="text-muted">-</span>';
@@ -4169,7 +4189,7 @@ function renderEvaluationDetails(data) {
         let overallAvgDisplay;
         if (allStudentAverages.length > 0) {
             const overallAvg = allStudentAverages.reduce((a, b) => a + b, 0) / allStudentAverages.length;
-            const overallClass = overallAvg >= 75 ? 'text-success' : overallAvg >= 60 ? 'text-warning' : 'text-danger';
+            const overallClass = overallAvg >= passThreshold ? 'text-success' : overallAvg >= warningThreshold ? 'text-warning' : 'text-danger';
             overallAvgDisplay = `<strong class="${overallClass}">${overallAvg.toFixed(2)}</strong>`;
         } else {
             overallAvgDisplay = '<span class="text-muted">-</span>';

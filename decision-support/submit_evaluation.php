@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         if (!empty($rubricIds)) {
             $infoStmt = $pdo->prepare(
                 "SELECT id, rubric_type, is_individual_enabled,
-                    (SELECT COUNT(*) FROM rubric_criteria WHERE rubric_id = rubrics.id) AS criteria_count
+                    (SELECT COUNT(*) FROM rubric_criteria WHERE rubric_id = rubrics.id AND (is_blank = 0 OR is_blank IS NULL)) AS criteria_count
                  FROM rubrics WHERE id IN ($placeholders)"
             );
             $infoStmt->execute($rubricIds);
@@ -107,6 +107,38 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'is_individual_enabled' => (bool)$row['is_individual_enabled'],
                     'criteria_count'        => (int)$row['criteria_count']
                 ];
+            }
+
+            // Fetch max score per criterion from quality levels (for group rubrics)
+            $levelMaxStmt = $pdo->prepare(
+                "SELECT rubric_id, MAX(COALESCE(points_max, points_min, 0)) as level_max
+                 FROM rubric_levels WHERE rubric_id IN ($placeholders)
+                 GROUP BY rubric_id"
+            );
+            $levelMaxStmt->execute($rubricIds);
+            $levelMaxPerCriterion = [];
+            while ($row = $levelMaxStmt->fetch(PDO::FETCH_ASSOC)) {
+                $val = (float)$row['level_max'];
+                if ($val > 0) $levelMaxPerCriterion[(int)$row['rubric_id']] = $val;
+            }
+
+            // Fetch actual sum of max_score for non-blank criteria (for individual/solo rubrics)
+            $criteriaMaxStmt = $pdo->prepare(
+                "SELECT rubric_id,
+                        SUM(CASE WHEN max_score IS NOT NULL AND max_score > 0 THEN max_score ELSE
+                            COALESCE((SELECT MAX(COALESCE(rl.points_max, rl.points_min, 0))
+                                      FROM rubric_levels rl WHERE rl.rubric_id = rubric_criteria.rubric_id), 10)
+                        END) as sum_max,
+                        COUNT(*) as scoreable_count
+                 FROM rubric_criteria
+                 WHERE rubric_id IN ($placeholders)
+                 AND (is_blank = 0 OR is_blank IS NULL)
+                 GROUP BY rubric_id"
+            );
+            $criteriaMaxStmt->execute($rubricIds);
+            $actualMaxScoreTotals = [];
+            while ($row = $criteriaMaxStmt->fetch(PDO::FETCH_ASSOC)) {
+                $actualMaxScoreTotals[(int)$row['rubric_id']] = (float)$row['sum_max'];
             }
         }
 
@@ -134,7 +166,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     }
                 }
                 if ($count > 0) {
-                    $rubricScore = ($sum / ($count * 10)) * 100;
+                    // Use actual max from quality levels instead of hardcoded 10
+                    $maxPerCriterion = $levelMaxPerCriterion[$rid] ?? 10;
+                    $rubricScore = ($sum / ($count * $maxPerCriterion)) * 100;
                     $groupScores[$rid] = $rubricScore;
                     $totalWeightedScore += $rubricScore * $rubricWeights[$rid];
                 }
@@ -148,7 +182,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             if (!isset($rubricDetails[$rid]) || !isset($rubricWeights[$rid])) continue;
             $meta = $rubricDetails[$rid];
             if ($meta['rubric_type'] === 'numerical' && $meta['is_individual_enabled']) {
-                $maxScoreTotal = $meta['criteria_count'] * 10;
+                // Use actual sum of criterion max_scores instead of criteria_count * 10
+                $maxScoreTotal = $actualMaxScoreTotals[$rid] ?? ($meta['criteria_count'] * 10);
                 $weight = $rubricWeights[$rid];
                 foreach ($studentIds as $sid) {
                     $sum = 0;

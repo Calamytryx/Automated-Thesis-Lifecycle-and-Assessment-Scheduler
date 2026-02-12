@@ -22,13 +22,14 @@ try {
     $countQuery = "SELECT COUNT(DISTINCT t.id)
         FROM teams t
         INNER JOIN team_members tm ON t.id = tm.team_id
-        INNER JOIN evaluation_per_panel ep ON ep.student_id = tm.user_id";
+        INNER JOIN evaluation_per_panel ep ON ep.student_id = tm.user_id
+        INNER JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id";
     
     $countStmt = $pdo->prepare($countQuery);
     $countStmt->execute();
     $totalRows = $countStmt->fetchColumn();
 
-    // Data query with pagination
+    // Data query with pagination - uses latest defense schedule per team
     $query = "SELECT 
         t.id AS team_id,
         t.name AS team_name,
@@ -44,8 +45,14 @@ try {
     LEFT JOIN research_titles rt ON t.id = rt.team_id
     INNER JOIN team_members tm ON t.id = tm.team_id
     INNER JOIN evaluation_per_panel ep ON ep.student_id = tm.user_id
+    INNER JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
     LEFT JOIN team_members tm_adv ON t.id = tm_adv.team_id AND tm_adv.role = 'Adviser'
     LEFT JOIN users adv ON tm_adv.user_id = adv.id
+    WHERE ds.id = (
+        SELECT ds2.id FROM defense_schedules ds2 
+        WHERE ds2.team_id = t.id 
+        ORDER BY ds2.schedule_date DESC LIMIT 1
+    )
     GROUP BY t.id
     ORDER BY latest_evaluation DESC
     LIMIT ? OFFSET ?";

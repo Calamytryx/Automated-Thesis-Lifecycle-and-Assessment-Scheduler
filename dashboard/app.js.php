@@ -1896,6 +1896,19 @@
                                 </div>
                             </div>
                             `;
+                            
+                            // Add Year and Section fields for students (usertype 1)
+                            formHtml += `
+                            <div class="mb-3 student-year-field" ${response.data.usertype != 1 ? 'style="display:none;"' : ''}>
+                                <label for="year" class="form-label">Year</label>
+                                <input type="number" class="form-control" id="year" name="year" min="1" max="5" value="${response.data.year || ''}" placeholder="Enter year (1-5)">
+                            </div>
+                            <div class="mb-3 student-section-field" ${response.data.usertype != 1 ? 'style="display:none;"' : ''}>
+                                <label for="section" class="form-label">Section <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="section" name="section" value="${response.data.section || ''}" placeholder="Enter section (e.g., A, B, Section A)" required>
+                            </div>
+                            `;
+                            
                             formHtml += `
                             <div class="mb-3 is-program-chair-field" 
                                 ${(id == 0 || response.data.usertype != 0) ? 'style="display:none;"' : ''}>
@@ -1915,12 +1928,33 @@
                             populateProgramDropdown($('#program_id'), response.data.program);
 
                             $('#usertype').on('change', function () {
-                                if ($(this).val() == 2) {
+                                const usertype = $(this).val();
+                                if (usertype == 2) {
                                     $('.area-expertise-field').show();
                                     $('.is-part-time-field').show();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').hide();
+                                } else if (usertype == 1) {
+                                    $('.area-expertise-field').hide();
+                                    $('.is-part-time-field').hide();
+                                    $('.student-year-field').show();
+                                    $('.student-section-field').show();
+                                    $('.is-program-chair-field').hide();
+                                    // Make section required for students
+                                    $('#section').prop('required', true);
+                                } else if (usertype == 0) {
+                                    $('.area-expertise-field').hide();
+                                    $('.is-part-time-field').hide();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').show();
                                 } else {
                                     $('.area-expertise-field').hide();
                                     $('.is-part-time-field').hide();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').hide();
                                 }
                             });
                         } else if (table === 'teams') {
@@ -3174,6 +3208,15 @@
                     '<label class="form-check-label" for="addPartTime">Part Time</label>' +
                     '</div>' +
                     '</div>' +
+                    // Year and Section fields for students, hidden by default
+                    '<div class="mb-3 student-year-field" style="display:none;">' +
+                    '<label for="year" class="form-label">Year</label>' +
+                    '<input type="number" class="form-control" id="year" name="year" min="1" max="5" placeholder="Enter year (1-5)">' +
+                    '</div>' +
+                    '<div class="mb-3 student-section-field" style="display:none;">' +
+                    '<label for="section" class="form-label">Section <span class="text-danger">*</span></label>' +
+                    '<input type="text" class="form-control" id="section" name="section" placeholder="Enter section (e.g., A, B, Section A)">' +
+                    '</div>' +
                     // Program Chair field, hidden by default
                     '<div class="mb-3 is-program-chair-field" style="display:none;">' +
                     '<label class="form-label">Program Chair</label>' +
@@ -3192,18 +3235,36 @@
 
                 // Add event listener for usertype change in add form
                 $('#addForm').on('change', '#usertype', function () {
-                    if ($(this).val() == 2) {
+                    const usertype = $(this).val();
+                    if (usertype == 2) {
                         $('.area-expertise-field').show();
                         $('.is-part-time-field').show();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();
-                    } else if ($(this).val() == 0) {
+                        $('#section').prop('required', false);
+                    } else if (usertype == 1) {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.student-year-field').show();
+                        $('.student-section-field').show();
+                        $('.is-program-chair-field').hide();
+                        // Make section required for students
+                        $('#section').prop('required', true);
+                    } else if (usertype == 0) {
+                        $('.area-expertise-field').hide();
+                        $('.is-part-time-field').hide();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').show();
+                        $('#section').prop('required', false);
                     } else {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();
+                        $('#section').prop('required', false);
                     }
                 });
             } else if (table === 'thesis_topics') {

@@ -43,12 +43,15 @@ try {
                 ORDER BY ds.schedule_date DESC
                 LIMIT 1
             ) as latest_defense_id,
-            -- Get average score from evaluations
+            -- Get average score from evaluations (latest defense only)
             (
                 SELECT AVG(ep.total_score)
                 FROM evaluation_per_panel ep
-                JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                WHERE ds.team_id = t.id AND ep.student_id = u.id
+                WHERE ep.defense_schedule_id = (
+                    SELECT ds2.id FROM defense_schedules ds2 
+                    WHERE ds2.team_id = t.id 
+                    ORDER BY ds2.schedule_date DESC LIMIT 1
+                ) AND ep.student_id = u.id
             ) as avg_score,
             -- Count of evaluations
             (
@@ -81,6 +84,27 @@ try {
     // Get panelist grades and average scores (group, individual, total) for each student
     foreach ($students as &$student) {
         if ($student['latest_defense_id']) {
+            // Get rubric group and pass thresholds for this defense
+            $thresholdQuery = "
+                SELECT 
+                    MIN(r.pass_threshold_1) as pass_threshold_1,
+                    MIN(r.pass_threshold_2) as pass_threshold_2,
+                    MIN(r.pass_threshold_3) as pass_threshold_3
+                FROM defense_schedules ds
+                JOIN rubric_groups rg ON rg.defense_type = ds.defense_type
+                JOIN rubric_group_items rgi ON rgi.group_id = rg.id
+                JOIN rubrics r ON rgi.rubric_id = r.id
+                WHERE ds.id = ? AND r.rubric_type = 'passfail'
+            ";
+            $thresholdStmt = $pdo->prepare($thresholdQuery);
+            $thresholdStmt->execute([$student['latest_defense_id']]);
+            $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);
+            
+            // Set pass thresholds (use defaults if not found)
+            $student['pass_threshold_1'] = $thresholds['pass_threshold_1'] ?? 81;
+            $student['pass_threshold_2'] = $thresholds['pass_threshold_2'] ?? 75;
+            $student['pass_threshold_3'] = $thresholds['pass_threshold_3'] ?? 65;
+            
             $gradeQuery = "
                 SELECT 
                     ep.evaluator_id,
@@ -122,6 +146,10 @@ try {
             $student['avg_group_score'] = null;
             $student['avg_solo_score'] = null;
             $student['avg_total_score'] = null;
+            // Default thresholds for students without defenses
+            $student['pass_threshold_1'] = 81;
+            $student['pass_threshold_2'] = 75;
+            $student['pass_threshold_3'] = 65;
         }
     }
     

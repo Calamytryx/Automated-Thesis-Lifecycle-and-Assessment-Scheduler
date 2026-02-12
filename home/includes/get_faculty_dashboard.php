@@ -52,10 +52,13 @@ try {
                 (SELECT COUNT(DISTINCT ep.id) FROM evaluation_per_panel ep 
                  JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
                  WHERE ds.team_id = t.id) as total_evaluations,
-                -- Get average score
+                -- Get average score (from latest defense only)
                 (SELECT ROUND(AVG(ep.total_score), 2) FROM evaluation_per_panel ep 
-                 JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
-                 WHERE ds.team_id = t.id) as avg_score,
+                 WHERE ep.defense_schedule_id = (
+                     SELECT ds2.id FROM defense_schedules ds2 
+                     WHERE ds2.team_id = t.id 
+                     ORDER BY ds2.schedule_date DESC LIMIT 1
+                 )) as avg_score,
                 -- Get student member list
                 (SELECT GROUP_CONCAT(CONCAT(u.first_name, ' ', u.last_name) ORDER BY u.last_name SEPARATOR ', ')
                  FROM team_members tm2
@@ -77,6 +80,25 @@ try {
         ");
         $adviseeStmt->execute([$userId]);
         $response['advisee_teams'] = $adviseeStmt->fetchAll(PDO::FETCH_ASSOC);
+        
+        // Add pass thresholds for each advisee team
+        foreach ($response['advisee_teams'] as &$team) {
+            $thresholdQuery = "SELECT 
+                MIN(r.pass_threshold_1) as pass_threshold_1,
+                MIN(r.pass_threshold_2) as pass_threshold_2,
+                MIN(r.pass_threshold_3) as pass_threshold_3
+            FROM defense_schedules ds
+            JOIN rubric_groups rg ON rg.defense_type = ds.defense_type
+            JOIN rubric_group_items rgi ON rgi.group_id = rg.id
+            JOIN rubrics r ON rgi.rubric_id = r.id
+            WHERE ds.team_id = ? AND r.rubric_type = 'passfail'
+            ORDER BY ds.schedule_date DESC LIMIT 1";
+            $thresholdStmt = $pdo->prepare($thresholdQuery);
+            $thresholdStmt->execute([$team['id']]);
+            $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);
+            $team['pass_threshold_3'] = $thresholds['pass_threshold_3'] ?? 65;
+        }
+        unset($team);
         
         // 2. Fetch defense schedules where user is panelist
         $panelingStmt = $pdo->prepare("

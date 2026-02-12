@@ -77,6 +77,42 @@ try {
         exit;
     }
 
+    // Get latest defense schedule for this team
+    $defenseQuery = "SELECT id, defense_type FROM defense_schedules 
+        WHERE team_id = ? ORDER BY schedule_date DESC LIMIT 1";
+    $defenseStmt = $pdo->prepare($defenseQuery);
+    $defenseStmt->execute([$teamId]);
+    $latestDefense = $defenseStmt->fetch(PDO::FETCH_ASSOC);
+    $latestDefenseId = $latestDefense ? $latestDefense['id'] : null;
+
+    // Get pass thresholds from rubric
+    $passThreshold1 = 81;
+    $passThreshold2 = 75;
+    $passThreshold3 = 65;
+    if ($latestDefense) {
+        $thresholdQuery = "SELECT 
+            MIN(r.pass_threshold_1) as pass_threshold_1,
+            MIN(r.pass_threshold_2) as pass_threshold_2,
+            MIN(r.pass_threshold_3) as pass_threshold_3
+        FROM defense_schedules ds
+        JOIN rubric_groups rg ON rg.defense_type = ds.defense_type
+        JOIN rubric_group_items rgi ON rgi.group_id = rg.id
+        JOIN rubrics r ON rgi.rubric_id = r.id
+        WHERE ds.id = ? AND r.rubric_type = 'passfail'";
+        $thresholdStmt = $pdo->prepare($thresholdQuery);
+        $thresholdStmt->execute([$latestDefenseId]);
+        $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);
+        if ($thresholds) {
+            $passThreshold1 = $thresholds['pass_threshold_1'] ?? 81;
+            $passThreshold2 = $thresholds['pass_threshold_2'] ?? 75;
+            $passThreshold3 = $thresholds['pass_threshold_3'] ?? 65;
+        }
+    }
+
+    // Build defense schedule filter for queries
+    $defenseFilter = $latestDefenseId ? " AND ep.defense_schedule_id = ?" : "";
+    $defenseParam = $latestDefenseId ? [$latestDefenseId] : [];
+
     // Get detailed evaluations for this team
     // For students: Hide scores from evaluations less than 1 week old
     $oneWeekAgo = date('Y-m-d H:i:s', strtotime('-1 week'));
@@ -102,10 +138,11 @@ try {
         JOIN users s ON ep.student_id = s.id
         JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
         LEFT JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+        WHERE 1=1" . $defenseFilter . "
         ORDER BY s.last_name ASC, s.first_name ASC, e.last_name ASC";
         
         $evalStmt = $pdo->prepare($evaluationsQuery);
-        $evalStmt->execute([$oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $teamId]);
+        $evalStmt->execute(array_merge([$oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $oneWeekAgo, $teamId], $defenseParam));
     } else {
         // Faculty view - show all scores immediately
         $evaluationsQuery = "SELECT 
@@ -127,24 +164,26 @@ try {
         JOIN users s ON ep.student_id = s.id
         JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
         LEFT JOIN defense_schedules ds ON ep.defense_schedule_id = ds.id
+        WHERE 1=1" . $defenseFilter . "
         ORDER BY s.last_name ASC, s.first_name ASC, e.last_name ASC";
         
         $evalStmt = $pdo->prepare($evaluationsQuery);
-        $evalStmt->execute([$teamId]);
+        $evalStmt->execute(array_merge([$teamId], $defenseParam));
     }
     $rawEvaluations = $evalStmt->fetchAll(PDO::FETCH_ASSOC);
     
-    // Get unique panelists who have evaluated this team
+    // Get unique panelists who have evaluated this team (latest defense only)
     $panelistsQuery = "SELECT DISTINCT 
         e.id AS evaluator_id,
         CONCAT(e.first_name, ' ', e.last_name) AS evaluator_name
     FROM evaluation_per_panel ep
     JOIN users e ON ep.evaluator_id = e.id
     JOIN team_members tm ON ep.student_id = tm.user_id AND tm.team_id = ?
+    WHERE 1=1" . $defenseFilter . "
     ORDER BY e.last_name ASC";
     
     $panelistsStmt = $pdo->prepare($panelistsQuery);
-    $panelistsStmt->execute([$teamId]);
+    $panelistsStmt->execute(array_merge([$teamId], $defenseParam));
     $panelists = $panelistsStmt->fetchAll(PDO::FETCH_ASSOC);
     
     // Get student members only (exclude advisers)
