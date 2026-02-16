@@ -8,9 +8,10 @@
         <p class="text-muted">Manage academic programs and their associated colleges</p>
         <?php if ($_SESSION['usertype'] == 0): ?>
         <div class="mt-2">
-          <a href="#users" class="text-decoration-none text-primary" onclick="document.getElementById('users-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+          <a href="#users" class="tab-redirect-link" onclick="document.getElementById('users-tab').click(); return false;">
+            <i class="bi bi-people-fill"></i>
             <span>Create new users and assign created programs</span>
-            <i class="bi bi-arrow-right ms-1"></i>
+            <i class="bi bi-arrow-right"></i>
           </a>
         </div>
         <?php endif; ?>

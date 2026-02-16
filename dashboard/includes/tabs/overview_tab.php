@@ -161,9 +161,10 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
             <div class="row">
                 <div class="col-12">
                     <h2 class="mb-2">Get Started</h2>
-                    <a href="#programs" class="text-decoration-none text-primary" onclick="document.getElementById('programs-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                    <a href="#programs" class="tab-redirect-link tab-redirect-link-light" onclick="document.getElementById('programs-tab').click(); return false;">
+                        <i class="bi bi-mortarboard-fill"></i>
                         <span>Manage Programs</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
             </div>

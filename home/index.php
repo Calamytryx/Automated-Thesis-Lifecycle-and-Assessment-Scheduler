@@ -2494,9 +2494,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <p class="text-muted">Track your requirement progress and defense schedule</p>
                                         <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
                                         <div class="mt-2">
-                                            <a href="#requirement-checker" class="text-decoration-none text-primary" onclick="document.getElementById('requirement-checker-link').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                                            <a href="#requirement-checker" class="tab-redirect-link" onclick="document.getElementById('requirement-checker-link').click(); return false;">
+                                                <i class="bi bi-list-check"></i>
                                                 <span>View Team requirements</span>
-                                                <i class="bi bi-arrow-right ms-1"></i>
+                                                <i class="bi bi-arrow-right"></i>
                                             </a>
                                         </div>
                                         <?php endif; ?>

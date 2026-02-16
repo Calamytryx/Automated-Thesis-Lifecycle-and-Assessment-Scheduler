@@ -8,9 +8,10 @@
                 <p class="text-muted">Create and manage evaluation rubrics for thesis defenses, including numerical, yes/no, and pass/fail scoring systems</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
-                    <a href="#rubric-groups" class="text-decoration-none text-primary" onclick="document.getElementById('rubric-groups-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                    <a href="#rubric-groups" class="tab-redirect-link" onclick="document.getElementById('rubric-groups-tab').click(); return false;">
+                        <i class="bi bi-list-columns-reverse"></i>
                         <span>Group created Rubrics for Defense</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 <?php endif; ?>

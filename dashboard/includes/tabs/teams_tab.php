@@ -8,9 +8,10 @@
                 <p class="text-muted">Manage research teams, advisers, and team members</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
-                    <a href="#rubrics" class="text-decoration-none text-primary" onclick="document.getElementById('rubrics-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                    <a href="#rubrics" class="tab-redirect-link" onclick="document.getElementById('rubrics-tab').click(); return false;">
+                        <i class="bi bi-list-check"></i>
                         <span>Manage Program Rubrics</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 <?php endif; ?>

@@ -8,9 +8,10 @@
                 <p class="text-muted">Manage system users, including admins, students, and staff members</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
-                    <a href="#teams" class="text-decoration-none text-primary" onclick="document.getElementById('teams-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                    <a href="#teams" class="tab-redirect-link" onclick="document.getElementById('teams-tab').click(); return false;">
+                        <i class="bi bi-people-fill"></i>
                         <span>Manage Research Teams</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 <?php endif; ?>

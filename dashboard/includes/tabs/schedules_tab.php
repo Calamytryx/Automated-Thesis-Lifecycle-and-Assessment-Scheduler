@@ -11,9 +11,10 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                 <p class="text-muted">Manage class schedules and time availability for users</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
-                    <a href="#requirements" class="text-decoration-none text-primary" onclick="document.getElementById('requirements-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
-                        <span>Manage Research templates</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                    <a href="#requirements" class="tab-redirect-link" onclick="document.getElementById('requirements-tab').click(); return false;">
+                        <i class="bi bi-check-square-fill"></i>
+                        <span>Manage Requirements and Research templates</span>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 <?php endif; ?>

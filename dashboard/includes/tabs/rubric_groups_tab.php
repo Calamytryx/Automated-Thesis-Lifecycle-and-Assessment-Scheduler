@@ -16,9 +16,10 @@
                 <p class="text-muted">Organize rubrics into groups for streamlined assessment management and evaluation workflows.</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
-                    <a href="#schedules" class="text-decoration-none text-primary" onclick="document.getElementById('schedules-tab').click(); return false;" style="cursor: pointer; font-size: 0.95rem;">
+                    <a href="#schedules" class="tab-redirect-link" onclick="document.getElementById('schedules-tab').click(); return false;">
+                        <i class="bi bi-calendar-fill"></i>
                         <span>Manage Professor schedule</span>
-                        <i class="bi bi-arrow-right ms-1"></i>
+                        <i class="bi bi-arrow-right"></i>
                     </a>
                 </div>
                 <?php endif; ?>

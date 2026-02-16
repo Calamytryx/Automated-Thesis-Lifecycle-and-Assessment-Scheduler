@@ -79,6 +79,22 @@ try {
     }
     error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}, Team Program: " . ($schedule_info['team_program'] ?? 'NULL') . ", Team College: " . ($schedule_info['team_college'] ?? 'NULL'));
 
+    // Fallback: Get college from programs table if not already set
+    if (empty($schedule_info['team_college']) && !empty($schedule_info['team_program'])) {
+        $collegeStmt = $pdo->prepare("
+            SELECT college 
+            FROM programs 
+            WHERE CONCAT(name, CASE WHEN specialization IS NOT NULL AND specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END) = ?
+            LIMIT 1
+        ");
+        $collegeStmt->execute([$schedule_info['team_program']]);
+        $college = $collegeStmt->fetchColumn();
+        if ($college) {
+            $schedule_info['team_college'] = $college;
+            error_log("DS-Index: College resolved via fallback query: {$college}");
+        }
+    }
+
     // <-- NEW: Check for admin override in defense_type_overrides table ---
     $overrideStmt = $pdo->prepare("SELECT override_type FROM defense_type_overrides WHERE team_id = ? AND active = 1 ORDER BY created_at DESC LIMIT 1");
     $overrideStmt->execute([$team_id]);
@@ -1960,21 +1976,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let html = '';
         
-        // Group Details Section
+        // Team Details Section - Reorganized Layout
         html += '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
-        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><?php echo htmlspecialchars($schedule_info['team_college'] ?? 'N/A'); ?></h3>';
         
-        // Research Title
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Research Title:</strong><br>';
-        html += '<span style="font-size: 1.1em;"><?php echo htmlspecialchars($researchTitle); ?></span>';
-        html += '</div>';
+        // College - Top Center
+        html += '<div style="text-align: center; margin-bottom: 10px;"><h3 style="font-weight: normal; border: none; padding: 0; margin: 0; display: inline-block;"><?php echo htmlspecialchars($schedule_info['team_college'] ?? 'N/A'); ?></h3></div>';
         
-        // Basic Information
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Team Name:</strong> <?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?><br>';
-        html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
-        html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
+        // Defense Type - Bold, Below College
         <?php 
             $typeLabel = [
                 'title_proposal' => 'Title Proposal Defense',
@@ -1983,12 +1991,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
             $label = $typeLabel[$defense_type] ?? ucfirst(str_replace('_', ' ', $defense_type));
         ?>
-        html += '<strong>Defense Type:</strong> <?php echo htmlspecialchars($label); ?>';
-        html += '</div>';
+        html += '<div style="text-align: center; margin-bottom: 20px;"><strong style="font-size: 1.1em;"><?php echo htmlspecialchars($label); ?></strong></div>';
         
-        // Team Members
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Team Members:</strong><br>';
+        // Two Column Layout (using table for PDF compatibility)
+        html += '<table style="width: 100%; border: none; margin-bottom: 20px;"><tr>';
+        
+        // Column 1 - Proponents
+        html += '<td style="width: 50%; vertical-align: top; border: none; padding-right: 15px;">';
+        html += '<strong>Proponents:</strong><br>';
         <?php if (!empty($students)): ?>
             html += '<ul style="margin: 5px 0; padding-left: 20px;">';
             <?php foreach ($students as $student): ?>
@@ -1998,14 +2008,25 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php else: ?>
             html += '<span style="font-style: italic; color: #666;">No members found</span>';
         <?php endif; ?>
+        html += '</td>';
+        
+        // Column 2 - Defense Info, Program, Adviser
+        html += '<td style="width: 50%; vertical-align: top; border: none; padding-left: 15px;">';
+        html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
+        html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
+        html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?><br>';
+        html += '<strong>Research Adviser:</strong> <?php echo htmlspecialchars($adviser_name); ?>';
+        html += '</td>';
+        
+        html += '</tr></table>'; // End two-column layout
+        
+        // Research Title - Below the Two Columns
+        html += '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">';
+        html += '<strong>Research Title:</strong><br>';
+        html += '<span style="font-size: 1.05em;"><?php echo htmlspecialchars($researchTitle); ?></span>';
         html += '</div>';
         
-        // Adviser and Program
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Adviser:</strong> <?php echo htmlspecialchars($adviser_name); ?><br>';
-        html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>';
-        html += '</div>';
-        html += '</div>';
+        html += '</div>'; // End summary-section
         
         // Rubrics/Score Sheets Section
         html += '<div class="summary-section" style="margin-bottom: 30px;">';
