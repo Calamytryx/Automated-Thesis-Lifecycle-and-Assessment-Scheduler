@@ -94,6 +94,8 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.start_time,
                      ds.end_time,
                      ds.room,
+                     ds.defense_type,
+                     ds.approval_status,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      GROUP_CONCAT(
@@ -335,6 +337,8 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.start_time,
                      ds.end_time,
                      ds.room,
+                     ds.defense_type,
+                     ds.approval_status,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
@@ -666,7 +670,7 @@ try {
     $allowedSortColumns = [
         'users' => ['id', 'username', 'email', 'first_name', 'last_name', 'usertype', 'program'],
         'teams' => ['id', 'name', 'research_title', 'program', 'adviser'], // Added 'program'
-        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists
+        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status
         'rubrics' => ['id', 'name', 'description', 'rubric_type', 'defense_type', 'is_active', 'created_at'],
         'requirements' => ['id', 'name', 'description'],
         'evaluations' => ['id', 'team_name', 'evaluator_first_name', 'student_first_name', 'group_score', 'solo_score', 'total_score', 'created_at'],

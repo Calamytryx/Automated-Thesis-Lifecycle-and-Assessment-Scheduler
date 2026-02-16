@@ -1205,47 +1205,19 @@ function saveScheduleToDatabase($pdo, $schedule)
                 $defense['room'],
                 $defenseType,      // defense_type
                 'scheduled',       // status
-                'pending'          // approval_status
+                'pending_chair'    // approval_status - awaits chair review first
             ]);
 
             // CREATE DEFENSE SCHEDULE NOTIFICATIONS
             $scheduleId = $pdo->lastInsertId();
             
-            // CREATE PANELIST APPROVAL RECORDS
-            $approvalStmt = $pdo->prepare("
-                INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
-                VALUES (?, ?)
-            ");
+            error_log("DEFENSE SCHEDULER: About to create chair review notifications for schedule ID: $scheduleId, team: {$defense['team_id']}");
             
-            // Create approval record for each panelist
-            foreach ([$defense['panelist_ids'][0], $defense['panelist_ids'][1], $defense['panelist_ids'][2]] as $panelistId) {
-                if ($panelistId && $panelistId !== '') {
-                    $approvalStmt->execute([$scheduleId, $panelistId]);
-                }
-            }
+            // Step 1: Notify program chairs for review (panelists are NOT notified yet)
+            $chairNotificationResult = createChairReviewNotifications($pdo, $scheduleId, $defense['team_id'],
+                $date, $startTime->format('H:i'), $endTime->format('H:i'), $defense['room']);
             
-            error_log("DEFENSE SCHEDULER: About to create notifications for schedule ID: $scheduleId, team: {$defense['team_id']}");
-            
-            // Create approval notifications for panelists instead of regular notifications
-            $approvalNotificationResult = createDefenseApprovalNotifications($pdo, $scheduleId, $defense['team_id'], [
-                $defense['panelist_ids'][0],
-                $defense['panelist_ids'][1], 
-                $defense['panelist_ids'][2]
-            ], $date, $startTime->format('H:i'), $endTime->format('H:i'), $defense['room']);
-            
-            // Create regular notifications for team members only
-            $teamMemberIds = getTeamMembersForNotifications($defense['team_id']);
-            $formattedDate = date('F j, Y', strtotime($date));
-            $formattedTime = date('g:i A', strtotime($startTime->format('H:i'))) . ' - ' . date('g:i A', strtotime($endTime->format('H:i')));
-            // Include defense type in the notification message
-            $defenseTypeLabel = ucwords(str_replace('_', ' ', $defenseType));
-            $messageForTeam = "Your team's {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime} in {$defense['room']}. Waiting for panelist approval.";
-            
-            foreach ($teamMemberIds as $userId) {
-                createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
-            }
-            
-            error_log("DEFENSE SCHEDULER: Approval notification creation result: " . ($approvalNotificationResult ? 'SUCCESS' : 'FAILED'));
+            error_log("DEFENSE SCHEDULER: Chair notification creation result: " . ($chairNotificationResult ? 'SUCCESS' : 'FAILED'));
 
             // Track panelist assignments
             foreach ($defense['panelist_ids'] as $panelist_id) {
@@ -1336,16 +1308,13 @@ function saveScheduleToDatabase($pdo, $schedule)
                     $teamDefense['room'],
                     $defenseType,      // defense_type
                     'scheduled',       // status
-                    'pending'          // approval_status
+                    'pending_chair'    // approval_status - awaits chair review first
                 ]);
 
-                // CREATE DEFENSE SCHEDULE NOTIFICATIONS FOR MISSING TEAMS
+                // CREATE CHAIR REVIEW NOTIFICATIONS FOR MISSING TEAMS
                 $scheduleId = $pdo->lastInsertId();
-                createDefenseScheduleNotifications($pdo, $scheduleId, $teamDefense['team_id'], [
-                    $teamDefense['panelist_ids'][0],
-                    $teamDefense['panelist_ids'][1], 
-                    $teamDefense['panelist_ids'][2]
-                ], $date, $startTime->format('H:i'), $endTime->format('H:i'), $teamDefense['room']);
+                createChairReviewNotifications($pdo, $scheduleId, $teamDefense['team_id'],
+                    $date, $startTime->format('H:i'), $endTime->format('H:i'), $teamDefense['room']);
 
                 $scheduledTeams[] = $missingTeamId;
             }

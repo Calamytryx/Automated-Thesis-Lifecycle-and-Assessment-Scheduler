@@ -2675,6 +2675,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         JOIN teams t ON ds.team_id = t.id
                                                         JOIN team_members tm ON t.id = tm.team_id
                                                         WHERE tm.user_id = :user_id
+                                                        AND ds.approval_status NOT IN ('pending_chair', 'rejected')
                                                         ORDER BY ds.schedule_date, ds.start_time";
                                                 $stmt = $pdo->prepare($query);
                                                 $stmt->execute(['user_id' => $userId]);
@@ -2697,9 +2698,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         FROM defense_schedules ds
                                                         JOIN teams t ON ds.team_id = t.id
                                                         WHERE
-                                                            ds.panelist_id = :user_id1
+                                                            (ds.panelist_id = :user_id1
                                                             OR ds.panelist_id2 = :user_id2
-                                                            OR ds.panelist_id3 = :user_id3
+                                                            OR ds.panelist_id3 = :user_id3)
+                                                            AND ds.approval_status NOT IN ('pending_chair', 'rejected')
                                                         ORDER BY
                                                             CASE 
                                                                 WHEN CONCAT(ds.schedule_date, ' ', ds.end_time) < NOW() THEN 3

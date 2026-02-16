@@ -855,39 +855,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $scheduleId = $pdo->lastInsertId();
             $teamId = $data['team_id'];
-            $panelistIds = [$data['panelist_id'], $data['panelist_id2'], $data['panelist_id3']];
             $scheduleDate = $data['schedule_date'];
             $startTime = date('H:i', strtotime($data['start_time']));
             $endTime = date('H:i', strtotime($data['end_time']));
             $room = $data['room'];
             
-            // CREATE PANELIST APPROVAL RECORDS (same as generated schedules)
-            $approvalStmt = $pdo->prepare("
-                INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
-                VALUES (?, ?)
-            ");
+            // Step 1: Notify program chairs for review (panelists NOT notified yet)
+            // Panelist approval records and notifications are created when chair approves
+            createChairReviewNotifications($pdo, $scheduleId, $teamId, $scheduleDate, $startTime, $endTime, $room);
             
-            // Create approval record for each panelist
-            foreach ($panelistIds as $panelistId) {
-                if ($panelistId && $panelistId !== '') {
-                    $approvalStmt->execute([$scheduleId, $panelistId]);
-                }
-            }
-            
-            // Create approval notifications for panelists (consistent with generated schedules)
-            createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room);
-            
-            // Create regular notifications for team members (they don't need to approve)
-            $teamMemberIds = getTeamMembersForNotifications($teamId);
-            $formattedDate = date('F j, Y', strtotime($scheduleDate));
-            $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
-            $messageForTeam = "Your team's defense has been scheduled for {$formattedDate} at {$formattedTime} in {$room}. Waiting for panelist approval.";
-            
-            foreach ($teamMemberIds as $userId) {
-                createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
-            }
-            
-            error_log("Manual defense schedule created with approval workflow for schedule ID: $scheduleId");
+            error_log("Manual defense schedule created - pending chair review for schedule ID: $scheduleId");
         }
         
         $response['success'] = true;

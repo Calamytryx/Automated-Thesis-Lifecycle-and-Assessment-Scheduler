@@ -57,7 +57,7 @@ try {
                            (SELECT name FROM teams WHERE id = ds.team_id)
                     ) as description
                 FROM defense_schedules ds -- Added alias ds
-                WHERE ds.team_id = ? -- Use alias
+                WHERE ds.team_id = ? AND ds.approval_status NOT IN ('pending_chair', 'rejected')
                 ORDER BY date, start_time
             ");
             $defense_stmt->execute([$team_id]);
@@ -77,7 +77,8 @@ try {
                 CONCAT('Defense with team: ', t.name) as description
             FROM defense_schedules ds
             JOIN teams t ON ds.team_id = t.id
-            WHERE ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?
+            WHERE (ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?)
+            AND ds.approval_status NOT IN ('pending_chair', 'rejected')
             ORDER BY ds.schedule_date, ds.start_time
         ");
         $defense_stmt->execute([$user_id, $user_id, $user_id]);

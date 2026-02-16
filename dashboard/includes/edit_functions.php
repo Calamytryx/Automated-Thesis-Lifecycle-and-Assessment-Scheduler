@@ -498,6 +498,8 @@ function fetchAllDefenseSchedules($pdo) {
     ds.start_time,
     ds.end_time,
     ds.room,
+    ds.defense_type,
+    ds.approval_status,
     t.name AS team_name,
     rt.title AS thesis_title,
     GROUP_CONCAT(

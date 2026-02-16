@@ -865,6 +865,7 @@
                     <th>Panelist 2</th>
                     <th>Panelist 3</th>
                     <th>Room</th>
+                    <th>Status</th>
                     <th>Action</th>
                 </tr>
             </thead>
@@ -936,7 +937,7 @@
                             const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = '';
                             if (data.data.length === 0) { // Added check for empty data array
-                                tbody.innerHTML = `<tr><td colspan="9" class="text-center">No defense schedules found.</td></tr>`;
+                                tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
                             } else {
                                 // Sort schedules by date and start time (earliest first)
                                 data.data.sort((a, b) => {
@@ -953,18 +954,47 @@
                                     // Use the splitPanelists function
                                     const panelists = splitPanelists(schedule.panelists);
 
+                                    // Build approval status badge
+                                    let statusBadge = '';
+                                    let chairActions = '';
+                                    const approvalStatus = schedule.approval_status || 'pending_chair';
+                                    switch (approvalStatus) {
+                                        case 'pending_chair':
+                                            statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chair Review</span>';
+                                            chairActions = `
+                                                <button class="btn btn-sm btn-success chair-approve-btn" data-id="${schedule.id}" title="Approve Schedule">
+                                                    <i class="fas fa-check me-1"></i>Approve
+                                                </button>
+                                                <button class="btn btn-sm btn-danger chair-reject-btn" data-id="${schedule.id}" title="Reject Schedule">
+                                                    <i class="fas fa-times me-1"></i>Reject
+                                                </button>
+                                            `;
+                                            break;
+                                        case 'pending':
+                                            statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-user-clock me-1"></i>Panel Review</span>';
+                                            break;
+                                        case 'approved':
+                                            statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span>';
+                                            break;
+                                        case 'rejected':
+                                            statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Rejected</span>';
+                                            break;
+                                    }
+
                                     tbody.innerHTML += `
                                         <tr>
                                             <td>${dateTime}</td>
                                             <td>${schedule.team_name || 'N/A'}</td>
-                                            <td>${schedule.adviser || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${schedule.adviser || 'N/A'}</td>
                                             <td>${schedule.thesis_title || 'N/A'}</td>
-                                            <td>${panelists[0] || 'N/A'}</td> <!-- Use || 'N/A' -->
-                                            <td>${panelists[1] || 'N/A'}</td> <!-- Use || 'N/A' -->
-                                            <td>${panelists[2] || 'N/A'}</td> <!-- Use || 'N/A' -->
+                                            <td>${panelists[0] || 'N/A'}</td>
+                                            <td>${panelists[1] || 'N/A'}</td>
+                                            <td>${panelists[2] || 'N/A'}</td>
                                             <td>${schedule.room || 'N/A'}</td>
+                                            <td class="text-center">${statusBadge}</td>
                                             <td class="action-buttons">
-                                                <div class="d-flex gap-2 justify-content-center">
+                                                <div class="d-flex gap-1 flex-wrap justify-content-center">
+                                                    ${chairActions}
                                                     <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">
                                                         <i class="fas fa-edit me-1"></i>Edit
                                                     </button>
@@ -1018,7 +1048,7 @@
                             console.error('Fetch Error:', error);
                             document.getElementById('scheduleGenerationStatus').innerText = `Fetch Error: ${error.message}`;
                             const tbody = document.querySelector('#def-table tbody'); // Ensure tbody is selected here too
-                            tbody.innerHTML = `<tr><td colspan="9" class="text-center text-danger">Error loading schedule data: ${error.message}</td></tr>`;
+                            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error loading schedule data: ${error.message}</td></tr>`;
                             const pagination = document.querySelector('#def-nav .pagination');
                             pagination.innerHTML = ''; // Clear pagination on error
                         });
@@ -1041,6 +1071,60 @@
                         }
                     }
                 });
+
+                // Chair Approve button handler
+                document.querySelector('#def-table').addEventListener('click', function(e) {
+                    const approveBtn = e.target.closest('.chair-approve-btn');
+                    const rejectBtn = e.target.closest('.chair-reject-btn');
+                    
+                    if (approveBtn) {
+                        const scheduleId = approveBtn.getAttribute('data-id');
+                        if (confirm('Approve this defense schedule? Panelists will be notified for their approval.')) {
+                            handleChairAction(scheduleId, 'approve');
+                        }
+                    }
+                    
+                    if (rejectBtn) {
+                        const scheduleId = rejectBtn.getAttribute('data-id');
+                        const reason = prompt('Reason for rejection (optional):');
+                        if (reason !== null) { // null means cancel
+                            handleChairAction(scheduleId, 'reject', reason);
+                        }
+                    }
+                });
+
+                function handleChairAction(scheduleId, action, reason = '') {
+                    const formData = new FormData();
+                    formData.append('schedule_id', scheduleId);
+                    formData.append('action', action);
+                    if (reason) formData.append('rejection_reason', reason);
+
+                    fetch('../assets/includes/handle_chair_approval.php', {
+                        method: 'POST',
+                        body: formData
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.success) {
+                            // Show success toast/alert
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = `alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+                            alertDiv.style.zIndex = '9999';
+                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                            document.body.appendChild(alertDiv);
+                            setTimeout(() => alertDiv.remove(), 4000);
+                            
+                            // Reload the table
+                            loadDefenseSchedules();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Chair approval error:', err);
+                        alert('Network error. Please try again.');
+                    });
+                }
             });
         </script>
     </div>
