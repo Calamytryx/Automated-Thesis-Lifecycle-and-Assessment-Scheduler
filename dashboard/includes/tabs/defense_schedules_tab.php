@@ -561,7 +561,8 @@
                                             timeSlots: timeSlots,
                                             days: days,
                                             section: section,
-                                            confirm_overwrite: confirmOverwrite
+                                            confirm_overwrite: confirmOverwrite,
+                                            preview: 'true'
                                         };
                                         console.log('Request data for generateSchedule:', requestData);
 
@@ -572,7 +573,13 @@
                                             dataType: 'json',
                                             success: function(response) {
                                                 console.log('AJAX Success Response:', response);
-                                                if (response.success) {
+                                                if (response.success && response.preview && response.schedules) {
+                                                    // Preview mode: show editable calendar
+                                                    hideLoadingState(true, 'Preview ready! Review the schedule below.');
+                                                    if (typeof window.showDefensePreviewCalendar === 'function') {
+                                                        window.showDefensePreviewCalendar(response.schedules);
+                                                    }
+                                                } else if (response.success) {
                                                     if (response.progressId) {
                                                         // Start polling for progress if backend supports it
                                                         pollScheduleProgress(response.progressId);
@@ -850,8 +857,25 @@
                         });
                     </script>
 
-        <!-- Defense Schedules Table -->
-        <div class="row">
+        <!-- View Toggle -->
+        <div class="row mb-3">
+            <div class="col-12">
+                <div class="btn-group" role="group" aria-label="View toggle">
+                    <input type="radio" class="btn-check" name="defViewMode" id="defTableView" checked autocomplete="off">
+                    <label class="btn btn-outline-primary btn-sm" for="defTableView"><i class="fas fa-table me-1"></i>Table</label>
+                    <input type="radio" class="btn-check" name="defViewMode" id="defCalendarView" autocomplete="off">
+                    <label class="btn btn-outline-primary btn-sm" for="defCalendarView"><i class="fas fa-calendar-week me-1"></i>Calendar</label>
+                </div>
+                <!-- Bulk Approval Buttons (visible in calendar view for pending_chair items) -->
+                <div id="bulkApprovalControls" class="d-inline-flex gap-2 ms-3" style="display:none !important;">
+                    <button class="btn btn-success btn-sm" id="bulkApproveBtn"><i class="fas fa-check-double me-1"></i>Approve All Visible</button>
+                    <button class="btn btn-danger btn-sm" id="bulkRejectBtn"><i class="fas fa-times-circle me-1"></i>Reject All Visible</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Table View -->
+        <div id="defTableViewContainer" class="row">
             <div class="col-12">
                 <div class="table-responsive db-table-container" id="def-sched">
         <table class="table table-bordered table-hover table-sm db-table" id="def-table">
@@ -881,215 +905,664 @@
             </div> 
         </div>
 
+        <!-- Calendar View -->
+        <div id="defCalendarViewContainer" class="row" style="display:none;">
+            <div class="col-12">
+                <div class="p-3 bg-white rounded border">
+                    <div id="defenseCalendar" style="min-height:600px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Preview Modal (shown after generating schedule) -->
+        <div class="modal fade" id="schedulePreviewModal" tabindex="-1" aria-labelledby="schedulePreviewModalLabel" data-bs-backdrop="static" aria-hidden="true">
+            <div class="modal-dialog modal-fullscreen">
+                <div class="modal-content">
+                    <div class="modal-header bg-primary text-white">
+                        <h5 class="modal-title" id="schedulePreviewModalLabel"><i class="fas fa-calendar-check me-2"></i>Schedule Preview — Review & Edit Before Saving</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body p-0">
+                        <div class="container-fluid p-3">
+                            <div class="alert alert-info mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Drag events</strong> to move them to different times/days. <strong>Click an event</strong> to edit details (room, panelists). When satisfied, click <strong>Confirm & Save</strong>.
+                            </div>
+                            <div id="previewCalendar" style="min-height:70vh;"></div>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <span id="previewScheduleCount" class="me-auto text-muted"></span>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Discard</button>
+                        <button type="button" class="btn btn-success" id="confirmSavePreview"><i class="fas fa-save me-1"></i>Confirm & Save</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Event Edit Modal (for single event editing in preview/calendar) -->
+        <div class="modal fade" id="eventEditModal" tabindex="-1" aria-hidden="true" data-bs-backdrop="static">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Defense Schedule</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="editEventId">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Team</label>
+                            <input type="text" class="form-control" id="editTeamName" readonly>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Room</label>
+                            <input type="text" class="form-control" id="editRoom">
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-6">
+                                <label class="form-label fw-bold">Date</label>
+                                <input type="date" class="form-control" id="editDate">
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label fw-bold">Start</label>
+                                <input type="time" class="form-control" id="editStartTime">
+                            </div>
+                            <div class="col-3">
+                                <label class="form-label fw-bold">End</label>
+                                <input type="time" class="form-control" id="editEndTime">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Panelist 1</label>
+                            <select class="form-select" id="editPanelist1"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Panelist 2</label>
+                            <select class="form-select" id="editPanelist2"></select>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold">Panelist 3</label>
+                            <select class="form-select" id="editPanelist3"></select>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn btn-primary" id="saveEventEdit"><i class="fas fa-check me-1"></i>Apply Changes</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            #defenseCalendar .fc-event, #previewCalendar .fc-event {
+                cursor: pointer;
+                border-radius: 4px;
+                padding: 2px 4px;
+                font-size: 0.78rem;
+                line-height: 1.2;
+            }
+            .fc-event .event-team { font-weight: 600; }
+            .fc-event .event-room { font-size: 0.7rem; opacity: 0.85; }
+            .fc-event .event-panelists { font-size: 0.65rem; opacity: 0.75; }
+            .fc-event.status-pending_chair { background-color: #ffc107 !important; border-color: #e0a800 !important; color: #333 !important; }
+            .fc-event.status-pending { background-color: #17a2b8 !important; border-color: #138496 !important; color: #fff !important; }
+            .fc-event.status-approved { background-color: #28a745 !important; border-color: #218838 !important; color: #fff !important; }
+            .fc-event.status-rejected { background-color: #dc3545 !important; border-color: #c82333 !important; color: #fff !important; }
+            .fc-event.status-preview { background-color: #6f42c1 !important; border-color: #5a32a3 !important; color: #fff !important; }
+        </style>
+
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // ========== Utility Functions ==========
                 const formatDate = (dateStr) => {
                     const date = new Date(dateStr);
-                    const options = {
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric'
-                    };
-                    return date.toLocaleDateString('en-US', options);
+                    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
                 };
-
                 const formatTime = (timeStr) => {
                     const [hours, minutes] = timeStr.split(':').map(Number);
                     const period = hours >= 12 ? 'PM' : 'AM';
-                    const hour12 = hours % 12 || 12;
-                    return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+                    return `${hours % 12 || 12}:${minutes.toString().padStart(2, '0')} ${period}`;
                 };
-
                 const splitPanelists = (panelistsString) => {
-                    if (!panelistsString) return ['N/A', 'N/A', 'N/A']; // Return placeholders if null/empty
-                    // Split the comma-separated string
+                    if (!panelistsString) return ['N/A', 'N/A', 'N/A'];
                     const panelists = panelistsString.split(',').map(p => p.trim()).filter(p => p);
-                    // Pad with 'N/A' if less than 3 panelists
-                    while (panelists.length < 3) {
-                        panelists.push('N/A');
-                    }
-                    // Return the first 3 panelists (or placeholders)
+                    while (panelists.length < 3) panelists.push('N/A');
                     return panelists.slice(0, 3);
                 };
 
-                const loadDefenseSchedules = (page = 1, showProgress = false) => {
-                    if (showProgress) {
-                        updateProgress('Refreshing defense schedules...', 95);
-                    }
-                    
-                    console.log(`Loading Defense Schedules Page: ${page}`);
-                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}`)
-                        .then(response => {
-                            console.log('Fetch Response Status:', response.status);
-                            if (!response.ok) {
-                                throw new Error(`HTTP error! status: ${response.status}`);
+                // ========== Faculty cache for panelist dropdowns ==========
+                let facultyList = [];
+                function loadFacultyList() {
+                    // Use get_teams_and_staff.php (works for all user types) as primary,
+                    // fall back to get_faculty_list.php
+                    return fetch('../dashboard/includes/get_teams_and_staff.php')
+                        .then(r => r.json())
+                        .then(data => {
+                            if (data.success && data.staff) {
+                                // Map staff format {id, name} to faculty format {id, full_name, program}
+                                facultyList = data.staff.map(s => ({ id: s.id, full_name: s.name, program: '' }));
+                                // Also expose globally for the add modal
+                                window._defFacultyList = facultyList;
                             }
+                        })
+                        .catch(() => {
+                            // Fallback
+                            return fetch('../dashboard/includes/get_faculty_list.php')
+                                .then(r => r.json())
+                                .then(data => {
+                                    if (data.success) {
+                                        facultyList = data.faculty;
+                                        window._defFacultyList = facultyList;
+                                    }
+                                });
+                        });
+                }
+                loadFacultyList();
+
+                function populatePanelistDropdown(selectEl, selectedId) {
+                    selectEl.innerHTML = '<option value="">-- Select --</option>';
+                    const list = facultyList.length > 0 ? facultyList : (window._defFacultyList || []);
+                    list.forEach(f => {
+                        const opt = document.createElement('option');
+                        opt.value = f.id;
+                        opt.textContent = (f.full_name || f.name || '') + (f.program ? ` (${f.program})` : '');
+                        if (String(f.id) === String(selectedId)) opt.selected = true;
+                        selectEl.appendChild(opt);
+                    });
+                }
+
+                // ========== Schedule data cache (raw from server) ==========
+                let allScheduleData = [];
+
+                // ========== VIEW TOGGLE ==========
+                const tableViewBtn = document.getElementById('defTableView');
+                const calendarViewBtn = document.getElementById('defCalendarView');
+                const tableContainer = document.getElementById('defTableViewContainer');
+                const calendarContainer = document.getElementById('defCalendarViewContainer');
+                const bulkControls = document.getElementById('bulkApprovalControls');
+
+                tableViewBtn.addEventListener('change', () => {
+                    tableContainer.style.display = '';
+                    calendarContainer.style.display = 'none';
+                    bulkControls.style.display = 'none';
+                });
+                calendarViewBtn.addEventListener('change', () => {
+                    tableContainer.style.display = 'none';
+                    calendarContainer.style.display = '';
+                    renderDefenseCalendar();
+                    // Show bulk controls if there are pending_chair items
+                    const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
+                    bulkControls.style.display = hasPendingChair ? '' : 'none';
+                });
+
+                // ========== TABLE VIEW (existing) ==========
+                const loadDefenseSchedules = (page = 1, showProgress = false) => {
+                    if (showProgress) updateProgress('Refreshing defense schedules...', 95);
+                    
+                    // If calendar view is active, fetch all records
+                    const isCalView = calendarViewBtn.checked;
+                    const perPageParam = isCalView ? '&per_page=500' : '';
+                    
+                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}${perPageParam}`)
+                        .then(response => {
+                            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                             return response.json();
                         })
                         .then(data => {
-                            console.log('Data Received:', data);
                             if (data.error) {
-                                console.error('Server Error:', data.error);
                                 document.getElementById('scheduleGenerationStatus').innerText = `Error: ${data.error}`;
                                 return;
                             }
 
+                            allScheduleData = data.data || [];
                             const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = '';
-                            if (data.data.length === 0) { // Added check for empty data array
+                            if (allScheduleData.length === 0) {
                                 tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
                             } else {
-                                // Sort schedules by date and start time (earliest first)
-                                data.data.sort((a, b) => {
-                                    const dateA = new Date(a.schedule_date + 'T' + a.start_time);
-                                    const dateB = new Date(b.schedule_date + 'T' + b.start_time);
-                                    return dateA - dateB;
-                                });
-                                data.data.forEach(schedule => {
-                                    const formattedDate = formatDate(schedule.schedule_date);
-                                    const formattedStartTime = formatTime(schedule.start_time);
-                                    const formattedEndTime = formatTime(schedule.end_time);
-                                    const dateTime = `${formattedDate} ${formattedStartTime} - ${formattedEndTime}`;
-
-                                    // Use the splitPanelists function
+                                allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
+                                allScheduleData.forEach(schedule => {
+                                    const dateTime = `${formatDate(schedule.schedule_date)} ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`;
                                     const panelists = splitPanelists(schedule.panelists);
-
-                                    // Build approval status badge
-                                    let statusBadge = '';
-                                    let chairActions = '';
+                                    let statusBadge = '', chairActions = '';
                                     const approvalStatus = schedule.approval_status || 'pending_chair';
                                     switch (approvalStatus) {
                                         case 'pending_chair':
                                             statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chair Review</span>';
                                             chairActions = `
-                                                <button class="btn btn-sm btn-success chair-approve-btn" data-id="${schedule.id}" title="Approve Schedule">
-                                                    <i class="fas fa-check me-1"></i>Approve
-                                                </button>
-                                                <button class="btn btn-sm btn-danger chair-reject-btn" data-id="${schedule.id}" title="Reject Schedule">
-                                                    <i class="fas fa-times me-1"></i>Reject
-                                                </button>
-                                            `;
+                                                <button class="btn btn-sm btn-success chair-approve-btn" data-id="${schedule.id}" title="Approve"><i class="fas fa-check me-1"></i>Approve</button>
+                                                <button class="btn btn-sm btn-danger chair-reject-btn" data-id="${schedule.id}" title="Reject"><i class="fas fa-times me-1"></i>Reject</button>`;
                                             break;
-                                        case 'pending':
-                                            statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-user-clock me-1"></i>Panel Review</span>';
-                                            break;
-                                        case 'approved':
-                                            statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span>';
-                                            break;
-                                        case 'rejected':
-                                            statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Rejected</span>';
-                                            break;
+                                        case 'pending': statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-user-clock me-1"></i>Panel Review</span>'; break;
+                                        case 'approved': statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span>'; break;
+                                        case 'rejected': statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Rejected</span>'; break;
                                     }
-
-                                    tbody.innerHTML += `
-                                        <tr>
-                                            <td>${dateTime}</td>
-                                            <td>${schedule.team_name || 'N/A'}</td>
-                                            <td>${schedule.adviser || 'N/A'}</td>
-                                            <td>${schedule.thesis_title || 'N/A'}</td>
-                                            <td>${panelists[0] || 'N/A'}</td>
-                                            <td>${panelists[1] || 'N/A'}</td>
-                                            <td>${panelists[2] || 'N/A'}</td>
-                                            <td>${schedule.room || 'N/A'}</td>
-                                            <td class="text-center">${statusBadge}</td>
-                                            <td class="action-buttons">
-                                                <div class="d-flex gap-1 flex-wrap justify-content-center">
-                                                    ${chairActions}
-                                                    <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}">
-                                                        <i class="fas fa-edit me-1"></i>Edit
-                                                    </button>
-                                                    <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}">
-                                                        <i class="fas fa-trash-alt me-1"></i>Delete
-                                                    </button>
-                                                </div>
-                                            </td>
-                                        </tr>
-                                    `;
+                                    tbody.innerHTML += `<tr>
+                                        <td>${dateTime}</td>
+                                        <td>${schedule.team_name || 'N/A'}</td>
+                                        <td>${schedule.adviser || 'N/A'}</td>
+                                        <td>${schedule.thesis_title || 'N/A'}</td>
+                                        <td>${panelists[0]}</td><td>${panelists[1]}</td><td>${panelists[2]}</td>
+                                        <td>${schedule.room || 'N/A'}</td>
+                                        <td class="text-center">${statusBadge}</td>
+                                        <td class="action-buttons"><div class="d-flex gap-1 flex-wrap justify-content-center">
+                                            ${chairActions}
+                                            <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}"><i class="fas fa-edit me-1"></i>Edit</button>
+                                            <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}"><i class="fas fa-trash-alt me-1"></i>Delete</button>
+                                        </div></td>
+                                    </tr>`;
                                 });
                             }
 
+                            // Pagination
                             const pagination = document.querySelector('#def-nav .pagination');
                             pagination.innerHTML = '';
-
-                            pagination.innerHTML += `
-                                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                    <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">
-                                        &#8249;
-                                    </a>
-                                </li>
-                            `;
-
+                            pagination.innerHTML += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&#8249;</a></li>`;
                             for (let i = 1; i <= data.total_pages; i++) {
-                                pagination.innerHTML += `
-                                    <li class="page-item ${page === i ? 'active' : ''}">
-                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
-                                    </li>
-                                `;
+                                pagination.innerHTML += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
                             }
+                            pagination.innerHTML += `<li class="page-item ${page >= data.total_pages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
 
-                            pagination.innerHTML += `
-                                <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                    <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">
-                                        &#8250;
-                                    </a>
-                                </li>
-                            `;
-                            
-                            if (showProgress) {
-                                setTimeout(() => {
-                                    hideLoadingState(true, 'Defense schedules updated successfully!');
-                                }, 500);
-                            }
+                            if (showProgress) setTimeout(() => hideLoadingState(true, 'Defense schedules updated!'), 500);
+
+                            // Update calendar if visible
+                            if (calendarViewBtn.checked) renderDefenseCalendar();
+                            // Update bulk controls
+                            const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
+                            if (calendarViewBtn.checked) bulkControls.style.display = hasPendingChair ? '' : 'none';
                         })
                         .catch(error => {
-                            if (showProgress) {
-                                hideLoadingState(false, 'Failed to refresh schedules');
-                            }
-                            console.error('Fetch Error:', error);
-                            document.getElementById('scheduleGenerationStatus').innerText = `Fetch Error: ${error.message}`;
-                            const tbody = document.querySelector('#def-table tbody'); // Ensure tbody is selected here too
-                            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error loading schedule data: ${error.message}</td></tr>`;
-                            const pagination = document.querySelector('#def-nav .pagination');
-                            pagination.innerHTML = ''; // Clear pagination on error
+                            if (showProgress) hideLoadingState(false, 'Failed to refresh schedules');
+                            const tbody = document.querySelector('#def-table tbody');
+                            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+                            document.querySelector('#def-nav .pagination').innerHTML = '';
                         });
                 };
 
-                // Global reload function for defense schedules (similar to other tabs)
-                window.reloadCurrentDefenseSchedulesView = function(page = 1) {
-                    loadDefenseSchedules(page);
-                };
-
+                window.reloadCurrentDefenseSchedulesView = function(page = 1) { loadDefenseSchedules(page); };
                 loadDefenseSchedules();
 
                 document.querySelector('#def-nav .pagination').addEventListener('click', function(e) {
                     e.preventDefault();
                     if (e.target.tagName === 'A') {
                         const page = parseInt(e.target.getAttribute('data-page'));
-                        if (!isNaN(page)) {
-                            console.log(`Pagination Clicked: Loading Page ${page}`);
-                            loadDefenseSchedules(page);
-                        }
+                        if (!isNaN(page)) loadDefenseSchedules(page);
                     }
                 });
 
-                // Chair Approve button handler
+                // ========== DEFENSE CALENDAR VIEW ==========
+                let defenseCalendarInstance = null;
+
+                function scheduleToEvent(s, isEditable = false) {
+                    const panelists = splitPanelists(s.panelists);
+                    const status = s.approval_status || 'pending_chair';
+                    return {
+                        id: s.id,
+                        title: s.team_name || 'Unknown',
+                        start: s.schedule_date + 'T' + s.start_time,
+                        end: s.schedule_date + 'T' + s.end_time,
+                        editable: isEditable && status === 'pending_chair',
+                        classNames: ['status-' + status],
+                        extendedProps: {
+                            ...s,
+                            panelist1: panelists[0],
+                            panelist2: panelists[1],
+                            panelist3: panelists[2],
+                            status: status
+                        }
+                    };
+                }
+
+                function renderDefenseCalendar() {
+                    if (defenseCalendarInstance) defenseCalendarInstance.destroy();
+                    const calendarEl = document.getElementById('defenseCalendar');
+                    const events = allScheduleData.map(s => scheduleToEvent(s, true));
+
+                    // Determine initial date from events
+                    let initialDate = new Date();
+                    if (events.length > 0) {
+                        const dates = events.map(e => new Date(e.start)).sort((a, b) => a - b);
+                        initialDate = dates[0];
+                    }
+
+                    defenseCalendarInstance = new FullCalendar.Calendar(calendarEl, {
+                        initialView: 'timeGridWeek',
+                        initialDate: initialDate,
+                        headerToolbar: {
+                            left: 'prev,next today',
+                            center: 'title',
+                            right: 'timeGridWeek,timeGridDay,dayGridMonth'
+                        },
+                        slotMinTime: '07:00:00',
+                        slotMaxTime: '20:00:00',
+                        allDaySlot: false,
+                        height: 'auto',
+                        editable: true,
+                        eventDurationEditable: true,
+                        events: events,
+                        eventContent: function(arg) {
+                            const props = arg.event.extendedProps;
+                            return {
+                                html: `<div class="event-team">${arg.event.title}</div>
+                                       <div class="event-room"><i class="fas fa-door-open me-1"></i>${props.room || ''}</div>
+                                       <div class="event-panelists">${props.panelist1 || ''}, ${props.panelist2 || ''}, ${props.panelist3 || ''}</div>`
+                            };
+                        },
+                        eventClick: function(info) {
+                            openEventEditModal(info.event, 'calendar');
+                        },
+                        eventDrop: function(info) {
+                            // Update the schedule data cache
+                            updateScheduleDataFromEvent(info.event);
+                        },
+                        eventResize: function(info) {
+                            updateScheduleDataFromEvent(info.event);
+                        }
+                    });
+                    defenseCalendarInstance.render();
+                }
+
+                function updateScheduleDataFromEvent(event) {
+                    const id = event.id;
+                    const sched = allScheduleData.find(s => String(s.id) === String(id));
+                    if (sched) {
+                        const start = event.start;
+                        const end = event.end;
+                        sched.schedule_date = start.toISOString().split('T')[0];
+                        sched.start_time = start.toTimeString().substring(0, 8);
+                        sched.end_time = end.toTimeString().substring(0, 8);
+                    }
+                }
+
+                // ========== PREVIEW CALENDAR (for new schedule generation) ==========
+                let previewCalendarInstance = null;
+                let previewScheduleData = []; // The array of schedules from preview mode
+
+                function showPreviewCalendar(schedules) {
+                    previewScheduleData = schedules;
+                    const events = schedules.map((s, idx) => ({
+                        id: 'preview_' + idx,
+                        title: s.team_name || 'Unknown',
+                        start: s.schedule_date + 'T' + s.start_time,
+                        end: s.schedule_date + 'T' + s.end_time,
+                        editable: true,
+                        classNames: ['status-preview'],
+                        extendedProps: {
+                            ...s,
+                            previewIndex: idx,
+                            panelist1: s.panelist1_name || '',
+                            panelist2: s.panelist2_name || '',
+                            panelist3: s.panelist3_name || '',
+                            status: 'preview'
+                        }
+                    }));
+
+                    // Determine initial date
+                    let initialDate = new Date();
+                    if (events.length > 0) {
+                        const dates = events.map(e => new Date(e.start)).sort((a, b) => a - b);
+                        initialDate = dates[0];
+                    }
+
+                    document.getElementById('previewScheduleCount').textContent = `${schedules.length} schedule(s) generated`;
+
+                    const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
+                    previewModal.show();
+
+                    // Render after modal is shown
+                    document.getElementById('schedulePreviewModal').addEventListener('shown.bs.modal', function initCal() {
+                        if (previewCalendarInstance) previewCalendarInstance.destroy();
+                        const calEl = document.getElementById('previewCalendar');
+                        previewCalendarInstance = new FullCalendar.Calendar(calEl, {
+                            initialView: 'timeGridWeek',
+                            initialDate: initialDate,
+                            headerToolbar: {
+                                left: 'prev,next today',
+                                center: 'title',
+                                right: 'timeGridWeek,timeGridDay'
+                            },
+                            slotMinTime: '07:00:00',
+                            slotMaxTime: '20:00:00',
+                            allDaySlot: false,
+                            height: 'auto',
+                            editable: true,
+                            eventDurationEditable: true,
+                            events: events,
+                            eventContent: function(arg) {
+                                const props = arg.event.extendedProps;
+                                return {
+                                    html: `<div class="event-team">${arg.event.title}</div>
+                                           <div class="event-room"><i class="fas fa-door-open me-1"></i>${props.room || ''}</div>
+                                           <div class="event-panelists">${props.panelist1 || ''}, ${props.panelist2 || ''}, ${props.panelist3 || ''}</div>`
+                                };
+                            },
+                            eventClick: function(info) {
+                                openEventEditModal(info.event, 'preview');
+                            },
+                            eventDrop: function(info) {
+                                updatePreviewDataFromEvent(info.event);
+                            },
+                            eventResize: function(info) {
+                                updatePreviewDataFromEvent(info.event);
+                            }
+                        });
+                        previewCalendarInstance.render();
+                        document.getElementById('schedulePreviewModal').removeEventListener('shown.bs.modal', initCal);
+                    }, { once: true });
+                }
+
+                function updatePreviewDataFromEvent(event) {
+                    const idx = event.extendedProps.previewIndex;
+                    if (idx !== undefined && previewScheduleData[idx]) {
+                        const start = event.start;
+                        const end = event.end;
+                        previewScheduleData[idx].schedule_date = start.toISOString().split('T')[0];
+                        previewScheduleData[idx].start_time = start.toTimeString().substring(0, 8);
+                        previewScheduleData[idx].end_time = end.toTimeString().substring(0, 8);
+                    }
+                }
+
+                // ========== EVENT EDIT MODAL ==========
+                let currentEditEvent = null;
+                let currentEditContext = null; // 'preview' or 'calendar'
+
+                function openEventEditModal(event, context) {
+                    currentEditEvent = event;
+                    currentEditContext = context;
+                    const props = event.extendedProps;
+
+                    document.getElementById('editEventId').value = event.id;
+                    document.getElementById('editTeamName').value = event.title;
+                    document.getElementById('editRoom').value = props.room || '';
+                    document.getElementById('editDate').value = event.start.toISOString().split('T')[0];
+                    document.getElementById('editStartTime').value = event.start.toTimeString().substring(0, 5);
+                    document.getElementById('editEndTime').value = event.end.toTimeString().substring(0, 5);
+
+                    // Populate panelist dropdowns
+                    const p1 = props.panelist_id || '';
+                    const p2 = props.panelist_id2 || '';
+                    const p3 = props.panelist_id3 || '';
+                    populatePanelistDropdown(document.getElementById('editPanelist1'), p1);
+                    populatePanelistDropdown(document.getElementById('editPanelist2'), p2);
+                    populatePanelistDropdown(document.getElementById('editPanelist3'), p3);
+
+                    const editModal = new bootstrap.Modal(document.getElementById('eventEditModal'));
+                    editModal.show();
+                }
+
+                document.getElementById('saveEventEdit').addEventListener('click', function() {
+                    if (!currentEditEvent) return;
+
+                    const newDate = document.getElementById('editDate').value;
+                    const newStart = document.getElementById('editStartTime').value;
+                    const newEnd = document.getElementById('editEndTime').value;
+                    const newRoom = document.getElementById('editRoom').value;
+                    const newP1 = document.getElementById('editPanelist1').value;
+                    const newP2 = document.getElementById('editPanelist2').value;
+                    const newP3 = document.getElementById('editPanelist3').value;
+
+                    // Get panelist names for display
+                    const p1Name = document.getElementById('editPanelist1').selectedOptions[0]?.textContent?.split(' (')[0] || '';
+                    const p2Name = document.getElementById('editPanelist2').selectedOptions[0]?.textContent?.split(' (')[0] || '';
+                    const p3Name = document.getElementById('editPanelist3').selectedOptions[0]?.textContent?.split(' (')[0] || '';
+
+                    // Update the event on the calendar
+                    currentEditEvent.setStart(newDate + 'T' + newStart);
+                    currentEditEvent.setEnd(newDate + 'T' + newEnd);
+                    currentEditEvent.setExtendedProp('room', newRoom);
+                    currentEditEvent.setExtendedProp('panelist_id', newP1);
+                    currentEditEvent.setExtendedProp('panelist_id2', newP2);
+                    currentEditEvent.setExtendedProp('panelist_id3', newP3);
+                    currentEditEvent.setExtendedProp('panelist1', p1Name);
+                    currentEditEvent.setExtendedProp('panelist2', p2Name);
+                    currentEditEvent.setExtendedProp('panelist3', p3Name);
+
+                    if (currentEditContext === 'preview') {
+                        const idx = currentEditEvent.extendedProps.previewIndex;
+                        if (idx !== undefined && previewScheduleData[idx]) {
+                            previewScheduleData[idx].schedule_date = newDate;
+                            previewScheduleData[idx].start_time = newStart + ':00';
+                            previewScheduleData[idx].end_time = newEnd + ':00';
+                            previewScheduleData[idx].room = newRoom;
+                            previewScheduleData[idx].panelist_id = newP1;
+                            previewScheduleData[idx].panelist_id2 = newP2;
+                            previewScheduleData[idx].panelist_id3 = newP3;
+                            previewScheduleData[idx].panelist1_name = p1Name;
+                            previewScheduleData[idx].panelist2_name = p2Name;
+                            previewScheduleData[idx].panelist3_name = p3Name;
+                        }
+                    } else if (currentEditContext === 'calendar') {
+                        const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
+                        if (sched) {
+                            sched.schedule_date = newDate;
+                            sched.start_time = newStart + ':00';
+                            sched.end_time = newEnd + ':00';
+                            sched.room = newRoom;
+                        }
+                    }
+
+                    bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
+                });
+
+                // ========== CONFIRM SAVE PREVIEW ==========
+                document.getElementById('confirmSavePreview').addEventListener('click', function() {
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+
+                    fetch('../dashboard/includes/save_preview_schedule.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ schedules: previewScheduleData })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save me-1"></i>Confirm & Save';
+                        if (data.success) {
+                            bootstrap.Modal.getInstance(document.getElementById('schedulePreviewModal')).hide();
+                            hideLoadingState(true, data.message);
+                            loadDefenseSchedules();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(err => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-save me-1"></i>Confirm & Save';
+                        alert('Network error: ' + err.message);
+                    });
+                });
+
+                // ========== BULK APPROVAL ==========
+                document.getElementById('bulkApproveBtn').addEventListener('click', function() {
+                    const pendingChair = allScheduleData.filter(s => s.approval_status === 'pending_chair');
+                    if (pendingChair.length === 0) {
+                        alert('No schedules awaiting chair review.');
+                        return;
+                    }
+                    if (!confirm(`Approve all ${pendingChair.length} schedule(s) awaiting chair review? This will notify panelists.`)) return;
+
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
+
+                    fetch('../dashboard/includes/handle_bulk_approval.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'approve', schedules: pendingChair })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible';
+                        if (data.success) {
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                            alertDiv.style.zIndex = '9999';
+                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                            document.body.appendChild(alertDiv);
+                            setTimeout(() => alertDiv.remove(), 4000);
+                            loadDefenseSchedules();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible'; alert('Network error.'); });
+                });
+
+                document.getElementById('bulkRejectBtn').addEventListener('click', function() {
+                    const pendingChair = allScheduleData.filter(s => s.approval_status === 'pending_chair');
+                    if (pendingChair.length === 0) {
+                        alert('No schedules awaiting chair review.');
+                        return;
+                    }
+                    const reason = prompt(`Reject all ${pendingChair.length} schedule(s)? Enter reason (optional):`);
+                    if (reason === null) return;
+
+                    const btn = this;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rejecting...';
+
+                    fetch('../dashboard/includes/handle_bulk_approval.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ action: 'reject', schedules: pendingChair, rejection_reason: reason })
+                    })
+                    .then(r => r.json())
+                    .then(data => {
+                        btn.disabled = false;
+                        btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible';
+                        if (data.success) {
+                            const alertDiv = document.createElement('div');
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
+                            alertDiv.style.zIndex = '9999';
+                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                            document.body.appendChild(alertDiv);
+                            setTimeout(() => alertDiv.remove(), 4000);
+                            loadDefenseSchedules();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; alert('Network error.'); });
+                });
+
+                // ========== SINGLE CHAIR ACTIONS (table view) ==========
                 document.querySelector('#def-table').addEventListener('click', function(e) {
                     const approveBtn = e.target.closest('.chair-approve-btn');
                     const rejectBtn = e.target.closest('.chair-reject-btn');
                     
                     if (approveBtn) {
                         const scheduleId = approveBtn.getAttribute('data-id');
-                        if (confirm('Approve this defense schedule? Panelists will be notified for their approval.')) {
+                        if (confirm('Approve this defense schedule? Panelists will be notified.')) {
                             handleChairAction(scheduleId, 'approve');
                         }
                     }
-                    
                     if (rejectBtn) {
                         const scheduleId = rejectBtn.getAttribute('data-id');
                         const reason = prompt('Reason for rejection (optional):');
-                        if (reason !== null) { // null means cancel
-                            handleChairAction(scheduleId, 'reject', reason);
-                        }
+                        if (reason !== null) handleChairAction(scheduleId, 'reject', reason);
                     }
                 });
 
@@ -1099,32 +1572,26 @@
                     formData.append('action', action);
                     if (reason) formData.append('rejection_reason', reason);
 
-                    fetch('../assets/includes/handle_chair_approval.php', {
-                        method: 'POST',
-                        body: formData
-                    })
+                    fetch('../assets/includes/handle_chair_approval.php', { method: 'POST', body: formData })
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            // Show success toast/alert
                             const alertDiv = document.createElement('div');
-                            alertDiv.className = `alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
                             alertDiv.style.zIndex = '9999';
                             alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
                             document.body.appendChild(alertDiv);
                             setTimeout(() => alertDiv.remove(), 4000);
-                            
-                            // Reload the table
                             loadDefenseSchedules();
                         } else {
                             alert('Error: ' + data.message);
                         }
                     })
-                    .catch(err => {
-                        console.error('Chair approval error:', err);
-                        alert('Network error. Please try again.');
-                    });
+                    .catch(err => alert('Network error. Please try again.'));
                 }
+
+                // ========== EXPOSE showPreviewCalendar for generate handler ==========
+                window.showDefensePreviewCalendar = showPreviewCalendar;
             });
         </script>
     </div>

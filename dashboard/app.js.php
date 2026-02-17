@@ -3545,6 +3545,11 @@
 
                         form.html(formHtml);
 
+                        // Populate initial Panelist 1 dropdown with staff data
+                        if (data.staff && data.staff.length > 0) {
+                            updatePanelistDropdowns(data.staff);
+                        }
+
                         // Add real-time validation for defense schedules add form using ValidationUtils
                         ValidationUtils.setupRealTimeValidation('#addForm');
 

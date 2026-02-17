@@ -425,30 +425,50 @@ try {
         
         error_log("Genetic Algorithm completed successfully");
 
-        updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
-        error_log("About to save schedule to database");
+        // Check if this is a preview request
+        $isPreview = isset($_POST['preview']) && $_POST['preview'] === 'true';
 
-        if (saveScheduleToDatabase($pdo, $bestSchedule)) {
-            updateProgress($pdo, $progressId, 'completed', 'Schedule generated and saved successfully!', 100);
+        if ($isPreview) {
+            // Preview mode: prepare data without saving
+            updateProgress($pdo, $progressId, 'running', 'Preparing schedule preview...', 90);
+            error_log("Preparing schedule preview (not saving to DB)");
+
+            $previewData = prepareScheduleData($pdo, $bestSchedule);
+            updateProgress($pdo, $progressId, 'completed', 'Preview ready!', 100);
+
             $result = [
                 'success' => true,
+                'preview' => true,
                 'progressId' => $progressId,
-                'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
-                'crossoverCount' => DefenseSchedule::$crossoverCount,
-                'mutationCount' => DefenseSchedule::$mutationCount,
-                'conflictCounts' => DefenseSchedule::$averageConflictCounts,
-                'fitnessScores' => DefenseSchedule::$averageFitnessScores,
-                'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
-                'overwrittenTeams' => !empty($scheduledTeams) ? count($scheduledTeams) : 0,
-                'message' => 'Schedule generated and saved successfully'
+                'schedules' => $previewData,
+                'message' => 'Schedule preview generated. Review and confirm to save.'
             ];
-
-            // Save the response to a JSON file
-            file_put_contents('schedule_data.json', json_encode($result));
-
             echo json_encode($result);
         } else {
-            throw new Exception("Failed to save schedule to database");
+            // Original flow: save immediately
+            updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
+            error_log("About to save schedule to database");
+
+            if (saveScheduleToDatabase($pdo, $bestSchedule)) {
+                updateProgress($pdo, $progressId, 'completed', 'Schedule generated and saved successfully!', 100);
+                $result = [
+                    'success' => true,
+                    'progressId' => $progressId,
+                    'initialPopulationSize' => count(DefenseSchedule::$initialPopulation),
+                    'crossoverCount' => DefenseSchedule::$crossoverCount,
+                    'mutationCount' => DefenseSchedule::$mutationCount,
+                    'conflictCounts' => DefenseSchedule::$averageConflictCounts,
+                    'fitnessScores' => DefenseSchedule::$averageFitnessScores,
+                    'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
+                    'overwrittenTeams' => !empty($scheduledTeams) ? count($scheduledTeams) : 0,
+                    'message' => 'Schedule generated and saved successfully'
+                ];
+
+                file_put_contents('schedule_data.json', json_encode($result));
+                echo json_encode($result);
+            } else {
+                throw new Exception("Failed to save schedule to database");
+            }
         }
     } else {
         throw new Exception('Invalid request method');
@@ -1127,6 +1147,159 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
     }
 
     return false;
+}
+
+/**
+ * Prepare schedule data for preview without saving to DB.
+ * Returns array of schedule objects with resolved names.
+ */
+function prepareScheduleData($pdo, $schedule)
+{
+    $expectedTeams = [];
+    foreach ($GLOBALS['teams'] as $team) {
+        $expectedTeams[] = $team['id'];
+    }
+
+    $scheduledTeams = [];
+    $previewSchedules = [];
+
+    // Sort chromosomes by fitness score
+    $defenses = $schedule->chromosomes;
+    foreach ($defenses as &$defense) {
+        $defense['fitness'] = calculateDefenseFitness($pdo, $defense);
+    }
+    usort($defenses, function ($a, $b) {
+        return $b['fitness'] - $a['fitness'];
+    });
+
+    // Prepare name-resolution statements
+    $teamStmt = $pdo->prepare("SELECT t.name AS team_name, rt.title AS thesis_title FROM teams t LEFT JOIN research_titles rt ON t.id = rt.team_id WHERE t.id = ?");
+    $userStmt = $pdo->prepare("SELECT CONCAT(first_name, ' ', last_name) AS full_name FROM users WHERE id = ?");
+    $adviserStmt = $pdo->prepare("
+        SELECT CONCAT(u.first_name, ' ', u.last_name) AS full_name
+        FROM team_members tm JOIN users u ON tm.user_id = u.id
+        WHERE tm.team_id = ? AND tm.role = 'adviser' LIMIT 1
+    ");
+
+    // First pass
+    foreach ($defenses as $defense) {
+        if (in_array($defense['team_id'], $scheduledTeams)) continue;
+        if (!isset($defense['panelist_ids']) || count($defense['panelist_ids']) < 3) continue;
+
+        $scheduledTeams[] = $defense['team_id'];
+        $dateObj = parseDate($defense['day']);
+        $date = $dateObj->format('Y-m-d');
+        $startTime = new DateTime($defense['time_slot']);
+        $endTime = clone $startTime;
+        $endTime->modify('+' . $GLOBALS['timeDuration'] . ' hour');
+        $defenseType = $defense['defense_type'] ?? 'title_proposal';
+
+        // Resolve names
+        $teamStmt->execute([$defense['team_id']]);
+        $teamInfo = $teamStmt->fetch(PDO::FETCH_ASSOC);
+
+        $panelistNames = [];
+        foreach ($defense['panelist_ids'] as $pid) {
+            $userStmt->execute([$pid]);
+            $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+            $panelistNames[] = $u ? $u['full_name'] : 'Unknown';
+        }
+
+        $adviserStmt->execute([$defense['team_id']]);
+        $advRow = $adviserStmt->fetch(PDO::FETCH_ASSOC);
+
+        $previewSchedules[] = [
+            'team_id' => $defense['team_id'],
+            'team_name' => $teamInfo['team_name'] ?? 'Unknown',
+            'thesis_title' => $teamInfo['thesis_title'] ?? '',
+            'adviser' => $advRow['full_name'] ?? 'N/A',
+            'panelist_id' => $defense['panelist_ids'][0],
+            'panelist_id2' => $defense['panelist_ids'][1],
+            'panelist_id3' => $defense['panelist_ids'][2],
+            'panelist1_name' => $panelistNames[0],
+            'panelist2_name' => $panelistNames[1],
+            'panelist3_name' => $panelistNames[2],
+            'schedule_date' => $date,
+            'start_time' => $startTime->format('H:i:s'),
+            'end_time' => $endTime->format('H:i:s'),
+            'room' => $defense['room'],
+            'defense_type' => $defenseType,
+        ];
+    }
+
+    // Second pass - missing teams (same logic as saveScheduleToDatabase)
+    $missingTeams = array_diff($expectedTeams, $scheduledTeams);
+    if (!empty($missingTeams)) {
+        foreach ($missingTeams as $missingTeamId) {
+            $teamDefense = null;
+            foreach ($defenses as $defense) {
+                if ($defense['team_id'] == $missingTeamId) { $teamDefense = $defense; break; }
+            }
+            if (!$teamDefense) {
+                $team = null;
+                foreach ($GLOBALS['teams'] as $filteredTeam) {
+                    if ($filteredTeam['id'] == $missingTeamId) { $team = $filteredTeam; break; }
+                }
+                if (!$team) continue;
+
+                $days = $_POST['days'];
+                $timeSlots = $_POST['timeSlots'];
+                $rooms = $_POST['rooms'];
+                $panelists = fetchPanelists($pdo);
+                $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
+                $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+
+                $teamDefense = [
+                    'team_id' => $missingTeamId,
+                    'panelist_ids' => $selectedPanelists,
+                    'room' => $rooms[array_rand($rooms)],
+                    'time_slot' => $timeSlots[array_rand($timeSlots)],
+                    'day' => $days[array_rand($days)],
+                    'defense_type' => 'title_proposal'
+                ];
+            }
+            if (!isset($teamDefense['panelist_ids']) || count($teamDefense['panelist_ids']) < 3) continue;
+
+            $dateObj = parseDate($teamDefense['day']);
+            $date = $dateObj->format('Y-m-d');
+            $startTime = new DateTime($teamDefense['time_slot']);
+            $endTime = clone $startTime;
+            $endTime->modify('+' . $GLOBALS['timeDuration'] . ' hour');
+            $defenseType = $teamDefense['defense_type'] ?? 'title_proposal';
+
+            $teamStmt->execute([$missingTeamId]);
+            $teamInfo = $teamStmt->fetch(PDO::FETCH_ASSOC);
+            $panelistNames = [];
+            foreach ($teamDefense['panelist_ids'] as $pid) {
+                $userStmt->execute([$pid]);
+                $u = $userStmt->fetch(PDO::FETCH_ASSOC);
+                $panelistNames[] = $u ? $u['full_name'] : 'Unknown';
+            }
+            $adviserStmt->execute([$missingTeamId]);
+            $advRow = $adviserStmt->fetch(PDO::FETCH_ASSOC);
+
+            $previewSchedules[] = [
+                'team_id' => $missingTeamId,
+                'team_name' => $teamInfo['team_name'] ?? 'Unknown',
+                'thesis_title' => $teamInfo['thesis_title'] ?? '',
+                'adviser' => $advRow['full_name'] ?? 'N/A',
+                'panelist_id' => $teamDefense['panelist_ids'][0],
+                'panelist_id2' => $teamDefense['panelist_ids'][1],
+                'panelist_id3' => $teamDefense['panelist_ids'][2],
+                'panelist1_name' => $panelistNames[0],
+                'panelist2_name' => $panelistNames[1],
+                'panelist3_name' => $panelistNames[2],
+                'schedule_date' => $date,
+                'start_time' => $startTime->format('H:i:s'),
+                'end_time' => $endTime->format('H:i:s'),
+                'room' => $teamDefense['room'],
+                'defense_type' => $defenseType,
+            ];
+            $scheduledTeams[] = $missingTeamId;
+        }
+    }
+
+    return $previewSchedules;
 }
 
 function saveScheduleToDatabase($pdo, $schedule)

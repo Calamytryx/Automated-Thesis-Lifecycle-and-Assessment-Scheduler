@@ -84,7 +84,7 @@ try {
     ORDER BY ds.schedule_date DESC LIMIT 1";
     $thresholdStmt = $pdo->prepare($thresholdQuery);
     $thresholdStmt->execute([$teamId]);
-    $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);
+    $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);xa
     $passThreshold3 = $thresholds['pass_threshold_3'] ?? 75;
 
     // Get all evaluations for students in this team (latest defense only)

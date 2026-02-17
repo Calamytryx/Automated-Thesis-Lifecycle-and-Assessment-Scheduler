@@ -166,11 +166,17 @@
 
         // Load available panelists (professors/staff)
         const loadPanelists = () => {
-            fetch('/dashboard/includes/get_available_users.php?type=staff')
+            fetch('/dashboard/includes/get_teams_and_staff.php')
                 .then(r => r.json())
                 .then(data => {
-                    if (data.success && data.users) {
-                        availablePanelists = data.users;
+                    if (data.success && data.staff) {
+                        // Map to {id, first_name, last_name} format for populatePanelistDropdowns
+                        availablePanelists = data.staff.map(s => {
+                            const parts = s.name.split(' ');
+                            const lastName = parts.pop();
+                            const firstName = parts.join(' ');
+                            return { id: s.id, first_name: firstName, last_name: lastName };
+                        });
                     }
                 })
                 .catch(err => console.error('Error loading panelists:', err));

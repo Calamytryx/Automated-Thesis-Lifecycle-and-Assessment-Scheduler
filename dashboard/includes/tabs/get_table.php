@@ -17,7 +17,7 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['usertype'])) {
 // 📦 GET parameters
 $table    = $_GET['table'] ?? '';
 $page     = max(1, intval($_GET['page'] ?? 1));
-$perPage  = 10;
+$perPage  = isset($_GET['per_page']) ? max(1, min(500, intval($_GET['per_page']))) : 10;
 $offset   = ($page - 1) * $perPage;
 $search   = $_GET['search'] ?? '';
 $sortBy   = $_GET['sort_by'] ?? 'id';
@@ -90,12 +90,16 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
             case 'defense_schedules':
                 $baseQuery = "SELECT
                      ds.id,
+                     ds.team_id,
                      ds.schedule_date,
                      ds.start_time,
                      ds.end_time,
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     ds.panelist_id,
+                     ds.panelist_id2,
+                     ds.panelist_id3,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      GROUP_CONCAT(
@@ -333,12 +337,16 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 // Modified baseQuery to correctly fetch adviser and ordered panelists
                 $baseQuery = "SELECT
                      ds.id,
+                     ds.team_id,
                      ds.schedule_date,
                      ds.start_time,
                      ds.end_time,
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     ds.panelist_id,
+                     ds.panelist_id2,
+                     ds.panelist_id3,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
