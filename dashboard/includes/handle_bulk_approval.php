@@ -14,8 +14,31 @@ require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
 
 try {
-    if (!isset($_SESSION['usertype']) || $_SESSION['usertype'] != 0) {
-        throw new Exception('Unauthorized: Only administrators can perform bulk approval.');
+    // Authorization: Allow admin, program chairs, and faculty from the same college
+    $usertype = intval($_SESSION['usertype'] ?? -1);
+    $userId = intval($_SESSION['id'] ?? -1);
+    $isAdmin = ($usertype === 0); // admin and program chairs both have usertype=0
+    $isAuthorizedFaculty = false;
+    
+    if ($usertype === 2 && $userId > 0) {
+        // Check if faculty has section assignments (acts as program chair for those sections)
+        require_once __DIR__ . '/section_access.php';
+        $sections = getProfessorSections($pdo, $userId);
+        if (!empty($sections)) {
+            $isAuthorizedFaculty = true;
+        } else {
+            // Also allow faculty from the same college (program chairs may not have section_professors entries)
+            require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+            $userCollege = get_user_college($pdo, $userId);
+            if ($userCollege) {
+                $isAuthorizedFaculty = true; // Faculty in a college can approve schedules for that college
+            }
+        }
+    }
+    
+    if (!$isAdmin && !$isAuthorizedFaculty) {
+        error_log("handle_bulk_approval.php: Unauthorized - userId=$userId, usertype=$usertype");
+        throw new Exception('Unauthorized: You do not have permission to perform bulk approval.');
     }
 
     $input = json_decode(file_get_contents('php://input'), true);
@@ -92,6 +115,7 @@ try {
                         $pdo,
                         $sched['id'],
                         $freshSched['team_id'],
+                        $panelistIds,
                         $freshSched['schedule_date'],
                         substr($freshSched['start_time'], 0, 5),
                         substr($freshSched['end_time'], 0, 5),
@@ -123,7 +147,7 @@ try {
             $placeholders = implode(',', array_fill(0, count($scheduleIds), '?'));
             $markReadStmt = $pdo->prepare("
                 UPDATE notifications SET is_read = 1 
-                WHERE type = 'chair_review' AND JSON_EXTRACT(data, '$.schedule_id') IN ($placeholders)
+                WHERE type IN ('defense_approval', 'defense_scheduled') AND related_id IN ($placeholders)
             ");
             $markReadStmt->execute($scheduleIds);
         }
@@ -148,7 +172,7 @@ try {
             $placeholders = implode(',', array_fill(0, count($scheduleIds), '?'));
             $markReadStmt = $pdo->prepare("
                 UPDATE notifications SET is_read = 1 
-                WHERE type = 'chair_review' AND JSON_EXTRACT(data, '$.schedule_id') IN ($placeholders)
+                WHERE type IN ('defense_approval', 'defense_scheduled') AND related_id IN ($placeholders)
             ");
             $markReadStmt->execute($scheduleIds);
         }

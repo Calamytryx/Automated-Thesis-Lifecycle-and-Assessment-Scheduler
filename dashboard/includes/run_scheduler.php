@@ -3,9 +3,10 @@
 session_start(); // Required for access control
 
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 ini_set('log_errors', 1);
 ini_set('error_log', __DIR__ . '/php_errors.log');
+ob_start(); // Buffer any stray output to protect JSON response
 
 // Increase PHP timeout for long-running scheduler
 set_time_limit(600); // 10 minutes
@@ -139,6 +140,7 @@ try {
             $invalidSections = array_diff($selectedSections, $accessibleSections);
             if (!empty($invalidSections)) {
                 updateProgress($pdo, $progressId, 'error', 'You do not have access to one or more selected sections', null);
+                if (ob_get_level()) ob_end_clean();
                 echo json_encode([
                     'success' => false,
                     'message' => 'You do not have access to one or more selected sections'
@@ -270,6 +272,7 @@ try {
                 }
                 
                 error_log("SCHEDULER: Asking for upgrade confirmation for " . count($upgradeInfo) . " teams");
+                if (ob_get_level()) ob_end_clean();
                 echo json_encode([
                     'success' => false,
                     'requireUpgradeConfirmation' => true,
@@ -302,6 +305,7 @@ try {
             error_log("SCHEDULER: Asking for overwrite confirmation for " . count($upcomingDefenses) . " upcoming defenses");
             updateProgress($pdo, $progressId, 'error', 'Confirmation required for overwriting upcoming defenses', null);
             $teamNames = getTeamNames($pdo, array_keys($upcomingDefenses));
+            if (ob_get_level()) ob_end_clean();
             echo json_encode([
                 'success' => false,
                 'requireConfirmation' => true,
@@ -443,7 +447,15 @@ try {
                 'schedules' => $previewData,
                 'message' => 'Schedule preview generated. Review and confirm to save.'
             ];
-            echo json_encode($result);
+            ob_end_clean(); // Discard any buffered output (PHP warnings etc.)
+            $json = json_encode($result);
+            if ($json === false) {
+                error_log('JSON encode error: ' . json_last_error_msg());
+                echo json_encode(['success' => false, 'message' => 'Failed to encode schedule data: ' . json_last_error_msg()]);
+            } else {
+                error_log('Preview JSON response length: ' . strlen($json));
+                echo $json;
+            }
         } else {
             // Original flow: save immediately
             updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
@@ -465,6 +477,7 @@ try {
                 ];
 
                 file_put_contents('schedule_data.json', json_encode($result));
+                ob_end_clean(); // Discard any buffered output
                 echo json_encode($result);
             } else {
                 throw new Exception("Failed to save schedule to database");
@@ -477,6 +490,7 @@ try {
     error_log("ERROR IN SCHEDULER: " . $e->getMessage());
     error_log("ERROR LOCATION: " . $e->getFile() . " line " . $e->getLine());
     error_log("STACK TRACE: \n" . $e->getTraceAsString());
+    if (ob_get_level()) ob_end_clean(); // Clean any buffered output
     echo json_encode(['success' => false, 'message' => 'Error: ' . $e->getMessage()]);
 }
 
@@ -648,9 +662,9 @@ function teamHasCompleteGrades($pdo, $teamId, $scheduleId) {
             $stmt = $pdo->prepare("
                 SELECT COUNT(*) as count
                 FROM evaluations
-                WHERE team_id = ? AND evaluator_id = ? AND defense_schedule_id = ?
+                WHERE defense_schedule_id = ? AND evaluator_id = ?
             ");
-            $stmt->execute([$teamId, $panelistId, $scheduleId]);
+            $stmt->execute([$scheduleId, $panelistId]);
             $result = $stmt->fetch(PDO::FETCH_ASSOC);
             
             if ($result['count'] == 0) {
@@ -1837,7 +1851,7 @@ function diversityPreservation($population, $populationSize, $pdo, $teams, $pane
         return $b->fitness - $a->fitness;
     });
 
-    $elites = array_slice($population, 0, $populationSize / 4);
+    $elites = array_slice($population, 0, intval($populationSize / 4));
     $newPopulation = $elites;
 
     while (count($newPopulation) < $populationSize) {

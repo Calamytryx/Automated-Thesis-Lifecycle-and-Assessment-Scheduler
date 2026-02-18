@@ -28,9 +28,29 @@ $scheduleId = $_POST['schedule_id'] ?? '';
 $userId = $_SESSION['id'] ?? '';
 $rejectionReason = $_POST['rejection_reason'] ?? '';
 
-// Validate user is a program chair or admin
-if (!isset($_SESSION['usertype']) || $_SESSION['usertype'] !== 0) {
-    echo json_encode(['success' => false, 'message' => 'Unauthorized. Only program chairs/admins can review schedules.']);
+// Validate user is a program chair, admin, or faculty from same college
+$usertype = intval($_SESSION['usertype'] ?? -1);
+$userId = intval($_SESSION['id'] ?? -1);
+$isAdmin = ($usertype === 0);
+$isAuthorizedFaculty = false;
+
+if ($usertype === 2 && $userId > 0) {
+    require_once __DIR__ . '/../../dashboard/includes/section_access.php';
+    $sections = getProfessorSections($pdo, $userId);
+    if (!empty($sections)) {
+        $isAuthorizedFaculty = true;
+    } else {
+        // Also allow faculty from the same college
+        require_once __DIR__ . '/auth_functions.php';
+        $userCollege = get_user_college($pdo, $userId);
+        if ($userCollege) {
+            $isAuthorizedFaculty = true;
+        }
+    }
+}
+
+if (!$isAdmin && !$isAuthorizedFaculty) {
+    echo json_encode(['success' => false, 'message' => 'Unauthorized. You do not have permission to review schedules.']);
     exit;
 }
 

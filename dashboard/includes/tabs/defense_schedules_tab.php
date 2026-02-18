@@ -484,6 +484,11 @@
                                         schedulerRunning = false;
                                     }
 
+                                    // Expose to global scope for cross-script access
+                                    window.hideLoadingState = hideLoadingState;
+                                    window.showLoadingState = showLoadingState;
+                                    window.updateScheduleProgress = updateProgress;
+
                                     // Progress polling system
                                     function pollScheduleProgress(progressId) {
                                         const pollInterval = setInterval(() => {
@@ -1009,6 +1014,9 @@
             .fc-event.status-approved { background-color: #28a745 !important; border-color: #218838 !important; color: #fff !important; }
             .fc-event.status-rejected { background-color: #dc3545 !important; border-color: #c82333 !important; color: #fff !important; }
             .fc-event.status-preview { background-color: #6f42c1 !important; border-color: #5a32a3 !important; color: #fff !important; }
+            /* Stacked modal z-index: eventEditModal sits above schedulePreviewModal */
+            #eventEditModal { z-index: 1060; }
+            #eventEditModal + .modal-backdrop, #eventEditModal ~ .modal-backdrop:last-of-type { z-index: 1055; }
         </style>
 
         <script>
@@ -1097,7 +1105,7 @@
 
                 // ========== TABLE VIEW (existing) ==========
                 const loadDefenseSchedules = (page = 1, showProgress = false) => {
-                    if (showProgress) updateProgress('Refreshing defense schedules...', 95);
+                    if (showProgress && typeof window.updateScheduleProgress === 'function') window.updateScheduleProgress('Refreshing defense schedules...', 95);
                     
                     // If calendar view is active, fetch all records
                     const isCalView = calendarViewBtn.checked;
@@ -1163,7 +1171,7 @@
                             }
                             pagination.innerHTML += `<li class="page-item ${page >= data.total_pages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
 
-                            if (showProgress) setTimeout(() => hideLoadingState(true, 'Defense schedules updated!'), 500);
+                            if (showProgress && typeof window.hideLoadingState === 'function') setTimeout(() => window.hideLoadingState(true, 'Defense schedules updated!'), 500);
 
                             // Update calendar if visible
                             if (calendarViewBtn.checked) renderDefenseCalendar();
@@ -1172,7 +1180,7 @@
                             if (calendarViewBtn.checked) bulkControls.style.display = hasPendingChair ? '' : 'none';
                         })
                         .catch(error => {
-                            if (showProgress) hideLoadingState(false, 'Failed to refresh schedules');
+                            if (showProgress && typeof window.hideLoadingState === 'function') window.hideLoadingState(false, 'Failed to refresh schedules');
                             const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${error.message}</td></tr>`;
                             document.querySelector('#def-nav .pagination').innerHTML = '';
@@ -1386,8 +1394,16 @@
                     populatePanelistDropdown(document.getElementById('editPanelist2'), p2);
                     populatePanelistDropdown(document.getElementById('editPanelist3'), p3);
 
-                    const editModal = new bootstrap.Modal(document.getElementById('eventEditModal'));
+                    const editModalEl = document.getElementById('eventEditModal');
+                    // Remove tabindex=-1 temporarily to avoid aria-hidden focus trap with stacked modals
+                    editModalEl.removeAttribute('tabindex');
+                    const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
                     editModal.show();
+                    // Restore tabindex after shown
+                    editModalEl.addEventListener('shown.bs.modal', function restoreTabindex() {
+                        editModalEl.setAttribute('tabindex', '-1');
+                        editModalEl.removeEventListener('shown.bs.modal', restoreTabindex);
+                    }, { once: true });
                 }
 
                 document.getElementById('saveEventEdit').addEventListener('click', function() {
@@ -1461,7 +1477,7 @@
                         btn.innerHTML = '<i class="fas fa-save me-1"></i>Confirm & Save';
                         if (data.success) {
                             bootstrap.Modal.getInstance(document.getElementById('schedulePreviewModal')).hide();
-                            hideLoadingState(true, data.message);
+                            if (typeof window.hideLoadingState === 'function') window.hideLoadingState(true, data.message);
                             loadDefenseSchedules();
                         } else {
                             alert('Error: ' + data.message);
@@ -1508,7 +1524,7 @@
                             alert('Error: ' + data.message);
                         }
                     })
-                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible'; alert('Network error.'); });
+                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible'; alert('Network error: ' + err.message); });
                 });
 
                 document.getElementById('bulkRejectBtn').addEventListener('click', function() {
@@ -1545,7 +1561,7 @@
                             alert('Error: ' + data.message);
                         }
                     })
-                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; alert('Network error.'); });
+                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; alert('Network error: ' + err.message); });
                 });
 
                 // ========== SINGLE CHAIR ACTIONS (table view) ==========
