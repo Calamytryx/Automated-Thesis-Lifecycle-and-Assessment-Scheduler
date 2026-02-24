@@ -392,3 +392,1576 @@
 [18-Feb-2026 08:40:25 Asia/Manila] Genetic Algorithm completed successfully
 [18-Feb-2026 08:40:25 Asia/Manila] Preparing schedule preview (not saving to DB)
 [18-Feb-2026 08:40:25 Asia/Manila] Preview JSON response length: 3452
+[18-Feb-2026 15:14:19 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:14:19 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-19-2026
+            [1] => 02-20-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[18-Feb-2026 15:14:19 Asia/Manila] SESSION data: Array
+(
+    [token] => 800a0829eb9fd062c1fa34f9c3dcbbf3cf09a87bb6c71d130c245c08b6c87bac
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 418
+    [username] => Raymund.Constante
+    [program] => Bachelor of Science in Computer Science
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => raymund.constante@lpunetwork.edu.ph
+    [first_name] => Raymund
+    [last_name] => Constante
+    [gender] => 
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => Mobile Dev
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-12-04 10:18:37
+    [created_at] => 
+    [updated_at] => 2026-02-18 15:13:10
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:13:10
+    [usertype] => 2
+    [program_chair] => 
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 49
+            [1] => 52
+        )
+
+    [expire] => 1771565192
+)
+
+[18-Feb-2026 15:14:19 Asia/Manila] Scheduler Access Control: userId=418, usertype=2, accessibleSections=CS401, selectedSections=CS401
+[18-Feb-2026 15:14:19 Asia/Manila] checkExistingSchedules: Found 7 teams with existing schedules
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 52: defense_date=2025-12-05, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 57: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 53: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 54: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 55: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila]   - Team 56: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: checkExistingSchedules returned 7 teams
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":43,"team_id":52,"panelist_id":422,"panelist_id2":427,"panelist_id3":436,"schedule_date":"2025-12-05","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:14:19","approval_status":"approved","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2025-12-05","time_slot":"16:00:00"},"57":{"id":44,"team_id":57,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:15:50","approval_status":"approved","defense_status":"pending","team_name":"GAIA","defense_date":"2025-12-06","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":48,"team_id":53,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:26:54","approval_status":"approved","defense_status":"pending","team_name":"Postra","defense_date":"2025-12-06","time_slot":"16:00:00"},"54":{"id":49,"team_id":54,"panelist_id":431,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:12","approval_status":"approved","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2025-12-06","time_slot":"08:00:00"},"55":{"id":50,"team_id":55,"panelist_id":431,"panelist_id2":428,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:47","approval_status":"approved","defense_status":"pending","team_name":"Solari","defense_date":"2025-12-06","time_slot":"10:00:00"},"56":{"id":52,"team_id":56,"panelist_id":422,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:33:55","approval_status":"approved","defense_status":"pending","team_name":"SalinDugo","defense_date":"2025-12-06","time_slot":"16:00:00"}}
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Starting to process 7 scheduled teams
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2025-12-05, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 52 normalized date: 2025-12-05
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 52 marked as PAST schedule (2025-12-05 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 52 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 57 normalized date: 2025-12-06
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 57 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 57 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 53 normalized date: 2025-12-06
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 53 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 53 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 54 normalized date: 2025-12-06
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 54 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 54 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 55 normalized date: 2025-12-06
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 55 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 55 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 56 normalized date: 2025-12-06
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 56 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Team 56 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Summary - Past: 7, Future: 0, Upcoming/Pending: 0, Needs grade check: 0
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 15:14:19 Asia/Manila] Fetched 14 teams for sections: CS401
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: Teams with future pending schedules (NOT overwriting): 
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: After filtering - 14 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 15:14:19 Asia/Manila] SCHEDULER: About to generate schedules for 14 teams
+[18-Feb-2026 15:14:19 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 15:14:19 Asia/Manila] Generation 0 completed. Best fitness: -360. Elapsed time: 0.018404006958008 seconds
+[18-Feb-2026 15:14:22 Asia/Manila] Generation 20 completed. Best fitness: -190. Elapsed time: 2.711333990097 seconds
+[18-Feb-2026 15:14:24 Asia/Manila] Generation 40 completed. Best fitness: -155. Elapsed time: 5.1123430728912 seconds
+[18-Feb-2026 15:14:26 Asia/Manila] Generation 60 completed. Best fitness: -125. Elapsed time: 7.5824711322784 seconds
+[18-Feb-2026 15:14:29 Asia/Manila] Generation 80 completed. Best fitness: -125. Elapsed time: 10.057186126709 seconds
+[18-Feb-2026 15:14:31 Asia/Manila] Genetic algorithm completed in 12.58692407608 seconds
+[18-Feb-2026 15:14:31 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 15:14:31 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 15:14:31 Asia/Manila] Preview JSON response length: 6436
+[18-Feb-2026 15:23:55 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:23:55 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-19-2026
+            [1] => 02-20-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[18-Feb-2026 15:23:55 Asia/Manila] SESSION data: Array
+(
+    [token] => 800a0829eb9fd062c1fa34f9c3dcbbf3cf09a87bb6c71d130c245c08b6c87bac
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 418
+    [username] => Raymund.Constante
+    [program] => Bachelor of Science in Computer Science
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => raymund.constante@lpunetwork.edu.ph
+    [first_name] => Raymund
+    [last_name] => Constante
+    [gender] => 
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => Mobile Dev
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-12-04 10:18:37
+    [created_at] => 
+    [updated_at] => 2026-02-18 15:13:10
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:13:10
+    [usertype] => 2
+    [program_chair] => 
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 49
+            [1] => 52
+        )
+
+    [expire] => 1771565192
+)
+
+[18-Feb-2026 15:23:55 Asia/Manila] Scheduler Access Control: userId=418, usertype=2, accessibleSections=CS401, selectedSections=CS401
+[18-Feb-2026 15:23:55 Asia/Manila] checkExistingSchedules: Found 7 teams with existing schedules
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 52: defense_date=2025-12-05, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 57: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 53: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 54: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 55: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila]   - Team 56: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: checkExistingSchedules returned 7 teams
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":43,"team_id":52,"panelist_id":422,"panelist_id2":427,"panelist_id3":436,"schedule_date":"2025-12-05","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:14:19","approval_status":"approved","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2025-12-05","time_slot":"16:00:00"},"57":{"id":44,"team_id":57,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:15:50","approval_status":"approved","defense_status":"pending","team_name":"GAIA","defense_date":"2025-12-06","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":48,"team_id":53,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:26:54","approval_status":"approved","defense_status":"pending","team_name":"Postra","defense_date":"2025-12-06","time_slot":"16:00:00"},"54":{"id":49,"team_id":54,"panelist_id":431,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:12","approval_status":"approved","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2025-12-06","time_slot":"08:00:00"},"55":{"id":50,"team_id":55,"panelist_id":431,"panelist_id2":428,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:47","approval_status":"approved","defense_status":"pending","team_name":"Solari","defense_date":"2025-12-06","time_slot":"10:00:00"},"56":{"id":52,"team_id":56,"panelist_id":422,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:33:55","approval_status":"approved","defense_status":"pending","team_name":"SalinDugo","defense_date":"2025-12-06","time_slot":"16:00:00"}}
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Starting to process 7 scheduled teams
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2025-12-05, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 52 normalized date: 2025-12-05
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 52 marked as PAST schedule (2025-12-05 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 52 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 57 normalized date: 2025-12-06
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 57 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 57 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 53 normalized date: 2025-12-06
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 53 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 53 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 54 normalized date: 2025-12-06
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 54 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 54 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 55 normalized date: 2025-12-06
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 55 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 55 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 56 normalized date: 2025-12-06
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 56 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Team 56 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Summary - Past: 7, Future: 0, Upcoming/Pending: 0, Needs grade check: 0
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 15:23:55 Asia/Manila] Fetched 14 teams for sections: CS401
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: Teams with future pending schedules (NOT overwriting): 
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: After filtering - 14 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 15:23:55 Asia/Manila] SCHEDULER: About to generate schedules for 14 teams
+[18-Feb-2026 15:23:55 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 15:23:55 Asia/Manila] Generation 0 completed. Best fitness: -315. Elapsed time: 0.01814603805542 seconds
+[18-Feb-2026 15:23:58 Asia/Manila] Generation 20 completed. Best fitness: -145. Elapsed time: 2.5476810932159 seconds
+[18-Feb-2026 15:24:00 Asia/Manila] Generation 40 completed. Best fitness: -145. Elapsed time: 4.9279170036316 seconds
+[18-Feb-2026 15:24:02 Asia/Manila] Early stopping at generation 59 - no improvement for 50 generations
+[18-Feb-2026 15:24:02 Asia/Manila] Genetic algorithm completed in 7.192941904068 seconds
+[18-Feb-2026 15:24:02 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 15:24:02 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 15:24:02 Asia/Manila] Preview JSON response length: 6437
+[18-Feb-2026 15:30:20 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:30:20 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-20-2026
+            [1] => 02-23-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[18-Feb-2026 15:30:20 Asia/Manila] SESSION data: Array
+(
+    [token] => e7196dd0dd98eb4bf804e49ca2f9bd4cb4b2d1445d65dc1fa5d0ecaaa7456044
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:12:59
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:12:59
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771565815
+)
+
+[18-Feb-2026 15:30:20 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401
+[18-Feb-2026 15:30:20 Asia/Manila] checkExistingSchedules: Found 7 teams with existing schedules
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 52: defense_date=2025-12-05, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 57: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 53: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 54: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 55: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila]   - Team 56: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: checkExistingSchedules returned 7 teams
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":43,"team_id":52,"panelist_id":422,"panelist_id2":427,"panelist_id3":436,"schedule_date":"2025-12-05","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:14:19","approval_status":"approved","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2025-12-05","time_slot":"16:00:00"},"57":{"id":44,"team_id":57,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:15:50","approval_status":"approved","defense_status":"pending","team_name":"GAIA","defense_date":"2025-12-06","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":48,"team_id":53,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:26:54","approval_status":"approved","defense_status":"pending","team_name":"Postra","defense_date":"2025-12-06","time_slot":"16:00:00"},"54":{"id":49,"team_id":54,"panelist_id":431,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:12","approval_status":"approved","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2025-12-06","time_slot":"08:00:00"},"55":{"id":50,"team_id":55,"panelist_id":431,"panelist_id2":428,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:47","approval_status":"approved","defense_status":"pending","team_name":"Solari","defense_date":"2025-12-06","time_slot":"10:00:00"},"56":{"id":52,"team_id":56,"panelist_id":422,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:33:55","approval_status":"approved","defense_status":"pending","team_name":"SalinDugo","defense_date":"2025-12-06","time_slot":"16:00:00"}}
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Starting to process 7 scheduled teams
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2025-12-05, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 52 normalized date: 2025-12-05
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 52 marked as PAST schedule (2025-12-05 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 52 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 57 normalized date: 2025-12-06
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 57 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 57 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 53 normalized date: 2025-12-06
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 53 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 53 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 54 normalized date: 2025-12-06
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 54 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 54 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 55 normalized date: 2025-12-06
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 55 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 55 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 56 normalized date: 2025-12-06
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 56 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Team 56 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Summary - Past: 7, Future: 0, Upcoming/Pending: 0, Needs grade check: 0
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 15:30:20 Asia/Manila] Fetched 14 teams for sections: CS401
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: Teams with future pending schedules (NOT overwriting): 
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: After filtering - 14 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 15:30:20 Asia/Manila] SCHEDULER: About to generate schedules for 14 teams
+[18-Feb-2026 15:30:20 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 15:30:20 Asia/Manila] Generation 0 completed. Best fitness: -285. Elapsed time: 0.017161130905151 seconds
+[18-Feb-2026 15:30:22 Asia/Manila] Generation 20 completed. Best fitness: -165. Elapsed time: 2.683779001236 seconds
+[18-Feb-2026 15:30:25 Asia/Manila] Generation 40 completed. Best fitness: -135. Elapsed time: 5.0691680908203 seconds
+[18-Feb-2026 15:30:27 Asia/Manila] Generation 60 completed. Best fitness: -125. Elapsed time: 7.4229290485382 seconds
+[18-Feb-2026 15:30:30 Asia/Manila] Generation 80 completed. Best fitness: -125. Elapsed time: 9.8356280326843 seconds
+[18-Feb-2026 15:30:32 Asia/Manila] Genetic algorithm completed in 12.239854097366 seconds
+[18-Feb-2026 15:30:32 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 15:30:32 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 15:30:32 Asia/Manila] Preview JSON response length: 6438
+[18-Feb-2026 15:47:20 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:47:20 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-20-2026
+            [1] => 02-21-2026
+            [2] => 02-23-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[18-Feb-2026 15:47:20 Asia/Manila] SESSION data: Array
+(
+    [token] => f85e034afa29c41b952773964a495e6668cdff3f8d13a2965d7b50558d71b272
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:45:03
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:45:03
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771567103
+)
+
+[18-Feb-2026 15:47:20 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401
+[18-Feb-2026 15:47:20 Asia/Manila] checkExistingSchedules: Found 14 teams with existing schedules
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 52: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 57: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 53: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 54: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 55: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 56: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 45: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 44: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 46: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 48: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 43: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 47: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila]   - Team 42: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: checkExistingSchedules returned 14 teams
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":135,"team_id":52,"panelist_id":429,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"13:00:00","end_time":"15:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-20","time_slot":"13:00:00"},"57":{"id":140,"team_id":57,"panelist_id":427,"panelist_id2":429,"panelist_id3":428,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-23","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":136,"team_id":53,"panelist_id":422,"panelist_id2":441,"panelist_id3":418,"schedule_date":"2026-02-23","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-23","time_slot":"13:00:00"},"54":{"id":137,"team_id":54,"panelist_id":422,"panelist_id2":427,"panelist_id3":428,"schedule_date":"2026-02-23","start_time":"16:00:00","end_time":"18:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-23","time_slot":"16:00:00"},"55":{"id":138,"team_id":55,"panelist_id":427,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-23","start_time":"10:00:00","end_time":"12:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-23","time_slot":"10:00:00"},"56":{"id":139,"team_id":56,"panelist_id":422,"panelist_id2":451,"panelist_id3":430,"schedule_date":"2026-02-21","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-21","time_slot":"11:00:00"},"45":{"id":128,"team_id":45,"panelist_id":269,"panelist_id2":430,"panelist_id3":427,"schedule_date":"2026-02-21","start_time":"14:30:00","end_time":"16:30:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"14:30:00"},"44":{"id":129,"team_id":44,"panelist_id":270,"panelist_id2":277,"panelist_id3":422,"schedule_date":"2026-02-20","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-20","time_slot":"08:00:00"},"46":{"id":130,"team_id":46,"panelist_id":270,"panelist_id2":277,"panelist_id3":422,"schedule_date":"2026-02-23","start_time":"15:00:00","end_time":"17:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-23","time_slot":"15:00:00"},"48":{"id":131,"team_id":48,"panelist_id":428,"panelist_id2":430,"panelist_id3":429,"schedule_date":"2026-02-23","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-23","time_slot":"15:00:00"},"43":{"id":132,"team_id":43,"panelist_id":283,"panelist_id2":428,"panelist_id3":436,"schedule_date":"2026-02-20","start_time":"10:30:00","end_time":"12:30:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"approved","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-20","time_slot":"10:30:00"},"47":{"id":133,"team_id":47,"panelist_id":270,"panelist_id2":278,"panelist_id3":429,"schedule_date":"2026-02-21","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-21","time_slot":"08:00:00"},"42":{"id":134,"team_id":42,"panelist_id":269,"panelist_id2":278,"panelist_id3":436,"schedule_date":"2026-02-23","start_time":"14:00:00","end_time":"16:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-23","time_slot":"14:00:00"}}
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Starting to process 14 scheduled teams
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-20
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-21
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-21
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-20
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-20
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-21
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-23
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Summary - Past: 1, Future: 13, Upcoming/Pending: 13, Needs grade check: 0
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[18-Feb-2026 15:47:20 Asia/Manila] SCHEDULER: Asking for overwrite confirmation for 13 upcoming defenses
+[18-Feb-2026 15:47:38 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:47:38 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-20-2026
+            [1] => 02-21-2026
+            [2] => 02-23-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => true
+    [preview] => true
+)
+
+[18-Feb-2026 15:47:38 Asia/Manila] SESSION data: Array
+(
+    [token] => f85e034afa29c41b952773964a495e6668cdff3f8d13a2965d7b50558d71b272
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:45:03
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:45:03
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771567103
+)
+
+[18-Feb-2026 15:47:38 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401
+[18-Feb-2026 15:47:38 Asia/Manila] checkExistingSchedules: Found 14 teams with existing schedules
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 52: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 57: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 53: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 54: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 55: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 56: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 45: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 44: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 46: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 48: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 43: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 47: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila]   - Team 42: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: checkExistingSchedules returned 14 teams
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":135,"team_id":52,"panelist_id":429,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"13:00:00","end_time":"15:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-20","time_slot":"13:00:00"},"57":{"id":140,"team_id":57,"panelist_id":427,"panelist_id2":429,"panelist_id3":428,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-23","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":136,"team_id":53,"panelist_id":422,"panelist_id2":441,"panelist_id3":418,"schedule_date":"2026-02-23","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-23","time_slot":"13:00:00"},"54":{"id":137,"team_id":54,"panelist_id":422,"panelist_id2":427,"panelist_id3":428,"schedule_date":"2026-02-23","start_time":"16:00:00","end_time":"18:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-23","time_slot":"16:00:00"},"55":{"id":138,"team_id":55,"panelist_id":427,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-23","start_time":"10:00:00","end_time":"12:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-23","time_slot":"10:00:00"},"56":{"id":139,"team_id":56,"panelist_id":422,"panelist_id2":451,"panelist_id3":430,"schedule_date":"2026-02-21","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-21","time_slot":"11:00:00"},"45":{"id":128,"team_id":45,"panelist_id":269,"panelist_id2":430,"panelist_id3":427,"schedule_date":"2026-02-21","start_time":"14:30:00","end_time":"16:30:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"14:30:00"},"44":{"id":129,"team_id":44,"panelist_id":270,"panelist_id2":277,"panelist_id3":422,"schedule_date":"2026-02-20","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-20","time_slot":"08:00:00"},"46":{"id":130,"team_id":46,"panelist_id":270,"panelist_id2":277,"panelist_id3":422,"schedule_date":"2026-02-23","start_time":"15:00:00","end_time":"17:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-23","time_slot":"15:00:00"},"48":{"id":131,"team_id":48,"panelist_id":428,"panelist_id2":430,"panelist_id3":429,"schedule_date":"2026-02-23","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-23","time_slot":"15:00:00"},"43":{"id":132,"team_id":43,"panelist_id":283,"panelist_id2":428,"panelist_id3":436,"schedule_date":"2026-02-20","start_time":"10:30:00","end_time":"12:30:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"approved","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-20","time_slot":"10:30:00"},"47":{"id":133,"team_id":47,"panelist_id":270,"panelist_id2":278,"panelist_id3":429,"schedule_date":"2026-02-21","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-21","time_slot":"08:00:00"},"42":{"id":134,"team_id":42,"panelist_id":269,"panelist_id2":278,"panelist_id3":436,"schedule_date":"2026-02-23","start_time":"14:00:00","end_time":"16:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:31:11","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-23","time_slot":"14:00:00"}}
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Starting to process 14 scheduled teams
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-20
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-21
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-21
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-20
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-20
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-21
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-23
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Summary - Past: 1, Future: 13, Upcoming/Pending: 13, Needs grade check: 0
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: POST confirm_overwrite = true
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 15:47:38 Asia/Manila] removeExistingSchedules: Attempting to remove FUTURE schedules (after 2026-02-18) for teams: 52, 57, 53, 54, 55, 56, 45, 44, 46, 48, 43, 47, 42
+[18-Feb-2026 15:47:38 Asia/Manila] removeExistingSchedules: Successfully removed 13 FUTURE schedule(s) for 13 team(s)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: Removed 13 upcoming schedules for re-scheduling
+[18-Feb-2026 15:47:38 Asia/Manila] Fetched 14 teams for sections: CS401
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: After filtering - 14 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 15:47:38 Asia/Manila] SCHEDULER: About to generate schedules for 14 teams
+[18-Feb-2026 15:47:38 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 15:47:38 Asia/Manila] Generation 0 completed. Best fitness: -270. Elapsed time: 0.016751050949097 seconds
+[18-Feb-2026 15:47:40 Asia/Manila] Generation 20 completed. Best fitness: -105. Elapsed time: 2.3736090660095 seconds
+[18-Feb-2026 15:47:42 Asia/Manila] Generation 40 completed. Best fitness: -65. Elapsed time: 4.5462000370026 seconds
+[18-Feb-2026 15:47:44 Asia/Manila] Generation 60 completed. Best fitness: -65. Elapsed time: 6.6582899093628 seconds
+[18-Feb-2026 15:47:47 Asia/Manila] Generation 80 completed. Best fitness: -65. Elapsed time: 8.7839770317078 seconds
+[18-Feb-2026 15:47:48 Asia/Manila] Early stopping at generation 90 - no improvement for 50 generations
+[18-Feb-2026 15:47:48 Asia/Manila] Genetic algorithm completed in 9.9016270637512 seconds
+[18-Feb-2026 15:47:48 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 15:47:48 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 15:47:48 Asia/Manila] Preview JSON response length: 6430
+[18-Feb-2026 15:59:37 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:59:37 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-24-2026
+            [1] => 02-26-2026
+            [2] => 02-28-2026
+        )
+
+    [section] => 
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[18-Feb-2026 15:59:37 Asia/Manila] SESSION data: Array
+(
+    [token] => 709f7f5fbd42f87fab989ed02bd00b7aedcff89e942262273a91181b2c9db1d6
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:59:02
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:59:02
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771567942
+)
+
+[18-Feb-2026 15:59:37 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401,IT401,IT402,IT403
+[18-Feb-2026 15:59:37 Asia/Manila] checkExistingSchedules: Found 23 teams with existing schedules
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 52: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 57: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 59: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 53: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 54: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 55: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 56: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 29: defense_date=2025-12-04, defense_type=title_proposal, defense_status=passed
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 21: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 22: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 23: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 25: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 27: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 26: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 24: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 28: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 45: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 42: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 43: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 44: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 46: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 48: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila]   - Team 47: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: checkExistingSchedules returned 23 teams
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":149,"team_id":52,"panelist_id":422,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-20","time_slot":"09:00:00"},"57":{"id":154,"team_id":57,"panelist_id":429,"panelist_id2":436,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-20","time_slot":"08:00:00"},"59":{"id":155,"team_id":59,"panelist_id":429,"panelist_id2":441,"panelist_id3":278,"schedule_date":"2026-02-20","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2026-02-20","time_slot":"10:00:00"},"53":{"id":150,"team_id":53,"panelist_id":427,"panelist_id2":422,"panelist_id3":431,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-23","time_slot":"08:00:00"},"54":{"id":151,"team_id":54,"panelist_id":422,"panelist_id2":427,"panelist_id3":418,"schedule_date":"2026-02-20","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-20","time_slot":"15:00:00"},"55":{"id":152,"team_id":55,"panelist_id":422,"panelist_id2":427,"panelist_id3":428,"schedule_date":"2026-02-21","start_time":"14:00:00","end_time":"16:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-21","time_slot":"14:00:00"},"56":{"id":153,"team_id":56,"panelist_id":422,"panelist_id2":427,"panelist_id3":430,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-23","time_slot":"08:00:00"},"29":{"id":54,"team_id":29,"panelist_id":271,"panelist_id2":270,"panelist_id3":272,"schedule_date":"2025-12-04","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-05 07:12:19","approval_status":"approved","defense_status":"passed","team_name":"team 1 (IT402)","defense_date":"2025-12-04","time_slot":"15:00:00"},"21":{"id":120,"team_id":21,"panelist_id":428,"panelist_id2":431,"panelist_id3":427,"schedule_date":"2026-02-19","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 1 (IT401)","defense_date":"2026-02-19","time_slot":"11:00:00"},"22":{"id":124,"team_id":22,"panelist_id":270,"panelist_id2":283,"panelist_id3":441,"schedule_date":"2026-02-19","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"approved","defense_status":"pending","team_name":"team 2 (IT401)","defense_date":"2026-02-19","time_slot":"15:00:00"},"23":{"id":121,"team_id":23,"panelist_id":270,"panelist_id2":279,"panelist_id3":427,"schedule_date":"2026-02-20","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 3 (IT401)","defense_date":"2026-02-20","time_slot":"13:00:00"},"25":{"id":122,"team_id":25,"panelist_id":269,"panelist_id2":272,"panelist_id3":422,"schedule_date":"2026-02-20","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 5 (IT401)","defense_date":"2026-02-20","time_slot":"09:00:00"},"27":{"id":123,"team_id":27,"panelist_id":270,"panelist_id2":279,"panelist_id3":441,"schedule_date":"2026-02-19","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"approved","defense_status":"pending","team_name":"team 8 (IT401)","defense_date":"2026-02-19","time_slot":"09:00:00"},"26":{"id":125,"team_id":26,"panelist_id":269,"panelist_id2":418,"panelist_id3":427,"schedule_date":"2026-02-19","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 6 (IT401)","defense_date":"2026-02-19","time_slot":"13:00:00"},"24":{"id":126,"team_id":24,"panelist_id":428,"panelist_id2":284,"panelist_id3":422,"schedule_date":"2026-02-19","start_time":"17:00:00","end_time":"19:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 4 (IT401)","defense_date":"2026-02-19","time_slot":"17:00:00"},"28":{"id":127,"team_id":28,"panelist_id":269,"panelist_id2":280,"panelist_id3":451,"schedule_date":"2026-02-20","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 9 (IT401)","defense_date":"2026-02-20","time_slot":"11:00:00"},"45":{"id":142,"team_id":45,"panelist_id":270,"panelist_id2":269,"panelist_id3":429,"schedule_date":"2026-02-21","start_time":"08:00:00","end_time":"10:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"08:00:00"},"42":{"id":143,"team_id":42,"panelist_id":428,"panelist_id2":418,"panelist_id3":441,"schedule_date":"2026-02-21","start_time":"10:00:00","end_time":"12:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-21","time_slot":"10:00:00"},"43":{"id":144,"team_id":43,"panelist_id":270,"panelist_id2":272,"panelist_id3":427,"schedule_date":"2026-02-20","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-20","time_slot":"12:00:00"},"44":{"id":145,"team_id":44,"panelist_id":269,"panelist_id2":418,"panelist_id3":422,"schedule_date":"2026-02-21","start_time":"12:00:00","end_time":"14:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-21","time_slot":"12:00:00"},"46":{"id":146,"team_id":46,"panelist_id":270,"panelist_id2":284,"panelist_id3":422,"schedule_date":"2026-02-21","start_time":"14:00:00","end_time":"16:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"14:00:00"},"48":{"id":147,"team_id":48,"panelist_id":428,"panelist_id2":281,"panelist_id3":436,"schedule_date":"2026-02-21","start_time":"12:00:00","end_time":"14:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-21","time_slot":"12:00:00"},"47":{"id":148,"team_id":47,"panelist_id":428,"panelist_id2":430,"panelist_id3":429,"schedule_date":"2026-02-20","start_time":"11:00:00","end_time":"13:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-20","time_slot":"11:00:00"}}
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Starting to process 23 scheduled teams
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 59 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 59 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 59 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-23
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-23
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 29 - defense_date: 2025-12-04, defense_status: passed
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 29 normalized date: 2025-12-04
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 29 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 29 needs grade check for progression (status: passed)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 21 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 21 normalized date: 2026-02-19
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 21 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 21 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 22 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 22 normalized date: 2026-02-19
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 22 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 22 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 23 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 23 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 23 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 23 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 25 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 25 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 25 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 25 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 27 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 27 normalized date: 2026-02-19
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 27 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 27 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 26 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 26 normalized date: 2026-02-19
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 26 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 26 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 24 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 24 normalized date: 2026-02-19
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 24 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 24 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 28 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 28 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 28 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 28 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-21
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-20
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Summary - Past: 1, Future: 22, Upcoming/Pending: 22, Needs grade check: 1
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Need to check grades for 1 teams
+[18-Feb-2026 15:59:37 Asia/Manila] teamHasCompleteGrades: Team 29 missing evaluation from panelist 271
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Teams ready for upgrade: 0, Missing grades: 1
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: No teams ready for upgrade (all missing grades) - proceeding without upgrade
+[18-Feb-2026 15:59:37 Asia/Manila] SCHEDULER: Asking for overwrite confirmation for 22 upcoming defenses
+[18-Feb-2026 15:59:46 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 15:59:46 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-24-2026
+            [1] => 02-26-2026
+            [2] => 02-28-2026
+        )
+
+    [section] => 
+    [confirm_overwrite] => true
+    [preview] => true
+)
+
+[18-Feb-2026 15:59:46 Asia/Manila] SESSION data: Array
+(
+    [token] => 709f7f5fbd42f87fab989ed02bd00b7aedcff89e942262273a91181b2c9db1d6
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:59:02
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:59:02
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771567942
+)
+
+[18-Feb-2026 15:59:46 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401,IT401,IT402,IT403
+[18-Feb-2026 15:59:46 Asia/Manila] checkExistingSchedules: Found 23 teams with existing schedules
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 52: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 57: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 59: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 53: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 54: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 55: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 56: defense_date=2026-02-23, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 29: defense_date=2025-12-04, defense_type=title_proposal, defense_status=passed
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 21: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 22: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 23: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 25: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 27: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 26: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 24: defense_date=2026-02-19, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 28: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 45: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 42: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 43: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 44: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 46: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 48: defense_date=2026-02-21, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila]   - Team 47: defense_date=2026-02-20, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: checkExistingSchedules returned 23 teams
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":149,"team_id":52,"panelist_id":422,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-20","time_slot":"09:00:00"},"57":{"id":154,"team_id":57,"panelist_id":429,"panelist_id2":436,"panelist_id3":431,"schedule_date":"2026-02-20","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-20","time_slot":"08:00:00"},"59":{"id":155,"team_id":59,"panelist_id":429,"panelist_id2":441,"panelist_id3":278,"schedule_date":"2026-02-20","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2026-02-20","time_slot":"10:00:00"},"53":{"id":150,"team_id":53,"panelist_id":427,"panelist_id2":422,"panelist_id3":431,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-23","time_slot":"08:00:00"},"54":{"id":151,"team_id":54,"panelist_id":422,"panelist_id2":427,"panelist_id3":418,"schedule_date":"2026-02-20","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-20","time_slot":"15:00:00"},"55":{"id":152,"team_id":55,"panelist_id":422,"panelist_id2":427,"panelist_id3":428,"schedule_date":"2026-02-21","start_time":"14:00:00","end_time":"16:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-21","time_slot":"14:00:00"},"56":{"id":153,"team_id":56,"panelist_id":422,"panelist_id2":427,"panelist_id3":430,"schedule_date":"2026-02-23","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-23","time_slot":"08:00:00"},"29":{"id":54,"team_id":29,"panelist_id":271,"panelist_id2":270,"panelist_id3":272,"schedule_date":"2025-12-04","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-05 07:12:19","approval_status":"approved","defense_status":"passed","team_name":"team 1 (IT402)","defense_date":"2025-12-04","time_slot":"15:00:00"},"21":{"id":120,"team_id":21,"panelist_id":428,"panelist_id2":431,"panelist_id3":427,"schedule_date":"2026-02-19","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 1 (IT401)","defense_date":"2026-02-19","time_slot":"11:00:00"},"22":{"id":124,"team_id":22,"panelist_id":270,"panelist_id2":283,"panelist_id3":441,"schedule_date":"2026-02-19","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"approved","defense_status":"pending","team_name":"team 2 (IT401)","defense_date":"2026-02-19","time_slot":"15:00:00"},"23":{"id":121,"team_id":23,"panelist_id":270,"panelist_id2":279,"panelist_id3":427,"schedule_date":"2026-02-20","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 3 (IT401)","defense_date":"2026-02-20","time_slot":"13:00:00"},"25":{"id":122,"team_id":25,"panelist_id":269,"panelist_id2":272,"panelist_id3":422,"schedule_date":"2026-02-20","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 5 (IT401)","defense_date":"2026-02-20","time_slot":"09:00:00"},"27":{"id":123,"team_id":27,"panelist_id":270,"panelist_id2":279,"panelist_id3":441,"schedule_date":"2026-02-19","start_time":"09:00:00","end_time":"11:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"approved","defense_status":"pending","team_name":"team 8 (IT401)","defense_date":"2026-02-19","time_slot":"09:00:00"},"26":{"id":125,"team_id":26,"panelist_id":269,"panelist_id2":418,"panelist_id3":427,"schedule_date":"2026-02-19","start_time":"13:00:00","end_time":"15:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 6 (IT401)","defense_date":"2026-02-19","time_slot":"13:00:00"},"24":{"id":126,"team_id":24,"panelist_id":428,"panelist_id2":284,"panelist_id3":422,"schedule_date":"2026-02-19","start_time":"17:00:00","end_time":"19:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 4 (IT401)","defense_date":"2026-02-19","time_slot":"17:00:00"},"28":{"id":127,"team_id":28,"panelist_id":269,"panelist_id2":280,"panelist_id3":451,"schedule_date":"2026-02-20","start_time":"11:00:00","end_time":"13:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 08:41:32","approval_status":"pending","defense_status":"pending","team_name":"team 9 (IT401)","defense_date":"2026-02-20","time_slot":"11:00:00"},"45":{"id":142,"team_id":45,"panelist_id":270,"panelist_id2":269,"panelist_id3":429,"schedule_date":"2026-02-21","start_time":"08:00:00","end_time":"10:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"08:00:00"},"42":{"id":143,"team_id":42,"panelist_id":428,"panelist_id2":418,"panelist_id3":441,"schedule_date":"2026-02-21","start_time":"10:00:00","end_time":"12:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-21","time_slot":"10:00:00"},"43":{"id":144,"team_id":43,"panelist_id":270,"panelist_id2":272,"panelist_id3":427,"schedule_date":"2026-02-20","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-20","time_slot":"12:00:00"},"44":{"id":145,"team_id":44,"panelist_id":269,"panelist_id2":418,"panelist_id3":422,"schedule_date":"2026-02-21","start_time":"12:00:00","end_time":"14:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-21","time_slot":"12:00:00"},"46":{"id":146,"team_id":46,"panelist_id":270,"panelist_id2":284,"panelist_id3":422,"schedule_date":"2026-02-21","start_time":"14:00:00","end_time":"16:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-21","time_slot":"14:00:00"},"48":{"id":147,"team_id":48,"panelist_id":428,"panelist_id2":281,"panelist_id3":436,"schedule_date":"2026-02-21","start_time":"12:00:00","end_time":"14:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-21","time_slot":"12:00:00"},"47":{"id":148,"team_id":47,"panelist_id":428,"panelist_id2":430,"panelist_id3":429,"schedule_date":"2026-02-20","start_time":"11:00:00","end_time":"13:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 15:51:21","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-20","time_slot":"11:00:00"}}
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Starting to process 23 scheduled teams
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 59 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 59 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 59 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-23
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-23, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-23
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-23 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 29 - defense_date: 2025-12-04, defense_status: passed
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 29 normalized date: 2025-12-04
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 29 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 29 needs grade check for progression (status: passed)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 21 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 21 normalized date: 2026-02-19
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 21 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 21 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 22 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 22 normalized date: 2026-02-19
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 22 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 22 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 23 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 23 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 23 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 23 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 25 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 25 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 25 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 25 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 27 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 27 normalized date: 2026-02-19
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 27 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 27 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 26 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 26 normalized date: 2026-02-19
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 26 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 26 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 24 - defense_date: 2026-02-19, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 24 normalized date: 2026-02-19
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 24 marked as FUTURE schedule (2026-02-19 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 24 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 28 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 28 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 28 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 28 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-21, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-21
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-21 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-20, defense_status: pending
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-20
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-20 >= 2026-02-18)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Summary - Past: 1, Future: 22, Upcoming/Pending: 22, Needs grade check: 1
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: POST confirm_overwrite = true
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Need to check grades for 1 teams
+[18-Feb-2026 15:59:46 Asia/Manila] teamHasCompleteGrades: Team 29 missing evaluation from panelist 271
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Teams ready for upgrade: 0, Missing grades: 1
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: No teams ready for upgrade (all missing grades) - proceeding without upgrade
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 15:59:46 Asia/Manila] removeExistingSchedules: Attempting to remove FUTURE schedules (after 2026-02-18) for teams: 52, 57, 59, 53, 54, 55, 56, 21, 22, 23, 25, 27, 26, 24, 28, 45, 42, 43, 44, 46, 48, 47
+[18-Feb-2026 15:59:46 Asia/Manila] removeExistingSchedules: Successfully removed 22 FUTURE schedule(s) for 22 team(s)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: Removed 22 upcoming schedules for re-scheduling
+[18-Feb-2026 15:59:46 Asia/Manila] Fetched 33 teams for sections: CS401, IT401, IT402, IT403
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: After filtering - 33 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 15:59:46 Asia/Manila] SCHEDULER: About to generate schedules for 33 teams
+[18-Feb-2026 15:59:46 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 15:59:46 Asia/Manila] Generation 0 completed. Best fitness: -1140. Elapsed time: 0.048789978027344 seconds
+[18-Feb-2026 15:59:56 Asia/Manila] Generation 20 completed. Best fitness: -655. Elapsed time: 9.5179281234741 seconds
+[18-Feb-2026 16:00:06 Asia/Manila] Generation 40 completed. Best fitness: -655. Elapsed time: 19.71195101738 seconds
+[18-Feb-2026 16:00:16 Asia/Manila] Generation 60 completed. Best fitness: -655. Elapsed time: 29.941368103027 seconds
+[18-Feb-2026 16:00:18 Asia/Manila] Early stopping at generation 63 - no improvement for 50 generations
+[18-Feb-2026 16:00:18 Asia/Manila] Genetic algorithm completed in 31.686990022659 seconds
+[18-Feb-2026 16:00:18 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 16:00:18 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 16:00:18 Asia/Manila] Preview JSON response length: 14237
+[18-Feb-2026 16:00:56 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[18-Feb-2026 16:00:56 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-24-2026
+            [1] => 02-26-2026
+            [2] => 02-28-2026
+        )
+
+    [section] => 
+    [confirm_overwrite] => true
+    [preview] => true
+)
+
+[18-Feb-2026 16:00:56 Asia/Manila] SESSION data: Array
+(
+    [token] => 709f7f5fbd42f87fab989ed02bd00b7aedcff89e942262273a91181b2c9db1d6
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 273
+    [username] => alyssa.pocaan
+    [program] => Bachelor of Science in Information Technology - Web and Mobile Technology
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => alyssa.pocaan@lpu.edu.ph
+    [first_name] => Alyssa Paola
+    [last_name] => Pocaan
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => 
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-07-21 16:25:32
+    [created_at] => 2025-07-21 16:25:32
+    [updated_at] => 2026-02-18 15:59:02
+    [deleted_at] => 
+    [last_login_at] => 2026-02-18 15:59:02
+    [usertype] => 0
+    [program_chair] => 0
+    [expire] => 1771567942
+)
+
+[18-Feb-2026 16:00:56 Asia/Manila] Scheduler Access Control: userId=273, usertype=0, accessibleSections=CS401,IT401,IT402,IT403, selectedSections=CS401,IT401,IT402,IT403
+[18-Feb-2026 16:00:56 Asia/Manila] checkExistingSchedules: Found 10 teams with existing schedules
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 52: defense_date=2025-12-05, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 57: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 59: defense_date=2025-12-04, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 53: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 54: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 55: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 56: defense_date=2025-12-06, defense_type=title_proposal, defense_status=pending
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 29: defense_date=2025-12-04, defense_type=title_proposal, defense_status=passed
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 21: defense_date=2025-11-20, defense_type=title_proposal, defense_status=passed
+[18-Feb-2026 16:00:56 Asia/Manila]   - Team 22: defense_date=2025-11-20, defense_type=title_proposal, defense_status=failed
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: checkExistingSchedules returned 10 teams
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":43,"team_id":52,"panelist_id":422,"panelist_id2":427,"panelist_id3":436,"schedule_date":"2025-12-05","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:14:19","approval_status":"approved","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2025-12-05","time_slot":"16:00:00"},"57":{"id":44,"team_id":57,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:15:50","approval_status":"approved","defense_status":"pending","team_name":"GAIA","defense_date":"2025-12-06","time_slot":"08:00:00"},"59":{"id":45,"team_id":59,"panelist_id":422,"panelist_id2":429,"panelist_id3":441,"schedule_date":"2025-12-04","start_time":"14:30:00","end_time":"16:30:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:24:07","approval_status":"approved","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2025-12-04","time_slot":"14:30:00"},"53":{"id":48,"team_id":53,"panelist_id":427,"panelist_id2":430,"panelist_id3":441,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:26:54","approval_status":"approved","defense_status":"pending","team_name":"Postra","defense_date":"2025-12-06","time_slot":"16:00:00"},"54":{"id":49,"team_id":54,"panelist_id":431,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:12","approval_status":"approved","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2025-12-06","time_slot":"08:00:00"},"55":{"id":50,"team_id":55,"panelist_id":431,"panelist_id2":428,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:32:47","approval_status":"approved","defense_status":"pending","team_name":"Solari","defense_date":"2025-12-06","time_slot":"10:00:00"},"56":{"id":52,"team_id":56,"panelist_id":422,"panelist_id2":418,"panelist_id3":451,"schedule_date":"2025-12-06","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-02 15:33:55","approval_status":"approved","defense_status":"pending","team_name":"SalinDugo","defense_date":"2025-12-06","time_slot":"16:00:00"},"29":{"id":54,"team_id":29,"panelist_id":271,"panelist_id2":270,"panelist_id3":272,"schedule_date":"2025-12-04","start_time":"15:00:00","end_time":"17:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2025-12-05 07:12:19","approval_status":"approved","defense_status":"passed","team_name":"team 1 (IT402)","defense_date":"2025-12-04","time_slot":"15:00:00"},"21":{"id":94,"team_id":21,"panelist_id":428,"panelist_id2":272,"panelist_id3":436,"schedule_date":"2025-11-20","start_time":"09:00:00","end_time":"11:00:00","room":"Room A","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-05 21:40:58","approval_status":"approved","defense_status":"passed","team_name":"team 1 (IT401)","defense_date":"2025-11-20","time_slot":"09:00:00"},"22":{"id":95,"team_id":22,"panelist_id":269,"panelist_id2":277,"panelist_id3":427,"schedule_date":"2025-11-20","start_time":"11:00:00","end_time":"13:00:00","room":"Room A","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-05 21:40:58","approval_status":"approved","defense_status":"failed","team_name":"team 2 (IT401)","defense_date":"2025-11-20","time_slot":"11:00:00"}}
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-18
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Starting to process 10 scheduled teams
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2025-12-05, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 52 normalized date: 2025-12-05
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 52 marked as PAST schedule (2025-12-05 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 52 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 57 normalized date: 2025-12-06
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 57 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 57 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2025-12-04, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 59 normalized date: 2025-12-04
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 59 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 59 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 53 normalized date: 2025-12-06
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 53 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 53 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 54 normalized date: 2025-12-06
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 54 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 54 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 55 normalized date: 2025-12-06
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 55 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 55 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2025-12-06, defense_status: pending
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 56 normalized date: 2025-12-06
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 56 marked as PAST schedule (2025-12-06 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 56 has past schedule but status is 'pending' (not passed/failed) - skipping progression
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 29 - defense_date: 2025-12-04, defense_status: passed
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 29 normalized date: 2025-12-04
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 29 marked as PAST schedule (2025-12-04 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 29 needs grade check for progression (status: passed)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 21 - defense_date: 2025-11-20, defense_status: passed
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 21 normalized date: 2025-11-20
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 21 marked as PAST schedule (2025-11-20 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 21 needs grade check for progression (status: passed)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Processing Team 22 - defense_date: 2025-11-20, defense_status: failed
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 22 normalized date: 2025-11-20
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 22 marked as PAST schedule (2025-11-20 < 2026-02-18)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Team 22 needs grade check for progression (status: failed)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Finished processing teams loop
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Summary - Past: 10, Future: 0, Upcoming/Pending: 0, Needs grade check: 3
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: POST confirm_overwrite = true
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Need to check grades for 3 teams
+[18-Feb-2026 16:00:56 Asia/Manila] teamHasCompleteGrades: Team 29 missing evaluation from panelist 271
+[18-Feb-2026 16:00:56 Asia/Manila] teamHasCompleteGrades: Team 21 missing evaluation from panelist 428
+[18-Feb-2026 16:00:56 Asia/Manila] teamHasCompleteGrades: Team 22 missing evaluation from panelist 269
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: Teams ready for upgrade: 0, Missing grades: 3
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: No teams ready for upgrade (all missing grades) - proceeding without upgrade
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[18-Feb-2026 16:00:56 Asia/Manila] Fetched 33 teams for sections: CS401, IT401, IT402, IT403
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: After filtering - 33 teams to schedule (excluded 0 with future pending schedules)
+[18-Feb-2026 16:00:56 Asia/Manila] SCHEDULER: About to generate schedules for 33 teams
+[18-Feb-2026 16:00:56 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[18-Feb-2026 16:00:56 Asia/Manila] Generation 0 completed. Best fitness: -1315. Elapsed time: 0.050359010696411 seconds
+[18-Feb-2026 16:01:06 Asia/Manila] Generation 20 completed. Best fitness: -805. Elapsed time: 10.201647996902 seconds
+[18-Feb-2026 16:01:16 Asia/Manila] Generation 40 completed. Best fitness: -805. Elapsed time: 20.100181102753 seconds
+[18-Feb-2026 16:01:26 Asia/Manila] Generation 60 completed. Best fitness: -805. Elapsed time: 30.234975099564 seconds
+[18-Feb-2026 16:01:29 Asia/Manila] Early stopping at generation 64 - no improvement for 50 generations
+[18-Feb-2026 16:01:29 Asia/Manila] Genetic algorithm completed in 32.381150007248 seconds
+[18-Feb-2026 16:01:29 Asia/Manila] Genetic Algorithm completed successfully
+[18-Feb-2026 16:01:29 Asia/Manila] Preparing schedule preview (not saving to DB)
+[18-Feb-2026 16:01:29 Asia/Manila] Preview JSON response length: 14242
+[19-Feb-2026 23:44:10 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[19-Feb-2026 23:44:10 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-23-2026
+            [1] => 02-24-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => false
+    [preview] => true
+)
+
+[19-Feb-2026 23:44:10 Asia/Manila] SESSION data: Array
+(
+    [token] => 21da388d7f0e80e2622b5c55c09a1a04bda0898f693bc46b7305c83ed938be76
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 422
+    [username] => jerian.peren
+    [program] => Bachelor of Science in Computer Science - Software Engineering
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => jerian.peren@lpu.edu.ph
+    [first_name] => Jerian
+    [last_name] => Peren
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => Software Engineering
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-12-04 10:18:37
+    [created_at] => 
+    [updated_at] => 2026-02-19 23:43:34
+    [deleted_at] => 
+    [last_login_at] => 2026-02-19 23:43:34
+    [usertype] => 0
+    [program_chair] => 0
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 50
+            [1] => 57
+        )
+
+    [expire] => 1771682214
+)
+
+[19-Feb-2026 23:44:10 Asia/Manila] Scheduler Access Control: userId=422, usertype=0, accessibleSections=,CS401,IT401,IT402,IT403, selectedSections=CS401
+[19-Feb-2026 23:44:10 Asia/Manila] checkExistingSchedules: Found 14 teams with existing schedules
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 52: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 57: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 59: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 53: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 54: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 55: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 56: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 46: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 42: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 47: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 45: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 48: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 43: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila]   - Team 44: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: checkExistingSchedules returned 14 teams
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":179,"team_id":52,"panelist_id":422,"panelist_id2":451,"panelist_id3":428,"schedule_date":"2026-02-26","start_time":"14:00:00","end_time":"16:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-26","time_slot":"14:00:00"},"57":{"id":187,"team_id":57,"panelist_id":427,"panelist_id2":436,"panelist_id3":430,"schedule_date":"2026-02-28","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-28","time_slot":"10:00:00"},"59":{"id":188,"team_id":59,"panelist_id":436,"panelist_id2":441,"panelist_id3":428,"schedule_date":"2026-02-28","start_time":"12:00:00","end_time":"14:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2026-02-28","time_slot":"12:00:00"},"53":{"id":183,"team_id":53,"panelist_id":427,"panelist_id2":451,"panelist_id3":286,"schedule_date":"2026-02-26","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-26","time_slot":"12:00:00"},"54":{"id":184,"team_id":54,"panelist_id":436,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-26","start_time":"13:00:00","end_time":"15:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-26","time_slot":"13:00:00"},"55":{"id":185,"team_id":55,"panelist_id":429,"panelist_id2":427,"panelist_id3":431,"schedule_date":"2026-02-24","start_time":"11:00:00","end_time":"13:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-24","time_slot":"11:00:00"},"56":{"id":186,"team_id":56,"panelist_id":427,"panelist_id2":441,"panelist_id3":430,"schedule_date":"2026-02-26","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-26","time_slot":"16:00:00"},"46":{"id":161,"team_id":46,"panelist_id":269,"panelist_id2":281,"panelist_id3":422,"schedule_date":"2026-02-24","start_time":"09:00:00","end_time":"11:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-24","time_slot":"09:00:00"},"42":{"id":163,"team_id":42,"panelist_id":428,"panelist_id2":282,"panelist_id3":451,"schedule_date":"2026-02-28","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-28","time_slot":"08:00:00"},"47":{"id":170,"team_id":47,"panelist_id":428,"panelist_id2":269,"panelist_id3":441,"schedule_date":"2026-02-26","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-26","time_slot":"12:00:00"},"45":{"id":171,"team_id":45,"panelist_id":428,"panelist_id2":286,"panelist_id3":422,"schedule_date":"2026-02-28","start_time":"11:00:00","end_time":"13:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-28","time_slot":"11:00:00"},"48":{"id":174,"team_id":48,"panelist_id":269,"panelist_id2":286,"panelist_id3":422,"schedule_date":"2026-02-24","start_time":"13:00:00","end_time":"15:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-24","time_slot":"13:00:00"},"43":{"id":175,"team_id":43,"panelist_id":269,"panelist_id2":283,"panelist_id3":436,"schedule_date":"2026-02-28","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-28","time_slot":"16:00:00"},"44":{"id":181,"team_id":44,"panelist_id":428,"panelist_id2":286,"panelist_id3":451,"schedule_date":"2026-02-26","start_time":"15:00:00","end_time":"17:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-26","time_slot":"15:00:00"}}
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-19
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Starting to process 14 scheduled teams
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-28
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 59 normalized date: 2026-02-28
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 59 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 59 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-24
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-24
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-28
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-28
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-24
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-28
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-26
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Finished processing teams loop
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Summary - Past: 0, Future: 14, Upcoming/Pending: 14, Needs grade check: 0
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: POST confirm_overwrite = false
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[19-Feb-2026 23:44:10 Asia/Manila] SCHEDULER: Asking for overwrite confirmation for 14 upcoming defenses
+[19-Feb-2026 23:44:19 Asia/Manila] === SCHEDULER START === Execution time limit set to 600 seconds
+[19-Feb-2026 23:44:19 Asia/Manila] POST data: Array
+(
+    [rooms] => Array
+        (
+            [0] => Defense Room 1
+            [1] =>  Defense Room 2
+            [2] =>  Accreditation Room
+        )
+
+    [timeDuration] => 2
+    [timeSlots] => Array
+        (
+            [0] => 08:00
+            [1] => 09:00
+            [2] => 10:00
+            [3] => 11:00
+            [4] => 12:00
+            [5] => 13:00
+            [6] => 14:00
+            [7] => 15:00
+            [8] => 16:00
+        )
+
+    [days] => Array
+        (
+            [0] => 02-23-2026
+            [1] => 02-24-2026
+        )
+
+    [section] => CS401
+    [confirm_overwrite] => true
+    [preview] => true
+)
+
+[19-Feb-2026 23:44:19 Asia/Manila] SESSION data: Array
+(
+    [token] => 21da388d7f0e80e2622b5c55c09a1a04bda0898f693bc46b7305c83ed938be76
+    [gemini_api] => 
+    [auth] => verified
+    [id] => 422
+    [username] => jerian.peren
+    [program] => Bachelor of Science in Computer Science - Software Engineering
+    [college] => College of Information Technology and Computer Science
+    [section] => 
+    [email] => jerian.peren@lpu.edu.ph
+    [first_name] => Jerian
+    [last_name] => Peren
+    [gender] => f
+    [headline] => 
+    [bio] => 
+    [area_of_expertise] => Software Engineering
+    [profile_image] => _defaultUser.png
+    [banner_image] => 
+    [verified_at] => 2025-12-04 10:18:37
+    [created_at] => 
+    [updated_at] => 2026-02-19 23:43:34
+    [deleted_at] => 
+    [last_login_at] => 2026-02-19 23:43:34
+    [usertype] => 0
+    [program_chair] => 0
+    [team_role] => adviser
+    [team_id] => Array
+        (
+            [0] => 50
+            [1] => 57
+        )
+
+    [expire] => 1771682214
+)
+
+[19-Feb-2026 23:44:19 Asia/Manila] Scheduler Access Control: userId=422, usertype=0, accessibleSections=,CS401,IT401,IT402,IT403, selectedSections=CS401
+[19-Feb-2026 23:44:19 Asia/Manila] checkExistingSchedules: Found 14 teams with existing schedules
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 52: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 57: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 59: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 53: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 54: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 55: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 56: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 46: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 42: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 47: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 45: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 48: defense_date=2026-02-24, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 43: defense_date=2026-02-28, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila]   - Team 44: defense_date=2026-02-26, defense_type=title_proposal, defense_status=pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: checkExistingSchedules returned 14 teams
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: scheduledTeams data: {"52":{"id":179,"team_id":52,"panelist_id":422,"panelist_id2":451,"panelist_id3":428,"schedule_date":"2026-02-26","start_time":"14:00:00","end_time":"16:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"DENGUEGUARD","defense_date":"2026-02-26","time_slot":"14:00:00"},"57":{"id":187,"team_id":57,"panelist_id":427,"panelist_id2":436,"panelist_id3":430,"schedule_date":"2026-02-28","start_time":"10:00:00","end_time":"12:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"GAIA","defense_date":"2026-02-28","time_slot":"10:00:00"},"59":{"id":188,"team_id":59,"panelist_id":436,"panelist_id2":441,"panelist_id3":428,"schedule_date":"2026-02-28","start_time":"12:00:00","end_time":"14:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"PrivacyGuard","defense_date":"2026-02-28","time_slot":"12:00:00"},"53":{"id":183,"team_id":53,"panelist_id":427,"panelist_id2":451,"panelist_id3":286,"schedule_date":"2026-02-26","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"Postra","defense_date":"2026-02-26","time_slot":"12:00:00"},"54":{"id":184,"team_id":54,"panelist_id":436,"panelist_id2":451,"panelist_id3":431,"schedule_date":"2026-02-26","start_time":"13:00:00","end_time":"15:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"KNOWWHERE","defense_date":"2026-02-26","time_slot":"13:00:00"},"55":{"id":185,"team_id":55,"panelist_id":429,"panelist_id2":427,"panelist_id3":431,"schedule_date":"2026-02-24","start_time":"11:00:00","end_time":"13:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"Solari","defense_date":"2026-02-24","time_slot":"11:00:00"},"56":{"id":186,"team_id":56,"panelist_id":427,"panelist_id2":441,"panelist_id3":430,"schedule_date":"2026-02-26","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"SalinDugo","defense_date":"2026-02-26","time_slot":"16:00:00"},"46":{"id":161,"team_id":46,"panelist_id":269,"panelist_id2":281,"panelist_id3":422,"schedule_date":"2026-02-24","start_time":"09:00:00","end_time":"11:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-24","time_slot":"09:00:00"},"42":{"id":163,"team_id":42,"panelist_id":428,"panelist_id2":282,"panelist_id3":451,"schedule_date":"2026-02-28","start_time":"08:00:00","end_time":"10:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 4 (IT403)","defense_date":"2026-02-28","time_slot":"08:00:00"},"47":{"id":170,"team_id":47,"panelist_id":428,"panelist_id2":269,"panelist_id3":441,"schedule_date":"2026-02-26","start_time":"12:00:00","end_time":"14:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 8 (IT403)","defense_date":"2026-02-26","time_slot":"12:00:00"},"45":{"id":171,"team_id":45,"panelist_id":428,"panelist_id2":286,"panelist_id3":422,"schedule_date":"2026-02-28","start_time":"11:00:00","end_time":"13:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 7 (IT403)","defense_date":"2026-02-28","time_slot":"11:00:00"},"48":{"id":174,"team_id":48,"panelist_id":269,"panelist_id2":286,"panelist_id3":422,"schedule_date":"2026-02-24","start_time":"13:00:00","end_time":"15:00:00","room":" Accreditation Room","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 9 (IT403)","defense_date":"2026-02-24","time_slot":"13:00:00"},"43":{"id":175,"team_id":43,"panelist_id":269,"panelist_id2":283,"panelist_id3":436,"schedule_date":"2026-02-28","start_time":"16:00:00","end_time":"18:00:00","room":"Defense Room 1","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending_chair","defense_status":"pending","team_name":"team 5 (IT403)","defense_date":"2026-02-28","time_slot":"16:00:00"},"44":{"id":181,"team_id":44,"panelist_id":428,"panelist_id2":286,"panelist_id3":451,"schedule_date":"2026-02-26","start_time":"15:00:00","end_time":"17:00:00","room":" Defense Room 2","defense_type":"title_proposal","related_requirement_files":null,"admin_override_defense_type":0,"status":"scheduled","created_at":"2026-02-18 16:01:41","approval_status":"pending","defense_status":"pending","team_name":"team 6 (IT403)","defense_date":"2026-02-26","time_slot":"15:00:00"}}
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Current date for comparison: 2026-02-19
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Starting to process 14 scheduled teams
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 52 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 52 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 52 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 52 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 57 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 57 normalized date: 2026-02-28
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 57 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 57 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 59 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 59 normalized date: 2026-02-28
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 59 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 59 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 53 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 53 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 53 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 53 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 54 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 54 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 54 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 54 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 55 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 55 normalized date: 2026-02-24
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 55 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 55 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 56 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 56 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 56 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 56 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 46 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 46 normalized date: 2026-02-24
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 46 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 46 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 42 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 42 normalized date: 2026-02-28
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 42 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 42 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 47 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 47 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 47 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 47 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 45 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 45 normalized date: 2026-02-28
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 45 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 45 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 48 - defense_date: 2026-02-24, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 48 normalized date: 2026-02-24
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 48 marked as FUTURE schedule (2026-02-24 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 48 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 43 - defense_date: 2026-02-28, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 43 normalized date: 2026-02-28
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 43 marked as FUTURE schedule (2026-02-28 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 43 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Processing Team 44 - defense_date: 2026-02-26, defense_status: pending
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 44 normalized date: 2026-02-26
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 44 marked as FUTURE schedule (2026-02-26 >= 2026-02-19)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Team 44 has UPCOMING defense (pending)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Finished processing teams loop
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Summary - Past: 0, Future: 14, Upcoming/Pending: 14, Needs grade check: 0
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: POST confirm_upgrade = NOT SET
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: POST confirm_overwrite = true
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: No teams needing grade check or already processed
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: No upcoming defenses to confirm or confirmation received
+[19-Feb-2026 23:44:19 Asia/Manila] removeExistingSchedules: Attempting to remove FUTURE schedules (after 2026-02-19) for teams: 52, 57, 59, 53, 54, 55, 56, 46, 42, 47, 45, 48, 43, 44
+[19-Feb-2026 23:44:19 Asia/Manila] removeExistingSchedules: Successfully removed 14 FUTURE schedule(s) for 14 team(s)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: Removed 14 upcoming schedules for re-scheduling
+[19-Feb-2026 23:44:19 Asia/Manila] Fetched 14 teams for sections: CS401
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: After filtering - 14 teams to schedule (excluded 0 with future pending schedules)
+[19-Feb-2026 23:44:19 Asia/Manila] SCHEDULER: About to generate schedules for 14 teams
+[19-Feb-2026 23:44:19 Asia/Manila] Genetic Algorithm Parameters: Population=50, Generations=100, EarlyStop=50
+[19-Feb-2026 23:44:19 Asia/Manila] Generation 0 completed. Best fitness: -390. Elapsed time: 0.018677949905396 seconds
+[19-Feb-2026 23:44:22 Asia/Manila] Generation 20 completed. Best fitness: -190. Elapsed time: 2.8750998973846 seconds
+[19-Feb-2026 23:44:24 Asia/Manila] Generation 40 completed. Best fitness: -190. Elapsed time: 5.4559710025787 seconds
+[19-Feb-2026 23:44:27 Asia/Manila] Generation 60 completed. Best fitness: -135. Elapsed time: 7.8912229537964 seconds
+[19-Feb-2026 23:44:29 Asia/Manila] Generation 80 completed. Best fitness: -135. Elapsed time: 10.260257005692 seconds
+[19-Feb-2026 23:44:31 Asia/Manila] Early stopping at generation 98 - no improvement for 50 generations
+[19-Feb-2026 23:44:31 Asia/Manila] Genetic algorithm completed in 12.331845998764 seconds
+[19-Feb-2026 23:44:31 Asia/Manila] Genetic Algorithm completed successfully
+[19-Feb-2026 23:44:31 Asia/Manila] Preparing schedule preview (not saving to DB)
+[19-Feb-2026 23:44:31 Asia/Manila] Preview JSON response length: 6465

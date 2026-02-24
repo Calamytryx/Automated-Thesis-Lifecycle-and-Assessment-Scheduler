@@ -848,10 +848,10 @@ border-top: solid 1px var(--main-bg-dark);
     border: 1px solid var(--main-primary);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-right: 0.75rem;
 }
 
 .feature-btn.scheduler-btn:hover,
@@ -886,6 +886,7 @@ border-top: solid 1px var(--main-bg-dark);
     .feature-btn.generate-btn {
         padding: 0.4rem 0.75rem;
         font-size: 0.8125rem;
+        width: 100%;
     }
     
     .feature-btn.scheduler-btn i,

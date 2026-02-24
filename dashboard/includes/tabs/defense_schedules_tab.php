@@ -12,16 +12,53 @@
         <!-- Defense Schedule Management Controls -->
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap gap-2 justify-content-end mb-3">
-                    <button class="btn feature-btn add-btn" data-table="defense_schedules">
-                        <i class="fas fa-plus me-2"></i>Add Defense Schedule
-                    </button>
-                    <button type="button" class="btn feature-btn scheduler-btn" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
-                        <i class="fas fa-cog me-2"></i>Scheduler Settings
-                    </button>
-                    <button id="generateSchedule" type="button" class="btn feature-btn generate-btn" disabled>
-                        <i class="fas fa-calendar-plus me-2"></i>Generate Defense Schedule
-                    </button>
+                <div class="user-controls-container p-0 mt-3">
+                    <div class="row g-2 mb-3 align-items-center">
+                        <!-- View Toggle -->
+                        <div class="col-12 col-md-auto">
+                            <div class="btn-group" role="group" aria-label="View toggle">
+                                <input type="radio" class="btn-check" name="defViewMode" id="defTableView" checked autocomplete="off">
+                                <label class="btn btn-outline-primary user-control-height" for="defTableView"><i class="fas fa-table me-1"></i>Table</label>
+                                <input type="radio" class="btn-check" name="defViewMode" id="defCalendarView" autocomplete="off">
+                                <label class="btn btn-outline-primary user-control-height" for="defCalendarView"><i class="fas fa-calendar-week me-1"></i>Calendar</label>
+                            </div>
+                        </div>
+                        <!-- Bulk Approval Buttons (visible in calendar view for pending_chair items) -->
+                        <div id="bulkApprovalControls" class="col-12 col-md-auto" style="display:none !important;">
+                            <div class="d-flex gap-2">
+                                <button class="btn btn-success user-control-height" id="bulkApproveBtn">
+                                    <i class="fas fa-check-double me-1"></i>
+                                    <span class="d-none d-lg-inline">Approve All</span>
+                                    <span class="d-lg-none">Approve</span>
+                                </button>
+                                <button class="btn btn-danger user-control-height" id="bulkRejectBtn">
+                                    <i class="fas fa-times-circle me-1"></i>
+                                    <span class="d-none d-lg-inline">Reject All</span>
+                                    <span class="d-lg-none">Reject</span>
+                                </button>
+                            </div>
+                        </div>
+                        <!-- Action Buttons -->
+                        <div class="col-12 col-md">
+                            <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                                <button class="btn feature-btn add-btn user-control-height flex-fill flex-md-grow-0" data-table="defense_schedules">
+                                    <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
+                                    <span class="d-none d-lg-inline">Add Schedule</span>
+                                    <span class="d-lg-none">Add</span>
+                                </button>
+                                <button type="button" class="btn feature-btn scheduler-btn user-control-height flex-fill flex-md-grow-0" data-bs-toggle="modal" data-bs-target="#schedulerSettingsModal">
+                                    <i class="fas fa-cog me-1 d-none d-lg-inline"></i>
+                                    <span class="d-none d-lg-inline">Scheduler Settings</span>
+                                    <span class="d-lg-none">Settings</span>
+                                </button>
+                                <button id="generateSchedule" type="button" class="btn feature-btn generate-btn user-control-height flex-fill flex-md-grow-0" disabled>
+                                    <i class="fas fa-calendar-plus me-1 d-none d-lg-inline"></i>
+                                    <span class="d-none d-lg-inline">Generate Schedule</span>
+                                    <span class="d-lg-none">Generate</span>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -862,22 +899,7 @@
                         });
                     </script>
 
-        <!-- View Toggle -->
-        <div class="row mb-3">
-            <div class="col-12">
-                <div class="btn-group" role="group" aria-label="View toggle">
-                    <input type="radio" class="btn-check" name="defViewMode" id="defTableView" checked autocomplete="off">
-                    <label class="btn btn-outline-primary btn-sm" for="defTableView"><i class="fas fa-table me-1"></i>Table</label>
-                    <input type="radio" class="btn-check" name="defViewMode" id="defCalendarView" autocomplete="off">
-                    <label class="btn btn-outline-primary btn-sm" for="defCalendarView"><i class="fas fa-calendar-week me-1"></i>Calendar</label>
-                </div>
-                <!-- Bulk Approval Buttons (visible in calendar view for pending_chair items) -->
-                <div id="bulkApprovalControls" class="d-inline-flex gap-2 ms-3" style="display:none !important;">
-                    <button class="btn btn-success btn-sm" id="bulkApproveBtn"><i class="fas fa-check-double me-1"></i>Approve All Visible</button>
-                    <button class="btn btn-danger btn-sm" id="bulkRejectBtn"><i class="fas fa-times-circle me-1"></i>Reject All Visible</button>
-                </div>
-            </div>
-        </div>
+
 
         <!-- Table View -->
         <div id="defTableViewContainer" class="row">
@@ -1125,6 +1147,8 @@
                             allScheduleData = data.data || [];
                             const tbody = document.querySelector('#def-table tbody');
                             tbody.innerHTML = '';
+                            // Clean up old meatball dropdown portals
+                            document.querySelectorAll('[id^="dropdown-def-"]').forEach(el => el.remove());
                             if (allScheduleData.length === 0) {
                                 tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
                             } else {
@@ -1132,19 +1156,17 @@
                                 allScheduleData.forEach(schedule => {
                                     const dateTime = `${formatDate(schedule.schedule_date)} ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`;
                                     const panelists = splitPanelists(schedule.panelists);
-                                    let statusBadge = '', chairActions = '';
+                                    let statusBadge = '';
                                     const approvalStatus = schedule.approval_status || 'pending_chair';
                                     switch (approvalStatus) {
                                         case 'pending_chair':
-                                            statusBadge = '<span class="badge bg-warning text-dark"><i class="fas fa-clock me-1"></i>Chair Review</span>';
-                                            chairActions = `
-                                                <button class="btn btn-sm btn-success chair-approve-btn" data-id="${schedule.id}" title="Approve"><i class="fas fa-check me-1"></i>Approve</button>
-                                                <button class="btn btn-sm btn-danger chair-reject-btn" data-id="${schedule.id}" title="Reject"><i class="fas fa-times me-1"></i>Reject</button>`;
+                                            statusBadge = '<span class="status-badge def-status-pending_chair"><i class="fas fa-clock me-1"></i>Chair Review</span>';
                                             break;
-                                        case 'pending': statusBadge = '<span class="badge bg-info text-dark"><i class="fas fa-user-clock me-1"></i>Panel Review</span>'; break;
-                                        case 'approved': statusBadge = '<span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Approved</span>'; break;
-                                        case 'rejected': statusBadge = '<span class="badge bg-danger"><i class="fas fa-times-circle me-1"></i>Rejected</span>'; break;
+                                        case 'pending': statusBadge = '<span class="status-badge def-status-pending"><i class="fas fa-user-clock me-1"></i>Panel Review</span>'; break;
+                                        case 'approved': statusBadge = '<span class="status-badge def-status-approved"><i class="fas fa-check-circle me-1"></i>Approved</span>'; break;
+                                        case 'rejected': statusBadge = '<span class="status-badge def-status-rejected"><i class="fas fa-times-circle me-1"></i>Rejected</span>'; break;
                                     }
+
                                     tbody.innerHTML += `<tr>
                                         <td>${dateTime}</td>
                                         <td>${schedule.team_name || 'N/A'}</td>
@@ -1153,11 +1175,11 @@
                                         <td>${panelists[0]}</td><td>${panelists[1]}</td><td>${panelists[2]}</td>
                                         <td>${schedule.room || 'N/A'}</td>
                                         <td class="text-center">${statusBadge}</td>
-                                        <td class="action-buttons"><div class="d-flex gap-1 flex-wrap justify-content-center">
-                                            ${chairActions}
-                                            <button class="btn btn-sm edit-btn" data-table="defense_schedules" data-id="${schedule.id}"><i class="fas fa-edit me-1"></i>Edit</button>
-                                            <button class="btn btn-sm delete-btn" data-table="defense_schedules" data-id="${schedule.id}"><i class="fas fa-trash-alt me-1"></i>Delete</button>
-                                        </div></td>
+                                        <td class="action-buttons text-center">
+                                            <button class="meatball-btn" data-def-id="${schedule.id}" data-approval-status="${approvalStatus}" aria-label="Actions">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </button>
+                                        </td>
                                     </tr>`;
                                 });
                             }
@@ -1564,18 +1586,84 @@
                     .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; alert('Network error: ' + err.message); });
                 });
 
-                // ========== SINGLE CHAIR ACTIONS (table view) ==========
-                document.querySelector('#def-table').addEventListener('click', function(e) {
+                // ========== MEATBALL MENU HANDLER (defense schedules) ==========
+                document.addEventListener('click', function(e) {
+                    // Handle meatball button clicks for defense schedules
+                    if (e.target.closest('.meatball-btn[data-def-id]') && e.target.closest('#defense-schedules')) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        const btn = e.target.closest('.meatball-btn');
+                        const defId = btn.getAttribute('data-def-id');
+                        const approvalStatus = btn.getAttribute('data-approval-status') || '';
+
+                        // Close all other defense dropdown portals
+                        document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-def-"]').forEach(dd => {
+                            dd.style.display = 'none';
+                        });
+
+                        let dropdown = document.getElementById(`dropdown-def-${defId}`);
+
+                        // Lazy-create portal if it doesn't exist
+                        if (!dropdown) {
+                            let chairDropdownItems = '';
+                            if (approvalStatus === 'pending_chair') {
+                                chairDropdownItems = `
+                                    <button class="meatball-dropdown-item approve-item chair-approve-btn" data-id="${defId}">
+                                        <i class="fas fa-check"></i> Approve
+                                    </button>
+                                    <button class="meatball-dropdown-item reject-item chair-reject-btn" data-id="${defId}">
+                                        <i class="fas fa-times"></i> Reject
+                                    </button>
+                                    <div class="meatball-dropdown-divider"></div>`;
+                            }
+                            dropdown = document.createElement('div');
+                            dropdown.className = 'meatball-dropdown-portal';
+                            dropdown.id = `dropdown-def-${defId}`;
+                            dropdown.style.cssText = 'position:fixed;background:white;border:1px solid #dee2e6;border-radius:6px;box-shadow:0 4px 12px rgba(0,0,0,0.15);z-index:9999;min-width:120px;padding:4px 0;display:none;';
+                            dropdown.innerHTML = `
+                                ${chairDropdownItems}
+                                <button class="meatball-dropdown-item edit-item edit-btn" data-table="defense_schedules" data-id="${defId}">
+                                    <i class="fas fa-edit"></i> Edit
+                                </button>
+                                <button class="meatball-dropdown-item delete-item delete-btn" data-table="defense_schedules" data-id="${defId}">
+                                    <i class="fas fa-trash-alt"></i> Delete
+                                </button>`;
+                            document.body.appendChild(dropdown);
+                        }
+
+                        const isOpen = dropdown.style.display === 'block';
+                        if (!isOpen) {
+                            const btnRect = btn.getBoundingClientRect();
+                            const vpWidth = window.innerWidth;
+                            const ddWidth = 140;
+                            let left = btnRect.right - ddWidth;
+                            let top = btnRect.bottom + 5;
+                            if (vpWidth < 768) left = btnRect.left + (btnRect.width / 2) - (ddWidth / 2);
+                            if (left < 10) left = 10;
+                            if (left + ddWidth > vpWidth - 10) left = vpWidth - ddWidth - 10;
+                            dropdown.style.top = `${top}px`;
+                            dropdown.style.left = `${left}px`;
+                            dropdown.style.display = 'block';
+                        }
+                    } else if (!e.target.closest('.meatball-dropdown-portal') && !e.target.closest('.meatball-btn')) {
+                        document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-def-"]').forEach(dd => { dd.style.display = 'none'; });
+                    }
+                });
+
+                // ========== SINGLE CHAIR ACTIONS (from meatball dropdown) ==========
+                document.addEventListener('click', function(e) {
                     const approveBtn = e.target.closest('.chair-approve-btn');
                     const rejectBtn = e.target.closest('.chair-reject-btn');
                     
                     if (approveBtn) {
+                        document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => { dd.style.display = 'none'; });
                         const scheduleId = approveBtn.getAttribute('data-id');
                         if (confirm('Approve this defense schedule? Panelists will be notified.')) {
                             handleChairAction(scheduleId, 'approve');
                         }
                     }
                     if (rejectBtn) {
+                        document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => { dd.style.display = 'none'; });
                         const scheduleId = rejectBtn.getAttribute('data-id');
                         const reason = prompt('Reason for rejection (optional):');
                         if (reason !== null) handleChairAction(scheduleId, 'reject', reason);
