@@ -5137,7 +5137,6 @@
                             d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
                     </svg>
                 </div>
-                <h4 class="fw-bold mb-3" id="deleteConfirmModalLabel">Confirm Deletion</h4>
                 <p>Are you sure you want to delete this item?</p>
                 <p class="mb-0"><strong>Table:</strong> <span id="deleteTableName"></span></p>
                 <p class="mb-0"><strong>ID:</strong> <span id="deleteItemId"></span></p>

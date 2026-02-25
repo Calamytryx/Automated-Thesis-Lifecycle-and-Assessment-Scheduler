@@ -669,6 +669,7 @@
                                                             <input type="hidden" id="confirmUpgradeFlag" value="false">
                                                         </div>
                                                     `;
+                                                    confirmationDiv.style.display = '';
                                                     
                                                     // Add event listeners for confirm/cancel buttons
                                                     document.getElementById('confirmUpgrade').addEventListener('click', function() {
@@ -745,6 +746,7 @@
                                                             <input type="hidden" id="confirmOverwrite" value="false">
                                                         </div>
                                                     `;
+                                                    confirmationDiv.style.display = '';
                                                     
                                                     // Add event listeners for confirm/cancel buttons
                                                     document.getElementById('confirmSchedule').addEventListener('click', function() {
@@ -832,15 +834,15 @@
                                 <input type="hidden" id="selectedTeamCount" name="selectedTeamCount" value="0">
                             </div>
                         </form>
+                        <?php
+                        $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM teams");
+                        $stmt->execute();
+                        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+                        $totalTeams = $row['total'] ?? 0;
+                        ?>
+                        <div class="mt-3">Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
+                        <div id="scheduleGenerationStatus" class="mt-2"></div>
                     </div>
-                    <?php
-                    $stmt = $pdo->prepare("SELECT COUNT(*) as total FROM teams");
-                    $stmt->execute();
-                    $row = $stmt->fetch(PDO::FETCH_ASSOC);
-                    $totalTeams = $row['total'] ?? 0;
-                    ?>
-                    <div>Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
-                    <div id="scheduleGenerationStatus" class="mt-2"></div> <!-- Moved status element here -->
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
                         <button type="button" class="btn btn-primary" id="saveSchedulerSettings">Save Settings</button>
@@ -945,9 +947,9 @@
         <div class="modal fade" id="schedulePreviewModal" tabindex="-1" aria-labelledby="schedulePreviewModalLabel" data-bs-backdrop="static" aria-hidden="true">
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
-                    <div class="modal-header bg-primary text-white">
-                        <h5 class="modal-title" id="schedulePreviewModalLabel"><i class="fas fa-calendar-check me-2"></i>Schedule Preview — Review & Edit Before Saving</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="schedulePreviewModalLabel">Schedule Preview — Review & Edit Before Saving</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-0">
                         <div class="container-fluid p-3">
@@ -960,8 +962,8 @@
                     </div>
                     <div class="modal-footer">
                         <span id="previewScheduleCount" class="me-auto text-muted"></span>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal"><i class="fas fa-times me-1"></i>Discard</button>
-                        <button type="button" class="btn btn-success" id="confirmSavePreview"><i class="fas fa-save me-1"></i>Confirm & Save</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
+                        <button type="button" class="btn btn-primary" id="confirmSavePreview">Confirm & Save</button>
                     </div>
                 </div>
             </div>
@@ -972,7 +974,7 @@
             <div class="modal-dialog">
                 <div class="modal-content">
                     <div class="modal-header">
-                        <h5 class="modal-title"><i class="fas fa-edit me-2"></i>Edit Defense Schedule</h5>
+                        <h5 class="modal-title">Edit Defense Schedule</h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
                     <div class="modal-body">
@@ -1020,6 +1022,29 @@
             </div>
         </div>
 
+        <!-- Defense Schedule Confirmation Modal -->
+        <div class="modal fade" id="defConfirmModal" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body text-center">
+                        <div id="defConfirmIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+                        <h4 class="fw-bold mb-3" id="defConfirmTitle"></h4>
+                        <p id="defConfirmMessage"></p>
+                        <div id="defConfirmPromptWrap" class="d-none">
+                            <textarea class="form-control mt-2" id="defConfirmPromptInput" rows="2" placeholder=""></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                        <button type="button" class="btn" id="defConfirmActionBtn"></button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <style>
             #defenseCalendar .fc-event, #previewCalendar .fc-event {
                 cursor: pointer;
@@ -1030,12 +1055,11 @@
             }
             .fc-event .event-team { font-weight: 600; }
             .fc-event .event-room { font-size: 0.7rem; opacity: 0.85; }
-            .fc-event .event-panelists { font-size: 0.65rem; opacity: 0.75; }
-            .fc-event.status-pending_chair { background-color: #ffc107 !important; border-color: #e0a800 !important; color: #333 !important; }
-            .fc-event.status-pending { background-color: #17a2b8 !important; border-color: #138496 !important; color: #fff !important; }
-            .fc-event.status-approved { background-color: #28a745 !important; border-color: #218838 !important; color: #fff !important; }
-            .fc-event.status-rejected { background-color: #dc3545 !important; border-color: #c82333 !important; color: #fff !important; }
-            .fc-event.status-preview { background-color: #6f42c1 !important; border-color: #5a32a3 !important; color: #fff !important; }
+            .fc-event.status-pending_chair { background-color: #f59e0b !important; border-color: #d97706 !important; color: #451a03 !important; }
+            .fc-event.status-pending { background-color: #3b82f6 !important; border-color: #2563eb !important; color: #fff !important; }
+            .fc-event.status-approved { background-color: #10b981 !important; border-color: #059669 !important; color: #fff !important; }
+            .fc-event.status-rejected { background-color: #ef4444 !important; border-color: #dc2626 !important; color: #fff !important; }
+            .fc-event.status-preview { background-color: #8b5cf6 !important; border-color: #7c3aed !important; color: #fff !important; }
             /* Stacked modal z-index: eventEditModal sits above schedulePreviewModal */
             #eventEditModal { z-index: 1060; }
             #eventEditModal + .modal-backdrop, #eventEditModal ~ .modal-backdrop:last-of-type { z-index: 1055; }
@@ -1043,6 +1067,66 @@
 
         <script>
             document.addEventListener('DOMContentLoaded', function() {
+                // ========== Defense Confirmation/Alert Helpers ==========
+                const defConfirmModalEl = document.getElementById('defConfirmModal');
+                const defConfirmModal = new bootstrap.Modal(defConfirmModalEl);
+                let defConfirmCallback = null;
+
+                const successIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#28a745"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>';
+                const dangerIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>';
+                const warningIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86l-8.17 14.1A2 2 0 004 21h16a2 2 0 001.73-3.04l-8.17-14.1a2 2 0 00-3.46 0z"/></svg>';
+
+                const iconMap = { success: successIcon, danger: dangerIcon, warning: warningIcon, error: dangerIcon };
+
+                function showDefConfirm(title, message, actionText, actionType, callback) {
+                    document.getElementById('defConfirmIcon').innerHTML = iconMap[actionType] || dangerIcon;
+                    document.getElementById('defConfirmTitle').textContent = title;
+                    document.getElementById('defConfirmMessage').textContent = message;
+                    document.getElementById('defConfirmPromptWrap').classList.add('d-none');
+                    const actionBtn = document.getElementById('defConfirmActionBtn');
+                    actionBtn.className = 'btn btn-' + actionType;
+                    actionBtn.textContent = actionText;
+                    defConfirmCallback = callback;
+                    defConfirmModal.show();
+                }
+
+                function showDefPrompt(title, message, placeholder, actionText, actionType, callback) {
+                    document.getElementById('defConfirmIcon').innerHTML = iconMap[actionType] || dangerIcon;
+                    document.getElementById('defConfirmTitle').textContent = title;
+                    document.getElementById('defConfirmMessage').textContent = message;
+                    const promptWrap = document.getElementById('defConfirmPromptWrap');
+                    const promptInput = document.getElementById('defConfirmPromptInput');
+                    promptWrap.classList.remove('d-none');
+                    promptInput.placeholder = placeholder;
+                    promptInput.value = '';
+                    const actionBtn = document.getElementById('defConfirmActionBtn');
+                    actionBtn.className = 'btn btn-' + actionType;
+                    actionBtn.textContent = actionText;
+                    defConfirmCallback = function() { callback(promptInput.value); };
+                    defConfirmModal.show();
+                }
+
+                function showDefAlert(message, type) {
+                    if (typeof showToast === 'function') {
+                        const title = type === 'success' ? 'Success' : type === 'warning' ? 'Warning' : 'Error';
+                        showToast(title, message, type === 'warning' ? 'error' : type);
+                    } else {
+                        // Fallback floating alert
+                        const alertDiv = document.createElement('div');
+                        alertDiv.className = `alert alert-${type === 'error' ? 'danger' : type} alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3`;
+                        alertDiv.style.zIndex = '9999';
+                        alertDiv.innerHTML = `${message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
+                        document.body.appendChild(alertDiv);
+                        setTimeout(() => alertDiv.remove(), 4000);
+                    }
+                }
+
+                document.getElementById('defConfirmActionBtn').addEventListener('click', function() {
+                    defConfirmModal.hide();
+                    if (typeof defConfirmCallback === 'function') defConfirmCallback();
+                    defConfirmCallback = null;
+                });
+
                 // ========== Utility Functions ==========
                 const formatDate = (dateStr) => {
                     const date = new Date(dateStr);
@@ -1274,8 +1358,7 @@
                             const props = arg.event.extendedProps;
                             return {
                                 html: `<div class="event-team">${arg.event.title}</div>
-                                       <div class="event-room"><i class="fas fa-door-open me-1"></i>${props.room || ''}</div>
-                                       <div class="event-panelists">${props.panelist1 || ''}, ${props.panelist2 || ''}, ${props.panelist3 || ''}</div>`
+                                       <div class="event-room">${props.room || ''}</div>`
                             };
                         },
                         eventClick: function(info) {
@@ -1362,8 +1445,7 @@
                                 const props = arg.event.extendedProps;
                                 return {
                                     html: `<div class="event-team">${arg.event.title}</div>
-                                           <div class="event-room"><i class="fas fa-door-open me-1"></i>${props.room || ''}</div>
-                                           <div class="event-panelists">${props.panelist1 || ''}, ${props.panelist2 || ''}, ${props.panelist3 || ''}</div>`
+                                           <div class="event-room">${props.room || ''}</div>`
                                 };
                             },
                             eventClick: function(info) {
@@ -1486,7 +1568,7 @@
                 document.getElementById('confirmSavePreview').addEventListener('click', function() {
                     const btn = this;
                     btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
+                    btn.textContent = 'Saving...';
 
                     fetch('../dashboard/includes/save_preview_schedule.php', {
                         method: 'POST',
@@ -1496,19 +1578,19 @@
                     .then(r => r.json())
                     .then(data => {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-save me-1"></i>Confirm & Save';
+                        btn.textContent = 'Confirm & Save';
                         if (data.success) {
                             bootstrap.Modal.getInstance(document.getElementById('schedulePreviewModal')).hide();
                             if (typeof window.hideLoadingState === 'function') window.hideLoadingState(true, data.message);
                             loadDefenseSchedules();
                         } else {
-                            alert('Error: ' + data.message);
+                            showDefAlert('Error: ' + data.message, 'error');
                         }
                     })
                     .catch(err => {
                         btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-save me-1"></i>Confirm & Save';
-                        alert('Network error: ' + err.message);
+                        btn.textContent = 'Confirm & Save';
+                        showDefAlert('Network error: ' + err.message, 'error');
                     });
                 });
 
@@ -1516,74 +1598,76 @@
                 document.getElementById('bulkApproveBtn').addEventListener('click', function() {
                     const pendingChair = allScheduleData.filter(s => s.approval_status === 'pending_chair');
                     if (pendingChair.length === 0) {
-                        alert('No schedules awaiting chair review.');
+                        showDefAlert('No schedules awaiting chair review.', 'warning');
                         return;
                     }
-                    if (!confirm(`Approve all ${pendingChair.length} schedule(s) awaiting chair review? This will notify panelists.`)) return;
+                    showDefConfirm(
+                        'Approve All Schedules',
+                        `Approve all ${pendingChair.length} schedule(s) awaiting chair review? This will notify panelists.`,
+                        'Approve All',
+                        'success',
+                        function() {
+                            const btn = document.getElementById('bulkApproveBtn');
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
 
-                    const btn = this;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Approving...';
-
-                    fetch('../dashboard/includes/handle_bulk_approval.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'approve', schedules: pendingChair })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible';
-                        if (data.success) {
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                            alertDiv.style.zIndex = '9999';
-                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                            document.body.appendChild(alertDiv);
-                            setTimeout(() => alertDiv.remove(), 4000);
-                            loadDefenseSchedules();
-                        } else {
-                            alert('Error: ' + data.message);
+                            fetch('../dashboard/includes/handle_bulk_approval.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'approve', schedules: pendingChair })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible';
+                                if (data.success) {
+                                    showDefAlert(data.message, 'success');
+                                    loadDefenseSchedules();
+                                } else {
+                                    showDefAlert('Error: ' + data.message, 'error');
+                                }
+                            })
+                            .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible'; showDefAlert('Network error: ' + err.message, 'error'); });
                         }
-                    })
-                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-check-double me-1"></i>Approve All Visible'; alert('Network error: ' + err.message); });
+                    );
                 });
 
                 document.getElementById('bulkRejectBtn').addEventListener('click', function() {
                     const pendingChair = allScheduleData.filter(s => s.approval_status === 'pending_chair');
                     if (pendingChair.length === 0) {
-                        alert('No schedules awaiting chair review.');
+                        showDefAlert('No schedules awaiting chair review.', 'warning');
                         return;
                     }
-                    const reason = prompt(`Reject all ${pendingChair.length} schedule(s)? Enter reason (optional):`);
-                    if (reason === null) return;
+                    showDefPrompt(
+                        'Reject All Schedules',
+                        `Reject all ${pendingChair.length} schedule(s) awaiting chair review?`,
+                        'Reason for rejection (optional)',
+                        'Reject All',
+                        'danger',
+                        function(reason) {
+                            const btn = document.getElementById('bulkRejectBtn');
+                            btn.disabled = true;
+                            btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rejecting...';
 
-                    const btn = this;
-                    btn.disabled = true;
-                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Rejecting...';
-
-                    fetch('../dashboard/includes/handle_bulk_approval.php', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'reject', schedules: pendingChair, rejection_reason: reason })
-                    })
-                    .then(r => r.json())
-                    .then(data => {
-                        btn.disabled = false;
-                        btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible';
-                        if (data.success) {
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                            alertDiv.style.zIndex = '9999';
-                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                            document.body.appendChild(alertDiv);
-                            setTimeout(() => alertDiv.remove(), 4000);
-                            loadDefenseSchedules();
-                        } else {
-                            alert('Error: ' + data.message);
+                            fetch('../dashboard/includes/handle_bulk_approval.php', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ action: 'reject', schedules: pendingChair, rejection_reason: reason })
+                            })
+                            .then(r => r.json())
+                            .then(data => {
+                                btn.disabled = false;
+                                btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible';
+                                if (data.success) {
+                                    showDefAlert(data.message, 'success');
+                                    loadDefenseSchedules();
+                                } else {
+                                    showDefAlert('Error: ' + data.message, 'error');
+                                }
+                            })
+                            .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; showDefAlert('Network error: ' + err.message, 'error'); });
                         }
-                    })
-                    .catch(err => { btn.disabled = false; btn.innerHTML = '<i class="fas fa-times-circle me-1"></i>Reject All Visible'; alert('Network error: ' + err.message); });
+                    );
                 });
 
                 // ========== MEATBALL MENU HANDLER (defense schedules) ==========
@@ -1658,15 +1742,25 @@
                     if (approveBtn) {
                         document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => { dd.style.display = 'none'; });
                         const scheduleId = approveBtn.getAttribute('data-id');
-                        if (confirm('Approve this defense schedule? Panelists will be notified.')) {
-                            handleChairAction(scheduleId, 'approve');
-                        }
+                        showDefConfirm(
+                            'Approve Schedule',
+                            'Approve this defense schedule? Panelists will be notified.',
+                            'Approve',
+                            'success',
+                            function() { handleChairAction(scheduleId, 'approve'); }
+                        );
                     }
                     if (rejectBtn) {
                         document.querySelectorAll('.meatball-dropdown-portal').forEach(dd => { dd.style.display = 'none'; });
                         const scheduleId = rejectBtn.getAttribute('data-id');
-                        const reason = prompt('Reason for rejection (optional):');
-                        if (reason !== null) handleChairAction(scheduleId, 'reject', reason);
+                        showDefPrompt(
+                            'Reject Schedule',
+                            'Are you sure you want to reject this defense schedule?',
+                            'Reason for rejection (optional)',
+                            'Reject',
+                            'danger',
+                            function(reason) { handleChairAction(scheduleId, 'reject', reason); }
+                        );
                     }
                 });
 
@@ -1680,18 +1774,13 @@
                     .then(res => res.json())
                     .then(data => {
                         if (data.success) {
-                            const alertDiv = document.createElement('div');
-                            alertDiv.className = 'alert alert-success alert-dismissible fade show position-fixed top-0 start-50 translate-middle-x mt-3';
-                            alertDiv.style.zIndex = '9999';
-                            alertDiv.innerHTML = `${data.message}<button type="button" class="btn-close" data-bs-dismiss="alert"></button>`;
-                            document.body.appendChild(alertDiv);
-                            setTimeout(() => alertDiv.remove(), 4000);
+                            showDefAlert(data.message, 'success');
                             loadDefenseSchedules();
                         } else {
-                            alert('Error: ' + data.message);
+                            showDefAlert('Error: ' + data.message, 'error');
                         }
                     })
-                    .catch(err => alert('Network error. Please try again.'));
+                    .catch(err => showDefAlert('Network error. Please try again.', 'error'));
                 }
 
                 // ========== EXPOSE showPreviewCalendar for generate handler ==========

@@ -390,7 +390,6 @@
                 <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
                 </div>
-                <h4 class="fw-bold mb-3" id="deletePageModalLabel">Confirm Delete</h4>
                 <p>Are you sure you want to delete this page? This action cannot be undone.</p>
                 <input type="hidden" id="delete_page_id">
             </div>
