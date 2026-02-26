@@ -175,17 +175,29 @@ try {
     // Sort sections alphabetically
     ksort($recordsBySection);
     
+    // Get academic year for this professor
+    $ayStmt = $pdo->prepare("
+        SELECT academic_year 
+        FROM section_professors 
+        WHERE professor_id = ? AND status = 'active' AND academic_year IS NOT NULL 
+        LIMIT 1
+    ");
+    $ayStmt->execute([$facultyId]);
+    $ayRow = $ayStmt->fetch(PDO::FETCH_ASSOC);
+    $academicYear = $ayRow ? $ayRow['academic_year'] : null;
+    
     echo json_encode([
         'success' => true,
         'sections' => $recordsBySection,
-        'total_students' => count($students)
+        'total_students' => count($students),
+        'academic_year' => $academicYear
     ]);
     
 } catch (Exception $e) {
     error_log("Error in get_class_record.php: " . $e->getMessage());
     echo json_encode([
         'success' => false,
-        'message' => 'Error loading class records: ' . $e->getMessage()
+        'message' => 'Error loading class records. Please try again later.'
     ]);
 }
 ?>

@@ -3,9 +3,9 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Feb 18, 2026 at 02:00 AM
--- Server version: 10.4.32-MariaDB
--- PHP Version: 8.2.12
+-- Generation Time: Feb 26, 2026 at 10:26 AM
+-- Server version: 10.4.28-MariaDB
+-- PHP Version: 8.2.4
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Database: `icei_38697196_coecsathesis`
+-- Database: `coecsa_thesis`
 --
 
 -- --------------------------------------------------------
@@ -155,16 +155,38 @@ INSERT INTO `defense_schedules` (`id`, `team_id`, `panelist_id`, `panelist_id2`,
 (52, 56, 422, 418, 451, '2025-12-06', '16:00:00', '18:00:00', 'Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2025-12-02 07:33:55', 'approved', 'pending'),
 (54, 29, 271, 270, 272, '2025-12-04', '15:00:00', '17:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2025-12-04 23:12:19', 'approved', 'passed'),
 (55, 60, 418, 427, 436, '2025-12-05', '14:00:00', '16:00:00', 'Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2025-12-05 21:46:23', 'approved', 'failed'),
-(94, 21, 428, 272, 436, '2025-11-20', '09:00:00', '11:00:00', 'Room A', 'title_proposal', NULL, 0, 'scheduled', '2026-02-05 13:40:58', 'approved', 'passed'),
+(94, 21, 272, 428, 436, '2025-11-20', '09:00:00', '11:00:00', 'Room B', 'title_proposal', NULL, 0, 'scheduled', '2026-02-05 13:40:58', 'approved', 'passed'),
 (95, 22, 269, 277, 427, '2025-11-20', '11:00:00', '13:00:00', 'Room A', 'title_proposal', NULL, 0, 'scheduled', '2026-02-05 13:40:58', 'approved', 'failed'),
-(120, 21, 428, 431, 427, '2026-02-19', '11:00:00', '13:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(121, 23, 270, 279, 427, '2026-02-20', '13:00:00', '15:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(122, 25, 269, 272, 422, '2026-02-20', '09:00:00', '11:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(123, 27, 270, 279, 441, '2026-02-19', '09:00:00', '11:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(124, 22, 270, 283, 441, '2026-02-19', '15:00:00', '17:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(125, 26, 269, 418, 427, '2026-02-19', '13:00:00', '15:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(126, 24, 428, 284, 422, '2026-02-19', '17:00:00', '19:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending'),
-(127, 28, 269, 280, 451, '2026-02-20', '11:00:00', '13:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-18 00:41:32', 'pending', 'pending');
+(112, 43, 428, 431, 427, '2026-02-27', '13:00:00', '15:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(113, 42, 428, 277, 427, '2026-02-26', '08:00:00', '10:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(114, 48, 269, 285, 427, '2026-02-27', '08:00:00', '10:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(115, 45, 269, 285, 441, '2026-02-26', '10:00:00', '12:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(116, 47, 269, 285, 429, '2026-02-26', '12:00:00', '14:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(117, 52, 427, 441, 431, '2026-02-27', '12:00:00', '14:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(118, 46, 428, 277, 429, '2026-02-26', '14:00:00', '16:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(119, 44, 270, 286, 441, '2026-02-26', '16:00:00', '18:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(120, 53, 429, 451, 418, '2026-02-27', '10:00:00', '12:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(121, 54, 427, 431, 441, '2026-02-20', '16:00:00', '18:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'approved', 'pending'),
+(122, 55, 436, 451, 418, '2026-02-27', '15:00:00', '17:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(123, 56, 436, 429, 430, '2026-02-27', '08:00:00', '10:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(124, 57, 427, 436, 418, '2026-02-26', '09:00:00', '11:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending_chair', 'pending'),
+(125, 59, 436, 429, 284, '2026-02-26', '14:00:00', '16:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:25:14', 'pending', 'pending'),
+(126, 22, 270, 272, 436, '2026-02-23', '12:00:00', '14:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(127, 23, 270, 271, 451, '2026-02-23', '16:30:00', '18:30:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(128, 27, 269, 278, 427, '2026-02-23', '10:00:00', '12:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(129, 21, 428, 431, 441, '2026-02-23', '11:00:00', '13:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(130, 24, 428, 270, 451, '2026-02-23', '14:30:00', '16:30:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(131, 26, 269, 271, 436, '2026-02-23', '08:00:00', '10:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending_chair', 'pending'),
+(132, 25, 428, 430, 429, '2026-02-23', '17:00:00', '19:00:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending', 'pending'),
+(133, 28, 269, 282, 427, '2026-02-23', '14:00:00', '16:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:28:26', 'pending', 'pending'),
+(134, 32, 271, 272, 427, '2026-02-24', '17:00:00', '19:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(135, 34, 269, 272, 429, '2026-02-24', '08:00:00', '10:00:00', ' Accreditation Room', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(136, 30, 270, 271, 436, '2026-02-24', '12:30:00', '14:30:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(137, 33, 270, 431, 441, '2026-02-24', '14:30:00', '16:30:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(138, 36, 269, 418, 441, '2026-02-24', '18:00:00', '20:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(139, 35, 270, 279, 451, '2026-02-24', '10:00:00', '12:00:00', ' Defense Room 2', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(140, 29, 271, 286, 451, '2026-02-24', '13:30:00', '15:30:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending'),
+(141, 37, 271, 281, 427, '2026-02-24', '10:30:00', '12:30:00', 'Defense Room 1', 'title_proposal', NULL, 0, 'scheduled', '2026-02-20 07:31:02', 'pending_chair', 'pending');
 
 -- --------------------------------------------------------
 
@@ -2063,7 +2085,133 @@ INSERT INTO `evaluation_details` (`id`, `evaluation_id`, `rubric_id`, `criterion
 (2500, 182, 38, 233, NULL, 3, NULL, NULL, '2025-12-06 10:36:59', '2025-12-06 10:36:59'),
 (2501, 182, 39, 234, NULL, 3, NULL, NULL, '2025-12-06 10:36:59', '2025-12-06 10:36:59'),
 (2502, 182, 39, 235, NULL, 3, NULL, NULL, '2025-12-06 10:36:59', '2025-12-06 10:36:59'),
-(2503, 182, 39, 236, NULL, 3, NULL, NULL, '2025-12-06 10:36:59', '2025-12-06 10:36:59');
+(2503, 182, 39, 236, NULL, 3, NULL, NULL, '2025-12-06 10:36:59', '2025-12-06 10:36:59'),
+(2504, 186, 32, 550, 447, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2505, 187, 32, 550, 448, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2506, 188, 32, 550, 449, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2507, 189, 32, 550, 450, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2508, 186, 32, 551, 447, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2509, 187, 32, 551, 448, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2510, 188, 32, 551, 449, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2511, 189, 32, 551, 450, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2512, 186, 32, 553, 447, 7, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2513, 187, 32, 553, 448, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2514, 188, 32, 553, 449, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2515, 189, 32, 553, 450, 7, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2516, 186, 32, 554, 447, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2517, 187, 32, 554, 448, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2518, 188, 32, 554, 449, 9, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2519, 189, 32, 554, 450, 7, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2520, 186, 32, 555, 447, 7, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2521, 187, 32, 555, 448, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2522, 188, 32, 555, 449, 7, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2523, 189, 32, 555, 450, 8, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2524, 186, 34, 516, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2525, 186, 34, 517, NULL, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2526, 186, 34, 518, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2527, 186, 34, 519, NULL, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2528, 186, 34, 520, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2529, 186, 34, 521, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2530, 186, 34, 522, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2531, 186, 34, 523, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2532, 186, 34, 524, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2533, 186, 34, 525, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2534, 186, 34, 527, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2535, 186, 34, 528, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2536, 186, 34, 529, NULL, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2537, 186, 34, 530, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2538, 186, 34, 531, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2539, 186, 38, 230, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2540, 186, 38, 231, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2541, 186, 38, 232, NULL, 4, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2542, 186, 38, 233, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2543, 186, 39, 234, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2544, 186, 39, 235, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2545, 186, 39, 236, NULL, 3, NULL, NULL, '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(2546, 190, 32, 550, 447, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2547, 191, 32, 550, 448, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2548, 192, 32, 550, 449, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2549, 193, 32, 550, 450, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2550, 190, 32, 551, 447, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2551, 191, 32, 551, 448, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2552, 192, 32, 551, 449, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2553, 193, 32, 551, 450, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2554, 190, 32, 553, 447, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2555, 191, 32, 553, 448, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2556, 192, 32, 553, 449, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2557, 193, 32, 553, 450, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2558, 190, 32, 554, 447, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2559, 191, 32, 554, 448, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2560, 192, 32, 554, 449, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2561, 193, 32, 554, 450, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2562, 190, 32, 555, 447, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2563, 191, 32, 555, 448, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2564, 192, 32, 555, 449, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2565, 193, 32, 555, 450, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2566, 190, 34, 516, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2567, 190, 34, 517, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2568, 190, 34, 518, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2569, 190, 34, 519, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2570, 190, 34, 520, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2571, 190, 34, 521, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2572, 190, 34, 522, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2573, 190, 34, 523, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2574, 190, 34, 524, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2575, 190, 34, 525, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2576, 190, 34, 527, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2577, 190, 34, 528, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2578, 190, 34, 529, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2579, 190, 34, 530, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2580, 190, 34, 531, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2581, 190, 38, 230, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2582, 190, 38, 231, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2583, 190, 38, 232, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2584, 190, 38, 233, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2585, 190, 39, 234, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2586, 190, 39, 235, NULL, 4, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2587, 190, 39, 236, NULL, 3, NULL, NULL, '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(2588, 194, 32, 550, 447, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2589, 195, 32, 550, 448, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2590, 196, 32, 550, 449, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2591, 197, 32, 550, 450, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2592, 194, 32, 551, 447, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2593, 195, 32, 551, 448, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2594, 196, 32, 551, 449, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2595, 197, 32, 551, 450, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2596, 194, 32, 553, 447, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2597, 195, 32, 553, 448, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2598, 196, 32, 553, 449, 5, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2599, 197, 32, 553, 450, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2600, 194, 32, 554, 447, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2601, 195, 32, 554, 448, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2602, 196, 32, 554, 449, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2603, 197, 32, 554, 450, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2604, 194, 32, 555, 447, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2605, 195, 32, 555, 448, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2606, 196, 32, 555, 449, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2607, 197, 32, 555, 450, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2608, 194, 34, 516, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2609, 194, 34, 517, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2610, 194, 34, 518, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2611, 194, 34, 519, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2612, 194, 34, 520, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2613, 194, 34, 521, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2614, 194, 34, 522, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2615, 194, 34, 523, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2616, 194, 34, 524, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2617, 194, 34, 525, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2618, 194, 34, 527, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2619, 194, 34, 528, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2620, 194, 34, 529, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2621, 194, 34, 530, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2622, 194, 34, 531, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2623, 194, 38, 230, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2624, 194, 38, 231, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2625, 194, 38, 232, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2626, 194, 38, 233, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2627, 194, 39, 234, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2628, 194, 39, 235, NULL, 3, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(2629, 194, 39, 236, NULL, 4, NULL, NULL, '2026-02-20 08:27:55', '2026-02-20 08:27:55');
 
 -- --------------------------------------------------------
 
@@ -2252,7 +2400,19 @@ INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`,
 INSERT INTO `evaluation_per_panel` (`id`, `defense_schedule_id`, `evaluator_id`, `student_id`, `group_score`, `solo_score`, `total_score`, `comments`, `created_at`, `updated_at`) VALUES
 (183, 48, 427, 444, 48.375, 34, 82.375, 'Why YOLOv11n instead of YOLOv8-face or YOLOv11s? SInce they have different versions of YOLO why not make a comparison? Provide benchmark comparison in the manuscript.\nBUffalo-L requires normalized, frontal-like faces for best quality. What if CCTV captures angled or occluded faces embedding quality drops. Iclude strategies like, face alignment, bllur detection, anti-spoofing checks. (Provide justification with the models and algorithm used)\nHow do you handle aging, facial changes and low resolution. How will you mitigate false positives in crowded scenes? (Provide justification, it must be identified in the manuscript)\nWhat datasets will you use to train or validate your system? Public dataset, Project-specific dataset? Validation strategy? (Provide comparative analysis on the different datasets)\nHow will you evaluate accuracy in terms of Precision, Recall and F1 score and confusion matrix (True Positive, True Negative, False Positive and False Negative) Need to have an evaluation metrics.\nHow does your system avoid matching 2 look-a-like person? \n', '2025-12-06 10:36:59', '2026-02-12 22:04:49'),
 (184, 48, 427, 445, 48.375, 31, 79.375, 'Why YOLOv11n instead of YOLOv8-face or YOLOv11s? SInce they have different versions of YOLO why not make a comparison? Provide benchmark comparison in the manuscript.\nBUffalo-L requires normalized, frontal-like faces for best quality. What if CCTV captures angled or occluded faces embedding quality drops. Iclude strategies like, face alignment, bllur detection, anti-spoofing checks. (Provide justification with the models and algorithm used)\nHow do you handle aging, facial changes and low resolution. How will you mitigate false positives in crowded scenes? (Provide justification, it must be identified in the manuscript)\nWhat datasets will you use to train or validate your system? Public dataset, Project-specific dataset? Validation strategy? (Provide comparative analysis on the different datasets)\nHow will you evaluate accuracy in terms of Precision, Recall and F1 score and confusion matrix (True Positive, True Negative, False Positive and False Negative) Need to have an evaluation metrics.\nHow does your system avoid matching 2 look-a-like person? \n', '2025-12-06 10:36:59', '2026-02-12 22:04:49'),
-(185, 48, 427, 446, 48.375, 0, 48.375, 'Why YOLOv11n instead of YOLOv8-face or YOLOv11s? SInce they have different versions of YOLO why not make a comparison? Provide benchmark comparison in the manuscript.\nBUffalo-L requires normalized, frontal-like faces for best quality. What if CCTV captures angled or occluded faces embedding quality drops. Iclude strategies like, face alignment, bllur detection, anti-spoofing checks. (Provide justification with the models and algorithm used)\nHow do you handle aging, facial changes and low resolution. How will you mitigate false positives in crowded scenes? (Provide justification, it must be identified in the manuscript)\nWhat datasets will you use to train or validate your system? Public dataset, Project-specific dataset? Validation strategy? (Provide comparative analysis on the different datasets)\nHow will you evaluate accuracy in terms of Precision, Recall and F1 score and confusion matrix (True Positive, True Negative, False Positive and False Negative) Need to have an evaluation metrics.\nHow does your system avoid matching 2 look-a-like person? \n', '2025-12-06 10:36:59', '2026-02-12 17:57:16');
+(185, 48, 427, 446, 48.375, 0, 48.375, 'Why YOLOv11n instead of YOLOv8-face or YOLOv11s? SInce they have different versions of YOLO why not make a comparison? Provide benchmark comparison in the manuscript.\nBUffalo-L requires normalized, frontal-like faces for best quality. What if CCTV captures angled or occluded faces embedding quality drops. Iclude strategies like, face alignment, bllur detection, anti-spoofing checks. (Provide justification with the models and algorithm used)\nHow do you handle aging, facial changes and low resolution. How will you mitigate false positives in crowded scenes? (Provide justification, it must be identified in the manuscript)\nWhat datasets will you use to train or validate your system? Public dataset, Project-specific dataset? Validation strategy? (Provide comparative analysis on the different datasets)\nHow will you evaluate accuracy in terms of Precision, Recall and F1 score and confusion matrix (True Positive, True Negative, False Positive and False Negative) Need to have an evaluation metrics.\nHow does your system avoid matching 2 look-a-like person? \n', '2025-12-06 10:36:59', '2026-02-12 17:57:16'),
+(186, 121, 441, 447, 47.625, 29, 76.625, '', '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(187, 121, 441, 448, 47.625, 32, 79.625, '', '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(188, 121, 441, 449, 47.625, 31, 78.625, '', '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(189, 121, 441, 450, 47.625, 30, 77.625, '', '2026-02-20 08:24:05', '2026-02-20 08:24:05'),
+(190, 121, 431, 447, 51.9583, 20, 71.9583, '', '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(191, 121, 431, 448, 51.9583, 18, 69.9583, '', '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(192, 121, 431, 449, 51.9583, 16, 67.9583, '', '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(193, 121, 431, 450, 51.9583, 18, 69.9583, '', '2026-02-20 08:25:59', '2026-02-20 08:25:59'),
+(194, 121, 427, 447, 53.0833, 19, 72.0833, '', '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(195, 121, 427, 448, 53.0833, 18, 71.0833, '', '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(196, 121, 427, 449, 53.0833, 19, 72.0833, '', '2026-02-20 08:27:55', '2026-02-20 08:27:55'),
+(197, 121, 427, 450, 53.0833, 17, 70.0833, '', '2026-02-20 08:27:55', '2026-02-20 08:27:55');
 
 -- --------------------------------------------------------
 
@@ -2635,7 +2795,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (313, 422, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for DENGUEGUARD\'s defense:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: DENGUEGUARD: ARIMA-LSTM ENSEMBLE AND K-MEANS CLUSTERING FOR DENGUE OUTBREAK EARLY WARNING\n\nPlease approve or decline this assignment.', 43, NULL, 1, '2025-12-01 15:14:19', '2025-12-05 04:46:33'),
 (314, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for DENGUEGUARD\'s defense:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: DENGUEGUARD: ARIMA-LSTM ENSEMBLE AND K-MEANS CLUSTERING FOR DENGUE OUTBREAK EARLY WARNING\n\nPlease approve or decline this assignment.', 43, NULL, 1, '2025-12-01 15:14:19', '2025-12-05 04:52:23'),
 (315, 436, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for DENGUEGUARD\'s defense:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: DENGUEGUARD: ARIMA-LSTM ENSEMBLE AND K-MEANS CLUSTERING FOR DENGUE OUTBREAK EARLY WARNING\n\nPlease approve or decline this assignment.', 43, NULL, 1, '2025-12-01 15:14:19', '2025-12-05 04:58:23'),
-(316, 418, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 5, 2025 at 4:00 PM - 6:00 PM in Defense Room 1. Waiting for panelist approval.', 43, NULL, 0, '2025-12-01 15:14:19', '2025-12-01 15:14:19'),
+(316, 418, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 5, 2025 at 4:00 PM - 6:00 PM in Defense Room 1. Waiting for panelist approval.', 43, NULL, 1, '2025-12-01 15:14:19', '2026-02-26 02:51:10'),
 (317, 432, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 5, 2025 at 4:00 PM - 6:00 PM in Defense Room 1. Waiting for panelist approval.', 43, NULL, 0, '2025-12-01 15:14:19', '2025-12-01 15:14:19'),
 (318, 433, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 5, 2025 at 4:00 PM - 6:00 PM in Defense Room 1. Waiting for panelist approval.', 43, NULL, 0, '2025-12-01 15:14:19', '2025-12-01 15:14:19'),
 (319, 434, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 5, 2025 at 4:00 PM - 6:00 PM in Defense Room 1. Waiting for panelist approval.', 43, NULL, 0, '2025-12-01 15:14:19', '2025-12-01 15:14:19'),
@@ -2703,7 +2863,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (380, 415, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 6, 2025 at 2:00 PM - 4:00 PM in Defense Room 2. Waiting for panelist approval.', 51, NULL, 0, '2025-12-01 15:33:27', '2025-12-01 15:33:27'),
 (381, 416, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 6, 2025 at 2:00 PM - 4:00 PM in Defense Room 2. Waiting for panelist approval.', 51, NULL, 0, '2025-12-01 15:33:27', '2025-12-01 15:33:27'),
 (382, 417, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 6, 2025 at 2:00 PM - 4:00 PM in Defense Room 2. Waiting for panelist approval.', 51, NULL, 0, '2025-12-01 15:33:27', '2025-12-01 15:33:27'),
-(383, 418, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 6, 2025 at 2:00 PM - 4:00 PM in Defense Room 2. Waiting for panelist approval.', 51, NULL, 0, '2025-12-01 15:33:27', '2025-12-01 15:33:27'),
+(383, 418, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s defense has been scheduled for December 6, 2025 at 2:00 PM - 4:00 PM in Defense Room 2. Waiting for panelist approval.', 51, NULL, 1, '2025-12-01 15:33:27', '2026-02-26 02:51:10'),
 (384, 422, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for SalinDugo\'s defense:\n\n📅 Date: December 6, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 2\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: SalinDugo: An AI-Enhanced Blood Donor Matching and Demand Forecasting Web Application with Regional Blood Type Insights and Location-Based Service Finder\n\nPlease approve or decline this assignment.', 52, NULL, 1, '2025-12-01 15:33:55', '2025-12-05 04:46:59'),
 (385, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for SalinDugo\'s defense:\n\n📅 Date: December 6, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 2\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: SalinDugo: An AI-Enhanced Blood Donor Matching and Demand Forecasting Web Application with Regional Blood Type Insights and Location-Based Service Finder\n\nPlease approve or decline this assignment.', 52, NULL, 1, '2025-12-01 15:33:55', '2025-12-05 05:47:15'),
 (386, 451, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for SalinDugo\'s defense:\n\n📅 Date: December 6, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 2\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: SalinDugo: An AI-Enhanced Blood Donor Matching and Demand Forecasting Web Application with Regional Blood Type Insights and Location-Based Service Finder\n\nPlease approve or decline this assignment.', 52, NULL, 1, '2025-12-01 15:33:55', '2025-12-05 23:26:36'),
@@ -2741,7 +2901,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (418, 291, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 3, 2025\n🕒 Time: 10:30 AM - 12:30 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 53, NULL, 0, '2025-12-03 02:47:39', '2025-12-03 02:47:39'),
 (419, 317, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 3, 2025\n🕒 Time: 10:30 AM - 12:30 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 53, NULL, 0, '2025-12-03 02:47:39', '2025-12-03 02:47:39'),
 (420, 331, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 3, 2025\n🕒 Time: 10:30 AM - 12:30 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 53, NULL, 0, '2025-12-03 02:47:39', '2025-12-03 02:47:39'),
-(421, 418, 'requirement_submitted', 'New Requirement Submission', 'Team \'DENGUEGUARD\' has submitted the requirement \'Thesis 1\'. File: 52_47_1764815300_DENGUEGUARD_FINAL_CH_1-3_DRAFT.pdf', 52, NULL, 0, '2025-12-04 02:28:20', '2025-12-04 02:28:20'),
+(421, 418, 'requirement_submitted', 'New Requirement Submission', 'Team \'DENGUEGUARD\' has submitted the requirement \'Thesis 1\'. File: 52_47_1764815300_DENGUEGUARD_FINAL_CH_1-3_DRAFT.pdf', 52, NULL, 1, '2025-12-04 02:28:20', '2026-02-26 02:51:10'),
 (422, 428, 'requirement_submitted', 'New Requirement Submission', 'Team \'Postra\' has submitted the requirement \'Thesis 1\'. File: 53_47_1764815804_POSTRA_FINAL_CHAP1-3.pdf', 53, NULL, 0, '2025-12-04 02:36:44', '2025-12-04 02:36:44'),
 (423, 430, 'requirement_submitted', 'New Requirement Submission', 'Team \'Solari\' has submitted the requirement \'Thesis 1\'. File: 55_47_1764815992_SOLARI_Final_Manuscript__as_of_Dec_3_.pdf', 55, NULL, 0, '2025-12-04 02:39:53', '2025-12-04 02:39:53'),
 (424, 271, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT402)\'s defense:\n\n📅 Date: December 4, 2025\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about another point of sale\n\nPlease approve or decline this assignment.', 54, NULL, 1, '2025-12-04 07:12:19', '2025-12-04 07:22:59'),
@@ -2766,10 +2926,10 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (443, 348, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 4, 2025\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 54, NULL, 0, '2025-12-04 07:25:28', '2025-12-04 07:25:28'),
 (444, 339, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 4, 2025\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 54, NULL, 0, '2025-12-04 07:25:28', '2025-12-04 07:25:28'),
 (445, 338, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 4, 2025\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 54, NULL, 0, '2025-12-04 07:25:28', '2025-12-04 07:25:28'),
-(446, 418, 'requirement_submitted', 'New Requirement Submission', 'Team \'HerbaScan\' has submitted the requirement \'Thesis 1\'. File: 49_47_1764833243_HerbaScan.pdf', 49, NULL, 0, '2025-12-04 07:27:23', '2025-12-04 07:27:23'),
+(446, 418, 'requirement_submitted', 'New Requirement Submission', 'Team \'HerbaScan\' has submitted the requirement \'Thesis 1\'. File: 49_47_1764833243_HerbaScan.pdf', 49, NULL, 1, '2025-12-04 07:27:23', '2026-02-26 02:51:10'),
 (447, 422, 'requirement_submitted', 'New Requirement Submission', 'Team \'NaviCav\' has submitted the requirement \'Thesis 1\'. File: 50_47_1764833300_NAVICAV-FinalManuscript.pdf', 50, NULL, 0, '2025-12-04 07:28:20', '2025-12-04 07:28:20'),
 (448, 427, 'requirement_submitted', 'New Requirement Submission', 'Team \'RECOLOR\' has submitted the requirement \'Thesis 1\'. File: 51_47_1764833352_RECOLOR_-_LATEST__As_of_December_1.pdf', 51, NULL, 0, '2025-12-04 07:29:13', '2025-12-04 07:29:13'),
-(449, 418, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 43, NULL, 0, '2025-12-05 04:58:23', '2025-12-05 04:58:23'),
+(449, 418, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 43, NULL, 1, '2025-12-05 04:58:23', '2026-02-26 02:51:10'),
 (450, 432, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 43, NULL, 0, '2025-12-05 04:58:23', '2025-12-05 04:58:23'),
 (451, 433, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 43, NULL, 0, '2025-12-05 04:58:23', '2025-12-05 04:58:23'),
 (452, 434, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 5, 2025\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room: Defense Room 1\n\nYour defense is now officially scheduled. Good luck!', 43, NULL, 0, '2025-12-05 04:58:23', '2025-12-05 04:58:23'),
@@ -2851,7 +3011,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (527, 415, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 6, 2025\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 2\n\nYour defense is now officially scheduled. Good luck!', 51, NULL, 0, '2025-12-06 02:06:42', '2025-12-06 02:06:42'),
 (528, 416, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 6, 2025\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 2\n\nYour defense is now officially scheduled. Good luck!', 51, NULL, 0, '2025-12-06 02:06:42', '2025-12-06 02:06:42'),
 (529, 417, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 6, 2025\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 2\n\nYour defense is now officially scheduled. Good luck!', 51, NULL, 0, '2025-12-06 02:06:42', '2025-12-06 02:06:42'),
-(530, 418, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 6, 2025\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 2\n\nYour defense is now officially scheduled. Good luck!', 51, NULL, 0, '2025-12-06 02:06:42', '2025-12-06 02:06:42'),
+(530, 418, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: December 6, 2025\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 2\n\nYour defense is now officially scheduled. Good luck!', 51, NULL, 1, '2025-12-06 02:06:42', '2026-02-26 02:51:10'),
 (643, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 8 (IT401)\'s defense:\n\n📅 Date: February 9, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about social media and psychology\n\nPlease approve or decline this assignment.', 70, NULL, 0, '2026-02-05 13:20:16', '2026-02-05 13:20:16'),
 (644, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 8 (IT401)\'s defense:\n\n📅 Date: February 9, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about social media and psychology\n\nPlease approve or decline this assignment.', 70, NULL, 0, '2026-02-05 13:20:16', '2026-02-05 13:20:16'),
 (645, 285, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 8:00 AM - 10:00 AM in Defense Room 1. Waiting for panelist approval.', 70, NULL, 0, '2026-02-05 13:20:16', '2026-02-05 13:20:16'),
@@ -2933,7 +3093,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (721, 310, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 11:00 AM - 1:00 PM in Defense Room 1. Waiting for panelist approval.', 80, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
 (722, 322, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 11:00 AM - 1:00 PM in Defense Room 1. Waiting for panelist approval.', 80, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
 (723, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 9, 2026\n🕒 Time: 7:00 AM - 9:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 81, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
-(724, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 9, 2026\n🕒 Time: 7:00 AM - 9:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 81, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
+(724, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 9, 2026\n🕒 Time: 7:00 AM - 9:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 81, NULL, 1, '2026-02-05 13:24:18', '2026-02-26 02:51:10'),
 (725, 285, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 7:00 AM - 9:00 AM in Defense Room 1. Waiting for panelist approval.', 81, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
 (726, 292, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 7:00 AM - 9:00 AM in Defense Room 1. Waiting for panelist approval.', 81, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
 (727, 287, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 7:00 AM - 9:00 AM in Defense Room 1. Waiting for panelist approval.', 81, NULL, 0, '2026-02-05 13:24:18', '2026-02-05 13:24:18'),
@@ -3141,7 +3301,7 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (927, 304, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 7:00 PM - 9:00 PM in Defense Room 1. Waiting for panelist approval.', 109, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (928, 295, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 9, 2026 at 7:00 PM - 9:00 PM in Defense Room 1. Waiting for panelist approval.', 109, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (929, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 10, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
-(930, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 10, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
+(930, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 10, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 110, NULL, 1, '2026-02-05 13:47:56', '2026-02-26 02:51:10'),
 (931, 441, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 10, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (932, 285, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 6:00 PM - 8:00 PM in Defense Room 1. Waiting for panelist approval.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (933, 309, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 6:00 PM - 8:00 PM in Defense Room 1. Waiting for panelist approval.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
@@ -3149,94 +3309,106 @@ INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `relat
 (935, 329, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 6:00 PM - 8:00 PM in Defense Room 1. Waiting for panelist approval.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (936, 314, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 6:00 PM - 8:00 PM in Defense Room 1. Waiting for panelist approval.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
 (937, 332, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 10, 2026 at 6:00 PM - 8:00 PM in Defense Room 1. Waiting for panelist approval.', 110, NULL, 0, '2026-02-05 13:47:56', '2026-02-05 13:47:56'),
-(938, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT401)\n📝 Research: a research about web apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 112, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(939, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3 (IT401)\n📝 Research: a research about web and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 113, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(940, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT401)\n📝 Research: a research about point of sales\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 114, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(941, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT401)\n📝 Research: a research about mobile apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 115, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(942, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT401)\n📝 Research: a research about social media and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 116, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(943, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT401)\n📝 Research: a research about plant growth using tech\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 117, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(944, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT401)\n📝 Research: a research about conducting research\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 118, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(945, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT401)\n📝 Research: a research about corelation of passing thesis and school environment\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 119, NULL, 0, '2026-02-18 00:37:39', '2026-02-18 00:37:39'),
-(946, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT401)\n📝 Research: a research about mobile apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 120, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(947, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3 (IT401)\n📝 Research: a research about web and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 121, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(948, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT401)\n📝 Research: a research about point of sales\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 122, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(949, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT401)\n📝 Research: a research about social media and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 123, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(950, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT401)\n📝 Research: a research about web apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 124, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(951, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT401)\n📝 Research: a research about plant growth using tech\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 125, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(952, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT401)\n📝 Research: a research about conducting research\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 19, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 126, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(953, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT401)\n📝 Research: a research about corelation of passing thesis and school environment\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 20, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 127, NULL, 0, '2026-02-18 00:41:32', '2026-02-18 00:41:32'),
-(1026, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 8 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about social media and psychology\n\nPlease approve or decline this assignment.', 123, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1027, 279, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 8 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about social media and psychology\n\nPlease approve or decline this assignment.', 123, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1028, 441, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 8 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about social media and psychology\n\nPlease approve or decline this assignment.', 123, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1029, 285, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1030, 316, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1031, 324, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1032, 318, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1033, 310, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1034, 322, '', '', 'Your defense has been scheduled on 2026-02-19 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1035, 428, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 120, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1036, 431, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 120, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1037, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 1 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about mobile apps\n\nPlease approve or decline this assignment.', 120, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1038, 285, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1039, 292, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1040, 287, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1041, 300, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1042, 306, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1043, 333, '', '', 'Your defense has been scheduled on 2026-02-19 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1044, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 125, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1045, 418, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 125, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1046, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 6 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about plant growth using tech\n\nPlease approve or decline this assignment.', 125, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1047, 285, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1048, 309, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1049, 321, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1050, 329, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1051, 314, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1052, 332, '', '', 'Your defense has been scheduled on 2026-02-19 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1053, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 2 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web apps\n\nPlease approve or decline this assignment.', 124, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1054, 283, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 2 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web apps\n\nPlease approve or decline this assignment.', 124, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1055, 441, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 2 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web apps\n\nPlease approve or decline this assignment.', 124, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1056, 285, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1057, 323, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1058, 330, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1059, 291, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1060, 317, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1061, 331, '', '', 'Your defense has been scheduled on 2026-02-19 from 15:00 to 17:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1062, 428, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 4 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about conducting research\n\nPlease approve or decline this assignment.', 126, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1063, 284, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 4 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about conducting research\n\nPlease approve or decline this assignment.', 126, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1064, 422, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 4 (IT401)\'s defense:\n\n📅 Date: February 19, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about conducting research\n\nPlease approve or decline this assignment.', 126, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1065, 285, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1066, 288, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1067, 312, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1068, 308, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1069, 315, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1070, 313, '', '', 'Your defense has been scheduled on 2026-02-19 from 17:00 to 19:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1071, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 122, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1072, 272, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 122, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1073, 422, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 122, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1074, 285, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1075, 267, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1076, 268, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1077, 296, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1078, 299, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1079, 303, '', '', 'Your defense has been scheduled on 2026-02-20 from 09:00 to 11:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1080, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 127, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1081, 280, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 127, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1082, 451, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 127, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1083, 285, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1084, 327, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1085, 319, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1086, 294, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1087, 326, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1088, 328, '', '', 'Your defense has been scheduled on 2026-02-20 from 11:00 to 13:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1089, 270, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 3 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web and psychology\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1090, 279, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 3 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web and psychology\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1091, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 3 (IT401)\'s defense:\n\n📅 Date: February 20, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about web and psychology\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1092, 285, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1093, 325, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1094, 311, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1095, 320, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1096, 304, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13'),
-(1097, 295, '', '', 'Your defense has been scheduled on 2026-02-20 from 13:00 to 15:00 in Defense Room 1.', NULL, NULL, 0, '2026-02-18 00:58:13', '2026-02-18 00:58:13');
+(938, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT403)\n📝 Research: a research about mobile games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 27, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 112, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(939, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT403)\n📝 Research: a research about mobile games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 27, 2026\n🕒 Time: 1:00 PM - 3:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 112, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(940, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT403)\n📝 Research: a research about mobile\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 113, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(941, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT403)\n📝 Research: a research about mobile\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 113, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(942, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT403)\n📝 Research: a research about hybrid mobile app\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 27, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 114, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(943, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT403)\n📝 Research: a research about hybrid mobile app\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 27, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 114, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(944, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT403)\n📝 Research: a research about another web app\n🎓 Program: Unspecified\n📅 Date: February 26, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 115, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(945, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT403)\n📝 Research: a research about another web app\n🎓 Program: Unspecified\n📅 Date: February 26, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 115, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(946, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT403)\n📝 Research: a research about hybrid app\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 116, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(947, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT403)\n📝 Research: a research about hybrid app\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 116, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(948, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: DENGUEGUARD\n📝 Research: DENGUEGUARD: ARIMA-LSTM ENSEMBLE AND K-MEANS CLUSTERING FOR DENGUE OUTBREAK EARLY WARNING\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 117, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(949, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: DENGUEGUARD\n📝 Research: DENGUEGUARD: ARIMA-LSTM ENSEMBLE AND K-MEANS CLUSTERING FOR DENGUE OUTBREAK EARLY WARNING\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 117, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(950, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT403)\n📝 Research: a research about software bugs\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 118, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(951, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT403)\n📝 Research: a research about software bugs\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 118, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(952, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT403)\n📝 Research: a research about software bugs\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 119, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(953, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT403)\n📝 Research: a research about software bugs\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 26, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 119, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(954, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: Postra\n📝 Research: Postra: A City-Based Missing Person Poster Detector with a Facial Recognition System for Community-Level Identification and Response\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 120, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(955, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: Postra\n📝 Research: Postra: A City-Based Missing Person Poster Detector with a Facial Recognition System for Community-Level Identification and Response\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 120, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(956, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: KNOWWHERE\n📝 Research: KNOWWHERE: AN SLM-POWERED SEMANTIC SEARCH SYSTEM FOR ACADEMIC RESEARCH DISCOVERY\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 121, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(957, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: KNOWWHERE\n📝 Research: KNOWWHERE: AN SLM-POWERED SEMANTIC SEARCH SYSTEM FOR ACADEMIC RESEARCH DISCOVERY\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 121, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(958, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: Solari\n📝 Research: Solari: AN AI-POWERED SMART GLASSES SYSTEM FOR REAL-TIME VISUAL AND SCENE DESCRIPTION FOR VISUALLY IMPAIRED\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 122, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(959, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: Solari\n📝 Research: Solari: AN AI-POWERED SMART GLASSES SYSTEM FOR REAL-TIME VISUAL AND SCENE DESCRIPTION FOR VISUALLY IMPAIRED\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 3:00 PM - 5:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 122, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(960, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: SalinDugo\n📝 Research: SalinDugo: An AI-Enhanced Blood Donor Matching and Demand Forecasting Web Application with Regional Blood Type Insights and Location-Based Service Finder\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 123, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(961, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: SalinDugo\n📝 Research: SalinDugo: An AI-Enhanced Blood Donor Matching and Demand Forecasting Web Application with Regional Blood Type Insights and Location-Based Service Finder\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 27, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 123, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(962, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: GAIA\n📝 Research: GAIA: An AI-Driven Framework Integrating Zero-Shot Classification and Geo-NER for Real-Time Environmental Hazard Detection.\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 124, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(963, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: GAIA\n📝 Research: GAIA: An AI-Driven Framework Integrating Zero-Shot Classification and Geo-NER for Real-Time Environmental Hazard Detection.\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 9:00 AM - 11:00 AM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 124, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(964, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: PrivacyGuard\n📝 Research: PrivacyGuard: A browser extension for PII protection in LPU-Cavite using Hybrid NER and Random Forest\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 125, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(965, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: PrivacyGuard\n📝 Research: PrivacyGuard: A browser extension for PII protection in LPU-Cavite using Hybrid NER and Random Forest\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 125, NULL, 0, '2026-02-20 07:25:14', '2026-02-20 07:25:14'),
+(966, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for KNOWWHERE\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: KNOWWHERE: AN SLM-POWERED SEMANTIC SEARCH SYSTEM FOR ACADEMIC RESEARCH DISCOVERY\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-20 07:25:49', '2026-02-20 08:20:48'),
+(967, 441, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for KNOWWHERE\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: KNOWWHERE: AN SLM-POWERED SEMANTIC SEARCH SYSTEM FOR ACADEMIC RESEARCH DISCOVERY\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-20 07:25:49', '2026-02-20 08:21:23'),
+(968, 431, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for KNOWWHERE\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: KNOWWHERE: AN SLM-POWERED SEMANTIC SEARCH SYSTEM FOR ACADEMIC RESEARCH DISCOVERY\n\nPlease approve or decline this assignment.', 121, NULL, 1, '2026-02-20 07:25:49', '2026-02-20 08:21:07'),
+(969, 429, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 8:00 AM - 10:00 AM in  Accreditation Room. Waiting for panelist approval.', 121, NULL, 0, '2026-02-20 07:25:49', '2026-02-20 07:25:49'),
+(970, 447, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 8:00 AM - 10:00 AM in  Accreditation Room. Waiting for panelist approval.', 121, NULL, 0, '2026-02-20 07:25:49', '2026-02-20 07:25:49'),
+(971, 448, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 8:00 AM - 10:00 AM in  Accreditation Room. Waiting for panelist approval.', 121, NULL, 0, '2026-02-20 07:25:49', '2026-02-20 07:25:49'),
+(972, 449, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 8:00 AM - 10:00 AM in  Accreditation Room. Waiting for panelist approval.', 121, NULL, 0, '2026-02-20 07:25:49', '2026-02-20 07:25:49'),
+(973, 450, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 8:00 AM - 10:00 AM in  Accreditation Room. Waiting for panelist approval.', 121, NULL, 0, '2026-02-20 07:25:49', '2026-02-20 07:25:49'),
+(974, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT401)\n📝 Research: a research about web apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 126, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(975, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT401)\n📝 Research: a research about web apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 12:00 PM - 2:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 126, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(976, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3 (IT401)\n📝 Research: a research about web and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 4:30 PM - 6:30 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 127, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(977, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3 (IT401)\n📝 Research: a research about web and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 4:30 PM - 6:30 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 127, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(978, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT401)\n📝 Research: a research about social media and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 128, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(979, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT401)\n📝 Research: a research about social media and psychology\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 128, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(980, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT401)\n📝 Research: a research about mobile apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 129, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(981, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT401)\n📝 Research: a research about mobile apps\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 11:00 AM - 1:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 129, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(982, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT401)\n📝 Research: a research about conducting research\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 2:30 PM - 4:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 130, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(983, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT401)\n📝 Research: a research about conducting research\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 2:30 PM - 4:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 130, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(984, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT401)\n📝 Research: a research about plant growth using tech\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 131, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(985, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT401)\n📝 Research: a research about plant growth using tech\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 131, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(986, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT401)\n📝 Research: a research about point of sales\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 132, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(987, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT401)\n📝 Research: a research about point of sales\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 132, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(988, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT401)\n📝 Research: a research about corelation of passing thesis and school environment\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 133, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(989, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 9 (IT401)\n📝 Research: a research about corelation of passing thesis and school environment\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 23, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 133, NULL, 0, '2026-02-20 07:28:26', '2026-02-20 07:28:26'),
+(990, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3  (IT402)\n📝 Research: a research about the effect of social media\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 134, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(991, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 3  (IT402)\n📝 Research: a research about the effect of social media\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 134, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(992, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT402)\n📝 Research: a research about ai\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 135, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(993, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 5 (IT402)\n📝 Research: a research about ai\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 8:00 AM - 10:00 AM\n🏢 Room:  Accreditation Room\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 135, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(994, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT402)\n📝 Research: a research about ai chatbot\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 12:30 PM - 2:30 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 136, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(995, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 2 (IT402)\n📝 Research: a research about ai chatbot\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 12:30 PM - 2:30 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 136, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(996, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT402)\n📝 Research: a research about games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 2:30 PM - 4:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 137, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(997, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 4 (IT402)\n📝 Research: a research about games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 2:30 PM - 4:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 137, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(998, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT402)\n📝 Research: a research about addiction of games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 138, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(999, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 7 (IT402)\n📝 Research: a research about addiction of games\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 6:00 PM - 8:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 138, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1000, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT402)\n📝 Research: a research about another ai\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 139, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1001, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 6 (IT402)\n📝 Research: a research about another ai\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 10:00 AM - 12:00 PM\n🏢 Room:  Defense Room 2\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 139, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1002, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT402)\n📝 Research: a research about another point of sale\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 1:30 PM - 3:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 140, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1003, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 1 (IT402)\n📝 Research: a research about another point of sale\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 1:30 PM - 3:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 140, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1004, 273, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT402)\n📝 Research: a research about cloud storage\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 10:30 AM - 12:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 141, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1005, 422, '', 'Defense Schedule - Chair Review Required', 'A new defense schedule requires your review before panelists are notified:\n\n🎓 Team: team 8 (IT402)\n📝 Research: a research about cloud storage\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📅 Date: February 24, 2026\n🕒 Time: 10:30 AM - 12:30 PM\n🏢 Room: Defense Room 1\n\nPlease approve or reject this schedule in the Defense Schedules tab.', 141, NULL, 0, '2026-02-20 07:31:02', '2026-02-20 07:31:02'),
+(1006, 269, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1007, 282, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1008, 427, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 9 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room:  Defense Room 2\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about corelation of passing thesis and school environment\n\nPlease approve or decline this assignment.', 133, NULL, 1, '2026-02-20 07:34:27', '2026-02-20 08:19:05'),
+(1009, 285, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1010, 327, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1011, 319, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1012, 294, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1013, 326, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1014, 328, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 2:00 PM - 4:00 PM in  Defense Room 2. Waiting for panelist approval.', 133, NULL, 0, '2026-02-20 07:34:27', '2026-02-20 07:34:27'),
+(1015, 436, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for PrivacyGuard\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: PrivacyGuard: A browser extension for PII protection in LPU-Cavite using Hybrid NER and Random Forest\n\nPlease approve or decline this assignment.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42');
+INSERT INTO `notifications` (`id`, `user_id`, `type`, `title`, `message`, `related_id`, `related_type`, `is_read`, `created_at`, `updated_at`) VALUES
+(1016, 429, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for PrivacyGuard\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: PrivacyGuard: A browser extension for PII protection in LPU-Cavite using Hybrid NER and Random Forest\n\nPlease approve or decline this assignment.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1017, 284, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for PrivacyGuard\'s defense:\n\n📅 Date: February 26, 2026\n🕒 Time: 2:00 PM - 4:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Computer Science - Software Engineering\n📝 Research: PrivacyGuard: A browser extension for PII protection in LPU-Cavite using Hybrid NER and Random Forest\n\nPlease approve or decline this assignment.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1018, 427, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 2:00 PM - 4:00 PM in Defense Room 1. Waiting for panelist approval.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1019, 461, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 2:00 PM - 4:00 PM in Defense Room 1. Waiting for panelist approval.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1020, 462, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 2:00 PM - 4:00 PM in Defense Room 1. Waiting for panelist approval.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1021, 463, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 2:00 PM - 4:00 PM in Defense Room 1. Waiting for panelist approval.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1022, 464, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 26, 2026 at 2:00 PM - 4:00 PM in Defense Room 1. Waiting for panelist approval.', 125, NULL, 0, '2026-02-20 07:35:42', '2026-02-20 07:35:42'),
+(1023, 428, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1024, 430, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1025, 429, 'defense_approval', 'Defense Schedule Approval Required', 'You have been assigned as a panelist for team 5 (IT401)\'s defense:\n\n📅 Date: February 23, 2026\n🕒 Time: 5:00 PM - 7:00 PM\n🏢 Room: Defense Room 1\n🎓 Program: Bachelor of Science in Information Technology - Web and Mobile Technology\n📝 Research: a research about point of sales\n\nPlease approve or decline this assignment.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1026, 285, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1027, 267, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1028, 268, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1029, 296, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1030, 299, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1031, 303, 'defense_scheduled', 'Defense Schedule Created', 'Your team\'s Title Proposal has been scheduled for February 23, 2026 at 5:00 PM - 7:00 PM in Defense Room 1. Waiting for panelist approval.', 132, NULL, 0, '2026-02-20 07:57:39', '2026-02-20 07:57:39'),
+(1032, 429, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: February 20, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nYour defense is now officially scheduled. Good luck!', 121, NULL, 0, '2026-02-20 08:21:23', '2026-02-20 08:21:23'),
+(1033, 447, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: February 20, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nYour defense is now officially scheduled. Good luck!', 121, NULL, 0, '2026-02-20 08:21:23', '2026-02-20 08:21:23'),
+(1034, 448, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: February 20, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nYour defense is now officially scheduled. Good luck!', 121, NULL, 0, '2026-02-20 08:21:23', '2026-02-20 08:21:23'),
+(1035, 449, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: February 20, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nYour defense is now officially scheduled. Good luck!', 121, NULL, 0, '2026-02-20 08:21:23', '2026-02-20 08:21:23'),
+(1036, 450, 'defense_scheduled', 'Defense Schedule Finalized', 'Great news! All panelists have approved your defense schedule:\n\n📅 Date: February 20, 2026\n🕒 Time: 4:00 PM - 6:00 PM\n🏢 Room:  Accreditation Room\n\nYour defense is now officially scheduled. Good luck!', 121, NULL, 0, '2026-02-20 08:21:23', '2026-02-20 08:21:23');
 
 -- --------------------------------------------------------
 
@@ -3681,86 +3853,151 @@ INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `act
 (476, 930, 'reject_defense', '{\"schedule_id\":\"110\"}', 0, NULL, '2026-02-05 13:47:56'),
 (477, 931, 'approve_defense', '{\"schedule_id\":\"110\"}', 0, NULL, '2026-02-05 13:47:56'),
 (478, 931, 'reject_defense', '{\"schedule_id\":\"110\"}', 0, NULL, '2026-02-05 13:47:56'),
-(479, 938, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-18 00:37:39'),
-(480, 938, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-18 00:37:39'),
-(481, 939, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-18 00:37:39'),
-(482, 939, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-18 00:37:39'),
-(483, 940, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-18 00:37:39'),
-(484, 940, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-18 00:37:39'),
-(485, 941, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-18 00:37:39'),
-(486, 941, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-18 00:37:39'),
-(487, 942, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-18 00:37:39'),
-(488, 942, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-18 00:37:39'),
-(489, 943, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-18 00:37:39'),
-(490, 943, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-18 00:37:39'),
-(491, 944, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-18 00:37:39'),
-(492, 944, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-18 00:37:39'),
-(493, 945, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-18 00:37:39'),
-(494, 945, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-18 00:37:39'),
-(495, 946, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-18 00:41:32'),
-(496, 946, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-18 00:41:32'),
-(497, 947, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-18 00:41:32'),
-(498, 947, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-18 00:41:32'),
-(499, 948, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-18 00:41:32'),
-(500, 948, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-18 00:41:32'),
-(501, 949, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-18 00:41:32'),
-(502, 949, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-18 00:41:32'),
-(503, 950, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-18 00:41:32'),
-(504, 950, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-18 00:41:32'),
-(505, 951, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-18 00:41:32'),
-(506, 951, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-18 00:41:32'),
-(507, 952, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-18 00:41:32'),
-(508, 952, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-18 00:41:32'),
-(509, 953, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-18 00:41:32'),
-(510, 953, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-18 00:41:32'),
-(559, 1026, 'approve_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(560, 1026, 'reject_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(561, 1027, 'approve_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(562, 1027, 'reject_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(563, 1028, 'approve_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(564, 1028, 'reject_defense', '{\"schedule_id\":123}', 0, NULL, '2026-02-18 00:58:13'),
-(565, 1035, 'approve_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(566, 1035, 'reject_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(567, 1036, 'approve_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(568, 1036, 'reject_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(569, 1037, 'approve_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(570, 1037, 'reject_defense', '{\"schedule_id\":120}', 0, NULL, '2026-02-18 00:58:13'),
-(571, 1044, 'approve_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(572, 1044, 'reject_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(573, 1045, 'approve_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(574, 1045, 'reject_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(575, 1046, 'approve_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(576, 1046, 'reject_defense', '{\"schedule_id\":125}', 0, NULL, '2026-02-18 00:58:13'),
-(577, 1053, 'approve_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(578, 1053, 'reject_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(579, 1054, 'approve_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(580, 1054, 'reject_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(581, 1055, 'approve_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(582, 1055, 'reject_defense', '{\"schedule_id\":124}', 0, NULL, '2026-02-18 00:58:13'),
-(583, 1062, 'approve_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(584, 1062, 'reject_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(585, 1063, 'approve_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(586, 1063, 'reject_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(587, 1064, 'approve_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(588, 1064, 'reject_defense', '{\"schedule_id\":126}', 0, NULL, '2026-02-18 00:58:13'),
-(589, 1071, 'approve_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(590, 1071, 'reject_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(591, 1072, 'approve_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(592, 1072, 'reject_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(593, 1073, 'approve_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(594, 1073, 'reject_defense', '{\"schedule_id\":122}', 0, NULL, '2026-02-18 00:58:13'),
-(595, 1080, 'approve_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(596, 1080, 'reject_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(597, 1081, 'approve_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(598, 1081, 'reject_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(599, 1082, 'approve_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(600, 1082, 'reject_defense', '{\"schedule_id\":127}', 0, NULL, '2026-02-18 00:58:13'),
-(601, 1089, 'approve_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13'),
-(602, 1089, 'reject_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13'),
-(603, 1090, 'approve_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13'),
-(604, 1090, 'reject_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13'),
-(605, 1091, 'approve_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13'),
-(606, 1091, 'reject_defense', '{\"schedule_id\":121}', 0, NULL, '2026-02-18 00:58:13');
+(479, 938, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-20 07:25:14'),
+(480, 938, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-20 07:25:14'),
+(481, 939, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-20 07:25:14'),
+(482, 939, '', '{\"schedule_id\":\"112\"}', 0, NULL, '2026-02-20 07:25:14'),
+(483, 940, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-20 07:25:14'),
+(484, 940, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-20 07:25:14'),
+(485, 941, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-20 07:25:14'),
+(486, 941, '', '{\"schedule_id\":\"113\"}', 0, NULL, '2026-02-20 07:25:14'),
+(487, 942, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-20 07:25:14'),
+(488, 942, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-20 07:25:14'),
+(489, 943, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-20 07:25:14'),
+(490, 943, '', '{\"schedule_id\":\"114\"}', 0, NULL, '2026-02-20 07:25:14'),
+(491, 944, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-20 07:25:14'),
+(492, 944, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-20 07:25:14'),
+(493, 945, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-20 07:25:14'),
+(494, 945, '', '{\"schedule_id\":\"115\"}', 0, NULL, '2026-02-20 07:25:14'),
+(495, 946, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-20 07:25:14'),
+(496, 946, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-20 07:25:14'),
+(497, 947, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-20 07:25:14'),
+(498, 947, '', '{\"schedule_id\":\"116\"}', 0, NULL, '2026-02-20 07:25:14'),
+(499, 948, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-20 07:25:14'),
+(500, 948, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-20 07:25:14'),
+(501, 949, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-20 07:25:14'),
+(502, 949, '', '{\"schedule_id\":\"117\"}', 0, NULL, '2026-02-20 07:25:14'),
+(503, 950, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-20 07:25:14'),
+(504, 950, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-20 07:25:14'),
+(505, 951, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-20 07:25:14'),
+(506, 951, '', '{\"schedule_id\":\"118\"}', 0, NULL, '2026-02-20 07:25:14'),
+(507, 952, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-20 07:25:14'),
+(508, 952, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-20 07:25:14'),
+(509, 953, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-20 07:25:14'),
+(510, 953, '', '{\"schedule_id\":\"119\"}', 0, NULL, '2026-02-20 07:25:14'),
+(511, 954, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-20 07:25:14'),
+(512, 954, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-20 07:25:14'),
+(513, 955, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-20 07:25:14'),
+(514, 955, '', '{\"schedule_id\":\"120\"}', 0, NULL, '2026-02-20 07:25:14'),
+(515, 956, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-20 07:25:14'),
+(516, 956, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-20 07:25:14'),
+(517, 957, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-20 07:25:14'),
+(518, 957, '', '{\"schedule_id\":\"121\"}', 0, NULL, '2026-02-20 07:25:14'),
+(519, 958, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-20 07:25:14'),
+(520, 958, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-20 07:25:14'),
+(521, 959, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-20 07:25:14'),
+(522, 959, '', '{\"schedule_id\":\"122\"}', 0, NULL, '2026-02-20 07:25:14'),
+(523, 960, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-20 07:25:14'),
+(524, 960, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-20 07:25:14'),
+(525, 961, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-20 07:25:14'),
+(526, 961, '', '{\"schedule_id\":\"123\"}', 0, NULL, '2026-02-20 07:25:14'),
+(527, 962, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-20 07:25:14'),
+(528, 962, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-20 07:25:14'),
+(529, 963, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-20 07:25:14'),
+(530, 963, '', '{\"schedule_id\":\"124\"}', 0, NULL, '2026-02-20 07:25:14'),
+(531, 964, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:25:14'),
+(532, 964, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:25:14'),
+(533, 965, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:25:14'),
+(534, 965, '', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:25:14'),
+(535, 966, 'approve_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:20:48', '2026-02-20 07:25:49'),
+(536, 966, 'reject_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:20:48', '2026-02-20 07:25:49'),
+(537, 967, 'approve_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:21:23', '2026-02-20 07:25:49'),
+(538, 967, 'reject_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:21:23', '2026-02-20 07:25:49'),
+(539, 968, 'approve_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:21:07', '2026-02-20 07:25:49'),
+(540, 968, 'reject_defense', '{\"schedule_id\":\"121\"}', 1, '2026-02-20 08:21:07', '2026-02-20 07:25:49'),
+(541, 974, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-20 07:28:26'),
+(542, 974, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-20 07:28:26'),
+(543, 975, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-20 07:28:26'),
+(544, 975, '', '{\"schedule_id\":\"126\"}', 0, NULL, '2026-02-20 07:28:26'),
+(545, 976, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-20 07:28:26'),
+(546, 976, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-20 07:28:26'),
+(547, 977, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-20 07:28:26'),
+(548, 977, '', '{\"schedule_id\":\"127\"}', 0, NULL, '2026-02-20 07:28:26'),
+(549, 978, '', '{\"schedule_id\":\"128\"}', 0, NULL, '2026-02-20 07:28:26'),
+(550, 978, '', '{\"schedule_id\":\"128\"}', 0, NULL, '2026-02-20 07:28:26'),
+(551, 979, '', '{\"schedule_id\":\"128\"}', 0, NULL, '2026-02-20 07:28:26'),
+(552, 979, '', '{\"schedule_id\":\"128\"}', 0, NULL, '2026-02-20 07:28:26'),
+(553, 980, '', '{\"schedule_id\":\"129\"}', 0, NULL, '2026-02-20 07:28:26'),
+(554, 980, '', '{\"schedule_id\":\"129\"}', 0, NULL, '2026-02-20 07:28:26'),
+(555, 981, '', '{\"schedule_id\":\"129\"}', 0, NULL, '2026-02-20 07:28:26'),
+(556, 981, '', '{\"schedule_id\":\"129\"}', 0, NULL, '2026-02-20 07:28:26'),
+(557, 982, '', '{\"schedule_id\":\"130\"}', 0, NULL, '2026-02-20 07:28:26'),
+(558, 982, '', '{\"schedule_id\":\"130\"}', 0, NULL, '2026-02-20 07:28:26'),
+(559, 983, '', '{\"schedule_id\":\"130\"}', 0, NULL, '2026-02-20 07:28:26'),
+(560, 983, '', '{\"schedule_id\":\"130\"}', 0, NULL, '2026-02-20 07:28:26'),
+(561, 984, '', '{\"schedule_id\":\"131\"}', 0, NULL, '2026-02-20 07:28:26'),
+(562, 984, '', '{\"schedule_id\":\"131\"}', 0, NULL, '2026-02-20 07:28:26'),
+(563, 985, '', '{\"schedule_id\":\"131\"}', 0, NULL, '2026-02-20 07:28:26'),
+(564, 985, '', '{\"schedule_id\":\"131\"}', 0, NULL, '2026-02-20 07:28:26'),
+(565, 986, '', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:28:26'),
+(566, 986, '', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:28:26'),
+(567, 987, '', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:28:26'),
+(568, 987, '', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:28:26'),
+(569, 988, '', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:28:26'),
+(570, 988, '', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:28:26'),
+(571, 989, '', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:28:26'),
+(572, 989, '', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:28:26'),
+(573, 990, '', '{\"schedule_id\":\"134\"}', 0, NULL, '2026-02-20 07:31:02'),
+(574, 990, '', '{\"schedule_id\":\"134\"}', 0, NULL, '2026-02-20 07:31:02'),
+(575, 991, '', '{\"schedule_id\":\"134\"}', 0, NULL, '2026-02-20 07:31:02'),
+(576, 991, '', '{\"schedule_id\":\"134\"}', 0, NULL, '2026-02-20 07:31:02'),
+(577, 992, '', '{\"schedule_id\":\"135\"}', 0, NULL, '2026-02-20 07:31:02'),
+(578, 992, '', '{\"schedule_id\":\"135\"}', 0, NULL, '2026-02-20 07:31:02'),
+(579, 993, '', '{\"schedule_id\":\"135\"}', 0, NULL, '2026-02-20 07:31:02'),
+(580, 993, '', '{\"schedule_id\":\"135\"}', 0, NULL, '2026-02-20 07:31:02'),
+(581, 994, '', '{\"schedule_id\":\"136\"}', 0, NULL, '2026-02-20 07:31:02'),
+(582, 994, '', '{\"schedule_id\":\"136\"}', 0, NULL, '2026-02-20 07:31:02'),
+(583, 995, '', '{\"schedule_id\":\"136\"}', 0, NULL, '2026-02-20 07:31:02'),
+(584, 995, '', '{\"schedule_id\":\"136\"}', 0, NULL, '2026-02-20 07:31:02'),
+(585, 996, '', '{\"schedule_id\":\"137\"}', 0, NULL, '2026-02-20 07:31:02'),
+(586, 996, '', '{\"schedule_id\":\"137\"}', 0, NULL, '2026-02-20 07:31:02'),
+(587, 997, '', '{\"schedule_id\":\"137\"}', 0, NULL, '2026-02-20 07:31:02'),
+(588, 997, '', '{\"schedule_id\":\"137\"}', 0, NULL, '2026-02-20 07:31:02'),
+(589, 998, '', '{\"schedule_id\":\"138\"}', 0, NULL, '2026-02-20 07:31:02'),
+(590, 998, '', '{\"schedule_id\":\"138\"}', 0, NULL, '2026-02-20 07:31:02'),
+(591, 999, '', '{\"schedule_id\":\"138\"}', 0, NULL, '2026-02-20 07:31:02'),
+(592, 999, '', '{\"schedule_id\":\"138\"}', 0, NULL, '2026-02-20 07:31:02'),
+(593, 1000, '', '{\"schedule_id\":\"139\"}', 0, NULL, '2026-02-20 07:31:02'),
+(594, 1000, '', '{\"schedule_id\":\"139\"}', 0, NULL, '2026-02-20 07:31:02'),
+(595, 1001, '', '{\"schedule_id\":\"139\"}', 0, NULL, '2026-02-20 07:31:02'),
+(596, 1001, '', '{\"schedule_id\":\"139\"}', 0, NULL, '2026-02-20 07:31:02'),
+(597, 1002, '', '{\"schedule_id\":\"140\"}', 0, NULL, '2026-02-20 07:31:02'),
+(598, 1002, '', '{\"schedule_id\":\"140\"}', 0, NULL, '2026-02-20 07:31:02'),
+(599, 1003, '', '{\"schedule_id\":\"140\"}', 0, NULL, '2026-02-20 07:31:02'),
+(600, 1003, '', '{\"schedule_id\":\"140\"}', 0, NULL, '2026-02-20 07:31:02'),
+(601, 1004, '', '{\"schedule_id\":\"141\"}', 0, NULL, '2026-02-20 07:31:02'),
+(602, 1004, '', '{\"schedule_id\":\"141\"}', 0, NULL, '2026-02-20 07:31:02'),
+(603, 1005, '', '{\"schedule_id\":\"141\"}', 0, NULL, '2026-02-20 07:31:02'),
+(604, 1005, '', '{\"schedule_id\":\"141\"}', 0, NULL, '2026-02-20 07:31:02'),
+(605, 1006, 'approve_defense', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:34:27'),
+(606, 1006, 'reject_defense', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:34:27'),
+(607, 1007, 'approve_defense', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:34:27'),
+(608, 1007, 'reject_defense', '{\"schedule_id\":\"133\"}', 0, NULL, '2026-02-20 07:34:27'),
+(609, 1008, 'approve_defense', '{\"schedule_id\":\"133\"}', 1, '2026-02-20 08:19:05', '2026-02-20 07:34:27'),
+(610, 1008, 'reject_defense', '{\"schedule_id\":\"133\"}', 1, '2026-02-20 08:19:05', '2026-02-20 07:34:27'),
+(611, 1015, 'approve_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42'),
+(612, 1015, 'reject_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42'),
+(613, 1016, 'approve_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42'),
+(614, 1016, 'reject_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42');
+INSERT INTO `notification_actions` (`id`, `notification_id`, `action_type`, `action_data`, `is_completed`, `completed_at`, `created_at`) VALUES
+(615, 1017, 'approve_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42'),
+(616, 1017, 'reject_defense', '{\"schedule_id\":\"125\"}', 0, NULL, '2026-02-20 07:35:42'),
+(617, 1023, 'approve_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39'),
+(618, 1023, 'reject_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39'),
+(619, 1024, 'approve_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39'),
+(620, 1024, 'reject_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39'),
+(621, 1025, 'approve_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39'),
+(622, 1025, 'reject_defense', '{\"schedule_id\":\"132\"}', 0, NULL, '2026-02-20 07:57:39');
 
 -- --------------------------------------------------------
 
@@ -4048,30 +4285,18 @@ INSERT INTO `panelist_approvals` (`id`, `defense_schedule_id`, `panelist_id`, `a
 (246, 110, 270, 'pending', NULL, NULL, '2026-02-05 13:47:56'),
 (247, 110, 418, 'pending', NULL, NULL, '2026-02-05 13:47:56'),
 (248, 110, 441, 'pending', NULL, NULL, '2026-02-05 13:47:56'),
-(285, 123, 270, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(286, 123, 279, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(287, 123, 441, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(288, 120, 428, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(289, 120, 431, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(290, 120, 427, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(291, 125, 269, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(292, 125, 418, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(293, 125, 427, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(294, 124, 270, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(295, 124, 283, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(296, 124, 441, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(297, 126, 428, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(298, 126, 284, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(299, 126, 422, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(300, 122, 269, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(301, 122, 272, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(302, 122, 422, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(303, 127, 269, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(304, 127, 280, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(305, 127, 451, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(306, 121, 270, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(307, 121, 279, 'pending', NULL, NULL, '2026-02-18 00:58:13'),
-(308, 121, 427, 'pending', NULL, NULL, '2026-02-18 00:58:13');
+(249, 121, 427, 'approved', '2026-02-20 00:20:48', '', '2026-02-20 07:25:49'),
+(250, 121, 441, 'approved', '2026-02-20 00:21:23', '', '2026-02-20 07:25:49'),
+(251, 121, 431, 'approved', '2026-02-20 00:21:07', '', '2026-02-20 07:25:49'),
+(252, 133, 269, 'pending', NULL, NULL, '2026-02-20 07:34:27'),
+(253, 133, 282, 'pending', NULL, NULL, '2026-02-20 07:34:27'),
+(254, 133, 427, 'approved', '2026-02-20 00:19:05', '', '2026-02-20 07:34:27'),
+(255, 125, 436, 'pending', NULL, NULL, '2026-02-20 07:35:42'),
+(256, 125, 429, 'pending', NULL, NULL, '2026-02-20 07:35:42'),
+(257, 125, 284, 'pending', NULL, NULL, '2026-02-20 07:35:42'),
+(258, 132, 428, 'pending', NULL, NULL, '2026-02-20 07:57:39'),
+(259, 132, 430, 'pending', NULL, NULL, '2026-02-20 07:57:39'),
+(260, 132, 429, 'pending', NULL, NULL, '2026-02-20 07:57:39');
 
 -- --------------------------------------------------------
 
@@ -4210,6 +4435,8 @@ CREATE TABLE `program_manuscript_table` (
 --
 
 INSERT INTO `program_manuscript_table` (`mapping_id`, `requirement_id`, `requirement_name`, `is_defense_manuscript`, `program_id`, `program_name`, `defense_type`, `is_required`, `submission_stage`, `can_revise_after`, `visibility_to_panelist`) VALUES
+(3, 46, 'Research methods Template A', 1, 79, 'Bachelor of Science in Information Technology', 'title_proposal', 1, 'before_defense', 0, 1),
+(4, 46, 'Research methods Template A', 1, 80, 'Bachelor of Science in Information Technology', 'title_proposal', 1, 'before_defense', 0, 1),
 (3, 46, 'Research methods Template A', 1, 79, 'Bachelor of Science in Information Technology', 'title_proposal', 1, 'before_defense', 0, 1),
 (4, 46, 'Research methods Template A', 1, 80, 'Bachelor of Science in Information Technology', 'title_proposal', 1, 'before_defense', 0, 1);
 
@@ -5105,11 +5332,18 @@ INSERT INTO `schedule_progress` (`id`, `status`, `message`, `percentage`, `creat
 ('sched_69849f83264404.97131827', 'completed', 'Schedule generated and saved successfully!', 100, '2026-02-05 13:47:47', '2026-02-05 13:47:56'),
 ('sched_6984ac380db9d0.66598626', 'error', 'Please check all required fields are filled correctly', NULL, '2026-02-05 14:42:00', '2026-02-05 14:42:00'),
 ('sched_6989814cca48d0.21716557', 'error', 'Confirmation required for overwriting upcoming defenses', NULL, '2026-02-09 06:40:12', '2026-02-09 06:40:12'),
-('sched_699504cd024bd0.97630912', 'completed', 'Preview ready!', 100, '2026-02-18 00:16:13', '2026-02-18 00:16:44'),
-('sched_699504fd9fb7d4.17415635', 'completed', 'Preview ready!', 100, '2026-02-18 00:17:01', '2026-02-18 00:17:26'),
-('sched_69950970aa0c79.91618408', 'completed', 'Preview ready!', 100, '2026-02-18 00:36:00', '2026-02-18 00:36:39'),
-('sched_69950a579f3212.99028832', 'error', 'Confirmation required for overwriting upcoming defenses', NULL, '2026-02-18 00:39:51', '2026-02-18 00:39:51'),
-('sched_69950a5a91a4c6.66092797', 'completed', 'Preview ready!', 100, '2026-02-18 00:39:54', '2026-02-18 00:40:25');
+('sched_69972ef84affb9.12008739', 'completed', 'Preview ready!', 100, '2026-02-19 15:40:40', '2026-02-19 15:41:28'),
+('sched_6997308fd07723.05054374', 'completed', 'Preview ready!', 100, '2026-02-19 15:47:27', '2026-02-19 15:48:12'),
+('sched_69980c0b1b0126.06906915', 'completed', 'Preview ready!', 100, '2026-02-20 07:23:55', '2026-02-20 07:24:32'),
+('sched_69980ce48421b7.08966074', 'completed', 'Preview ready!', 100, '2026-02-20 07:27:32', '2026-02-20 07:27:53'),
+('sched_69980d383d05d8.97223731', 'completed', 'Preview ready!', 100, '2026-02-20 07:28:56', '2026-02-20 07:29:33'),
+('sched_69980d72600cd9.14291773', 'completed', 'Preview ready!', 100, '2026-02-20 07:29:54', '2026-02-20 07:30:24'),
+('sched_69980e05012d83.49556110', 'error', 'Confirmation required for overwriting upcoming defenses', NULL, '2026-02-20 07:32:21', '2026-02-20 07:32:21'),
+('sched_699f166d5f3433.58764247', 'completed', 'Preview ready!', 100, '2026-02-25 15:34:05', '2026-02-25 15:34:45'),
+('sched_699f16ac64cf96.20413017', 'completed', 'Preview ready!', 100, '2026-02-25 15:35:08', '2026-02-25 15:35:47'),
+('sched_699f18e05e3325.83352813', 'completed', 'Preview ready!', 100, '2026-02-25 15:44:32', '2026-02-25 15:45:11'),
+('sched_699f194b84e711.19223220', 'error', 'Confirmation required for overwriting upcoming defenses', NULL, '2026-02-25 15:46:19', '2026-02-25 15:46:19'),
+('sched_699f194f025893.71411264', 'error', 'Confirmation required for overwriting upcoming defenses', NULL, '2026-02-25 15:46:22', '2026-02-25 15:46:22');
 
 -- --------------------------------------------------------
 
@@ -5122,6 +5356,7 @@ CREATE TABLE `section_professors` (
   `section` varchar(255) NOT NULL,
   `professor_id` int(11) NOT NULL,
   `status` varchar(50) DEFAULT 'active',
+  `academic_year` varchar(100) DEFAULT NULL COMMENT 'Academic year, e.g. 2025-2026, 1st Semester',
   `assigned_by` int(11) DEFAULT NULL,
   `assigned_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -5130,11 +5365,11 @@ CREATE TABLE `section_professors` (
 -- Dumping data for table `section_professors`
 --
 
-INSERT INTO `section_professors` (`id`, `section`, `professor_id`, `status`, `assigned_by`, `assigned_at`) VALUES
-(11, 'IT402', 278, 'active', 273, '2025-11-25 16:15:38'),
-(12, 'IT403', 284, 'active', 273, '2025-11-25 16:15:43'),
-(13, 'CS401', 418, 'active', 0, '2025-11-29 08:36:43'),
-(16, 'IT401', 285, 'active', 0, '2026-01-14 15:03:27');
+INSERT INTO `section_professors` (`id`, `section`, `professor_id`, `status`, `academic_year`, `assigned_by`, `assigned_at`) VALUES
+(11, 'IT402', 278, 'active', NULL, 273, '2025-11-25 16:15:38'),
+(12, 'IT403', 284, 'active', NULL, 273, '2025-11-25 16:15:43'),
+(13, 'CS401', 418, 'active', '2025-2026, 1st Semester', 0, '2025-11-29 08:36:43'),
+(16, 'IT401', 285, 'active', NULL, 0, '2026-01-14 15:03:27');
 
 -- --------------------------------------------------------
 
@@ -5741,23 +5976,23 @@ CREATE TABLE `users` (
 --
 
 INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise`, `is_parttime`, `email`, `password`, `first_name`, `last_name`, `gender`, `headline`, `bio`, `profile_image`, `verified_at`, `created_at`, `updated_at`, `deleted_at`, `last_login_at`, `is_program_chair`, `year`, `section`) VALUES
-(0, 0, 'Admin', 'Master in Business Administration', '', 0, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Calamyty', 'Mytryx', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2026-02-18 00:14:33', '0000-00-00 00:00:00', '2026-02-18 00:14:33', 0, NULL, NULL),
+(0, 0, 'Admin', 'Master in Business Administration', '', 0, 'ton.agustin09@gmail.com', '$2y$10$jhIOk4NVdBile/NwhAU9We/f0aoohx.cG9CizmIALRz0aCKJa5s6a', 'Calamyty', 'Mytryx', 'm', 'SUPER ADMIN', '', '67fccf5d724c92.92568803.png', '2024-10-05 05:55:38', '2024-10-05 05:55:38', '2026-02-20 08:04:47', '0000-00-00 00:00:00', '2026-02-20 08:04:47', 0, NULL, NULL),
 (267, 1, '2022-2-00999', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student1@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jose', 'Manalo', NULL, 'a', 'a', 'profile_690c9a896fffe9.39118562.gif', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-11-26 14:36:25', NULL, '2025-11-26 14:36:25', NULL, 4, 'IT401'),
 (268, 1, '2022-2-01000', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student2@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jose', 'Marie', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-12-04 07:05:27', NULL, '2025-07-22 19:48:49', NULL, 4, 'IT401'),
 (269, 2, 'CCS-IT-01', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher1@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Adviser', 'One', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-12-04 07:10:59', NULL, '2025-12-04 07:10:59', NULL, NULL, NULL),
 (270, 2, 'CCS-IT-02', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher2@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Teacher', 'Two', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-12-05 03:20:48', NULL, '2025-12-05 03:20:48', NULL, NULL, NULL),
 (271, 2, 'CCS-IT-03', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Web Dev', 0, 'teacher3@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Teacher', 'Three', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-12-11 09:38:06', NULL, '2025-12-11 09:38:06', NULL, NULL, NULL),
 (272, 2, 'CCS-CS-01', 'Bachelor of Science in Computer Science', 'Web Dev', 0, 'teacher4@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Teacher', 'Four', NULL, NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2025-12-05 03:26:43', NULL, '2025-12-05 03:26:43', NULL, NULL, NULL),
-(273, 0, 'alyssa.pocaan', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'alyssa.pocaan@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Alyssa Paola', 'Pocaan', 'f', '', '', '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2026-02-18 00:44:23', NULL, '2026-02-18 00:44:23', 0, NULL, NULL),
+(273, 0, 'alyssa.pocaan', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'alyssa.pocaan@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Alyssa Paola', 'Pocaan', 'f', '', '', '_defaultUser.png', '2025-07-21 08:25:32', '2025-07-21 08:25:32', '2026-02-25 15:43:42', NULL, '2026-02-25 15:43:42', 0, NULL, NULL),
 (277, 2, 'CCS-IT-04', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Systems Dev', 0, 'marc.santiago@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Marc', 'Santiago', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, '2025-11-20 22:48:52', NULL, NULL, NULL),
-(278, 2, 'CCS-IT-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Cybersecurity', 0, 'louise.torres@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Louise', 'Torres', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2026-02-17 07:31:40', NULL, '2026-02-17 07:31:40', NULL, NULL, NULL),
+(278, 2, 'CCS-IT-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Cybersecurity', 0, 'louise.torres@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Louise', 'Torres', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2026-02-20 08:12:17', NULL, '2026-02-20 08:12:17', NULL, NULL, NULL),
 (279, 2, 'CCS-IT-06', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Networking', 1, 'jared.cruz@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jared', 'Cruz', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, '2025-11-25 04:06:49', NULL, NULL, NULL),
 (280, 2, 'CCS-IT-07', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'UI/UX', 0, 'kimberly.reyes@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Kimberly', 'Reyes', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, '2025-11-25 18:01:12', NULL, NULL, NULL),
 (281, 2, 'CCS-IT-08', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Database Systems', 0, 'francis.lopez@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Francis', 'Lopez', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:11:59', NULL, '2025-12-04 07:11:59', NULL, NULL, NULL),
 (282, 2, 'CCS-CS-02', 'Bachelor of Science in Computer Science', 'Machine Learning', 0, 'harold.espinosa@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Harold', 'Espinosa', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (283, 2, 'CCS-CS-03', 'Bachelor of Science in Computer Science', 'Algorithms', 0, 'ivy.marquez@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Ivy', 'Marquez', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
-(284, 2, 'CCS-CS-04', 'Bachelor of Science in Computer Science', 'AI Research', 1, 'renzo.castillo@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Renzo', 'Castillo', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
-(285, 2, 'CCS-CS-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Data Science', 0, 'mika.soriano@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Mika', 'Soriano', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2026-02-09 06:36:27', NULL, '2026-02-09 06:36:27', NULL, NULL, NULL),
+(284, 2, 'CCS-CS-04', 'Bachelor of Science in Computer Science', 'AI Research', 1, 'renzo.castillo@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Renzo', 'Castillo', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2026-02-20 08:12:56', NULL, '2026-02-20 08:12:56', NULL, NULL, NULL),
+(285, 2, 'CCS-CS-05', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Data Science', 0, 'mika.soriano@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Mika', 'Soriano', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2026-02-20 08:13:34', NULL, '2026-02-20 08:13:34', NULL, NULL, NULL),
 (286, 2, 'CCS-IT-09', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'DevOps', 0, 'patrick.valdez@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Patrick', 'Valdez', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, '2025-11-30 11:39:25', NULL, NULL, NULL),
 (287, 1, '2022-2-01001', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01001@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Allen', 'Rivera', 'm', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-04 07:05:27', NULL, '2025-11-21 20:32:22', NULL, 4, 'IT401'),
 (288, 1, '2022-2-01002', 'Bachelor of Science in Information Technology - Web and Mobile Technology', '', 0, 'student01002@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Hannah', 'Flores', 'f', NULL, NULL, '_defaultUser.png', '2025-07-21 08:25:32', NULL, '2025-12-05 03:15:50', NULL, '2025-12-05 03:15:50', NULL, 4, 'IT401'),
@@ -5891,30 +6126,30 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (415, 1, 'Hans.Kyle', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'hans.kyle@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Hans Kyle', 'Bertoso', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (416, 1, 'Vince.Wackie', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'vince.wackie@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Vince Wackie', 'Espera', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (417, 1, 'Mark.Judiel', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'mark.salazar@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Mark Judiel', 'Salazar', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
-(418, 2, 'Raymund.Constante', 'Bachelor of Science in Computer Science', 'Mobile Dev', 0, 'raymund.constante@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Raymund', 'Constante', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-12 16:25:31', NULL, '2026-02-12 16:25:31', NULL, NULL, NULL),
+(418, 2, 'Raymund.Constante', 'Bachelor of Science in Computer Science', 'Mobile Dev', 0, 'raymund.constante@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Raymund', 'Constante', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-26 09:19:13', NULL, '2026-02-26 09:19:13', NULL, NULL, NULL),
 (419, 1, 'Lance.Romero', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'lance.romero@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Lance Christian', 'Romero', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-05 13:51:14', NULL, '2025-12-05 13:51:14', NULL, NULL, NULL),
 (420, 1, 'Romuel.Borja', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'romuel.borja@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Romuel', 'Borja', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (421, 1, 'dyan.mercado', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'dyan.mercado@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Dyan Paula', 'Mercado', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
-(422, 2, 'jerian.peren', 'Bachelor of Science in Computer Science - Software Engineering', 'Software Engineering', 0, 'jerian.peren@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jerian', 'Peren', 'f', '', '', '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-18 00:53:09', NULL, '2026-02-18 00:53:09', 0, NULL, NULL),
+(422, 0, 'jerian.peren', 'Bachelor of Science in Computer Science - Software Engineering', 'Software Engineering', 0, 'jerian.peren@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jerian', 'Peren', 'f', '', '', '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-24 15:35:28', NULL, '2026-02-24 15:35:28', 0, 0, ''),
 (423, 1, 'Mark.Caparas', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'mark.caparas@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Mark Risen', 'Caparas', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-05 13:42:20', NULL, '2025-12-05 13:42:20', NULL, NULL, NULL),
 (424, 1, 'Charles.Rull', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'charles.rull@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Charles Justine', 'Rull', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (425, 1, 'Johann.Cepeda', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'johann.cepeda@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Johann Nikkolai', 'Cepeda', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
 (426, 1, 'Stephen.Lacsa', 'Bachelor of Science in Computer Science - Software Engineering', '', 0, 'stephen.lacsa@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Stephen', 'Lacsan', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-04 07:05:27', NULL, NULL, NULL, NULL, NULL),
-(427, 2, 'Arcell.Hadlocon', 'Bachelor of Science in Computer Science - Software Engineering', 'Mobile Dev', 0, 'arcell.hadlocon@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Arcell', 'Hadlocon', NULL, NULL, NULL, '_defaultUser.png', '2025-11-30 11:38:02', '2025-11-30 11:38:02', '2026-02-09 06:00:15', NULL, '2026-02-09 06:00:15', NULL, NULL, NULL),
-(428, 2, 'Klarence.Baptista', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Mobile Dev', 0, 'klarence.baptista@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Klarence', 'Baptista', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-26 08:35:07', NULL, '2025-12-26 08:35:07', NULL, NULL, NULL),
-(429, 2, 'Elizabeth.Nsubuga', 'Bachelor of Science in Computer Science - Software Engineering', 'Technical Writer', 0, 'elizabeth.nsubuga@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Elizabeth', 'Nsubuga', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-26 08:44:29', NULL, '2025-12-26 08:44:29', NULL, NULL, NULL),
+(427, 2, 'Arcell.Hadlocon', 'Bachelor of Science in Computer Science - Software Engineering', 'Mobile Dev', 0, 'arcell.hadlocon@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Arcell', 'Hadlocon', NULL, NULL, NULL, '_defaultUser.png', '2025-11-30 11:38:02', '2025-11-30 11:38:02', '2026-02-20 08:26:11', NULL, '2026-02-20 08:26:11', NULL, NULL, NULL),
+(428, 2, 'Klarence.Baptista', 'Bachelor of Science in Information Technology - Web and Mobile Technology', 'Mobile Dev', 0, 'klarence.baptista@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Klarence', 'Baptista', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-20 07:40:44', NULL, '2026-02-20 07:40:44', NULL, NULL, NULL),
+(429, 2, 'Elizabeth.Nsubuga', 'Bachelor of Science in Computer Science - Software Engineering', 'Technical Writer', 0, 'elizabeth.nsubuga@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Elizabeth', 'Nsubuga', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-20 08:28:08', NULL, '2026-02-20 08:28:08', NULL, NULL, NULL),
 (430, 2, 'Sean.Gono', '', 'Web Development, Artificial Inteligence, CyberSecurity', 0, 'sean.gono@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Sean Charlston', 'Gono', NULL, NULL, NULL, '_defaultUser.png', '2025-11-30 21:25:27', '2025-11-30 21:25:27', '2026-02-05 14:00:39', NULL, '2025-12-06 08:28:24', NULL, NULL, NULL),
-(431, 2, 'Elmer.Matel', '', 'Web Dev', 0, 'elmer.matel@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Elmer', 'Matel', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2025-12-26 08:45:24', NULL, '2025-12-26 08:45:24', NULL, NULL, NULL),
+(431, 2, 'Elmer.Matel', '', 'Web Dev', 0, 'elmer.matel@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Elmer', 'Matel', NULL, NULL, NULL, '_defaultUser.png', '2025-12-04 02:18:37', NULL, '2026-02-20 08:24:18', NULL, '2026-02-20 08:24:18', NULL, NULL, NULL),
 (432, 1, 'jaira.mae', '', '', 0, 'jaira.mae@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jaira Mae', 'Tafalla', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:31:10', '2025-12-05 05:01:25', NULL, '2025-12-05 05:01:25', 0, 4, 'CS401'),
 (433, 1, 'leennel.ioan', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'leennel.ioan@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Leennel Ioan', 'Santos', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:35:56', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (434, 1, 'brent.harvey', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'brent.harvey@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Brent Harvey', 'Rull', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:36:43', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (435, 1, 'sir.lawrence', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'sir.lawrence@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Sir Lawrence', 'Laudato', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:37:28', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
-(436, 2, 'Jeff.Nebran', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'Jeff.Nebran@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jeff', 'Nebran', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:46:07', '2025-12-26 12:47:40', NULL, '2025-12-26 12:47:40', NULL, NULL, NULL),
+(436, 2, 'Jeff.Nebran', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'Jeff.Nebran@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Jeff', 'Nebran', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:46:07', '2026-02-20 08:29:57', NULL, '2026-02-20 08:29:57', NULL, NULL, NULL),
 (437, 1, 'ian.lumanog', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'ian.lumanog@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Ian', 'Lumanog', NULL, '', '', '_defaultUser.png', '2025-11-30 05:50:39', '2025-11-30 05:50:39', '2025-12-05 13:58:37', NULL, '2025-12-05 13:58:37', NULL, 4, 'CS401'),
 (438, 1, 'aaron.joshua', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'aaron.joshua@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Aaron Joshua', 'Roxas', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:51:16', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (439, 1, 'alexis.john', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'alexis.john@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Alexis John', 'Rellon', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:51:48', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (440, 1, 'beo.alvaro', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'beo.alvaro@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Beo Alvaro', 'Salguero', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:52:23', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
-(441, 2, 'Roger.Wyne', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'Roger.Wyne@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Roger Wyne', 'Doctor', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:53:23', '2026-01-12 14:06:26', NULL, '2026-01-12 14:06:26', NULL, NULL, NULL),
+(441, 2, 'Roger.Wyne', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'Roger.Wyne@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Roger Wyne', 'Doctor', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 05:53:23', '2026-02-20 08:21:20', NULL, '2026-02-20 08:21:20', NULL, NULL, NULL),
 (443, 1, 'king.edward', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'king.edward@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'King Edward', 'Page', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:01:17', '2025-12-05 13:42:50', NULL, '2025-12-05 13:42:50', NULL, 4, 'CS401'),
 (444, 1, 'micah.sereno', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'micah.sereno@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Micah', 'Sereno', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:02:06', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (445, 1, 'mielle.angelie', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'mielle.angelie@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Mielle Angelie', 'Dulce', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:02:40', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
@@ -5924,7 +6159,7 @@ INSERT INTO `users` (`id`, `usertype`, `username`, `program`, `area_of_expertise
 (449, 1, 'angelo.mark', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'angelo.mark@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Angelo Mark Xyz', 'Fabian', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:10:03', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (450, 1, 'brandon.miranda', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'brandon.miranda@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Brandon', 'Miranda', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:10:41', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (451, 2, 'Earl.Saavedra', 'Bachelor of Science in Computer Engineering', NULL, NULL, 'Earl.Saavedra@lpu.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Earl', 'Saavedra', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:11:26', '2026-02-09 06:13:35', NULL, '2026-02-09 06:13:35', NULL, NULL, NULL),
-(452, 1, 'cj.vhert', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'cj.vhert@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Cj Vhert', 'Rojo', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:15:33', '2025-12-05 13:43:55', NULL, '2025-12-05 13:43:55', NULL, 4, 'CS401'),
+(452, 1, 'cj.vhert', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'cj.vhert@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Cj Vhert', 'Rojo', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:15:33', '2026-02-20 08:06:13', NULL, '2026-02-20 08:06:13', NULL, 4, 'CS401'),
 (453, 1, 'john.lloyd', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'john.lloyd@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'John Lloyd', 'Dela Cruz', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:16:16', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (454, 1, 'patricia.nicole', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'patricia.nicole@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Patricia Nicole', 'Mendoza', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:16:44', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
 (455, 1, 'leila.aliyah', 'Bachelor of Science in Computer Science Software Engineering', NULL, NULL, 'leila.aliyah@lpunetwork.edu.ph', '$2y$10$j13zgjmiWnaN3Vw5HjKjm.iqZoBH8fuHGx1MxDBZqWUsChi9koKSW', 'Leila Aliyah', 'Manalo', NULL, '', '', '_defaultUser.png', '2025-12-04 02:18:37', '2025-11-30 06:17:21', '2025-12-04 07:05:27', NULL, NULL, NULL, 4, 'CS401'),
@@ -6528,7 +6763,7 @@ ALTER TABLE `defense_panelists`
 -- AUTO_INCREMENT for table `defense_schedules`
 --
 ALTER TABLE `defense_schedules`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=128;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=142;
 
 --
 -- AUTO_INCREMENT for table `defense_type_overrides`
@@ -6552,13 +6787,13 @@ ALTER TABLE `evaluations`
 -- AUTO_INCREMENT for table `evaluation_details`
 --
 ALTER TABLE `evaluation_details`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2504;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2630;
 
 --
 -- AUTO_INCREMENT for table `evaluation_per_panel`
 --
 ALTER TABLE `evaluation_per_panel`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=186;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=198;
 
 --
 -- AUTO_INCREMENT for table `form_assignments`
@@ -6576,13 +6811,13 @@ ALTER TABLE `merged_evaluations`
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1098;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=1037;
 
 --
 -- AUTO_INCREMENT for table `notification_actions`
 --
 ALTER TABLE `notification_actions`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=607;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=623;
 
 --
 -- AUTO_INCREMENT for table `page_content`
@@ -6594,7 +6829,7 @@ ALTER TABLE `page_content`
 -- AUTO_INCREMENT for table `panelist_approvals`
 --
 ALTER TABLE `panelist_approvals`
-  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=309;
+  MODIFY `id` int(11) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=261;
 
 --
 -- AUTO_INCREMENT for table `programs`
@@ -6752,65 +6987,11 @@ ALTER TABLE `defense_panelists`
   ADD CONSTRAINT `defense_panelists_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
 
 --
--- Constraints for table `defense_type_overrides`
---
-ALTER TABLE `defense_type_overrides`
-  ADD CONSTRAINT `defense_type_overrides_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `defense_type_overrides_ibfk_2` FOREIGN KEY (`created_by`) REFERENCES `users` (`id`);
-
---
 -- Constraints for table `evaluations`
 --
 ALTER TABLE `evaluations`
   ADD CONSTRAINT `evaluations_ibfk_1` FOREIGN KEY (`defense_schedule_id`) REFERENCES `defense_schedules` (`id`) ON DELETE SET NULL,
   ADD CONSTRAINT `evaluations_ibfk_2` FOREIGN KEY (`evaluator_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `evaluation_per_panel`
---
-ALTER TABLE `evaluation_per_panel`
-  ADD CONSTRAINT `evalusations_per_panel_ibfk_3` FOREIGN KEY (`student_id`) REFERENCES `users` (`id`) ON DELETE NO ACTION ON UPDATE NO ACTION;
-
---
--- Constraints for table `notification_actions`
---
-ALTER TABLE `notification_actions`
-  ADD CONSTRAINT `notification_actions_ibfk_1` FOREIGN KEY (`notification_id`) REFERENCES `notifications` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `notification_preferences`
---
-ALTER TABLE `notification_preferences`
-  ADD CONSTRAINT `notification_preferences_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `team_panelists`
---
-ALTER TABLE `team_panelists`
-  ADD CONSTRAINT `team_panelists_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_panelists_ibfk_2` FOREIGN KEY (`panelist_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `team_requirement_files`
---
-ALTER TABLE `team_requirement_files`
-  ADD CONSTRAINT `team_requirement_files_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_requirement_files_ibfk_2` FOREIGN KEY (`requirement_id`) REFERENCES `requirements` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_requirement_files_ibfk_3` FOREIGN KEY (`submitted_by`) REFERENCES `users` (`id`) ON DELETE SET NULL;
-
---
--- Constraints for table `team_specializations`
---
-ALTER TABLE `team_specializations`
-  ADD CONSTRAINT `team_specializations_ibfk_1` FOREIGN KEY (`team_id`) REFERENCES `teams` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `team_specializations_ibfk_2` FOREIGN KEY (`specialization_id`) REFERENCES `specialization_pool` (`id`) ON DELETE CASCADE;
-
---
--- Constraints for table `user_specializations`
---
-ALTER TABLE `user_specializations`
-  ADD CONSTRAINT `user_specializations_ibfk_1` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE,
-  ADD CONSTRAINT `user_specializations_ibfk_2` FOREIGN KEY (`specialization_id`) REFERENCES `specialization_pool` (`id`) ON DELETE CASCADE;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;

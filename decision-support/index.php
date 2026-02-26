@@ -311,6 +311,18 @@ try {
     $adviser_name = $adviser['fullname'] ?? 'No adviser assigned';
     error_log("DS-Index: Fetched adviser name: {$adviser_name} for team ID {$team_id}.");
 
+    // Fetch Academic Year for this team (via student section → section_professors)
+    $ayStmt = $pdo->prepare("
+        SELECT sp.academic_year
+        FROM section_professors sp
+        JOIN users u ON u.section = sp.section
+        JOIN team_members tm ON tm.user_id = u.id
+        WHERE tm.team_id = ? AND sp.status = 'active' AND sp.academic_year IS NOT NULL
+        LIMIT 1
+    ");
+    $ayStmt->execute([$team_id]);
+    $academic_year = $ayStmt->fetchColumn() ?: null;
+
     // Fetch Evaluator Name (Currently logged in user)
     $evaluatorStmt = $pdo->prepare("
         SELECT CONCAT(last_name, ', ', first_name) AS evaluator_fullname
@@ -2012,6 +2024,9 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Column 2 - Defense Info, Program, Adviser
         html += '<td style="width: 50%; vertical-align: top; border: none; padding-left: 15px;">';
+        <?php if (!empty($academic_year)): ?>
+        html += '<strong>Academic Year:</strong> <?php echo htmlspecialchars($academic_year); ?><br>';
+        <?php endif; ?>
         html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
         html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
         html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?><br>';

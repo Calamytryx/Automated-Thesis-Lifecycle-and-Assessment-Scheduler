@@ -955,6 +955,114 @@ function showTeamSummaryModal(teamId, teamName) {
         });
 }
 
+// --- Academic Year Feature ---
+// Update the academic year label in the class record header
+function updateAcademicYearLabel(academicYear) {
+    const ayLabel = document.getElementById('ayLabel');
+    if (!ayLabel) return;
+    if (academicYear) {
+        ayLabel.textContent = 'A.Y. ' + academicYear;
+        ayLabel.classList.remove('text-muted');
+        ayLabel.classList.add('text-dark');
+        ayLabel.title = 'Click to edit academic year';
+    } else {
+        ayLabel.textContent = 'Academic year not set';
+        ayLabel.classList.remove('text-dark');
+        ayLabel.classList.add('text-muted');
+        ayLabel.title = 'Click to set academic year';
+    }
+}
+
+// Populate start year dropdown: previous year and current year only
+function populateAyYears() {
+    const select = document.getElementById('ayStartYear');
+    if (!select) return;
+    select.innerHTML = '';
+    const now = new Date().getFullYear();
+    for (let y = now - 1; y <= now; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        if (y === now) opt.selected = true;
+        select.appendChild(opt);
+    }
+    // Set end year on change
+    select.addEventListener('change', function() {
+        document.getElementById('ayEndYear').value = parseInt(this.value) + 1;
+    });
+    document.getElementById('ayEndYear').value = parseInt(select.value) + 1;
+}
+
+// Open the academic year modal (set or edit)
+function openAcademicYearModal() {
+    populateAyYears();
+    const ayLabel = document.getElementById('ayLabel');
+    const modalTitle = document.getElementById('ayModalTitle');
+    const currentText = ayLabel?.textContent || '';
+
+    // If there's already an AY set, parse and prefill
+    if (currentText.startsWith('A.Y. ')) {
+        modalTitle.textContent = 'Edit Academic Year';
+        const parts = currentText.replace('A.Y. ', '').split(', ');
+        const years = (parts[0] || '').split('-');
+        const semester = parts[1] || '1st Semester';
+        const startYear = parseInt(years[0]);
+        if (!isNaN(startYear)) {
+            const select = document.getElementById('ayStartYear');
+            // Add option if not in range
+            if (!select.querySelector(`option[value="${startYear}"]`)) {
+                const opt = document.createElement('option');
+                opt.value = startYear;
+                opt.textContent = startYear;
+                select.insertBefore(opt, select.firstChild);
+            }
+            select.value = startYear;
+            document.getElementById('ayEndYear').value = startYear + 1;
+        }
+        document.getElementById('aySemester').value = semester;
+    } else {
+        modalTitle.textContent = 'Set Academic Year';
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('academicYearModal'));
+    modal.show();
+}
+
+// Save academic year via AJAX
+function saveAcademicYear() {
+    const startYear = document.getElementById('ayStartYear').value;
+    const endYear = document.getElementById('ayEndYear').value;
+    const semester = document.getElementById('aySemester').value;
+    const academicYear = startYear + '-' + endYear + ', ' + semester;
+
+    const saveBtn = document.getElementById('saveAcademicYearBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    $.ajax({
+        url: 'includes/save_academic_year.php',
+        method: 'POST',
+        data: { academic_year: academicYear },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                updateAcademicYearLabel(response.academic_year);
+                bootstrap.Modal.getInstance(document.getElementById('academicYearModal'))?.hide();
+                showToast('Success', 'Academic year updated successfully', 'success');
+            } else {
+                showToast('Error', response.message || 'Failed to save academic year', 'error');
+            }
+        },
+        error: function() {
+            showToast('Error', 'Failed to save academic year. Please try again.', 'error');
+        },
+        complete: function() {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+        }
+    });
+}
+
 // Load class record for faculty
 function loadClassRecord(page = 1) {
     const classRecordContent = document.getElementById('classRecordContent');
@@ -980,6 +1088,9 @@ function loadClassRecord(page = 1) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Update academic year display in header
+                updateAcademicYearLabel(data.academic_year);
+                
                 let content = '';
                 
                 if (Object.keys(data.sections).length === 0) {
@@ -1427,6 +1538,17 @@ document.addEventListener("DOMContentLoaded", function() {
             window.classRecordCurrentPage = 1; // Initialize page 1
             loadClassRecord(1);
         });
+    }
+    
+    // Academic year label click → open modal
+    const ayLabel = document.getElementById('ayLabel');
+    if (ayLabel) {
+        ayLabel.addEventListener('click', openAcademicYearModal);
+    }
+    // Save academic year button
+    const saveAyBtn = document.getElementById('saveAcademicYearBtn');
+    if (saveAyBtn) {
+        saveAyBtn.addEventListener('click', saveAcademicYear);
     }
     
     // Add event listener for view toggle
@@ -2435,9 +2557,17 @@ document.addEventListener("DOMContentLoaded", function() {
                             aria-labelledby="class-record-link">
                             <div class="container-fluid py-4 content-container">
                                 <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h3 class="mb-2">Class Record</h3>
-                                        <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                    <div class="col-12 d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h3 class="mb-2">Class Record</h3>
+                                            <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                        </div>
+                                        <div id="academicYearDisplay" class="text-end pt-1">
+                                            <span id="ayLabel" role="button" class="text-muted" style="text-decoration: underline; cursor: pointer; font-size: 0.92rem;"
+                                                  title="Click to set academic year">
+                                                Academic year not set
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -2478,6 +2608,44 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <span class="visually-hidden">Loading...</span>
                                         </div>
                                         <p class="mt-3 text-muted">Loading class records...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Academic Year Modal -->
+                        <div class="modal fade" id="academicYearModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="ayModalTitle">Set Academic Year</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="academicYearForm">
+                                            <div class="mb-3">
+                                                <label for="ayStartYear" class="form-label">Start Year</label>
+                                                <select class="form-select" id="ayStartYear" required>
+                                                    <!-- Populated by JS -->
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="ayEndYear" class="form-label">End Year</label>
+                                                <input type="text" class="form-control" id="ayEndYear" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="aySemester" class="form-label">Semester</label>
+                                                <select class="form-select" id="aySemester" required>
+                                                    <option value="1st Semester">1st Semester</option>
+                                                    <option value="2nd Semester">2nd Semester</option>
+                                                    <option value="Summer">Summer</option>
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="saveAcademicYearBtn">Save</button>
                                     </div>
                                 </div>
                             </div>
