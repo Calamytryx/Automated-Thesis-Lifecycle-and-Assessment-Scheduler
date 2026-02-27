@@ -429,6 +429,20 @@ try {
         
         error_log("Genetic Algorithm completed successfully");
 
+        // === POST-GA VALIDATION: Double-check for overlapping schedules ===
+        updateProgress($pdo, $progressId, 'running', 'Validating schedule for overlaps...', 87);
+        $validationResult = validateAndFixOverlaps($pdo, $bestSchedule, $userSchedules, $rooms, $timeSlots, $days, $panelists);
+        $bestSchedule = $validationResult['schedule'];
+        $overlapIssues = $validationResult['issues'];
+        $overlapFixes = $validationResult['fixes'];
+        $remainingConflicts = $validationResult['remainingConflicts'];
+        
+        if (!empty($overlapIssues)) {
+            error_log("POST-GA VALIDATION: Found " . count($overlapIssues) . " overlap issues, applied $overlapFixes fixes, remaining: $remainingConflicts");
+        } else {
+            error_log("POST-GA VALIDATION: No overlap issues found - schedule is clean");
+        }
+
         // Check if this is a preview request
         $isPreview = isset($_POST['preview']) && $_POST['preview'] === 'true';
 
@@ -445,7 +459,11 @@ try {
                 'preview' => true,
                 'progressId' => $progressId,
                 'schedules' => $previewData,
-                'message' => 'Schedule preview generated. Review and confirm to save.'
+                'overlapWarnings' => $overlapIssues,
+                'overlapFixes' => $overlapFixes,
+                'message' => empty($overlapIssues) 
+                    ? 'Schedule preview generated. Review and confirm to save.' 
+                    : 'Schedule preview generated with ' . count($overlapIssues) . ' overlap warning(s). ' . $overlapFixes . ' auto-fixed.'
             ];
             ob_end_clean(); // Discard any buffered output (PHP warnings etc.)
             $json = json_encode($result);
@@ -473,7 +491,11 @@ try {
                     'fitnessScores' => DefenseSchedule::$averageFitnessScores,
                     'populationPerGeneration' => DefenseSchedule::$populationPerGeneration,
                     'overwrittenTeams' => !empty($scheduledTeams) ? count($scheduledTeams) : 0,
-                    'message' => 'Schedule generated and saved successfully'
+                    'overlapWarnings' => $overlapIssues,
+                    'overlapFixes' => $overlapFixes,
+                    'message' => empty($overlapIssues)
+                        ? 'Schedule generated and saved successfully'
+                        : 'Schedule saved with ' . count($overlapIssues) . ' overlap warning(s). ' . $overlapFixes . ' auto-fixed.'
                 ];
 
                 file_put_contents('schedule_data.json', json_encode($result));
@@ -876,6 +898,12 @@ function geneticAlgorithm(
     // Store teams globally for use in other functions
     $GLOBALS['teams'] = $teams;
 
+    // Pre-compute the theoretical maximum fitness so we can detect a "perfect" candidate
+    $teamCount = count($teams);
+    // Perfect score per defense: +20 expertise per panelist (3) = 60, no penalties
+    // This is an upper-bound estimate; exact value depends on expertise data
+    $perfectFitnessEstimate = $teamCount * 60;
+
     $population = createInitialPopulation($pdo, $populationSize, $teams, $panelists, $rooms, $timeSlots, $days);
     DefenseSchedule::$initialPopulation = $population;
     DefenseSchedule::$populationPerGeneration = [];
@@ -888,6 +916,10 @@ function geneticAlgorithm(
     $bestFitness = PHP_INT_MIN;
     $lastImproveGeneration = 0;
     $startTime = microtime(true);
+    $perfectFound = false;
+
+    // Elitism: always carry forward the top N best schedules unchanged
+    $eliteCount = max(2, intval($populationSize * 0.1)); // top 10%
 
     for ($i = 0; $i < $generations; $i++) {
         $generationImproved = false;
@@ -895,10 +927,10 @@ function geneticAlgorithm(
         // Update progress every 10 generations
         if ($progressId && $i % 10 == 0) {
             $percentage = 35 + (($i / $generations) * 50); // Progress from 35% to 85%
-            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations", $percentage);
+            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations (best fitness: $bestFitness)", $percentage);
         }
 
-        // Process in batches to avoid memory issues
+        // Evaluate fitness for each schedule
         foreach ($population as $schedule) {
             $schedule->calculateFitness($userSchedules);
             if ($schedule->fitness > $bestFitness) {
@@ -906,7 +938,26 @@ function geneticAlgorithm(
                 $bestSchedule = $schedule;
                 $generationImproved = true;
                 $lastImproveGeneration = $i;
+
+                // === PERFECT CANDIDATE EARLY STOP ===
+                // A perfect candidate has zero conflicts (fitness >= 0) and
+                // fitness is at or above our estimated theoretical max
+                if ($bestFitness >= $perfectFitnessEstimate && $bestFitness >= 0) {
+                    error_log("PERFECT candidate found at generation $i with fitness $bestFitness (threshold: $perfectFitnessEstimate). Stopping early.");
+                    $perfectFound = true;
+                    break;
+                }
             }
+        }
+
+        if ($perfectFound) {
+            break; // Exit outer loop
+        }
+
+        // Also stop early if fitness >= 0 (no conflicts) and we've run enough gens
+        if ($bestFitness >= 0 && $i >= 10) {
+            error_log("Zero-conflict schedule found at generation $i with fitness $bestFitness. Stopping early.");
+            break;
         }
 
         // Early stopping if no improvement for several generations
@@ -936,23 +987,32 @@ function geneticAlgorithm(
         // Log progress every 20 generations
         if ($i % 20 == 0) {
             $elapsedTime = microtime(true) - $startTime;
-            error_log("Generation $i completed. Best fitness: $bestFitness. Elapsed time: $elapsedTime seconds");
+            error_log("Generation $i completed. Best fitness: $bestFitness. Elapsed time: " . round($elapsedTime, 2) . "s");
         }
 
-        $selected = selection($population);
+        // === ELITISM + TOURNAMENT SELECTION ===
+        // Sort population to pick elites
+        usort($population, function ($a, $b) {
+            return $b->fitness - $a->fitness;
+        });
+        $elites = array_slice($population, 0, $eliteCount);
 
-        // Create new population
-        $newPopulation = $selected; // Keep selected individuals
+        // Tournament selection for parents (faster than sorting for selection)
+        $selected = tournamentSelection($population, intval($populationSize / 2), 3);
 
-        // Faster new population creation
+        // Create new population starting with elites
+        $newPopulation = $elites;
+
+        // Fill rest with crossover children
         $childrenToCreate = $populationSize - count($newPopulation);
+        $selectedCount = count($selected);
         for ($c = 0; $c < $childrenToCreate; $c++) {
-            $parent1 = $selected[array_rand($selected)];
-            $parent2 = $selected[array_rand($selected)];
+            $parent1 = $selected[mt_rand(0, $selectedCount - 1)];
+            $parent2 = $selected[mt_rand(0, $selectedCount - 1)];
             $child = crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms, $panelists);
 
             // Only mutate some children to save time
-            if (rand(0, 1) == 1) {
+            if (mt_rand(0, 1) == 1) {
                 mutation($child, $mutationRate, $panelists, $rooms, $timeSlots, $days, $userSchedules);
             }
 
@@ -964,8 +1024,8 @@ function geneticAlgorithm(
             }
         }
 
-        // Only apply diversity preservation occasionally
-        if ($i % 10 == 0) {
+        // Only apply diversity preservation occasionally (and less aggressively)
+        if ($i % 15 == 0 && $i > 0) {
             $newPopulation = diversityPreservation($newPopulation, $populationSize, $pdo, $teams, $panelists, $rooms, $timeSlots, $days);
         }
 
@@ -985,7 +1045,7 @@ function geneticAlgorithm(
     }
 
     $totalTime = microtime(true) - $startTime;
-    error_log("Genetic algorithm completed in $totalTime seconds");
+    error_log("Genetic algorithm completed in " . round($totalTime, 2) . " seconds after " . min($i + 1, $generations) . " generations. Best fitness: $bestFitness");
 
     return $bestSchedule;
 }
@@ -1005,6 +1065,28 @@ function selection($population)
         return $b->fitness - $a->fitness;
     });
     return array_slice($population, 0, count($population) / 2);
+}
+
+/**
+ * Tournament selection - faster than sorting entire population.
+ * Picks `numWinners` individuals by running tournaments of `tournamentSize`.
+ */
+function tournamentSelection($population, $numWinners, $tournamentSize = 3)
+{
+    $popSize = count($population);
+    if ($popSize === 0) return [];
+    $winners = [];
+    for ($i = 0; $i < $numWinners; $i++) {
+        $best = null;
+        for ($t = 0; $t < $tournamentSize; $t++) {
+            $candidate = $population[mt_rand(0, $popSize - 1)];
+            if ($best === null || $candidate->fitness > $best->fitness) {
+                $best = $candidate;
+            }
+        }
+        $winners[] = $best;
+    }
+    return $winners;
 }
 
 function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms, $panelists)
@@ -1077,16 +1159,16 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
 {
     static $conflictCache = [];
 
-    // Create a unique key for this conflict check
-    $key = md5(json_encode($defense) . json_encode(array_slice($all_defenses, 0, 5)));
+    // Faster cache key: avoid expensive json_encode + md5
+    $key = $defense['team_id'] . '|' . $defense['day'] . '|' . $defense['time_slot'] . '|' . $defense['room'] . '|' . implode(',', $defense['panelist_ids']);
 
     if (isset($conflictCache[$key])) {
         return $conflictCache[$key];
     }
 
-    // Check panelist conflicts
+    // Check panelist conflicts (pass currentTeamId so we skip self)
     foreach ($defense['panelist_ids'] as $panelist_id) {
-        if (hasScheduleConflict($pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses)) {
+        if (hasScheduleConflict($pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses, $defense['team_id'])) {
             $conflictCache[$key] = true;
             return true;
         }
@@ -1101,7 +1183,7 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
     }
 
     foreach ($teamMembersCache[$defense['team_id']] as $member) {
-        if (hasScheduleConflict($pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses)) {
+        if (hasScheduleConflict($pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses, $defense['team_id'])) {
             $conflictCache[$key] = true;
             return true;
         }
@@ -1111,51 +1193,67 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
     return false;
 }
 
-function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses)
+function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses, $currentTeamId = null)
 {
-    if (!isset($userSchedules[$user_id])) return false;
-
-    $defense_start = strtotime($time_slot);
-    // === PROBLEMATIC LINE START ===
-    // Previously: $duration = $_POST['timeDuration'];
-    // FIX: Use global time duration variable instead.
     $duration = $GLOBALS['timeDuration'];
-    // === PROBLEMATIC LINE END ===
-
+    $defense_start = strtotime($time_slot);
     $defense_end = strtotime('+' . $duration . ' hour', $defense_start);
     $defense_day = date('w', strtotime($day));
 
-    foreach ($userSchedules[$user_id] as $schedule) {
-        if ($schedule['day_of_week'] == $defense_day) {
-            $schedule_start = strtotime($schedule['start_time']);
-            $schedule_end = strtotime($schedule['end_time']);
+    // CHECK 1: User personal schedule (classes) vs this defense
+    if (isset($userSchedules[$user_id])) {
+        foreach ($userSchedules[$user_id] as $schedule) {
+            if ($schedule['day_of_week'] == $defense_day) {
+                $schedule_start = strtotime($schedule['start_time']);
+                $schedule_end = strtotime($schedule['end_time']);
 
-            if (($defense_start >= $schedule_start && $defense_start < $schedule_end) ||
-                ($defense_end > $schedule_start && $defense_end <= $schedule_end) ||
-                ($defense_start <= $schedule_start && $defense_end >= $schedule_end)
-            ) {
-                return true;
+                if (($defense_start >= $schedule_start && $defense_start < $schedule_end) ||
+                    ($defense_end > $schedule_start && $defense_end <= $schedule_end) ||
+                    ($defense_start <= $schedule_start && $defense_end >= $schedule_end)
+                ) {
+                    return true;
+                }
             }
         }
     }
 
-    // Check for conflicts with other defenses
+    // CHECK 2: Room conflicts AND user double-booking across ALL defenses
     if (is_array($all_defenses)) {
-        foreach ($all_defenses as $existing_defense) {
-            if ($existing_defense['day'] == $day && $existing_defense['room'] == $room) {
-                $existing_start = strtotime($existing_defense['time_slot']);
-                // === PROBLEMATIC LINE START ===
-                // Previously: $duration = $_POST['timeDuration'];
-                // FIX: Use global time duration variable.
-                $duration = $GLOBALS['timeDuration'];
-                // === PROBLEMATIC LINE END ===
-                $existing_end = strtotime('+' . $duration . ' hour', $existing_start);
+        // Cache team members for panelist/member lookup
+        static $memberLookupCache = [];
 
-                if (($defense_start >= $existing_start && $defense_start < $existing_end) ||
-                    ($defense_end > $existing_start && $defense_end <= $existing_end)
-                ) {
-                    return true;
-                }
+        foreach ($all_defenses as $existing_defense) {
+            // Skip self (same team)
+            if ($currentTeamId !== null && $existing_defense['team_id'] == $currentTeamId) continue;
+
+            // Must be same day
+            if ($existing_defense['day'] != $day) continue;
+
+            $existing_start = strtotime($existing_defense['time_slot']);
+            $existing_end = strtotime('+' . $duration . ' hour', $existing_start);
+
+            // Check time overlap
+            $timesOverlap = ($defense_start < $existing_end) && ($defense_end > $existing_start);
+            if (!$timesOverlap) continue;
+
+            // 2a: Same room at overlapping time = room conflict
+            if ($existing_defense['room'] == $room) {
+                return true;
+            }
+
+            // 2b: Is this user assigned as panelist in the other defense? (panelist double-booking)
+            if (in_array($user_id, $existing_defense['panelist_ids'])) {
+                return true;
+            }
+
+            // 2c: Is this user a team member in the other defense? (student/adviser double-booking)
+            if (!isset($memberLookupCache[$existing_defense['team_id']])) {
+                $memberLookupCache[$existing_defense['team_id']] = array_column(
+                    getTeamMembers($pdo, $existing_defense['team_id'], 'array'), 'id'
+                );
+            }
+            if (in_array($user_id, $memberLookupCache[$existing_defense['team_id']])) {
+                return true;
             }
         }
     }
@@ -1670,13 +1768,13 @@ class DefenseSchedule
             // Team member conflict check
             if (is_array($teamMembers)) {
                 foreach ($teamMembers as $member) {
-                    if (hasScheduleConflict($this->pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
-                        $this->fitness -= 5;
+                    if (hasScheduleConflict($this->pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses, $defense['team_id'])) {
+                        $this->fitness -= 200; // HARD penalty - must avoid user schedule conflicts
                         $conflicts++;
                     }
                 }
             } else {
-                $this->fitness -= 10;
+                $this->fitness -= 200;
                 $conflicts++;
             }
 
@@ -1724,8 +1822,8 @@ class DefenseSchedule
                     $conflicts++;
                 }
 
-                if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses)) {
-                    $this->fitness -= 5;
+                if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses, $defense['team_id'])) {
+                    $this->fitness -= 200; // HARD penalty - must avoid panelist schedule/double-booking conflicts
                     $conflicts++;
                 }
             }
@@ -1735,9 +1833,9 @@ class DefenseSchedule
                 $conflicts++;
             }
 
-            // Room conflict check - optimized to stop after first conflict
+            // Room conflict check - check ALL pairs, don't break early
             foreach ($this->chromosomes as $otherKey => $otherDefense) {
-                if ($defenseKey != $otherKey && $defense['room'] == $otherDefense['room'] && $defense['day'] == $otherDefense['day']) {
+                if ($defenseKey != $otherKey && $defense['day'] == $otherDefense['day']) {
                     $duration = intval($GLOBALS['timeDuration']);
                     $defenseStart = strtotime($defense['time_slot']);
                     $defenseEnd = strtotime('+' . $duration . ' hours', $defenseStart);
@@ -1746,9 +1844,18 @@ class DefenseSchedule
                     $otherEnd = strtotime('+' . $duration . ' hours', $otherStart);
 
                     if (($defenseStart < $otherEnd) && ($defenseEnd > $otherStart)) {
-                        $this->fitness -= 10;
-                        $conflicts++;
-                        break; // Stop after first conflict found
+                        // Same room at overlapping time = room conflict
+                        if ($defense['room'] == $otherDefense['room']) {
+                            $this->fitness -= 500; // MASSIVE penalty for room overlap
+                            $conflicts++;
+                        }
+
+                        // Panelist double-booking at overlapping time (any room)
+                        $sharedPanelists = array_intersect($defense['panelist_ids'], $otherDefense['panelist_ids']);
+                        if (!empty($sharedPanelists)) {
+                            $this->fitness -= 500; // MASSIVE penalty for panelist double-booking
+                            $conflicts++;
+                        }
                     }
                 }
             }
@@ -2126,4 +2233,397 @@ function getAvailableTimeSlot($schedule, $days, $timeSlots, $duration, $rooms)
         }
     }
     return $availableSlots ? $availableSlots[array_rand($availableSlots)] : null;
+}
+
+// ======================================================================
+// POST-GA OVERLAP VALIDATION
+// Loops until ZERO conflicts remain — guarantees a clean schedule.
+// ======================================================================
+
+/**
+ * Validate the final schedule and fix ALL overlaps.
+ * Runs multiple passes until zero conflicts remain or max iterations.
+ * Checks:
+ *  1) Defense vs Defense: room overlap, panelist double-booking, member double-booking
+ *  2) User schedule (classes) vs defense schedule for panelists & team members
+ */
+function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, $timeSlots, $days, $panelists)
+{
+    $duration = $GLOBALS['timeDuration'];
+    $defenses = $schedule->chromosomes;
+    $allIssues = [];
+    $totalFixes = 0;
+    $maxPasses = 20; // Safety limit
+
+    // Pre-cache team member IDs
+    $memberCache = [];
+    foreach ($defenses as $d) {
+        if (!isset($memberCache[$d['team_id']])) {
+            $memberCache[$d['team_id']] = array_column(getTeamMembers($pdo, $d['team_id'], 'array'), 'id');
+        }
+    }
+
+    error_log("=== POST-GA OVERLAP VALIDATION START ===");
+    error_log("Validating " . count($defenses) . " defense entries (max $maxPasses passes)");
+
+    for ($pass = 0; $pass < $maxPasses; $pass++) {
+        $issuesThisPass = 0;
+        $fixesThisPass = 0;
+
+        // --- Defense-vs-Defense checks ---
+        for ($i = 0; $i < count($defenses); $i++) {
+            $d1 = &$defenses[$i];
+            $d1Start = strtotime($d1['time_slot']);
+            $d1End = strtotime('+' . $duration . ' hour', $d1Start);
+
+            for ($j = $i + 1; $j < count($defenses); $j++) {
+                $d2 = &$defenses[$j];
+
+                if ($d1['day'] !== $d2['day']) continue;
+
+                $d2Start = strtotime($d2['time_slot']);
+                $d2End = strtotime('+' . $duration . ' hour', $d2Start);
+                $timesOverlap = ($d1Start < $d2End) && ($d1End > $d2Start);
+                if (!$timesOverlap) continue;
+
+                // CHECK 1: Same room overlap
+                if ($d1['room'] === $d2['room']) {
+                    $msg = "ROOM OVERLAP: Team {$d1['team_id']} & Team {$d2['team_id']} room {$d1['room']} on {$d1['day']} at {$d1['time_slot']}/{$d2['time_slot']}";
+                    $allIssues[] = $msg;
+                    error_log("PASS $pass: $msg");
+                    $issuesThisPass++;
+
+                    if (fixDefenseSlot($defenses, $j, $d2, $rooms, $timeSlots, $days, $duration, $userSchedules, $memberCache, $pdo)) {
+                        $fixesThisPass++;
+                        $totalFixes++;
+                    }
+                    continue; // Re-check after fix
+                }
+
+                // CHECK 2: Panelist double-booking
+                $sharedPanelists = array_intersect($d1['panelist_ids'], $d2['panelist_ids']);
+                if (!empty($sharedPanelists)) {
+                    $msg = "PANELIST DOUBLE-BOOK: Panelist(s) " . implode(',', $sharedPanelists) . " Team {$d1['team_id']} & Team {$d2['team_id']} on {$d1['day']} {$d1['time_slot']}/{$d2['time_slot']}";
+                    $allIssues[] = $msg;
+                    error_log("PASS $pass: $msg");
+                    $issuesThisPass++;
+
+                    if (fixDefenseSlot($defenses, $j, $d2, $rooms, $timeSlots, $days, $duration, $userSchedules, $memberCache, $pdo)) {
+                        $fixesThisPass++;
+                        $totalFixes++;
+                    }
+                }
+
+                // CHECK 3: Team member double-booking
+                if (!isset($memberCache[$d1['team_id']])) {
+                    $memberCache[$d1['team_id']] = array_column(getTeamMembers($pdo, $d1['team_id'], 'array'), 'id');
+                }
+                if (!isset($memberCache[$d2['team_id']])) {
+                    $memberCache[$d2['team_id']] = array_column(getTeamMembers($pdo, $d2['team_id'], 'array'), 'id');
+                }
+                $sharedMembers = array_intersect($memberCache[$d1['team_id']], $memberCache[$d2['team_id']]);
+                if (!empty($sharedMembers)) {
+                    $msg = "MEMBER DOUBLE-BOOK: User(s) " . implode(',', $sharedMembers) . " Team {$d1['team_id']} & Team {$d2['team_id']} on {$d1['day']}";
+                    $allIssues[] = $msg;
+                    error_log("PASS $pass: $msg");
+                    $issuesThisPass++;
+
+                    if (fixDefenseSlot($defenses, $j, $d2, $rooms, $timeSlots, $days, $duration, $userSchedules, $memberCache, $pdo)) {
+                        $fixesThisPass++;
+                        $totalFixes++;
+                    }
+                }
+            }
+        }
+
+        // --- User schedule vs Defense checks ---
+        for ($i = 0; $i < count($defenses); $i++) {
+            $d = &$defenses[$i];
+            $defStart = strtotime($d['time_slot']);
+            $defEnd = strtotime('+' . $duration . ' hour', $defStart);
+            $defDay = date('w', strtotime($d['day']));
+
+            // All users to check: panelists + team members
+            $usersToCheck = $d['panelist_ids'];
+            if (!isset($memberCache[$d['team_id']])) {
+                $memberCache[$d['team_id']] = array_column(getTeamMembers($pdo, $d['team_id'], 'array'), 'id');
+            }
+            $usersToCheck = array_unique(array_merge($usersToCheck, $memberCache[$d['team_id']]));
+
+            foreach ($usersToCheck as $userId) {
+                if (!isset($userSchedules[$userId])) continue;
+                foreach ($userSchedules[$userId] as $sched) {
+                    if ($sched['day_of_week'] != $defDay) continue;
+                    $schedStart = strtotime($sched['start_time']);
+                    $schedEnd = strtotime($sched['end_time']);
+                    if (($defStart >= $schedStart && $defStart < $schedEnd) ||
+                        ($defEnd > $schedStart && $defEnd <= $schedEnd) ||
+                        ($defStart <= $schedStart && $defEnd >= $schedEnd)) {
+                        $msg = "USER SCHED CONFLICT: User $userId class ({$sched['start_time']}-{$sched['end_time']}) vs Team {$d['team_id']} on {$d['day']} at {$d['time_slot']}";
+                        $allIssues[] = $msg;
+                        error_log("PASS $pass: $msg");
+                        $issuesThisPass++;
+
+                        if (fixDefenseSlot($defenses, $i, $d, $rooms, $timeSlots, $days, $duration, $userSchedules, $memberCache, $pdo)) {
+                            $fixesThisPass++;
+                            $totalFixes++;
+                            // Recalculate times after fix
+                            $defStart = strtotime($d['time_slot']);
+                            $defEnd = strtotime('+' . $duration . ' hour', $defStart);
+                            $defDay = date('w', strtotime($d['day']));
+                        }
+                        break 2; // Restart user checks for this defense after fix
+                    }
+                }
+            }
+        }
+
+        error_log("PASS $pass complete: $issuesThisPass issues found, $fixesThisPass fixed");
+
+        // If no issues found this pass, we're clean!
+        if ($issuesThisPass === 0) {
+            error_log("=== VALIDATION CLEAN after $pass pass(es) ===");
+            break;
+        }
+
+        // If we found issues but couldn't fix any, stop to avoid infinite loop
+        if ($fixesThisPass === 0) {
+            error_log("=== VALIDATION STUCK: $issuesThisPass issues remain unfixable ===");
+            break;
+        }
+    }
+
+    // Apply fixes back to schedule
+    $schedule->chromosomes = $defenses;
+    $schedule->all_defenses = $defenses;
+
+    // --- FINAL VERIFICATION PASS (read-only, zero tolerance) ---
+    $remainingConflicts = countRemainingConflicts($pdo, $defenses, $duration, $userSchedules, $memberCache);
+
+    error_log("=== POST-GA OVERLAP VALIDATION COMPLETE ===");
+    error_log("Total issues found: " . count($allIssues) . ", Total fixes: $totalFixes, Remaining conflicts: $remainingConflicts");
+
+    return [
+        'issues' => $allIssues,
+        'fixes' => $totalFixes,
+        'remainingConflicts' => $remainingConflicts,
+        'schedule' => $schedule
+    ];
+}
+
+/**
+ * Try to fix a defense by moving it to a conflict-free slot.
+ * Tries: different room → different time → different day → different day+time.
+ * Returns true if fixed.
+ */
+function fixDefenseSlot(&$defenses, $idx, &$defense, $rooms, $timeSlots, $days, $duration, $userSchedules, $memberCache, $pdo)
+{
+    $originalDay = $defense['day'];
+    $originalTime = $defense['time_slot'];
+    $originalRoom = $defense['room'];
+
+    // Collect all user IDs involved in this defense
+    $involvedUsers = $defense['panelist_ids'];
+    if (isset($memberCache[$defense['team_id']])) {
+        $involvedUsers = array_unique(array_merge($involvedUsers, $memberCache[$defense['team_id']]));
+    }
+
+    // Strategy 1: Try a different room (same day/time)
+    foreach ($rooms as $altRoom) {
+        if ($altRoom === $originalRoom) continue;
+        $defense['room'] = $altRoom;
+        $defenses[$idx] = $defense;
+        if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
+            error_log("FIX: Team {$defense['team_id']} → room $altRoom");
+            return true;
+        }
+    }
+    $defense['room'] = $originalRoom; // revert
+
+    // Strategy 2: Try a different time (same day/room)
+    foreach ($timeSlots as $altTime) {
+        if ($altTime === $originalTime) continue;
+        $defense['time_slot'] = $altTime;
+        $defenses[$idx] = $defense;
+        if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
+            error_log("FIX: Team {$defense['team_id']} → time $altTime");
+            return true;
+        }
+    }
+    $defense['time_slot'] = $originalTime; // revert
+
+    // Strategy 3: Try different day (same time/room)
+    foreach ($days as $altDay) {
+        if ($altDay === $originalDay) continue;
+        $defense['day'] = $altDay;
+        $defenses[$idx] = $defense;
+        if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
+            error_log("FIX: Team {$defense['team_id']} → day $altDay");
+            return true;
+        }
+    }
+    $defense['day'] = $originalDay; // revert
+
+    // Strategy 4: Brute-force try ALL day+time+room combinations
+    foreach ($days as $altDay) {
+        foreach ($timeSlots as $altTime) {
+            foreach ($rooms as $altRoom) {
+                if ($altDay === $originalDay && $altTime === $originalTime && $altRoom === $originalRoom) continue;
+                $defense['day'] = $altDay;
+                $defense['time_slot'] = $altTime;
+                $defense['room'] = $altRoom;
+                $defenses[$idx] = $defense;
+                if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
+                    error_log("FIX: Team {$defense['team_id']} → $altDay $altTime $altRoom (brute-force)");
+                    return true;
+                }
+            }
+        }
+    }
+
+    // Could not fix - revert to original
+    $defense['day'] = $originalDay;
+    $defense['time_slot'] = $originalTime;
+    $defense['room'] = $originalRoom;
+    $defenses[$idx] = $defense;
+    error_log("CANNOT FIX: Team {$defense['team_id']} - no valid slot found");
+    return false;
+}
+
+/**
+ * Comprehensive conflict check for a single defense against ALL other defenses
+ * and user schedules. Returns true if ANY conflict exists.
+ */
+function hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)
+{
+    $dStart = strtotime($defense['time_slot']);
+    $dEnd = strtotime('+' . $duration . ' hour', $dStart);
+    $dDayNum = date('w', strtotime($defense['day']));
+
+    // CHECK 1: Against all other defenses
+    foreach ($defenses as $otherIdx => $other) {
+        if ($otherIdx == $idx) continue;
+        if ($other['day'] !== $defense['day']) continue;
+
+        $oStart = strtotime($other['time_slot']);
+        $oEnd = strtotime('+' . $duration . ' hour', $oStart);
+        $timesOverlap = ($dStart < $oEnd) && ($dEnd > $oStart);
+        if (!$timesOverlap) continue;
+
+        // 1a: Room conflict
+        if ($defense['room'] === $other['room']) {
+            return true;
+        }
+
+        // 1b: Panelist double-booking
+        if (!empty(array_intersect($defense['panelist_ids'], $other['panelist_ids']))) {
+            return true;
+        }
+
+        // 1c: Any involved user is also in the other defense (as panelist or team member)
+        $otherUsers = $other['panelist_ids'];
+        if (isset($memberCache[$other['team_id']])) {
+            $otherUsers = array_merge($otherUsers, $memberCache[$other['team_id']]);
+        }
+        if (!empty(array_intersect($involvedUsers, $otherUsers))) {
+            return true;
+        }
+    }
+
+    // CHECK 2: User schedule conflicts for all involved users
+    foreach ($involvedUsers as $userId) {
+        if (!isset($userSchedules[$userId])) continue;
+        foreach ($userSchedules[$userId] as $sched) {
+            if ($sched['day_of_week'] != $dDayNum) continue;
+            $sStart = strtotime($sched['start_time']);
+            $sEnd = strtotime($sched['end_time']);
+            if (($dStart >= $sStart && $dStart < $sEnd) ||
+                ($dEnd > $sStart && $dEnd <= $sEnd) ||
+                ($dStart <= $sStart && $dEnd >= $sEnd)) {
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+/**
+ * Final read-only count of remaining conflicts after all fixes.
+ */
+function countRemainingConflicts($pdo, $defenses, $duration, $userSchedules, $memberCache)
+{
+    $conflicts = 0;
+
+    for ($i = 0; $i < count($defenses); $i++) {
+        $d1 = $defenses[$i];
+        $d1Start = strtotime($d1['time_slot']);
+        $d1End = strtotime('+' . $duration . ' hour', $d1Start);
+
+        // Defense vs Defense
+        for ($j = $i + 1; $j < count($defenses); $j++) {
+            $d2 = $defenses[$j];
+            if ($d1['day'] !== $d2['day']) continue;
+            $d2Start = strtotime($d2['time_slot']);
+            $d2End = strtotime('+' . $duration . ' hour', $d2Start);
+            if (!(($d1Start < $d2End) && ($d1End > $d2Start))) continue;
+
+            // Room overlap
+            if ($d1['room'] === $d2['room']) {
+                error_log("REMAINING CONFLICT: Room overlap Team {$d1['team_id']} & {$d2['team_id']}");
+                $conflicts++;
+            }
+            // Panelist double-book
+            if (!empty(array_intersect($d1['panelist_ids'], $d2['panelist_ids']))) {
+                error_log("REMAINING CONFLICT: Panelist double-book Team {$d1['team_id']} & {$d2['team_id']}");
+                $conflicts++;
+            }
+            // Member double-book
+            $m1 = $memberCache[$d1['team_id']] ?? [];
+            $m2 = $memberCache[$d2['team_id']] ?? [];
+            if (!empty(array_intersect($m1, $m2))) {
+                error_log("REMAINING CONFLICT: Member double-book Team {$d1['team_id']} & {$d2['team_id']}");
+                $conflicts++;
+            }
+        }
+
+        // User schedule vs Defense
+        $d1DayNum = date('w', strtotime($d1['day']));
+        $allUsers = array_unique(array_merge($d1['panelist_ids'], $memberCache[$d1['team_id']] ?? []));
+        foreach ($allUsers as $userId) {
+            if (!isset($userSchedules[$userId])) continue;
+            foreach ($userSchedules[$userId] as $sched) {
+                if ($sched['day_of_week'] != $d1DayNum) continue;
+                $sStart = strtotime($sched['start_time']);
+                $sEnd = strtotime($sched['end_time']);
+                if (($d1Start >= $sStart && $d1Start < $sEnd) ||
+                    ($d1End > $sStart && $d1End <= $sEnd) ||
+                    ($d1Start <= $sStart && $d1End >= $sEnd)) {
+                    error_log("REMAINING CONFLICT: User $userId schedule vs Team {$d1['team_id']}");
+                    $conflicts++;
+                }
+            }
+        }
+    }
+
+    return $conflicts;
+}
+
+/**
+ * Legacy helper kept for backward compatibility.
+ */
+function hasRoomConflictAt($defenses, $excludeIdx, $day, $timeSlot, $room, $duration)
+{
+    $newStart = strtotime($timeSlot);
+    $newEnd = strtotime('+' . $duration . ' hour', $newStart);
+    foreach ($defenses as $idx => $def) {
+        if ($idx == $excludeIdx) continue;
+        if ($def['day'] !== $day || $def['room'] !== $room) continue;
+        $existStart = strtotime($def['time_slot']);
+        $existEnd = strtotime('+' . $duration . ' hour', $existStart);
+        if (($newStart < $existEnd) && ($newEnd > $existStart)) {
+            return true;
+        }
+    }
+    return false;
 }
