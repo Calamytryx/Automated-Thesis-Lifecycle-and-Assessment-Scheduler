@@ -13,9 +13,23 @@ require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
 
 try {
-    // Only admin users can save schedules
-    if (!isset($_SESSION['usertype']) || $_SESSION['usertype'] != 0) {
-        throw new Exception('Unauthorized: Only administrators can save schedules.');
+    // Allow admins (usertype=0) and subject teachers with assigned sections (usertype=2)
+    $usertype = isset($_SESSION['usertype']) ? intval($_SESSION['usertype']) : -1;
+    $userId = isset($_SESSION['id']) ? intval($_SESSION['id']) : -1;
+    $isAdmin = ($usertype === 0);
+    $isAssignedFaculty = false;
+
+    if ($usertype === 2 && $userId > 0) {
+        $checkStmt = $pdo->prepare("
+            SELECT COUNT(*) FROM section_professors
+            WHERE professor_id = ? AND status = 'active'
+        ");
+        $checkStmt->execute([$userId]);
+        $isAssignedFaculty = ($checkStmt->fetchColumn() > 0);
+    }
+
+    if (!$isAdmin && !$isAssignedFaculty) {
+        throw new Exception('Unauthorized: Only administrators and subject teachers can save schedules.');
     }
 
     $input = json_decode(file_get_contents('php://input'), true);

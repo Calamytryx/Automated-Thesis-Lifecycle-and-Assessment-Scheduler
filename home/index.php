@@ -45,243 +45,15 @@ error_reporting(E_ALL);
 ?>
 
 <script>
+const USER_TYPE = <?php echo (int)$_SESSION['usertype']; ?>;
+
 // Move fetchTeamOverview to global scope
 function fetchTeamOverview(teamId = null) {
-    <?php if ($_SESSION['usertype'] == 2): ?>
-    // Faculty: Show advisee teams and paneling defenses
+    // All user types use the unified dashboard
     fetchFacultyDashboard();
-    <?php else: ?>
-    // Students: Show team overview
-    const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const teamOverviewContent = document.getElementById('teamOverviewContent');
-
-                let content = ''; // Team Selector (if multiple teams available)
-                if (data.teams.length > 1) {
-                    content += `
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <div class="card team-selector-card">
-                                            <div class="card-body">
-                                                <h6 class="card-subtitle mb-3 text-muted">Select Team</h6>
-                                                <select id="teamSelector" class="form-select">
-                                                    ${data.teams.map(team => 
-                                                        `<option value="${team.id}" ${team.id == data.selectedTeam.id ? 'selected' : ''}>${team.name}</option>`
-                                                    ).join('')}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                }
-
-                // Current Team Info
-                content += `
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="card team-info-card">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="card-title mb-1">${data.selectedTeam.name}</h5>
-                                                    <p class="text-muted mb-0">Team Overview</p>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div class="d-flex gap-3">
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0 text-success">${data.completedCount}</div>
-                                                            <small class="text-muted">Completed</small>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0 text-warning">${data.pendingCount}</div>
-                                                            <small class="text-muted">Pending</small>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0">${data.totalRequirements}</div>
-                                                            <small class="text-muted">Total</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                // Progress Overview
-                const progressPercentage = data.totalRequirements > 0 ? Math.round((data.completedCount / data
-                    .totalRequirements) * 100) : 0;
-                content += `
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="card progress-overview-card">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <h6 class="card-subtitle mb-0">Overall Progress</h6>
-                                                <span class="badge bg-dark">${progressPercentage}%</span>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: ${progressPercentage}%" aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `; // Requirements by Category
-                content += `
-                            <div class="row">
-                                <!-- Completed Requirements -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="card requirements-completed-card h-100">
-                                        <div class="card-header requirements-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Completed</h6>
-                                                    <small class="text-muted">${data.completedCount} requirements</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.requirements.completed.length > 0 
-                                                ? data.requirements.completed.map(req => `
-                                                    <div class="d-flex align-items-center py-2 border-bottom border-light">
-                                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                        <span class="flex-grow-1">${req.name}</span>
-                                                    </div>
-                                                `).join('')
-                                                : '<p class="text-muted mb-0">No completed requirements yet</p>'
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Pending Requirements -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="card requirements-pending-card h-100">
-                                        <div class="card-header requirements-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Pending</h6>
-                                                    <small class="text-muted">${data.pendingCount} requirements</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.requirements.pending.length > 0 
-                                                ? data.requirements.pending.map(req => {
-                                                    const statusIcon = req.status === 'submitted' ? 'bi-hourglass-split text-info' : 
-                                                                      req.status === 'rejected' ? 'bi-x-circle-fill text-danger' : 
-                                                                      'bi-circle text-muted';
-                                                    const statusText = req.status === 'submitted' ? 'Submitted' : 
-                                                                      req.status === 'rejected' ? 'Rejected' : 
-                                                                      'Not Started';
-                                                    return `
-                                                        <div class="d-flex align-items-center py-2 border-bottom border-light">
-                                                            <i class="bi ${statusIcon} me-2"></i>
-                                                            <div class="flex-grow-1">
-                                                                <div>${req.name}</div>
-                                                                <small class="text-muted">${statusText}</small>
-                                                            </div>
-                                                        </div>
-                                                    `;
-                                                }).join('')
-                                                : '<p class="text-muted mb-0">All requirements completed!</p>'
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `; // Defense Schedule
-                content += `
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card defense-schedule-card">
-                                        <div class="card-header defense-schedule-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Next Defense Schedule</h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.defense 
-                                                ? `
-                                                    <div class="row g-3 d-flex justify-content-center">
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-calendar3 text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${new Date(data.defense.schedule_date).toLocaleDateString()}</div>
-                                                                <small class="text-muted">Date</small>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-clock text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${data.defense.start_time} - ${data.defense.end_time}</div>
-                                                                <small class="text-muted">Time</small>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-geo-alt text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${data.defense.room || 'TBA'}</div>
-                                                                <small class="text-muted">Room</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                `
-                                                : `
-                                                    <div class="text-center py-4">
-                                                        <i class="bi bi-calendar-x text-muted mb-2" style="font-size: 2rem;"></i>
-                                                        <p class="text-muted mb-0">No defense scheduled yet</p>
-                                                    </div>
-                                                `
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                teamOverviewContent.innerHTML = content;
-
-                // Add event listener for team selector after content is inserted
-                const teamSelector = document.getElementById('teamSelector');
-                if (teamSelector) {
-                    teamSelector.addEventListener('change', function() {
-                        fetchTeamOverview(this.value);
-                    });
-                }
-            } else {
-                console.error(data.message);
-                document.getElementById('teamOverviewContent').innerHTML = `
-                        <div class="alert alert-warning" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            ${data.message}
-                        </div>
-                    `;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching team overview:', error);
-            document.getElementById('teamOverviewContent').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        <i class="bi bi-exclamation-circle me-2"></i>
-                        Failed to load team overview. Please try again.
-                    </div>
-                `;
-        });
-    <?php endif; ?>
 }
 
-<?php if ($_SESSION['usertype'] == 2): ?>
-// Faculty Dashboard: Show advisee teams and paneling defenses
+// Unified Dashboard: Show teams and defense schedules for all user types
 function fetchFacultyDashboard() {
     const dashboardContent = document.getElementById('teamOverviewContent');
     
@@ -300,12 +72,18 @@ function fetchFacultyDashboard() {
             if (data.success) {
                 let content = '';
                 
-                // Advisee Teams Section - Card-based layout like student overview
+                // Section header - changes per role
+                const teamsHeader = USER_TYPE === 1 ? 'My Teams' : 'Advisee Teams';
+                const noTeamsMsg  = USER_TYPE === 1
+                    ? 'You are not currently a member of any team.'
+                    : 'You are not currently advising any teams.';
+                
+                // Advisee / My Teams Section
                 content += `
                     <div class="row mb-4 align-items-center">
                         <div class="col-auto">
                             <h4 class="mb-0">
-                                Advisee Teams
+                                ${teamsHeader}
                             </h4>
                         </div>
                 `;
@@ -331,7 +109,7 @@ function fetchFacultyDashboard() {
                     content += `
                         <div class="alert alert-info mb-4">
                             <i class="bi bi-info-circle me-2"></i>
-                            You are not currently advising any teams.
+                            ${noTeamsMsg}
                         </div>
                     `;
                 } else {
@@ -342,12 +120,17 @@ function fetchFacultyDashboard() {
                     content += `<div id="adviseeTeamContent"></div>`;
                 }
                 
-                // Paneling Defenses Section
+                // Defense Schedule Section
+                const defenseHeader = USER_TYPE === 1 ? 'Your Defense Schedules' : 'Panel Defense Schedule';
+                const noDefenseMsg  = USER_TYPE === 1
+                    ? 'No defense scheduled yet.'
+                    : 'No defense schedules assigned to you as panelist.';
+                
                 content += `
                     <div class="row mb-4 mt-5">
                         <div class="col-12">
                             <h4 class="mb-3">
-                                Panel Defense Schedule
+                                ${defenseHeader}
                                 <span class="defense-schedule-count">${data.paneling_defenses.length}</span>
                             </h4>
                         </div>
@@ -358,7 +141,69 @@ function fetchFacultyDashboard() {
                     content += `
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            No defense schedules assigned to you as panelist.
+                            ${noDefenseMsg}
+                        </div>
+                    `;
+                } else if (USER_TYPE === 1) {
+                    // ── Student view: read-only table with panelist names ──
+                    content += `
+                        <div class="table-responsive">
+                            <table class="db-table defense-schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Defense Type</th>
+                                        <th>Room</th>
+                                        <th>Panelists</th>
+                                        <th class="text-center">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.paneling_defenses.forEach(defense => {
+                        const defenseDate = new Date(defense.schedule_date);
+                        const isUpcoming = defenseDate >= new Date();
+                        
+                        // Defense type pill
+                        const dtText = (defense.defense_type || 'general').replace(/_/g, ' ');
+                        let dtClass = 'type-general';
+                        if (dtText.includes('title proposal')) dtClass = 'type-proposal';
+                        else if (dtText.includes('title defense')) dtClass = 'type-title';
+                        else if (dtText.includes('final')) dtClass = 'type-final';
+                        else if (dtText.includes('re defense') || dtText.includes('re-defense')) dtClass = 'type-redefense';
+                        
+                        // Result badge
+                        let resultBadge = '';
+                        if (defense.defense_status === 'passed') {
+                            resultBadge = '<span class="defense-status-pill status-evaluated">Passed</span>';
+                        } else if (defense.defense_status === 'failed') {
+                            resultBadge = '<span class="defense-status-pill status-pending">Failed</span>';
+                        } else if (isUpcoming) {
+                            resultBadge = '<span class="defense-status-pill status-scheduled">Upcoming</span>';
+                        } else {
+                            resultBadge = '<span class="defense-status-pill status-pending">Pending</span>';
+                        }
+                        
+                        const panelists = defense.panelist_names || 'TBA';
+                        
+                        content += `
+                            <tr>
+                                <td>
+                                    <strong>${defenseDate.toLocaleDateString()}</strong><br>
+                                    <small class="text-muted">${defense.start_time} - ${defense.end_time}</small>
+                                </td>
+                                <td><span class="defense-type-pill ${dtClass}">${dtText}</span></td>
+                                <td>${defense.room || 'TBA'}</td>
+                                <td><small>${panelists}</small></td>
+                                <td class="text-center">${resultBadge}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    content += `
+                                </tbody>
+                            </table>
                         </div>
                     `;
                 } else {
@@ -955,6 +800,7 @@ function showTeamSummaryModal(teamId, teamName) {
         });
 }
 
+<?php if ($_SESSION['usertype'] == 2): ?>
 // --- Academic Year Feature ---
 // Update the academic year label in the class record header
 function updateAcademicYearLabel(academicYear) {
@@ -962,13 +808,9 @@ function updateAcademicYearLabel(academicYear) {
     if (!ayLabel) return;
     if (academicYear) {
         ayLabel.textContent = 'A.Y. ' + academicYear;
-        ayLabel.classList.remove('text-muted');
-        ayLabel.classList.add('text-dark');
         ayLabel.title = 'Click to edit academic year';
     } else {
         ayLabel.textContent = 'Academic year not set';
-        ayLabel.classList.remove('text-dark');
-        ayLabel.classList.add('text-muted');
         ayLabel.title = 'Click to set academic year';
     }
 }
@@ -1066,7 +908,7 @@ function saveAcademicYear() {
 // Load class record for faculty
 function loadClassRecord(page = 1) {
     const classRecordContent = document.getElementById('classRecordContent');
-    const viewType = document.getElementById('classRecordViewSelect')?.value || 'team';
+    const viewType = document.getElementById('classRecordViewSelect')?.value || 'class';
     const sortContainer = document.getElementById('classRecordSortContainer');
     
     // Hide sort dropdown - class view now always sorts alphabetically by section
@@ -2563,10 +2405,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
                                         </div>
                                         <div id="academicYearDisplay" class="text-end pt-1">
-                                            <span id="ayLabel" role="button" class="text-muted" style="text-decoration: underline; cursor: pointer; font-size: 0.92rem;"
-                                                  title="Click to set academic year">
+                                            <button type="button" id="ayLabel" class="btn-ay"
+                                                    title="Click to set academic year">
                                                 Academic year not set
-                                            </span>
+                                            </button>
                                         </div>
                                     </div>
                                 </div>
@@ -2580,7 +2422,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <!-- View Toggle Dropdown -->
                                                     <select class="form-select user-control-height" id="classRecordViewSelect">
                                                         <option value="team">Team View</option>
-                                                        <option value="class">Class View</option>
+                                                        <option value="class" selected>Class View</option>
                                                     </select>
                                                 </div>
                                                 

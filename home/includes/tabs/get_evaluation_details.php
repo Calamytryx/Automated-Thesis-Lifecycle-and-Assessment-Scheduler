@@ -43,10 +43,11 @@ try {
         ");
         $checkStmt->execute([$teamId, $userId, $teamId, $userId]);
         $hasAccess = (bool)$checkStmt->fetch();
-    } else {
-        // Admins should use dashboard
-        echo json_encode(['error' => 'Please use the dashboard for evaluation management.']);
-        exit;
+    } elseif ($usertype == 0) {
+        // Admin - check if they're adviser of this team
+        $checkStmt = $pdo->prepare("SELECT 1 FROM team_members WHERE team_id = ? AND user_id = ? AND role = 'adviser'");
+        $checkStmt->execute([$teamId, $userId]);
+        $hasAccess = (bool)$checkStmt->fetch();
     }
 
     if (!$hasAccess) {

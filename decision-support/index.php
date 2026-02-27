@@ -2475,52 +2475,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------------
     // PDF DOWNLOAD FUNCTIONALITY
     // -------------------------------------------------------------------
-    window.downloadEvaluationPDF = function() {
-        const downloadBtn = document.getElementById('downloadPdfBtn');
-        const originalBtnHtml = downloadBtn?.innerHTML;
-        
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
-        }
-        
-        const summaryContent = document.getElementById('summaryContent');
-        if (!summaryContent) {
-            Swal.fire('Error', 'Summary content not found', 'error');
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
+
+    /**
+     * Collect logical blocks from the summary content for page-aware rendering.
+     * Splits sections that contain rubric summaries into separate blocks so
+     * each rubric table can be placed on its own page if needed.
+     */
+    function collectPdfBlocks(contentRoot) {
+        const blocks = [];
+        const topChildren = contentRoot.children;
+
+        for (let i = 0; i < topChildren.length; i++) {
+            const section = topChildren[i];
+            const rubrics = section.querySelectorAll(':scope > .rubric-summary');
+
+            if (rubrics.length > 0) {
+                // Section has rubric tables inside — split header from rubrics
+                const header = document.createElement('div');
+                Array.from(section.children).forEach(child => {
+                    if (!child.classList.contains('rubric-summary')) {
+                        header.appendChild(child.cloneNode(true));
+                    }
+                });
+                if (header.innerHTML.trim()) blocks.push(header);
+
+                // Each rubric becomes its own block
+                rubrics.forEach(r => blocks.push(r));
+            } else {
+                blocks.push(section);
             }
-            return;
         }
-        
-        // Clone the content for PDF generation
-        const clonedContent = summaryContent.cloneNode(true);
-        
-        // Create a temporary container with better styling for PDF
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.top = '0';
-        tempContainer.style.width = '210mm'; // A4 width
-        tempContainer.style.padding = '20px';
-        tempContainer.style.backgroundColor = 'white';
-        tempContainer.style.fontFamily = 'Arial, sans-serif';
-        tempContainer.style.fontSize = '11px';
-        tempContainer.style.color = '#000';
-        tempContainer.style.lineHeight = '1.4';
-        tempContainer.appendChild(clonedContent);
-        document.body.appendChild(tempContainer);
-        
-        // Enhance table styling for PDF with page break handling
-        const tables = tempContainer.querySelectorAll('.summary-table');
-        tables.forEach(table => {
+        return blocks;
+    }
+
+    /**
+     * Apply consistent print-friendly styles to elements inside a container.
+     */
+    function applyPdfStyles(container) {
+        container.querySelectorAll('.summary-table').forEach(table => {
             table.style.width = '100%';
             table.style.borderCollapse = 'collapse';
             table.style.marginBottom = '15px';
-            table.style.pageBreakInside = 'avoid';
-            
-            // Style table headers
+
             table.querySelectorAll('thead th').forEach(th => {
                 th.style.backgroundColor = '#e0e0e0';
                 th.style.fontWeight = 'bold';
@@ -2528,132 +2524,162 @@ document.addEventListener('DOMContentLoaded', function() {
                 th.style.padding = '8px';
                 th.style.fontSize = '10px';
             });
-            
-            // Style table cells
-            table.querySelectorAll('tbody td').forEach(td => {
+            table.querySelectorAll('tbody td, tfoot td').forEach(td => {
                 td.style.border = '1px solid #666';
                 td.style.padding = '6px 8px';
                 td.style.fontSize = '10px';
             });
-            
-            // Prevent table rows from breaking across pages
-            table.querySelectorAll('tr').forEach(tr => {
-                tr.style.pageBreakInside = 'avoid';
-                tr.style.pageBreakAfter = 'auto';
-            });
         });
-        
-        // Ensure sections don't break
-        const sections = tempContainer.querySelectorAll('.summary-section, .rubric-summary');
-        sections.forEach(section => {
-            section.style.pageBreakInside = 'avoid';
-            section.style.marginBottom = '20px';
-        });
-        
-        // Style headings
-        tempContainer.querySelectorAll('h3').forEach(h => {
+
+        container.querySelectorAll('h3').forEach(h => {
             h.style.fontSize = '14px';
             h.style.fontWeight = 'bold';
             h.style.marginTop = '10px';
             h.style.marginBottom = '10px';
-            h.style.pageBreakAfter = 'avoid';
         });
-        
-        tempContainer.querySelectorAll('h4').forEach(h => {
+        container.querySelectorAll('h4').forEach(h => {
             h.style.fontSize = '12px';
             h.style.fontWeight = 'bold';
             h.style.marginTop = '8px';
             h.style.marginBottom = '8px';
-            h.style.pageBreakAfter = 'avoid';
         });
-        
-        // Use html2canvas with better settings
-        html2canvas(tempContainer, {
+    }
+
+    /**
+     * Render a single DOM block off-screen and return its canvas.
+     */
+    async function renderBlockToCanvas(block) {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;padding:5px 20px;background:white;font-family:Arial,sans-serif;font-size:11px;color:#000;line-height:1.4;';
+        wrapper.appendChild(block.cloneNode(true));
+        applyPdfStyles(wrapper);
+        document.body.appendChild(wrapper);
+
+        const canvas = await html2canvas(wrapper, {
             scale: 2,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff',
-            windowWidth: tempContainer.scrollWidth,
-            windowHeight: tempContainer.scrollHeight,
-            onclone: (clonedDoc) => {
-                // Additional styling adjustments in the cloned document if needed
-                const clonedContainer = clonedDoc.querySelector('body > div');
-                if (clonedContainer) {
-                    clonedContainer.style.display = 'block';
+            backgroundColor: '#ffffff'
+        });
+
+        document.body.removeChild(wrapper);
+        return canvas;
+    }
+
+    window.downloadEvaluationPDF = async function() {
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        const originalBtnHtml = downloadBtn?.innerHTML;
+
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
+        }
+
+        const summaryContent = document.getElementById('summaryContent');
+        if (!summaryContent) {
+            Swal.fire('Error', 'Summary content not found', 'error');
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+            return;
+        }
+
+        try {
+            // Clone content and apply base styles in a temp container
+            const clonedContent = summaryContent.cloneNode(true);
+            const tempContainer = document.createElement('div');
+            tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;padding:20px;background:white;font-family:Arial,sans-serif;font-size:11px;color:#000;line-height:1.4;';
+            tempContainer.appendChild(clonedContent);
+            document.body.appendChild(tempContainer);
+            applyPdfStyles(tempContainer);
+
+            // Split content into logical blocks
+            const blocks = collectPdfBlocks(clonedContent);
+
+            // Render each block to its own canvas image
+            const canvases = [];
+            for (const block of blocks) {
+                canvases.push(await renderBlockToCanvas(block));
+            }
+
+            document.body.removeChild(tempContainer);
+
+            // ---- Build the PDF, placing blocks page-by-page ----
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+
+            const pageWidth  = 210;
+            const pageHeight = 297;
+            const margin     = 10;
+            const contentWidth  = pageWidth  - 2 * margin;
+            const usableHeight  = pageHeight - 2 * margin;
+            let y = margin;  // current vertical position on the page
+
+            for (const canvas of canvases) {
+                const imgData    = canvas.toDataURL('image/png');
+                const blockHeight = (canvas.height * contentWidth) / canvas.width;
+
+                // If block won't fit and we're not already at the top, start a new page
+                if (y > margin && y + blockHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    y = margin;
+                }
+
+                // Block fits on one page — place it directly
+                if (blockHeight <= usableHeight) {
+                    pdf.addImage(imgData, 'PNG', margin, y, contentWidth, blockHeight, undefined, 'FAST');
+                    y += blockHeight;
+                } else {
+                    // Rare: block taller than a full page — slice it across pages
+                    let remaining = blockHeight;
+                    let srcY = 0;
+
+                    while (remaining > 0) {
+                        const space = (y === margin) ? usableHeight : (pageHeight - margin - y);
+                        const slice = Math.min(remaining, space);
+                        const srcH  = (slice / blockHeight) * canvas.height;
+
+                        const sub = document.createElement('canvas');
+                        sub.width  = canvas.width;
+                        sub.height = Math.round(srcH);
+                        sub.getContext('2d').drawImage(
+                            canvas,
+                            0, Math.round(srcY), canvas.width, Math.round(srcH),
+                            0, 0,                 canvas.width, Math.round(srcH)
+                        );
+
+                        pdf.addImage(sub.toDataURL('image/png'), 'PNG', margin, y, contentWidth, slice, undefined, 'FAST');
+                        srcY      += srcH;
+                        remaining -= slice;
+
+                        if (remaining > 0) { pdf.addPage(); y = margin; }
+                        else               { y += slice; }
+                    }
                 }
             }
-        }).then(canvas => {
-            document.body.removeChild(tempContainer);
-            
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true
-            });
-            
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-            
-            // Add first page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-            heightLeft -= pageHeight;
-            
-            // Add additional pages if content is longer than one page
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-                heightLeft -= pageHeight;
-            }
-            
-            // Generate filename with timestamp
+
+            // Generate filename
             const researchTitle = '<?php echo addslashes($researchTitle ?? "Evaluation"); ?>';
             const date = new Date();
-            const timestamp = date.getFullYear() + 
-                             String(date.getMonth() + 1).padStart(2, '0') + 
-                             String(date.getDate()).padStart(2, '0') + '_' +
-                             String(date.getHours()).padStart(2, '0') + 
-                             String(date.getMinutes()).padStart(2, '0');
-            
-            // Sanitize filename
+            const timestamp = date.getFullYear() +
+                String(date.getMonth() + 1).padStart(2, '0') +
+                String(date.getDate()).padStart(2, '0') + '_' +
+                String(date.getHours()).padStart(2, '0') +
+                String(date.getMinutes()).padStart(2, '0');
             const sanitizedTitle = researchTitle.substring(0, 50).replace(/[^a-z0-9]/gi, '_');
             const filename = `Evaluation_Summary_${sanitizedTitle}_${timestamp}.pdf`;
-            
-            // Save the PDF
+
             pdf.save(filename);
-            
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
-            }
-            
-            Swal.fire({
-                title: 'Success!',
-                text: 'PDF downloaded successfully',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }).catch(error => {
+
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+
+            Swal.fire({ title: 'Success!', text: 'PDF downloaded successfully', icon: 'success', timer: 2000, showConfirmButton: false });
+
+        } catch (error) {
             console.error('PDF generation error:', error);
-            if (document.body.contains(tempContainer)) {
-                document.body.removeChild(tempContainer);
-            }
-            
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
-            }
-            
+
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+
             Swal.fire('Error', 'Failed to generate PDF. Please try again.', 'error');
-        });
+        }
     };
     
     // Handle download PDF button click
