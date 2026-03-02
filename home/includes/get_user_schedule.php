@@ -63,7 +63,7 @@ try {
             $defense_stmt->execute([$team_id]);
             $defense_schedules = $defense_stmt->fetchAll(PDO::FETCH_ASSOC);
         }
-    } elseif ($user_type == 2) {
+    } elseif ($user_type == 2 || $user_type == 0) {
         // Fetch defense schedules where the user is a panelist
         // Note: rubric_group_id is no longer needed - decision-support auto-determines it
         $defense_stmt = $pdo->prepare("

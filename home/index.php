@@ -2548,7 +2548,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <div id="calendar2"></div>
                                             </div>
                                         </div>
-                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 1): ?>
+                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 1 || $_SESSION['usertype'] == 0): ?>
                                         <?php
                                     // Fetch teams for current user
                                     $userId = $_SESSION['id'];
@@ -2600,7 +2600,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
                                                             <!-- Team Selector (only for professors) -->
-                                                            <?php if ($_SESSION['usertype'] == 2 && count($teams) > 1): ?>
+                                                            <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) > 1): ?>
                                                             <div class="mb-3">
                                                                 <label for="requirementsTeamSelector"
                                                                     class="form-label small text-muted">Select
@@ -2615,7 +2615,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
-                                                            <?php elseif ($_SESSION['usertype'] == 2 && count($teams) == 1): ?>
+                                                            <?php elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) == 1): ?>
                                                             <div class="mb-3">
                                                                 <p class="small text-muted mb-2">Team:
                                                                     <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong>
@@ -2756,7 +2756,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 $defense_type = $schedule['defense_type'] ?? 'general';
                                                                 
                                                                 // Add section headers for different statuses
-                                                                if ($_SESSION['usertype'] == 2 && $current_status !== $defense_status) {
+                                                                if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $current_status !== $defense_status) {
                                                                     $current_status = $defense_status;
                                                                     $status_icon = $defense_status === 'ongoing' ? 'bi-clock-history text-warning' : 
                                                                                  ($defense_status === 'upcoming' ? 'bi-calendar-event text-primary' : 'bi-calendar-check text-muted');
@@ -2794,7 +2794,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 }
                                                                 
                                                                 // Only allow faculty to access evaluation system
-                                                                if ($_SESSION['usertype'] == 2) { // Faculty
+                                                                if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { // Faculty or Program Chair
                                                                     // For past defenses, make read-only if already evaluated
                                                                     if ($defense_status === 'past' && $has_evaluated) {
                                                                         $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', true)"';
@@ -2816,9 +2816,9 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                             </h6>
                                                                             <div>
                                                                                 <span class="badge bg-<?php echo $type_color; ?> me-1"><?php echo $type_badge; ?></span>
-                                                                                <?php if ($_SESSION['usertype'] == 2 && $has_evaluated): ?>
+                                                                                <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $has_evaluated): ?>
                                                                                     <span class="badge bg-success"><i class="bi bi-check-circle"></i> Evaluated</span>
-                                                                                <?php elseif ($_SESSION['usertype'] == 2 && $defense_status !== 'upcoming'): ?>
+                                                                                <?php elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status !== 'upcoming'): ?>
                                                                                     <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Pending</span>
                                                                                 <?php endif; ?>
                                                                             </div>
@@ -2837,7 +2837,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                                 <?php echo htmlspecialchars($schedule['room']); ?>
                                                                             </div>
                                                                         </div>
-                                                                        <?php if ($_SESSION['usertype'] == 2 && $defense_status === 'past' && $has_evaluated): ?>
+                                                                        <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status === 'past' && $has_evaluated): ?>
                                                                             <small class="text-muted"><i class="bi bi-info-circle"></i> Click to view your evaluation (read-only)</small>
                                                                         <?php endif; ?>
                                                                         <?php echo $disabled_message; ?>
