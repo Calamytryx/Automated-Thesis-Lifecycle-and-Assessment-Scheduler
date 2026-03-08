@@ -805,7 +805,7 @@ function fetchTeams($pdo, $sections = [])
 
 function fetchPanelists($pdo)
 {
-    $stmt = $pdo->query("SELECT id, area_of_expertise, is_parttime FROM users WHERE usertype = 2");
+    $stmt = $pdo->query("SELECT id, area_of_expertise, is_parttime FROM users WHERE usertype = 2 OR (usertype = 0 AND id != 0)");
     $panelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Convert the result to a more usable format: id => [expertise, is_parttime]

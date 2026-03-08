@@ -13,7 +13,7 @@ try {
 
     $stmt = $pdo->prepare("
         SELECT id, CONCAT(first_name, ' ', last_name) AS full_name, program
-        FROM users WHERE usertype = 2
+        FROM users WHERE usertype = 2 OR (usertype = 0 AND id != 0)
         ORDER BY last_name, first_name
     ");
     $stmt->execute();

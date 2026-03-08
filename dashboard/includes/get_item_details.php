@@ -67,31 +67,81 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
                     // Fetch staff members filtered by current team (exclude adviser)
-                    $stmt = $pdo->prepare("
-                        SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
-                        FROM users u 
-                        WHERE u.usertype = 2
-                        AND u.id NOT IN (
-                            SELECT user_id FROM team_members 
-                            WHERE role = 'adviser' AND team_id = :team_id
-                        )
-                        ORDER BY name
+                    // Include faculty (usertype=2) and program chairs (usertype=0, id!=0) from same college
+                    
+                    // First get the team's college
+                    $teamCollegeStmt = $pdo->prepare("
+                        SELECT p.college 
+                        FROM teams t
+                        JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+                        WHERE t.id = :team_id
+                        LIMIT 1
                     ");
-                    $stmt->execute(['team_id' => $data['team_id']]);
+                    $teamCollegeStmt->execute(['team_id' => $data['team_id']]);
+                    $teamCollege = $teamCollegeStmt->fetchColumn();
+                    
+                    // Build staff query - include faculty AND program chairs from same college
+                    // Users don't have a college column, so we join to programs to get their college  
+                    if ($teamCollege) {
+                        $stmt = $pdo->prepare("
+                            SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
+                            FROM users u 
+                            LEFT JOIN programs p2 ON u.program = CONCAT(p2.name, CASE WHEN p2.specialization IS NOT NULL AND p2.specialization != '' THEN CONCAT(' - ', p2.specialization) ELSE '' END)
+                            WHERE (
+                                u.usertype = 2 
+                                OR (u.usertype = 0 AND u.id != 0 AND p2.college = :college)
+                            )
+                            AND u.id NOT IN (
+                                SELECT user_id FROM team_members 
+                                WHERE role = 'adviser' AND team_id = :team_id
+                            )
+                            ORDER BY name
+                        ");
+                        $stmt->execute(['college' => $teamCollege, 'team_id' => $data['team_id']]);
+                    } else {
+                        // Just include all faculty members
+                        $stmt = $pdo->prepare("
+                            SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
+                            FROM users u 
+                            WHERE u.usertype = 2
+                            AND u.id NOT IN (
+                                SELECT user_id FROM team_members 
+                                WHERE role = 'adviser' AND team_id = :team_id
+                            )
+                            ORDER BY name
+                        ");
+                        $stmt->execute(['team_id' => $data['team_id']]);
+                    }
+                    
                     $response['staff'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    error_log("Staff fetched for team {$data['team_id']}: " . count($response['staff']) . " members");
 
                     // Fetch current panelists for the defense schedule
-                    $stmt = $pdo->prepare("
-                        SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
-                        FROM users u
-                        WHERE u.id IN (:panelist_id, :panelist_id2, :panelist_id3)
-                    ");
-                    $stmt->execute([
-                        'panelist_id' => $data['panelist_id'],
-                        'panelist_id2' => $data['panelist_id2'],
-                        'panelist_id3' => $data['panelist_id3']
-                    ]);
-                    $currentPanelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    // Build array of panelist IDs that are not null/empty
+                    $panelistIds = [];
+                    if (!empty($data['panelist_id'])) {
+                        $panelistIds[] = $data['panelist_id'];
+                    }
+                    if (!empty($data['panelist_id2'])) {
+                        $panelistIds[] = $data['panelist_id2'];
+                    }
+                    if (!empty($data['panelist_id3'])) {
+                        $panelistIds[] = $data['panelist_id3'];
+                    }
+
+                    $currentPanelists = [];
+                    if (!empty($panelistIds)) {
+                        $placeholders = str_repeat('?,', count($panelistIds) - 1) . '?';
+                        $stmt = $pdo->prepare("
+                            SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+                            FROM users u
+                            WHERE u.id IN ($placeholders)
+                            ORDER BY FIELD(u.id, " . implode(',', array_fill(0, count($panelistIds), '?')) . ")
+                        ");
+                        $stmt->execute(array_merge($panelistIds, $panelistIds));
+                        $currentPanelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
+                    
                     $response['data']['panelists'] = $currentPanelists;
 
                     // Debugging: Log the fetched panelists

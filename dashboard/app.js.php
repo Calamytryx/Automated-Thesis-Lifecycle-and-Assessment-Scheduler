@@ -1783,7 +1783,6 @@
                 },
                 dataType: 'json',
                 success: function (response) {
-                    console.log('Response data:', response)
                     if (response.success) {
                         var form = $('#editForm');
                         form.empty();
@@ -2273,8 +2272,9 @@
                             `;
 
                             let panelistCount = 0; // Initialize panelist count
+                            
                             if (response.data.panelists && Array.isArray(response.data
-                                .panelists)) {
+                                .panelists) && response.data.panelists.length > 0) {
                                 panelistCount = response.data.panelists
                                     .length; // Get initial count
                                 response.data.panelists.forEach(function (panelist, index) {
@@ -2300,8 +2300,28 @@
                                 });
                             } else {
                                 console.warn(
-                                    'Panelists data is missing or not an array in the response for edit form.'
+                                    'No panelists found or panelists data is not an array - showing empty dropdown.'
                                 );
+                                // Show at least one empty panelist dropdown
+                                formHtml += `
+                            <div class="mb-3 row panelist align-items-center">
+                                <label class="col-sm-2 col-form-label">Panelist 1</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select" name="panelist_id[0]" required>
+                                    <option value="">Select a panelist</option>
+                                        ${response.staff ? response.staff.map(staff => `
+                                            <option value="${staff.id}">
+                                                ${staff.name}
+                                            </option>
+                                        `).join('') : ''}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                                </div>
+                            </div>
+                            `;
+                                panelistCount = 1;
                             }
 
                             formHtml += `
