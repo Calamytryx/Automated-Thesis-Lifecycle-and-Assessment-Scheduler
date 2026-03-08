@@ -1510,9 +1510,10 @@
                     }, { once: true });
                 }
 
-                document.getElementById('saveEventEdit').addEventListener('click', function() {
+                document.getElementById('saveEventEdit').addEventListener('click', async function() {
                     if (!currentEditEvent) return;
 
+                    const saveBtn = this;
                     const newDate = document.getElementById('editDate').value;
                     const newStart = document.getElementById('editStartTime').value;
                     const newEnd = document.getElementById('editEndTime').value;
@@ -1521,47 +1522,116 @@
                     const newP2 = document.getElementById('editPanelist2').value;
                     const newP3 = document.getElementById('editPanelist3').value;
 
+                    if (!newDate || !newStart || !newEnd || !newRoom) {
+                        if (typeof showToast === 'function') {
+                            showToast('Error', 'Date, time, and room are required.', 'error');
+                        } else {
+                            alert('Date, time, and room are required.');
+                        }
+                        return;
+                    }
+
+                    if (newStart >= newEnd) {
+                        if (typeof showToast === 'function') {
+                            showToast('Error', 'End time must be after start time.', 'error');
+                        } else {
+                            alert('End time must be after start time.');
+                        }
+                        return;
+                    }
+
                     // Get panelist names for display
                     const p1Name = document.getElementById('editPanelist1').selectedOptions[0]?.textContent?.split(' (')[0] || '';
                     const p2Name = document.getElementById('editPanelist2').selectedOptions[0]?.textContent?.split(' (')[0] || '';
                     const p3Name = document.getElementById('editPanelist3').selectedOptions[0]?.textContent?.split(' (')[0] || '';
 
-                    // Update the event on the calendar
-                    currentEditEvent.setStart(newDate + 'T' + newStart);
-                    currentEditEvent.setEnd(newDate + 'T' + newEnd);
-                    currentEditEvent.setExtendedProp('room', newRoom);
-                    currentEditEvent.setExtendedProp('panelist_id', newP1);
-                    currentEditEvent.setExtendedProp('panelist_id2', newP2);
-                    currentEditEvent.setExtendedProp('panelist_id3', newP3);
-                    currentEditEvent.setExtendedProp('panelist1', p1Name);
-                    currentEditEvent.setExtendedProp('panelist2', p2Name);
-                    currentEditEvent.setExtendedProp('panelist3', p3Name);
+                    saveBtn.disabled = true;
+                    const originalBtnHtml = saveBtn.innerHTML;
+                    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Saving...';
 
-                    if (currentEditContext === 'preview') {
-                        const idx = currentEditEvent.extendedProps.previewIndex;
-                        if (idx !== undefined && previewScheduleData[idx]) {
-                            previewScheduleData[idx].schedule_date = newDate;
-                            previewScheduleData[idx].start_time = newStart + ':00';
-                            previewScheduleData[idx].end_time = newEnd + ':00';
-                            previewScheduleData[idx].room = newRoom;
-                            previewScheduleData[idx].panelist_id = newP1;
-                            previewScheduleData[idx].panelist_id2 = newP2;
-                            previewScheduleData[idx].panelist_id3 = newP3;
-                            previewScheduleData[idx].panelist1_name = p1Name;
-                            previewScheduleData[idx].panelist2_name = p2Name;
-                            previewScheduleData[idx].panelist3_name = p3Name;
+                    try {
+                        if (currentEditContext === 'calendar') {
+                            const matchedSchedule = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
+                            const teamIdForSave = currentEditEvent.extendedProps.team_id || matchedSchedule?.team_id || '';
+                            const params = new URLSearchParams();
+                            params.append('table', 'defense_schedules');
+                            params.append('id', String(currentEditEvent.id));
+                            params.append('schedule_date', newDate);
+                            params.append('start_time', newStart + ':00');
+                            params.append('end_time', newEnd + ':00');
+                            params.append('room', newRoom);
+                            params.append('team_id', String(teamIdForSave));
+                            params.append('panelist_id[]', newP1 || '');
+                            params.append('panelist_id[]', newP2 || '');
+                            params.append('panelist_id[]', newP3 || '');
+
+                            const response = await fetch('../dashboard/includes/update_item.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                                },
+                                body: params.toString()
+                            });
+
+                            const result = await response.json();
+                            if (!result.success) {
+                                throw new Error(result.message || 'Failed to save schedule changes.');
+                            }
                         }
-                    } else if (currentEditContext === 'calendar') {
-                        const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
-                        if (sched) {
-                            sched.schedule_date = newDate;
-                            sched.start_time = newStart + ':00';
-                            sched.end_time = newEnd + ':00';
-                            sched.room = newRoom;
+
+                        // Update event view after successful save (or preview edit)
+                        currentEditEvent.setStart(newDate + 'T' + newStart);
+                        currentEditEvent.setEnd(newDate + 'T' + newEnd);
+                        currentEditEvent.setExtendedProp('room', newRoom);
+                        currentEditEvent.setExtendedProp('panelist_id', newP1);
+                        currentEditEvent.setExtendedProp('panelist_id2', newP2);
+                        currentEditEvent.setExtendedProp('panelist_id3', newP3);
+                        currentEditEvent.setExtendedProp('panelist1', p1Name);
+                        currentEditEvent.setExtendedProp('panelist2', p2Name);
+                        currentEditEvent.setExtendedProp('panelist3', p3Name);
+
+                        if (currentEditContext === 'preview') {
+                            const idx = currentEditEvent.extendedProps.previewIndex;
+                            if (idx !== undefined && previewScheduleData[idx]) {
+                                previewScheduleData[idx].schedule_date = newDate;
+                                previewScheduleData[idx].start_time = newStart + ':00';
+                                previewScheduleData[idx].end_time = newEnd + ':00';
+                                previewScheduleData[idx].room = newRoom;
+                                previewScheduleData[idx].panelist_id = newP1;
+                                previewScheduleData[idx].panelist_id2 = newP2;
+                                previewScheduleData[idx].panelist_id3 = newP3;
+                                previewScheduleData[idx].panelist1_name = p1Name;
+                                previewScheduleData[idx].panelist2_name = p2Name;
+                                previewScheduleData[idx].panelist3_name = p3Name;
+                            }
+                        } else if (currentEditContext === 'calendar') {
+                            const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
+                            if (sched) {
+                                sched.schedule_date = newDate;
+                                sched.start_time = newStart + ':00';
+                                sched.end_time = newEnd + ':00';
+                                sched.room = newRoom;
+                                sched.panelist_id = newP1;
+                                sched.panelist_id2 = newP2;
+                                sched.panelist_id3 = newP3;
+                            }
                         }
+
+                        bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
+                        if (typeof showToast === 'function') {
+                            showToast('Success', 'Schedule changes saved.', 'success');
+                        }
+                    } catch (error) {
+                        console.error('Failed to save event edit:', error);
+                        if (typeof showToast === 'function') {
+                            showToast('Error', error.message || 'Failed to save schedule changes.', 'error');
+                        } else {
+                            alert(error.message || 'Failed to save schedule changes.');
+                        }
+                    } finally {
+                        saveBtn.disabled = false;
+                        saveBtn.innerHTML = originalBtnHtml;
                     }
-
-                    bootstrap.Modal.getInstance(document.getElementById('eventEditModal')).hide();
                 });
 
                 // ========== CONFIRM SAVE PREVIEW ==========
