@@ -2517,12 +2517,12 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <input type="radio" class="btn-check" name="viewMode" id="dashboard-view"
                                                 checked>
                                             <label class="btn btn-outline-primary" for="dashboard-view">
-                                                <i class="bi bi-grid-3x3"></i> Dashboard
+                                                Dashboard
                                             </label>
 
                                             <input type="radio" class="btn-check" name="viewMode" id="calendar-view">
                                             <label class="btn btn-outline-primary" for="calendar-view">
-                                                <i class="bi bi-calendar"></i> Calendar
+                                                Calendar
                                             </label>
                                         </div>
                                     </div>

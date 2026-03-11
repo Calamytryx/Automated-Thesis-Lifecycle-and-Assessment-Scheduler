@@ -646,6 +646,18 @@ try {
         }
     }
 
+    // --- Defense schedules-specific filter conditions ---
+    if ($table === 'defense_schedules') {
+        $approvalStatusFilter = $_GET['approval_status'] ?? '';
+        if (!empty($approvalStatusFilter)) {
+            $allowedStatuses = ['pending_chair', 'pending', 'approved', 'rejected'];
+            if (in_array($approvalStatusFilter, $allowedStatuses)) {
+                $conditions[] = "ds.approval_status = :approvalStatus";
+                $params[':approvalStatus'] = $approvalStatusFilter;
+            }
+        }
+    }
+
     // --- Programs-specific filter conditions ---
     if ($table === 'programs') {
         $collegeFilter = $_GET['college'] ?? '';

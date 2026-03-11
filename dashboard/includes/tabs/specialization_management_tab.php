@@ -1,220 +1,5 @@
 <!-- Unified Specialization Management Tab (Pool + Assignment) -->
 <div class="tab-pane fade show active" id="specialization-management" role="tabpanel" aria-labelledby="specialization-management-tab">
-<style>
-.specialization-badge {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    margin: 0.25rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
-}
-.specialization-badge.active {
-    background-color: #d4edda;
-    color: #155724;
-}
-.specialization-badge.inactive {
-    background-color: #f8d7da;
-    color: #721c24;
-}
-.spec-tag {
-    display: inline-block;
-    padding: 0.25rem 0.75rem;
-    margin: 0.25rem;
-    border-radius: 15px;
-    background-color: #e7f3ff;
-    color: #0066cc;
-    font-size: 0.875rem;
-}
-#userSpecializationSelect {
-    height: auto !important;
-    min-height: 150px;
-}
-#userSpecializationSelect option {
-    padding: 8px;
-    margin: 2px 0;
-}
-#userSpecializationSelect option:checked {
-    background: linear-gradient(#0066cc, #0066cc);
-    color: white;
-}
-
-/* Meatball menu for specialization table */
-#specialization-management .meatball-btn {
-    background: none;
-    border: none;
-    padding: 8px 12px;
-    border-radius: 6px;
-    cursor: pointer;
-    color: #6c757d;
-    transition: all 0.2s ease;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-}
-
-#specialization-management .meatball-btn:hover {
-    background-color: #f8f9fa;
-    color: #495057;
-}
-
-#specialization-management .meatball-dropdown-item {
-    display: flex;
-    align-items: center;
-    width: 100%;
-    padding: 8px 16px;
-    border: none;
-    background: none;
-    text-align: left;
-    cursor: pointer;
-    font-size: 14px;
-    color: #495057;
-    transition: all 0.2s ease;
-    gap: 8px;
-}
-
-#specialization-management .meatball-dropdown-item:hover {
-    background-color: #f8f9fa;
-    color: #212529;
-}
-
-#specialization-management .meatball-dropdown-item.edit-item {
-    color: #0d6efd;
-}
-
-#specialization-management .meatball-dropdown-item.edit-item i {
-    color: #0d6efd;
-}
-
-#specialization-management .meatball-dropdown-item.delete-item {
-    color: #dc3545;
-}
-
-#specialization-management .meatball-dropdown-item.delete-item i {
-    color: #dc3545;
-}
-
-#specialization-management .meatball-dropdown-item.edit-item:hover {
-    background-color: #e7f3ff;
-}
-
-#specialization-management .meatball-dropdown-item.edit-item:hover i {
-    color: #0d6efd;
-}
-
-#specialization-management .meatball-dropdown-item.delete-item:hover {
-    background-color: #f8d7da;
-}
-
-#specialization-management .meatball-dropdown-item.delete-item:hover i {
-    color: #dc3545;
-}
-
-#specialization-management .meatball-dropdown-item i {
-    width: 16px;
-    text-align: center;
-}
-
-/* Specialization tab navigation buttons */
-.spec-tab-btn {
-    background-color: var(--main-white);
-    color: var(--main-black);
-    padding: 0.5rem 1rem;
-    border-radius: 4px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    border: 1px solid var(--main-primary);
-    transition: all 0.2s ease;
-    white-space: nowrap;
-}
-.spec-tab-btn.active {
-    background-color: var(--white-600);
-    color: var(--main-black);
-    font-weight: 700;
-    border: 1px solid var(--main-primary);
-}
-
-.spec-tab-btn.active i{
-    color: var(--main-primary);
-}
-
-.spec-tab-btn:hover {
-    background-color: var(--white-600);
-    color: var(--main-black);
-    border: 1px solid var(--main-primary);
-}
-
-/* Specialization tab navigation container */
-.spec-nav-container {
-    display: flex;
-    width: 100%;
-}
-
-.spec-tab-group {
-    display: flex;
-    gap: 0;
-    width: 100%;
-}
-
-@media (min-width: 769px) {
-    .spec-tab-btn {
-        height: 48px;
-        flex: 1;
-    }
-
-    .spec-tab-btn:first-child {
-        border-top-left-radius: 4px;
-        border-bottom-left-radius: 4px;
-        border-top-right-radius: 0;
-        border-bottom-right-radius: 0;
-    }
-    
-    .spec-tab-btn:not(:first-child):not(:last-child) {
-        border-radius: 0;
-    }
-    
-    .spec-tab-btn:last-child {
-        border-top-right-radius: 4px;
-        border-bottom-right-radius: 4px;
-        border-top-left-radius: 0;
-        border-bottom-left-radius: 0;
-    }
-    
-    .spec-tab-btn:not(:first-child) {
-        margin-left: -1px;
-    }
-}
-
-@media (max-width: 768px) {
-    .spec-nav-container {
-        justify-content: stretch;
-    }
-    
-    .spec-tab-group {
-        flex-direction: column;
-        width: 100%;
-    }
-    
-    .spec-tab-btn {
-        width: 100%;
-        border-radius: 4px !important;
-        margin-bottom: 0.5rem;
-        text-align: center;
-    }
-    
-    .spec-tab-btn:last-child {
-        margin-bottom: 0;
-    }
-}
-
-/* Specialization tab panes */
-.spec-tab-pane {
-    display: none;
-}
-.spec-tab-pane.active {
-    display: block;
-}
-</style>
 
 <div class="container-fluid py-4 content-container">
     <div class="row mb-4">
@@ -794,9 +579,7 @@ $(document).ready(function() {
         // Previous button
         pagination.append(`
             <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
             </li>
         `);
 
@@ -829,9 +612,7 @@ $(document).ready(function() {
         // Next button
         pagination.append(`
             <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
             </li>
         `);
     }
@@ -1412,9 +1193,7 @@ $(document).ready(function() {
         // Previous button
         pagination.append(`
             <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
             </li>
         `);
 
@@ -1447,9 +1226,7 @@ $(document).ready(function() {
         // Next button
         pagination.append(`
             <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
             </li>
         `);
     }
@@ -1588,9 +1365,7 @@ $(document).ready(function() {
         // Previous button
         pagination.append(`
             <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage - 1}" aria-label="Previous">
-                    <span aria-hidden="true">&laquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
             </li>
         `);
 
@@ -1623,9 +1398,7 @@ $(document).ready(function() {
         // Next button
         pagination.append(`
             <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage + 1}" aria-label="Next">
-                    <span aria-hidden="true">&raquo;</span>
-                </a>
+                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
             </li>
         `);
     }

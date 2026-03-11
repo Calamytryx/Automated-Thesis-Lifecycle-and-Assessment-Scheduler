@@ -126,7 +126,7 @@ class NotificationManager {
         return `
             <div class="notification-item px-3 py-2 border-bottom ${isUnread ? 'unread' : 'read'}" 
                  data-notification-id="${notification.id}" 
-                 style="cursor: pointer; ${isUnread ? 'background-color: #f8f9fa;' : ''}">
+                 style="cursor: pointer; ${isUnread ? 'background-color: #ededff;' : ''}">
                 <div class="d-flex align-items-start">
                     <div class="notification-icon me-2 ${notification.color}">
                         <i class="${notification.icon}"></i>
@@ -135,7 +135,7 @@ class NotificationManager {
                         <div class="d-flex justify-content-between align-items-start">
                             <h6 class="mb-1 fw-bold" style="font-size: 0.85rem;">
                                 ${this.escapeHtml(notification.title)}
-                                ${isUnread ? '<span class="badge bg-primary ms-1" style="font-size: 0.6rem;">New</span>' : ''}
+                                ${isUnread ? '<span class="badge ms-1" style="font-size: 0.6rem; background-color: #1304ee;">New</span>' : ''}
                             </h6>
                         </div>
                         <p class="mb-1 text-dark" style="font-size: 0.8rem;">

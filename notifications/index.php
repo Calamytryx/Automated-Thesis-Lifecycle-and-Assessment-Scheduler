@@ -30,7 +30,7 @@ $user_id = $_SESSION['id'];
 // Get parameters
 $page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
 $filter = isset($_GET['filter']) && in_array($_GET['filter'], ['read', 'unread']) ? $_GET['filter'] : null;
-$per_page = 20;
+$per_page = 10;
 
 // Get notifications
 $result = getAllNotifications($user_id, $page, $per_page, $filter);
@@ -78,18 +78,18 @@ foreach ($notifications as $notification) {
                         </div>
                         
                         <div class="d-flex gap-2">
-                            <!-- Filter Buttons -->
-                            <div class="btn-group" role="group">
+                            <!-- Filter Tabs -->
+                            <div class="btn-group notif-filter-group" role="group">
                                 <a href="?<?php echo http_build_query(array_merge($_GET, ['filter' => null, 'page' => 1])); ?>" 
-                                   class="btn <?php echo is_null($filter) ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                   class="btn btn-outline-primary <?php echo is_null($filter) ? 'active' : ''; ?>">
                                     All
                                 </a>
                                 <a href="?<?php echo http_build_query(array_merge($_GET, ['filter' => 'unread', 'page' => 1])); ?>" 
-                                   class="btn <?php echo $filter === 'unread' ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                   class="btn btn-outline-primary <?php echo $filter === 'unread' ? 'active' : ''; ?>">
                                     Unread
                                 </a>
                                 <a href="?<?php echo http_build_query(array_merge($_GET, ['filter' => 'read', 'page' => 1])); ?>" 
-                                   class="btn <?php echo $filter === 'read' ? 'btn-primary' : 'btn-outline-primary'; ?>">
+                                   class="btn btn-outline-primary <?php echo $filter === 'read' ? 'active' : ''; ?>">
                                     Read
                                 </a>
                             </div>
@@ -106,7 +106,7 @@ foreach ($notifications as $notification) {
                             }
                             ?>
                             <?php if ($filter !== 'read' && $hasUnread): ?>
-                                <button type="button" class="btn btn-success" id="markAllReadPageBtn">
+                                <button type="button" class="btn notif-mark-all-btn" id="markAllReadPageBtn">
                                     <i class="fas fa-check-double me-1"></i>Mark All as Read
                                 </button>
                             <?php endif; ?>
@@ -159,9 +159,6 @@ foreach ($notifications as $notification) {
                                                 
                                                 <!-- Status Indicator -->
                                                 <div class="d-flex align-items-center">
-                                                    <?php if (!$notification['is_read']): ?>
-                                                        <span class="badge bg-primary me-2">New</span>
-                                                    <?php endif; ?>
                                                     <?php 
                                                     // Show notification type icon and special actions
                                                     $typeIcon = 'fas fa-bell';
@@ -225,7 +222,7 @@ foreach ($notifications as $notification) {
                                 <li class="page-item <?php echo $page <= 1 ? 'disabled' : ''; ?>">
                                     <a class="page-link" 
                                        href="?<?php echo http_build_query(array_merge($_GET, ['page' => max(1, $page - 1)])); ?>">
-                                        <i class="fas fa-chevron-left"></i> Previous
+                                        <i class="fas fa-chevron-left"></i>
                                     </a>
                                 </li>
 
@@ -268,7 +265,7 @@ foreach ($notifications as $notification) {
                                 <li class="page-item <?php echo $page >= $total_pages ? 'disabled' : ''; ?>">
                                     <a class="page-link" 
                                        href="?<?php echo http_build_query(array_merge($_GET, ['page' => min($total_pages, $page + 1)])); ?>">
-                                        Next <i class="fas fa-chevron-right"></i>
+                                        <i class="fas fa-chevron-right"></i>
                                     </a>
                                 </li>
                             </ul>

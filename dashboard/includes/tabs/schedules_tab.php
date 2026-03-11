@@ -7,8 +7,8 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <h3 class="mb-2">User Schedules Management</h3>
-                <p class="text-muted">Manage class schedules and time availability for users</p>
+                <h3 class="mb-2">Professor Schedules</h3>
+                <p class="text-muted">Manage class schedules and time availability for professors</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
                     <a href="#requirements" class="tab-redirect-link" onclick="document.getElementById('requirements-tab').click(); return false;">

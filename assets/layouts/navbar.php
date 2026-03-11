@@ -146,8 +146,8 @@
                     <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationsDropdown" style="min-width: 320px; max-width: 400px;">
                         <div class="dropdown-header d-flex justify-content-between align-items-center border-bottom px-3 py-2">
                             <h6 class="mb-0">Notifications</h6>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="markAllReadBtn" style="display: none;">
-                                Mark all read
+                            <button type="button" class="btn btn-sm" id="markAllReadBtn" style="display: none; color: #1304ee; border-color: #1304ee; font-size: 0.8rem;">
+                                <i class="fas fa-check-double me-1" style="color: #1304ee;"></i>Mark all read
                             </button>
                         </div>
                         <div id="notificationsList" class="notification-dropdown-body" style="max-height: 400px; overflow-y: auto;">
@@ -158,9 +158,9 @@
                                 <p class="mb-0 mt-2 text-muted">Loading notifications...</p>
                             </div>
                         </div>
-                        <div class="dropdown-footer border-top px-3 py-2">
-                            <a href="../notifications/" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-list me-1"></i>View All Notifications
+                        <div class="dropdown-footer border-top px-3 py-2 text-center">
+                            <a href="../notifications/" class="text-decoration-none fw-semibold" style="color: #1304ee; font-size: 0.875rem;">
+                                <i class="fas fa-list me-1" style="color: #1304ee;"></i>View All Notifications
                             </a>
                         </div>
                     </div>

@@ -391,7 +391,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a>
                                 </div>
                             </div>
@@ -582,7 +582,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a>
                                 </div>
                             </div>
@@ -773,7 +773,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <!-- <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a> -->
                                 </div>
                             </div>

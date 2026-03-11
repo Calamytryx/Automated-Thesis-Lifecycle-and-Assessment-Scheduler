@@ -491,28 +491,47 @@
         var pagination = $('#rubricsPagination');
         pagination.empty();
 
+        if (totalPages <= 1) return;
+
         // Previous button
         pagination.append(`
-        <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
-        </li>
-    `);
-
-        // Page numbers
-        for (var i = 1; i <= totalPages; i++) {
-            pagination.append(`
-            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
             </li>
         `);
+
+        // Page numbers with ellipsis
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            pagination.append(`
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
         }
 
         // Next button
         pagination.append(`
-        <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
-        </li>
-    `);
+            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
+            </li>
+        `);
     }
 
     // Generate quality criteria inputs (Only for Numerical)

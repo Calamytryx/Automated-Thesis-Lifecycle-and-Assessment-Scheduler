@@ -2293,8 +2293,7 @@ color: #444 !important;
 }
 
 .notification-item.unread {
-    background-color: #f0f8ff;
-    border-left: 3px solid #007bff;
+    background-color: #ededff;
 }
 
 .notification-item.read {

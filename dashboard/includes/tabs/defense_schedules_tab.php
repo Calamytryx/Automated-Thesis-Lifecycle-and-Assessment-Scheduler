@@ -38,6 +38,22 @@
                                 </button>
                             </div>
                         </div>
+                        <!-- Status Filter & Date Sort (table view only) -->
+                        <div class="col-12 col-md-auto" id="defFilterControls">
+                            <div class="d-flex gap-2">
+                                <select class="form-select user-control-height" id="defStatusFilter">
+                                    <option value="all">All Statuses</option>
+                                    <option value="pending_chair">Chair Review</option>
+                                    <option value="pending">Panel Review</option>
+                                    <option value="approved">Approved</option>
+                                    <option value="rejected">Rejected</option>
+                                </select>
+                                <select class="form-select user-control-height" id="defDateSort">
+                                    <option value="desc">Date (Newest First)</option>
+                                    <option value="asc">Date (Oldest First)</option>
+                                </select>
+                            </div>
+                        </div>
                         <!-- Action Buttons -->
                         <div class="col-12 col-md">
                             <div class="d-flex gap-2 justify-content-md-end flex-wrap">
@@ -1194,15 +1210,18 @@
                 const tableContainer = document.getElementById('defTableViewContainer');
                 const calendarContainer = document.getElementById('defCalendarViewContainer');
                 const bulkControls = document.getElementById('bulkApprovalControls');
+                const filterControls = document.getElementById('defFilterControls');
 
                 tableViewBtn.addEventListener('change', () => {
                     tableContainer.style.display = '';
                     calendarContainer.style.display = 'none';
                     bulkControls.style.display = 'none';
+                    filterControls.style.display = '';
                 });
                 calendarViewBtn.addEventListener('change', () => {
                     tableContainer.style.display = 'none';
                     calendarContainer.style.display = '';
+                    filterControls.style.display = 'none';
                     renderDefenseCalendar();
                     // Show bulk controls if there are pending_chair items
                     const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
@@ -1210,14 +1229,22 @@
                 });
 
                 // ========== TABLE VIEW (existing) ==========
+                const getDefenseFilters = () => ({
+                    status: document.getElementById('defStatusFilter').value,
+                    sortDir: document.getElementById('defDateSort').value
+                });
+
                 const loadDefenseSchedules = (page = 1, showProgress = false) => {
                     if (showProgress && typeof window.updateScheduleProgress === 'function') window.updateScheduleProgress('Refreshing defense schedules...', 95);
                     
                     // If calendar view is active, fetch all records
                     const isCalView = calendarViewBtn.checked;
                     const perPageParam = isCalView ? '&per_page=500' : '';
+                    const filters = getDefenseFilters();
+                    const statusParam = filters.status !== 'all' ? `&approval_status=${encodeURIComponent(filters.status)}` : '';
+                    const sortParam = `&sort_by=schedule_date&sort_dir=${encodeURIComponent(filters.sortDir)}`;
                     
-                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}${perPageParam}`)
+                    fetch(`../dashboard/includes/tabs/get_table.php?table=defense_schedules&page=${page}${perPageParam}${statusParam}${sortParam}`)
                         .then(response => {
                             if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
                             return response.json();
@@ -1236,7 +1263,10 @@
                             if (allScheduleData.length === 0) {
                                 tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
                             } else {
-                                allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
+                                // Calendar view still needs local sort for proper event ordering
+                                if (isCalView) {
+                                    allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
+                                }
                                 allScheduleData.forEach(schedule => {
                                     const dateTime = `${formatDate(schedule.schedule_date)} ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`;
                                     const panelists = splitPanelists(schedule.panelists);
@@ -1271,11 +1301,35 @@
                             // Pagination
                             const pagination = document.querySelector('#def-nav .pagination');
                             pagination.innerHTML = '';
-                            pagination.innerHTML += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&#8249;</a></li>`;
-                            for (let i = 1; i <= data.total_pages; i++) {
-                                pagination.innerHTML += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+
+                            if (data.total_pages > 1) {
+                                const totalPages = data.total_pages;
+
+                                pagination.innerHTML += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&#8249;</a></li>`;
+
+                                const startPage = Math.max(1, page - 2);
+                                const endPage = Math.min(totalPages, page + 2);
+
+                                if (startPage > 1) {
+                                    pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                                    if (startPage > 2) {
+                                        pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                    }
+                                }
+
+                                for (let i = startPage; i <= endPage; i++) {
+                                    pagination.innerHTML += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
+                                }
+
+                                if (endPage < totalPages) {
+                                    if (endPage < totalPages - 1) {
+                                        pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                    }
+                                    pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                                }
+
+                                pagination.innerHTML += `<li class="page-item ${page >= totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
                             }
-                            pagination.innerHTML += `<li class="page-item ${page >= data.total_pages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
 
                             if (showProgress && typeof window.hideLoadingState === 'function') setTimeout(() => window.hideLoadingState(true, 'Defense schedules updated!'), 500);
 
@@ -1295,6 +1349,10 @@
 
                 window.reloadCurrentDefenseSchedulesView = function(page = 1) { loadDefenseSchedules(page); };
                 loadDefenseSchedules();
+
+                // Filter/sort change listeners
+                document.getElementById('defStatusFilter').addEventListener('change', () => loadDefenseSchedules(1));
+                document.getElementById('defDateSort').addEventListener('change', () => loadDefenseSchedules(1));
 
                 document.querySelector('#def-nav .pagination').addEventListener('click', function(e) {
                     e.preventDefault();

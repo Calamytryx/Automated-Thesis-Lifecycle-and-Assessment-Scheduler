@@ -118,28 +118,49 @@
                     const pagination = document.querySelector('#requirements .pagination');
                     pagination.innerHTML = '';
 
-                    // Previous Button
-                    pagination.innerHTML += `
-                        <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page - 1}" aria-label="Previous">&#8249;</a>
-                        </li>
-                    `;
+                    if (data.total_pages > 1) {
+                        const totalPages = data.total_pages;
 
-                    // Page Numbers
-                    for (let i = 1; i <= data.total_pages; i++) {
+                        // Previous Button
                         pagination.innerHTML += `
-                            <li class="page-item ${page === i ? 'active' : ''}">
-                                <a class="page-link" href="#" data-page="${i}">${i}</a>
+                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
+                            </li>
+                        `;
+
+                        // Page Numbers with ellipsis
+                        const startPage = Math.max(1, page - 2);
+                        const endPage = Math.min(totalPages, page + 2);
+
+                        if (startPage > 1) {
+                            pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                            if (startPage > 2) {
+                                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                            }
+                        }
+
+                        for (let i = startPage; i <= endPage; i++) {
+                            pagination.innerHTML += `
+                                <li class="page-item ${page === i ? 'active' : ''}">
+                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                </li>
+                            `;
+                        }
+
+                        if (endPage < totalPages) {
+                            if (endPage < totalPages - 1) {
+                                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                            }
+                            pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                        }
+
+                        // Next Button
+                        pagination.innerHTML += `
+                            <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
+                                <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
                             </li>
                         `;
                     }
-
-                    // Next Button
-                    pagination.innerHTML += `
-                        <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                            <a class="page-link" href="#" data-page="${page + 1}" aria-label="Next">&#8250;</a>
-                        </li>
-                    `;
                 });
         };
 

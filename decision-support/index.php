@@ -1594,6 +1594,101 @@ document.addEventListener('DOMContentLoaded', function() {
   const evaluationForm = document.getElementById('evaluationForm');
   const formStatusDiv = document.getElementById('formStatus');
 
+  // -------------------------------------------------------------------
+  // DRAFT PERSISTENCE (sessionStorage) — for when doing a page refresh
+  // Uses schedule_id so each evaluation page has its own draft
+  // -------------------------------------------------------------------
+  const SCHEDULE_ID = <?php echo json_encode($schedule_id, JSON_HEX_TAG); ?>;
+  const DRAFT_KEY   = 'ds_draft_' + SCHEDULE_ID;
+  const TAB_KEY     = 'ds_tab_'   + SCHEDULE_ID;
+
+  // ---- helpers ----
+  function saveDraft() {
+    if (!evaluationForm) return;
+    const draft = { scores: {}, radios: {}, comments: '' };
+
+    // number inputs (scores)
+    evaluationForm.querySelectorAll('input[type="number"].entered-score, input[type="number"].criterion-score-input').forEach(input => {
+      if (input.id && input.value !== '') draft.scores[input.id] = input.value;
+    });
+
+    // radio buttons (yes/no + pass/fail)
+    evaluationForm.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+      if (radio.name) draft.radios[radio.name] = radio.value;
+    });
+
+    // comments
+    const commentsEl = document.getElementById('comments');
+    if (commentsEl) draft.comments = commentsEl.value;
+
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  function restoreDraft() {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw);
+
+      // restore scores
+      if (draft.scores) {
+        Object.keys(draft.scores).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = draft.scores[id];
+        });
+      }
+
+      // restore radios
+      if (draft.radios) {
+        Object.keys(draft.radios).forEach(name => {
+          const radio = evaluationForm.querySelector(
+            'input[type="radio"][name="' + CSS.escape(name) + '"][value="' + CSS.escape(draft.radios[name]) + '"]'
+          );
+          if (radio) radio.checked = true;
+        });
+      }
+
+      // restore comments
+      if (draft.comments !== undefined) {
+        const commentsEl = document.getElementById('comments');
+        if (commentsEl) commentsEl.value = draft.comments;
+      }
+    } catch (e) {
+      console.warn('Could not restore draft:', e);
+    }
+  }
+
+  function clearDraft() {
+    sessionStorage.removeItem(DRAFT_KEY);
+    sessionStorage.removeItem(TAB_KEY);
+  }
+
+  // ---- restore active tab ----
+  const savedTab = sessionStorage.getItem(TAB_KEY);
+  if (savedTab) {
+    const tabBtn = document.getElementById(savedTab);
+    if (tabBtn) {
+      const tab = new bootstrap.Tab(tabBtn);
+      tab.show();
+    }
+  }
+
+  // ---- save tab on switch ----
+  document.querySelectorAll('#defenseContentTabs button[data-bs-toggle="tab"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      sessionStorage.setItem(TAB_KEY, this.id);
+    });
+  });
+
+  // ---- restore draft data ----
+  restoreDraft();
+
+  // ---- auto-save on every input change ----
+  if (evaluationForm) {
+    evaluationForm.addEventListener('input',  saveDraft);
+    evaluationForm.addEventListener('change', saveDraft);
+  }
+
   toggleBtns.forEach(btn => {
     btn.addEventListener('click', function() {
       const parentGroup = this.closest('.btn-group');
@@ -3110,6 +3205,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // **** CORRECTED LOGIC ****
                 // Check the 'status' field in the JSON response
                 if (result.status === 'success') {
+                    clearDraft(); // remove saved draft after successful submission
                     formStatusDiv.innerHTML = `<div class="alert alert-success">Evaluation submitted successfully! ${result.message || ''}</div>`;
                     Swal.fire({
                         title: 'Success!',
