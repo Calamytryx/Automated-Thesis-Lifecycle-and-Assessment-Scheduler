@@ -1173,8 +1173,7 @@ border-top: solid 1px var(--main-bg-dark);
     padding: 0.75rem;
     transition: all 0.2s ease;
     cursor: pointer;
-    background-color: var(--main-white);
-    margin-bottom: 0.25rem;
+    background-color: var(--white-50);
 }
 
 .defense-item:hover {
@@ -1801,7 +1800,7 @@ color: #444 !important;
 
 .modal-header {
     background-color: var(--main-white);
-    border-bottom: 1px solid var(--neutral-100);
+    border-bottom: 1px solid var(--neutral-300);
     padding: 1.5rem;
 }
 
@@ -1826,15 +1825,15 @@ color: #444 !important;
 }
 
 .modal-body .form-label { 
-    color: var(--main-bg-dark);
-    font-weight: 500;
+    color: var(--black-400);
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .modal-body .form-control,
 .modal-body .form-select {
-    border: 1px solid var(--main-bg-dark);
-    border-radius: 6px;
+    border: 1px solid var(--neutral-400);
+    border-radius: 4px;
     padding: 0.75rem;
     transition: all 0.2s ease;
 }
@@ -1854,7 +1853,7 @@ color: #444 !important;
 
 .modal-footer {
     background-color: var(--neutral-50);
-    border-top: 1px solid var(--neutral-100);
+    border-top: 1px solid var(--neutral-300);
     padding: 1rem 1.5rem;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;

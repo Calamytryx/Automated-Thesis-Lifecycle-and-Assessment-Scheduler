@@ -53,10 +53,12 @@ try {
                     ds.end_time,
                     ds.room,
                     ds.team_id, -- Include team_id here
+                    t.name as team_name,
                     CONCAT('Defense with team: ', 
-                           (SELECT name FROM teams WHERE id = ds.team_id)
+                           t.name
                     ) as description
                 FROM defense_schedules ds -- Added alias ds
+                JOIN teams t ON ds.team_id = t.id
                 WHERE ds.team_id = ? AND ds.approval_status NOT IN ('pending_chair', 'rejected')
                 ORDER BY date, start_time
             ");
@@ -74,6 +76,7 @@ try {
                 ds.end_time,
                 ds.room,
                 ds.team_id,
+                t.name as team_name,
                 CONCAT('Defense with team: ', t.name) as description
             FROM defense_schedules ds
             JOIN teams t ON ds.team_id = t.id

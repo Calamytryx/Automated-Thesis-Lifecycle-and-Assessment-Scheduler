@@ -1,5 +1,5 @@
 <!-- Unified Specialization Management Tab (Pool + Assignment) -->
-<div class="tab-pane fade show active" id="specialization-management" role="tabpanel" aria-labelledby="specialization-management-tab">
+<div class="tab-pane fade" id="specialization-management" role="tabpanel" aria-labelledby="specialization-management-tab">
 
 <div class="container-fluid py-4 content-container">
     <div class="row mb-4">

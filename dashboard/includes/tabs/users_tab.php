@@ -373,7 +373,7 @@
                 const bulkAddBtn = document.getElementById('bulkAddBtn');
                 
                 if (userType === '1') { // Students
-                    bulkAddBtn.style.display = 'inline-flex';
+                    bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>

@@ -123,6 +123,7 @@ try {
             JOIN team_members tm ON t.id = tm.team_id
             JOIN users u ON tm.user_id = u.id
             WHERE (ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?)
+            AND ds.approval_status = 'approved'
             AND u.usertype = 1
             GROUP BY ds.id, ds.schedule_date, ds.start_time, ds.end_time, ds.room, 
                      ds.defense_type, ds.defense_status, ds.status, t.id, t.name, t.program, rt.title
@@ -182,6 +183,7 @@ try {
                 LEFT JOIN users p2 ON ds.panelist_id2 = p2.id
                 LEFT JOIN users p3 ON ds.panelist_id3 = p3.id
                 WHERE ds.team_id IN ($placeholders)
+                AND ds.approval_status = 'approved'
                 ORDER BY 
                     CASE WHEN ds.schedule_date >= CURDATE() THEN 0 ELSE 1 END,
                     ds.schedule_date DESC,

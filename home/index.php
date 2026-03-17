@@ -1324,8 +1324,9 @@ function loadClassRecord(page = 1) {
 <?php endif; ?>
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Check if there's a previously selected tab stored in localStorage
-    const activeTab = localStorage.getItem("activeTab") || "overview";
+    // Use a home-specific localStorage key to avoid conflicts with the dashboard
+    const activeTab = localStorage.getItem("homeActiveTab") || "overview";
+    const savedOverviewViewMode = sessionStorage.getItem('homeOverviewViewMode') || 'dashboard';
 
     // Deactivate all tab-panes and nav-links
     const allTabPanes = document.querySelectorAll('.tab-pane');
@@ -1339,9 +1340,10 @@ document.addEventListener("DOMContentLoaded", function() {
         link.classList.remove("active");
     });
 
-    // Activate the tab and its content
+    // Activate the tab and its content (fall back to overview if stored tab doesn't exist)
     const activeTabPane = document.getElementById(activeTab);
     const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+    const isOverview = !activeTabPane || activeTab === "overview";
 
     if (activeTabPane) {
         activeTabPane.classList.add("show", "active");
@@ -1362,7 +1364,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const href = event.currentTarget.getAttribute('href');
             if (href) {
                 const clickedTabId = href.substring(1);
-                localStorage.setItem('activeTab', clickedTabId);
+                localStorage.setItem('homeActiveTab', clickedTabId);
             }
         });
     });
@@ -1536,8 +1538,7 @@ document.addEventListener("DOMContentLoaded", function() {
     <?php endif; ?>
 
     // Fetch team overview content on page load if the overview tab is active
-    if (activeTab === "overview") {
-        // Use setTimeout to ensure tab transition completes before loading content
+    if (isOverview) {
         setTimeout(() => {
             fetchTeamOverview();
         }, 150);
@@ -1553,20 +1554,36 @@ document.addEventListener("DOMContentLoaded", function() {
     }
     <?php endif; ?>
 
+    const applyOverviewViewMode = (mode, initializeCalendar = true) => {
+        const isCalendarMode = mode === 'calendar';
+        document.getElementById('dashboardView').style.display = isCalendarMode ? 'none' : 'block';
+        document.getElementById('calendarView').style.display = isCalendarMode ? 'block' : 'none';
+
+        const dashboardRadio = document.getElementById('dashboard-view');
+        const calendarRadio = document.getElementById('calendar-view');
+        if (dashboardRadio && calendarRadio) {
+            dashboardRadio.checked = !isCalendarMode;
+            calendarRadio.checked = isCalendarMode;
+        }
+
+        if (isCalendarMode && initializeCalendar) {
+            setTimeout(() => {
+                initializeOverviewCalendar();
+            }, 100);
+        }
+    };
+
+    // Restore Overview view mode on refresh (within current tab session)
+    if (isOverview) {
+        applyOverviewViewMode(savedOverviewViewMode, savedOverviewViewMode === 'calendar');
+    }
+
     // Handle view mode switching between Dashboard and Calendar
     document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            if (this.id === 'calendar-view') {
-                document.getElementById('dashboardView').style.display = 'none';
-                document.getElementById('calendarView').style.display = 'block';
-                // Initialize calendar for the overview tab when calendar view is selected
-                setTimeout(() => {
-                    initializeOverviewCalendar();
-                }, 100);
-            } else {
-                document.getElementById('dashboardView').style.display = 'block';
-                document.getElementById('calendarView').style.display = 'none';
-            }
+            const selectedMode = this.id === 'calendar-view' ? 'calendar' : 'dashboard';
+            sessionStorage.setItem('homeOverviewViewMode', selectedMode);
+            applyOverviewViewMode(selectedMode, selectedMode === 'calendar');
         });
     });
 });
@@ -1590,8 +1607,39 @@ function initializeOverviewCalendar() {
         height: 'auto',
         events: [],
         eventClick: function(info) {
-            // Handle event click
-            console.log('Event clicked:', info.event);
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            const scheduleId = parseInt(info.event.extendedProps.scheduleId, 10);
+
+            if (!isDefenseEvent || Number.isNaN(scheduleId)) {
+                return;
+            }
+
+            if (USER_TYPE === 2 || USER_TYPE === 0) {
+                redirectToDecisionSupport(scheduleId);
+            }
+        },
+        eventContent: function(info) {
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            if (!isDefenseEvent) {
+                return true;
+            }
+
+            const room = info.event.extendedProps.location || 'TBA';
+            const compactText = info.timeText ? `${info.timeText} • ${room}` : room;
+
+            return {
+                html: `<div class="calendar-defense-compact-text">${compactText}</div>`
+            };
+        },
+        eventDidMount: function(info) {
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            if (!isDefenseEvent) {
+                return;
+            }
+
+            info.el.classList.add('calendar-defense-compact-event');
+            const teamName = info.event.extendedProps.teamName || info.event.title || 'Defense Team';
+            info.el.setAttribute('title', teamName);
         },
         dateClick: function(info) {
             if (calendar.view.type === 'dayGridMonth') {
@@ -1616,7 +1664,9 @@ function initializeOverviewCalendar() {
                         start: `${defense.date}T${defense.start_time}`,
                         end: `${defense.date}T${defense.end_time}`,
                         location: defense.room,
-                        eventType: 'defense'
+                        eventType: 'defense',
+                        scheduleId: defense.defense_schedule_id,
+                        teamName: defense.team_name
                     });
                 });
 
@@ -1666,18 +1716,18 @@ function updateRequirementsList(teamId) {
                 let listHtml = '';
                 if (data.requirements && data.requirements.length > 0) {
                     data.requirements.forEach(requirement => {
-                        let badgeClass = 'bg-warning';
-                        let badgeText = 'Pending';
+                        let statusClass = 'status-pending';
+                        let statusText = 'Pending';
 
                         if (requirement.status === 'approved') {
-                            badgeClass = 'bg-success';
-                            badgeText = 'Approved';
+                            statusClass = 'status-evaluated';
+                            statusText = 'Approved';
                         } else if (requirement.status === 'submitted') {
-                            badgeClass = 'bg-info';
-                            badgeText = 'Submitted';
+                            statusClass = 'status-evaluated';
+                            statusText = 'Submitted';
                         } else if (requirement.status === 'rejected') {
-                            badgeClass = 'bg-danger';
-                            badgeText = 'Rejected';
+                            statusClass = 'status-rejected';
+                            statusText = 'Rejected';
                         }
 
                         const dueDate = new Date(requirement.due_date).toLocaleDateString('en-US', {
@@ -1687,13 +1737,12 @@ function updateRequirementsList(teamId) {
                         });
 
                         listHtml += `
-                                <li class="list-group-item d-flex justify-content-between align-items-center req-li">
-                                    <div>
-                                        <strong>${requirement.name}</strong>
-                                        <br>
-                                        <small class="text-muted due-date-txt">Due: ${dueDate}</small>
+                                <li class="list-group-item overview-requirement-item">
+                                    <div class="overview-requirement-content">
+                                        <div class="overview-requirement-title">${requirement.name}</div>
+                                        <span class="defense-status-pill overview-status-pill ${statusClass}">${statusText}</span>
+                                        <small class="overview-requirement-due-date">Due: ${dueDate}</small>
                                     </div>
-                                    <span class="badge ${badgeClass} rounded-pill">${badgeText}</span>
                                 </li>
                             `;
                     });
@@ -1714,9 +1763,77 @@ function updateRequirementsList(teamId) {
         });
 }
 
+function initializeDefenseScheduleFilter() {
+    const filterSelect = document.getElementById('defenseScheduleFilter');
+    const defenseList = document.getElementById('defenseSchedulesList');
+    if (!filterSelect || !defenseList) return;
+
+    const defenseItems = Array.from(defenseList.querySelectorAll('.defense-item'));
+    if (defenseItems.length === 0) return;
+
+    const getDateValue = (item) => {
+        const dateValue = item.dataset.defenseDate || '';
+        const timestamp = Date.parse(`${dateValue}T00:00:00`);
+        return Number.isNaN(timestamp) ? 0 : timestamp;
+    };
+
+    const getStatusPriority = (item) => {
+        const status = item.dataset.defenseStatus || '';
+        return status === 'status-evaluated' ? 1 : 0;
+    };
+
+    const sortItems = (items, oldestFirst = false) => {
+        return [...items].sort((leftItem, rightItem) => {
+            const leftDate = getDateValue(leftItem);
+            const rightDate = getDateValue(rightItem);
+
+            if (leftDate !== rightDate) {
+                return oldestFirst ? leftDate - rightDate : rightDate - leftDate;
+            }
+
+            // Keep evaluated below pending/scheduled on same date
+            return getStatusPriority(leftItem) - getStatusPriority(rightItem);
+        });
+    };
+
+    const applyDefenseFilter = () => {
+        const selectedFilter = filterSelect.value;
+        let filteredItems = defenseItems;
+        let oldestFirst = false;
+
+        if (selectedFilter === 'past_recent') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseIsPast === '1');
+        } else if (selectedFilter === 'past_oldest') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseIsPast === '1');
+            oldestFirst = true;
+        } else if (selectedFilter === 'status_evaluated') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseStatus === 'status-evaluated');
+        } else if (selectedFilter === 'status_pending') {
+            filteredItems = defenseItems.filter(item => {
+                const status = item.dataset.defenseStatus;
+                return status === 'status-pending' || status === 'status-scheduled';
+            });
+        }
+
+        const sortedItems = sortItems(filteredItems, oldestFirst);
+        defenseList.innerHTML = '';
+
+        if (sortedItems.length === 0) {
+            defenseList.innerHTML = '<li class="list-group-item text-center text-muted"><em>No defense schedules found for this filter</em></li>';
+            return;
+        }
+
+        sortedItems.forEach(item => defenseList.appendChild(item));
+    };
+
+    filterSelect.addEventListener('change', applyDefenseFilter);
+    applyDefenseFilter();
+}
+
 // Initialize requirements team selector when document is ready
 document.addEventListener("DOMContentLoaded", function() {
     handleRequirementsTeamChange();
+    initializeDefenseScheduleFilter();
 });
 </script>
 <main role="main" class="container-fluid p-0">
@@ -2601,7 +2718,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         <div class="accordion-body custom-scrollbar">
                                                             <!-- Team Selector (only for professors) -->
                                                             <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) > 1): ?>
-                                                            <div class="mb-3">
+                                                            <div class="mb-3 requirements-team-selector-wrap">
                                                                 <label for="requirementsTeamSelector"
                                                                     class="form-label small text-muted">Select
                                                                     Team:</label>
@@ -2616,7 +2733,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 </select>
                                                             </div>
                                                             <?php elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) == 1): ?>
-                                                            <div class="mb-3">
+                                                            <div class="mb-3 requirements-team-selector-wrap">
                                                                 <p class="small text-muted mb-2">Team:
                                                                     <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong>
                                                                 </p>
@@ -2632,29 +2749,27 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 <?php elseif (!empty($requirements)): ?>
                                                                 <?php foreach ($requirements as $requirement): ?>
                                                                 <li
-                                                                    class="list-group-item d-flex justify-content-between align-items-center req-li">
-                                                                    <div>
-                                                                        <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                                                        <br>
-                                                                        <small class="text-muted due-date-txt">Due:
-                                                                            <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
-                                                                    </div>
+                                                                    class="list-group-item overview-requirement-item">
+                                                                    <div class="overview-requirement-content">
+                                                                        <div class="overview-requirement-title"><?php echo htmlspecialchars($requirement['name']); ?></div>
                                                                     <?php
-                                                                        $badgeClass = 'bg-warning';
-                                                                        $badgeText = 'Pending';
+                                                                        $statusClass = 'status-pending';
+                                                                        $statusText = 'Pending';
                                                                         if ($requirement['status'] === 'approved') {
-                                                                            $badgeClass = 'bg-success';
-                                                                            $badgeText = 'Approved';
+                                                                            $statusClass = 'status-evaluated';
+                                                                            $statusText = 'Approved';
                                                                         } elseif ($requirement['status'] === 'submitted') {
-                                                                            $badgeClass = 'bg-info';
-                                                                            $badgeText = 'Submitted';
+                                                                            $statusClass = 'status-evaluated';
+                                                                            $statusText = 'Submitted';
                                                                         } elseif ($requirement['status'] === 'rejected') {
-                                                                            $badgeClass = 'bg-danger';
-                                                                            $badgeText = 'Rejected';
+                                                                            $statusClass = 'status-rejected';
+                                                                            $statusText = 'Rejected';
                                                                         }
                                                                         ?>
-                                                                    <span
-                                                                        class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo $badgeText; ?></span>
+                                                                        <span class="defense-status-pill overview-status-pill <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                                                                        <small class="overview-requirement-due-date">Due:
+                                                                            <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
+                                                                    </div>
                                                                 </li>
                                                                 <?php endforeach; ?>
                                                                 <?php else: ?>
@@ -2685,7 +2800,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         JOIN teams t ON ds.team_id = t.id
                                                         JOIN team_members tm ON t.id = tm.team_id
                                                         WHERE tm.user_id = :user_id
-                                                        AND ds.approval_status NOT IN ('pending_chair', 'rejected')
+                                                        AND ds.approval_status = 'approved'
                                                         ORDER BY ds.schedule_date, ds.start_time";
                                                 $stmt = $pdo->prepare($query);
                                                 $stmt->execute(['user_id' => $userId]);
@@ -2711,7 +2826,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                             (ds.panelist_id = :user_id1
                                                             OR ds.panelist_id2 = :user_id2
                                                             OR ds.panelist_id3 = :user_id3)
-                                                            AND ds.approval_status NOT IN ('pending_chair', 'rejected')
+                                                            AND ds.approval_status = 'approved'
                                                         ORDER BY
                                                             CASE 
                                                                 WHEN CONCAT(ds.schedule_date, ' ', ds.end_time) < NOW() THEN 3
@@ -2742,9 +2857,18 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         aria-labelledby="headingDefenses2"
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
-                                                            <ul class="list-group">
+                                                            <div class="mb-3 defense-filter-wrap">
+                                                                <label for="defenseScheduleFilter" class="form-label small text-muted">Filter / Sort:</label>
+                                                                <select id="defenseScheduleFilter" class="form-select form-select-sm">
+                                                                    <option value="all_recent" selected>All Defenses (Most Recent)</option>
+                                                                    <option value="past_recent">Past Defenses (Most Recent)</option>
+                                                                    <option value="past_oldest">Past Defenses (Oldest)</option>
+                                                                    <option value="status_evaluated">Status: Evaluated</option>
+                                                                    <option value="status_pending">Status: Pending</option>
+                                                                </select>
+                                                            </div>
+                                                            <ul class="list-group" id="defenseSchedulesList">
                                                                 <?php 
-                                                                $current_status = null;
                                                                 foreach ($schedules as $schedule):
                                                                 $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                                 $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
@@ -2754,43 +2878,43 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 $defense_status = $schedule['defense_status'] ?? 'upcoming';
                                                                 $has_evaluated = isset($schedule['has_evaluated']) ? $schedule['has_evaluated'] > 0 : false;
                                                                 $defense_type = $schedule['defense_type'] ?? 'general';
-                                                                
-                                                                // Add section headers for different statuses
-                                                                if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $current_status !== $defense_status) {
-                                                                    $current_status = $defense_status;
-                                                                    $status_icon = $defense_status === 'ongoing' ? 'bi-clock-history text-warning' : 
-                                                                                 ($defense_status === 'upcoming' ? 'bi-calendar-event text-primary' : 'bi-calendar-check text-muted');
-                                                                    $status_label = $defense_status === 'ongoing' ? 'Ongoing' : 
-                                                                                  ($defense_status === 'upcoming' ? 'Upcoming' : 'Past');
-                                                                    echo '<li class="list-group-item bg-light"><strong><i class="bi ' . $status_icon . ' me-2"></i>' . $status_label . ' Defenses</strong></li>';
-                                                                }
 
                                                                 $onclick_attr = '';
                                                                 $item_class = 'list-group-item defense-item';
-                                                                $disabled_message = '';
                                                                 
-                                                                // Badge for defense type
+                                                                // Defense type pill
                                                                 $type_badge = '';
-                                                                $type_color = 'secondary';
+                                                                $type_class = 'type-general';
                                                                 switch ($defense_type) {
                                                                     case 'title_proposal':
-                                                                        $type_color = 'info';
+                                                                        $type_class = 'type-proposal';
                                                                         $type_badge = 'Title Proposal';
                                                                         break;
                                                                     case 'title_defense':
-                                                                        $type_color = 'primary';
+                                                                        $type_class = 'type-title';
                                                                         $type_badge = 'Title Defense';
                                                                         break;
                                                                     case 'final_defense':
-                                                                        $type_color = 'success';
+                                                                        $type_class = 'type-final';
                                                                         $type_badge = 'Final Defense';
                                                                         break;
                                                                     case 're-defense':
-                                                                        $type_color = 'warning';
+                                                                        $type_class = 'type-redefense';
                                                                         $type_badge = 'Re-Defense';
                                                                         break;
                                                                     default:
                                                                         $type_badge = ucfirst($defense_type);
+                                                                }
+
+                                                                // Defense status pill
+                                                                $status_badge = 'Scheduled';
+                                                                $status_class = 'status-scheduled';
+                                                                if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $has_evaluated) {
+                                                                    $status_badge = 'Evaluated';
+                                                                    $status_class = 'status-evaluated';
+                                                                } elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status !== 'upcoming') {
+                                                                    $status_badge = 'Pending';
+                                                                    $status_class = 'status-pending';
                                                                 }
                                                                 
                                                                 // Only allow faculty to access evaluation system
@@ -2808,39 +2932,23 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 }
                                                             ?>
                                                                 <li class="<?php echo $item_class; ?>"
+                                                                    data-defense-date="<?php echo htmlspecialchars($schedule['schedule_date']); ?>"
+                                                                    data-defense-status="<?php echo htmlspecialchars($status_class); ?>"
+                                                                    data-defense-is-past="<?php echo ($defense_status === 'past') ? '1' : '0'; ?>"
                                                                     <?php echo $onclick_attr; ?>>
-                                                                    <div class="defense-content">
-                                                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                                                            <h6 class="team-name mb-0">
-                                                                                <?php echo htmlspecialchars($schedule['team_name']); ?>
-                                                                            </h6>
-                                                                            <div>
-                                                                                <span class="badge bg-<?php echo $type_color; ?> me-1"><?php echo $type_badge; ?></span>
-                                                                                <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $has_evaluated): ?>
-                                                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Evaluated</span>
-                                                                                <?php elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status !== 'upcoming'): ?>
-                                                                                    <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Pending</span>
-                                                                                <?php endif; ?>
-                                                                            </div>
+                                                                    <div class="defense-content overview-defense-content">
+                                                                        <h6 class="overview-defense-team-name mb-0">
+                                                                            <?php echo htmlspecialchars($schedule['team_name']); ?>
+                                                                        </h6>
+                                                                        <div class="overview-defense-pill-row">
+                                                                            <span class="defense-type-pill <?php echo $type_class; ?>"><?php echo $type_badge; ?></span>
+                                                                            <span class="defense-status-pill overview-status-pill <?php echo $status_class; ?>"><?php echo $status_badge; ?></span>
                                                                         </div>
-                                                                        <div class="defense-details">
-                                                                            <div class="detail-item">
-                                                                                <i class="far fa-calendar me-2"></i>
-                                                                                <?php echo htmlspecialchars($formatted_date); ?>
-                                                                            </div>
-                                                                            <div class="detail-item">
-                                                                                <i class="far fa-clock me-2"></i>
-                                                                                <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?>
-                                                                            </div>
-                                                                            <div class="detail-item">
-                                                                                <i class="fas fa-door-open me-2"></i>
-                                                                                <?php echo htmlspecialchars($schedule['room']); ?>
-                                                                            </div>
+                                                                        <div class="overview-defense-meta">
+                                                                            <div><strong>Date:</strong> <?php echo htmlspecialchars($formatted_date); ?></div>
+                                                                            <div><strong>Time:</strong> <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?></div>
+                                                                            <div><strong>Room:</strong> <?php echo htmlspecialchars($schedule['room']); ?></div>
                                                                         </div>
-                                                                        <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status === 'past' && $has_evaluated): ?>
-                                                                            <small class="text-muted"><i class="bi bi-info-circle"></i> Click to view your evaluation (read-only)</small>
-                                                                        <?php endif; ?>
-                                                                        <?php echo $disabled_message; ?>
                                                                     </div>
                                                                 </li>
                                                                 <?php endforeach; ?>

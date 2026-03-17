@@ -103,23 +103,6 @@ main.container-fluid {
     background-color: var(--primary-400);
 }
 
-.req-li{
-    background-color: var(--main-white);
-    border: none; 
-}  
-
-.req-li:hover{
-    background-color: var(--main-bg-light);
-    border: none;
-    box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
-    border-radius: 5px;
-    color: var(--main-primary);  
-}  
-
-.due-date-txt{
-    color: var(--neutral-700);
-}
-
 .rct-ctitle{
     font-weight: bold;
     color: var(--main-primary);
@@ -284,7 +267,7 @@ main.container-fluid {
     flex-grow: 1;
     position: relative;
     border-right: 1px solid var(--neutral-300);
-    /* padding: 8px 12px 8px 1.5rem; */
+    padding: 8px 0px 8px 1.5rem;
     cursor: pointer;
     transition: all 0.3s ease;
 }
@@ -984,12 +967,11 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .profile-container {
     display: flex;
     align-items: center;
-    padding: 8px 1.5rem;
     flex-grow: 1;
     cursor: pointer;
     transition: background-color 0.3s ease;
     text-decoration: none;
-    min-width: 0; /* Allows flex item to shrink below content size */
+    min-width: 0; 
 }
 
 .profile-container:hover {
@@ -1008,8 +990,8 @@ body.has-collapsed-home-sidebar #homeMainContent {
     margin-left: 10px;
     flex-grow: 1;
     overflow: hidden;
-    min-width: 0; /* Allows flex item to shrink below content size */
-    max-width: calc(100% - 60px); /* Reserve space for avatar and some margin */
+    min-width: 0; 
+    max-width: calc(100% - 60px); 
 }
 
 .user-name {
@@ -1260,6 +1242,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
     border: 1px solid var(--neutral-300) !important;
     border-radius: 4px;
     background-color: var(--neutral-50);
+    box-shadow: 0px 2px 10px rgb(22 22 22 / 15%);
 }
 
 .team-overview .requirements-completed-card,
@@ -2067,6 +2050,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 /* Ensure accordions in calendar view have unique styling */
 #requirementsAccordion2 .accordion-item {
     margin-bottom: 0.5rem;
+    box-shadow: 0px 2px 5px rgb(22 22 22 / 15%);
 }
 
 #requirementsAccordion2 .accordion-button {
@@ -2077,6 +2061,40 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .calendar-container {
     background-color: var(--main-white);
     border-radius: 4px;
+    border: 1px solid var(--neutral-300);
+    box-shadow: 0px 2px 5px rgb(22 22 22 / 15%);
+}
+
+#calendar2 .calendar-defense-compact-event {
+    padding: 0.1rem 0.25rem !important;
+}
+
+#calendar2 .calendar-defense-compact-event .fc-event-main {
+    padding: 0 !important;
+}
+
+#calendar2 .calendar-defense-compact-text {
+    font-size: 0.7rem;
+    line-height: 1.2;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* Overview calendar readability (month view + labels) */
+#calendar2 .fc-col-header-cell-cushion,
+#calendar2 .fc-daygrid-day-number,
+#calendar2 .fc-toolbar-title,
+#calendar2 .fc-daygrid-event .fc-event-title,
+#calendar2 .fc-daygrid-event .fc-event-time,
+#calendar2 .calendar-defense-compact-text {
+    color: var(--main-black) !important;
+}
+
+/* Month view schedule cards */
+#calendar2 .fc-daygrid-event,
+#calendar2 .fc-daygrid-dot-event {
+    background-color: var(--white-50);
     border: 1px solid var(--neutral-300);
 }
 
@@ -2212,7 +2230,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .custom-accordion .accordion-button {
-    background-color: var(--neutral-50);
+    background-color: var(--white-50);
     border: none;
     border-radius: 6px 6px 0 0;
     padding: 1rem 1.25rem;
@@ -2226,7 +2244,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .custom-accordion .accordion-button:not(.collapsed) {
-    background-color: var(--black-50);
+    background-color: var(--white-300);
     color: var(--main-black);
     box-shadow: none;
 }
@@ -2268,6 +2286,107 @@ body.has-collapsed-home-sidebar #homeMainContent {
     background-color: var(--neutral-50);
 }
 
+#requirementsList .overview-requirement-item {
+    padding: 0.9rem 1rem;
+    background-color: var(--white-50);
+}
+
+#requirementsList .overview-requirement-item:hover {
+    background-color: var(--neutral-50);
+}
+
+#requirementsList .overview-requirement-content {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.35rem;
+    width: 100%;
+}
+
+#requirementsList .overview-requirement-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--main-bg-dark);
+}
+
+#requirementsList .overview-requirement-due-date {
+    font-size: 0.8rem;
+    color: var(--neutral-700);
+}
+
+#requirementsList .overview-status-pill,
+#collapseDefenses2 .overview-status-pill,
+#collapseDefenses2 .defense-type-pill {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    font-size: 0.75rem;
+    font-weight: 500;
+    border-radius: 12px;
+    text-align: center;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+#requirementsList .overview-status-pill.status-evaluated,
+#collapseDefenses2 .overview-status-pill.status-evaluated {
+    background-color: rgba(25, 135, 84, 0.1);
+    color: #127547;
+    border-color: rgba(25, 135, 84, 0.2);
+}
+
+#requirementsList .overview-status-pill.status-pending,
+#collapseDefenses2 .overview-status-pill.status-pending,
+#collapseDefenses2 .overview-status-pill.status-scheduled {
+    background-color: rgba(255, 193, 7, 0.14);
+    color: #8a6d00;
+    border-color: rgba(255, 193, 7, 0.25);
+}
+
+#requirementsList .overview-status-pill.status-rejected,
+#collapseDefenses2 .overview-status-pill.status-rejected {
+    background-color: rgba(220, 53, 69, 0.1);
+    color: #b4232f;
+    border-color: rgba(220, 53, 69, 0.2);
+}
+
+#collapseDefenses2 .defense-item {
+    background-color: var(--white-50);
+}
+
+#collapseDefenses2 .overview-defense-content {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+    width: 100%;
+}
+
+#collapseDefenses2 .overview-defense-team-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    line-height: 1.35;
+    color: var(--main-bg-dark);
+}
+
+#collapseDefenses2 .overview-defense-pill-row {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.35rem;
+}
+
+#collapseDefenses2 .overview-defense-meta {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--neutral-700);
+}
+
+#collapseDefenses2 .overview-defense-meta strong {
+    color: var(--main-bg-dark);
+    font-weight: 600;
+}
+
 /* Responsive adjustments for accordions */
 @media (max-width: 767.98px) {
     .custom-accordion .accordion-button {
@@ -2280,17 +2399,20 @@ body.has-collapsed-home-sidebar #homeMainContent {
         font-size: 0.875rem;
     }
     
-    .custom-accordion .list-group-item strong {
+    #requirementsList .overview-requirement-title {
         font-size: 0.9rem;
     }
     
-    .custom-accordion .list-group-item small {
+    #requirementsList .overview-requirement-due-date {
         font-size: 0.75rem;
     }
     
-    .custom-accordion .badge {
-        font-size: 0.7rem;
-        padding: 0.25rem 0.5rem;
+    #collapseDefenses2 .overview-defense-team-name {
+        font-size: 0.9rem;
+    }
+
+    #collapseDefenses2 .overview-defense-meta {
+        font-size: 0.76rem;
     }
 }
 
@@ -2317,6 +2439,20 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 /* Requirements team selector styling */
+.requirements-team-selector-wrap {
+    margin: 0 !important;
+    padding: 0.2rem 1rem 0.5rem 1rem;
+    background-color: var(--white-50);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
+.defense-filter-wrap {
+    margin: 0 !important;
+    padding: 0.2rem 1rem 0.5rem 1rem;
+    background-color: var(--white-50);
+    border-bottom: 1px solid var(--neutral-200);
+}
+
 .requirements-list .form-label {
     font-weight: 600;
     color: var(--neutral-700);
@@ -2324,7 +2460,7 @@ body.has-collapsed-home-sidebar #homeMainContent {
 }
 
 .requirements-list .form-select-sm {
-    background-color: var(--main-white);
+    background-color: var(--white-50);
     border: 1px solid var(--neutral-300);
     border-radius: 4px;
     padding: 0.5rem 0.75rem;

@@ -246,7 +246,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Check if there's a previously selected tab stored in localStorage
-        const activeTab = localStorage.getItem("activeTab");
+        // Use a dashboard-specific localStorage key to avoid conflicts with the home page
+        const activeTab = localStorage.getItem("dashboardActiveTab");
 
         // If there is a stored active tab, activate it
         if (activeTab) {
@@ -313,7 +314,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (event.target.hasAttribute('data-bs-toggle') && event.target.getAttribute('data-bs-toggle') === 'pill') {
                     // Store the ID of the clicked tab-pane (only if it's a pill)
                     const clickedTabId = event.target.getAttribute('href').substring(1);
-                    localStorage.setItem('activeTab', clickedTabId);
+                    localStorage.setItem('dashboardActiveTab', clickedTabId);
                 }
                 // For links not intended as tabs (like ../files), do nothing with localStorage
             });
