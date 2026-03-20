@@ -42,7 +42,7 @@
         </div>
 
         <!-- Assignments Table -->
-        <div class="row mt-3">
+        <div class="row">
             <div class="col-12">
                 <div class="table-responsive">
                     <table class="table table-bordered table-hover table-sm db-table">

@@ -18,9 +18,9 @@
                         <div class="col-12 col-md-auto">
                             <div class="btn-group" role="group" aria-label="View toggle">
                                 <input type="radio" class="btn-check" name="defViewMode" id="defTableView" checked autocomplete="off">
-                                <label class="btn btn-outline-primary user-control-height" for="defTableView"><i class="fas fa-table me-1"></i>Table</label>
+                                <label class="btn btn-outline-primary user-control-height" for="defTableView">Table</label>
                                 <input type="radio" class="btn-check" name="defViewMode" id="defCalendarView" autocomplete="off">
-                                <label class="btn btn-outline-primary user-control-height" for="defCalendarView"><i class="fas fa-calendar-week me-1"></i>Calendar</label>
+                                <label class="btn btn-outline-primary user-control-height" for="defCalendarView">Calendar</label>
                             </div>
                         </div>
                         <!-- Bulk Approval Buttons (visible in calendar view for pending_chair items) -->
@@ -80,7 +80,7 @@
         </div>
 
         <!-- Settings display area -->
-        <div class="row mb-3">
+        <div class="row">
             <div class="col-12">
                 <div id="generationSetting" class="bg-light p-3 rounded" style="display: none;"></div>
                 <span id="scheduleGenerationStatusSpan" class="text-muted"></span>

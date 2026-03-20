@@ -22,6 +22,10 @@
                 $userId = $_SESSION['id'];
                 $roleLabel = '';
                 $roleClass = '';
+                $canAccessDashboard = false;
+
+                require_once __DIR__ . '/../../dashboard/includes/section_access.php';
+                $canAccessDashboard = userCanAccessDashboard($pdo, (int)$userId, (int)$userType);
 
                 if ($userType == 0) {
                     if (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1) {
@@ -103,7 +107,7 @@
                 </li>
 
 
-                <?php if ($_SESSION['usertype'] != 1): ?>
+                <?php if ($canAccessDashboard): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="../dashboard">Dashboard</a>
                     </li>

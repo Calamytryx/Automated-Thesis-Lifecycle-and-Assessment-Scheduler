@@ -59,6 +59,7 @@ check_verified();
 // Include database connection
 require '../assets/setup/db.inc.php';
 require_once 'includes/edit_functions.php';
+require_once 'includes/section_access.php';
 require_once '../assets/includes/title_proposal_setup.php';
 require_once '../assets/includes/program_filter.php';
 
@@ -67,8 +68,8 @@ if (function_exists('ensure_title_proposal_column')) {
     ensure_title_proposal_column($pdo);
 }
 
-if ($_SESSION['usertype'] === 1){
-    // block students
+if (!userCanAccessDashboard($pdo, (int)$_SESSION['id'], (int)$_SESSION['usertype'])) {
+    // Block students and non-section professors
     header("Location: /home");
     exit();
 }

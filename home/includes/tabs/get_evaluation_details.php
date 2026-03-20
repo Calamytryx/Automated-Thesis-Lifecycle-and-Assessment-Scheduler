@@ -35,7 +35,7 @@ try {
         // Faculty - check if they're adviser or have evaluated this team
         $checkStmt = $pdo->prepare("
             SELECT 1 FROM team_members tm 
-            WHERE tm.team_id = ? AND tm.user_id = ? AND tm.role = 'Adviser'
+            WHERE tm.team_id = ? AND tm.user_id = ? AND LOWER(tm.role) = 'adviser'
             UNION
             SELECT 1 FROM evaluation_per_panel ep
             JOIN team_members tm ON ep.student_id = tm.user_id
@@ -45,7 +45,7 @@ try {
         $hasAccess = (bool)$checkStmt->fetch();
     } elseif ($usertype == 0) {
         // Admin - check if they're adviser of this team
-        $checkStmt = $pdo->prepare("SELECT 1 FROM team_members WHERE team_id = ? AND user_id = ? AND role = 'adviser'");
+        $checkStmt = $pdo->prepare("SELECT 1 FROM team_members WHERE team_id = ? AND user_id = ? AND LOWER(role) = 'adviser'");
         $checkStmt->execute([$teamId, $userId]);
         $hasAccess = (bool)$checkStmt->fetch();
     }

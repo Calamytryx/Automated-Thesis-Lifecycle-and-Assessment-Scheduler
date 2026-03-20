@@ -10,7 +10,7 @@
     </div>
 
     <!-- Navigation Tabs -->
-    <div class="spec-nav-container mb-4">
+    <div class="spec-nav-container mb-3">
         <div class="spec-tab-group" role="group" aria-label="Specialization tabs">
             <?php if ($_SESSION['usertype'] == 0): ?>
             <button type="button" class="btn spec-tab-btn active" data-spec-tab="poolManagement">
@@ -77,7 +77,7 @@
             </div>
 
             <!-- Specializations Table -->
-            <div class="row mt-3">
+            <div class="row">
                 <div class="col-12">
                     <div class="table-responsive">
                         <table class="table table-hover db-table" id="specializationsTable">

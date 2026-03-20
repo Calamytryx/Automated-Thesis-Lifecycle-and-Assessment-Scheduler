@@ -38,6 +38,40 @@ function professorHasSectionAssignment($pdo, $professor_id) {
 }
 
 /**
+ * Check if a user can access the dashboard page
+ *
+ * Rules:
+ * - Superadmin and Program Chair (usertype=0): allowed
+ * - Section Professors (usertype=2 with section_professors assignment): allowed
+ * - Other users: denied
+ *
+ * @param PDO $pdo Database connection
+ * @param int $userId Current user's ID
+ * @param int $userType Current user's type
+ * @return bool True if user can access dashboard
+ */
+function userCanAccessDashboard($pdo, $userId, $userType) {
+    // Superadmin + Program Chair
+    if ((int)$userType === 0) {
+        return true;
+    }
+
+    // Only faculty can qualify as section professors
+    if ((int)$userType !== 2 || (int)$userId <= 0) {
+        return false;
+    }
+
+    try {
+        $stmt = $pdo->prepare("SELECT COUNT(*) FROM section_professors WHERE professor_id = ?");
+        $stmt->execute([(int)$userId]);
+        return ((int)$stmt->fetchColumn()) > 0;
+    } catch (Exception $e) {
+        error_log("Error checking dashboard access: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
  * Get all sections assigned to a professor (if any)
  * @param PDO $pdo Database connection
  * @param int $professor_id User ID of the professor

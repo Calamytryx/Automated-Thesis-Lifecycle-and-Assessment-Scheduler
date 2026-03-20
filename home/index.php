@@ -36,6 +36,11 @@ define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
 include '../assets/setup/db.inc.php';
+require_once '../dashboard/includes/section_access.php';
+
+$isSectionProfessor = ((int)$_SESSION['usertype'] === 2)
+    && professorHasSectionAssignment($pdo, (int)$_SESSION['id']);
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -800,7 +805,7 @@ function showTeamSummaryModal(teamId, teamName) {
         });
 }
 
-<?php if ($_SESSION['usertype'] == 2): ?>
+<?php if ($isSectionProfessor): ?>
 // --- Academic Year Feature ---
 // Update the academic year label in the class record header
 function updateAcademicYearLabel(academicYear) {
@@ -1375,7 +1380,7 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Load class record when the class record tab is clicked (faculty only)
-    <?php if ($_SESSION['usertype'] == 2): ?>
+    <?php if ($isSectionProfessor): ?>
     const classRecordLink = document.getElementById('class-record-link');
     if (classRecordLink) {
         classRecordLink.addEventListener('click', function() {
@@ -1545,7 +1550,7 @@ document.addEventListener("DOMContentLoaded", function() {
     }
 
     // Load class record on page load if that tab is active
-    <?php if ($_SESSION['usertype'] == 2): ?>
+    <?php if ($isSectionProfessor): ?>
     if (activeTab === "class-record") {
         // Use setTimeout to ensure tab transition completes before loading content
         setTimeout(() => {
@@ -1934,7 +1939,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <i class="bi bi-list-check me-2 filled"></i>
                                         <span class="nav-text">Requirement Checker</span>
                                     </a>
-                                    <?php if ($_SESSION['usertype'] != 0): // Hide evaluations for admins - they use dashboard ?>
+                                    <?php if (in_array((int)$_SESSION['usertype'], [0, 1, 2], true)): ?>
                                     <a class="nav-link" id="research-evaluation-link" data-bs-toggle="pill"
                                         href="#research-evaluation" role="tab" aria-controls="research-evaluation"
                                         aria-selected="false">
@@ -1943,7 +1948,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <span class="nav-text">Team Evaluations</span>
                                     </a>
                                     <?php endif; ?>
-                                    <?php if ($_SESSION['usertype'] == 2): ?>
+                                    <?php if ($isSectionProfessor): ?>
                                     <a class="nav-link" id="class-record-link" data-bs-toggle="pill"
                                         href="#class-record" role="tab" aria-controls="class-record"
                                         aria-selected="false">
@@ -2461,8 +2466,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <?php 
                                             if ($_SESSION['usertype'] == 1) {
                                                 echo "View your team's evaluation results and feedback";
+                                            } elseif ($_SESSION['usertype'] == 0) {
+                                                echo "View evaluations for teams you advise";
                                             } elseif ($_SESSION['usertype'] == 2) {
-                                                echo "View evaluations for teams you advise or evaluated as panelist";
+                                                echo "View evaluations for teams you advise";
                                             }
                                             ?>
                                         </p>
@@ -2511,7 +2518,7 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
 
-                        <?php if ($_SESSION['usertype'] == 2): ?>
+                        <?php if ($isSectionProfessor): ?>
                         <div class="tab-pane fade" id="class-record" role="tabpanel"
                             aria-labelledby="class-record-link">
                             <div class="container-fluid py-4 content-container">
@@ -2620,7 +2627,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <h3 class="mb-2">Dashboard</h3>
                                         <p class="text-muted">Track your requirement progress and defense schedule</p>
                                         <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
-                                        <div class="mt-2">
+                                        <div class="my-2">
                                             <a href="#requirement-checker" class="tab-redirect-link" onclick="document.getElementById('requirement-checker-link').click(); return false;">
                                                 <i class="bi bi-list-check"></i>
                                                 <span>View Team requirements</span>
