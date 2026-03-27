@@ -4,6 +4,25 @@ header('Content-Type: application/json');
 // NEW: Include database connection
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/security_functions.php';
+require_once __DIR__ . '/section_access.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$userId = (int)($_SESSION['id'] ?? 0);
+$usertype = (int)($_SESSION['usertype'] ?? -1);
+
+$isProgramChair = ($usertype === 0 && $userId !== 0);
+$isSectionProfessor = ($usertype === 2 && userCanAccessDashboard($pdo, $userId, $usertype));
+
+if ($isProgramChair || $isSectionProfessor) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'You have read-only access to the Users tab.'
+    ]);
+    exit;
+}
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Determine upload method if provided

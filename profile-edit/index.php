@@ -138,7 +138,7 @@ function xss_filter($data) {
                                             <div class="text-muted">Loading specializations...</div>
                                         </div>
                                         <input type="hidden" id="area_of_expertise_hidden" name="area_of_expertise_text" value="<?php echo isset($_SESSION['area_of_expertise']) ? xss_filter($_SESSION['area_of_expertise']) : ''; ?>">
-                                        <small class="form-text text-muted">Click specializations to select/deselect</small>
+                                        <small class="form-text text-muted">Click specialization pills to select or remove</small>
                                         <div class="validation-error" id="area_of_expertise-error" style="display: none;"></div>
                                     </div>
                                     <?php endif; ?>
@@ -205,15 +205,28 @@ function xss_filter($data) {
                     // Get current user's specializations
                     const currentExpertise = $('#area_of_expertise_hidden').val();
                     const currentArray = currentExpertise ? currentExpertise.split(',').map(s => s.trim()) : [];
+                    const selectedSpecializations = new Set(currentArray);
+
+                    // Show selected specializations first
+                    const selectedSpecs = [];
+                    const unselectedSpecs = [];
+                    response.data.forEach(function(spec) {
+                        if (selectedSpecializations.has(spec.name)) {
+                            selectedSpecs.push(spec);
+                        } else {
+                            unselectedSpecs.push(spec);
+                        }
+                    });
+                    const orderedSpecializations = selectedSpecs.concat(unselectedSpecs);
                     
                     // Create toggle buttons for each specialization
-                    response.data.forEach(function(spec) {
-                        const isSelected = currentArray.includes(spec.name);
+                    orderedSpecializations.forEach(function(spec) {
+                        const isSelected = selectedSpecializations.has(spec.name);
                         const badge = $('<div></div>')
                             .addClass('specialization-badge')
                             .attr('data-spec-name', spec.name)
                             .toggleClass('selected', isSelected)
-                            .text(spec.name + (spec.college ? ' (' + spec.college + ')' : ''));
+                            .text(spec.name);
                         
                         container.append(badge);
                     });
@@ -796,66 +809,3 @@ function xss_filter($data) {
     });
 </script>
 
-<style>
-/* Form validation error styles */
-.validation-error {
-    color: #dc3545;
-    font-size: 0.875rem;
-    margin-top: 0.25rem;
-}
-
-.is-invalid {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-}
-
-.is-invalid:focus {
-    border-color: #dc3545 !important;
-    box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25) !important;
-}
-
-/* Area of expertise click-toggle styles */
-.specialization-container {
-    border: 1px solid #ced4da;
-    border-radius: 0.25rem;
-    padding: 10px;
-    min-height: 150px;
-    max-height: 300px;
-    overflow-y: auto;
-    background-color: #fff;
-}
-
-.specialization-badge {
-    display: inline-block;
-    padding: 8px 12px;
-    margin: 4px;
-    border-radius: 20px;
-    border: 2px solid #dee2e6;
-    background-color: #f8f9fa;
-    color: #495057;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
-    word-wrap: break-word;
-    white-space: normal;
-    max-width: 100%;
-    text-align: center;
-}
-
-.specialization-badge:hover {
-    border-color: #0066cc;
-    background-color: #e7f3ff;
-    transform: translateY(-1px);
-}
-
-.specialization-badge.selected {
-    background: linear-gradient(135deg, #0066cc, #0052a3);
-    color: white;
-    border-color: #0066cc;
-    font-weight: 500;
-}
-
-.specialization-badge.selected:hover {
-    background: linear-gradient(135deg, #0052a3, #004080);
-}
-</style>

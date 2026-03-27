@@ -1,4 +1,9 @@
 <!-- Users Tab -->
+<?php
+$sessionUserType = (int)($_SESSION['usertype'] ?? -1);
+$sessionUserId = (int)($_SESSION['id'] ?? 0);
+$isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $sessionUserId !== 0);
+?>
 <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
     <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
@@ -63,6 +68,7 @@
                             </select>
                         </div>
                         
+                        <?php if (!$isUsersTabReadOnly): ?>
                         <div class="col-12 col-md-2 col-lg-3">
                             <!-- Action buttons container -->
                             <div class="d-flex gap-2">
@@ -73,9 +79,11 @@
                                 </button>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
                     
                     <!-- Bulk Add Button Row (conditional) -->
+                    <?php if (!$isUsersTabReadOnly): ?>
                     <div class="row">
                         <div class="col-12">
                             <button class="btn feature-btn bulk-add-btn user-control-height w-100 w-md-auto" data-table="users" id="bulkAddBtn" style="display: none;">
@@ -83,6 +91,7 @@
                             </button>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -101,7 +110,9 @@
                                 <th class="d-none d-sm-table-cell">First Name</th>
                                 <th class="d-none d-sm-table-cell">Last Name</th>
                                 <th class="d-none d-md-table-cell">User Type</th>
+                                <?php if (!$isUsersTabReadOnly): ?>
                                 <th class="text-center">Action</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -196,6 +207,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const usersTabReadOnly = <?php echo $isUsersTabReadOnly ? 'true' : 'false'; ?>;
+
             const getUserType = (type) => {
                 return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Staff' : 'Unknown';
             };
@@ -243,11 +256,10 @@
 
                         // Show a message if no results
                         if (data.data.length === 0) {
-                            const isSmallScreen = window.innerWidth < 768;
-                            const colspan = isSmallScreen ? "3" : "6";
+                            const tableColumns = document.querySelectorAll('#allUsersTable thead th').length;
                             tableBody.innerHTML = `
                                 <tr>
-                                    <td colspan="${colspan}" class="text-center">No matching users found</td>
+                                    <td colspan="${tableColumns}" class="text-center">No matching users found</td>
                                 </tr>
                             `;
                             return;
@@ -271,13 +283,19 @@
                                     <td class="d-none d-sm-table-cell">${user.first_name}</td>
                                     <td class="d-none d-sm-table-cell">${user.last_name}</td>
                                     <td class="d-none d-md-table-cell">${getUserTypeBadge(user.usertype)}</td>
+                                    ${usersTabReadOnly ? '' : `
                                     <td class="action-buttons text-center"> 
                                         <button class="meatball-btn" data-user-id="${user.id}" aria-label="Actions">
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                     </td>
+                                    `}
                                 </tr>
                             `;
+                            
+                            if (usersTabReadOnly) {
+                                return;
+                            }
                             
                             // Create dropdown portal outside table
                             const dropdownPortal = document.createElement('div');
@@ -371,9 +389,13 @@
             const updateButtonVisibility = (userType) => {
                 const addBtn = document.getElementById('addUserBtn');
                 const bulkAddBtn = document.getElementById('bulkAddBtn');
+
+                if (usersTabReadOnly) {
+                    return;
+                }
                 
                 if (userType === '1') { // Students
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -382,7 +404,7 @@
                         `;
                     }
                 } else if (userType === '0') { // Admins
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -391,7 +413,7 @@
                         `;
                     }
                 } else if (userType === '2') { // Staff
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -400,7 +422,7 @@
                         `;
                     }
                 } else { // All users
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>

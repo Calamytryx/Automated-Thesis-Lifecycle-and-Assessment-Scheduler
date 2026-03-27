@@ -418,7 +418,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
 </div>
                             </div>
@@ -609,7 +609,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
 </div>
                             </div>
@@ -800,7 +800,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a> -->
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
                                 </div>
                             </div>

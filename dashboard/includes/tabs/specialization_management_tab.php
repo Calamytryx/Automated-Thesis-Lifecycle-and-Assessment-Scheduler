@@ -4,8 +4,8 @@
 <div class="container-fluid py-4 content-container">
     <div class="row mb-4">
         <div class="col-12">
-            <h3 class="mb-2">Specialization Management</h3>
-            <p class="text-muted">Manage specialization pool and its assignment to Teams and Users</p>
+            <h3 class="mb-2">Field of specialization</h3>
+            <p class="text-muted">Manage specialization pool and assign it to teams</p>
         </div>
     </div>
 
@@ -20,11 +20,6 @@
             <button type="button" class="btn spec-tab-btn <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" data-spec-tab="teamAssignment">
                 <i class="bi bi-people-fill me-2"></i>Assign to Teams
             </button>
-            <?php if ($_SESSION['usertype'] == 0): ?>
-            <button type="button" class="btn spec-tab-btn" data-spec-tab="userAssignment">
-                <i class="bi bi-person-fill me-2"></i>Assign to Users
-            </button>
-            <?php endif; ?>
         </div>
     </div>
 
@@ -177,79 +172,6 @@
             </div>
         </div>
 
-        <!-- User Assignment Tab (Admin Only) -->
-        <?php if ($_SESSION['usertype'] == 0): ?>
-        <div class="spec-tab-pane" id="userAssignment">
-            <div class="row">
-                <div class="col-12">
-                    <!-- User Controls -->
-                    <div class="user-controls-container p-0 mt-3">
-                        <div class="row g-2 mb-3 align-items-end">
-                            <div class="col-12 col-md-4 col-lg-4">
-                                <!-- Search Input -->
-                                <div class="users-search-container">
-                                    <div class="input-group user-control-height m-0">
-                                        <span class="input-group-text border-0">
-                                            <i class="bi bi-search"></i>
-                                        </span>
-                                        <input type="text" class="form-control border-0" id="userSearch" placeholder="Search users by name or email...">
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="col-12 col-md-3 col-lg-3">
-                                <!-- User Role Filter -->
-                                <select class="form-select user-control-height" id="userRoleFilter">
-                                    <option value="">All Roles</option>
-                                    <option value="Admin">Admin</option>
-                                    <option value="Faculty">Faculty</option>
-                                </select>
-                            </div>
-                            
-                            <div class="col-12 col-md-5 col-lg-5">
-                                <!-- Sort Dropdown -->
-                                <select class="form-select user-control-height" id="userSortSelect">
-                                    <option value="first_name:asc">First Name (A-Z)</option>
-                                    <option value="first_name:desc">First Name (Z-A)</option>
-                                    <option value="last_name:asc">Last Name (A-Z)</option>
-                                    <option value="last_name:desc">Last Name (Z-A)</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- Users Table -->
-                    <div class="table-responsive">
-                        <table class="table table-bordered table-hover table-sm db-table" id="usersSpecTable">
-                            <thead>
-                                <tr>
-                                    <th class="d-none d-md-table-cell">Username</th>
-                                    <th class="d-table-cell d-md-none">User</th>
-                                    <th class="d-none d-lg-table-cell">Email</th>
-                                    <th class="d-none d-sm-table-cell">First Name</th>
-                                    <th class="d-none d-sm-table-cell">Last Name</th>
-                                    <th class="d-none d-md-table-cell">User Type</th>
-                                    <th class="text-center">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody id="usersSpecTableBody">
-                                <tr>
-                                    <td colspan="7" class="text-center">
-                                        <div class="spinner-border text-primary" role="status">
-                                            <span class="visually-hidden">Loading...</span>
-                                        </div>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                    <nav aria-label="Page navigation">
-                        <ul class="pagination justify-content-center flex-wrap mt-2" id="usersSpecPagination"></ul>
-                    </nav>
-                </div>
-            </div>
-        </div>
-        <?php endif; ?>
     </div>
 
     <!-- Add/Edit Specialization Modal -->
@@ -347,50 +269,6 @@
     </div>
 </div>
 
-<!-- User Specialization Assignment Modal -->
-<div class="modal fade" id="userSpecAssignmentModal" tabindex="-1" aria-labelledby="userSpecAssignmentModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="userSpecAssignmentModalLabel">
-                    <i class="bi bi-person me-2"></i>Manage User Specializations
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div id="selectedUserInfoModal" class="mb-3 alert alert-info">
-                    <strong id="selectedUserNameModal"></strong><br>
-                    <small id="selectedUserEmailModal"></small>
-                </div>
-                
-                <!-- Current Specializations -->
-                <h6 class="mb-3">Current Specializations</h6>
-                <div id="userSpecializationsModal" class="mb-4"></div>
-                
-                <!-- Assign New Specializations -->
-                <hr>
-                <h6 class="mb-3">Assign New Specializations</h6>
-                <div class="mb-3">
-                    <label for="userSpecializationSelect" class="form-label">Select Specializations</label>
-                    <select class="form-select" id="userSpecializationSelect" multiple size="6">
-                        <option value="" disabled>Hold Ctrl/Cmd to select multiple</option>
-                    </select>
-                    <small class="text-muted">Hold Ctrl (Windows) or Cmd (Mac) to select multiple specializations</small>
-                </div>
-                <div class="mb-3">
-                    <label for="userSpecNotes" class="form-label">Notes (optional)</label>
-                    <textarea class="form-control" id="userSpecNotes" placeholder="Add notes about this specialization assignment..." rows="2"></textarea>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-success" id="assignToUserBtn">
-                    <i class="bi bi-plus-circle me-1"></i>Assign Specializations
-                </button>
-            </div>
-        </div>
-    </div>
-</div>
 </div>
 
 <script>
@@ -1036,19 +914,14 @@ $(document).ready(function() {
 
     // ==================== ASSIGNMENT MANAGEMENT ====================
     let myTeams = [];
-    let assignableUsers = [];
     let activeSpecializations = [];
     let selectedTeamId = null;
-    let selectedUserId = null;
     let currentTeamsPage = 1;
     const teamsPerPage = 10;
-    let currentUsersPage = 1;
-    const usersPerPage = 10;
 
     // Load all assignment data
     function loadAllAssignmentData() {
         loadMyTeams();
-        loadAssignableUsers();
         loadActiveSpecializations();
     }
 
@@ -1240,240 +1113,6 @@ $(document).ready(function() {
         }
     });
 
-    // Load assignable users
-    function loadAssignableUsers() {
-        $.ajax({
-            url: 'includes/specialization_assignment_api.php?action=get_assignable_users',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    assignableUsers = response.data;
-                    renderUsers();
-                } else {
-                    $('#usersSpecTableBody').html('<tr><td colspan="4" class="text-center text-muted">No assignable users</td></tr>');
-                }
-            },
-            error: function() {
-                $('#usersSpecTableBody').html('<tr><td colspan="4" class="text-center text-danger">Error loading users</td></tr>');
-            }
-        });
-    }
-
-    // Get role badge HTML
-    function getRoleBadge(role) {
-        const badgeClass = role.toLowerCase();
-        return `<span class="user-type-badge ${badgeClass}">${role}</span>`;
-    }
-
-    // Render users
-    function renderUsers(page = 1) {
-        currentUsersPage = page;
-        const tbody = $('#usersSpecTableBody');
-        tbody.empty();
-
-        // Get filter and sort values
-        const searchFilter = $('#userSearch').val().toLowerCase();
-        const roleFilter = $('#userRoleFilter').val();
-        const sortValue = $('#userSortSelect').val();
-
-        // Apply filters
-        let filtered = assignableUsers;
-        
-        // Search filter
-        if (searchFilter) {
-            filtered = filtered.filter(u => 
-                u.name.toLowerCase().includes(searchFilter) || 
-                u.email.toLowerCase().includes(searchFilter) ||
-                u.username.toLowerCase().includes(searchFilter) ||
-                u.first_name.toLowerCase().includes(searchFilter) ||
-                u.last_name.toLowerCase().includes(searchFilter)
-            );
-        }
-        
-        // Role filter
-        if (roleFilter) {
-            filtered = filtered.filter(u => u.role === roleFilter);
-        }
-
-        // Apply sorting
-        if (sortValue) {
-            const [sortField, sortOrder] = sortValue.split(':');
-            filtered.sort((a, b) => {
-                let aVal = a[sortField] || '';
-                let bVal = b[sortField] || '';
-                
-                // Convert to lowercase for string comparison
-                if (typeof aVal === 'string' && typeof bVal === 'string') {
-                    aVal = aVal.toLowerCase();
-                    bVal = bVal.toLowerCase();
-                }
-                
-                if (sortOrder === 'asc') {
-                    return aVal > bVal ? 1 : aVal < bVal ? -1 : 0;
-                } else {
-                    return aVal < bVal ? 1 : aVal > bVal ? -1 : 0;
-                }
-            });
-        }
-
-        if (filtered.length === 0) {
-            tbody.html('<tr><td colspan="7" class="text-center text-muted">No users found</td></tr>');
-            $('#usersSpecPagination').empty();
-            return;
-        }
-
-        // Pagination calculations
-        const totalPages = Math.ceil(filtered.length / usersPerPage);
-        const startIndex = (page - 1) * usersPerPage;
-        const endIndex = startIndex + usersPerPage;
-        const paginatedUsers = filtered.slice(startIndex, endIndex);
-
-        paginatedUsers.forEach(user => {
-            const row = `
-                <tr>
-                    <td class="d-none d-md-table-cell">${escapeHtml(user.username)}</td>
-                    <td class="d-table-cell d-md-none">
-                        <div class="fw-semibold">${escapeHtml(user.username)}</div>
-                        <div class="text-muted small">${escapeHtml(user.email)}</div>
-                    </td>
-                    <td class="d-none d-lg-table-cell">${escapeHtml(user.email)}</td>
-                    <td class="d-none d-sm-table-cell">${escapeHtml(user.first_name)}</td>
-                    <td class="d-none d-sm-table-cell">${escapeHtml(user.last_name)}</td>
-                    <td class="d-none d-md-table-cell">${getRoleBadge(user.role)}</td>
-                    <td class="text-center">
-                        <button class="btn btn-sm btn-primary assign-user-spec-btn" data-user-id="${user.id}" data-user-name="${escapeHtml(user.name)}" data-user-email="${escapeHtml(user.email)}" data-user-role="${escapeHtml(user.role)}">
-                            <i class="bi bi-mortarboard me-1"></i>Assign
-                        </button>
-                    </td>
-                </tr>
-            `;
-            tbody.append(row);
-        });
-
-        // Render pagination
-        renderUsersPagination(totalPages, page);
-    }
-
-    // Render users pagination
-    function renderUsersPagination(totalPages, currentPage) {
-        const pagination = $('#usersSpecPagination');
-        pagination.empty();
-
-        if (totalPages <= 1) return;
-
-        // Previous button
-        pagination.append(`
-            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
-            </li>
-        `);
-
-        // Page numbers with ellipsis
-        const startPage = Math.max(1, currentPage - 2);
-        const endPage = Math.min(totalPages, currentPage + 2);
-
-        if (startPage > 1) {
-            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
-            if (startPage > 2) {
-                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
-            }
-        }
-
-        for (let i = startPage; i <= endPage; i++) {
-            pagination.append(`
-                <li class="page-item ${currentPage === i ? 'active' : ''}">
-                    <a class="page-link" href="#" data-page="${i}">${i}</a>
-                </li>
-            `);
-        }
-
-        if (endPage < totalPages) {
-            if (endPage < totalPages - 1) {
-                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
-            }
-            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
-        }
-
-        // Next button
-        pagination.append(`
-            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
-            </li>
-        `);
-    }
-
-    // Handle users pagination clicks
-    $(document).on('click', '#usersSpecPagination a.page-link', function(e) {
-        e.preventDefault();
-        const page = parseInt($(this).data('page'));
-        if (!isNaN(page) && page !== currentUsersPage) {
-            renderUsers(page);
-        }
-    });
-
-    // Open user specialization modal
-    $(document).on('click', '.assign-user-spec-btn', function() {
-        const userId = $(this).data('user-id');
-        const userName = $(this).data('user-name');
-        const userEmail = $(this).data('user-email');
-        const userRole = $(this).data('user-role');
-        
-        selectedUserId = userId;
-        
-        // Update modal header
-        $('#selectedUserNameModal').text(userName);
-        $('#selectedUserEmailModal').html(`<i class="bi bi-envelope me-1"></i>${userEmail} | ${getRoleBadge(userRole)}`);
-        
-        // Load user's current specializations
-        loadUserSpecializationsInModal(userId);
-        
-        // Open modal
-        const modal = new bootstrap.Modal(document.getElementById('userSpecAssignmentModal'));
-        modal.show();
-    });
-
-    // Load user specializations in modal
-    function loadUserSpecializationsInModal(userId) {
-        $.ajax({
-            url: 'includes/specialization_assignment_api.php?action=get_user_specializations&user_id=' + userId,
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                renderUserSpecializationsInModal(response.data || []);
-            },
-            error: function() {
-                $('#userSpecializationsModal').html('<p class="text-danger">Error loading specializations</p>');
-            }
-        });
-    }
-
-    // Render user specializations in modal
-    function renderUserSpecializationsInModal(specs) {
-        const container = $('#userSpecializationsModal');
-        container.empty();
-
-        if (specs.length === 0) {
-            container.html('<p class="text-muted">No specializations assigned</p>');
-            return;
-        }
-
-        specs.forEach(spec => {
-            const item = `
-                <div class="d-flex justify-content-between align-items-start mb-2 p-2 border rounded">
-                    <div>
-                        <strong>${escapeHtml(spec.specialization_name)}</strong><br>
-                        <small class="text-muted">${escapeHtml(spec.notes || 'No notes')}</small>
-                    </div>
-                    <button class="btn btn-sm btn-outline-danger remove-user-spec-btn" data-spec-name="${escapeHtml(spec.specialization_name)}">
-                        <i class="bi bi-trash"></i>
-                    </button>
-                </div>
-            `;
-            container.append(item);
-        });
-    }
-
     // Load active specializations
     function loadActiveSpecializations() {
         $.ajax({
@@ -1492,15 +1131,12 @@ $(document).ready(function() {
     // Populate specialization dropdowns
     function populateSpecializationSelects() {
         const teamSelect = $('#teamSpecializationSelect');
-        const userSelect = $('#userSpecializationSelect');
         
         teamSelect.empty().append('<option value="">Select Specialization</option>');
-        userSelect.empty().append('<option value="">Select Specialization</option>');
         
         activeSpecializations.forEach(spec => {
-            const option = `<option value="${spec.id}">${escapeHtml(spec.name)} ${spec.college ? `(${escapeHtml(spec.college)})` : ''}</option>`;
+            const option = `<option value="${spec.id}">${escapeHtml(spec.name)}</option>`;
             teamSelect.append(option);
-            userSelect.append(option);
         });
     }
 
@@ -1565,8 +1201,6 @@ $(document).ready(function() {
         });
     }
 
-    // Old user functions removed - now using modal versions (loadUserSpecializationsInModal, renderUserSpecializationsInModal)
-
     // Assign to team
     $('#assignToTeamBtn').click(function() {
         const specializationId = $('#teamSpecializationSelect').val();
@@ -1600,63 +1234,6 @@ $(document).ready(function() {
         });
     });
 
-    // Assign to user
-    $('#assignToUserBtn').click(function() {
-        const specializationIds = $('#userSpecializationSelect').val();
-        const notes = $('#userSpecNotes').val();
-
-        if (!specializationIds || specializationIds.length === 0 || !selectedUserId) {
-            showAlert('danger', 'Please select at least one specialization');
-            return;
-        }
-
-        // Assign each specialization
-        let assignedCount = 0;
-        let failedCount = 0;
-        const totalCount = specializationIds.length;
-
-        specializationIds.forEach((specId, index) => {
-            $.ajax({
-                url: 'includes/specialization_assignment_api.php',
-                method: 'POST',
-                data: {
-                    action: 'assign_to_user',
-                    user_id: selectedUserId,
-                    specialization_id: specId,
-                    notes: notes
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        assignedCount++;
-                    } else {
-                        failedCount++;
-                    }
-                    
-                    // Check if this is the last request
-                    if (assignedCount + failedCount === totalCount) {
-                        if (assignedCount > 0) {
-                            showAlert('success', `${assignedCount} specialization(s) assigned successfully`);
-                        }
-                        if (failedCount > 0) {
-                            showAlert('warning', `${failedCount} specialization(s) could not be assigned (possibly already assigned)`);
-                        }
-                        $('#userSpecializationSelect').val([]);
-                        $('#userSpecNotes').val('');
-                        loadUserSpecializationsInModal(selectedUserId);
-                    }
-                },
-                error: function() {
-                    failedCount++;
-                    if (assignedCount + failedCount === totalCount) {
-                        showAlert('danger', 'Some assignments failed');
-                        loadUserSpecializationsInModal(selectedUserId);
-                    }
-                }
-            });
-        });
-    });
-
     // Remove from team
     $(document).on('click', '.remove-team-spec-btn', function() {
         const specName = $(this).data('spec-name');
@@ -1681,47 +1258,6 @@ $(document).ready(function() {
                 }
             });
         }
-    });
-
-    // Remove from user
-    $(document).on('click', '.remove-user-spec-btn', function() {
-        const specName = $(this).data('spec-name');
-        
-        if (confirm('Remove this specialization from the user?')) {
-            $.ajax({
-                url: 'includes/specialization_assignment_api.php',
-                method: 'POST',
-                data: {
-                    action: 'remove_from_user',
-                    user_id: selectedUserId,
-                    specialization_name: specName
-                },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', response.message);
-                        loadUserSpecializationsInModal(selectedUserId);
-                    } else {
-                        showAlert('danger', response.message);
-                    }
-                }
-            });
-        }
-    });
-
-    // User search
-    $('#userSearch').on('input', function() {
-        renderUsers(1);
-    });
-
-    // User role filter change
-    $('#userRoleFilter').change(function() {
-        renderUsers(1);
-    });
-
-    // User sort change
-    $('#userSortSelect').change(function() {
-        renderUsers(1);
     });
 
     // Team search
@@ -1805,8 +1341,8 @@ $(document).ready(function() {
     });
 
     // Load assignment data when assignment tab buttons are clicked
-    $('.spec-tab-btn[data-spec-tab="teamAssignment"], .spec-tab-btn[data-spec-tab="userAssignment"]').on('click', function() {
-        if (myTeams.length === 0 && assignableUsers.length === 0) {
+    $('.spec-tab-btn[data-spec-tab="teamAssignment"]').on('click', function() {
+        if (myTeams.length === 0) {
             loadAllAssignmentData();
         }
     });

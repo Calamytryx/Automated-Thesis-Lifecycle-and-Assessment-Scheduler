@@ -2,6 +2,7 @@
 // Include necessary files
 require_once '../../assets/setup/db.inc.php';
 require_once '../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
 
 // Start session if not already started
 if (session_status() == PHP_SESSION_NONE) {
@@ -16,6 +17,17 @@ $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 $userId = $_SESSION['id'];
 $usertype = $_SESSION['usertype'];
 $response = ['success' => false, 'message' => 'Unknown error'];
+
+$isProgramChair = ($usertype == 0 && $userId != 0);
+$isSectionProfessor = ((int)$usertype === 2 && userCanAccessDashboard($pdo, (int)$userId, (int)$usertype));
+
+if ($table === 'users' && ($isProgramChair || $isSectionProfessor)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'You have read-only access to the Users tab.'
+    ]);
+    exit;
+}
 
 try {
     // For admin users (usertype 0) who aren't the superadmin (userId 0), check their college

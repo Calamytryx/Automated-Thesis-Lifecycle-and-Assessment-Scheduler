@@ -39,6 +39,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
+    $isProgramChair = ($usertype == 0 && $userId != 0);
+    $isSectionProfessor = ((int)$usertype === 2 && userCanAccessDashboard($pdo, (int)$userId, (int)$usertype));
+
+    if ($table === 'users' && ($isProgramChair || $isSectionProfessor)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'You have read-only access to the Users tab.'
+        ]);
+        exit;
+    }
+
     // Special file upload handling for requirements
     if ($table === 'requirements' && isset($_FILES['template_file']) && $_FILES['template_file']['error'] === UPLOAD_ERR_OK) {
         $uploadResult = handleRequirementTemplateUpload($_FILES['template_file']);

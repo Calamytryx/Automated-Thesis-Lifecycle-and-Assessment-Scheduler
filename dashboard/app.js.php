@@ -1924,7 +1924,7 @@
 
 
                             // Populate the programs dropdown
-                            populateProgramDropdown($('#program_id'), response.data.program);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program);
 
                             $('#usertype').on('change', function () {
                                 const usertype = $(this).val();
@@ -2129,7 +2129,7 @@
                             form.html(formHtml);
 
                             // Populate the programs dropdown
-                            populateProgramDropdown($('#program_id'), response.data.program_id);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program_id);
                         } else if (table === 'env_variables') {
 
                             if (response.data.key === 'APP_LOGO_NAVBAR') {
@@ -3251,7 +3251,7 @@
                 ValidationUtils.setupRealTimeValidation('#addForm');
 
                 // Populate the programs dropdown
-                populateProgramDropdown($('#program_id'));
+                populateProgramDropdown($('#addForm #program_id'));
 
                 // Add event listener for usertype change in add form
                 $('#addForm').on('change', '#usertype', function () {
