@@ -4,8 +4,8 @@
     <!-- Header with title and description -->
     <div class="row mb-4">
       <div class="col-12">
-        <h3 class="mb-2">Programs</h3>
-        <p class="text-muted">Manage academic programs and their associated colleges</p>
+        <h3 class="mb-2">Academic Structure</h3>
+        <p class="text-muted">Manage colleges, departments, program names, and specializations</p>
         <?php if ($_SESSION['usertype'] == 0): ?>
         <div class="mt-2">
           <a href="#users" class="tab-redirect-link" onclick="document.getElementById('users-tab').click(); return false;">

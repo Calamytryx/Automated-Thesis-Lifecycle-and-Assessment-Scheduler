@@ -299,9 +299,21 @@ main {
     padding: 4px 12px;
     border: 1px solid;
     transition: all 0.2s ease;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     text-align: center;
     line-height: 1.4;
+}
+
+.navbar-user-badge-wrap {
+    min-width: 0;
 }
 
 .navbar-user-type-badge.navbar-role-admin {
@@ -330,6 +342,13 @@ main {
 
 /* Make navbar badges responsive */
 @media (max-width: 767.98px) {
+    .navbar-user-badge-wrap {
+        width: 100%;
+        /* justify-content: flex-start !important; */
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+
     .navbar-user-type-badge {
         font-size: 0.6875rem;
         padding: 3px 8px;

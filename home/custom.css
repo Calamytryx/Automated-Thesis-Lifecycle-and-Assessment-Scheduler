@@ -738,7 +738,7 @@ main.container-fluid {
         width: 100%;
         display: flex;
         z-index: 1041;
-        height: 60px;
+        /* height: 60px; */
     }
     
     .home-profile-dropdown-container {
@@ -1130,6 +1130,15 @@ body.has-collapsed-home-sidebar #homeMainContent {
     max-width: 100%;
     vertical-align: middle;
     cursor: default;
+}
+
+/* Team name truncation in Overview > Team Information card */
+.team-overview .team-info-title-ellipsis {
+    display: block;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 /* Defense Stage Badge Styling */

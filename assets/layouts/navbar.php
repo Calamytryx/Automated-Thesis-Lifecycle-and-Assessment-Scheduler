@@ -16,10 +16,11 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
             <!-- Navbar user Program and role -->
-            <div class="d-flex align-items-center me-3 justify-content-center">
+            <div class="d-flex align-items-center me-3 justify-content-center flex-wrap navbar-user-badge-wrap">
                 <?php
                 $userType = $_SESSION['usertype'];
                 $userId = $_SESSION['id'];
+                $programChairFlag = isset($_SESSION['program_chair']) ? (int)$_SESSION['program_chair'] : null;
                 $roleLabel = '';
                 $roleClass = '';
                 $canAccessDashboard = false;
@@ -28,7 +29,9 @@
                 $canAccessDashboard = userCanAccessDashboard($pdo, (int)$userId, (int)$userType);
 
                 if ($userType == 0) {
-                    if (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1) {
+                    // Super admin (id=0) keeps Admin label; other type-0 accounts are Program Chair.
+                    $isProgramChair = ($userId != 0) || ($programChairFlag === 1);
+                    if ($isProgramChair) {
                         $roleLabel = 'Program Chair';
                         $roleClass = 'navbar-role-admin';
                     } else {
@@ -45,6 +48,13 @@
                     $roleLabel = 'Unknown';
                     $roleClass = 'navbar-role-user';
                 }
+
+                $program = trim((string)($_SESSION['program'] ?? ''));
+                // Preserve legacy stored values like "Program - Track" by keeping only the base program name.
+                if ($program !== '') {
+                    $program = preg_replace('/\s-\s.*$/', '', $program);
+                }
+
                 if ($_SESSION['id'] == 0) {
                     echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">ITD</span>';
                 } else
@@ -84,12 +94,11 @@
                             }
                         }
                     }
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
+                    $studentBadgeText = $roleLabel . ($program !== '' ? ' - ' . $program : '');
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($studentBadgeText) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
                 } else if ($userType == 0 || $userType == 2) {
-                    $program = $_SESSION['program'];
-                    // Cut at the space before "-", if present
-                    $program = preg_replace('/\s-.*$/', '', $program);
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $program) . '</span>';
+                    $staffBadgeText = $roleLabel . ($program !== '' ? ' - ' . $program : '');
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($staffBadgeText) . '</span>';
                 }
                 else {
                     echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Unknown Role</span>';

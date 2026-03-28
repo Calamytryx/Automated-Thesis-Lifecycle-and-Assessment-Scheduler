@@ -412,9 +412,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-file-text me-2 hollow"></i>
                                         <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
                                     </a>
+                                    <!-- Previously Programs tab -->
                                     <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
-                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Academic Structure
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
@@ -453,9 +454,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <!-- Previously Team Overrides and Panelist tab -->
                                     <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
                                         <i class="bi bi-shield-lock me-2 hollow"></i>
-                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Defense Configuration
                                     </a>
                                 </div>
                             </div>
@@ -603,9 +605,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-file-text me-2 hollow"></i>
                                         <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
                                     </a>
+                                    <!-- Previously Programs tab -->
                                     <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
-                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Academic Structure 
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
@@ -644,9 +647,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <!-- Previously Team Overrides and Panelist tab -->
                                     <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
                                         <i class="bi bi-shield-lock me-2 hollow"></i>
-                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Defense Configuration
                                     </a>
                                 </div>
                             </div>

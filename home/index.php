@@ -351,6 +351,7 @@ function fetchFacultyDashboard() {
 function renderAdviseeTeamCard(teamIndex) {
     const team = window.adviseeTeamsData[teamIndex];
     if (!team) return;
+    const safeTeamName = escapeHtml(team.name || 'N/A');
     
     const container = document.getElementById('adviseeTeamContent');
     if (!container) return;
@@ -402,7 +403,7 @@ function renderAdviseeTeamCard(teamIndex) {
                         <h5 class="mb-0">Team Information</h5>
                     </div>
                     <div class="card-body">
-                        <h3 class="card-title">${team.name}</h3>
+                        <h3 class="card-title team-info-title-ellipsis" title="${safeTeamName}">${safeTeamName}</h3>
                         <p class="card-text mb-2">
                             <span class="program-pill" title="${team.program || 'N/A'}">${team.program || 'N/A'}</span>
                         </p>
@@ -1859,7 +1860,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
                                     <p class="user-role"><?php 
                                         if ($_SESSION['usertype'] == 0) {
-                                            echo "Administrator";
+                                            if (isset($_SESSION['program_chair']) && (int)$_SESSION['program_chair'] === 1) {
+                                                echo "Program Chair";
+                                            } else {
+                                                echo "Administrator";
+                                            }
                                         } elseif ($_SESSION['usertype'] == 1) {
                                             echo "Student";
                                         } elseif ($_SESSION['usertype'] == 2) {

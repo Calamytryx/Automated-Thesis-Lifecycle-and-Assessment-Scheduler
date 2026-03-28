@@ -4,8 +4,8 @@
         <!-- Header Row -->
         <div class="row mb-4">
             <div class="col">
-                <h3 class="mb-2">Team Management</h3>
-                <p class="text-muted">Manage defense types, panelist assignments, and admin overrides for special cases.</p>
+                <h3 class="mb-2">Defense Configuration</h3>
+                <p class="text-muted">Manage defense types, panelist assignments, and team override settings.</p>
             </div>
         </div>
 
