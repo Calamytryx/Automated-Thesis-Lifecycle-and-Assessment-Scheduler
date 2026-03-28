@@ -447,7 +447,7 @@ try {
 
     // 5. Fetch Existing Evaluation Data (New Logic)
     $stmt_existing_eval = $pdo->prepare("
-        SELECT epp.id as evaluation_id, epp.comments, ed.rubric_id, ed.criterion_id, ed.student_id, ed.score, ed.selected_option
+        SELECT epp.id as evaluation_id, epp.comments, epp.updated_at, ed.rubric_id, ed.criterion_id, ed.student_id, ed.score, ed.selected_option
         FROM evaluation_per_panel epp
         LEFT JOIN evaluation_details ed ON epp.id = ed.evaluation_id
         WHERE epp.defense_schedule_id = :schedule_id AND epp.evaluator_id = :evaluator_id
@@ -457,9 +457,17 @@ try {
      error_log("DS-Index: Fetched " . count($existing_raw) . " rows for existing evaluation data.");
 
      if (!empty($existing_raw)) {
+         $latest_comment_edit_ts = null;
+         foreach ($existing_raw as $row) {
+             if (!empty($row['updated_at']) && ($latest_comment_edit_ts === null || strtotime($row['updated_at']) > strtotime($latest_comment_edit_ts))) {
+                 $latest_comment_edit_ts = $row['updated_at'];
+             }
+         }
+
          $existing_evaluation = [
              'evaluation_id' => $existing_raw[0]['evaluation_id'],
              'comments' => $existing_raw[0]['comments'],
+            'last_edited_at' => $latest_comment_edit_ts,
              'details' => []
          ];
          foreach ($existing_raw as $detail) {
@@ -531,6 +539,14 @@ try {
     echo "<div class='container mt-5'><div class='alert alert-danger'>Application Error: " . htmlspecialchars($e->getMessage()) . " Please contact support. Error Ref: " . $error_ref . "</div></div>";
     include '../assets/layouts/footer.php';
     exit;
+}
+
+$comments_last_edited_display = '';
+if (!empty($existing_evaluation['last_edited_at'])) {
+    $last_edit_ts = strtotime($existing_evaluation['last_edited_at']);
+    if ($last_edit_ts !== false) {
+        $comments_last_edited_display = date('M d, Y g:i A', $last_edit_ts);
+    }
 }
 
 // --- Helper Function to Render Numerical Rubric ---
@@ -1530,6 +1546,9 @@ include '../assets/layouts/header.php';
                     <label for="comments" class="form-label">Overall Comments</label>
                     <textarea class="form-control" id="comments" name="comments" rows="4"><?php echo htmlspecialchars($existing_evaluation['comments'] ?? ''); ?></textarea>
                     <small class="form-text text-muted">Provide overall feedback, strengths, weaknesses, and recommendations based on the rubrics above.</small>
+                    <?php if (!empty($comments_last_edited_display)): ?>
+                    <small id="commentsLastEditedText" class="form-text text-muted d-block mt-1">Last edited: <?php echo htmlspecialchars($comments_last_edited_display); ?></small>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Submit Button -->
@@ -2179,6 +2198,10 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">OVERALL COMMENTS</h3>';
         const comments = document.getElementById('comments')?.value || 'No comments provided.';
         html += '<div style="padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; font-family: inherit;">' + escapeHtml(comments) + '</div>';
+        const commentsLastEditedText = document.getElementById('commentsLastEditedText')?.textContent?.trim() || '';
+        if (commentsLastEditedText) {
+            html += '<div style="margin-top: 8px; font-size: 0.85em; color: #666;">' + escapeHtml(commentsLastEditedText) + '</div>';
+        }
         html += '</div>';
         
         // Evaluator Section
