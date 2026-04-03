@@ -588,6 +588,11 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 }
 
                                 scheduleItem.innerHTML = displayContent;
+                                const deleteBtn = scheduleItem.querySelector('.delete-btn');
+                                if (deleteBtn) {
+                                    const selectedScheduleLabel = `${schedule.class_name || 'Class'} (${schedule.day_of_week || 'Day'} ${startTime} - ${endTime})`;
+                                    deleteBtn.dataset.deleteLabel = selectedScheduleLabel;
+                                }
                                 scheduleItem.setAttribute('data-id', schedule.id);
                                 scheduleItem.setAttribute('title',
                                     `${schedule.class_name} (${startTime} - ${endTime})`);

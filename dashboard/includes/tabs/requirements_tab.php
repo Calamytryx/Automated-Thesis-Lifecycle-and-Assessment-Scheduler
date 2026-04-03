@@ -193,6 +193,7 @@
                 
                 const btn = e.target.closest('.meatball-btn');
                 const requirementId = btn.getAttribute('data-requirement-id');
+                const requirementName = btn.closest('tr')?.querySelector('td')?.textContent?.trim() || 'Unnamed requirement';
                 let dropdown = document.getElementById(`requirement-dropdown-${requirementId}`);
                 
                 // Close all other dropdowns first
@@ -227,6 +228,10 @@
                             Delete
                         </button>
                     `;
+                    const deleteBtn = dropdown.querySelector('.delete-btn');
+                    if (deleteBtn) {
+                        deleteBtn.dataset.deleteLabel = requirementName;
+                    }
                     document.body.appendChild(dropdown);
                 }
                 

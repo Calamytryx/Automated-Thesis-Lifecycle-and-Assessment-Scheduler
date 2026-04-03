@@ -410,6 +410,10 @@
                         }
                         
                         dropdownPortal.innerHTML = dropdownHTML;
+                        const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+                        if (deleteBtn) {
+                            deleteBtn.dataset.deleteLabel = team.name || 'Unnamed team';
+                        }
                         document.body.appendChild(dropdownPortal);
                     });
 

@@ -226,6 +226,31 @@
     </div>
 </div>
 
+<!-- Delete Specialization Confirmation Modal -->
+<div class="modal fade" id="specializationDeleteConfirmModal" tabindex="-1" aria-labelledby="specializationDeleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+                    </svg>
+                </div>
+                <h4 class="fw-bold mb-3" id="specializationDeleteConfirmModalLabel">Confirm Deletion</h4>
+                <p>Are you sure you want to delete <span id="specializationDeleteTarget" class="fw-semibold">this field of specialization</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmSpecializationDeleteBtn">Delete</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <!-- Team Specialization Assignment Modal -->
 <div class="modal fade" id="teamSpecAssignmentModal" tabindex="-1" aria-labelledby="teamSpecAssignmentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg">
@@ -273,6 +298,10 @@
 
 <script>
 $(document).ready(function() {
+    const specializationDeleteConfirmModal = new bootstrap.Modal(document.getElementById('specializationDeleteConfirmModal'));
+    let specializationIdToDelete = null;
+    let specializationNameToDelete = 'this field of specialization';
+
     // ==================== TAB SWITCHING ====================
     const specTabButtons = document.querySelectorAll('.spec-tab-btn');
     const specTabPanes = document.querySelectorAll('.spec-tab-pane');
@@ -434,6 +463,10 @@ $(document).ready(function() {
                     Delete
                 </button>
             `;
+            const deleteBtn = dropdownPortal.querySelector('.delete-spec-btn');
+            if (deleteBtn) {
+                deleteBtn.dataset.specName = spec.name || 'Unnamed field';
+            }
             
             // Ensure it's appended to body
             try {
@@ -828,6 +861,10 @@ $(document).ready(function() {
                 Delete
             </button>
         `;
+        const deleteBtn = dropdownPortal.querySelector('.delete-spec-btn');
+        if (deleteBtn) {
+            deleteBtn.dataset.specName = spec.name || 'Unnamed field';
+        }
         document.body.appendChild(dropdownPortal);
     }
 
@@ -841,28 +878,41 @@ $(document).ready(function() {
 
     // Delete specialization
     $(document).on('click', '.delete-spec-btn', function() {
-        const id = $(this).data('id');
-        
-        if (confirm('Are you sure you want to delete this specialization? This action cannot be undone.')) {
-            $.ajax({
-                url: 'includes/specialization_pool_api.php',
-                method: 'POST',
-                data: { action: 'delete', id: id },
-                dataType: 'json',
-                success: function(response) {
-                    if (response.success) {
-                        showAlert('success', response.message);
-                        loadSpecializations();
-                        loadActiveSpecializations(); // Reload for assignment dropdowns
-                    } else {
-                        showAlert('danger', response.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    showAlert('danger', 'Error: ' + error);
-                }
-            });
+        specializationIdToDelete = $(this).data('id');
+        specializationNameToDelete = $(this).data('specName') || 'this field of specialization';
+        $('#specializationDeleteTarget').text(specializationNameToDelete);
+        specializationDeleteConfirmModal.show();
+    });
+
+    $('#confirmSpecializationDeleteBtn').on('click', function() {
+        if (!specializationIdToDelete) {
+            specializationDeleteConfirmModal.hide();
+            return;
         }
+
+        const id = specializationIdToDelete;
+        specializationIdToDelete = null;
+
+        $.ajax({
+            url: 'includes/specialization_pool_api.php',
+            method: 'POST',
+            data: { action: 'delete', id: id },
+            dataType: 'json',
+            success: function(response) {
+                specializationDeleteConfirmModal.hide();
+                if (response.success) {
+                    showAlert('success', response.message);
+                    loadSpecializations();
+                    loadActiveSpecializations(); // Reload for assignment dropdowns
+                } else {
+                    showAlert('danger', response.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                specializationDeleteConfirmModal.hide();
+                showAlert('danger', 'Error: ' + error);
+            }
+        });
     });
 
     // College filter change - update department filter dynamically

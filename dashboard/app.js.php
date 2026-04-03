@@ -3872,12 +3872,32 @@
             e.preventDefault();
             var table = $(this).data('table');
             var id = $(this).data('id');
+            var customDeleteLabel = $(this).data('deleteLabel');
+            var rowFirstColumnText = $(this).closest('tr').find('td').first().text().replace(/\s+/g, ' ').trim();
+
+            const tableLabelMap = {
+                users: 'this user',
+                teams: 'this team',
+                user_schedules: 'this professor schedule',
+                research_titles: 'this research title',
+                programs: 'this academic program',
+                requirements: 'this requirement',
+                rubrics: 'this rubric',
+                rubric_groups: 'this rubric group',
+                defense_schedules: 'this defense schedule',
+                env_variables: 'this content page',
+                thesis_topics: 'this thesis topic'
+            };
 
             console.log('Delete button clicked. Table:', table, 'ID:', id);
 
-            // Populate the modal
-            $('#deleteTableName').text(table);
-            $('#deleteItemId').text(id);
+            // Populate the modal with either a custom label or a readable fallback.
+            if (!customDeleteLabel && rowFirstColumnText) {
+                customDeleteLabel = rowFirstColumnText;
+            }
+            var fallbackTargetLabel = tableLabelMap[table] || ('this item in ' + String(table).replace(/_/g, ' '));
+            var targetLabel = customDeleteLabel || (fallbackTargetLabel + ' (ID: ' + id + ')');
+            $('#deleteTargetLabel').text(targetLabel);
 
             // Store data on the confirm button for later use
             $('#confirmDelete').data('table', table);
@@ -5146,20 +5166,20 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                             d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
                     </svg>
                 </div>
-                <p>Are you sure you want to delete this item?</p>
-                <p class="mb-0"><strong>Table:</strong> <span id="deleteTableName"></span></p>
-                <p class="mb-0"><strong>ID:</strong> <span id="deleteItemId"></span></p>
+                <h4 class="fw-bold mb-3" id="deleteConfirmModalLabel">Confirm Deletion</h4>
+                <p>Are you sure you want to delete <span id="deleteTargetLabel" class="fw-semibold">this item</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

@@ -1042,13 +1042,14 @@
         <div class="modal fade" id="defConfirmModal" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">
-                    <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+                    <div class="modal-header border-0 pb-0 justify-content-end">
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body text-center">
-                        <div id="defConfirmIcon" style="font-size: 3rem; margin-bottom: 1rem;"></div>
+                        <div id="defConfirmIcon" class="mb-3" style="font-size: 3rem;"></div>
                         <h4 class="fw-bold mb-3" id="defConfirmTitle"></h4>
                         <p id="defConfirmMessage"></p>
+                        <p class="text-muted mb-0 d-none" id="defConfirmUndoNote">This action cannot be undone.</p>
                         <div id="defConfirmPromptWrap" class="d-none">
                             <textarea class="form-control mt-2" id="defConfirmPromptInput" rows="2" placeholder=""></textarea>
                         </div>
@@ -1098,6 +1099,8 @@
                     document.getElementById('defConfirmIcon').innerHTML = iconMap[actionType] || dangerIcon;
                     document.getElementById('defConfirmTitle').textContent = title;
                     document.getElementById('defConfirmMessage').textContent = message;
+                    const showUndoNote = /delete/i.test(title) || /delete/i.test(message) || /delete/i.test(actionText);
+                    document.getElementById('defConfirmUndoNote').classList.toggle('d-none', !showUndoNote);
                     document.getElementById('defConfirmPromptWrap').classList.add('d-none');
                     const actionBtn = document.getElementById('defConfirmActionBtn');
                     actionBtn.className = 'btn btn-' + actionType;
@@ -1110,6 +1113,8 @@
                     document.getElementById('defConfirmIcon').innerHTML = iconMap[actionType] || dangerIcon;
                     document.getElementById('defConfirmTitle').textContent = title;
                     document.getElementById('defConfirmMessage').textContent = message;
+                    const showUndoNote = /delete/i.test(title) || /delete/i.test(message) || /delete/i.test(actionText);
+                    document.getElementById('defConfirmUndoNote').classList.toggle('d-none', !showUndoNote);
                     const promptWrap = document.getElementById('defConfirmPromptWrap');
                     const promptInput = document.getElementById('defConfirmPromptInput');
                     promptWrap.classList.remove('d-none');
@@ -1840,6 +1845,14 @@
                                 <button class="meatball-dropdown-item delete-item delete-btn" data-table="defense_schedules" data-id="${defId}">
                                     <i class="fas fa-trash-alt"></i> Delete
                                 </button>`;
+
+                            const matchedSchedule = allScheduleData.find(s => String(s.id) === String(defId));
+                            const deleteBtn = dropdown.querySelector('.delete-btn');
+                            if (deleteBtn && matchedSchedule) {
+                                const scheduleDate = matchedSchedule.schedule_date ? formatDate(matchedSchedule.schedule_date) : 'Unknown date';
+                                const teamName = matchedSchedule.team_name || 'Unknown team';
+                                deleteBtn.dataset.deleteLabel = `${scheduleDate} - ${teamName}`;
+                            }
                             document.body.appendChild(dropdown);
                         }
 

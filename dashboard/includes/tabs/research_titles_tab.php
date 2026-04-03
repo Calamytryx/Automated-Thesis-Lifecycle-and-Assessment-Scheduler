@@ -187,6 +187,10 @@
                                 Delete
                             </button>
                         `;
+                        const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+                        if (deleteBtn) {
+                            deleteBtn.dataset.deleteLabel = title.title || 'Untitled research title';
+                        }
                         document.body.appendChild(dropdownPortal);
                     });
 

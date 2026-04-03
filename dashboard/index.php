@@ -949,28 +949,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     </div>
 </div>
 
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-dialog-centered">
-        <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                    <h5 class="mt-3">Delete Confirmation</h5>
-                    <p>Are you sure you want to delete this item from <span id="deleteTableName" class="fw-bold"></span> with ID <span id="deleteItemId" class="fw-bold"></span>?</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
-        </div>
-    </div>
-</div>
-
 <?php include '../assets/layouts/footer.php'; ?>
 <!-- AI GEMINI MODULE -->
 <!-- Main Module JS -->
@@ -1317,7 +1295,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             e.stopPropagation();
             
             const pageId = $(this).data('id');
+            const pageTitle = $(this).data('title');
             $('#delete_page_id').val(pageId);
+            $('#deletePageTargetLabel').text(pageTitle ? `"${pageTitle}"` : `page ID ${pageId}`);
             $('#deletePageModal').modal('show');
             
             // Return false to prevent other handlers from executing

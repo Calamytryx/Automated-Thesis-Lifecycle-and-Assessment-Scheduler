@@ -114,14 +114,16 @@
 <div class="modal fade" id="rubricGroupDeleteConfirmModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
                 </div>
-                <p>Are you sure you want to delete this rubric group? This cannot be undone.</p>
+                <h4 class="fw-bold mb-3">Confirm Deletion</h4>
+                <p>Are you sure you want to delete <span id="rubricGroupDeleteTarget" class="fw-semibold">this rubric group</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
                 <input type="hidden" id="groupToDeleteId">
             </div>
             <div class="modal-footer">
@@ -567,7 +569,13 @@ $(document).ready(function() {
     // --- Delete Group ---
     $(document).on('click', '.delete-group-btn', function() {
         const groupId = $(this).data('id');
+        const groupName = $(this).data('groupName') || 'this rubric group';
+        const groupDescription = ($(this).data('groupDescription') || '').toString().trim();
+        const deleteLabel = groupDescription && groupDescription !== 'N/A'
+            ? `${groupName} - ${groupDescription}`
+            : groupName;
         $('#groupToDeleteId').val(groupId);
+        $('#rubricGroupDeleteTarget').text(deleteLabel);
         rubricGroupDeleteModal.show();
     });
 
@@ -608,6 +616,8 @@ $(document).ready(function() {
             
             const btn = e.target.closest('.meatball-btn');
             const groupId = btn.getAttribute('data-group-id');
+            const groupName = btn.closest('tr')?.querySelector('td')?.textContent?.trim() || 'Unnamed rubric group';
+            const groupDescription = btn.closest('tr')?.querySelectorAll('td')?.[1]?.textContent?.trim() || '';
             let dropdown = document.getElementById(`rubric-group-dropdown-${groupId}`);
             
             // Close all other dropdowns first
@@ -642,6 +652,11 @@ $(document).ready(function() {
                         Delete
                     </button>
                 `;
+                const deleteBtn = dropdown.querySelector('.delete-group-btn');
+                if (deleteBtn) {
+                    deleteBtn.dataset.groupName = groupName;
+                    deleteBtn.dataset.groupDescription = groupDescription;
+                }
                 document.body.appendChild(dropdown);
             }
             

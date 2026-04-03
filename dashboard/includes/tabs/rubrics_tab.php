@@ -302,14 +302,16 @@
 <div class="modal fade" id="rubricDeleteConfirmModal" tabindex="-1">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
                 </div>
-                <p>Are you sure you want to delete this rubric?</p>
+                <h4 class="fw-bold mb-3">Confirm Deletion</h4>
+                <p>Are you sure you want to delete <span id="rubricDeleteTarget" class="fw-semibold">this rubric</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
                 <input type="hidden" id="rubricToDeleteId">
             </div>
             <div class="modal-footer">
@@ -1680,8 +1682,9 @@
     }
 
     // Function to initiate rubric deletion
-    function deleteRubric(rubricId) {
+    function deleteRubric(rubricId, rubricName = 'this rubric') {
         $('#rubricToDeleteId').val(rubricId);
+        $('#rubricDeleteTarget').text(rubricName);
         $('#rubricDeleteConfirmModal').modal('show');
     }
 
@@ -1826,7 +1829,8 @@
             e.stopPropagation();
 
             var rubricId = $(this).data('id');
-            deleteRubric(rubricId);
+            var rubricName = $(this).data('rubricName') || 'this rubric';
+            deleteRubric(rubricId, rubricName);
             return false; // Important: prevent other handlers from running
         });
 
@@ -2171,6 +2175,7 @@
                 
                 const btn = e.target.closest('.meatball-btn');
                 const rubricId = btn.getAttribute('data-rubric-id');
+                const rubricName = btn.closest('tr')?.querySelector('td')?.textContent?.trim() || 'Unnamed rubric';
                 let dropdown = document.getElementById(`rubric-dropdown-${rubricId}`);
                 
                 // Close all other dropdowns first
@@ -2205,6 +2210,10 @@
                             Delete
                         </button>
                     `;
+                    const deleteBtn = dropdown.querySelector('.delete-rubric-btn');
+                    if (deleteBtn) {
+                        deleteBtn.dataset.rubricName = rubricName;
+                    }
                     document.body.appendChild(dropdown);
                 }
                 

@@ -78,7 +78,7 @@
                     </svg>
                 </div>
                 <h4 class="fw-bold mb-3" id="profAssignDeleteConfirmModalLabel">Confirm Removal</h4>
-                <p>Are you sure you want to remove this assignment?</p>
+                <p>Are you sure you want to remove <span id="profAssignDeleteTarget" class="fw-semibold">this assignment</span>?</p>
                 <p class="text-muted mb-0">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
@@ -126,10 +126,15 @@ function notifyUser(title, message, type = 'success') {
     alert(`${title}: ${message}`);
 }
 
-function confirmDeleteAssignment() {
+function confirmDeleteAssignment(targetLabel = 'this assignment') {
     return new Promise(function(resolve) {
         const modalElement = document.getElementById('profAssignDeleteConfirmModal');
         const confirmButton = document.getElementById('confirmProfAssignDeleteBtn');
+        const targetElement = document.getElementById('profAssignDeleteTarget');
+
+        if (targetElement) {
+            targetElement.textContent = targetLabel;
+        }
 
         if (!modalElement || !confirmButton || typeof bootstrap === 'undefined') {
             resolve(confirm('Remove this assignment?'));
@@ -398,7 +403,12 @@ function assignProfessor() {
 
 // Delete assignment
 function deleteAssignment(assignmentId) {
-    confirmDeleteAssignment().then(function(confirmed) {
+    const assignment = (currentAssignments || []).find(item => String(item.id) === String(assignmentId));
+    const section = assignment?.section || 'Unknown section';
+    const professorName = assignment?.first_name ? `${assignment.first_name} ${assignment.last_name}` : 'Unknown professor';
+    const assignmentLabel = `${section} - ${professorName}`;
+
+    confirmDeleteAssignment(assignmentLabel).then(function(confirmed) {
         if (!confirmed) return;
 
         $.ajax({

@@ -206,6 +206,12 @@
                 Delete
               </button>
             `;
+            const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+            if (deleteBtn) {
+              const programName = program.name || 'Unnamed program';
+              const specialization = (program.specialization || '').trim();
+              deleteBtn.dataset.deleteLabel = specialization ? `${programName} (${specialization})` : programName;
+            }
             document.body.appendChild(dropdownPortal);
           });
 

@@ -324,6 +324,11 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                     </button>
                                 ` : ''}
                             `;
+
+                            const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+                            if (deleteBtn) {
+                                deleteBtn.dataset.deleteLabel = user.username || 'Unknown user';
+                            }
                             document.body.appendChild(dropdownPortal);
                         });
 
