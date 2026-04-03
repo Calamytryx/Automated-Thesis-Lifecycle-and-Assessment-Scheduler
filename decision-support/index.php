@@ -52,6 +52,8 @@ $existing_evaluation = null;
 $pdf_file_name = null;
 $adviser_name = null;
 $defense_type = null; // <-- NEW: Store defense type
+$is_schedule_past_day = false;
+$is_update_locked = false;
 
 try {
     // 1. Fetch Defense Schedule Info & Team ID (including college from team leader's program)
@@ -77,6 +79,11 @@ try {
     if (!$team_id) {
         throw new Exception("Team ID missing for defense schedule ID: {$schedule_id}. Check data integrity.");
     }
+
+    if (!empty($schedule_info['schedule_date'])) {
+        $is_schedule_past_day = strtotime($schedule_info['schedule_date']) < strtotime(date('Y-m-d'));
+    }
+
     error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}, Team Program: " . ($schedule_info['team_program'] ?? 'NULL') . ", Team College: " . ($schedule_info['team_college'] ?? 'NULL'));
 
     // Fallback: Get college from programs table if not already set
@@ -1053,9 +1060,13 @@ include '../assets/layouts/header.php';
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM evaluation_per_panel WHERE defense_schedule_id = ? AND evaluator_id = ?");
     $stmt->execute([$schedule_id, $evaluator_id]);
     $done_evaluating = $stmt->fetchColumn() > 0;
+            $is_update_locked = $done_evaluating && $is_schedule_past_day;
     if ($done_evaluating) {
-        // CHANGED: Removed "You can no longer edit" message to allow re-evaluation
-        echo "<div class='container mt-5'><div class='alert alert-info'><i class='fas fa-info-circle'></i> You can update your previous evaluation by re-submitting below.</div></div>";
+                if ($is_update_locked) {
+                    echo "<div class='container mt-5'><div class='alert alert-warning'><i class='fas fa-lock'></i> This evaluation is now view-only because the scheduled defense day has passed.</div></div>";
+                } else {
+                    echo "<div class='container mt-5'><div class='alert alert-info'><i class='fas fa-info-circle'></i> You can update your previous evaluation by re-submitting below.</div></div>";
+                }
     }
 }
 
@@ -1552,12 +1563,17 @@ include '../assets/layouts/header.php';
                 </div>
 
                 <!-- Submit Button -->
-                <!-- CHANGED: Allow re-evaluation/updates by removing $done_evaluating check -->
                 <?php if (!empty($rubrics_in_group)): ?>
                     <div class="text-center mb-5">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <?php echo $done_evaluating ? 'Update Evaluation' : 'Submit Evaluation'; ?>
-                        </button>
+                        <?php if ($is_update_locked): ?>
+                            <button type="button" class="btn btn-info btn-lg" onclick="showEvaluationSummary()">
+                                <i class="fas fa-clipboard-check me-2"></i>View Summary
+                            </button>
+                        <?php else: ?>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <?php echo $done_evaluating ? 'Update Evaluation' : 'Submit Evaluation'; ?>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
                 <div id="formStatus" class="mt-3"></div>
@@ -1574,7 +1590,7 @@ include '../assets/layouts/header.php';
     <div class="modal-content">
       <div class="modal-header" style="background-color: var(--main-white); color: white; border-bottom: 1px solid var(--neutral-300);">
         <h5 class="modal-title" id="evaluationSummaryModalLabel">
-          <i class="fas fa-clipboard-check me-2"></i>Evaluation Summary - Review Before Submitting
+                    <i class="fas fa-clipboard-check me-2"></i>Evaluation Summary<?php echo $is_update_locked ? '' : ' - Review Before Submitting'; ?>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -1585,14 +1601,16 @@ include '../assets/layouts/header.php';
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="fas fa-arrow-left me-2"></i>Back to Edit
+                    <i class="fas fa-arrow-left me-2"></i><?php echo $is_update_locked ? 'Close' : 'Back to Edit'; ?>
         </button>
         <button type="button" class="btn btn-info" id="downloadPdfBtn" title="Download summary as PDF">
           <i class="fas fa-file-pdf me-2"></i>Download PDF
         </button>
-        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
-          <i class="fas fa-paper-plane me-2"></i><?php echo $done_evaluating ? 'Confirm Update' : 'Confirm Submission'; ?>
-        </button>
+                <?php if (!$is_update_locked): ?>
+                        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
+                            <i class="fas fa-paper-plane me-2"></i><?php echo $done_evaluating ? 'Confirm Update' : 'Confirm Submission'; ?>
+                        </button>
+                <?php endif; ?>
       </div>
     </div>
   </div>
@@ -1612,6 +1630,7 @@ document.addEventListener('DOMContentLoaded', function() {
   const sections = document.querySelectorAll('.section-toggle');
   const evaluationForm = document.getElementById('evaluationForm');
   const formStatusDiv = document.getElementById('formStatus');
+    const IS_UPDATE_LOCKED = <?php echo $is_update_locked ? 'true' : 'false'; ?>;
 
   // -------------------------------------------------------------------
   // DRAFT PERSISTENCE (sessionStorage) — for when doing a page refresh
@@ -1706,6 +1725,12 @@ document.addEventListener('DOMContentLoaded', function() {
   if (evaluationForm) {
     evaluationForm.addEventListener('input',  saveDraft);
     evaluationForm.addEventListener('change', saveDraft);
+
+        if (IS_UPDATE_LOCKED) {
+            evaluationForm.querySelectorAll('input[type="number"], input[type="radio"], textarea').forEach(el => {
+                el.disabled = true;
+            });
+        }
   }
 
   toggleBtns.forEach(btn => {
@@ -3032,6 +3057,11 @@ document.addEventListener('DOMContentLoaded', function() {
         evaluationForm.addEventListener('submit', function(e) {
             e.preventDefault();
             formStatusDiv.innerHTML = ''; // Clear previous status
+
+            if (IS_UPDATE_LOCKED) {
+                showEvaluationSummary();
+                return;
+            }
 
             // --- Form Validation ---
             var isValid = true;

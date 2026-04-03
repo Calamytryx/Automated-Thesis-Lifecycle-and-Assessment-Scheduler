@@ -242,11 +242,7 @@ function fetchFacultyDashboard() {
                                 </button>
                             `;
                         } else if (!isUpcoming) {
-                            actionButton = `
-                                <button class="btn btn-sm btn-primary defense-action-btn" onclick="redirectToDecisionSupport(${defense.schedule_id})">
-                                    Evaluate
-                                </button>
-                            `;
+                            actionButton = `<span class="text-muted small">Unavailable</span>`;
                         } else {
                             actionButton = `<span class="text-muted small">Upcoming</span>`;
                         }
@@ -1615,12 +1611,18 @@ function initializeOverviewCalendar() {
         eventClick: function(info) {
             const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
             const scheduleId = parseInt(info.event.extendedProps.scheduleId, 10);
+            const hasEvaluated = parseInt(info.event.extendedProps.hasEvaluated, 10) > 0;
+            const defenseIsPast = String(info.event.extendedProps.defenseIsPast) === '1';
 
             if (!isDefenseEvent || Number.isNaN(scheduleId)) {
                 return;
             }
 
             if (USER_TYPE === 2 || USER_TYPE === 0) {
+                if (defenseIsPast && !hasEvaluated) {
+                    showDefenseScheduleUnavailableToast();
+                    return;
+                }
                 redirectToDecisionSupport(scheduleId);
             }
         },
@@ -1643,7 +1645,14 @@ function initializeOverviewCalendar() {
                 return;
             }
 
+            const hasEvaluated = parseInt(info.event.extendedProps.hasEvaluated, 10) > 0;
+            const defenseIsPast = String(info.event.extendedProps.defenseIsPast) === '1';
+            const isLockedDefense = defenseIsPast && !hasEvaluated;
+
             info.el.classList.add('calendar-defense-compact-event');
+            if (isLockedDefense) {
+                info.el.classList.add('calendar-defense-locked-event');
+            }
             const teamName = info.event.extendedProps.teamName || info.event.title || 'Defense Team';
             info.el.setAttribute('title', teamName);
         },
@@ -1672,7 +1681,9 @@ function initializeOverviewCalendar() {
                         location: defense.room,
                         eventType: 'defense',
                         scheduleId: defense.defense_schedule_id,
-                        teamName: defense.team_name
+                        teamName: defense.team_name,
+                        hasEvaluated: defense.has_evaluated || 0,
+                        defenseIsPast: defense.defense_is_past || 0
                     });
                 });
 
@@ -2935,6 +2946,9 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                     if ($defense_status === 'past' && $has_evaluated) {
                                                                         $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', true)"';
                                                                         $item_class .= ' defense-item-completed';
+                                                                    } elseif ($defense_status === 'past' && !$has_evaluated) {
+                                                                        $item_class .= ' defense-item-locked';
+                                                                        $onclick_attr = 'onclick="handleUnavailableDefenseAccess(event)"';
                                                                     } else {
                                                                         $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ')"';
                                                                     }
@@ -3981,6 +3995,19 @@ function redirectToDecisionSupport(scheduleId, viewOnly = false) {
     
     console.log(`Redirecting to: ${url}`);
     window.location.href = url;
+}
+
+function showDefenseScheduleUnavailableToast() {
+    showToast('Notice', 'Defense schedule access no longer available past the date scheduled.', 'warning');
+}
+
+function handleUnavailableDefenseAccess(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    showDefenseScheduleUnavailableToast();
+    return false;
 }
 
 // ==========================================

@@ -59,7 +59,7 @@ try {
                     ) as description
                 FROM defense_schedules ds -- Added alias ds
                 JOIN teams t ON ds.team_id = t.id
-                WHERE ds.team_id = ? AND ds.approval_status NOT IN ('pending_chair', 'rejected')
+                WHERE ds.team_id = ? AND ds.approval_status = 'approved'
                 ORDER BY date, start_time
             ");
             $defense_stmt->execute([$team_id]);
@@ -76,15 +76,22 @@ try {
                 ds.end_time,
                 ds.room,
                 ds.team_id,
+                ds.defense_status,
+                CASE 
+                    WHEN ds.schedule_date < CURDATE() THEN 1
+                    WHEN ds.schedule_date = CURDATE() AND ds.end_time < CURTIME() THEN 1
+                    ELSE 0
+                END as defense_is_past,
+                (SELECT COUNT(*) FROM evaluation_per_panel epp WHERE epp.defense_schedule_id = ds.id AND epp.evaluator_id = ?) as has_evaluated,
                 t.name as team_name,
                 CONCAT('Defense with team: ', t.name) as description
             FROM defense_schedules ds
             JOIN teams t ON ds.team_id = t.id
             WHERE (ds.panelist_id = ? OR ds.panelist_id2 = ? OR ds.panelist_id3 = ?)
-            AND ds.approval_status NOT IN ('pending_chair', 'rejected')
+            AND ds.approval_status = 'approved'
             ORDER BY ds.schedule_date, ds.start_time
         ");
-        $defense_stmt->execute([$user_id, $user_id, $user_id]);
+        $defense_stmt->execute([$user_id, $user_id, $user_id, $user_id]);
         $defense_schedules = $defense_stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 

@@ -761,7 +761,7 @@ main.container-fluid {
         width: 100% !important;
         margin-top: 0;
         margin-left: 0; 
-        height: 100vh;
+        /* height: 100vh; */
     }
     
     /* Home sidebar items are still full-width on mobile */
@@ -934,9 +934,9 @@ main.container-fluid {
 }
 
 /* For content not hidden behind the fixed toggle button */
-body.has-collapsed-home-sidebar #homeMainContent {
+/* body.has-collapsed-home-sidebar #homeMainContent {
     min-height: 100vh;
-}
+} */
 
 /* For button always on top */
 #toggleHomeSidebar {
@@ -2082,6 +2082,22 @@ body.has-collapsed-home-sidebar #homeMainContent {
     padding: 0 !important;
 }
 
+#calendar2 .fc-daygrid-event.calendar-defense-locked-event,
+#calendar2 .fc-daygrid-dot-event.calendar-defense-locked-event {
+    background-color: var(--main-bg-dark) !important;
+    border-color: var(--main-bg-dark) !important;
+}
+
+#calendar2 .fc-daygrid-event.calendar-defense-locked-event .calendar-defense-compact-text,
+#calendar2 .fc-daygrid-event.calendar-defense-locked-event .fc-event-time,
+#calendar2 .fc-daygrid-event.calendar-defense-locked-event .fc-event-title,
+#calendar2 .fc-daygrid-dot-event.calendar-defense-locked-event .calendar-defense-compact-text,
+#calendar2 .fc-daygrid-dot-event.calendar-defense-locked-event .fc-event-time,
+#calendar2 .fc-daygrid-dot-event.calendar-defense-locked-event .fc-event-title {
+    color: var(--main-white) !important;
+    font-weight: 600;
+}
+
 #calendar2 .calendar-defense-compact-text {
     font-size: 0.7rem;
     line-height: 1.2;
@@ -2445,6 +2461,27 @@ body.has-collapsed-home-sidebar #homeMainContent {
 .defense-item-student:hover {
     background-color: var(--neutral-100) !important;
     transform: none !important;
+}
+
+.defense-item-locked {
+    cursor: not-allowed !important;
+    background-color: var(--neutral-100) !important;
+    border-left: 4px solid var(--neutral-400) !important;
+}
+
+.defense-item-locked:hover {
+    background-color: var(--neutral-100) !important;
+    transform: none !important;
+}
+
+.defense-item-locked .overview-defense-content {
+    opacity: 0.7;
+}
+
+.defense-item-locked .overview-status-pill {
+    background-color: var(--neutral-200) !important;
+    color: var(--neutral-700) !important;
+    border-color: var(--neutral-300) !important;
 }
 
 /* Requirements team selector styling */
