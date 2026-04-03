@@ -65,13 +65,21 @@
 </div>
 
 <script>
+function getAppRootPath() {
+    const path = window.location.pathname;
+    const dashboardIndex = path.indexOf('/dashboard/');
+    return dashboardIndex === -1 ? '' : path.substring(0, dashboardIndex);
+}
+
+function professorAssignmentsApiUrl(action = '') {
+    const appRoot = getAppRootPath();
+    const base = `${appRoot}/api/professor_assignments.php`;
+    return action ? `${base}?action=${encodeURIComponent(action)}` : base;
+}
+
 $(document).ready(function() {
-    console.log('🚀 Professor Assignments Tab - Document Ready');
-    
     // Small delay to ensure tab is visible
     setTimeout(function() {
-        console.log('⏰ Starting data load after delay');
-        // Load all data
         loadSections();
         loadProfessors();
         loadAssignments();
@@ -88,7 +96,6 @@ $(document).ready(function() {
     
     // Also load when tab is shown
     $('a[href="#professor-assignments"]').on('shown.bs.tab', function (e) {
-        console.log('📑 Professor Assignments tab shown - reloading data');
         loadSections();
         loadProfessors();
         loadAssignments();
@@ -97,91 +104,46 @@ $(document).ready(function() {
 
 // Load all unique sections from users table
 function loadSections() {
-    console.log('🔍 loadSections() called');
-    
-    // Debug: Check if element exists BEFORE AJAX
-    const selectBefore = $('#profAssignSectionSelect');
-    console.log('🔍 BEFORE AJAX - Select element exists:', selectBefore.length);
-    console.log('🔍 BEFORE AJAX - Select element:', selectBefore[0]);
-    console.log('🔍 BEFORE AJAX - Is visible:', selectBefore.is(':visible'));
-    console.log('🔍 BEFORE AJAX - Parent visible:', selectBefore.parent().is(':visible'));
-    
     $.ajax({
-        url: '/api/professor_assignments.php',
+        url: professorAssignmentsApiUrl(),
         type: 'GET',
         data: { action: 'list_sections' },
         dataType: 'json',
         success: function(response) {
-            console.log('✅ loadSections SUCCESS:', response);
             if (response.success && response.data) {
                 const select = $('#profAssignSectionSelect');
-                console.log('📍 AFTER AJAX - Select element found:', select.length > 0 ? 'YES' : 'NO');
-                console.log('📍 AFTER AJAX - Select element:', select[0]);
-                console.log('📍 AFTER AJAX - Current HTML:', select.html());
-                
                 select.find('option:not(:first)').remove();
-                console.log('🗑️ Cleared existing options');
-                
-                let optionsAdded = 0;
+
                 response.data.forEach(section => {
                     const option = $('<option></option>').val(section).text(section);
                     select.append(option);
-                    optionsAdded++;
-                    console.log('➕ Added option:', section);
                 });
-                
-                console.log('📊 Added ' + optionsAdded + ' sections');
-                console.log('📊 Total options now:', select.find('option').length);
-                console.log('📊 Final HTML:', select.html());
-                
-                // Verify they're actually in the DOM
-                select.find('option').each(function(i, opt) {
-                    console.log('  Option ' + i + ':', opt.value, opt.text);
-                });
-                
-            } else {
-                console.warn('⚠️ loadSections: No data or not successful', response);
             }
         },
         error: function(xhr, status, error) {
-            console.error('❌ Load sections error:', {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                error: error,
-                responseText: xhr.responseText
-            });
+            console.error('Load sections error:', error);
         }
     });
 }
 
 // Load all professors (faculty users)
 function loadProfessors() {
-    console.log('🔍 loadProfessors() called');
     $.ajax({
-        url: '/api/professor_assignments.php',
+        url: professorAssignmentsApiUrl(),
         type: 'GET',
         data: { action: 'list_professors' },
         dataType: 'json',
         success: function(response) {
-            console.log('✅ loadProfessors SUCCESS:', response);
             if (response.success && response.data) {
                 const select = $('#profAssignProfSelect');
                 select.find('option:not(:first)').remove();
                 response.data.forEach(prof => {
                     select.append(`<option value="${prof.id}">${prof.first_name} ${prof.last_name}</option>`);
                 });
-                console.log('📊 Loaded ' + response.data.length + ' professors');
-            } else {
-                console.warn('⚠️ loadProfessors: No data or not successful', response);
             }
         },
         error: function(xhr, status, error) {
-            console.error('❌ Load professors error:', {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                error: error,
-                responseText: xhr.responseText
-            });
+            console.error('Load professors error:', error);
         }
     });
 }
@@ -189,7 +151,7 @@ function loadProfessors() {
 // Load all assignments
 function loadAssignments() {
     $.ajax({
-        url: '/api/professor_assignments.php',
+        url: professorAssignmentsApiUrl(),
         type: 'GET',
         data: { action: 'list_section_professors' },
         dataType: 'json',
@@ -235,17 +197,10 @@ function displayAssignments(assignments) {
 
 // Assign professor to section
 function assignProfessor() {
-    console.log('=== ASSIGN FUNCTION CALLED ===');
     const section = $('#profAssignSectionSelect').val();
     const profId = $('#profAssignProfSelect').val();
 
-    console.log('Section value:', section, 'Type:', typeof section);
-    console.log('Professor ID value:', profId, 'Type:', typeof profId);
-    console.log('Full dropdown contents - Section:', $('#profAssignSectionSelect').find('option').length, 'options');
-    console.log('Full dropdown contents - Professor:', $('#profAssignProfSelect').find('option').length, 'options');
-
     if (!section || !profId) {
-        console.log('❌ VALIDATION FAILED - section=' + section + ', profId=' + profId);
         alert('Please select both section and professor');
         return;
     }
@@ -254,19 +209,14 @@ function assignProfessor() {
         section: section,
         professor_id: parseInt(profId)
     };
-
-    console.log('✅ Payload ready:', JSON.stringify(payload));
-
-    console.log('📤 Sending AJAX request to /api/professor_assignments.php?action=assign_professor_to_section');
     
     $.ajax({
-        url: '/api/professor_assignments.php?action=assign_professor_to_section',
+        url: professorAssignmentsApiUrl('assign_professor_to_section'),
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify(payload),
         dataType: 'json',
         success: function(response) {
-            console.log('✅ SUCCESS Response:', response);
             if (response.success) {
                 alert('Professor assigned successfully');
                 $('#profAssignSectionSelect').val('');
@@ -277,7 +227,6 @@ function assignProfessor() {
             }
         },
         error: function(xhr, status, error) {
-            console.log('❌ ERROR Response received');
             let errorMsg = error;
             try {
                 const response = JSON.parse(xhr.responseText);
@@ -285,15 +234,7 @@ function assignProfessor() {
             } catch (e) {
                 errorMsg = xhr.responseText || error;
             }
-            
-            console.error('❌ Assign error details:', {
-                status: xhr.status,
-                statusText: xhr.statusText,
-                responseText: xhr.responseText,
-                error: error,
-                parsed: errorMsg
-            });
-            
+
             alert('ERROR (' + xhr.status + '): ' + errorMsg);
         }
     });
@@ -304,7 +245,7 @@ function deleteAssignment(assignmentId) {
     if (!confirm('Remove this assignment?')) return;
 
     $.ajax({
-        url: '/api/professor_assignments.php?action=delete_section_assignment',
+        url: professorAssignmentsApiUrl('delete_section_assignment'),
         type: 'POST',
         contentType: 'application/json',
         data: JSON.stringify({

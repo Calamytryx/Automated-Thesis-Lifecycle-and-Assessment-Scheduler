@@ -164,9 +164,18 @@
         let currentPage = 1;
         let availablePanelists = [];
 
+        const getAppRootPath = () => {
+            const path = window.location.pathname;
+            const dashboardIndex = path.indexOf('/dashboard/');
+            return dashboardIndex === -1 ? '' : path.substring(0, dashboardIndex);
+        };
+
+        const appRoot = getAppRootPath();
+        const buildUrl = (relativePath) => `${appRoot}/${relativePath.replace(/^\/+/, '')}`;
+
         // Load available panelists (professors/staff)
         const loadPanelists = () => {
-            fetch('/dashboard/includes/get_teams_and_staff.php')
+            fetch(buildUrl('dashboard/includes/get_teams_and_staff.php'))
                 .then(r => r.json())
                 .then(data => {
                     if (data.success && data.staff) {
@@ -209,7 +218,7 @@
         const loadTeams = (page = 1) => {
             const search = document.getElementById('teamSearchInput').value;
             
-            fetch(`/dashboard/includes/tabs/get_table.php?table=teams&page=${page}&search=${encodeURIComponent(search)}`)
+            fetch(buildUrl(`dashboard/includes/tabs/get_table.php?table=teams&page=${page}&search=${encodeURIComponent(search)}`))
                 .then(response => response.json())
                 .then(data => {
                     if (data.error) {
@@ -231,7 +240,7 @@
                         tbody.innerHTML = '<tr><td colspan="5" class="text-center">No teams found</td></tr>';
                     } else {
                         data.data.forEach(team => {
-                            fetch(`/api/admin_overrides.php?action=get_team_defense_info&team_id=${team.id}`)
+                            fetch(buildUrl(`api/admin_overrides.php?action=get_team_defense_info&team_id=${team.id}`))
                                 .then(r => r.json())
                                 .then(defenseInfo => {
                                     const defenseType = defenseInfo.defense_type || 'Not set';
@@ -365,7 +374,7 @@
                 populatePanelistDropdowns(locked1, locked2, locked3);
 
                 // Fetch override info AND current scheduled panelists
-                fetch(`/api/admin_overrides.php?action=get_team_defense_info&team_id=${teamId}`)
+                fetch(buildUrl(`api/admin_overrides.php?action=get_team_defense_info&team_id=${teamId}`))
                     .then(r => r.json())
                     .then(data => {
                         // Set override fields
@@ -416,19 +425,19 @@
 
             // Save override if set
             const overridePromise = overrideType ? 
-                fetch('/api/admin_overrides.php?action=set_defense_type_override', {
+                fetch(buildUrl('api/admin_overrides.php?action=set_defense_type_override'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `team_id=${teamId}&override_type=${overrideType}&reason=${encodeURIComponent(overrideReason)}&expires_at=${overrideExpires}`
                 }).then(r => r.json()) :
-                fetch('/api/admin_overrides.php?action=remove_defense_type_override', {
+                fetch(buildUrl('api/admin_overrides.php?action=remove_defense_type_override'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `team_id=${teamId}`
                 }).then(r => r.json());
 
             // Save locked panelists
-            const panelistPromise = fetch('/api/admin_overrides.php?action=set_locked_panelists', {
+            const panelistPromise = fetch(buildUrl('api/admin_overrides.php?action=set_locked_panelists'), {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                 body: `team_id=${teamId}&locked_panelist1=${locked1}&locked_panelist2=${locked2}&locked_panelist3=${locked3}`
@@ -455,13 +464,13 @@
             if (confirm('Clear all overrides and locked panelists for this team?')) {
                 const teamId = document.getElementById('manageTeamId').value;
 
-                const clearOverride = fetch('/api/admin_overrides.php?action=remove_defense_type_override', {
+                const clearOverride = fetch(buildUrl('api/admin_overrides.php?action=remove_defense_type_override'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `team_id=${teamId}`
                 }).then(r => r.json());
 
-                const clearPanelists = fetch('/api/admin_overrides.php?action=set_locked_panelists', {
+                const clearPanelists = fetch(buildUrl('api/admin_overrides.php?action=set_locked_panelists'), {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
                     body: `team_id=${teamId}&locked_panelist1=&locked_panelist2=&locked_panelist3=`
