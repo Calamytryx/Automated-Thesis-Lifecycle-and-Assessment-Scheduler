@@ -1129,8 +1129,9 @@
 
                 function showDefAlert(message, type) {
                     if (typeof showToast === 'function') {
-                        const title = type === 'success' ? 'Success' : type === 'warning' ? 'Warning' : 'Error';
-                        showToast(title, message, type === 'warning' ? 'error' : type);
+                        const title = type === 'success' ? 'Success' : type === 'warning' ? 'Notice' : 'Error';
+                        const toastType = type === 'warning' ? 'notice' : (type === 'danger' ? 'error' : type);
+                        showToast(title, message, toastType);
                     } else {
                         // Fallback floating alert
                         const alertDiv = document.createElement('div');

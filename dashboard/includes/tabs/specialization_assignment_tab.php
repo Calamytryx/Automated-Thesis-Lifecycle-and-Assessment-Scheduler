@@ -590,6 +590,13 @@ $(document).ready(function() {
     }
 
     function showAlert(type, message) {
+        if (typeof showToast === 'function') {
+            const normalizedType = type === 'danger' ? 'error' : (type === 'warning' ? 'notice' : type);
+            const title = normalizedType === 'success' ? 'Success' : normalizedType === 'notice' ? 'Notice' : normalizedType === 'info' ? 'Info' : 'Error';
+            showToast(title, message, normalizedType);
+            return;
+        }
+
         const alertHtml = `
             <div class="alert alert-${type} alert-dismissible fade show position-fixed top-0 end-0 m-3" role="alert" style="z-index: 9999;">
                 ${message}

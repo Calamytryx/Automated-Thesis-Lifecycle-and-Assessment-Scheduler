@@ -292,7 +292,7 @@ $(document).ready(function() {
 
             // Check if already added (using the data attribute)
             if (selectedRubricsList.find(`li[data-rubric-id="${rubricId}"]`).length > 0) {
-                showToast('Info', 'Rubric already added to this group.', 'warning');
+                showToast('Notice', 'Rubric is already added to this group.', 'notice');
                 return;
             }
 
@@ -413,7 +413,7 @@ $(document).ready(function() {
         }
 
         if (!isValid) {
-            showToast('Error', 'Please fix the validation errors before saving.', 'error');
+            showToast('Error', 'Please complete all required fields correctly before saving.', 'error');
             return;
         }
 

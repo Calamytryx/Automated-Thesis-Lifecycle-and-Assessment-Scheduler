@@ -767,53 +767,6 @@
         }
     });
 
-    // Helper function for showing toasts
-    function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
-        if (!$('#toastContainer').length) {
-            $('body').append(`
-                <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-                </div>
-                `);
-
-        }
-
-        // Generate unique ID for the toast
-        const toastId = 'toast-' + Date.now();
-
-        // Create toast HTML with more prominent styling
-        const toast = `
-                <div id="${toastId}" class="toast align-items-center border-0" 
-                    role="alert" 
-                    aria-live="assertive" 
-                    aria-atomic="true"
-                    style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : 'var(--main-btn-del)'};">
-                    <div class="d-flex">
-                        <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
-                            <strong>${title}:</strong> ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-                `;
-
-        // Add toast to container
-        $('#toastContainer').append(toast);
-
-        // Initialize and show the toast with modified options
-        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-            autohide: true,
-            delay: 3000,
-            animation: true
-        });
-        toastElement.show();
-
-        // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function () {
-            $(this).remove();
-        });
-    }
-
     // Adviser Warning Modal - Cancel button handler
     $(document).on('click', '#adviserWarningCancel', function () {
         var $modal = $('#adviserWarningModal');
@@ -2771,28 +2724,28 @@
                 const validationErrors = ValidationUtils.validateUserForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'teams') {
                 const validationErrors = ValidationUtils.validateTeamsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'programs') {
                 const validationErrors = ValidationUtils.validateProgramsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'requirements') {
                 const validationErrors = ValidationUtils.validateRequirementsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             }
@@ -3681,28 +3634,28 @@
                 const validationErrors = ValidationUtils.validateUserForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'teams') {
                 const validationErrors = ValidationUtils.validateTeamsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'programs') {
                 const validationErrors = ValidationUtils.validateProgramsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'requirements') {
                 const validationErrors = ValidationUtils.validateRequirementsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             }
@@ -4695,57 +4648,95 @@
 
     // Helper function for showing toasts
     function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
         if (!$('#toastContainer').length) {
             $('body').append(`
-    <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-    </div>
-`);
-
+                <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>
+            `);
         }
 
-        // Generate unique ID for the toast
+        const typeAliases = {
+            success: 'success',
+            error: 'error',
+            danger: 'error',
+            warning: 'notice',
+            notice: 'notice',
+            info: 'info'
+        };
+
+        const tone = typeAliases[String(type || '').toLowerCase()] || 'info';
+        const variants = {
+            success: {
+                defaultTitle: 'Success',
+                border: '#16a34a',
+                bg: '#ecfdf3',
+                iconBg: '#d1fae5',
+                iconStroke: '#15803d',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            },
+            error: {
+                defaultTitle: 'Error',
+                border: '#dc2626',
+                bg: '#fef2f2',
+                iconBg: '#fee2e2',
+                iconStroke: '#b91c1c',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>'
+            },
+            notice: {
+                defaultTitle: 'Notice',
+                border: '#d97706',
+                bg: '#fffbeb',
+                iconBg: '#fef3c7',
+                iconStroke: '#b45309',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M10.29 3.86l-8.17 14.1A2 2 0 004 21h16a2 2 0 001.73-3.04l-8.17-14.1a2 2 0 00-3.46 0z"/></svg>'
+            },
+            info: {
+                defaultTitle: 'Info',
+                border: '#2563eb',
+                bg: '#eff6ff',
+                iconBg: '#dbeafe',
+                iconStroke: '#1d4ed8',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>'
+            }
+        };
+
+        const variant = variants[tone];
+        let toastTitle = String(title || '').trim() || variant.defaultTitle;
+        if (tone === 'notice' && toastTitle.toLowerCase() === 'warning') {
+            toastTitle = 'Notice';
+        }
+
+        let toastMessage = String(message || '').trim();
+        toastMessage = toastMessage.replace(
+            /Please fix the validation errors before (submitting|saving)\.?/i,
+            'Please complete all required fields correctly before $1.'
+        );
+
         const toastId = 'toast-' + Date.now();
-
-        // Modern universal toast styling and structure
-        const icon = type === 'success' ?
-            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
-            type === 'error' ?
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
-
-        const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
-        const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
-        const textColor = '#222';
         const toast = `
-<div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
-    role="alert"
-    aria-live="assertive"
-    aria-atomic="true"
-    style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
-    <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
-        ${icon}
-        <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
-            <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
-            <div>${message}</div>
-        </div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
-    </div>
-</div>
-`;
+            <div id="${toastId}" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+                style="min-width:320px;max-width:420px;opacity:1;background:${variant.bg};border-left:5px solid ${variant.border};border-radius:12px;margin-bottom:1rem;">
+                <div class="d-flex align-items-center" style="padding:1rem 1.1rem;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;background:${variant.iconBg};color:${variant.iconStroke};border-radius:50%;margin-right:0.9rem;">
+                        ${variant.icon}
+                    </span>
+                    <div class="toast-body p-0" style="font-size:0.98rem;color:#1f2937;line-height:1.45;">
+                        <div style="font-weight:600;font-size:1.02rem;margin-bottom:2px;">${toastTitle}</div>
+                        <div>${toastMessage}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1rem;"></button>
+                </div>
+            </div>
+        `;
 
-        // Add toast to container
         $('#toastContainer').append(toast);
 
-        // Initialize and show the toast with modified options
         const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
             autohide: true,
-            delay: 3000,
+            delay: 3200,
             animation: true
         });
         toastElement.show();
 
-        // Remove toast element after it's hidden
         $(`#${toastId}`).on('hidden.bs.toast', function () {
             $(this).remove();
         });
@@ -5078,7 +5069,7 @@
             console.log('Save response:', data);
             
             if (data.success) {
-                showToast('Success', `✓ Saved ${selectedPrograms.length} program mapping(s) for ${defenseType}!`, 'success');
+                showToast('Success', `Saved ${selectedPrograms.length} program mapping(s) for ${defenseType}.`, 'success');
                 
                 // Reset button
                 saveBtn.innerHTML = originalText;
@@ -5094,7 +5085,7 @@
         })
         .catch(error => {
             console.error('Error saving configuration:', error);
-            showToast('Error', `❌ Error saving: ${error.message}`, 'danger');
+            showToast('Error', `Unable to save configuration: ${error.message}`, 'error');
             
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;

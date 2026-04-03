@@ -1477,7 +1477,7 @@
     });
 
     if (!valid) {
-        showToast('Error', 'Please fix the validation errors before submitting.', 'error');
+        showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
         return; // Stop the save if validation fails
     }
 
