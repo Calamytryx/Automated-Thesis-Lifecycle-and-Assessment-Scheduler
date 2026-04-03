@@ -3154,22 +3154,6 @@ body.modal-open {
     font-size: 1rem;
 }
 
-/* Professor Assignments Delete Button */
-.prof-assign-delete-btn {
-    padding: 6px 12px;
-    border-radius: 4px;
-    font-weight: 500;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.25rem;
-    background-color: var(--main-white);
-    color: var(--danger-600);
-    border: 1px solid var(--danger-300);
-    transition: all 0.2s ease;
-    font-size: 0.875rem;
-}
-
 /* Base Defense Type Badge */
 .defense-type-badge {
     border: 1px solid var(--neutral-300);
@@ -3246,21 +3230,6 @@ body.modal-open {
     padding: 0.25rem 0.75rem;
     font-size: 0.875rem;
     font-weight: 500;
-}
-
-.prof-assign-delete-btn:hover {
-    background-color: var(--danger-50);
-    color: var(--danger-700);
-    border-color: var(--danger-400);
-    transform: translateY(-1px);
-}
-
-.prof-assign-delete-btn:active {
-    transform: translateY(0);
-}
-
-.prof-assign-delete-btn i {
-    font-size: 0.875rem;
 }
 
 /* Team Evaluation Table Styling */

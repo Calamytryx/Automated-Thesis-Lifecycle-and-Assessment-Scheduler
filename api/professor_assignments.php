@@ -250,6 +250,24 @@ function assignProfessorToSection() {
                 return;
             }
 
+            // One section can only have one assigned professor.
+            $sectionCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE section = ? LIMIT 1");
+            $sectionCheckStmt->execute([$section]);
+            if ($sectionCheckStmt->fetchColumn()) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'This section already has an assigned professor']);
+                return;
+            }
+
+            // One professor can only be assigned to one section.
+            $professorCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE professor_id = ? LIMIT 1");
+            $professorCheckStmt->execute([$professorId]);
+            if ($professorCheckStmt->fetchColumn()) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'This professor is already assigned to a section']);
+                return;
+            }
+
             // Check if already assigned
             $checkStmt = $pdo->prepare("SELECT id FROM section_professors WHERE section = ? AND professor_id = ?");
             $checkStmt->execute([$section, $professorId]);
@@ -270,6 +288,24 @@ function assignProfessorToSection() {
             if (!$sectionId) {
                 http_response_code(400);
                 echo json_encode(['success' => false, 'message' => 'section_id is required for old schema']);
+                return;
+            }
+
+            // One section can only have one assigned professor.
+            $sectionCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE section_id = ? LIMIT 1");
+            $sectionCheckStmt->execute([$sectionId]);
+            if ($sectionCheckStmt->fetchColumn()) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'This section already has an assigned professor']);
+                return;
+            }
+
+            // One professor can only be assigned to one section.
+            $professorCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE professor_id = ? LIMIT 1");
+            $professorCheckStmt->execute([$professorId]);
+            if ($professorCheckStmt->fetchColumn()) {
+                http_response_code(400);
+                echo json_encode(['success' => false, 'message' => 'This professor is already assigned to a section']);
                 return;
             }
 
