@@ -8,101 +8,135 @@ if (!isset($_SESSION['auth'])) {
     exit;
 }
 
-// Function to interpolate SQL with parameters
-function interpolateQuery($sql, $params) {
-    $keys = [];
-    $values = $params; 
-
-    // Build a regular expression for each parameter
-    foreach ($params as $key => $value) {
-        if (is_string($key)) {
-            $keys[] = '/:'.$key.'/';
-        } else {
-            $keys[] = '/[?]/';
-        }
-        
-        if (is_string($value))
-            $values[$key] = "'" . addslashes($value) . "'";
-        else if (is_null($value))
-            $values[$key] = 'NULL';
-        else if (is_bool($value))
-            $values[$key] = $value ? 'TRUE' : 'FALSE';
-        else
-            $values[$key] = $value;
-    }
-
-    return preg_replace($keys, $values, $sql, 1);
-}
-
 try {
-    $postedData = $_POST;
-    $postedFiles = $_FILES;
-    $executedQueries = []; // Array to store all executed queries
-
-    if (!isset($_POST['requirements']) || !is_array($_POST['requirements'])) {
-        throw new Exception('Invalid requirements data');
+    if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+        throw new Exception('Invalid request method');
     }
-    
-    foreach ($_POST['requirements'] as $requirementId) {
-        $status = $_POST['status'][$requirementId];
-        $feedback = $_POST['feedback'][$requirementId];
-        $feedbackFile = $_FILES['feedbackFile']['name'][$requirementId] ?? '';
 
-        // Get team name
-        $teamSql = "SELECT name FROM teams WHERE id = ?";
-        $teamStmt = $pdo->prepare($teamSql);
-        $teamParams = [$_SESSION['team_id'][0]];
-        $teamStmt->execute($teamParams);
-        $executedQueries[] = interpolateQuery($teamSql, $teamParams);
-        $teamName = $teamStmt->fetchColumn();
+    $userId = (int)($_SESSION['id'] ?? 0);
+    $userType = (int)($_SESSION['usertype'] ?? -1);
 
-        // Get requirement name
-        $reqSql = "SELECT name FROM requirements WHERE id = ?";
-        $reqStmt = $pdo->prepare($reqSql);
-        $reqParams = [$requirementId];
-        $reqStmt->execute($reqParams);
-        $executedQueries[] = interpolateQuery($reqSql, $reqParams);
-        $requirementName = $reqStmt->fetchColumn();
+    // Only admin/program chair and faculty advisers can update requirement statuses.
+    if (!in_array($userType, [0, 2], true)) {
+        throw new Exception('Permission denied.');
+    }
 
-        // Process file upload
-        $newFileName = '';
-        if (!empty($feedbackFile)) {
-            $newFileName = 'feedback-' . $teamName . '-' . $requirementName . '-' . date('Ymd') . '.' . pathinfo($feedbackFile, PATHINFO_EXTENSION);
-            $uploadDir = '../feedback/';
-            $uploadFilePath = $uploadDir . basename($newFileName);
-            move_uploaded_file($_FILES['feedbackFile']['tmp_name'][$requirementId], $uploadFilePath);
+    $sessionTeamIds = isset($_SESSION['team_id']) ? (array)$_SESSION['team_id'] : [];
+    $fallbackTeamId = isset($sessionTeamIds[0]) ? (int)$sessionTeamIds[0] : 0;
+    $postedTeamId = isset($_POST['team_id']) ? (int)$_POST['team_id'] : 0;
+    $targetTeamId = $postedTeamId > 0 ? $postedTeamId : $fallbackTeamId;
+
+    if ($targetTeamId <= 0) {
+        throw new Exception('No valid team selected.');
+    }
+
+    if ($userType === 2) {
+        $accessStmt = $pdo->prepare("SELECT COUNT(*) FROM team_members WHERE team_id = ? AND user_id = ? AND LOWER(role) = 'adviser'");
+        $accessStmt->execute([$targetTeamId, $userId]);
+        if ((int)$accessStmt->fetchColumn() === 0) {
+            throw new Exception('You are not the adviser of this team.');
+        }
+    }
+
+    $statusMap = isset($_POST['status']) && is_array($_POST['status']) ? $_POST['status'] : [];
+    $requirementsFromStatus = array_keys($statusMap);
+    $requirementsFromCheckbox = isset($_POST['requirements']) && is_array($_POST['requirements']) ? $_POST['requirements'] : [];
+    $requirementIds = array_unique(array_map('intval', array_merge($requirementsFromStatus, $requirementsFromCheckbox)));
+    $requirementIds = array_values(array_filter($requirementIds, function($id) { return $id > 0; }));
+
+    if (empty($requirementIds)) {
+        throw new Exception('No requirement status data received.');
+    }
+
+    $allowedStatuses = ['approved', 'submitted', 'pending', 'rejected'];
+    $updatedCount = 0;
+
+    $teamStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ?");
+    $teamStmt->execute([$targetTeamId]);
+    $teamName = $teamStmt->fetchColumn() ?: ('team-' . $targetTeamId);
+
+    $reqNameStmt = $pdo->prepare("SELECT name FROM requirements WHERE id = ?");
+    $existingStmt = $pdo->prepare("SELECT id FROM team_requirements WHERE team_id = ? AND requirement_id = ? LIMIT 1");
+    $insertStmt = $pdo->prepare("INSERT INTO team_requirements (team_id, requirement_id, status, feedback, feedback_file, submitted_at) VALUES (?, ?, ?, ?, ?, NULL)");
+    $updateWithFileStmt = $pdo->prepare("UPDATE team_requirements SET status = ?, feedback = ?, feedback_file = ? WHERE team_id = ? AND requirement_id = ?");
+    $updateWithoutFileStmt = $pdo->prepare("UPDATE team_requirements SET status = ?, feedback = ? WHERE team_id = ? AND requirement_id = ?");
+
+    $uploadDir = __DIR__ . '/../feedback/';
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
+
+    $pdo->beginTransaction();
+
+    foreach ($requirementIds as $requirementId) {
+        $status = isset($statusMap[$requirementId]) ? trim((string)$statusMap[$requirementId]) : 'pending';
+        if (!in_array($status, $allowedStatuses, true)) {
+            $status = 'pending';
         }
 
-        // Update team requirements
-        $updateSql = "UPDATE team_requirements SET status = ?, feedback = ?, feedback_file = ? WHERE team_id = ? AND requirement_id = ?";
-        $updateParams = [$status, $feedback, $newFileName, $_SESSION['team_id'][0], $requirementId];
-        $updateStmt = $pdo->prepare($updateSql);
-        $updateStmt->execute($updateParams);
-        $executedQueries[] = interpolateQuery($updateSql, $updateParams);
-        
-        // Send feedback notification to students if feedback was provided
-        if (!empty($feedback) && $updateStmt->rowCount() > 0) {
+        $feedback = isset($_POST['feedback'][$requirementId]) ? trim((string)$_POST['feedback'][$requirementId]) : '';
+
+        $feedbackFile = $_FILES['feedbackFile']['name'][$requirementId] ?? '';
+        $newFileName = null;
+
+        if (!empty($feedbackFile) && !empty($_FILES['feedbackFile']['tmp_name'][$requirementId])) {
+            $reqNameStmt->execute([$requirementId]);
+            $requirementName = $reqNameStmt->fetchColumn() ?: ('requirement-' . $requirementId);
+
+            $extension = pathinfo($feedbackFile, PATHINFO_EXTENSION);
+            $safeTeam = preg_replace('/[^A-Za-z0-9\-_]/', '_', $teamName);
+            $safeReq = preg_replace('/[^A-Za-z0-9\-_]/', '_', $requirementName);
+            $newFileName = 'feedback-' . $safeTeam . '-' . $safeReq . '-' . date('Ymd-His') . '-' . $requirementId . '.' . $extension;
+            $uploadFilePath = $uploadDir . $newFileName;
+
+            if (!move_uploaded_file($_FILES['feedbackFile']['tmp_name'][$requirementId], $uploadFilePath)) {
+                throw new Exception('Failed to upload feedback file for requirement ID ' . $requirementId);
+            }
+        }
+
+        $existingStmt->execute([$targetTeamId, $requirementId]);
+        $exists = $existingStmt->fetchColumn();
+
+        if ($exists) {
+            if ($newFileName !== null) {
+                $updateWithFileStmt->execute([$status, $feedback, $newFileName, $targetTeamId, $requirementId]);
+            } else {
+                $updateWithoutFileStmt->execute([$status, $feedback, $targetTeamId, $requirementId]);
+            }
+        } else {
+            $insertStmt->execute([$targetTeamId, $requirementId, $status, $feedback, $newFileName]);
+        }
+
+        $updatedCount++;
+
+        if ($feedback !== '') {
             try {
                 require_once dirname(__DIR__, 2) . '/assets/includes/notification_functions.php';
-                createRequirementFeedbackNotifications($pdo, $_SESSION['team_id'][0], $requirementId, $feedback);
-                error_log("Requirement feedback notification sent for Team ID " . $_SESSION['team_id'][0] . ", Req ID $requirementId");
+                createRequirementFeedbackNotifications($pdo, $targetTeamId, $requirementId, $feedback);
             } catch (Exception $notifException) {
-                // Don't fail the update if notification fails, just log it
-                error_log("Failed to create requirement feedback notification: " . $notifException->getMessage());
+                error_log('Failed to create requirement feedback notification: ' . $notifException->getMessage());
             }
         }
     }
 
+    $pdo->commit();
+
     echo json_encode([
         'success' => true,
-        'postedData' => $postedData,
-        'postedFiles' => $postedFiles,
-        'executedQueries' => $executedQueries // All executed queries with parameters
+        'message' => 'Requirements updated successfully.',
+        'updated_count' => $updatedCount,
+        'team_id' => $targetTeamId,
     ]);
     
 } catch (PDOException $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'executedQueries' => $executedQueries ?? []]);
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 } catch (Exception $e) {
-    echo json_encode(['success' => false, 'error' => $e->getMessage(), 'executedQueries' => $executedQueries ?? []]);
+    if (isset($pdo) && $pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
+    echo json_encode(['success' => false, 'error' => $e->getMessage()]);
 }
 ?>

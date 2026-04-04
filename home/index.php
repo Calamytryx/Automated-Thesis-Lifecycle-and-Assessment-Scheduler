@@ -3282,7 +3282,8 @@ $(document).ready(function() {
         $teamId = isset($_SESSION['team_id']) ? $_SESSION['team_id'] : [];
 
         if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) {
-            if ($role === 'adviser') {
+            $roleList = array_map('trim', explode(',', strtolower((string)$role)));
+            if (in_array('adviser', $roleList, true)) {
                 // Retrieve the teams from the session (ensure $teamId is an array)
                 $teams = [];
                 if (!empty($teamId)) {
@@ -3337,7 +3338,13 @@ $(document).ready(function() {
                 if (response.success) {
                     var checklistHtml =
                         '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4 g-lg-5">';
+                    checklistHtml += `<input type="hidden" name="team_id" value="${teamId}">`;
                     response.requirements.forEach(function(req) {
+                        const submittedFiles = Array.isArray(req.submitted_files) ? req.submitted_files : [];
+                        const allowsMultiple = Number(req.allow_multiple_submissions) === 1;
+                        const maxSubmissions = Number(req.max_submissions) > 0 ? Number(req.max_submissions) : 1;
+                        const hasAnySubmission = submittedFiles.length > 0 || !!req.file_name;
+
                         checklistHtml += `
                         <div class="col-12 col-md-6 requirement-card-wrapper">
                             <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
@@ -3397,9 +3404,9 @@ $(document).ready(function() {
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input requirement-status-radio" type="radio" 
                                                        name="status[${req.id}]" id="status-rejected-${req.id}" 
-                                                       value="rejected" ${req.status === 'rejected' ? 'checked' : ''}>
+                                                       value="rejected" ${(req.status === 'rejected' || req.status === 'closed') ? 'checked' : ''}>
                                                 <label class="form-check-label requirement-status-option-label" for="status-rejected-${req.id}">
-                                                    Rejected
+                                                    Closed
                                                 </label>
                                             </div>
                                         </div>
@@ -3430,25 +3437,35 @@ $(document).ready(function() {
                                         <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea mt-3" rows="1" placeholder="Enter your feedback here...">${req.feedback}</textarea>
                                     </div>
                                     
-                                    ${req.file_name && req.status !== 'pending'
+                                    ${hasAnySubmission
                                         ? `
                                             <!-- Submitted File Section -->
                                             <div class="requirement-submitted-file-section">
-                                                <div class="submitted-file-header">
-                                                    <h6>Submitted File:</h6>
+                                                <div class="submitted-file-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">${submittedFiles.length > 1 ? 'Submitted Files:' : 'Submitted File:'}</h6>
+                                                    ${submittedFiles.length > 0 ? `<small class="text-muted">${submittedFiles.length}${allowsMultiple ? `/${maxSubmissions}` : ''}</small>` : ''}
                                                 </div>
-                                                <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download>
-                                                    ${req.file_name}
-                                                </a>
+                                                <div class="mt-2 d-flex flex-column gap-1">
+                                                    ${submittedFiles.length > 0
+                                                        ? submittedFiles.map(file => `
+                                                            <a href="../assets/uploads/submission/${file.file_name}" class="requirement-submitted-file-pill" download title="${file.original_file_name || file.file_name}">
+                                                                ${file.original_file_name || file.file_name}
+                                                            </a>
+                                                        `).join('')
+                                                        : `<a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">${req.file_name}</a>`
+                                                    }
+                                                </div>
                                                 <div class="requirement-file-actions">
-                                                    <a href="../assets/uploads/submission/viewer.html#file=${encodeURIComponent(req.file_name)}" class="requirement-view-btn">
-                                                        <i class="far fa-eye"></i> View
-                                                    </a>
-                                                    <button type="button" class="btn btn-sm revert-submission-btn" 
-                                                            data-req-id="${req.id}" data-req-name="${req.name}" 
-                                                            title="Revert submission to allow resubmission">
-                                                        <i class="bi bi-arrow-counterclockwise"></i> Revert
-                                                    </button>
+                                                    ${req.status !== 'pending'
+                                                        ? `
+                                                            <button type="button" class="btn btn-sm revert-submission-btn" 
+                                                                    data-req-id="${req.id}" data-req-name="${req.name}" 
+                                                                    title="Revert submission to allow resubmission">
+                                                                <i class="bi bi-arrow-counterclockwise"></i> Revert
+                                                            </button>
+                                                        `
+                                                        : `<small class="text-muted">Submission is pending. Team may remove and resubmit files.</small>`
+                                                    }
                                                 </div>
                                             </div>
                                         ` 
@@ -3543,7 +3560,7 @@ $(document).ready(function() {
             revertModal.hide();
             
             // Get the current team ID from session
-            const teamId = <?php echo isset($_SESSION['team_id']) ? $_SESSION['team_id'][0] : 'null'; ?>;
+            const teamId = $('#teamSelect').val() || <?php echo isset($_SESSION['team_id']) ? $_SESSION['team_id'][0] : 'null'; ?>;
             
             if (!teamId) {
                 showToast("Error", "No team selected.", "error");
@@ -3650,6 +3667,13 @@ $(document).ready(function() {
                 if (response.success) {
                     var displayHtml = '<div class="row">';
                     response.requirements.forEach(function(req) {
+                        const allowsMultiple = Number(req.allow_multiple_submissions) === 1;
+                        const maxSubmissions = Number(req.max_submissions) > 0 ? Number(req.max_submissions) : 1;
+                        const submissionCount = Number(req.submission_count) >= 0 ? Number(req.submission_count) : 0;
+                        const submittedFiles = Array.isArray(req.submitted_files) ? req.submitted_files : [];
+                        const canUploadMoreByCount = allowsMultiple ? submissionCount < maxSubmissions : !req.file_name;
+                        const canUploadMore = canUploadMoreByCount && req.status !== 'closed';
+
                         <?php if ($role === 'leader' || $role === 'member') { ?>
                             displayHtml += `
                                 <div class="col-md-6 mb-4 requirement-card-wrapper">
@@ -3676,7 +3700,7 @@ $(document).ready(function() {
                                             <div class="requirement-status-section requirement-status-readonly">
                                                 <label class="requirement-status-label">Status:</label>
                                                 <div class="requirement-status-display">
-                                                    <span class="badge status-badge status-${req.status}">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>
+                                                    <span class="badge status-badge status-${req.status === 'closed' ? 'rejected' : req.status}">${req.status === 'closed' ? 'Closed' : (req.status.charAt(0).toUpperCase() + req.status.slice(1))}</span>
                                                 </div>
                                             </div>
                                             
@@ -3697,31 +3721,54 @@ $(document).ready(function() {
                                             </div>
                                             
                                             <!-- Current Submission Section -->
-                                            ${req.file_name ? 
+                                            ${allowsMultiple && submittedFiles.length > 0 ?
                                                 `<div class="requirement-submitted-file-section">
-                                                    <div class="submitted-file-header">
-                                                        <h6>Current Submission:</h6>
+                                                    <div class="submitted-file-header d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Submitted Files:</h6>
+                                                        <small class="text-muted">${submissionCount}/${maxSubmissions}</small>
                                                     </div>
-                                                    <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">
-                                                        ${req.file_name}
-                                                    </a>
-                                                    ${req.status === 'pending' ? `
-                                                        <div class="requirement-file-actions">
-                                                            <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" title="Remove current file">
-                                                                <i class="bi bi-trash"></i> Remove
-                                                            </button>
+                                                    <div class="mt-2 d-flex flex-column gap-1">
+                                                        ${submittedFiles.map(file => `
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <a href="../assets/uploads/submission/${file.file_name}" class="requirement-submitted-file-pill" download title="${file.original_file_name || file.file_name}">
+                                                                    ${file.original_file_name || file.file_name}
+                                                                </a>
+                                                                ${req.status === 'pending' ? `
+                                                                    <?php if ($role === 'leader') { ?>
+                                                                    <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" data-file-name="${file.file_name}" title="Remove this file">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                    <?php } ?>
+                                                                ` : ''}
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>`
+                                                : req.file_name ?
+                                                    `<div class="requirement-submitted-file-section">
+                                                        <div class="submitted-file-header">
+                                                            <h6>Current Submission:</h6>
                                                         </div>
-                                                    ` : ''}
-                                                </div>` 
-                                                : ''
+                                                        <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">
+                                                            ${req.file_name}
+                                                        </a>
+                                                        ${req.status === 'pending' ? `
+                                                            <div class="requirement-file-actions">
+                                                                <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" data-file-name="${req.file_name}" title="Remove current file">
+                                                                    <i class="bi bi-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        ` : ''}
+                                                    </div>`
+                                                    : ''
                                             }
                                             
                                             <!-- Upload Section (Leader Only) -->
                                             <?php if ($role === 'leader') { ?>
-                                            ${req.file_name 
-                                                ? '' 
-                                                : `<div class="requirement-upload-section-student">
+                                            ${canUploadMore 
+                                                ? `<div class="requirement-upload-section-student">
                                                     <label class="requirement-upload-label">Upload File:</label>
+                                                    ${allowsMultiple ? `<small class="d-block text-muted mb-2">Submissions: ${submissionCount}/${maxSubmissions}</small>` : ''}
                                                     <form class="upload-form requirement-upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                         <input type="hidden" name="document_name" value="${req.name}">
                                                         <input type="hidden" name="requirement_id" value="${req.id}">
@@ -3735,6 +3782,11 @@ $(document).ready(function() {
                                                         </div>
                                                     </form>
                                                 </div>`
+                                                : req.status === 'closed'
+                                                    ? `<div class="requirement-upload-section-student"><small class="text-muted">Submission closed. The deadline has passed.</small></div>`
+                                                : allowsMultiple
+                                                    ? `<div class="requirement-upload-section-student"><small class="text-muted">Maximum submissions reached (${maxSubmissions}).</small></div>`
+                                                    : ''
                                             }
                                             <?php } ?>
                                         </div>
@@ -3784,7 +3836,10 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    showToast("Success!", "File uploaded successfully!", "success");
+                    const successMessage = response.submission_number
+                        ? `File uploaded successfully! (${response.submission_number}/${response.max_submissions})`
+                        : "File uploaded successfully!";
+                    showToast("Success!", successMessage, "success");
                     setTimeout(loadRequirements, 1000);
                 } else {
                     showToast("Upload Failed", response.error || 'Unknown error', "error");
@@ -3804,17 +3859,21 @@ $(document).ready(function() {
         event.preventDefault();
         
         const reqId = $(this).data('req-id');
+        const fileName = $(this).data('file-name') || '';
         const button = $(this);
         
         // Get requirement name for the modal
-        const requirementRow = button.closest('.requirement-item');
-        const requirementName = requirementRow.find('.requirement-title').text() || 'this requirement';
+        const requirementCard = button.closest('.requirement-card-wrapper, .card');
+        const requirementName = requirementCard.find('.requirement-name').first().text().trim() || 'this requirement';
         
         // Set the requirement name in the modal
         $('#deleteRequirementName').text(requirementName);
         
-        // Store the requirement ID for later use
+        // Store request data for confirmation
         $('#confirmDeleteFile').data('req-id', reqId);
+        $('#confirmDeleteFile').data('file-name', fileName);
+        $('#confirmDeleteFile').data('trigger-button', button);
+        $('#confirmDeleteFile').data('trigger-html', button.html());
         
         // Show confirmation modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteFileConfirmModal'));
@@ -3824,20 +3883,25 @@ $(document).ready(function() {
     // Handle confirmation of file deletion
     $(document).on('click', '#confirmDeleteFile', function() {
         const reqId = $(this).data('req-id');
-        const originalButton = $(`.remove-current-file-btn[data-req-id="${reqId}"]`);
+        const fileName = $(this).data('file-name') || '';
+        const originalButton = $(this).data('trigger-button');
+        const originalHtml = $(this).data('trigger-html') || 'Remove';
         
         // Hide the modal
         const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteFileConfirmModal'));
         deleteModal.hide();
         
         // Disable button during request (no animation, just text change)
-        originalButton.prop('disabled', true).text('Removing...');
+        if (originalButton && originalButton.length) {
+            originalButton.prop('disabled', true).text('Removing...');
+        }
         
         $.ajax({
             url: 'includes/remove_file.php',
             method: 'POST',
             data: {
-                requirement_id: reqId
+                requirement_id: reqId,
+                file_name: fileName
             },
             dataType: 'json',
             success: function(response) {
@@ -3854,8 +3918,10 @@ $(document).ready(function() {
                 showToast("Error", "An error occurred while removing the file.", "error");
             },
             complete: function() {
-                // Re-enable button (simple text, no icon)
-                originalButton.prop('disabled', false).text('Remove');
+                // Re-enable only the clicked button
+                if (originalButton && originalButton.length) {
+                    originalButton.prop('disabled', false).html(originalHtml);
+                }
             }
         });
     });

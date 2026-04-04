@@ -136,6 +136,45 @@ if (!in_array($fileExtension, $allowedExtensions)) {
     exit;
 }
 
+// 3.5 Deadline and closure guard checks (before file move)
+$existingRecord = false;
+try {
+    $reqMetaStmt = $pdo->prepare("SELECT due_date FROM requirements WHERE id = :requirement_id");
+    $reqMetaStmt->execute([':requirement_id' => $requirementId]);
+    $reqMeta = $reqMetaStmt->fetch(PDO::FETCH_ASSOC);
+
+    $checkSql = "SELECT id, status FROM team_requirements WHERE team_id = :team_id AND requirement_id = :requirement_id";
+    $stmtCheck = $pdo->prepare($checkSql);
+    $stmtCheck->execute([':team_id' => $teamId, ':requirement_id' => $requirementId]);
+    $existingRecord = $stmtCheck->fetch(PDO::FETCH_ASSOC);
+
+    $today = date('Y-m-d');
+    $dueDate = $reqMeta['due_date'] ?? null;
+    $isPastDue = !empty($dueDate) && $dueDate < $today;
+
+    // No record + overdue = closed by deadline.
+    if ($isPastDue && !$existingRecord) {
+        $response['error'] = 'Submission is closed. The requirement deadline has passed.';
+        ob_end_clean();
+        echo json_encode($response);
+        exit;
+    }
+
+    // Explicitly closed row (stored as rejected in DB enum) cannot be uploaded.
+    if ($existingRecord && strtolower((string)$existingRecord['status']) === 'rejected') {
+        $response['error'] = 'Submission is closed for this requirement.';
+        ob_end_clean();
+        echo json_encode($response);
+        exit;
+    }
+} catch (PDOException $e) {
+    $response['error'] = 'Database error during deadline validation.';
+    error_log("Upload DB Error: Deadline validation failed for Team ID {$teamId}, Req ID {$requirementId}. Error: " . $e->getMessage());
+    ob_end_clean();
+    echo json_encode($response);
+    exit;
+}
+
 // 4. Move Uploaded File
 if (!move_uploaded_file($fileTmpPath, $destPath)) {
     $response['error'] = 'Failed to move uploaded file.';
@@ -151,12 +190,6 @@ try {
     $reqDetails = getRequirementDetails($pdo, $requirementId);
     $allowMultipleSubmissions = $reqDetails['allow_multiple_submissions'] ?? 0;
     $maxSubmissions = $reqDetails['max_submissions'] ?? 1;
-
-    // Check existing team_requirements record
-    $checkSql = "SELECT id, status FROM team_requirements WHERE team_id = :team_id AND requirement_id = :requirement_id";
-    $stmtCheck = $pdo->prepare($checkSql);
-    $stmtCheck->execute([':team_id' => $teamId, ':requirement_id' => $requirementId]);
-    $existingRecord = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
     // For multi-submission requirements, check how many files already submitted
     if ($allowMultipleSubmissions) {
