@@ -48,10 +48,10 @@ try {
     }
 
     if ($action === 'finalize') {
-        $update = $pdo->prepare("\
-            UPDATE defense_schedules\
-            SET is_finalized = 1, finalized_by = ?, finalized_at = NOW()\
-            WHERE id = ?\
+        $update = $pdo->prepare("
+            UPDATE defense_schedules
+            SET is_finalized = 1, finalized_by = ?, finalized_at = NOW()
+            WHERE id = ?
         ");
         $update->execute([$userId, $scheduleId]);
         echo json_encode(['success' => true, 'message' => 'Schedule finalized and locked.']);
@@ -61,10 +61,10 @@ try {
             throw new Exception('You do not have permission to unfinalize this schedule.');
         }
 
-        $update = $pdo->prepare("\
-            UPDATE defense_schedules\
-            SET is_finalized = 0, finalized_by = NULL, finalized_at = NULL\
-            WHERE id = ?\
+        $update = $pdo->prepare("
+            UPDATE defense_schedules
+            SET is_finalized = 0, finalized_by = NULL, finalized_at = NULL
+            WHERE id = ?
         ");
         $update->execute([$scheduleId]);
         echo json_encode(['success' => true, 'message' => 'Schedule unlocked.']);

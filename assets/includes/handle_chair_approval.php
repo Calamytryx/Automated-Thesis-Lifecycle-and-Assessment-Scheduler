@@ -108,8 +108,8 @@ try {
             $schedule['panelist_id3']
         ]);
 
-        $approvalStmt = $pdo->prepare("\
-            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id, approval_status, response_date) 
+        $approvalStmt = $pdo->prepare("
+            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id, approval_status, response_date)
             VALUES (?, ?, 'approved', NOW())
         ");
 

@@ -2,7 +2,6 @@
 require_once '../../../assets/setup/db.inc.php';
 require_once '../../../assets/includes/auth_functions.php';
 require_once '../section_access.php';
-require_once '../edit_functions.php';
 
 header('Content-Type: application/json');
 
@@ -50,9 +49,6 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     $collegeRestrictionClause = '';
     $baseQuery = '';
     $countQuery = '';
-    $finalizedSelect = (function_exists('defenseScheduleColumnExists') && defenseScheduleColumnExists($pdo, 'is_finalized'))
-        ? "COALESCE(ds.is_finalized, 0) AS is_finalized,"
-        : "0 AS is_finalized,";
 
     $isSuperAdmin = ($currentUsertype === 0 && $userId === 0);
     $isAdmin = (($currentUsertype === 0 || $currentUsertype === 2) && $userId !== 0);
@@ -62,7 +58,18 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     if ($isSuperAdmin) {
         switch ($table) {
             case 'users':
-                $baseQuery = "SELECT users.* FROM users";
+                $baseQuery = "SELECT users.*, user_defense.next_defense_type FROM users
+                              LEFT JOIN (
+                                  SELECT tm.user_id,
+                                         SUBSTRING_INDEX(
+                                             GROUP_CONCAT(COALESCE(t.next_defense_type, 'title_proposal') ORDER BY t.id SEPARATOR ','),
+                                             ',',
+                                             1
+                                         ) AS next_defense_type
+                                  FROM team_members tm
+                                  JOIN teams t ON t.id = tm.team_id
+                                  GROUP BY tm.user_id
+                              ) user_defense ON user_defense.user_id = users.id";
                 $countQuery = "SELECT COUNT(*) FROM users";
                 break;
             case 'teams':
@@ -101,7 +108,6 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
-                     $finalizedSelect
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -205,12 +211,12 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 p.specialization
                             FROM user_schedules us
                             LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON us.program = p.id
+                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
                             "; // LEFT JOIN to include NULLs!
 
                 $countQuery = "SELECT COUNT(us.id)
                        FROM user_schedules us
-                       LEFT JOIN users u ON us.user_id = u.id";
+                       LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
 
                 break;
 
@@ -226,8 +232,19 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
 
         switch ($table) {
             case 'users':
-                $baseQuery = "SELECT users.* FROM users
-                              LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
+                $baseQuery = "SELECT users.*, user_defense.next_defense_type FROM users
+                              LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program
+                              LEFT JOIN (
+                                  SELECT tm.user_id,
+                                         SUBSTRING_INDEX(
+                                             GROUP_CONCAT(COALESCE(t.next_defense_type, 'title_proposal') ORDER BY t.id SEPARATOR ','),
+                                             ',',
+                                             1
+                                         ) AS next_defense_type
+                                  FROM team_members tm
+                                  JOIN teams t ON t.id = tm.team_id
+                                  GROUP BY tm.user_id
+                              ) user_defense ON user_defense.user_id = users.id";
                 $collegeRestrictionClause = "WHERE (p.college = :college OR users.id = :user_id)";
                 $countQuery = "SELECT COUNT(users.id) FROM users
                                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
@@ -349,7 +366,6 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
-                     $finalizedSelect
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -495,14 +511,12 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 p.specialization
                             FROM user_schedules us
                             LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON u.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
                             "; // LEFT JOIN to include NULLs!
 
                 $countQuery = "SELECT COUNT(us.id)
                        FROM user_schedules us
-                          LEFT JOIN users u ON us.user_id = u.id
-                          LEFT JOIN programs p ON u.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                      $collegeRestrictionClause = "WHERE p.college = :college AND u.usertype = 2";
+                       LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
 
                 break;
             default:
@@ -631,6 +645,22 @@ try {
     if ($table === 'users' && $usertypeFilter !== null) {
         $conditions[] = "users.usertype = :usertypeFilter";
         $params[':usertypeFilter'] = $usertypeFilter;
+    }
+
+    // --- Teams section filter condition ---
+    if ($table === 'teams') {
+        $teamSectionFilter = trim($_GET['team_section'] ?? '');
+        if ($teamSectionFilter !== '') {
+            $conditions[] = "EXISTS (
+                SELECT 1
+                FROM team_members tm_section
+                JOIN users u_section ON tm_section.user_id = u_section.id
+                WHERE tm_section.team_id = t.id
+                  AND u_section.usertype = 1
+                  AND u_section.section = :teamSectionFilter
+            )";
+            $params[':teamSectionFilter'] = $teamSectionFilter;
+        }
     }
 
     // --- Schedule-specific filter conditions ---

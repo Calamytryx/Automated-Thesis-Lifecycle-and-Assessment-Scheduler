@@ -31,7 +31,7 @@
                 <div class="user-controls-container p-0 mt-3">
                     <!-- Search and Filter Row -->
                     <div class="row g-2 mb-3 align-items-end">
-                        <div class="col-12 col-md-4 col-lg-4">
+                        <div class="col-12 col-md-4 col-lg-3">
                             <!-- Search container -->
                             <div class="users-search-container">
                                 <div class="input-group user-control-height m-0">
@@ -43,7 +43,14 @@
                             </div>
                         </div>
                         
-                        <div class="col-12 col-md-3 col-lg-3">
+                        <div class="col-12 col-md-3 col-lg-2">
+                            <!-- Section Filter Dropdown -->
+                            <select class="form-select user-control-height" id="teamSectionFilter">
+                                <option value="">All Sections</option>
+                            </select>
+                        </div>
+
+                        <div class="col-12 col-md-2 col-lg-2">
                             <!-- Sort Dropdown -->
                             <select class="form-select user-control-height" id="teamSortSelect">
                                 <option value="id:desc">Default (Newest First)</option>
@@ -53,7 +60,7 @@
                             </select>
                         </div>
                         
-                        <div class="col-12 col-md-5 col-lg-5">
+                        <div class="col-12 col-md-3 col-lg-5">
                             <!-- Action buttons container -->
                             <div class="d-flex gap-2">
                                 <button class="btn feature-btn bulk-add-btn user-control-height flex-fill" data-table="teams" id="bulkAddTeamsBtn" style="display:none;">
@@ -255,11 +262,15 @@
         };
 
         // Function to load teams with search and sorting
-        const loadTeams = (page = 1, search = '', sort = 'id:desc') => {
+        const loadTeams = (page = 1, search = '', sort = 'id:desc', section = '') => {
             let url = `includes/tabs/get_table.php?table=teams&page=${page}`;
             
             if (search) {
                 url += `&search=${encodeURIComponent(search)}`;
+            }
+
+            if (section) {
+                url += `&team_section=${encodeURIComponent(section)}`;
             }
             
             if (sort) {
@@ -468,24 +479,55 @@
                 });
         };
 
+        const loadTeamSections = () => {
+            fetch('includes/get_available_users.php?type=team_sections')
+                .then(response => response.json())
+                .then(data => {
+                    const sectionFilter = document.getElementById('teamSectionFilter');
+                    if (!sectionFilter) {
+                        return;
+                    }
+
+                    const previousValue = sectionFilter.value;
+                    sectionFilter.innerHTML = '<option value="">All Sections</option>';
+
+                    const sections = (data && Array.isArray(data.data)) ? data.data : [];
+                    sections.forEach(section => {
+                        const option = document.createElement('option');
+                        option.value = section;
+                        option.textContent = section;
+                        sectionFilter.appendChild(option);
+                    });
+
+                    if (previousValue && sections.includes(previousValue)) {
+                        sectionFilter.value = previousValue;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error loading team sections:', error);
+                });
+        };
+
         // Function to get current filters
         const getCurrentFilters = () => {
             return {
                 search: document.getElementById('teamSearchInput').value,
-                sort: document.getElementById('teamSortSelect').value
+                sort: document.getElementById('teamSortSelect').value,
+                section: document.getElementById('teamSectionFilter').value
             };
         };
 
         // Function to reload current view
         const reloadCurrentView = (page = 1) => {
             const filters = getCurrentFilters();
-            loadTeams(page, filters.search, filters.sort);
+            loadTeams(page, filters.search, filters.sort, filters.section);
         };
 
         // Expose reloadCurrentView to global scope for use by main app.js.php
         window.reloadCurrentTeamsView = reloadCurrentView;
 
         // Initialize on page load
+        loadTeamSections();
         loadTeamsWithoutTitles();
         loadTeams(1, '', 'id:desc');
 
@@ -507,6 +549,11 @@
             reloadCurrentView(1);
         });
 
+        // Handle section dropdown change
+        document.getElementById('teamSectionFilter').addEventListener('change', function() {
+            reloadCurrentView(1);
+        });
+
         // Handle pagination clicks
         document.getElementById('teamsPagination').addEventListener('click', function(e) {
             e.preventDefault();
@@ -523,6 +570,7 @@
             console.log('Initializing teams tab...');
             const teamsTab = document.getElementById('teams');
             if (teamsTab && (teamsTab.classList.contains('active') || teamsTab.classList.contains('show'))) {
+                loadTeamSections();
                 loadTeamsWithoutTitles();
                 reloadCurrentView(1);
             }

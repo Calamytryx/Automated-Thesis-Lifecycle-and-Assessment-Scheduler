@@ -2543,31 +2543,36 @@ footer {
 }
 
 /* Requirements Tab Defense Type Badges */
-#requirements .status-badge.bg-info {
+#requirements .status-badge.bg-info,
+#users .status-badge.bg-info {
     background-color: rgba(13, 202, 240, 0.1) !important;
     color: #087990;
     border: 1px solid rgba(13, 202, 240, 0.2);
 }
 
-#requirements .status-badge.bg-primary {
+#requirements .status-badge.bg-primary,
+#users .status-badge.bg-primary {
     background-color: rgba(13, 110, 253, 0.1) !important;
     color: #084298;
     border: 1px solid rgba(13, 110, 253, 0.2);
 }
 
-#requirements .status-badge.bg-success {
+#requirements .status-badge.bg-success,
+#users .status-badge.bg-success {
     background-color: rgba(25, 135, 84, 0.1) !important;
     color: #198754;
     border: 1px solid rgba(25, 135, 84, 0.2);
 }
 
-#requirements .status-badge.bg-warning {
+#requirements .status-badge.bg-warning,
+#users .status-badge.bg-warning {
     background-color: rgba(255, 193, 7, 0.24) !important;
     color: #856506;
     border: 1px solid rgba(255, 193, 7, 0.2);
 }
 
-#requirements .status-badge.bg-secondary {
+#requirements .status-badge.bg-secondary,
+#users .status-badge.bg-secondary {
     background-color: rgba(108, 117, 125, 0.1) !important;
     color: #6c757d;
     border: 1px solid rgba(108, 117, 125, 0.2);
@@ -2582,7 +2587,8 @@ footer {
 
 /* Make requirements badges smaller on mobile */
 @media (max-width: 767.98px) {
-    #requirements .status-badge {
+    #requirements .status-badge,
+    #users .status-badge {
         font-size: 0.6875rem;
         padding: 0.2rem 0.6rem;
     }

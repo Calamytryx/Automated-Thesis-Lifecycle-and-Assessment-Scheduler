@@ -62,13 +62,18 @@ require_once __DIR__ . '/../../assets/includes/security_functions.php';
 function defenseScheduleColumnExists($pdo, $columnName) {
     static $columnCache = [];
 
+    $columnName = trim((string)$columnName);
+    if ($columnName === '') {
+        return false;
+    }
+
     if (isset($columnCache[$columnName])) {
         return $columnCache[$columnName];
     }
 
-    $stmt = $pdo->prepare("SHOW COLUMNS FROM defense_schedules LIKE ?");
+        $stmt = $pdo->prepare("SELECT 1 FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'defense_schedules' AND COLUMN_NAME = ? LIMIT 1");
     $stmt->execute([$columnName]);
-    $columnCache[$columnName] = (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+    $columnCache[$columnName] = (bool)$stmt->fetchColumn();
     return $columnCache[$columnName];
 }
 
@@ -125,12 +130,12 @@ function canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId) {
     }
 
     if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
-        $stmt = $pdo->prepare("\
-            SELECT p.college\
-            FROM teams t\
-            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)\
-            WHERE t.id = ?\
-            LIMIT 1\
+        $stmt = $pdo->prepare("
+            SELECT p.college
+            FROM teams t
+            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+            WHERE t.id = ?
+            LIMIT 1
         ");
         $stmt->execute([(int)$teamId]);
         $teamCollege = $stmt->fetchColumn();
@@ -151,11 +156,11 @@ function isDefenseScheduleFinalized($pdo, $scheduleId) {
 }
 
 function getTeamStudentIds($pdo, $teamId) {
-    $stmt = $pdo->prepare("\
-        SELECT DISTINCT u.id\
-        FROM team_members tm\
-        JOIN users u ON u.id = tm.user_id\
-        WHERE tm.team_id = ? AND u.usertype = 1\
+    $stmt = $pdo->prepare("
+        SELECT DISTINCT u.id
+        FROM team_members tm
+        JOIN users u ON u.id = tm.user_id
+        WHERE tm.team_id = ? AND u.usertype = 1
     ");
     $stmt->execute([(int)$teamId]);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -187,19 +192,19 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
         $params[] = (int)$excludeScheduleId;
     }
 
-    $defenseConflictStmt = $pdo->prepare("\
-        SELECT ds.id\
-        FROM defense_schedules ds\
-        JOIN team_members tm ON tm.team_id = ds.team_id\
-        WHERE tm.user_id IN ($studentPlaceholders)\
-          AND ds.team_id != ?\
-          AND ds.schedule_date = ?\
-          AND ds.start_time < ?\
-          AND ds.end_time > ?\
-          AND COALESCE(ds.status, 'scheduled') != 'cancelled'\
-          AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'\
-          $excludeSql\
-        LIMIT 1\
+    $defenseConflictStmt = $pdo->prepare("
+        SELECT ds.id
+        FROM defense_schedules ds
+        JOIN team_members tm ON tm.team_id = ds.team_id
+        WHERE tm.user_id IN ($studentPlaceholders)
+          AND ds.team_id != ?
+          AND ds.schedule_date = ?
+          AND ds.start_time < ?
+          AND ds.end_time > ?
+          AND COALESCE(ds.status, 'scheduled') != 'cancelled'
+          AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
+          $excludeSql
+        LIMIT 1
     ");
     $defenseConflictStmt->execute($params);
     if ($defenseConflictStmt->fetch(PDO::FETCH_ASSOC)) {
@@ -215,14 +220,14 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
     $classParams[] = $end;
     $classParams[] = $start;
 
-    $classConflictStmt = $pdo->prepare("\
-        SELECT us.id\
-        FROM user_schedules us\
-        WHERE us.user_id IN ($studentPlaceholders)\
-          AND us.day_of_week = ?\
-          AND us.start_time < ?\
-          AND us.end_time > ?\
-        LIMIT 1\
+    $classConflictStmt = $pdo->prepare("
+        SELECT us.id
+        FROM user_schedules us
+        WHERE us.user_id IN ($studentPlaceholders)
+          AND us.day_of_week = ?
+          AND us.start_time < ?
+          AND us.end_time > ?
+        LIMIT 1
     ");
     $classConflictStmt->execute($classParams);
     if ($classConflictStmt->fetch(PDO::FETCH_ASSOC)) {

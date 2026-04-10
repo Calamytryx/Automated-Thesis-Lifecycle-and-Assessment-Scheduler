@@ -110,6 +110,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                 <th class="d-none d-sm-table-cell">First Name</th>
                                 <th class="d-none d-sm-table-cell">Last Name</th>
                                 <th class="d-none d-md-table-cell">User Type</th>
+                                <th class="d-none d-md-table-cell">Defense Type</th>
                                 <?php if (!$isUsersTabReadOnly): ?>
                                 <th class="text-center">Action</th>
                                 <?php endif; ?>
@@ -219,6 +220,21 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                 return `<span class="user-type-badge ${badgeClass}">${userType}</span>`;
             };
 
+            const getDefenseTypeBadge = (defenseType, userType) => {
+                if (parseInt(userType, 10) !== 1) {
+                    return '';
+                }
+
+                const defenseTypeMap = {
+                    'title_proposal': '<span class="badge bg-info status-badge">Title Proposal</span>',
+                    'title_defense': '<span class="badge bg-primary status-badge">Title Defense</span>',
+                    'final_defense': '<span class="badge bg-success status-badge">Final Defense</span>',
+                    're-defense': '<span class="badge bg-warning status-badge">Re-Defense</span>'
+                };
+
+                return defenseTypeMap[defenseType] || '<span class="badge bg-secondary status-badge">N/A</span>';
+            };
+
             // Function to load users based on type with search and sorting
             const loadUsers = (userType = 'all', page = 1, search = '', sort = 'id:desc') => {
                 let url = `includes/tabs/get_table.php?table=users&page=${page}`;
@@ -278,11 +294,13 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                         <div class="text-muted small d-sm-none">${user.email}</div>
                                         <div class="text-muted small d-sm-none">${user.first_name} ${user.last_name}</div>
                                         <div class="d-sm-none mt-1">${getUserTypeBadge(user.usertype)}</div>
+                                        <div class="d-md-none mt-1">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</div>
                                     </td>
                                     <td class="d-none d-lg-table-cell">${user.email}</td>
                                     <td class="d-none d-sm-table-cell">${user.first_name}</td>
                                     <td class="d-none d-sm-table-cell">${user.last_name}</td>
                                     <td class="d-none d-md-table-cell">${getUserTypeBadge(user.usertype)}</td>
+                                    <td class="d-none d-md-table-cell">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</td>
                                     ${usersTabReadOnly ? '' : `
                                     <td class="action-buttons text-center"> 
                                         <button class="meatball-btn" data-user-id="${user.id}" aria-label="Actions">
