@@ -3,10 +3,10 @@
  * Handle program chair approval/rejection of defense schedules.
  * 
  * When chair approves:
- *   - approval_status changes from 'pending_chair' to 'pending'
- *   - Panelist approval records are created
- *   - Panelist approval notifications are sent
- *   - Team members are notified that schedule is under panelist review
+ *   - approval_status changes from 'pending_chair' to 'approved'
+ *   - Panelist assignments are auto-accepted
+ *   - Notice notifications are sent (no accept/reject workflow)
+ *   - Team members are notified that schedule is finalized
  * 
  * When chair rejects:
  *   - approval_status changes to 'rejected'
@@ -93,10 +93,10 @@ try {
     $actionStmt->execute([$userId, $scheduleId]);
 
     if ($action === 'approve') {
-        // Chair approved → Move to panelist approval phase
+        // Chair approved -> auto-accept panelists and finalize the schedule
         $updateStmt = $pdo->prepare("
             UPDATE defense_schedules 
-            SET approval_status = 'pending' 
+            SET approval_status = 'approved' 
             WHERE id = ?
         ");
         $updateStmt->execute([$scheduleId]);
@@ -108,9 +108,9 @@ try {
             $schedule['panelist_id3']
         ]);
 
-        $approvalStmt = $pdo->prepare("
-            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
-            VALUES (?, ?)
+        $approvalStmt = $pdo->prepare("\
+            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id, approval_status, response_date) 
+            VALUES (?, ?, 'approved', NOW())
         ");
 
         foreach ($panelistIds as $panelistId) {
@@ -119,7 +119,7 @@ try {
             }
         }
 
-        // Send panelist approval notifications
+        // Send panelist notice-only notifications
         createDefenseApprovalNotifications(
             $pdo,
             $scheduleId,
@@ -136,7 +136,8 @@ try {
         $formattedDate = date('F j, Y', strtotime($schedule['schedule_date']));
         $formattedTime = date('g:i A', strtotime($schedule['start_time'])) . ' - ' . date('g:i A', strtotime($schedule['end_time']));
         $defenseTypeLabel = ucwords(str_replace('_', ' ', $schedule['defense_type']));
-        $messageForTeam = "Your team's {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime} in {$schedule['room']}. Waiting for panelist approval.";
+        $messageForTeam = "Your team's {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime}" .
+            ($schedule['room'] ? " in {$schedule['room']}" : "") . ". The schedule is now approved.";
 
         foreach ($teamMemberIds as $memberId) {
             createNotification($pdo, $memberId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
@@ -146,8 +147,8 @@ try {
 
         echo json_encode([
             'success' => true,
-            'message' => 'Schedule approved by chair. Panelists have been notified for their approval.',
-            'new_status' => 'pending'
+            'message' => 'Schedule approved by chair. Panelists have been notified.',
+            'new_status' => 'approved'
         ]);
 
     } else {

@@ -4770,6 +4770,40 @@
             $('.profile-dropdown-container').removeClass('show');
             $('.profile-dropdown-menu').removeClass('show');
         });
+
+        // Generic modal form validation for create/edit modals across dashboard tabs.
+        $(document).on('submit', '.modal form', function (e) {
+            const form = this;
+            const isInformational = $(form).find('input, select, textarea').length === 0;
+
+            if (isInformational) {
+                return;
+            }
+
+            if (!form.checkValidity()) {
+                e.preventDefault();
+                e.stopPropagation();
+                form.classList.add('was-validated');
+                if (typeof showToast === 'function') {
+                    showToast('Validation Error', 'Please complete all required fields before submitting.', 'warning');
+                }
+                const firstInvalid = form.querySelector(':invalid');
+                if (firstInvalid && typeof firstInvalid.focus === 'function') {
+                    firstInvalid.focus();
+                }
+                return false;
+            }
+
+            form.classList.remove('was-validated');
+            return true;
+        });
+
+        $(document).on('shown.bs.modal', '.modal', function () {
+            const form = this.querySelector('form.was-validated');
+            if (form) {
+                form.classList.remove('was-validated');
+            }
+        });
     });
 
     // ======================================

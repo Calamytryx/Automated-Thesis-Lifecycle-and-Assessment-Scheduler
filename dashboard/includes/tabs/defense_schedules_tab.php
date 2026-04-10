@@ -44,7 +44,6 @@
                                 <select class="form-select user-control-height" id="defStatusFilter">
                                     <option value="all">All Statuses</option>
                                     <option value="pending_chair">Chair Review</option>
-                                    <option value="pending">Panel Review</option>
                                     <option value="approved">Approved</option>
                                     <option value="rejected">Rejected</option>
                                 </select>
@@ -103,7 +102,7 @@
                                     <input type="text" class="form-control" id="rooms" name="rooms" required placeholder="e.g., Defense Room 1, J201, S205">
                                 </div>
                                 <small class="form-text text-muted d-block mb-2">
-                                    Valid formats: Defense Room [1-2], J[2-4][0-9][0-9], S[2-4][0-9][0-9], C[2-3,5-11][0-9][0-9], L[1-3][0-9][0-9]
+                                    Room labels are free-text and used for manual coordination.
                                 </small>
                                 <div class="d-flex flex-wrap gap-1" style="gap: 0.25rem;">
                                     <button type="button" class="btn btn-sm btn-outline-primary room-preset" data-room="Defense Room 1" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;">Defense Room 1</button>
@@ -190,40 +189,6 @@
 
                                     // Validate rooms first
                                     if (roomsValue && rooms > 0) {
-                                        // Strict room validation function
-                                        const isValidRoomFormat = (room) => {
-                                            // Defense Room 1 or Defense Room 2
-                                            if (/^Defense Room [12]$/i.test(room)) {
-                                                return true;
-                                            }
-
-                                            if (/^Accreditation Room$/i.test(room)) {
-                                                return true;
-                                            }
-                                            
-                                            // J[2-4][0-9][0-9] (J201-J499, excluding J1##)
-                                            if (/^J[2-4]\d{2}$/i.test(room)) {
-                                                return true;
-                                            }
-                                            
-                                            // S[2-4][0-9][0-9] (S201-S499, excluding S1##)
-                                            if (/^S[2-4]\d{2}$/i.test(room)) {
-                                                return true;
-                                            }
-                                            
-                                            // C[2-3,5-11][0-9][0-9] (C201-C399, C501-C1199, excluding C4##)
-                                            if (/^C([23]|[5-9]|1[01])\d{2}$/i.test(room)) {
-                                                return true;
-                                            }
-                                            
-                                            // L[1-3][0-9][0-9] (L101-L399)
-                                            if (/^L[1-3]\d{2}$/i.test(room)) {
-                                                return true;
-                                            }
-                                            
-                                            return false;
-                                        };
-
                                         const normalizeRoomName = (name) => {
                                             return name
                                                 .toLowerCase()
@@ -234,13 +199,6 @@
                                         const seenRooms = [];
 
                                         for (let room of roomsArray) {
-                                            // Check if room matches valid format
-                                            if (!isValidRoomFormat(room)) {
-                                                isValid = false;
-                                                warningMessage = `Invalid room format: "${room}". Must be Defense Room [1-2], Accreditation Room, J[2-4]##, S[1-4]##, C[2-3,5-11]##, or L[1-3]##`;
-                                                break;
-                                            }
-
                                             const normalized = normalizeRoomName(room);
                                             if (normalizedSet.has(normalized)) {
                                                 const duplicateIndex = seenRooms.findIndex(r => normalizeRoomName(r) === normalized);
@@ -1001,7 +959,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold">Room</label>
-                            <input type="text" class="form-control" id="editRoom">
+                            <input type="text" class="form-control" id="editRoom" placeholder="Optional">
                         </div>
                         <div class="row mb-3">
                             <div class="col-6">
@@ -1031,6 +989,7 @@
                         </div>
                     </div>
                     <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-dark me-auto" id="toggleFinalizeScheduleBtn" style="display:none;">Finalize</button>
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                         <button type="button" class="btn btn-primary" id="saveEventEdit"><i class="fas fa-check me-1"></i>Apply Changes</button>
                     </div>
@@ -1278,6 +1237,9 @@
                                     const panelists = splitPanelists(schedule.panelists);
                                     let statusBadge = '';
                                     const approvalStatus = schedule.approval_status || 'pending_chair';
+                                    const finalizedBadge = Number(schedule.is_finalized || 0) === 1
+                                        ? '<span class="status-badge bg-dark text-white ms-1"><i class="fas fa-lock me-1"></i>Finalized</span>'
+                                        : '';
                                     switch (approvalStatus) {
                                         case 'pending_chair':
                                             statusBadge = '<span class="status-badge def-status-pending_chair"><i class="fas fa-clock me-1"></i>Chair Review</span>';
@@ -1294,7 +1256,7 @@
                                         <td>${schedule.thesis_title || 'N/A'}</td>
                                         <td>${panelists[0]}</td><td>${panelists[1]}</td><td>${panelists[2]}</td>
                                         <td>${schedule.room || 'N/A'}</td>
-                                        <td class="text-center">${statusBadge}</td>
+                                        <td class="text-center">${statusBadge}${finalizedBadge}</td>
                                         <td class="action-buttons text-center">
                                             <button class="meatball-btn" data-def-id="${schedule.id}" data-approval-status="${approvalStatus}" aria-label="Actions">
                                                 <i class="fas fa-ellipsis-h"></i>
@@ -1374,15 +1336,17 @@
                 function scheduleToEvent(s, isEditable = false) {
                     const panelists = splitPanelists(s.panelists);
                     const status = s.approval_status || 'pending_chair';
+                    const isFinalized = Number(s.is_finalized || 0) === 1;
                     return {
                         id: s.id,
                         title: s.team_name || 'Unknown',
                         start: s.schedule_date + 'T' + s.start_time,
                         end: s.schedule_date + 'T' + s.end_time,
-                        editable: isEditable && status === 'pending_chair',
+                        editable: isEditable && !isFinalized,
                         classNames: ['status-' + status],
                         extendedProps: {
                             ...s,
+                            is_finalized: isFinalized ? 1 : 0,
                             panelist1: panelists[0],
                             panelist2: panelists[1],
                             panelist3: panelists[2],
@@ -1546,6 +1510,7 @@
                     currentEditEvent = event;
                     currentEditContext = context;
                     const props = event.extendedProps;
+                    const isFinalized = Number(props.is_finalized || 0) === 1;
 
                     document.getElementById('editEventId').value = event.id;
                     document.getElementById('editTeamName').value = event.title;
@@ -1562,6 +1527,17 @@
                     populatePanelistDropdown(document.getElementById('editPanelist2'), p2);
                     populatePanelistDropdown(document.getElementById('editPanelist3'), p3);
 
+                    const saveBtn = document.getElementById('saveEventEdit');
+                    saveBtn.disabled = isFinalized;
+
+                    const finalizeBtn = document.getElementById('toggleFinalizeScheduleBtn');
+                    if (context === 'calendar') {
+                        finalizeBtn.style.display = 'inline-block';
+                        finalizeBtn.textContent = isFinalized ? 'Unfinalize' : 'Finalize';
+                    } else {
+                        finalizeBtn.style.display = 'none';
+                    }
+
                     const editModalEl = document.getElementById('eventEditModal');
                     // Remove tabindex=-1 temporarily to avoid aria-hidden focus trap with stacked modals
                     editModalEl.removeAttribute('tabindex');
@@ -1577,6 +1553,11 @@
                 document.getElementById('saveEventEdit').addEventListener('click', async function() {
                     if (!currentEditEvent) return;
 
+                    if (Number(currentEditEvent.extendedProps?.is_finalized || 0) === 1) {
+                        showDefAlert('This schedule is finalized and cannot be edited.', 'warning');
+                        return;
+                    }
+
                     const saveBtn = this;
                     const newDate = document.getElementById('editDate').value;
                     const newStart = document.getElementById('editStartTime').value;
@@ -1586,11 +1567,11 @@
                     const newP2 = document.getElementById('editPanelist2').value;
                     const newP3 = document.getElementById('editPanelist3').value;
 
-                    if (!newDate || !newStart || !newEnd || !newRoom) {
+                    if (!newDate || !newStart || !newEnd) {
                         if (typeof showToast === 'function') {
-                            showToast('Error', 'Date, time, and room are required.', 'error');
+                            showToast('Error', 'Date and time are required.', 'error');
                         } else {
-                            alert('Date, time, and room are required.');
+                            alert('Date and time are required.');
                         }
                         return;
                     }
@@ -1698,6 +1679,54 @@
                     }
                 });
 
+                document.getElementById('toggleFinalizeScheduleBtn').addEventListener('click', async function() {
+                    if (!currentEditEvent || currentEditContext !== 'calendar') return;
+
+                    const btn = this;
+                    const isFinalized = Number(currentEditEvent.extendedProps?.is_finalized || 0) === 1;
+                    const params = new URLSearchParams();
+                    params.append('schedule_id', String(currentEditEvent.id));
+                    params.append('action', isFinalized ? 'unfinalize' : 'finalize');
+
+                    const oldHtml = btn.innerHTML;
+                    btn.disabled = true;
+                    btn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i>Processing...';
+
+                    try {
+                        const response = await fetch('../dashboard/includes/finalize_schedule.php', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: params.toString()
+                        });
+                        const result = await response.json();
+                        if (!result.success) {
+                            throw new Error(result.message || 'Failed to update finalization state.');
+                        }
+
+                        const newFinalized = isFinalized ? 0 : 1;
+                        currentEditEvent.setExtendedProp('is_finalized', newFinalized);
+                        currentEditEvent.setProp('editable', newFinalized === 0);
+
+                        const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
+                        if (sched) {
+                            sched.is_finalized = newFinalized;
+                        }
+
+                        btn.textContent = newFinalized ? 'Unfinalize' : 'Finalize';
+                        document.getElementById('saveEventEdit').disabled = (newFinalized === 1);
+                        showDefAlert(result.message, 'success');
+                    } catch (error) {
+                        showDefAlert(error.message || 'Failed to update finalization state.', 'error');
+                    } finally {
+                        btn.disabled = false;
+                        if (btn.innerHTML.includes('Processing')) {
+                            btn.innerHTML = oldHtml;
+                        }
+                    }
+                });
+
                 // ========== CONFIRM SAVE PREVIEW ==========
                 document.getElementById('confirmSavePreview').addEventListener('click', function() {
                     const btn = this;
@@ -1737,7 +1766,7 @@
                     }
                     showDefConfirm(
                         'Approve All Schedules',
-                        `Approve all ${pendingChair.length} schedule(s) awaiting chair review? This will notify panelists.`,
+                        `Approve all ${pendingChair.length} schedule(s) awaiting chair review? This will send panelist notices.`,
                         'Approve All',
                         'success',
                         function() {

@@ -3,6 +3,7 @@
 require_once '../../assets/setup/db.inc.php';
 require_once '../../assets/includes/auth_functions.php';
 require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
 
 // Start session if not already started
 if (session_status() == PHP_SESSION_NONE) {
@@ -86,6 +87,20 @@ try {
                 // If the user being deleted has no college assigned, or belongs to the admin's college, allow deletion.
                 break;
 
+            case 'defense_schedules':
+                $stmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ?");
+                $stmt->execute([$id]);
+                $teamId = (int)$stmt->fetchColumn();
+
+                if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'You can only delete defense schedules from your access scope.'
+                    ]);
+                    exit;
+                }
+                break;
+
             // Add similar checks for other tables if needed
         }
     }
@@ -98,6 +113,10 @@ try {
     }
     if ($id <= 0) {
         throw new Exception("Invalid ID specified for deletion.");
+    }
+
+    if ($table === 'defense_schedules' && isDefenseScheduleFinalized($pdo, $id)) {
+        throw new Exception('Finalized schedules are locked and cannot be deleted.');
     }
 
 

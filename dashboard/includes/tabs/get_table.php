@@ -2,6 +2,7 @@
 require_once '../../../assets/setup/db.inc.php';
 require_once '../../../assets/includes/auth_functions.php';
 require_once '../section_access.php';
+require_once '../edit_functions.php';
 
 header('Content-Type: application/json');
 
@@ -49,6 +50,9 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     $collegeRestrictionClause = '';
     $baseQuery = '';
     $countQuery = '';
+    $finalizedSelect = (function_exists('defenseScheduleColumnExists') && defenseScheduleColumnExists($pdo, 'is_finalized'))
+        ? "COALESCE(ds.is_finalized, 0) AS is_finalized,"
+        : "0 AS is_finalized,";
 
     $isSuperAdmin = ($currentUsertype === 0 && $userId === 0);
     $isAdmin = (($currentUsertype === 0 || $currentUsertype === 2) && $userId !== 0);
@@ -97,6 +101,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     $finalizedSelect
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -200,12 +205,12 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 p.specialization
                             FROM user_schedules us
                             LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
+                            LEFT JOIN programs p ON us.program = p.id
                             "; // LEFT JOIN to include NULLs!
 
                 $countQuery = "SELECT COUNT(us.id)
                        FROM user_schedules us
-                       LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
+                       LEFT JOIN users u ON us.user_id = u.id";
 
                 break;
 
@@ -344,6 +349,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     $finalizedSelect
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -489,12 +495,14 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                 p.specialization
                             FROM user_schedules us
                             LEFT JOIN users u ON us.user_id = u.id
-                            LEFT JOIN programs p ON us.program = p.id  -- assuming 'us.program' holds the program ID
+                            LEFT JOIN programs p ON u.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
                             "; // LEFT JOIN to include NULLs!
 
                 $countQuery = "SELECT COUNT(us.id)
                        FROM user_schedules us
-                       LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
+                          LEFT JOIN users u ON us.user_id = u.id
+                          LEFT JOIN programs p ON u.program = CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
+                      $collegeRestrictionClause = "WHERE p.college = :college AND u.usertype = 2";
 
                 break;
             default:

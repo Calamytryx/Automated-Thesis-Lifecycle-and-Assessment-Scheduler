@@ -59,6 +59,182 @@
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/security_functions.php';
 
+function defenseScheduleColumnExists($pdo, $columnName) {
+    static $columnCache = [];
+
+    if (isset($columnCache[$columnName])) {
+        return $columnCache[$columnName];
+    }
+
+    $stmt = $pdo->prepare("SHOW COLUMNS FROM defense_schedules LIKE ?");
+    $stmt->execute([$columnName]);
+    $columnCache[$columnName] = (bool)$stmt->fetch(PDO::FETCH_ASSOC);
+    return $columnCache[$columnName];
+}
+
+function getDefenseScheduleAccessContext($pdo, $userId, $usertype) {
+    if ((int)$usertype === 0 && (int)$userId === 0) {
+        return ['scope' => 'all', 'college' => null, 'sections' => []];
+    }
+
+    require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+    require_once __DIR__ . '/section_access.php';
+
+    $college = get_user_college($pdo, (int)$userId);
+    $sections = ((int)$usertype === 2) ? getProfessorSections($pdo, (int)$userId) : [];
+
+    if ((int)$usertype === 0) {
+        return ['scope' => 'college', 'college' => $college, 'sections' => []];
+    }
+
+    if ((int)$usertype === 2) {
+        if (!empty($sections)) {
+            return ['scope' => 'sections', 'college' => $college, 'sections' => $sections];
+        }
+        return ['scope' => 'college', 'college' => $college, 'sections' => []];
+    }
+
+    return ['scope' => 'none', 'college' => null, 'sections' => []];
+}
+
+function canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId) {
+    $ctx = getDefenseScheduleAccessContext($pdo, (int)$userId, (int)$usertype);
+
+    if ($ctx['scope'] === 'all') {
+        return true;
+    }
+    if ($ctx['scope'] === 'none') {
+        return false;
+    }
+
+    if ($ctx['scope'] === 'sections') {
+        if (empty($ctx['sections'])) {
+            return false;
+        }
+        $placeholders = implode(',', array_fill(0, count($ctx['sections']), '?'));
+        $query = "
+            SELECT COUNT(*)
+            FROM team_members tm
+            JOIN users u ON u.id = tm.user_id
+            WHERE tm.team_id = ? AND u.usertype = 1 AND u.section IN ($placeholders)
+        ";
+        $params = array_merge([(int)$teamId], $ctx['sections']);
+        $checkStmt = $pdo->prepare($query);
+        $checkStmt->execute($params);
+        return ((int)$checkStmt->fetchColumn()) > 0;
+    }
+
+    if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
+        $stmt = $pdo->prepare("\
+            SELECT p.college\
+            FROM teams t\
+            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)\
+            WHERE t.id = ?\
+            LIMIT 1\
+        ");
+        $stmt->execute([(int)$teamId]);
+        $teamCollege = $stmt->fetchColumn();
+        return !empty($teamCollege) && $teamCollege === $ctx['college'];
+    }
+
+    return false;
+}
+
+function isDefenseScheduleFinalized($pdo, $scheduleId) {
+    if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
+        return false;
+    }
+
+    $stmt = $pdo->prepare("SELECT COALESCE(is_finalized, 0) FROM defense_schedules WHERE id = ?");
+    $stmt->execute([(int)$scheduleId]);
+    return ((int)$stmt->fetchColumn()) === 1;
+}
+
+function getTeamStudentIds($pdo, $teamId) {
+    $stmt = $pdo->prepare("\
+        SELECT DISTINCT u.id\
+        FROM team_members tm\
+        JOIN users u ON u.id = tm.user_id\
+        WHERE tm.team_id = ? AND u.usertype = 1\
+    ");
+    $stmt->execute([(int)$teamId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
+
+function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTime, $endTime, $excludeScheduleId = null) {
+    $studentIds = getTeamStudentIds($pdo, (int)$teamId);
+    if (empty($studentIds)) {
+        return ['ok' => true, 'message' => ''];
+    }
+
+    $start = (strlen((string)$startTime) === 5) ? $startTime . ':00' : $startTime;
+    $end = (strlen((string)$endTime) === 5) ? $endTime . ':00' : $endTime;
+
+    if ($start >= $end) {
+        return ['ok' => false, 'message' => 'End time must be later than start time.'];
+    }
+
+    $studentPlaceholders = implode(',', array_fill(0, count($studentIds), '?'));
+    $params = $studentIds;
+    $params[] = (int)$teamId;
+    $params[] = $scheduleDate;
+    $params[] = $end;
+    $params[] = $start;
+
+    $excludeSql = '';
+    if ($excludeScheduleId !== null) {
+        $excludeSql = ' AND ds.id != ?';
+        $params[] = (int)$excludeScheduleId;
+    }
+
+    $defenseConflictStmt = $pdo->prepare("\
+        SELECT ds.id\
+        FROM defense_schedules ds\
+        JOIN team_members tm ON tm.team_id = ds.team_id\
+        WHERE tm.user_id IN ($studentPlaceholders)\
+          AND ds.team_id != ?\
+          AND ds.schedule_date = ?\
+          AND ds.start_time < ?\
+          AND ds.end_time > ?\
+          AND COALESCE(ds.status, 'scheduled') != 'cancelled'\
+          AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'\
+          $excludeSql\
+        LIMIT 1\
+    ");
+    $defenseConflictStmt->execute($params);
+    if ($defenseConflictStmt->fetch(PDO::FETCH_ASSOC)) {
+        return [
+            'ok' => false,
+            'message' => 'Student schedule conflict: one or more team members already have another defense schedule at this time.'
+        ];
+    }
+
+    $dayOfWeek = date('l', strtotime($scheduleDate));
+    $classParams = $studentIds;
+    $classParams[] = $dayOfWeek;
+    $classParams[] = $end;
+    $classParams[] = $start;
+
+    $classConflictStmt = $pdo->prepare("\
+        SELECT us.id\
+        FROM user_schedules us\
+        WHERE us.user_id IN ($studentPlaceholders)\
+          AND us.day_of_week = ?\
+          AND us.start_time < ?\
+          AND us.end_time > ?\
+        LIMIT 1\
+    ");
+    $classConflictStmt->execute($classParams);
+    if ($classConflictStmt->fetch(PDO::FETCH_ASSOC)) {
+        return [
+            'ok' => false,
+            'message' => 'Student class conflict detected. Defense schedules cannot overlap with student class schedules.'
+        ];
+    }
+
+    return ['ok' => true, 'message' => ''];
+}
+
 // Function to update user information
 function updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype) {
     // Sanitize all text inputs to prevent HTML/script injection
@@ -490,42 +666,77 @@ function getTeamMembersForEdit($pdo, $team_id, $format = 'html') {
     }
 }
 
-function fetchAllDefenseSchedules($pdo) {
-    $stmt = $pdo->prepare("
-        SELECT
-    ds.id,
-    ds.schedule_date,
-    ds.start_time,
-    ds.end_time,
-    ds.room,
-    ds.defense_type,
-    ds.approval_status,
-    t.name AS team_name,
-    rt.title AS thesis_title,
-    GROUP_CONCAT(
-        DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name)
-        ORDER BY tm.id SEPARATOR ', '
-    ) AS team_members,
-    GROUP_CONCAT(
-        DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
-        ORDER BY FIELD(ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
-    ) AS panelists,
-    (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
-     FROM team_members tm_adviser
-     JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
-     WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser'
-     ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
-FROM defense_schedules ds
-JOIN teams t ON ds.team_id = t.id
-JOIN research_titles rt ON t.id = rt.team_id
-JOIN team_members tm ON t.id = tm.team_id
-JOIN users u_student ON tm.user_id = u_student.id AND u_student.usertype != 2 -- Exclude usertype == 1
-LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
-GROUP BY ds.id, t.name, rt.title
-ORDER BY ds.schedule_date, ds.start_time;
+function fetchAllDefenseSchedules($pdo, $viewerId = null, $viewerType = null) {
+    if ($viewerId === null) {
+        $viewerId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+    }
+    if ($viewerType === null) {
+        $viewerType = isset($_SESSION['usertype']) ? (int)$_SESSION['usertype'] : -1;
+    }
 
-    ");
-    $stmt->execute();
+    $finalizedSelect = defenseScheduleColumnExists($pdo, 'is_finalized')
+        ? "COALESCE(ds.is_finalized, 0) AS is_finalized, ds.finalized_at, ds.finalized_by,"
+        : "0 AS is_finalized, NULL AS finalized_at, NULL AS finalized_by,";
+
+    $sql = "
+        SELECT
+            ds.id,
+            ds.team_id,
+            ds.schedule_date,
+            ds.start_time,
+            ds.end_time,
+            ds.room,
+            ds.defense_type,
+            ds.approval_status,
+            $finalizedSelect
+            t.name AS team_name,
+            rt.title AS thesis_title,
+            GROUP_CONCAT(
+                DISTINCT CONCAT(u_student.first_name, ' ', u_student.last_name)
+                ORDER BY tm.id SEPARATOR ', '
+            ) AS team_members,
+            GROUP_CONCAT(
+                DISTINCT CONCAT(u_panelist.first_name, ' ', u_panelist.last_name)
+                ORDER BY FIELD(ds.panelist_id, ds.panelist_id2, ds.panelist_id3) SEPARATOR ', '
+            ) AS panelists,
+            (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
+             FROM team_members tm_adviser
+             JOIN users u_adviser ON tm_adviser.user_id = u_adviser.id
+             WHERE tm_adviser.team_id = t.id AND tm_adviser.role = 'adviser'
+             ORDER BY tm_adviser.id ASC LIMIT 1) AS adviser
+        FROM defense_schedules ds
+        JOIN teams t ON ds.team_id = t.id
+        LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+        JOIN research_titles rt ON t.id = rt.team_id
+        JOIN team_members tm ON t.id = tm.team_id
+        JOIN users u_student ON tm.user_id = u_student.id AND u_student.usertype != 2
+        LEFT JOIN users u_panelist ON u_panelist.id IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3)
+    ";
+
+    $params = [];
+    $ctx = getDefenseScheduleAccessContext($pdo, (int)$viewerId, (int)$viewerType);
+
+    if ($ctx['scope'] === 'none') {
+        return [];
+    }
+
+    if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
+        $sql .= " WHERE p.college = :college ";
+        $params[':college'] = $ctx['college'];
+    } elseif ($ctx['scope'] === 'sections' && !empty($ctx['sections'])) {
+        $sectionPlaceholders = [];
+        foreach ($ctx['sections'] as $idx => $section) {
+            $ph = ':section_' . $idx;
+            $sectionPlaceholders[] = $ph;
+            $params[$ph] = $section;
+        }
+        $sql .= " WHERE u_student.section IN (" . implode(',', $sectionPlaceholders) . ") ";
+    }
+
+    $sql .= " GROUP BY ds.id, t.name, rt.title ORDER BY ds.schedule_date, ds.start_time";
+
+    $stmt = $pdo->prepare($sql);
+    $stmt->execute($params);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 

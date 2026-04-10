@@ -31,6 +31,10 @@
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/edit_functions.php';
 
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 // Enable error reporting for debugging
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
@@ -143,11 +147,38 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $end_time = $_POST['end_time'] ?? '';
                 $room = $_POST['room'] ?? '';
                 $team_id = $_POST['team_id'] ?? '';
+
+                $sessionUserId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : -1;
+                $sessionUserType = isset($_SESSION['usertype']) ? (int)$_SESSION['usertype'] : -1;
+
+                if (isDefenseScheduleFinalized($pdo, (int)$id)) {
+                    throw new Exception('This schedule has been finalized and cannot be edited.');
+                }
+
+                if (!canUserAccessDefenseScheduleByTeam($pdo, $sessionUserId, $sessionUserType, (int)$team_id)) {
+                    throw new Exception('You do not have access to edit this schedule.');
+                }
             
                 // Handle panelist IDs as scalars
-                $panelist_id = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][0] : $_POST['panelist_id'][0]) : null;
-                $panelist_id2 = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][1] : $_POST['panelist_id'][1]) : null;
-                $panelist_id3 = isset($_POST['panelist_id']) ? (is_array($_POST['panelist_id']) ? $_POST['panelist_id'][2] : $_POST['panelist_id'][2]): null;
+                $postedPanelists = $_POST['panelist_id'] ?? null;
+                if (!is_array($postedPanelists)) {
+                    $postedPanelists = [$postedPanelists];
+                }
+                $panelist_id = $postedPanelists[0] ?? null;
+                $panelist_id2 = $postedPanelists[1] ?? null;
+                $panelist_id3 = $postedPanelists[2] ?? null;
+
+                $conflictCheck = validateStudentScheduleConflicts(
+                    $pdo,
+                    (int)$team_id,
+                    $schedule_date,
+                    $start_time,
+                    $end_time,
+                    (int)$id
+                );
+                if (!$conflictCheck['ok']) {
+                    throw new Exception($conflictCheck['message']);
+                }
             
                 error_log("Updating defense schedule: Date=$schedule_date, Start=$start_time, End=$end_time, Room=$room, Team ID=$team_id, Panelists=[$panelist_id, $panelist_id2, $panelist_id3]");
             

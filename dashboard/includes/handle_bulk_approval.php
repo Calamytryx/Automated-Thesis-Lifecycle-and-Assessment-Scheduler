@@ -2,7 +2,7 @@
 /**
  * Handle bulk chair approval/rejection of defense schedules.
  * Accepts an array of schedule objects (possibly with edits) and an action (approve/reject).
- * On approve: updates each schedule's fields, changes status to 'pending', creates panelist approvals & notifications.
+ * On approve: updates each schedule's fields, changes status to 'approved', auto-accepts panelist assignments, and sends notice notifications.
  * On reject: changes status to 'rejected'.
  */
 session_start();
@@ -68,14 +68,14 @@ try {
             UPDATE defense_schedules 
             SET schedule_date = ?, start_time = ?, end_time = ?, room = ?,
                 panelist_id = ?, panelist_id2 = ?, panelist_id3 = ?,
-                approval_status = 'pending'
+                approval_status = 'approved'
             WHERE id = ? AND approval_status = 'pending_chair'
         ");
 
         // Create panelist approval records
         $approvalStmt = $pdo->prepare("
-            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id, approval_status, created_at)
-            VALUES (?, ?, 'pending', NOW())
+            INSERT INTO panelist_approvals (defense_schedule_id, panelist_id, approval_status, response_date, created_at)
+            VALUES (?, ?, 'approved', NOW(), NOW())
         ");
 
         foreach ($schedules as $sched) {

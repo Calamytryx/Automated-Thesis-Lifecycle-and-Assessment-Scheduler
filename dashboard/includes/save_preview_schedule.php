@@ -11,9 +11,10 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
+require_once __DIR__ . '/edit_functions.php';
 
 try {
-    // Allow admins (usertype=0) and subject teachers with assigned sections (usertype=2)
+    // Allow admins/program chairs and faculty based on existing dashboard access rules.
     $usertype = isset($_SESSION['usertype']) ? intval($_SESSION['usertype']) : -1;
     $userId = isset($_SESSION['id']) ? intval($_SESSION['id']) : -1;
     $isAdmin = ($usertype === 0);
@@ -59,8 +60,24 @@ try {
             continue;
         }
 
+        $teamId = (int)$sched['team_id'];
+        if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+            throw new Exception('You do not have access to schedule one or more selected teams.');
+        }
+
+        $conflictCheck = validateStudentScheduleConflicts(
+            $pdo,
+            $teamId,
+            $sched['schedule_date'],
+            $sched['start_time'],
+            $sched['end_time']
+        );
+        if (!$conflictCheck['ok']) {
+            throw new Exception($conflictCheck['message']);
+        }
+
         $stmt->execute([
-            $sched['team_id'],
+            $teamId,
             $sched['panelist_id'] ?? null,
             $sched['panelist_id2'] ?? null,
             $sched['panelist_id3'] ?? null,

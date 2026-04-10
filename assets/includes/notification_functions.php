@@ -938,32 +938,19 @@ function createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelis
         $formattedDate = date('F j, Y', strtotime($scheduleDate));
         $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
         
-        // Create approval notifications for each panelist
+        // Create notice-only notifications for each panelist
         foreach ($panelistIds as $panelistId) {
             if ($panelistId && $panelistId !== '') {
-                $title = "Defense Schedule Approval Required";
+                $title = "Defense Panel Assignment Notice";
                 $message = "You have been assigned as a panelist for {$teamInfo['name']}'s defense:\n\n" .
                           "📅 Date: {$formattedDate}\n" .
                           "🕒 Time: {$formattedTime}\n" .
                           "🏢 Room: {$room}\n" .
                           "🎓 Program: {$teamInfo['program']}\n" .
                           "📝 Research: " . ($teamInfo['research_title'] ?? 'N/A') . "\n\n" .
-                          "Please approve or decline this assignment.";
+                          "This assignment has been automatically accepted by the scheduling workflow.";
                 
-                // Create notification with approval type and reference to defense schedule
-                $notificationId = createNotification($pdo, $panelistId, $title, $message, 'defense_approval', $scheduleId, true);
-                
-                if ($notificationId) {
-                    // Add approval actions to notification_actions table
-                    $actionStmt = $pdo->prepare("
-                        INSERT INTO notification_actions (notification_id, action_type, action_data) 
-                        VALUES (?, ?, ?)
-                    ");
-                    
-                    $actionData = json_encode(['schedule_id' => $scheduleId]);
-                    $actionStmt->execute([$notificationId, 'approve_defense', $actionData]);
-                    $actionStmt->execute([$notificationId, 'reject_defense', $actionData]);
-                }
+                createNotification($pdo, $panelistId, $title, $message, 'defense_notice', $scheduleId, false);
             }
         }
         
