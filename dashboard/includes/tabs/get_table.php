@@ -686,13 +686,13 @@ try {
                 $searchCondition = "(rt.title LIKE :search1 OR t.name LIKE :search2 OR 
                                    CASE WHEN rt.approved_at IS NOT NULL THEN 'approved' ELSE 'pending' END LIKE :search3)";
                 break;
+            case 'rubrics':
+                $alias = $isAdmin ? 'r.' : '';
+                $searchCondition = "({$alias}name LIKE :search1)";
+                break;
             /* COMMENTED OUT - No frontend search UI implemented for these tables
             case 'defense_schedules':
                 $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2)";
-                break;
-            case 'rubrics':
-                $alias = $isAdmin ? 'r.' : '';
-                $searchCondition = "({$alias}name LIKE :search1 OR {$alias}description LIKE :search2 OR {$alias}defense_type LIKE :search3)";
                 break;
             case 'rubric_groups':
                 $alias = $isAdmin ? 'rg.' : '';
@@ -786,6 +786,18 @@ try {
         if (!empty($collegeFilter)) {
             $conditions[] = "college = :collegeFilter";
             $params[':collegeFilter'] = $collegeFilter;
+        }
+    }
+
+    // --- Rubrics-specific filter conditions ---
+    if ($table === 'rubrics') {
+        $rubricTypeFilter = $_GET['rubric_type'] ?? 'all';
+        $allowedRubricTypes = ['numerical', 'yesno', 'passfail'];
+
+        if (in_array($rubricTypeFilter, $allowedRubricTypes, true)) {
+            $rubricTypeColumn = $isAdmin ? 'r.rubric_type' : 'rubric_type';
+            $conditions[] = $rubricTypeColumn . " = :rubricTypeFilter";
+            $params[':rubricTypeFilter'] = $rubricTypeFilter;
         }
     }
 

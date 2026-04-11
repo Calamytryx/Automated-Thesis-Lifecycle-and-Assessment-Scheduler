@@ -21,10 +21,30 @@
         <!-- Rubrics Management Controls -->
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap gap-2 justify-content-end mb-3">
-                    <button class="btn feature-btn add-btn" data-table="rubrics">
-                        <i class="fas fa-plus me-2"></i>Add New Rubric
-                    </button>
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-12 col-md-5 col-lg-4">
+                        <div class="input-group user-control-height m-0">
+                            <span class="input-group-text border-0">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-0" id="rubricsSearchInput" placeholder="Search rubric name...">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <select class="form-select user-control-height" id="rubricsTypeFilterSelect">
+                            <option value="all">All Rubric Types</option>
+                            <option value="numerical">Numerical</option>
+                            <option value="yesno">Yes/No</option>
+                            <option value="passfail">Pass/Fail</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3 col-lg-5">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn feature-btn add-btn user-control-height w-100 w-md-auto" data-table="rubrics">
+                                <i class="fas fa-plus me-2"></i>Add New Rubric
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -422,7 +442,7 @@
 
 <script>
     // Initialize the rubrics table
-    function loadRubrics(page = 1) {
+    function loadRubrics(page = 1, search = '', rubricType = 'all') {
         // Clear any existing dropdowns to prevent duplicates 
         document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
         
@@ -431,7 +451,9 @@
             method: 'GET',
             data: {
                 table: 'rubrics',
-                page: page
+                page: page,
+                search: search,
+                rubric_type: rubricType
             },
             success: function(response) {
                 if (response.data) {
@@ -439,7 +461,7 @@
                     tbody.empty();
 
                     if (response.data.length === 0) {
-                        tbody.html('<tr><td colspan="5">No rubrics found.</td></tr>');
+                        tbody.html('<tr><td colspan="4" class="text-center text-muted">No rubrics found.</td></tr>');
                     } else {
                         response.data.forEach(function(rubric) {
                             let typeName = 'Unknown';
@@ -474,18 +496,26 @@
                     // Update pagination
                     updatePagination(response.total_pages, page);
                 } else {
-                    $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data.</td></tr>');
+                    $('#rubricsTableBody').html('<tr><td colspan="4" class="text-center text-danger">Error loading data.</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
-                $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data. Please try again.</td></tr>');
+                $('#rubricsTableBody').html('<tr><td colspan="4" class="text-center text-danger">Error loading data. Please try again.</td></tr>');
             }
         });
     }
 
+    function getCurrentRubricsFilters() {
+        return {
+            search: ($('#rubricsSearchInput').val() || '').trim(),
+            rubricType: $('#rubricsTypeFilterSelect').val() || 'all'
+        };
+    }
+
     // Global reload function for rubrics (similar to other tabs)
     window.reloadCurrentRubricsView = function(page = 1) {
-        loadRubrics(page);
+        var filters = getCurrentRubricsFilters();
+        loadRubrics(page, filters.search, filters.rubricType);
     };
 
     // Update pagination
@@ -1779,11 +1809,21 @@
         loadProgramsForCheckboxes();
         // --- END NEW ---
 
+        // Handle search input
+        $('#rubricsSearchInput').off('input').on('input', function() {
+            window.reloadCurrentRubricsView(1);
+        });
+
+        // Handle rubric type filter
+        $('#rubricsTypeFilterSelect').off('change').on('change', function() {
+            window.reloadCurrentRubricsView(1);
+        });
+
         // Handle pagination clicks
         $('#rubricsPagination').off('click').on('click', 'a.page-link', function(e) {
             e.preventDefault();
             var page = $(this).data('page');
-            loadRubrics(page);
+            window.reloadCurrentRubricsView(page);
         });
 
         // Handle add rubric button click - use a namespaced event to avoid conflicts
