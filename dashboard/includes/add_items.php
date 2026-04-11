@@ -13,6 +13,7 @@ $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 // At the beginning of the file, after starting the session and including required files:
 require_once '../../assets/includes/auth_functions.php';
 require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
 
 // Current user info
 $userId = $_SESSION['id'] ?? 0;
@@ -759,6 +760,23 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['panelist_id']  = $panelist_ids[0] ?? null;
         $data['panelist_id2'] = $panelist_ids[1] ?? null;
         $data['panelist_id3'] = $panelist_ids[2] ?? null;
+
+        $teamId = isset($data['team_id']) ? (int)$data['team_id'] : 0;
+        if ($teamId <= 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Please select a valid team.'
+            ]);
+            exit;
+        }
+
+        if (!canUserAccessDefenseScheduleByTeam($pdo, (int)$userId, (int)$usertype, $teamId)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'You can only add defense schedules for your assigned scope.'
+            ]);
+            exit;
+        }
         
         // Set default values
         $data['status'] = $data['status'] ?? 'scheduled';

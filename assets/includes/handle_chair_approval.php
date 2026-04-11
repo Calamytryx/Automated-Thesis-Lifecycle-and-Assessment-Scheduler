@@ -15,6 +15,7 @@
 session_start();
 require_once '../setup/db.inc.php';
 require_once 'notification_functions.php';
+require_once __DIR__ . '/../../dashboard/includes/edit_functions.php';
 
 header('Content-Type: application/json');
 
@@ -61,6 +62,7 @@ if (!$scheduleId || !$userId || !in_array($action, ['approve', 'reject'])) {
 
 try {
     $pdo->beginTransaction();
+    $supportsFinalization = defenseScheduleColumnExists($pdo, 'is_finalized');
 
     // Verify the schedule exists and is in pending_chair status
     $checkStmt = $pdo->prepare("SELECT * FROM defense_schedules WHERE id = ?");
@@ -93,13 +95,37 @@ try {
     $actionStmt->execute([$userId, $scheduleId]);
 
     if ($action === 'approve') {
+        $conflictCheck = validateStudentScheduleConflicts(
+            $pdo,
+            (int)$schedule['team_id'],
+            $schedule['schedule_date'] ?? '',
+            $schedule['start_time'] ?? '',
+            $schedule['end_time'] ?? '',
+            (int)$scheduleId
+        );
+        if (!$conflictCheck['ok']) {
+            throw new Exception($conflictCheck['message']);
+        }
+
         // Chair approved -> auto-accept panelists and finalize the schedule
-        $updateStmt = $pdo->prepare("
-            UPDATE defense_schedules 
-            SET approval_status = 'approved' 
-            WHERE id = ?
-        ");
-        $updateStmt->execute([$scheduleId]);
+        if ($supportsFinalization) {
+            $updateStmt = $pdo->prepare("
+                UPDATE defense_schedules 
+                SET approval_status = 'approved',
+                    is_finalized = 1,
+                    finalized_by = ?,
+                    finalized_at = NOW()
+                WHERE id = ?
+            ");
+            $updateStmt->execute([$userId, $scheduleId]);
+        } else {
+            $updateStmt = $pdo->prepare("
+                UPDATE defense_schedules 
+                SET approval_status = 'approved' 
+                WHERE id = ?
+            ");
+            $updateStmt->execute([$scheduleId]);
+        }
 
         // Now create panelist approval records
         $panelistIds = array_filter([

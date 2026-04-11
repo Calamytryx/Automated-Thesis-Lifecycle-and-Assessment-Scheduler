@@ -912,6 +912,11 @@
         <div id="defCalendarViewContainer" class="row" style="display:none;">
             <div class="col-12">
                 <div class="p-3 bg-white rounded border">
+                    <div class="def-calendar-legend mb-3" aria-label="Defense schedule status legend">
+                        <span class="def-legend-item"><span class="def-legend-dot def-legend-approved"></span>Approved</span>
+                        <span class="def-legend-item"><span class="def-legend-dot def-legend-rejected"></span>Rejected</span>
+                        <span class="def-legend-item"><span class="def-legend-dot def-legend-chair-review"></span>Chair Review</span>
+                    </div>
                     <div id="defenseCalendar" style="min-height:600px;"></div>
                 </div>
             </div>
@@ -1029,10 +1034,32 @@
                 font-size: 0.78rem;
                 line-height: 1.2;
             }
+            .def-calendar-legend {
+                display: flex;
+                flex-wrap: wrap;
+                gap: 0.85rem;
+                align-items: center;
+                font-size: 0.85rem;
+                color: #374151;
+            }
+            .def-legend-item {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.4rem;
+                font-weight: 500;
+            }
+            .def-legend-dot {
+                width: 0.7rem;
+                height: 0.7rem;
+                border-radius: 50%;
+                display: inline-block;
+            }
+            .def-legend-approved { background-color: #10b981; }
+            .def-legend-rejected { background-color: #ef4444; }
+            .def-legend-chair-review { background-color: #f59e0b; }
             .fc-event .event-team { font-weight: 600; }
             .fc-event .event-room { font-size: 0.7rem; opacity: 0.85; }
             .fc-event.status-pending_chair { background-color: #f59e0b !important; border-color: #d97706 !important; color: #451a03 !important; }
-            .fc-event.status-pending { background-color: #3b82f6 !important; border-color: #2563eb !important; color: #fff !important; }
             .fc-event.status-approved { background-color: #10b981 !important; border-color: #059669 !important; color: #fff !important; }
             .fc-event.status-rejected { background-color: #ef4444 !important; border-color: #dc2626 !important; color: #fff !important; }
             .fc-event.status-preview { background-color: #8b5cf6 !important; border-color: #7c3aed !important; color: #fff !important; }
@@ -1222,6 +1249,7 @@
 
                 // ========== Schedule data cache (raw from server) ==========
                 let allScheduleData = [];
+                let currentTablePage = 1;
 
                 // ========== VIEW TOGGLE ==========
                 const tableViewBtn = document.getElementById('defTableView');
@@ -1236,15 +1264,14 @@
                     calendarContainer.style.display = 'none';
                     bulkControls.style.display = 'none';
                     filterControls.style.display = '';
+                    loadDefenseSchedules(currentTablePage, false, false);
                 });
                 calendarViewBtn.addEventListener('change', () => {
                     tableContainer.style.display = 'none';
                     calendarContainer.style.display = '';
                     filterControls.style.display = 'none';
-                    renderDefenseCalendar();
-                    // Show bulk controls if there are pending_chair items
-                    const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
-                    bulkControls.style.display = hasPendingChair ? '' : 'none';
+                    bulkControls.style.display = 'none';
+                    loadDefenseSchedules(1, false, true);
                 });
 
                 // ========== TABLE VIEW (existing) ==========
@@ -1253,12 +1280,11 @@
                     sortDir: document.getElementById('defDateSort').value
                 });
 
-                const loadDefenseSchedules = (page = 1, showProgress = false) => {
+                const loadDefenseSchedules = (page = 1, showProgress = false, forceCalendarMode = false) => {
                     if (showProgress && typeof window.updateScheduleProgress === 'function') window.updateScheduleProgress('Refreshing defense schedules...', 95);
                     
-                    // If calendar view is active, fetch all records
-                    const isCalView = calendarViewBtn.checked;
-                    const perPageParam = isCalView ? '&per_page=500' : '';
+                    const isCalendarRequest = forceCalendarMode === true || calendarViewBtn.checked;
+                    const perPageParam = isCalendarRequest ? '&per_page=500' : '';
                     const filters = getDefenseFilters();
                     const statusParam = filters.status !== 'all' ? `&approval_status=${encodeURIComponent(filters.status)}` : '';
                     const sortParam = `&sort_by=schedule_date&sort_dir=${encodeURIComponent(filters.sortDir)}`;
@@ -1275,112 +1301,129 @@
                             }
 
                             allScheduleData = data.data || [];
-                            const tbody = document.querySelector('#def-table tbody');
-                            tbody.innerHTML = '';
-                            // Clean up old meatball dropdown portals
-                            document.querySelectorAll('[id^="dropdown-def-"]').forEach(el => el.remove());
-                            if (allScheduleData.length === 0) {
-                                tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
-                            } else {
-                                // Calendar view still needs local sort for proper event ordering
-                                if (isCalView) {
-                                    allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
+                            if (!isCalendarRequest) {
+                                const tbody = document.querySelector('#def-table tbody');
+                                tbody.innerHTML = '';
+                                // Clean up old meatball dropdown portals
+                                document.querySelectorAll('[id^="dropdown-def-"]').forEach(el => el.remove());
+                                if (allScheduleData.length === 0) {
+                                    tbody.innerHTML = `<tr><td colspan="10" class="text-center">No defense schedules found.</td></tr>`;
+                                } else {
+                                    allScheduleData.forEach(schedule => {
+                                        const dateTime = `${formatDate(schedule.schedule_date)} ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`;
+                                        const panelists = splitPanelists(schedule.panelists);
+                                        let statusBadge = '';
+                                        const approvalStatus = schedule.approval_status || 'pending_chair';
+                                        switch (approvalStatus) {
+                                            case 'pending_chair':
+                                                statusBadge = '<span class="status-badge def-status-pending_chair"><i class="fas fa-clock me-1"></i>Chair Review</span>';
+                                                break;
+                                            case 'pending': statusBadge = '<span class="status-badge def-status-pending_chair"><i class="fas fa-clock me-1"></i>Chair Review</span>'; break;
+                                            case 'approved': statusBadge = '<span class="status-badge def-status-approved"><i class="fas fa-check-circle me-1"></i>Approved</span>'; break;
+                                            case 'rejected': statusBadge = '<span class="status-badge def-status-rejected"><i class="fas fa-times-circle me-1"></i>Rejected</span>'; break;
+                                        }
+
+                                        tbody.innerHTML += `<tr>
+                                            <td>${dateTime}</td>
+                                            <td>${schedule.team_name || 'N/A'}</td>
+                                            <td>${schedule.adviser || 'N/A'}</td>
+                                            <td>${schedule.thesis_title || 'N/A'}</td>
+                                            <td>${panelists[0]}</td><td>${panelists[1]}</td><td>${panelists[2]}</td>
+                                            <td>${schedule.room || 'N/A'}</td>
+                                            <td class="text-center">${statusBadge}</td>
+                                            <td class="action-buttons text-center">
+                                                <button class="meatball-btn" data-def-id="${schedule.id}" data-approval-status="${approvalStatus}" aria-label="Actions">
+                                                    <i class="fas fa-ellipsis-h"></i>
+                                                </button>
+                                            </td>
+                                        </tr>`;
+                                    });
                                 }
-                                allScheduleData.forEach(schedule => {
-                                    const dateTime = `${formatDate(schedule.schedule_date)} ${formatTime(schedule.start_time)} - ${formatTime(schedule.end_time)}`;
-                                    const panelists = splitPanelists(schedule.panelists);
-                                    let statusBadge = '';
-                                    const approvalStatus = schedule.approval_status || 'pending_chair';
-                                    const finalizedBadge = Number(schedule.is_finalized || 0) === 1
-                                        ? '<span class="status-badge bg-dark text-white ms-1"><i class="fas fa-lock me-1"></i>Finalized</span>'
-                                        : '';
-                                    switch (approvalStatus) {
-                                        case 'pending_chair':
-                                            statusBadge = '<span class="status-badge def-status-pending_chair"><i class="fas fa-clock me-1"></i>Chair Review</span>';
-                                            break;
-                                        case 'pending': statusBadge = '<span class="status-badge def-status-pending"><i class="fas fa-user-clock me-1"></i>Panel Review</span>'; break;
-                                        case 'approved': statusBadge = '<span class="status-badge def-status-approved"><i class="fas fa-check-circle me-1"></i>Approved</span>'; break;
-                                        case 'rejected': statusBadge = '<span class="status-badge def-status-rejected"><i class="fas fa-times-circle me-1"></i>Rejected</span>'; break;
+
+                                // Pagination
+                                const pagination = document.querySelector('#def-nav .pagination');
+                                pagination.innerHTML = '';
+
+                                if (data.total_pages > 1) {
+                                    const totalPages = data.total_pages;
+
+                                    pagination.innerHTML += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&#8249;</a></li>`;
+
+                                    const startPage = Math.max(1, page - 2);
+                                    const endPage = Math.min(totalPages, page + 2);
+
+                                    if (startPage > 1) {
+                                        pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                                        if (startPage > 2) {
+                                            pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                        }
                                     }
 
-                                    tbody.innerHTML += `<tr>
-                                        <td>${dateTime}</td>
-                                        <td>${schedule.team_name || 'N/A'}</td>
-                                        <td>${schedule.adviser || 'N/A'}</td>
-                                        <td>${schedule.thesis_title || 'N/A'}</td>
-                                        <td>${panelists[0]}</td><td>${panelists[1]}</td><td>${panelists[2]}</td>
-                                        <td>${schedule.room || 'N/A'}</td>
-                                        <td class="text-center">${statusBadge}${finalizedBadge}</td>
-                                        <td class="action-buttons text-center">
-                                            <button class="meatball-btn" data-def-id="${schedule.id}" data-approval-status="${approvalStatus}" aria-label="Actions">
-                                                <i class="fas fa-ellipsis-h"></i>
-                                            </button>
-                                        </td>
-                                    </tr>`;
-                                });
-                            }
-
-                            // Pagination
-                            const pagination = document.querySelector('#def-nav .pagination');
-                            pagination.innerHTML = '';
-
-                            if (data.total_pages > 1) {
-                                const totalPages = data.total_pages;
-
-                                pagination.innerHTML += `<li class="page-item ${page <= 1 ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page - 1}">&#8249;</a></li>`;
-
-                                const startPage = Math.max(1, page - 2);
-                                const endPage = Math.min(totalPages, page + 2);
-
-                                if (startPage > 1) {
-                                    pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
-                                    if (startPage > 2) {
-                                        pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                    for (let i = startPage; i <= endPage; i++) {
+                                        pagination.innerHTML += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
                                     }
-                                }
 
-                                for (let i = startPage; i <= endPage; i++) {
-                                    pagination.innerHTML += `<li class="page-item ${page === i ? 'active' : ''}"><a class="page-link" href="#" data-page="${i}">${i}</a></li>`;
-                                }
-
-                                if (endPage < totalPages) {
-                                    if (endPage < totalPages - 1) {
-                                        pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                    if (endPage < totalPages) {
+                                        if (endPage < totalPages - 1) {
+                                            pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                        }
+                                        pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
                                     }
-                                    pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
-                                }
 
-                                pagination.innerHTML += `<li class="page-item ${page >= totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
+                                    pagination.innerHTML += `<li class="page-item ${page >= totalPages ? 'disabled' : ''}"><a class="page-link" href="#" data-page="${page + 1}">&#8250;</a></li>`;
+                                }
                             }
 
                             if (showProgress && typeof window.hideLoadingState === 'function') setTimeout(() => window.hideLoadingState(true, 'Defense schedules updated!'), 500);
 
-                            // Update calendar if visible
-                            if (calendarViewBtn.checked) renderDefenseCalendar();
-                            // Update bulk controls
-                            const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
-                            if (calendarViewBtn.checked) bulkControls.style.display = hasPendingChair ? '' : 'none';
+                            // Update calendar with full independent dataset when requested
+                            if (isCalendarRequest) {
+                                allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
+                                renderDefenseCalendar();
+                                const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
+                                bulkControls.style.display = hasPendingChair ? '' : 'none';
+                            }
                         })
                         .catch(error => {
                             if (showProgress && typeof window.hideLoadingState === 'function') window.hideLoadingState(false, 'Failed to refresh schedules');
-                            const tbody = document.querySelector('#def-table tbody');
-                            tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${error.message}</td></tr>`;
-                            document.querySelector('#def-nav .pagination').innerHTML = '';
+                            if (isCalendarRequest) {
+                                showDefAlert('Failed to load calendar schedules: ' + error.message, 'error');
+                            } else {
+                                const tbody = document.querySelector('#def-table tbody');
+                                tbody.innerHTML = `<tr><td colspan="10" class="text-center text-danger">Error: ${error.message}</td></tr>`;
+                                document.querySelector('#def-nav .pagination').innerHTML = '';
+                            }
                         });
                 };
 
-                window.reloadCurrentDefenseSchedulesView = function(page = 1) { loadDefenseSchedules(page); };
-                loadDefenseSchedules();
+                window.reloadCurrentDefenseSchedulesView = function(page = currentTablePage) {
+                    if (calendarViewBtn.checked) {
+                        loadDefenseSchedules(1, false, true);
+                    } else {
+                        currentTablePage = page;
+                        loadDefenseSchedules(currentTablePage, false, false);
+                    }
+                };
+                loadDefenseSchedules(currentTablePage, false, false);
 
                 // Filter/sort change listeners
-                document.getElementById('defStatusFilter').addEventListener('change', () => loadDefenseSchedules(1));
-                document.getElementById('defDateSort').addEventListener('change', () => loadDefenseSchedules(1));
+                document.getElementById('defStatusFilter').addEventListener('change', () => {
+                    currentTablePage = 1;
+                    loadDefenseSchedules(currentTablePage, false, false);
+                });
+                document.getElementById('defDateSort').addEventListener('change', () => {
+                    currentTablePage = 1;
+                    loadDefenseSchedules(currentTablePage, false, false);
+                });
 
                 document.querySelector('#def-nav .pagination').addEventListener('click', function(e) {
                     e.preventDefault();
                     if (e.target.tagName === 'A') {
                         const page = parseInt(e.target.getAttribute('data-page'));
-                        if (!isNaN(page)) loadDefenseSchedules(page);
+                        if (!isNaN(page)) {
+                            currentTablePage = page;
+                            loadDefenseSchedules(currentTablePage, false, false);
+                        }
                     }
                 });
 
@@ -1389,7 +1432,8 @@
 
                 function scheduleToEvent(s, isEditable = false) {
                     const panelists = splitPanelists(s.panelists);
-                    const status = s.approval_status || 'pending_chair';
+                    const rawStatus = s.approval_status || 'pending_chair';
+                    const status = rawStatus === 'pending' ? 'pending_chair' : rawStatus;
                     const isFinalized = Number(s.is_finalized || 0) === 1;
                     return {
                         id: s.id,
@@ -1763,11 +1807,15 @@
 
                         const newFinalized = isFinalized ? 0 : 1;
                         currentEditEvent.setExtendedProp('is_finalized', newFinalized);
+                        currentEditEvent.setExtendedProp('approval_status', 'approved');
+                        currentEditEvent.setExtendedProp('status', 'approved');
+                        currentEditEvent.setProp('classNames', ['status-approved']);
                         currentEditEvent.setProp('editable', newFinalized === 0);
 
                         const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
                         if (sched) {
                             sched.is_finalized = newFinalized;
+                            sched.approval_status = 'approved';
                         }
 
                         btn.textContent = newFinalized ? 'Unfinalize' : 'Finalize';
@@ -1843,6 +1891,11 @@
                                     showDefAlert(data.message, 'success');
                                     loadDefenseSchedules();
                                 } else {
+                                    if (Array.isArray(data.conflict_items) && data.conflict_items.length > 0) {
+                                        data.conflict_items.forEach((item) => {
+                                            showDefAlert(item, 'error');
+                                        });
+                                    }
                                     showDefAlert('Error: ' + data.message, 'error');
                                 }
                             })

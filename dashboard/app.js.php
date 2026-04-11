@@ -1757,6 +1757,8 @@
                     if (response.success) {
                         var form = $('#editForm');
                         form.empty();
+                        $('#editFinalizeScheduleBtn').remove();
+                        $('#saveEdit').prop('disabled', false);
 
                         // Add hidden inputs for table and id
                         form.append('<input type="hidden" name="table" value="' + table + '">');
@@ -2230,7 +2232,7 @@
                                 <label for="team_id" class="form-label">Team</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
                                 <option value="">Select Team</option>
-                                    ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                                    ${response.teams.map(team => `<option value="${team.id}"${String(team.id) === String(response.data.team_id) ? ' selected' : ''}>${team.name}</option>`).join('')}
                                 </select>
                             </div>
                             <h5 class="mt-4">Panelists (Max 3)</h5>
@@ -2252,7 +2254,7 @@
                                     <select class="form-select" name="panelist_id[${index}]" required>
                                     <option value="">Select a panelist</option>
                                         ${response.staff.map(staff => `
-                                            <option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>
+                                            <option value="${staff.id}"${String(staff.id) === String(panelist.id) ? ' selected' : ''}>
                                                 ${staff.name}
                                             </option>
                                         `).join('')}
@@ -2296,6 +2298,32 @@
                             `;
 
                             form.html(formHtml);
+
+                            let isFinalized = Number(response.data.is_finalized || 0) === 1;
+                            const editFooter = $('#editModal .modal-footer');
+                            const finalizeBtnClass = isFinalized ? 'btn-outline-warning' : 'btn-outline-dark';
+                            const finalizeBtnLabel = isFinalized ? 'Unfinalize' : 'Finalize';
+                            const finalizeBtn = $(`<button type="button" class="btn ${finalizeBtnClass} me-auto" id="editFinalizeScheduleBtn">${finalizeBtnLabel}</button>`);
+                            finalizeBtn.attr('data-schedule-id', id);
+                            editFooter.prepend(finalizeBtn);
+
+                            function setDefenseEditLockState(locked) {
+                                $('#editForm')
+                                    .find('input, select, textarea, #addPanelist, .remove-panelist')
+                                    .not('[name="table"], [name="id"]')
+                                    .prop('disabled', locked);
+                                if (!locked && $('#panelists .panelist').length >= 3) {
+                                    $('#addPanelist').prop('disabled', true);
+                                }
+                                $('#saveEdit').prop('disabled', locked);
+                                $('#editFinalizeScheduleBtn')
+                                    .attr('data-is-finalized', locked ? '1' : '0')
+                                    .text(locked ? 'Unfinalize' : 'Finalize')
+                                    .toggleClass('btn-outline-dark', !locked)
+                                    .toggleClass('btn-outline-warning', locked);
+                            }
+
+                            setDefenseEditLockState(isFinalized);
 
                             // Initialize the date picker with same options as in defense_schedules_tab.php
                             $('.datepicker').datepicker({
@@ -2917,6 +2945,78 @@
         $(document).on('click', '#saveEdit', function () { // Changed ID to match button in modal
             console.log('DEBUG: Save changes button clicked, triggering edit form submission');
             $('#editForm').submit();
+        });
+
+        // Defense schedules table edit modal finalize/unfinalize toggle
+        $(document).off('click.editFinalizeScheduleBtn').on('click.editFinalizeScheduleBtn', '#editFinalizeScheduleBtn', function (e) {
+            e.preventDefault();
+
+            const form = $('#editForm');
+            const table = form.find('input[name="table"]').val();
+            if (table !== 'defense_schedules') {
+                return;
+            }
+
+            const btn = $(this);
+            const scheduleId = form.find('input[name="id"]').val() || btn.attr('data-schedule-id');
+            if (!scheduleId) {
+                showToast('Error', 'Missing schedule ID.', 'error');
+                return;
+            }
+
+            const isFinalized = btn.attr('data-is-finalized') === '1';
+            const action = isFinalized ? 'unfinalize' : 'finalize';
+            const originalHtml = btn.html();
+
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Processing...');
+
+            $.ajax({
+                url: 'includes/finalize_schedule.php',
+                method: 'POST',
+                data: {
+                    schedule_id: scheduleId,
+                    action: action
+                },
+                dataType: 'json',
+                success: function (result) {
+                    if (!result.success) {
+                        showToast('Error', result.message || 'Failed to update finalization state.', 'error');
+                        return;
+                    }
+
+                    const locked = !isFinalized;
+                    form
+                        .find('input, select, textarea, #addPanelist, .remove-panelist')
+                        .not('[name="table"], [name="id"]')
+                        .prop('disabled', locked);
+
+                    if (!locked && $('#panelists .panelist').length >= 3) {
+                        $('#addPanelist').prop('disabled', true);
+                    }
+
+                    $('#saveEdit').prop('disabled', locked);
+                    btn
+                        .attr('data-is-finalized', locked ? '1' : '0')
+                        .text(locked ? 'Unfinalize' : 'Finalize')
+                        .toggleClass('btn-outline-dark', !locked)
+                        .toggleClass('btn-outline-warning', locked);
+
+                    showToast('Success', result.message || 'Finalization state updated.', 'success');
+
+                    if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                        window.reloadCurrentDefenseSchedulesView(1);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('Error', 'Unable to update finalization state: ' + error, 'error');
+                },
+                complete: function () {
+                    btn.prop('disabled', false);
+                    if (btn.html().includes('Processing')) {
+                        btn.html(originalHtml);
+                    }
+                }
+            });
         });
         // EDIT END
 

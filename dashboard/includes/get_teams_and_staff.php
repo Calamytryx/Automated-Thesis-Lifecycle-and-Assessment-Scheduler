@@ -1,14 +1,79 @@
 <?php
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 header('Content-Type: application/json');
 
+function getAccessibleTeamIdsForDefenseScope($pdo, $userId, $usertype) {
+    $ctx = getDefenseScheduleAccessContext($pdo, (int)$userId, (int)$usertype);
+
+    if ($ctx['scope'] === 'none') {
+        return [];
+    }
+
+    if ($ctx['scope'] === 'all') {
+        $stmt = $pdo->query("SELECT id FROM teams");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'sections' && !empty($ctx['sections'])) {
+        $placeholders = implode(',', array_fill(0, count($ctx['sections']), '?'));
+        $stmt = $pdo->prepare(" 
+            SELECT DISTINCT t.id
+            FROM teams t
+            JOIN team_members tm ON tm.team_id = t.id
+            JOIN users u ON u.id = tm.user_id
+            WHERE u.usertype = 1
+              AND u.section IN ($placeholders)
+        ");
+        $stmt->execute($ctx['sections']);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
+        $stmt = $pdo->prepare(" 
+            SELECT t.id
+            FROM teams t
+            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+            WHERE p.college = ?
+        ");
+        $stmt->execute([$ctx['college']]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    return [];
+}
+
 try {
+    if (!isset($_SESSION['id'], $_SESSION['usertype'])) {
+        throw new Exception('Authentication required');
+    }
+
+    $userId = (int)$_SESSION['id'];
+    $usertype = (int)$_SESSION['usertype'];
+
+    if (!in_array($usertype, [0, 2], true)) {
+        throw new Exception('Unauthorized');
+    }
+
+    $accessibleTeamIds = getAccessibleTeamIdsForDefenseScope($pdo, $userId, $usertype);
+
     // Determine if this is a request for a filtered staff list
     $selected_team_id = isset($_GET['team_id']) ? intval($_GET['team_id']) : '';
 
     // If a specific team ID is provided, just return the filtered staff
     if ($selected_team_id) {
+        if (!in_array($selected_team_id, array_map('intval', $accessibleTeamIds), true)) {
+            echo json_encode(['success' => false, 'message' => 'You can only access teams from your assigned scope.']);
+            exit;
+        }
+
         // First get the team's college
         $teamCollegeStmt = $pdo->prepare("
             SELECT p.college 
@@ -59,18 +124,31 @@ try {
 
     // --- Initial page load logic (original code) ---
     // Fetch teams with their research title status
-    $teams_stmt = $pdo->query("
-        SELECT t.id, t.name, 
-               CASE WHEN rt.team_id IS NOT NULL THEN 1 ELSE 0 END as has_research_title
-        FROM teams t 
-        LEFT JOIN research_titles rt ON t.id = rt.team_id 
-        ORDER BY t.name
-    ");
-    $teams = $teams_stmt->fetchAll(PDO::FETCH_ASSOC);
+    if (empty($accessibleTeamIds)) {
+        $teams = [];
+    } else {
+        $teamPlaceholders = implode(',', array_fill(0, count($accessibleTeamIds), '?'));
+        $teams_stmt = $pdo->prepare(" 
+            SELECT t.id, t.name,
+                   CASE WHEN rt.team_id IS NOT NULL THEN 1 ELSE 0 END as has_research_title
+            FROM teams t
+            LEFT JOIN research_titles rt ON t.id = rt.team_id
+            WHERE t.id IN ($teamPlaceholders)
+            ORDER BY t.name
+        ");
+        $teams_stmt->execute($accessibleTeamIds);
+        $teams = $teams_stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 
     // Fetch IDs of teams that already have a defense schedule
-    $scheduled_teams_stmt = $pdo->query("SELECT DISTINCT team_id FROM defense_schedules WHERE team_id IS NOT NULL");
-    $scheduled_team_ids = $scheduled_teams_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    if (empty($accessibleTeamIds)) {
+        $scheduled_team_ids = [];
+    } else {
+        $teamPlaceholders = implode(',', array_fill(0, count($accessibleTeamIds), '?'));
+        $scheduled_teams_stmt = $pdo->prepare("SELECT DISTINCT team_id FROM defense_schedules WHERE team_id IS NOT NULL AND team_id IN ($teamPlaceholders)");
+        $scheduled_teams_stmt->execute($accessibleTeamIds);
+        $scheduled_team_ids = $scheduled_teams_stmt->fetchAll(PDO::FETCH_COLUMN, 0);
+    }
 
     // Add has_schedule flag to teams
     foreach ($teams as &$team) {

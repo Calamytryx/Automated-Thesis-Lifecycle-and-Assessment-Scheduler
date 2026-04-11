@@ -12,6 +12,8 @@ header('Content-Type: application/json');
 
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
+require_once __DIR__ . '/edit_functions.php';
+$conflictItems = [];
 
 try {
     // Authorization: Allow admin, program chairs, and faculty from the same college
@@ -54,6 +56,8 @@ try {
         throw new Exception('Invalid action. Must be approve or reject.');
     }
 
+    $supportsFinalization = defenseScheduleColumnExists($pdo, 'is_finalized');
+
     if (empty($schedules)) {
         throw new Exception('No schedules selected.');
     }
@@ -63,14 +67,122 @@ try {
     $processedCount = 0;
 
     if ($action === 'approve') {
+            // Pre-validate all schedules for student conflicts before approving/finalizing.
+            $currentScheduleStmt = $pdo->prepare("
+                SELECT ds.team_id, ds.schedule_date, ds.start_time, ds.end_time, t.name AS team_name
+                FROM defense_schedules ds
+                LEFT JOIN teams t ON t.id = ds.team_id
+                WHERE ds.id = ?
+                LIMIT 1
+            ");
+
+            $normalizeTime = static function ($timeValue) {
+                $time = trim((string)$timeValue);
+                if ($time === '') {
+                    return '';
+                }
+                if (strlen($time) === 5) {
+                    return $time . ':00';
+                }
+                return substr($time, 0, 8);
+            };
+
+            $proposedSchedules = [];
+
+            foreach ($schedules as $sched) {
+                if (empty($sched['id'])) {
+                    continue;
+                }
+
+                $currentScheduleStmt->execute([$sched['id']]);
+                $currentSchedule = $currentScheduleStmt->fetch(PDO::FETCH_ASSOC);
+                if (!$currentSchedule) {
+                    $conflictItems[] = 'Schedule ID ' . (int)$sched['id'] . ' was not found.';
+                    continue;
+                }
+
+                $teamId = isset($sched['team_id']) && (int)$sched['team_id'] > 0
+                    ? (int)$sched['team_id']
+                    : (int)$currentSchedule['team_id'];
+                $scheduleDate = $sched['schedule_date'] ?? $currentSchedule['schedule_date'];
+                $startTime = $normalizeTime($sched['start_time'] ?? $currentSchedule['start_time']);
+                $endTime = $normalizeTime($sched['end_time'] ?? $currentSchedule['end_time']);
+
+                $conflictCheck = validateStudentScheduleConflicts(
+                    $pdo,
+                    $teamId,
+                    $scheduleDate,
+                    $startTime,
+                    $endTime,
+                    (int)$sched['id']
+                );
+
+                if (!$conflictCheck['ok']) {
+                    $conflictItems[] = $conflictCheck['message'];
+                }
+
+                $teamName = trim((string)($currentSchedule['team_name'] ?? ''));
+                if ($teamName === '') {
+                    $teamName = 'Team ' . $teamId;
+                }
+
+                $proposedSchedules[] = [
+                    'id' => (int)$sched['id'],
+                    'team_name' => $teamName,
+                    'schedule_date' => (string)$scheduleDate,
+                    'start_time' => $startTime,
+                    'end_time' => $endTime,
+                    'student_ids' => array_map('intval', getTeamStudentIds($pdo, (int)$teamId))
+                ];
+            }
+
+            $proposedCount = count($proposedSchedules);
+            for ($i = 0; $i < $proposedCount; $i++) {
+                for ($j = $i + 1; $j < $proposedCount; $j++) {
+                    $a = $proposedSchedules[$i];
+                    $b = $proposedSchedules[$j];
+
+                    if ($a['schedule_date'] !== $b['schedule_date']) {
+                        continue;
+                    }
+                    if ($a['start_time'] >= $b['end_time'] || $a['end_time'] <= $b['start_time']) {
+                        continue;
+                    }
+                    if (empty(array_intersect($a['student_ids'], $b['student_ids']))) {
+                        continue;
+                    }
+
+                    $conflictItems[] = $a['team_name'] . ' schedule conflict with: ' . $b['team_name'] .
+                        ' on ' . $a['schedule_date'] .
+                        ' (' . substr($a['start_time'], 0, 5) . '-' . substr($a['end_time'], 0, 5) .
+                        ' and ' . substr($b['start_time'], 0, 5) . '-' . substr($b['end_time'], 0, 5) . ').';
+                }
+            }
+
+            if (!empty($conflictItems)) {
+                $conflictItems = array_values(array_unique($conflictItems));
+                throw new Exception('Cannot approve schedules with conflicts. Please fix the teams listed below first.');
+            }
+
         // Update statement for editable fields
-        $updateStmt = $pdo->prepare("
-            UPDATE defense_schedules 
-            SET schedule_date = ?, start_time = ?, end_time = ?, room = ?,
-                panelist_id = ?, panelist_id2 = ?, panelist_id3 = ?,
-                approval_status = 'approved'
-            WHERE id = ? AND approval_status = 'pending_chair'
-        ");
+        if ($supportsFinalization) {
+            $updateStmt = $pdo->prepare("
+                UPDATE defense_schedules 
+                SET schedule_date = ?, start_time = ?, end_time = ?, room = ?,
+                    panelist_id = ?, panelist_id2 = ?, panelist_id3 = ?,
+                    approval_status = 'approved',
+                    is_finalized = 1, finalized_by = ?, finalized_at = NOW()
+                WHERE id = ? AND approval_status = 'pending_chair'
+            ");
+        } else {
+            $updateStmt = $pdo->prepare("
+                UPDATE defense_schedules 
+                SET schedule_date = ?, start_time = ?, end_time = ?, room = ?,
+                    panelist_id = ?, panelist_id2 = ?, panelist_id3 = ?,
+                    approval_status = 'approved'
+                WHERE id = ? AND approval_status = 'pending_chair'
+            ");
+        }
 
         // Create panelist approval records
         $approvalStmt = $pdo->prepare("
@@ -82,16 +194,30 @@ try {
             if (empty($sched['id'])) continue;
 
             // Update the schedule with any edits + change status
-            $updateStmt->execute([
-                $sched['schedule_date'] ?? null,
-                $sched['start_time'] ?? null,
-                $sched['end_time'] ?? null,
-                $sched['room'] ?? null,
-                $sched['panelist_id'] ?? null,
-                $sched['panelist_id2'] ?? null,
-                $sched['panelist_id3'] ?? null,
-                $sched['id']
-            ]);
+            if ($supportsFinalization) {
+                $updateStmt->execute([
+                    $sched['schedule_date'] ?? null,
+                    $sched['start_time'] ?? null,
+                    $sched['end_time'] ?? null,
+                    $sched['room'] ?? null,
+                    $sched['panelist_id'] ?? null,
+                    $sched['panelist_id2'] ?? null,
+                    $sched['panelist_id3'] ?? null,
+                    $userId,
+                    $sched['id']
+                ]);
+            } else {
+                $updateStmt->execute([
+                    $sched['schedule_date'] ?? null,
+                    $sched['start_time'] ?? null,
+                    $sched['end_time'] ?? null,
+                    $sched['room'] ?? null,
+                    $sched['panelist_id'] ?? null,
+                    $sched['panelist_id2'] ?? null,
+                    $sched['panelist_id3'] ?? null,
+                    $sched['id']
+                ]);
+            }
 
             if ($updateStmt->rowCount() > 0) {
                 // Create panelist approval records
@@ -190,8 +316,19 @@ try {
         $pdo->rollBack();
     }
     error_log("handle_bulk_approval.php ERROR: " . $e->getMessage());
-    echo json_encode([
+    $response = [
         'success' => false,
         'message' => $e->getMessage()
-    ]);
+    ];
+
+    if (!empty($conflictItems)) {
+        $numberedLines = [];
+        foreach ($conflictItems as $idx => $line) {
+            $numberedLines[] = ($idx + 1) . '. ' . $line;
+        }
+        $response['message'] .= "\n" . implode("\n", $numberedLines);
+        $response['conflict_items'] = $conflictItems;
+    }
+
+    echo json_encode($response);
 }

@@ -119,6 +119,16 @@ try {
         throw new Exception('Finalized schedules are locked and cannot be deleted.');
     }
 
+    if ($table === 'defense_schedules' && !((int)$usertype === 0 && (int)$userId === 0)) {
+        $stmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ?");
+        $stmt->execute([$id]);
+        $teamId = (int)$stmt->fetchColumn();
+
+        if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+            throw new Exception('You can only delete defense schedules from your assigned scope.');
+        }
+    }
+
 
     // Special file removal for requirements
     if ($table === 'requirements') {

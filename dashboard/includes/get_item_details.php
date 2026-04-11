@@ -29,10 +29,67 @@
  */
 
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $response = ['success' => false, 'message' => '', 'data' => []];
 
+function getAccessibleDefenseTeamIds($pdo, $userId, $usertype) {
+    $ctx = getDefenseScheduleAccessContext($pdo, (int)$userId, (int)$usertype);
+
+    if ($ctx['scope'] === 'none') {
+        return [];
+    }
+
+    if ($ctx['scope'] === 'all') {
+        $stmt = $pdo->query("SELECT id FROM teams");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'sections' && !empty($ctx['sections'])) {
+        $placeholders = implode(',', array_fill(0, count($ctx['sections']), '?'));
+        $stmt = $pdo->prepare(" 
+            SELECT DISTINCT t.id
+            FROM teams t
+            JOIN team_members tm ON tm.team_id = t.id
+            JOIN users u ON u.id = tm.user_id
+            WHERE u.usertype = 1
+              AND u.section IN ($placeholders)
+        ");
+        $stmt->execute($ctx['sections']);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
+        $stmt = $pdo->prepare(" 
+            SELECT t.id
+            FROM teams t
+            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+            WHERE p.college = ?
+        ");
+        $stmt->execute([$ctx['college']]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    return [];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!isset($_SESSION['id'], $_SESSION['usertype'])) {
+        $response['message'] = 'Authentication required';
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
+    }
+
+    $userId = (int)$_SESSION['id'];
+    $usertype = (int)$_SESSION['usertype'];
+
     $id = $_POST['id'];
     $table = $_POST['table'];
 
@@ -47,6 +104,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($data) {
+                if ($table === 'defense_schedules') {
+                    $teamId = (int)($data['team_id'] ?? 0);
+                    if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+                        $response['message'] = 'You can only edit defense schedules from your assigned scope.';
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                        exit;
+                    }
+                }
+
                 $response['success'] = true;
                 $response['data'] = $data;
                 if ($table === 'programs') {
@@ -62,9 +129,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt = $pdo->query("SELECT id, title FROM thesis_topics");
                     $response['topics'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'defense_schedules') {
-                    // Fetch teams
-                    $stmt = $pdo->query("SELECT id, name FROM teams");
-                    $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    // Fetch only teams within the caller's defense schedule scope.
+                    $accessibleTeamIds = getAccessibleDefenseTeamIds($pdo, $userId, $usertype);
+                    if (!empty($accessibleTeamIds)) {
+                        $teamPlaceholders = implode(',', array_fill(0, count($accessibleTeamIds), '?'));
+                        $stmt = $pdo->prepare("SELECT id, name FROM teams WHERE id IN ($teamPlaceholders) ORDER BY name");
+                        $stmt->execute($accessibleTeamIds);
+                        $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    } else {
+                        $response['teams'] = [];
+                    }
 
                     // Fetch staff members filtered by current team (exclude adviser)
                     // Include faculty (usertype=2) and program chairs (usertype=0, id!=0) from same college

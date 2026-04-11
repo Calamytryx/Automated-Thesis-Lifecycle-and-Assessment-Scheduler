@@ -96,7 +96,8 @@ function getDefenseScheduleAccessContext($pdo, $userId, $usertype) {
         if (!empty($sections)) {
             return ['scope' => 'sections', 'college' => $college, 'sections' => $sections];
         }
-        return ['scope' => 'college', 'college' => $college, 'sections' => []];
+        // Section professors must stay limited to explicit section assignments.
+        return ['scope' => 'none', 'college' => $college, 'sections' => []];
     }
 
     return ['scope' => 'none', 'college' => null, 'sections' => []];

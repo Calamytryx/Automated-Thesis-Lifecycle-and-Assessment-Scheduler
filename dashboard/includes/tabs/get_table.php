@@ -2,6 +2,7 @@
 require_once '../../../assets/setup/db.inc.php';
 require_once '../../../assets/includes/auth_functions.php';
 require_once '../section_access.php';
+require_once '../edit_functions.php';
 
 header('Content-Type: application/json');
 
@@ -31,6 +32,57 @@ if (!in_array($table, $allowedTables)) {
     echo json_encode(['error' => 'Invalid table specified.']);
     exit;
 }
+
+function runDefenseApprovedFinalizationBackfill($pdo, $table) {
+    if ($table !== 'defense_schedules') {
+        return;
+    }
+
+    if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
+        return;
+    }
+
+    $flagKey = 'DEFENSE_APPROVED_FINALIZATION_BACKFILL_DONE';
+
+    try {
+        $flagStmt = $pdo->prepare("SELECT id, value FROM env_variables WHERE `key` = ? LIMIT 1");
+        $flagStmt->execute([$flagKey]);
+        $flag = $flagStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($flag && (string)$flag['value'] === '1') {
+            return;
+        }
+
+        $backfillStmt = $pdo->prepare("\n            UPDATE defense_schedules
+            SET is_finalized = 1,
+                finalized_at = COALESCE(finalized_at, NOW())
+            WHERE approval_status = 'approved'
+              AND COALESCE(is_finalized, 0) = 0
+        ");
+        $backfillStmt->execute();
+
+        if ($flag) {
+            $updateFlagStmt = $pdo->prepare("\n                UPDATE env_variables
+                SET value = ?
+                WHERE id = ?
+            ");
+            $updateFlagStmt->execute(['1', $flag['id']]);
+        } else {
+            $insertFlagStmt = $pdo->prepare("\n                INSERT INTO env_variables (`key`, value, description)
+                VALUES (?, ?, ?)
+            ");
+            $insertFlagStmt->execute([
+                $flagKey,
+                '1',
+                'One-time backfill marker for legacy approved defense schedules finalized state'
+            ]);
+        }
+    } catch (Exception $e) {
+        error_log('get_table.php backfill warning: ' . $e->getMessage());
+    }
+}
+
+runDefenseApprovedFinalizationBackfill($pdo, $table);
 
 // 🧠 User details and Initialization
 $userId = $_SESSION['id'];
@@ -108,6 +160,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     COALESCE(ds.is_finalized, 0) AS is_finalized,
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -366,6 +419,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                      ds.room,
                      ds.defense_type,
                      ds.approval_status,
+                     COALESCE(ds.is_finalized, 0) AS is_finalized,
                      ds.panelist_id,
                      ds.panelist_id2,
                      ds.panelist_id3,
@@ -390,10 +444,30 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
                                JOIN teams t ON ds.team_id = t.id
                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                
-                // 🔐 NOTE: Faculty (usertype 2) can see ALL defense schedules (no section filter)
-                // Full visibility into all schedules while other restrictions still apply
-                // No need for LEFT JOIN team_members in count query
+
+                // Faculty (usertype 2) must be limited to teams in their assigned section(s).
+                if ($currentUsertype === 2) {
+                    $assignedSections = getProfessorSections($pdo, $userId);
+                    if (!empty($assignedSections)) {
+                        $sectionPlaceholders = [];
+                        foreach ($assignedSections as $idx => $section) {
+                            $paramKey = ":def_section_$idx";
+                            $sectionPlaceholders[] = $paramKey;
+                            $params[$paramKey] = $section;
+                        }
+
+                        $collegeRestrictionClause .= " AND EXISTS (
+                            SELECT 1
+                            FROM team_members tm_scope
+                            JOIN users u_scope ON u_scope.id = tm_scope.user_id
+                            WHERE tm_scope.team_id = t.id
+                              AND u_scope.usertype = 1
+                              AND u_scope.section IN (" . implode(',', $sectionPlaceholders) . ")
+                        )";
+                    } else {
+                        $collegeRestrictionClause .= " AND 1=0";
+                    }
+                }
                 break;
             case 'rubrics':
                 $baseQuery = "SELECT DISTINCT r.*
@@ -737,7 +811,7 @@ try {
     $allowedSortColumns = [
         'users' => ['id', 'username', 'email', 'first_name', 'last_name', 'usertype', 'program'],
         'teams' => ['id', 'name', 'research_title', 'program', 'adviser'], // Added 'program'
-        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status
+        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'is_finalized', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status/finalized
         'rubrics' => ['id', 'name', 'description', 'rubric_type', 'defense_type', 'is_active', 'created_at'],
         'requirements' => ['id', 'name', 'description'],
         'evaluations' => ['id', 'team_name', 'evaluator_first_name', 'student_first_name', 'group_score', 'solo_score', 'total_score', 'created_at'],

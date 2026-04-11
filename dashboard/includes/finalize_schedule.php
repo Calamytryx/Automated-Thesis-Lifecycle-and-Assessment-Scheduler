@@ -35,9 +35,10 @@ if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ? LIMIT 1");
+    $stmt = $pdo->prepare("SELECT team_id, schedule_date, start_time, end_time FROM defense_schedules WHERE id = ? LIMIT 1");
     $stmt->execute([$scheduleId]);
-    $teamId = (int)$stmt->fetchColumn();
+    $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
+    $teamId = (int)($schedule['team_id'] ?? 0);
 
     if ($teamId <= 0) {
         throw new Exception('Schedule not found.');
@@ -48,13 +49,28 @@ try {
     }
 
     if ($action === 'finalize') {
+        $conflictCheck = validateStudentScheduleConflicts(
+            $pdo,
+            $teamId,
+            $schedule['schedule_date'] ?? '',
+            $schedule['start_time'] ?? '',
+            $schedule['end_time'] ?? '',
+            $scheduleId
+        );
+        if (!$conflictCheck['ok']) {
+            throw new Exception($conflictCheck['message']);
+        }
+
         $update = $pdo->prepare("
             UPDATE defense_schedules
-            SET is_finalized = 1, finalized_by = ?, finalized_at = NOW()
+                SET approval_status = 'approved',
+                    is_finalized = 1,
+                    finalized_by = ?,
+                    finalized_at = NOW()
             WHERE id = ?
         ");
         $update->execute([$userId, $scheduleId]);
-        echo json_encode(['success' => true, 'message' => 'Schedule finalized and locked.']);
+        echo json_encode(['success' => true, 'message' => 'Schedule finalized (approved) and locked.']);
     } else {
         $canUnfinalize = ($userId === 0 || $usertype === 0);
         if (!$canUnfinalize) {
@@ -63,11 +79,14 @@ try {
 
         $update = $pdo->prepare("
             UPDATE defense_schedules
-            SET is_finalized = 0, finalized_by = NULL, finalized_at = NULL
+                SET approval_status = 'approved',
+                    is_finalized = 0,
+                    finalized_by = NULL,
+                    finalized_at = NULL
             WHERE id = ?
         ");
         $update->execute([$scheduleId]);
-        echo json_encode(['success' => true, 'message' => 'Schedule unlocked.']);
+        echo json_encode(['success' => true, 'message' => 'Schedule unfinalized. It remains approved and editable.']);
     }
 } catch (Exception $e) {
     error_log('finalize_schedule.php ERROR: ' . $e->getMessage());
