@@ -102,6 +102,61 @@ function getDefenseScheduleAccessContext($pdo, $userId, $usertype) {
     return ['scope' => 'none', 'college' => null, 'sections' => []];
 }
 
+function resolveTeamCollege($pdo, $teamId) {
+    $stmt = $pdo->prepare("SELECT program FROM teams WHERE id = ? LIMIT 1");
+    $stmt->execute([(int)$teamId]);
+    $teamProgram = $stmt->fetchColumn();
+
+    if ($teamProgram !== false && $teamProgram !== null && trim((string)$teamProgram) !== '') {
+        $teamProgram = trim((string)$teamProgram);
+
+        if (ctype_digit($teamProgram)) {
+            $byId = $pdo->prepare("SELECT college FROM programs WHERE id = ? LIMIT 1");
+            $byId->execute([(int)$teamProgram]);
+            $college = $byId->fetchColumn();
+            if (!empty($college)) {
+                return $college;
+            }
+        }
+
+        $byName = $pdo->prepare(" 
+            SELECT college
+            FROM programs
+            WHERE name = ?
+               OR CONCAT(name, CASE WHEN specialization IS NOT NULL AND specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END) = ?
+            LIMIT 1
+        ");
+        $byName->execute([$teamProgram, $teamProgram]);
+        $college = $byName->fetchColumn();
+        if (!empty($college)) {
+            return $college;
+        }
+    }
+
+    // Fallback: infer team college from student members' mapped programs.
+    $fromMembers = $pdo->prepare(" 
+        SELECT DISTINCT p.college
+        FROM team_members tm
+        JOIN users u ON u.id = tm.user_id
+        LEFT JOIN programs p ON (
+            u.program = p.name OR
+            u.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+        )
+        WHERE tm.team_id = ?
+          AND u.usertype = 1
+          AND p.college IS NOT NULL
+        LIMIT 2
+    ");
+    $fromMembers->execute([(int)$teamId]);
+    $colleges = $fromMembers->fetchAll(PDO::FETCH_COLUMN);
+
+    if (count($colleges) === 1) {
+        return $colleges[0];
+    }
+
+    return null;
+}
+
 function canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId) {
     $ctx = getDefenseScheduleAccessContext($pdo, (int)$userId, (int)$usertype);
 
@@ -130,15 +185,7 @@ function canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId) {
     }
 
     if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
-        $stmt = $pdo->prepare("
-            SELECT p.college
-            FROM teams t
-            LEFT JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
-            WHERE t.id = ?
-            LIMIT 1
-        ");
-        $stmt->execute([(int)$teamId]);
-        $teamCollege = $stmt->fetchColumn();
+        $teamCollege = resolveTeamCollege($pdo, (int)$teamId);
         return !empty($teamCollege) && $teamCollege === $ctx['college'];
     }
 
@@ -179,7 +226,66 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
         return ['ok' => false, 'message' => 'End time must be later than start time.'];
     }
 
-    $studentPlaceholders = implode(',', array_fill(0, count($studentIds), '?'));
+    $teamLabel = 'Team ' . (int)$teamId;
+    $teamStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ? LIMIT 1");
+    $teamStmt->execute([(int)$teamId]);
+    $teamName = trim((string)$teamStmt->fetchColumn());
+    if ($teamName !== '') {
+        $teamLabel = $teamName;
+    }
+
+    $formatTime = static function ($timeValue) {
+        $ts = strtotime((string)$timeValue);
+        return $ts ? date('g:i A', $ts) : (string)$timeValue;
+    };
+
+        $studentPlaceholders = implode(',', array_fill(0, count($studentIds), '?'));
+
+        // Prefer reporting student class conflicts first with specific schedule details.
+        // This checks student program+section against class schedules from user_schedules.
+    $dayOfWeek = date('l', strtotime($scheduleDate));
+        $classParams = [(int)$teamId];
+    $classParams[] = $dayOfWeek;
+    $classParams[] = $end;
+    $classParams[] = $start;
+
+    $classConflictStmt = $pdo->prepare(" 
+        SELECT DISTINCT us.class_name, us.day_of_week, us.start_time, us.end_time
+        FROM user_schedules us
+                JOIN team_members tm ON tm.team_id = ?
+                JOIN users u_student ON u_student.id = tm.user_id AND u_student.usertype = 1
+                LEFT JOIN programs p_student ON (
+                        u_student.program = p_student.name OR
+                        u_student.program = CONCAT(p_student.name, CASE WHEN p_student.specialization IS NOT NULL AND p_student.specialization != '' THEN CONCAT(' - ', p_student.specialization) ELSE '' END)
+                )
+                WHERE u_student.section IS NOT NULL
+                    AND u_student.section != ''
+                    AND p_student.id IS NOT NULL
+                    AND us.program = p_student.id
+                    AND us.section = u_student.section
+          AND us.day_of_week = ?
+          AND us.start_time < ?
+          AND us.end_time > ?
+        ORDER BY us.start_time
+        LIMIT 1
+    ");
+    $classConflictStmt->execute($classParams);
+    $classConflicts = $classConflictStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($classConflicts)) {
+        $row = $classConflicts[0];
+        $subject = trim((string)($row['class_name'] ?? 'Subject'));
+        if ($subject === '') {
+            $subject = 'Subject';
+        }
+        $timeLine = ($row['day_of_week'] ?? $dayOfWeek) . ' ' .
+            $formatTime($row['start_time'] ?? '') . '-' . $formatTime($row['end_time'] ?? '');
+
+        return [
+            'ok' => false,
+            'message' => $teamLabel . " schedule conflict with:\n" . $subject . "\n" . $timeLine
+        ];
+    }
+
     $params = $studentIds;
     $params[] = (int)$teamId;
     $params[] = $scheduleDate;
@@ -192,10 +298,11 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
         $params[] = (int)$excludeScheduleId;
     }
 
-    $defenseConflictStmt = $pdo->prepare("
-        SELECT ds.id
+    $defenseConflictStmt = $pdo->prepare(" 
+        SELECT DISTINCT ds.team_id, t.name AS team_name
         FROM defense_schedules ds
         JOIN team_members tm ON tm.team_id = ds.team_id
+        LEFT JOIN teams t ON t.id = ds.team_id
         WHERE tm.user_id IN ($studentPlaceholders)
           AND ds.team_id != ?
           AND ds.schedule_date = ?
@@ -204,36 +311,15 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
           AND COALESCE(ds.status, 'scheduled') != 'cancelled'
           AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
           $excludeSql
-        LIMIT 1
+        ORDER BY ds.team_id
+        LIMIT 5
     ");
     $defenseConflictStmt->execute($params);
-    if ($defenseConflictStmt->fetch(PDO::FETCH_ASSOC)) {
+    $conflictingTeams = $defenseConflictStmt->fetchAll(PDO::FETCH_ASSOC);
+    if (!empty($conflictingTeams)) {
         return [
             'ok' => false,
-            'message' => 'Student schedule conflict: one or more team members already have another defense schedule at this time.'
-        ];
-    }
-
-    $dayOfWeek = date('l', strtotime($scheduleDate));
-    $classParams = $studentIds;
-    $classParams[] = $dayOfWeek;
-    $classParams[] = $end;
-    $classParams[] = $start;
-
-    $classConflictStmt = $pdo->prepare("
-        SELECT us.id
-        FROM user_schedules us
-        WHERE us.user_id IN ($studentPlaceholders)
-          AND us.day_of_week = ?
-          AND us.start_time < ?
-          AND us.end_time > ?
-        LIMIT 1
-    ");
-    $classConflictStmt->execute($classParams);
-    if ($classConflictStmt->fetch(PDO::FETCH_ASSOC)) {
-        return [
-            'ok' => false,
-            'message' => 'Student class conflict detected. Defense schedules cannot overlap with student class schedules.'
+            'message' => $teamLabel . ' schedule conflict with: Existing defense schedule for one or more students at this time.'
         ];
     }
 
@@ -531,6 +617,49 @@ function handleEditSubmission($pdo, $table, $id, $data) {
 
         // Call the specific update function
         return updatePageContent($pdo, $id, $title, $slug, $content, $status);
+    }
+
+    // Enforce the same defense schedule checks for edit_items.php table edits.
+    if ($table === 'defense_schedules') {
+        $scheduleId = (int)$id;
+        $sessionUserId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : -1;
+        $sessionUserType = isset($_SESSION['usertype']) ? (int)$_SESSION['usertype'] : -1;
+
+        if (isDefenseScheduleFinalized($pdo, $scheduleId)) {
+            $GLOBALS['edit_error_message'] = 'This schedule has been finalized and cannot be edited.';
+            return false;
+        }
+
+        $currentStmt = $pdo->prepare("SELECT team_id, schedule_date, start_time, end_time FROM defense_schedules WHERE id = ? LIMIT 1");
+        $currentStmt->execute([$scheduleId]);
+        $currentSchedule = $currentStmt->fetch(PDO::FETCH_ASSOC);
+        if (!$currentSchedule) {
+            $GLOBALS['edit_error_message'] = 'Defense schedule not found.';
+            return false;
+        }
+
+        $teamId = isset($data['team_id']) ? (int)$data['team_id'] : (int)$currentSchedule['team_id'];
+        if (!canUserAccessDefenseScheduleByTeam($pdo, $sessionUserId, $sessionUserType, $teamId)) {
+            $GLOBALS['edit_error_message'] = 'You do not have access to edit this schedule.';
+            return false;
+        }
+
+        $scheduleDate = $data['schedule_date'] ?? $currentSchedule['schedule_date'];
+        $startTime = $data['start_time'] ?? $currentSchedule['start_time'];
+        $endTime = $data['end_time'] ?? $currentSchedule['end_time'];
+
+        $conflictCheck = validateStudentScheduleConflicts(
+            $pdo,
+            $teamId,
+            $scheduleDate,
+            $startTime,
+            $endTime,
+            $scheduleId
+        );
+        if (!$conflictCheck['ok']) {
+            $GLOBALS['edit_error_message'] = $conflictCheck['message'];
+            return false;
+        }
     }
 
     // Special handling for defense_schedules table

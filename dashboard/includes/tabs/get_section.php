@@ -1,7 +1,22 @@
 <?php
 require_once '../../../assets/setup/db.inc.php'; // Adjust path as needed
+require_once '../../../assets/includes/auth_functions.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 header('Content-Type: application/json');
+
+if (!isset($_SESSION['id'], $_SESSION['usertype'])) {
+    echo json_encode([]);
+    exit;
+}
+
+$userId = (int) $_SESSION['id'];
+$userType = (int) $_SESSION['usertype'];
+$isSuperAdmin = ($userType === 0 && $userId === 0);
+$isProgramChair = ($userType === 0 && $userId !== 0);
 
 $programId = $_GET['program_id'] ?? '';
 
@@ -12,8 +27,8 @@ if (!preg_match('/^\d+$/', $programId)) {
 }
 
 try {
-    // 1. Get name and specialization from programs
-    $stmt = $pdo->prepare("SELECT name, specialization FROM programs WHERE id = ?");
+    // 1. Get program details
+    $stmt = $pdo->prepare("SELECT name, specialization, college FROM programs WHERE id = ?");
     $stmt->execute([$programId]);
     $program = $stmt->fetch(PDO::FETCH_ASSOC);
 
@@ -23,13 +38,25 @@ try {
         exit;
     }
 
-    // 2. Build the full program string (name and specialization)
+    // 2. Authorization: Program Chair can only access sections for programs in their own college.
+    if ($isProgramChair) {
+        $userCollege = get_user_college($pdo, $userId);
+        if (!$userCollege || strcasecmp((string) $program['college'], $userCollege) !== 0) {
+            echo json_encode([]);
+            exit;
+        }
+    } elseif (!$isSuperAdmin) {
+        echo json_encode([]);
+        exit;
+    }
+
+    // 3. Build the full program string (name and specialization)
     $fullProgram = trim($program['name']);
     if (isset($program['specialization']) && strlen(trim($program['specialization'])) > 0) {
         $fullProgram .= ' - ' . trim($program['specialization']);
     }
 
-    // 3. Fetch sections that match the full program
+    // 4. Fetch sections that match the full program
 $stmt = $pdo->prepare("
     SELECT DISTINCT section
     FROM users

@@ -62,7 +62,7 @@ try {
 
         $teamId = (int)$sched['team_id'];
         if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
-            throw new Exception('You do not have access to schedule one or more selected teams.');
+            throw new Exception('Team ' . $teamId . ': no access.');
         }
 
         $conflictCheck = validateStudentScheduleConflicts(
@@ -103,6 +103,10 @@ try {
         );
 
         $savedCount++;
+    }
+
+    if ($savedCount === 0) {
+        throw new Exception('No schedules were saved. Please check team access and conflict details.');
     }
 
     $pdo->commit();

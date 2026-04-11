@@ -37,7 +37,7 @@ if (session_status() === PHP_SESSION_NONE) {
 
 // Enable error reporting for debugging
 error_reporting(E_ALL);
-ini_set('display_errors', 1);
+ini_set('display_errors', 0);
 
 $response = ['success' => false, 'message' => ''];
 
@@ -414,6 +414,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
             $response['message'] = 'Database error: ' . $e->getMessage();
             error_log("PDO Exception: " . $e->getMessage());
+        } catch (Exception $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $response['message'] = $e->getMessage();
+            error_log("Exception: " . $e->getMessage());
+        } catch (Throwable $e) {
+            if ($pdo->inTransaction()) {
+                $pdo->rollBack();
+            }
+            $response['message'] = 'Unexpected server error.';
+            error_log("Throwable: " . $e->getMessage());
         }
     } else {
         $response['message'] = 'Missing table or id';

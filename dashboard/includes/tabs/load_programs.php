@@ -1,16 +1,48 @@
 
 <?php
 require_once '../../../assets/setup/db.inc.php';
+require_once '../../../assets/includes/auth_functions.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
 header('Content-Type: text/html');
+
+if (!isset($_SESSION['id'], $_SESSION['usertype'])) {
+    exit;
+}
+
+$userId = (int) $_SESSION['id'];
+$userType = (int) $_SESSION['usertype'];
+$isSuperAdmin = ($userType === 0 && $userId === 0);
+$isProgramChair = ($userType === 0 && $userId !== 0);
+$requestedCollege = isset($_GET['college']) ? trim($_GET['college']) : '';
+
 try {
-    // Optional college filter (pass college name via ?college=College+Name)
-    if (isset($_GET['college']) && trim($_GET['college']) !== '') {
-        $college = trim($_GET['college']);
+    if ($isSuperAdmin) {
+        if ($requestedCollege !== '') {
+            $stmt = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE college = ? ORDER BY name");
+            $stmt->execute([$requestedCollege]);
+        } else {
+            $stmt = $pdo->query("SELECT id, name, specialization FROM programs ORDER BY name");
+        }
+    } elseif ($isProgramChair) {
+        $userCollege = get_user_college($pdo, $userId);
+        if (!$userCollege) {
+            exit;
+        }
+
+        if ($requestedCollege !== '' && strcasecmp($requestedCollege, $userCollege) !== 0) {
+            exit;
+        }
+
         $stmt = $pdo->prepare("SELECT id, name, specialization FROM programs WHERE college = ? ORDER BY name");
-        $stmt->execute([$college]);
+        $stmt->execute([$userCollege]);
     } else {
-        $stmt = $pdo->query("SELECT id, name, specialization FROM programs ORDER BY name");
+        exit;
     }
+
     $programs = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     foreach ($programs as $p) {

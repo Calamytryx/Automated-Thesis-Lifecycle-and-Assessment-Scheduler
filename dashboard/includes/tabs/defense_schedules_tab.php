@@ -1087,6 +1087,60 @@
                 }
 
                 function showDefAlert(message, type) {
+                    const msgText = String(message || '');
+                    const isScheduleConflict =
+                        (type === 'error' || type === 'danger') &&
+                        msgText.toLowerCase().includes('schedule conflict with:');
+
+                    if (isScheduleConflict) {
+                        let body = msgText;
+                        if (body.startsWith('Error: ')) {
+                            body = body.substring(7);
+                        }
+
+                        const lines = body.split('\n').map(x => x.trim()).filter(Boolean);
+                        const heading = lines[0] || 'Schedule conflict';
+                        const sub1 = lines[1] || '';
+                        const sub2 = lines[2] || '';
+
+                        const conflictHtml = `
+                            <div style="font-weight:700;font-size:1rem;margin-bottom:4px;">${heading}</div>
+                            ${sub1 ? `<div style="margin-top:2px;">${sub1}</div>` : ''}
+                            ${sub2 ? `<div style="margin-top:2px;color:#374151;">${sub2}</div>` : ''}
+                        `;
+
+                        if (!document.getElementById('defConflictToastContainer')) {
+                            const container = document.createElement('div');
+                            container.id = 'defConflictToastContainer';
+                            container.className = 'position-fixed top-0 end-0 p-3';
+                            container.style.zIndex = '9999';
+                            document.body.appendChild(container);
+                        }
+
+                        const toastId = 'def-conflict-toast-' + Date.now();
+                        const toastHtml = `
+                            <div id="${toastId}" class="toast border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+                                style="min-width:340px;max-width:460px;opacity:1;background:#fef2f2;border-left:5px solid #dc2626;border-radius:12px;margin-bottom:1rem;">
+                                <div class="d-flex align-items-start" style="padding:1rem 1.1rem;">
+                                    <div class="toast-body p-0" style="font-size:0.98rem;color:#1f2937;line-height:1.45;">${conflictHtml}</div>
+                                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1rem;"></button>
+                                </div>
+                            </div>
+                        `;
+
+                        document.getElementById('defConflictToastContainer').insertAdjacentHTML('beforeend', toastHtml);
+                        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+                            autohide: false,
+                            delay: 15000,
+                            animation: true
+                        });
+                        toastElement.show();
+                        document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+                            this.remove();
+                        });
+                        return;
+                    }
+
                     if (typeof showToast === 'function') {
                         const title = type === 'success' ? 'Success' : type === 'warning' ? 'Notice' : 'Error';
                         const toastType = type === 'warning' ? 'notice' : (type === 'danger' ? 'error' : type);
@@ -1618,7 +1672,13 @@
                                 body: params.toString()
                             });
 
-                            const result = await response.json();
+                            const raw = await response.text();
+                            let result;
+                            try {
+                                result = JSON.parse(raw);
+                            } catch (e) {
+                                throw new Error('Server returned an invalid response.');
+                            }
                             if (!result.success) {
                                 throw new Error(result.message || 'Failed to save schedule changes.');
                             }
@@ -1668,11 +1728,7 @@
                         }
                     } catch (error) {
                         console.error('Failed to save event edit:', error);
-                        if (typeof showToast === 'function') {
-                            showToast('Error', error.message || 'Failed to save schedule changes.', 'error');
-                        } else {
-                            alert(error.message || 'Failed to save schedule changes.');
-                        }
+                        showDefAlert(error.message || 'Failed to save schedule changes.', 'error');
                     } finally {
                         saveBtn.disabled = false;
                         saveBtn.innerHTML = originalBtnHtml;

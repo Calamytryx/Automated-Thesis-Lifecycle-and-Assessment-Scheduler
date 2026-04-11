@@ -518,6 +518,15 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                        FROM user_schedules us
                        LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
 
+                  // Program chairs can only view schedules in their own college.
+                  if ($currentUsertype === 0 && $userId !== 0) {
+                      $collegeRestrictionClause = "WHERE p.college = :college";
+                      $countQuery = "SELECT COUNT(us.id)
+                          FROM user_schedules us
+                          LEFT JOIN users u ON us.user_id = u.id
+                          LEFT JOIN programs p ON us.program = p.id";
+                  }
+
                 break;
             default:
                 return ['error' => 'Invalid table context for Admin.'];

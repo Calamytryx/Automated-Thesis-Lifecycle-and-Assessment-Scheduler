@@ -2899,7 +2899,11 @@
                             }, 1000);
                         }
                     } else {
-                        showToast('Error', response.message || 'Update failed', 'error');
+                        let errorMessage = response.message || 'Update failed';
+                        if (table === 'defense_schedules' && typeof errorMessage === 'string' && errorMessage.includes('schedule conflict with:')) {
+                            errorMessage = errorMessage.replace(/\n/g, '<br>');
+                        }
+                        showToast('Error', errorMessage, 'error');
                     }
                 },
                 error: function (xhr, status, error) {
