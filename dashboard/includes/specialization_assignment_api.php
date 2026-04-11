@@ -20,7 +20,21 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['usertype'])) {
 
 $userId = $_SESSION['id'];
 $usertype = $_SESSION['usertype'];
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$action = trim($_GET['action'] ?? $_POST['action'] ?? '');
+
+function toPositiveInt($value) {
+    $filtered = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    return $filtered === false ? null : (int)$filtered;
+}
+
+function sanitizeAssignmentText($value, $maxLength = 255) {
+    $cleaned = trim((string)($value ?? ''));
+    $cleaned = preg_replace('/\s+/', ' ', $cleaned);
+    if (mb_strlen($cleaned) > $maxLength) {
+        $cleaned = mb_substr($cleaned, 0, $maxLength);
+    }
+    return $cleaned;
+}
 
 try {
     switch ($action) {
@@ -61,11 +75,11 @@ try {
             break;
         
         case 'get_user_specializations':
-            getUserSpecializations($pdo, $_GET['user_id'] ?? null);
+            getUserSpecializations($pdo, toPositiveInt($_GET['user_id'] ?? null));
             break;
         
         case 'get_team_specializations':
-            getTeamSpecializations($pdo, $_GET['team_id'] ?? null);
+            getTeamSpecializations($pdo, toPositiveInt($_GET['team_id'] ?? null));
             break;
         
         case 'get_my_teams':
@@ -111,8 +125,8 @@ function canAssignSpecializations($pdo, $userId, $usertype) {
  * Assign specialization to user (updates area_of_expertise field)
  */
 function assignToUser($pdo, $data, $assignedBy) {
-    $userId = $data['user_id'] ?? null;
-    $specializationId = $data['specialization_id'] ?? null;
+    $userId = toPositiveInt($data['user_id'] ?? null);
+    $specializationId = toPositiveInt($data['specialization_id'] ?? null);
     
     if (!$userId || !$specializationId) {
         echo json_encode(['success' => false, 'message' => 'User ID and Specialization ID required']);
@@ -164,8 +178,8 @@ function assignToUser($pdo, $data, $assignedBy) {
  * Assign specialization to team (updates area_of_expertise field)
  */
 function assignToTeam($pdo, $data, $assignedBy) {
-    $teamId = $data['team_id'] ?? null;
-    $specializationId = $data['specialization_id'] ?? null;
+    $teamId = toPositiveInt($data['team_id'] ?? null);
+    $specializationId = toPositiveInt($data['specialization_id'] ?? null);
     
     if (!$teamId || !$specializationId) {
         echo json_encode(['success' => false, 'message' => 'Team ID and Specialization ID required']);
@@ -217,8 +231,8 @@ function assignToTeam($pdo, $data, $assignedBy) {
  * Remove specialization from user
  */
 function removeFromUser($pdo, $data) {
-    $userId = $data['user_id'] ?? null;
-    $specializationName = $data['specialization_name'] ?? null;
+    $userId = toPositiveInt($data['user_id'] ?? null);
+    $specializationName = sanitizeAssignmentText($data['specialization_name'] ?? '', 150);
     
     if (!$userId || !$specializationName) {
         echo json_encode(['success' => false, 'message' => 'User ID and Specialization Name required']);
@@ -254,8 +268,8 @@ function removeFromUser($pdo, $data) {
  * Remove specialization from team
  */
 function removeFromTeam($pdo, $data) {
-    $teamId = $data['team_id'] ?? null;
-    $specializationName = $data['specialization_name'] ?? null;
+    $teamId = toPositiveInt($data['team_id'] ?? null);
+    $specializationName = sanitizeAssignmentText($data['specialization_name'] ?? '', 150);
     
     if (!$teamId || !$specializationName) {
         echo json_encode(['success' => false, 'message' => 'Team ID and Specialization Name required']);

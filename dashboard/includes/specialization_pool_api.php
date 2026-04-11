@@ -18,7 +18,29 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['usertype'])) {
 
 $userId = $_SESSION['id'];
 $usertype = $_SESSION['usertype'];
-$action = $_GET['action'] ?? $_POST['action'] ?? '';
+$action = trim($_GET['action'] ?? $_POST['action'] ?? '');
+
+function sanitizeSpecializationText($value, $maxLength = 255) {
+    $cleaned = trim((string)($value ?? ''));
+    $cleaned = preg_replace('/\s+/', ' ', $cleaned);
+    if (mb_strlen($cleaned) > $maxLength) {
+        $cleaned = mb_substr($cleaned, 0, $maxLength);
+    }
+    return $cleaned;
+}
+
+function containsHtmlTags($value) {
+    return preg_match('/<[^>]*>/', (string)$value) === 1;
+}
+
+function containsEmoji($value) {
+    return preg_match('/[\x{1F600}-\x{1F64F}]|[\x{1F300}-\x{1F5FF}]|[\x{1F680}-\x{1F6FF}]|[\x{1F1E0}-\x{1F1FF}]|[\x{2600}-\x{26FF}]|[\x{2700}-\x{27BF}]/u', (string)$value) === 1;
+}
+
+function toPositiveInt($value) {
+    $filtered = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+    return $filtered === false ? null : (int)$filtered;
+}
 
 try {
     switch ($action) {
@@ -27,7 +49,7 @@ try {
             break;
         
         case 'get_by_id':
-            getSpecializationById($pdo, $_GET['id'] ?? null);
+            getSpecializationById($pdo, toPositiveInt($_GET['id'] ?? null));
             break;
         
         case 'add':
@@ -54,7 +76,7 @@ try {
                 echo json_encode(['success' => false, 'message' => 'Permission denied']);
                 exit;
             }
-            deleteSpecialization($pdo, $_POST['id'] ?? null);
+            deleteSpecialization($pdo, toPositiveInt($_POST['id'] ?? null));
             break;
         
         case 'toggle_status':
@@ -63,7 +85,7 @@ try {
                 echo json_encode(['success' => false, 'message' => 'Permission denied']);
                 exit;
             }
-            toggleStatus($pdo, $_POST['id'] ?? null);
+            toggleStatus($pdo, toPositiveInt($_POST['id'] ?? null));
             break;
         
         case 'get_active':
@@ -73,7 +95,7 @@ try {
         
         case 'get_by_college':
             // Get specializations by college
-            getSpecializationsByCollege($pdo, $_GET['college'] ?? '');
+            getSpecializationsByCollege($pdo, sanitizeSpecializationText($_GET['college'] ?? '', 150));
             break;
         
         case 'get_colleges':
@@ -161,11 +183,33 @@ function getSpecializationById($pdo, $id) {
  * Add new specialization
  */
 function addSpecialization($pdo, $data, $userId) {
-    $name = trim($data['name'] ?? '');
-    $description = trim($data['description'] ?? '');
-    $department = trim($data['department'] ?? '');
-    $college = trim($data['college'] ?? '');
-    $isActive = isset($data['is_active']) ? (int)$data['is_active'] : 1;
+    $rawName = $data['name'] ?? '';
+    $rawDescription = $data['description'] ?? '';
+    $rawDepartment = $data['department'] ?? '';
+    $rawCollege = $data['college'] ?? '';
+
+    if (containsHtmlTags($rawName) || containsEmoji($rawName)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid specialization name']);
+        return;
+    }
+    if (containsHtmlTags($rawDescription) || containsEmoji($rawDescription)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid specialization description']);
+        return;
+    }
+    if (containsHtmlTags($rawDepartment) || containsEmoji($rawDepartment)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid department/program value']);
+        return;
+    }
+    if (containsHtmlTags($rawCollege) || containsEmoji($rawCollege)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid college value']);
+        return;
+    }
+
+    $name = sanitizeSpecializationText($rawName, 150);
+    $description = sanitizeSpecializationText($rawDescription, 500);
+    $department = sanitizeSpecializationText($rawDepartment, 150);
+    $college = sanitizeSpecializationText($rawCollege, 150);
+    $isActive = isset($data['is_active']) && (int)$data['is_active'] === 0 ? 0 : 1;
     
     if (empty($name)) {
         echo json_encode(['success' => false, 'message' => 'Name is required']);
@@ -213,12 +257,34 @@ function addSpecialization($pdo, $data, $userId) {
  * Update specialization
  */
 function updateSpecialization($pdo, $data, $userId) {
-    $id = $data['id'] ?? null;
-    $name = trim($data['name'] ?? '');
-    $description = trim($data['description'] ?? '');
-    $department = trim($data['department'] ?? '');
-    $college = trim($data['college'] ?? '');
-    $isActive = isset($data['is_active']) ? (int)$data['is_active'] : 1;
+    $id = toPositiveInt($data['id'] ?? null);
+    $rawName = $data['name'] ?? '';
+    $rawDescription = $data['description'] ?? '';
+    $rawDepartment = $data['department'] ?? '';
+    $rawCollege = $data['college'] ?? '';
+
+    if (containsHtmlTags($rawName) || containsEmoji($rawName)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid specialization name']);
+        return;
+    }
+    if (containsHtmlTags($rawDescription) || containsEmoji($rawDescription)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid specialization description']);
+        return;
+    }
+    if (containsHtmlTags($rawDepartment) || containsEmoji($rawDepartment)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid department/program value']);
+        return;
+    }
+    if (containsHtmlTags($rawCollege) || containsEmoji($rawCollege)) {
+        echo json_encode(['success' => false, 'message' => 'Invalid college value']);
+        return;
+    }
+
+    $name = sanitizeSpecializationText($rawName, 150);
+    $description = sanitizeSpecializationText($rawDescription, 500);
+    $department = sanitizeSpecializationText($rawDepartment, 150);
+    $college = sanitizeSpecializationText($rawCollege, 150);
+    $isActive = isset($data['is_active']) && (int)$data['is_active'] === 0 ? 0 : 1;
     
     if (!$id || empty($name)) {
         echo json_encode(['success' => false, 'message' => 'ID and name are required']);

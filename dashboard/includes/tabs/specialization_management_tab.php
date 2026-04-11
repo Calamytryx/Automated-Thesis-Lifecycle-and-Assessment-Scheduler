@@ -301,6 +301,7 @@ $(document).ready(function() {
     const specializationDeleteConfirmModal = new bootstrap.Modal(document.getElementById('specializationDeleteConfirmModal'));
     let specializationIdToDelete = null;
     let specializationNameToDelete = 'this field of specialization';
+    const specEmojiRegex = /[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu;
 
     // ==================== TAB SWITCHING ====================
     const specTabButtons = document.querySelectorAll('.spec-tab-btn');
@@ -583,6 +584,7 @@ $(document).ready(function() {
         $('#specializationActive').prop('checked', true);
         // Reset department dropdown
         $('#specializationDepartment').empty().append('<option value="">Select Department/Program</option>');
+        clearFormValidation('#specializationForm');
         if (modal) modal.show();
     });
 
@@ -706,17 +708,38 @@ $(document).ready(function() {
                 $('#specializationDepartment').empty().append('<option value="">Select Department/Program</option>').prop('disabled', true);
             }
             
+            clearFormValidation('#specializationForm');
             if (modal) modal.show();
         }
     });
 
     // Save specialization
     $('#saveSpecializationBtn').click(function() {
+        if (!validateSpecializationForm()) {
+            showAlert('danger', 'Please complete all required fields correctly before saving.');
+            return;
+        }
+
         const formData = $('#specializationForm').serializeArray();
-        const data = {};
+        const rawData = {};
         formData.forEach(item => {
-            data[item.name] = item.value;
+            rawData[item.name] = item.value;
         });
+
+        const data = {
+            id: sanitizeModalText(rawData.id || ''),
+            name: sanitizeModalText(rawData.name || '', 150),
+            description: sanitizeModalText(rawData.description || '', 500),
+            college: sanitizeModalText(rawData.college || '', 150),
+            department: sanitizeModalText(rawData.department || '', 150)
+        };
+
+        if (!data.name) {
+            setFieldValidationError($('#specializationName'), 'Name is required.');
+            showAlert('danger', 'Please complete all required fields correctly before saving.');
+            return;
+        }
+
         data.is_active = $('#specializationActive').is(':checked') ? 1 : 0;
         data.action = data.id ? 'update' : 'add';
 
@@ -1253,13 +1276,13 @@ $(document).ready(function() {
 
     // Assign to team
     $('#assignToTeamBtn').click(function() {
-        const specializationId = $('#teamSpecializationSelect').val();
-        const notes = $('#teamSpecNotes').val();
-
-        if (!specializationId || !selectedTeamId) {
-            alert('Please select a specialization');
+        if (!validateTeamAssignmentForm() || !selectedTeamId) {
+            showAlert('danger', 'Please complete all required fields correctly before assigning.');
             return;
         }
+
+        const specializationId = $('#teamSpecializationSelect').val();
+        const notes = sanitizeModalText($('#teamSpecNotes').val(), 500);
 
         $.ajax({
             url: 'includes/specialization_assignment_api.php',
@@ -1276,12 +1299,52 @@ $(document).ready(function() {
                     showAlert('success', response.message);
                     $('#teamSpecializationSelect').val('');
                     $('#teamSpecNotes').val('');
+                    clearFormValidation('#teamSpecAssignmentModal');
                     loadTeamSpecializationsInModal(selectedTeamId);
                 } else {
                     showAlert('danger', response.message);
                 }
             }
         });
+    });
+
+    // Real-time validation in specialization modals
+    $(document).off('input.specializationValidation').on('input.specializationValidation',
+        '#specializationName, #specializationDescription, #teamSpecNotes',
+        function() {
+            const $input = $(this);
+            const fieldMap = {
+                specializationName: { label: 'Name', required: true, maxLength: 150 },
+                specializationDescription: { label: 'Description', required: false, maxLength: 500 },
+                teamSpecNotes: { label: 'Notes', required: false, maxLength: 500 }
+            };
+            const config = fieldMap[$input.attr('id')];
+
+            if (!config) {
+                return;
+            }
+
+            validateTextField($input, config.label, {
+                required: config.required,
+                maxLength: config.maxLength
+            });
+        }
+    );
+
+    $(document).off('change.specializationValidation').on('change.specializationValidation', '#teamSpecializationSelect', function() {
+        const $specializationSelect = $(this);
+        clearFieldValidation($specializationSelect);
+        if (!$specializationSelect.val()) {
+            setFieldValidationError($specializationSelect, 'Specialization is required.');
+        }
+    });
+
+    $('#specializationModal').on('hidden.bs.modal', function() {
+        clearFormValidation('#specializationForm');
+    });
+
+    $('#teamSpecAssignmentModal').on('hidden.bs.modal', function() {
+        clearFormValidation('#teamSpecAssignmentModal');
     });
 
     // Remove from team
@@ -1326,6 +1389,99 @@ $(document).ready(function() {
     });
 
     // ==================== SHARED UTILITIES ====================
+    function sanitizeModalText(value, maxLength = null) {
+        let cleaned = (value || '').toString();
+        cleaned = cleaned.replace(/<[^>]*>/g, '');
+        cleaned = cleaned.replace(specEmojiRegex, '');
+        cleaned = cleaned.replace(/\s+/g, ' ').trim();
+
+        if (maxLength && cleaned.length > maxLength) {
+            cleaned = cleaned.substring(0, maxLength);
+        }
+
+        return cleaned;
+    }
+
+    function clearFieldValidation($input) {
+        $input.removeClass('is-invalid');
+        $input.siblings('.invalid-feedback').remove();
+    }
+
+    function setFieldValidationError($input, message) {
+        clearFieldValidation($input);
+        $input.addClass('is-invalid');
+        $input.after(`<div class="invalid-feedback">${message}</div>`);
+    }
+
+    function clearFormValidation(formSelector) {
+        const $form = $(formSelector);
+        $form.find('.is-invalid').removeClass('is-invalid');
+        $form.find('.invalid-feedback').remove();
+    }
+
+    function validateTextField($input, fieldName, options = {}) {
+        const config = {
+            required: false,
+            maxLength: null,
+            ...options
+        };
+
+        const rawValue = ($input.val() || '').toString();
+        const trimmedValue = rawValue.trim();
+        const hasHtml = typeof ValidationUtils !== 'undefined' && ValidationUtils.containsHTML(rawValue);
+        const hasEmoji = typeof ValidationUtils !== 'undefined' && ValidationUtils.containsEmoji(rawValue);
+
+        clearFieldValidation($input);
+
+        if (config.required && !trimmedValue) {
+            setFieldValidationError($input, `${fieldName} is required.`);
+            return false;
+        }
+
+        if (trimmedValue) {
+            if (hasHtml) {
+                setFieldValidationError($input, `HTML tags are not allowed in ${fieldName}.`);
+                return false;
+            }
+
+            if (hasEmoji) {
+                setFieldValidationError($input, `Emojis are not allowed in ${fieldName}.`);
+                return false;
+            }
+
+            if (config.maxLength && trimmedValue.length > config.maxLength) {
+                setFieldValidationError($input, `${fieldName} cannot exceed ${config.maxLength} characters.`);
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    function validateSpecializationForm() {
+        let isValid = true;
+
+        isValid = validateTextField($('#specializationName'), 'Name', { required: true, maxLength: 150 }) && isValid;
+        isValid = validateTextField($('#specializationDescription'), 'Description', { maxLength: 500 }) && isValid;
+
+        return isValid;
+    }
+
+    function validateTeamAssignmentForm() {
+        let isValid = true;
+        const $specializationSelect = $('#teamSpecializationSelect');
+
+        clearFieldValidation($specializationSelect);
+        if (!$specializationSelect.val()) {
+            setFieldValidationError($specializationSelect, 'Specialization is required.');
+            isValid = false;
+        }
+
+        isValid = validateTextField($('#teamSpecNotes'), 'Notes', { maxLength: 500 }) && isValid;
+
+        return isValid;
+    }
+
     function escapeHtml(text) {
         if (!text) return '';
         const map = {
