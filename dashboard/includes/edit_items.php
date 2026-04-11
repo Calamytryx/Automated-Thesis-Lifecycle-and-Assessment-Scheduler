@@ -52,6 +52,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         exit;
     }
 
+    if ($table === 'programs' && $isProgramChair) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'You have read-only access to the Academic Structure tab.'
+        ]);
+        exit;
+    }
+
     if ($id === null) {
         $response['message'] = 'Item ID not provided.';
         echo json_encode($response);

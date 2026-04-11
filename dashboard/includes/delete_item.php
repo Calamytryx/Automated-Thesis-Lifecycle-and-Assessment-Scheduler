@@ -30,6 +30,14 @@ if ($table === 'users' && ($isProgramChair || $isSectionProfessor)) {
     exit;
 }
 
+if ($table === 'programs' && $isProgramChair) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'You have read-only access to the Academic Structure tab.'
+    ]);
+    exit;
+}
+
 try {
     // For admin users (usertype 0) who aren't the superadmin (userId 0), check their college
     // The superadmin (usertype 0, userId 0) bypasses this check.

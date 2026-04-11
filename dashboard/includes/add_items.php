@@ -761,6 +761,28 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['panelist_id2'] = $panelist_ids[1] ?? null;
         $data['panelist_id3'] = $panelist_ids[2] ?? null;
 
+        $scheduleDate = trim((string)($data['schedule_date'] ?? ''));
+        $startTime = trim((string)($data['start_time'] ?? ''));
+        $endTime = trim((string)($data['end_time'] ?? ''));
+
+        if ($scheduleDate === '' || $startTime === '' || $endTime === '') {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Schedule date, start time, and end time are required.'
+            ]);
+            exit;
+        }
+
+        // Normalize to HH:MM:SS for consistent inserts.
+        if (strlen($startTime) === 5) {
+            $startTime .= ':00';
+        }
+        if (strlen($endTime) === 5) {
+            $endTime .= ':00';
+        }
+        $data['start_time'] = $startTime;
+        $data['end_time'] = $endTime;
+
         $teamId = isset($data['team_id']) ? (int)$data['team_id'] : 0;
         if ($teamId <= 0) {
             echo json_encode([
@@ -777,10 +799,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             ]);
             exit;
         }
-        
+
         // Set default values
         $data['status'] = $data['status'] ?? 'scheduled';
-        $data['approval_status'] = $data['approval_status'] ?? 'pending';
+        $data['approval_status'] = $data['approval_status'] ?? 'pending_chair';
         $data['created_at'] = date('Y-m-d H:i:s');
     }
 

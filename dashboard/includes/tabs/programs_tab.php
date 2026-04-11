@@ -1,4 +1,9 @@
 <!-- Programs Tab -->
+<?php
+$programsTabUserType = (int)($_SESSION['usertype'] ?? -1);
+$programsTabUserId = (int)($_SESSION['id'] ?? 0);
+$isProgramsTabReadOnly = ($programsTabUserType === 0 && $programsTabUserId !== 0);
+?>
 <div class="tab-pane fade" id="programs" role="tabpanel" aria-labelledby="programs-tab">
   <div class="container-fluid py-4 content-container">
     <!-- Header with title and description -->
@@ -56,6 +61,7 @@
               </select>
             </div>
             
+            <?php if (!$isProgramsTabReadOnly): ?>
             <div class="col-12 col-md-2 col-lg-3">
               <!-- Add Button -->
               <div class="d-flex gap-2 justify-content-end">
@@ -66,6 +72,7 @@
                 </button>
               </div>
             </div>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -84,7 +91,9 @@
                 <th class="d-none d-lg-table-cell">Department</th>
                 <th>Program Name</th>
                 <th class="d-none d-md-table-cell">Specialization</th>
+                <?php if (!$isProgramsTabReadOnly): ?>
                 <th class="text-center">Actions</th>
+                <?php endif; ?>
               </tr>
             </thead>
             <tbody id="programsTableBody">
@@ -107,6 +116,7 @@
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const collegeFilterElement = document.getElementById('programsCollegeFilterSelect');
+    const programsTabReadOnly = <?php echo $isProgramsTabReadOnly ? 'true' : 'false'; ?>;
     const isProgramChair = <?php echo (($_SESSION['usertype'] == 0) && ((int)$_SESSION['id'] !== 0)) ? 'true' : 'false'; ?>;
 
     // Function to load programs based on filters with search and sorting
@@ -133,6 +143,7 @@
         .then(response => response.json())
         .then(data => {
           const tableBody = document.querySelector('#programsTableBody');
+          const tableColumns = document.querySelectorAll('#allProgramsTable thead th').length;
           if (!tableBody) {
             console.error('Could not find table body');
             return;
@@ -142,12 +153,12 @@
 
           if (data.error) {
             console.error(data.error);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-danger">Error loading programs</td></tr>`;
             return;
           }
 
           if (!data.data || data.data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No programs found</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-muted">No programs found</td></tr>`;
             return;
           }
 
@@ -167,13 +178,19 @@
               <td class="d-none d-lg-table-cell">${program.department || 'N/A'}</td>
               <td>${program.name || 'N/A'}</td>
               <td class="d-none d-md-table-cell">${program.specialization || 'N/A'}</td>
+              ${programsTabReadOnly ? '' : `
               <td class="action-buttons text-center">
                 <button class="meatball-btn" data-program-id="${program.id}" aria-label="Actions">
                   <i class="fas fa-ellipsis-h"></i>
                 </button>
               </td>
+              `}
             `;
             tableBody.appendChild(row);
+
+            if (programsTabReadOnly) {
+              return;
+            }
             
             // Create dropdown portal outside table
             const dropdownPortal = document.createElement('div');
@@ -262,8 +279,9 @@
         .catch(error => {
           console.error('Error loading programs:', error);
           const tableBody = document.querySelector('#programsTableBody');
+          const tableColumns = document.querySelectorAll('#allProgramsTable thead th').length;
           if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-danger">Error loading programs</td></tr>`;
           }
         });
     };
@@ -372,6 +390,10 @@
 
     // Handle meatball button clicks for programs
     document.addEventListener('click', function(e) {
+      if (programsTabReadOnly) {
+        return;
+      }
+
       const programsTab = document.getElementById('programs');
       if (!programsTab || (!programsTab.classList.contains('active') && !programsTab.classList.contains('show'))) {
         return;
@@ -437,6 +459,10 @@
 
     // Handle meatball dropdown item clicks for programs
     document.addEventListener('click', function(e) {
+      if (programsTabReadOnly) {
+        return;
+      }
+
       if (e.target.closest('.meatball-dropdown-item')) {
         const item = e.target.closest('.meatball-dropdown-item');
         

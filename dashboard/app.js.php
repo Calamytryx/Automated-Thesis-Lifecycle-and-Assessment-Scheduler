@@ -3579,6 +3579,7 @@
                     success: function (data) {
                         // Store initial staff data for fallback or initial population
                         window.staffData = data.staff;
+                        const addForm = $('#addForm');
 
                         var formHtml = `
                 <input type="hidden" name="table" value="${table}">
@@ -3640,14 +3641,14 @@
                         // Function to update all panelist dropdowns with new data
                         function updatePanelistDropdowns(staffList) {
                             const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
-                            $('#panelists .panelist select').each(function () {
+                            addForm.find('#panelists .panelist select').each(function () {
                                 $(this).html(optionsHtml);
                             });
                         }
 
                         // --- New Code for Dynamic Staff Loading ---
                         // Event listener for the team dropdown
-                        $('#team_id').on('change', function () {
+                        addForm.find('#team_id').off('change.addDefenseTeam').on('change.addDefenseTeam', function () {
                             const teamId = $(this).val();
                             if (teamId) {
                                 $.ajax({
@@ -3671,7 +3672,7 @@
                                 });
                             } else {
                                 // If no team is selected, clear the panelist dropdowns
-                                $('#panelists .panelist select').html('');
+                                addForm.find('#panelists .panelist select').html('');
                             }
                         });
 
@@ -3696,17 +3697,18 @@
                         });
 
                         // Add panelist functionality
-                        $('#addPanelist').on('click', function () {
+                        addForm.off('click.addDefensePanelist', '#addPanelist').on('click.addDefensePanelist', '#addPanelist', function () {
                             addNewPanelist(window.staffData);
                         });
 
-                        // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function () {
+                        // Remove panelist functionality scoped to add form
+                        addForm.off('click.addDefenseRemovePanelist', '.remove-panelist').on('click.addDefenseRemovePanelist', '.remove-panelist', function () {
                             $(this).closest('.panelist').remove();
-                            if ($('#panelists .panelist').length < 3) {
-                                $('#addPanelist').prop('disabled', false);
+                            const panelistRows = addForm.find('#panelists .panelist');
+                            if (panelistRows.length < 3) {
+                                addForm.find('#addPanelist').prop('disabled', false);
                             }
-                            $('#panelists .panelist').each(function (index) {
+                            panelistRows.each(function (index) {
                                 $(this).find('select').attr('name', `panelist_id[${index}]`);
                                 $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
                             });

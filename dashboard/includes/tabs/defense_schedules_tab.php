@@ -24,7 +24,7 @@
                             </div>
                         </div>
                         <!-- Bulk Approval Buttons (visible in calendar view for pending_chair items) -->
-                        <div id="bulkApprovalControls" class="col-12 col-md-auto" style="display:none !important;">
+                        <div id="bulkApprovalControls" class="col-12 col-md-auto d-none">
                             <div class="d-flex gap-2">
                                 <button class="btn btn-success user-control-height" id="bulkApproveBtn">
                                     <i class="fas fa-check-double me-1"></i>
@@ -909,7 +909,7 @@
         </div>
 
         <!-- Calendar View -->
-        <div id="defCalendarViewContainer" class="row" style="display:none;">
+        <div id="defCalendarViewContainer" class="row d-none">
             <div class="col-12">
                 <div class="p-3 bg-white rounded border">
                     <div class="def-calendar-legend mb-3" aria-label="Defense schedule status legend">
@@ -1258,19 +1258,33 @@
                 const calendarContainer = document.getElementById('defCalendarViewContainer');
                 const bulkControls = document.getElementById('bulkApprovalControls');
                 const filterControls = document.getElementById('defFilterControls');
+                let activeDefenseView = tableViewBtn.checked ? 'table' : 'calendar';
+                let loadRequestSeq = 0;
+
+                function setDefenseViewMode(mode) {
+                    activeDefenseView = mode;
+                    const isCalendar = mode === 'calendar';
+                    tableContainer.classList.toggle('d-none', isCalendar);
+                    calendarContainer.classList.toggle('d-none', !isCalendar);
+                    filterControls.classList.toggle('d-none', isCalendar);
+                    // Bulk controls are shown only after calendar data is loaded.
+                    bulkControls.classList.add('d-none');
+                }
+
+                setDefenseViewMode(activeDefenseView);
 
                 tableViewBtn.addEventListener('change', () => {
-                    tableContainer.style.display = '';
-                    calendarContainer.style.display = 'none';
-                    bulkControls.style.display = 'none';
-                    filterControls.style.display = '';
+                    if (!tableViewBtn.checked) {
+                        return;
+                    }
+                    setDefenseViewMode('table');
                     loadDefenseSchedules(currentTablePage, false, false);
                 });
                 calendarViewBtn.addEventListener('change', () => {
-                    tableContainer.style.display = 'none';
-                    calendarContainer.style.display = '';
-                    filterControls.style.display = 'none';
-                    bulkControls.style.display = 'none';
+                    if (!calendarViewBtn.checked) {
+                        return;
+                    }
+                    setDefenseViewMode('calendar');
                     loadDefenseSchedules(1, false, true);
                 });
 
@@ -1284,6 +1298,7 @@
                     if (showProgress && typeof window.updateScheduleProgress === 'function') window.updateScheduleProgress('Refreshing defense schedules...', 95);
                     
                     const isCalendarRequest = forceCalendarMode === true || calendarViewBtn.checked;
+                    const requestSeq = ++loadRequestSeq;
                     const perPageParam = isCalendarRequest ? '&per_page=500' : '';
                     const filters = getDefenseFilters();
                     const statusParam = filters.status !== 'all' ? `&approval_status=${encodeURIComponent(filters.status)}` : '';
@@ -1295,6 +1310,10 @@
                             return response.json();
                         })
                         .then(data => {
+                            if (requestSeq !== loadRequestSeq) {
+                                return;
+                            }
+
                             if (data.error) {
                                 document.getElementById('scheduleGenerationStatus').innerText = `Error: ${data.error}`;
                                 return;
@@ -1381,10 +1400,15 @@
                                 allScheduleData.sort((a, b) => new Date(a.schedule_date + 'T' + a.start_time) - new Date(b.schedule_date + 'T' + b.start_time));
                                 renderDefenseCalendar();
                                 const hasPendingChair = allScheduleData.some(s => s.approval_status === 'pending_chair');
-                                bulkControls.style.display = hasPendingChair ? '' : 'none';
+                                const showBulkControls = activeDefenseView === 'calendar' && hasPendingChair;
+                                bulkControls.classList.toggle('d-none', !showBulkControls);
                             }
                         })
                         .catch(error => {
+                            if (requestSeq !== loadRequestSeq) {
+                                return;
+                            }
+
                             if (showProgress && typeof window.hideLoadingState === 'function') window.hideLoadingState(false, 'Failed to refresh schedules');
                             if (isCalendarRequest) {
                                 showDefAlert('Failed to load calendar schedules: ' + error.message, 'error');
@@ -1458,12 +1482,8 @@
                     const calendarEl = document.getElementById('defenseCalendar');
                     const events = allScheduleData.map(s => scheduleToEvent(s, true));
 
-                    // Determine initial date from events
-                    let initialDate = new Date();
-                    if (events.length > 0) {
-                        const dates = events.map(e => new Date(e.start)).sort((a, b) => a - b);
-                        initialDate = dates[0];
-                    }
+                    // Always open calendar on today's date.
+                    const initialDate = new Date();
 
                     defenseCalendarInstance = new FullCalendar.Calendar(calendarEl, {
                         initialView: 'timeGridWeek',
@@ -1499,6 +1519,11 @@
                         }
                     });
                     defenseCalendarInstance.render();
+                    setTimeout(() => {
+                        if (defenseCalendarInstance) {
+                            defenseCalendarInstance.updateSize();
+                        }
+                    }, 0);
                 }
 
                 function updateScheduleDataFromEvent(event) {
