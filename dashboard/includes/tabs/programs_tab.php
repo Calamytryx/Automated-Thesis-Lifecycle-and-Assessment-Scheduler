@@ -40,19 +40,8 @@
             <div class="col-12 col-md-3 col-lg-2">
               <!-- College Dropdown -->
               <div class="programs-tab-controls">
-                <select class="form-select user-control-height" id="collegeFilterSelect">
+                <select class="form-select user-control-height" id="programsCollegeFilterSelect">
                   <option value="all">All Colleges</option>
-                  <?php
-                  // Get distinct colleges for filter
-                  try {
-                    $stmt = $pdo->query("SELECT DISTINCT college FROM programs WHERE college IS NOT NULL ORDER BY college");
-                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                      echo '<option value="' . htmlspecialchars($row['college']) . '">' . htmlspecialchars($row['college']) . '</option>';
-                    }
-                  } catch (PDOException $e) {
-                    echo '<option disabled>Error loading colleges</option>';
-                  }
-                  ?>
                 </select>
               </div>
             </div>
@@ -60,14 +49,10 @@
             <div class="col-12 col-md-3 col-lg-3">
               <!-- Sort Dropdown -->
               <select class="form-select user-control-height" id="programSortSelect">
-                <option value="id:desc">Default (Newest First)</option>
-                <option value="id:asc">Default (Oldest First)</option>
+                <option value="id:desc">Newest First</option>
+                <option value="id:asc">Oldest First</option>
                 <option value="name:asc">Name (A-Z)</option>
                 <option value="name:desc">Name (Z-A)</option>
-                <option value="college:asc">College (A-Z)</option>
-                <option value="college:desc">College (Z-A)</option>
-                <option value="department:asc">Department (A-Z)</option>
-                <option value="department:desc">Department (Z-A)</option>
               </select>
             </div>
             
@@ -121,6 +106,9 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const collegeFilterElement = document.getElementById('programsCollegeFilterSelect');
+    const isProgramChair = <?php echo (($_SESSION['usertype'] == 0) && ((int)$_SESSION['id'] !== 0)) ? 'true' : 'false'; ?>;
+
     // Function to load programs based on filters with search and sorting
     const loadPrograms = (collegeFilter = 'all', page = 1, search = '', sort = 'id:desc') => {
       let url = `includes/tabs/get_table.php?table=programs&page=${page}&per_page=10`;
@@ -132,7 +120,13 @@
         url += `&search=${encodeURIComponent(search)}`;
       }
       if (sort) {
-        url += `&sort=${encodeURIComponent(sort)}`;
+        const [sortBy, sortDir] = sort.split(':');
+        if (sortBy) {
+          url += `&sort_by=${encodeURIComponent(sortBy)}`;
+        }
+        if (sortDir) {
+          url += `&sort_dir=${encodeURIComponent(sortDir.toUpperCase())}`;
+        }
       }
 
       fetch(url)
@@ -277,7 +271,7 @@
     // Function to get current filters
     const getCurrentFilters = () => {
       return {
-        collegeFilter: document.getElementById('collegeFilterSelect').value,
+        collegeFilter: collegeFilterElement ? collegeFilterElement.value : 'all',
         search: document.getElementById('programSearchInput').value,
         sort: document.getElementById('programSortSelect').value
       };
@@ -292,13 +286,45 @@
     // Expose reloadCurrentView to global scope for use by main app.js.php
     window.reloadProgramsView = reloadCurrentView;
 
-    // Initialize on page load
-    loadPrograms('all', 1, '', 'id:desc');
+    const initializeCollegeFilter = () => {
+      if (!collegeFilterElement) {
+        loadPrograms('all', 1, '', 'id:desc');
+        return;
+      }
+
+      fetch('includes/tabs/load_colleges.php')
+        .then(response => response.text())
+        .then(optionsHtml => {
+          const trimmedOptions = optionsHtml.trim();
+
+          if (isProgramChair) {
+            collegeFilterElement.innerHTML = trimmedOptions || '<option value="all">No colleges available</option>';
+            const onlyOption = collegeFilterElement.querySelector('option');
+            if (onlyOption) {
+              collegeFilterElement.value = onlyOption.value;
+              collegeFilterElement.disabled = true;
+            }
+          } else {
+            collegeFilterElement.innerHTML = '<option value="all">All Colleges</option>' + optionsHtml;
+            collegeFilterElement.disabled = false;
+          }
+
+          reloadCurrentView(1);
+        })
+        .catch(error => {
+          console.error('Error loading colleges for programs filter:', error);
+          loadPrograms('all', 1, '', 'id:desc');
+        });
+    };
+
+    initializeCollegeFilter();
 
     // Handle college filter dropdown change
-    document.getElementById('collegeFilterSelect').addEventListener('change', function() {
-      reloadCurrentView(1);
-    });
+    if (collegeFilterElement) {
+      collegeFilterElement.addEventListener('change', function() {
+        reloadCurrentView(1);
+      });
+    }
 
     // Handle search input
     document.getElementById('programSearchInput').addEventListener('keyup', function(e) {
