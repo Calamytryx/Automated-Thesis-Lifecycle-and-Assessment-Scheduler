@@ -949,8 +949,12 @@ function createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelis
                           "🎓 Program: {$teamInfo['program']}\n" .
                           "📝 Research: " . ($teamInfo['research_title'] ?? 'N/A') . "\n\n" .
                           "This assignment has been automatically accepted by the scheduling workflow.";
-                
-                createNotification($pdo, $panelistId, $title, $message, 'defense_notice', $scheduleId, false);
+
+                // Keep legacy-schema compatibility when notifications.type does not include defense_notice.
+                $created = createNotification($pdo, $panelistId, $title, $message, 'defense_notice', $scheduleId, false);
+                if (!$created) {
+                    createNotification($pdo, $panelistId, $title, $message, 'defense_approval', $scheduleId, false);
+                }
             }
         }
         

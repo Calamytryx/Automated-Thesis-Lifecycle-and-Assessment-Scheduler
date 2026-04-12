@@ -13,32 +13,15 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
 require_once __DIR__ . '/edit_functions.php';
+require_once __DIR__ . '/section_access.php';
 $conflictItems = [];
 
 try {
-    // Authorization: Allow admin, program chairs, and faculty from the same college
+    // Authorization: Use shared dashboard access rules for program chairs and section professors.
     $usertype = intval($_SESSION['usertype'] ?? -1);
     $userId = intval($_SESSION['id'] ?? -1);
-    $isAdmin = ($usertype === 0); // admin and program chairs both have usertype=0
-    $isAuthorizedFaculty = false;
-    
-    if ($usertype === 2 && $userId > 0) {
-        // Check if faculty has section assignments (acts as program chair for those sections)
-        require_once __DIR__ . '/section_access.php';
-        $sections = getProfessorSections($pdo, $userId);
-        if (!empty($sections)) {
-            $isAuthorizedFaculty = true;
-        } else {
-            // Also allow faculty from the same college (program chairs may not have section_professors entries)
-            require_once __DIR__ . '/../../assets/includes/auth_functions.php';
-            $userCollege = get_user_college($pdo, $userId);
-            if ($userCollege) {
-                $isAuthorizedFaculty = true; // Faculty in a college can approve schedules for that college
-            }
-        }
-    }
-    
-    if (!$isAdmin && !$isAuthorizedFaculty) {
+
+    if (!userCanAccessDashboard($pdo, $userId, $usertype)) {
         error_log("handle_bulk_approval.php: Unauthorized - userId=$userId, usertype=$usertype");
         throw new Exception('Unauthorized: You do not have permission to perform bulk approval.');
     }
@@ -60,6 +43,25 @@ try {
 
     if (empty($schedules)) {
         throw new Exception('No schedules selected.');
+    }
+
+    // Scope-check all schedules up front so bulk actions match table visibility rules.
+    $scopeCheckStmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ? LIMIT 1");
+    foreach ($schedules as $sched) {
+        $scheduleId = isset($sched['id']) ? (int)$sched['id'] : 0;
+        if ($scheduleId <= 0) {
+            throw new Exception('Invalid schedule ID in bulk request.');
+        }
+
+        $scopeCheckStmt->execute([$scheduleId]);
+        $teamId = (int)$scopeCheckStmt->fetchColumn();
+        if ($teamId <= 0) {
+            throw new Exception('Schedule ID ' . $scheduleId . ' was not found.');
+        }
+
+        if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+            throw new Exception('You do not have access to schedule ID ' . $scheduleId . '.');
+        }
     }
 
     $pdo->beginTransaction();

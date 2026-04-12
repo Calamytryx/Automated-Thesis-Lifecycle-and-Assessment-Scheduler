@@ -12,24 +12,14 @@ header('Content-Type: application/json');
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
 require_once __DIR__ . '/../../assets/includes/notification_functions.php';
 require_once __DIR__ . '/edit_functions.php';
+require_once __DIR__ . '/section_access.php';
 
 try {
-    // Allow admins/program chairs and faculty based on existing dashboard access rules.
+    // Allow users that pass shared dashboard defense access rules.
     $usertype = isset($_SESSION['usertype']) ? intval($_SESSION['usertype']) : -1;
     $userId = isset($_SESSION['id']) ? intval($_SESSION['id']) : -1;
-    $isAdmin = ($usertype === 0);
-    $isAssignedFaculty = false;
 
-    if ($usertype === 2 && $userId > 0) {
-        $checkStmt = $pdo->prepare("
-            SELECT COUNT(*) FROM section_professors
-            WHERE professor_id = ? AND status = 'active'
-        ");
-        $checkStmt->execute([$userId]);
-        $isAssignedFaculty = ($checkStmt->fetchColumn() > 0);
-    }
-
-    if (!$isAdmin && !$isAssignedFaculty) {
+    if (!userCanAccessDashboard($pdo, $userId, $usertype)) {
         throw new Exception('Unauthorized: Only administrators and subject teachers can save schedules.');
     }
 

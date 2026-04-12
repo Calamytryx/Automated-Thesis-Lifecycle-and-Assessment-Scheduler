@@ -11,6 +11,7 @@ class NotificationManager {
         this.markAllReadBtn = document.getElementById('markAllReadBtn');
         this.updateInterval = null;
         this.lastCheckTime = null;
+        this.panelAssignmentQueue = [];
         
         this.init();
     }
@@ -24,6 +25,7 @@ class NotificationManager {
         // Initial load
         this.loadNotifications();
         this.updateUnreadCount();
+        this.loadPanelAssignmentQueue();
         
         // Set up periodic updates
         this.startPeriodicUpdates();
@@ -151,6 +153,10 @@ class NotificationManager {
     }
 
     async markAsRead(notificationId) {
+        if (!notificationId) {
+            return false;
+        }
+
         try {
             const response = await fetch('../assets/includes/mark_notification_read.php', {
                 method: 'POST',
@@ -166,10 +172,189 @@ class NotificationManager {
             if (data.success) {
                 // Update the UI immediately
                 this.updateUnreadCount();
+                return true;
             }
+
+            return false;
         } catch (error) {
             console.error('Error marking notification as read:', error);
+            return false;
         }
+    }
+
+    async loadPanelAssignmentQueue() {
+        try {
+            const response = await fetch('../assets/includes/get_panel_assignment_notices.php', {
+                headers: {
+                    'Accept': 'application/json'
+                }
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const contentType = (response.headers.get('content-type') || '').toLowerCase();
+            if (!contentType.includes('application/json')) {
+                throw new Error('Expected JSON response for panel assignment queue');
+            }
+
+            const data = await response.json();
+            if (!data.success || !Array.isArray(data.assignments) || data.assignments.length === 0) {
+                return;
+            }
+
+            console.info('Panel assignment queue loaded:', {
+                count: data.assignments.length,
+                firstScheduleId: data.assignments[0]?.schedule_id || null
+            });
+
+            this.panelAssignmentQueue = data.assignments.slice();
+            this.showNextPanelAssignmentModal();
+        } catch (error) {
+            console.error('Error loading panel assignment queue:', error);
+        }
+    }
+
+    async markPanelAssignmentSeen(assignment) {
+        if (!assignment || !assignment.schedule_id) {
+            return false;
+        }
+
+        try {
+            const payload = {
+                schedule_id: parseInt(assignment.schedule_id)
+            };
+
+            if (assignment.notification_id) {
+                payload.notification_id = parseInt(assignment.notification_id);
+            }
+
+            const response = await fetch('../assets/includes/mark_panel_assignment_popup_seen.php', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (!response.ok) {
+                throw new Error(`HTTP ${response.status}`);
+            }
+
+            const data = await response.json();
+            if (data.success) {
+                this.updateUnreadCount();
+                return true;
+            }
+
+            return false;
+        } catch (error) {
+            console.error('Error saving panel assignment popup state:', error);
+            return false;
+        }
+    }
+
+    getDefenseTypeLabel(defenseType) {
+        const labels = {
+            'title_proposal': 'Title Proposal',
+            'title_defense': 'Title Defense',
+            'final_defense': 'Final Defense',
+            're-defense': 'Re-Defense'
+        };
+
+        if (!defenseType) {
+            return 'Defense';
+        }
+
+        return labels[defenseType] || defenseType.replace(/_/g, ' ');
+    }
+
+    showNextPanelAssignmentModal() {
+        if (!Array.isArray(this.panelAssignmentQueue) || this.panelAssignmentQueue.length === 0) {
+            return;
+        }
+
+        const assignment = this.panelAssignmentQueue.shift();
+
+        const existingModal = document.getElementById('panelAssignmentModal');
+        if (existingModal) {
+            existingModal.remove();
+        }
+
+        const teamName = this.escapeHtml(assignment.team_name || 'Unknown Team');
+        const defenseType = this.escapeHtml(this.getDefenseTypeLabel(assignment.defense_type || ''));
+        const scheduleDate = this.escapeHtml(assignment.formatted_date || 'TBA');
+        const scheduleTime = this.escapeHtml(assignment.formatted_time || 'TBA');
+        const room = this.escapeHtml(assignment.room || 'TBA');
+        const program = this.escapeHtml(assignment.program || 'N/A');
+        const researchTitle = this.escapeHtml(assignment.research_title || 'N/A');
+        const otherPanelists = this.escapeHtml(assignment.other_panelists || 'No additional panelists listed');
+
+        const modalHtml = `
+            <div class="modal fade" id="panelAssignmentModal" tabindex="-1" aria-labelledby="panelAssignmentModalLabel" aria-hidden="true">
+                <div class="modal-dialog modal-lg modal-dialog-centered">
+                    <div class="modal-content">
+                        <div class="modal-header text-white">
+                            <h5 class="modal-title" id="panelAssignmentModalLabel">
+                                <i class="fas fa-calendar-check me-2"></i>Panel Assignment Notice
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div class="modal-body" id="panelAssignmentModalBody">
+                            <div class="alert alert-info mb-3">
+                                <strong>This defense assignment is for your panel schedule.</strong>
+                            </div>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="mb-2 text-primary">Defense Details</h6>
+                                        <p class="mb-1"><strong>Type:</strong> ${defenseType}</p>
+                                        <p class="mb-1"><strong>Date:</strong> ${scheduleDate}</p>
+                                        <p class="mb-1"><strong>Time:</strong> ${scheduleTime}</p>
+                                        <p class="mb-0"><strong>Room:</strong> ${room}</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="border rounded p-3 h-100 bg-light">
+                                        <h6 class="mb-2 text-primary">Team Details</h6>
+                                        <p class="mb-1"><strong>Team:</strong> ${teamName}</p>
+                                        <p class="mb-1"><strong>Program:</strong> ${program}</p>
+                                        <p class="mb-0"><strong>Research:</strong> ${researchTitle}</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="mt-3">
+                                <h6 class="mb-1 text-primary">Other Panelists</h6>
+                                <p class="mb-0">${otherPanelists}</p>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">Close</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+
+        const modalElement = document.getElementById('panelAssignmentModal');
+        const modalInstance = new bootstrap.Modal(modalElement, {
+            backdrop: 'static',
+            keyboard: false
+        });
+
+        modalElement.addEventListener('hidden.bs.modal', () => {
+            modalElement.remove();
+
+            this.markPanelAssignmentSeen(assignment)
+                .finally(() => {
+                    this.showNextPanelAssignmentModal();
+                });
+        }, { once: true });
+
+        modalInstance.show();
     }
 
     async markAllAsRead() {

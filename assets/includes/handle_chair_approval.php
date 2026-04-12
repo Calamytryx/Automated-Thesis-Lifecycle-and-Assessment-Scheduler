@@ -16,6 +16,7 @@ session_start();
 require_once '../setup/db.inc.php';
 require_once 'notification_functions.php';
 require_once __DIR__ . '/../../dashboard/includes/edit_functions.php';
+require_once __DIR__ . '/../../dashboard/includes/section_access.php';
 
 header('Content-Type: application/json');
 
@@ -26,31 +27,12 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 
 $action = $_POST['action'] ?? '';
 $scheduleId = $_POST['schedule_id'] ?? '';
-$userId = $_SESSION['id'] ?? '';
 $rejectionReason = $_POST['rejection_reason'] ?? '';
 
-// Validate user is a program chair, admin, or faculty from same college
+// Validate user can access dashboard defense features.
 $usertype = intval($_SESSION['usertype'] ?? -1);
 $userId = intval($_SESSION['id'] ?? -1);
-$isAdmin = ($usertype === 0);
-$isAuthorizedFaculty = false;
-
-if ($usertype === 2 && $userId > 0) {
-    require_once __DIR__ . '/../../dashboard/includes/section_access.php';
-    $sections = getProfessorSections($pdo, $userId);
-    if (!empty($sections)) {
-        $isAuthorizedFaculty = true;
-    } else {
-        // Also allow faculty from the same college
-        require_once __DIR__ . '/auth_functions.php';
-        $userCollege = get_user_college($pdo, $userId);
-        if ($userCollege) {
-            $isAuthorizedFaculty = true;
-        }
-    }
-}
-
-if (!$isAdmin && !$isAuthorizedFaculty) {
+if (!userCanAccessDashboard($pdo, $userId, $usertype)) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized. You do not have permission to review schedules.']);
     exit;
 }
@@ -73,8 +55,19 @@ try {
         throw new Exception('Defense schedule not found');
     }
 
+    if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, (int)$schedule['team_id'])) {
+        throw new Exception('You do not have access to this schedule.');
+    }
+
     if ($schedule['approval_status'] !== 'pending_chair') {
         throw new Exception('This schedule is not pending chair review (current status: ' . $schedule['approval_status'] . ')');
+    }
+
+    $teamNameStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ? LIMIT 1");
+    $teamNameStmt->execute([$schedule['team_id']]);
+    $teamName = trim((string)$teamNameStmt->fetchColumn());
+    if ($teamName === '') {
+        $teamName = 'Team ' . (int)$schedule['team_id'];
     }
 
     // Mark chair review notifications as read
@@ -162,7 +155,7 @@ try {
         $formattedDate = date('F j, Y', strtotime($schedule['schedule_date']));
         $formattedTime = date('g:i A', strtotime($schedule['start_time'])) . ' - ' . date('g:i A', strtotime($schedule['end_time']));
         $defenseTypeLabel = ucwords(str_replace('_', ' ', $schedule['defense_type']));
-        $messageForTeam = "Your team's {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime}" .
+        $messageForTeam = "{$teamName}'s {$defenseTypeLabel} has been scheduled for {$formattedDate} at {$formattedTime}" .
             ($schedule['room'] ? " in {$schedule['room']}" : "") . ". The schedule is now approved.";
 
         foreach ($teamMemberIds as $memberId) {
@@ -185,11 +178,6 @@ try {
             WHERE id = ?
         ");
         $updateStmt->execute([$scheduleId]);
-
-        // Get team name for notification
-        $teamStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ?");
-        $teamStmt->execute([$schedule['team_id']]);
-        $teamName = $teamStmt->fetchColumn();
 
         $formattedDate = date('F j, Y', strtotime($schedule['schedule_date']));
 
