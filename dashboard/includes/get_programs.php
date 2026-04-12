@@ -6,12 +6,24 @@ header('Content-Type: application/json');
 $response = ['success' => false, 'data' => [], 'message' => ''];
 
 try {
+    // Check if filtering by college
+    $filterCollege = isset($_GET['college']) ? trim($_GET['college']) : null;
+    
     // Select college and department for grouping
     $query = "SELECT id, college, department, name, specialization
-              FROM programs
-              ORDER BY college, department, name"; // Order appropriately
+              FROM programs";
+    
+    // Add WHERE clause if filtering by college
+    $params = [];
+    if ($filterCollege) {
+        $query .= " WHERE college = ?";
+        $params[] = $filterCollege;
+    }
+    
+    $query .= " ORDER BY college, department, name"; // Order appropriately
+    
     $stmt = $pdo->prepare($query);
-    $stmt->execute();
+    $stmt->execute($params);
 
     $tempData = [];
     $collegeHasDepartments = []; // Track colleges that have at least one non-empty department

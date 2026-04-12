@@ -85,11 +85,63 @@
     </div>
 </div>
 
+<!-- Remove Mapping Confirmation Modal -->
+<div class="modal fade" id="mappingDeleteConfirmModal" tabindex="-1" aria-labelledby="mappingDeleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0 justify-content-end">
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body text-center">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+                    </svg>
+                </div>
+                <h4 class="fw-bold mb-3" id="mappingDeleteConfirmModalLabel">Confirm Deletion</h4>
+                <p>Are you sure you want to remove <span id="mappingDeleteTargetLabel" class="fw-semibold">this requirement mapping</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-danger" id="confirmMappingDeleteBtn">Remove</button>
+            </div>
+        </div>
+    </div>
+</div>
+
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         let currentProgram = null;
         let currentDefenseType = null;
         const validDefenseTypes = ['title_proposal', 'title_defense', 'final_defense', 're-defense', 'general'];
+        const mappingDeleteConfirmModal = new bootstrap.Modal(document.getElementById('mappingDeleteConfirmModal'));
+        const confirmMappingDeleteBtn = document.getElementById('confirmMappingDeleteBtn');
+        let mappingDeleteResolver = null;
+
+        function confirmMappingDelete(targetLabel) {
+            document.getElementById('mappingDeleteTargetLabel').textContent = targetLabel || 'this requirement mapping';
+            mappingDeleteConfirmModal.show();
+
+            return new Promise(resolve => {
+                mappingDeleteResolver = resolve;
+            });
+        }
+
+        confirmMappingDeleteBtn.addEventListener('click', function() {
+            mappingDeleteConfirmModal.hide();
+            if (mappingDeleteResolver) {
+                mappingDeleteResolver(true);
+                mappingDeleteResolver = null;
+            }
+        });
+
+        document.getElementById('mappingDeleteConfirmModal').addEventListener('hidden.bs.modal', function() {
+            if (mappingDeleteResolver) {
+                mappingDeleteResolver(false);
+                mappingDeleteResolver = null;
+            }
+        });
         
         // Load programs on page load
         loadPrograms();
@@ -283,28 +335,30 @@
         
         // Function: Remove requirement from defense type
         window.removeRequirement = function(requirementId, programId, defenseType) {
-            if (!confirm('Are you sure you want to remove this requirement?')) return;
-            
-            console.log(`Removing requirement ${requirementId} from ${defenseType} for program ${programId}`);
-            
-            fetch('/api/program_requirements_mapping.php?action=remove_mapping', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
-                body: `program_id=${programId}&defense_type=${defenseType}&requirement_id=${requirementId}`
-            })
-            .then(response => response.json())
-            .then(data => {
-                console.log('Remove response:', data);
-                if (data.success) {
-                    loadRequirementsForDefenseType(programId, defenseType);
-                    showSuccessMessage('Requirement removed successfully');
-                } else {
-                    alert('Failed to remove requirement: ' + (data.error || data.message));
-                }
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                alert('Failed to remove requirement');
+            confirmMappingDelete(`this requirement mapping (ID: ${requirementId})`).then(confirmed => {
+                if (!confirmed) return;
+
+                console.log(`Removing requirement ${requirementId} from ${defenseType} for program ${programId}`);
+
+                fetch('/api/program_requirements_mapping.php?action=remove_mapping', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: `program_id=${programId}&defense_type=${defenseType}&requirement_id=${requirementId}`
+                })
+                .then(response => response.json())
+                .then(data => {
+                    console.log('Remove response:', data);
+                    if (data.success) {
+                        loadRequirementsForDefenseType(programId, defenseType);
+                        showSuccessMessage('Requirement removed successfully');
+                    } else {
+                        alert('Failed to remove requirement: ' + (data.error || data.message));
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('Failed to remove requirement');
+                });
             });
         };
         

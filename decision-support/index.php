@@ -52,6 +52,8 @@ $existing_evaluation = null;
 $pdf_file_name = null;
 $adviser_name = null;
 $defense_type = null; // <-- NEW: Store defense type
+$is_schedule_past_day = false;
+$is_update_locked = false;
 
 try {
     // 1. Fetch Defense Schedule Info & Team ID (including college from team leader's program)
@@ -77,7 +79,28 @@ try {
     if (!$team_id) {
         throw new Exception("Team ID missing for defense schedule ID: {$schedule_id}. Check data integrity.");
     }
+
+    if (!empty($schedule_info['schedule_date'])) {
+        $is_schedule_past_day = strtotime($schedule_info['schedule_date']) < strtotime(date('Y-m-d'));
+    }
+
     error_log("DS-Index: Fetched schedule info for ID {$schedule_id}, Team ID {$team_id}, Defense Type: {$defense_type}, Team Program: " . ($schedule_info['team_program'] ?? 'NULL') . ", Team College: " . ($schedule_info['team_college'] ?? 'NULL'));
+
+    // Fallback: Get college from programs table if not already set
+    if (empty($schedule_info['team_college']) && !empty($schedule_info['team_program'])) {
+        $collegeStmt = $pdo->prepare("
+            SELECT college 
+            FROM programs 
+            WHERE CONCAT(name, CASE WHEN specialization IS NOT NULL AND specialization != '' THEN CONCAT(' - ', specialization) ELSE '' END) = ?
+            LIMIT 1
+        ");
+        $collegeStmt->execute([$schedule_info['team_program']]);
+        $college = $collegeStmt->fetchColumn();
+        if ($college) {
+            $schedule_info['team_college'] = $college;
+            error_log("DS-Index: College resolved via fallback query: {$college}");
+        }
+    }
 
     // <-- NEW: Check for admin override in defense_type_overrides table ---
     $overrideStmt = $pdo->prepare("SELECT override_type FROM defense_type_overrides WHERE team_id = ? AND active = 1 ORDER BY created_at DESC LIMIT 1");
@@ -295,6 +318,18 @@ try {
     $adviser_name = $adviser['fullname'] ?? 'No adviser assigned';
     error_log("DS-Index: Fetched adviser name: {$adviser_name} for team ID {$team_id}.");
 
+    // Fetch Academic Year for this team (via student section → section_professors)
+    $ayStmt = $pdo->prepare("
+        SELECT sp.academic_year
+        FROM section_professors sp
+        JOIN users u ON u.section = sp.section
+        JOIN team_members tm ON tm.user_id = u.id
+        WHERE tm.team_id = ? AND sp.status = 'active' AND sp.academic_year IS NOT NULL
+        LIMIT 1
+    ");
+    $ayStmt->execute([$team_id]);
+    $academic_year = $ayStmt->fetchColumn() ?: null;
+
     // Fetch Evaluator Name (Currently logged in user)
     $evaluatorStmt = $pdo->prepare("
         SELECT CONCAT(last_name, ', ', first_name) AS evaluator_fullname
@@ -419,7 +454,7 @@ try {
 
     // 5. Fetch Existing Evaluation Data (New Logic)
     $stmt_existing_eval = $pdo->prepare("
-        SELECT epp.id as evaluation_id, epp.comments, ed.rubric_id, ed.criterion_id, ed.student_id, ed.score, ed.selected_option
+        SELECT epp.id as evaluation_id, epp.comments, epp.updated_at, ed.rubric_id, ed.criterion_id, ed.student_id, ed.score, ed.selected_option
         FROM evaluation_per_panel epp
         LEFT JOIN evaluation_details ed ON epp.id = ed.evaluation_id
         WHERE epp.defense_schedule_id = :schedule_id AND epp.evaluator_id = :evaluator_id
@@ -429,9 +464,17 @@ try {
      error_log("DS-Index: Fetched " . count($existing_raw) . " rows for existing evaluation data.");
 
      if (!empty($existing_raw)) {
+         $latest_comment_edit_ts = null;
+         foreach ($existing_raw as $row) {
+             if (!empty($row['updated_at']) && ($latest_comment_edit_ts === null || strtotime($row['updated_at']) > strtotime($latest_comment_edit_ts))) {
+                 $latest_comment_edit_ts = $row['updated_at'];
+             }
+         }
+
          $existing_evaluation = [
              'evaluation_id' => $existing_raw[0]['evaluation_id'],
              'comments' => $existing_raw[0]['comments'],
+            'last_edited_at' => $latest_comment_edit_ts,
              'details' => []
          ];
          foreach ($existing_raw as $detail) {
@@ -503,6 +546,14 @@ try {
     echo "<div class='container mt-5'><div class='alert alert-danger'>Application Error: " . htmlspecialchars($e->getMessage()) . " Please contact support. Error Ref: " . $error_ref . "</div></div>";
     include '../assets/layouts/footer.php';
     exit;
+}
+
+$comments_last_edited_display = '';
+if (!empty($existing_evaluation['last_edited_at'])) {
+    $last_edit_ts = strtotime($existing_evaluation['last_edited_at']);
+    if ($last_edit_ts !== false) {
+        $comments_last_edited_display = date('M d, Y g:i A', $last_edit_ts);
+    }
 }
 
 // --- Helper Function to Render Numerical Rubric ---
@@ -1009,9 +1060,13 @@ include '../assets/layouts/header.php';
     $stmt = $pdo->prepare("SELECT COUNT(*) FROM evaluation_per_panel WHERE defense_schedule_id = ? AND evaluator_id = ?");
     $stmt->execute([$schedule_id, $evaluator_id]);
     $done_evaluating = $stmt->fetchColumn() > 0;
+            $is_update_locked = $done_evaluating && $is_schedule_past_day;
     if ($done_evaluating) {
-        // CHANGED: Removed "You can no longer edit" message to allow re-evaluation
-        echo "<div class='container mt-5'><div class='alert alert-info'><i class='fas fa-info-circle'></i> You can update your previous evaluation by re-submitting below.</div></div>";
+                if ($is_update_locked) {
+                    echo "<div class='container mt-5'><div class='alert alert-warning'><i class='fas fa-lock'></i> This evaluation is now view-only because the scheduled defense day has passed.</div></div>";
+                } else {
+                    echo "<div class='container mt-5'><div class='alert alert-info'><i class='fas fa-info-circle'></i> You can update your previous evaluation by re-submitting below.</div></div>";
+                }
     }
 }
 
@@ -1502,15 +1557,23 @@ include '../assets/layouts/header.php';
                     <label for="comments" class="form-label">Overall Comments</label>
                     <textarea class="form-control" id="comments" name="comments" rows="4"><?php echo htmlspecialchars($existing_evaluation['comments'] ?? ''); ?></textarea>
                     <small class="form-text text-muted">Provide overall feedback, strengths, weaknesses, and recommendations based on the rubrics above.</small>
+                    <?php if (!empty($comments_last_edited_display)): ?>
+                    <small id="commentsLastEditedText" class="form-text text-muted d-block mt-1">Last edited: <?php echo htmlspecialchars($comments_last_edited_display); ?></small>
+                    <?php endif; ?>
                 </div>
 
                 <!-- Submit Button -->
-                <!-- CHANGED: Allow re-evaluation/updates by removing $done_evaluating check -->
                 <?php if (!empty($rubrics_in_group)): ?>
                     <div class="text-center mb-5">
-                        <button type="submit" class="btn btn-primary btn-lg">
-                            <?php echo $done_evaluating ? 'Update Evaluation' : 'Submit Evaluation'; ?>
-                        </button>
+                        <?php if ($is_update_locked): ?>
+                            <button type="button" class="btn btn-info btn-lg" onclick="showEvaluationSummary()">
+                                <i class="fas fa-clipboard-check me-2"></i>View Summary
+                            </button>
+                        <?php else: ?>
+                            <button type="submit" class="btn btn-primary btn-lg">
+                                <?php echo $done_evaluating ? 'Update Evaluation' : 'Submit Evaluation'; ?>
+                            </button>
+                        <?php endif; ?>
                     </div>
                 <?php endif; ?>
                 <div id="formStatus" class="mt-3"></div>
@@ -1527,7 +1590,7 @@ include '../assets/layouts/header.php';
     <div class="modal-content">
       <div class="modal-header" style="background-color: var(--main-white); color: white; border-bottom: 1px solid var(--neutral-300);">
         <h5 class="modal-title" id="evaluationSummaryModalLabel">
-          <i class="fas fa-clipboard-check me-2"></i>Evaluation Summary - Review Before Submitting
+                    <i class="fas fa-clipboard-check me-2"></i>Evaluation Summary<?php echo $is_update_locked ? '' : ' - Review Before Submitting'; ?>
         </h5>
         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
       </div>
@@ -1538,14 +1601,16 @@ include '../assets/layouts/header.php';
       </div>
       <div class="modal-footer">
         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-          <i class="fas fa-arrow-left me-2"></i>Back to Edit
+                    <i class="fas fa-arrow-left me-2"></i><?php echo $is_update_locked ? 'Close' : 'Back to Edit'; ?>
         </button>
         <button type="button" class="btn btn-info" id="downloadPdfBtn" title="Download summary as PDF">
           <i class="fas fa-file-pdf me-2"></i>Download PDF
         </button>
-        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
-          <i class="fas fa-paper-plane me-2"></i><?php echo $done_evaluating ? 'Confirm Update' : 'Confirm Submission'; ?>
-        </button>
+                <?php if (!$is_update_locked): ?>
+                        <button type="button" class="btn btn-primary" id="confirmSubmitBtn">
+                            <i class="fas fa-paper-plane me-2"></i><?php echo $done_evaluating ? 'Confirm Update' : 'Confirm Submission'; ?>
+                        </button>
+                <?php endif; ?>
       </div>
     </div>
   </div>
@@ -1565,6 +1630,108 @@ document.addEventListener('DOMContentLoaded', function() {
   const sections = document.querySelectorAll('.section-toggle');
   const evaluationForm = document.getElementById('evaluationForm');
   const formStatusDiv = document.getElementById('formStatus');
+    const IS_UPDATE_LOCKED = <?php echo $is_update_locked ? 'true' : 'false'; ?>;
+
+  // -------------------------------------------------------------------
+  // DRAFT PERSISTENCE (sessionStorage) — for when doing a page refresh
+  // Uses schedule_id so each evaluation page has its own draft
+  // -------------------------------------------------------------------
+  const SCHEDULE_ID = <?php echo json_encode($schedule_id, JSON_HEX_TAG); ?>;
+  const DRAFT_KEY   = 'ds_draft_' + SCHEDULE_ID;
+  const TAB_KEY     = 'ds_tab_'   + SCHEDULE_ID;
+
+  // ---- helpers ----
+  function saveDraft() {
+    if (!evaluationForm) return;
+    const draft = { scores: {}, radios: {}, comments: '' };
+
+    // number inputs (scores)
+    evaluationForm.querySelectorAll('input[type="number"].entered-score, input[type="number"].criterion-score-input').forEach(input => {
+      if (input.id && input.value !== '') draft.scores[input.id] = input.value;
+    });
+
+    // radio buttons (yes/no + pass/fail)
+    evaluationForm.querySelectorAll('input[type="radio"]:checked').forEach(radio => {
+      if (radio.name) draft.radios[radio.name] = radio.value;
+    });
+
+    // comments
+    const commentsEl = document.getElementById('comments');
+    if (commentsEl) draft.comments = commentsEl.value;
+
+    sessionStorage.setItem(DRAFT_KEY, JSON.stringify(draft));
+  }
+
+  function restoreDraft() {
+    const raw = sessionStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    try {
+      const draft = JSON.parse(raw);
+
+      // restore scores
+      if (draft.scores) {
+        Object.keys(draft.scores).forEach(id => {
+          const el = document.getElementById(id);
+          if (el) el.value = draft.scores[id];
+        });
+      }
+
+      // restore radios
+      if (draft.radios) {
+        Object.keys(draft.radios).forEach(name => {
+          const radio = evaluationForm.querySelector(
+            'input[type="radio"][name="' + CSS.escape(name) + '"][value="' + CSS.escape(draft.radios[name]) + '"]'
+          );
+          if (radio) radio.checked = true;
+        });
+      }
+
+      // restore comments
+      if (draft.comments !== undefined) {
+        const commentsEl = document.getElementById('comments');
+        if (commentsEl) commentsEl.value = draft.comments;
+      }
+    } catch (e) {
+      console.warn('Could not restore draft:', e);
+    }
+  }
+
+  function clearDraft() {
+    sessionStorage.removeItem(DRAFT_KEY);
+    sessionStorage.removeItem(TAB_KEY);
+  }
+
+  // ---- restore active tab ----
+  const savedTab = sessionStorage.getItem(TAB_KEY);
+  if (savedTab) {
+    const tabBtn = document.getElementById(savedTab);
+    if (tabBtn) {
+      const tab = new bootstrap.Tab(tabBtn);
+      tab.show();
+    }
+  }
+
+  // ---- save tab on switch ----
+  document.querySelectorAll('#defenseContentTabs button[data-bs-toggle="tab"]').forEach(btn => {
+    btn.addEventListener('shown.bs.tab', function () {
+      sessionStorage.setItem(TAB_KEY, this.id);
+    });
+  });
+
+  // ---- restore draft data ----
+  restoreDraft();
+
+  // ---- auto-save on every input change ----
+  if (evaluationForm) {
+    evaluationForm.addEventListener('input',  saveDraft);
+    evaluationForm.addEventListener('change', saveDraft);
+
+        if (IS_UPDATE_LOCKED) {
+            evaluationForm.querySelectorAll('input[type="number"], input[type="radio"], textarea').forEach(el => {
+                el.disabled = true;
+            });
+        }
+  }
 
   toggleBtns.forEach(btn => {
     btn.addEventListener('click', function() {
@@ -1960,21 +2127,13 @@ document.addEventListener('DOMContentLoaded', function() {
         
         let html = '';
         
-        // Group Details Section
+        // Team Details Section - Reorganized Layout
         html += '<div class="summary-section" style="margin-bottom: 30px; page-break-inside: avoid;">';
-        html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;"><?php echo htmlspecialchars($schedule_info['team_college'] ?? 'N/A'); ?></h3>';
         
-        // Research Title
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Research Title:</strong><br>';
-        html += '<span style="font-size: 1.1em;"><?php echo htmlspecialchars($researchTitle); ?></span>';
-        html += '</div>';
+        // College - Top Center
+        html += '<div style="text-align: center; margin-bottom: 10px;"><h3 style="font-weight: normal; border: none; padding: 0; margin: 0; display: inline-block;"><?php echo htmlspecialchars($schedule_info['team_college'] ?? 'N/A'); ?></h3></div>';
         
-        // Basic Information
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Team Name:</strong> <?php echo htmlspecialchars($schedule_info['team_name'] ?? 'N/A'); ?><br>';
-        html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
-        html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
+        // Defense Type - Bold, Below College
         <?php 
             $typeLabel = [
                 'title_proposal' => 'Title Proposal Defense',
@@ -1983,12 +2142,14 @@ document.addEventListener('DOMContentLoaded', function() {
             ];
             $label = $typeLabel[$defense_type] ?? ucfirst(str_replace('_', ' ', $defense_type));
         ?>
-        html += '<strong>Defense Type:</strong> <?php echo htmlspecialchars($label); ?>';
-        html += '</div>';
+        html += '<div style="text-align: center; margin-bottom: 20px;"><strong style="font-size: 1.1em;"><?php echo htmlspecialchars($label); ?></strong></div>';
         
-        // Team Members
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Team Members:</strong><br>';
+        // Two Column Layout (using table for PDF compatibility)
+        html += '<table style="width: 100%; border: none; margin-bottom: 20px;"><tr>';
+        
+        // Column 1 - Proponents
+        html += '<td style="width: 50%; vertical-align: top; border: none; padding-right: 15px;">';
+        html += '<strong>Proponents:</strong><br>';
         <?php if (!empty($students)): ?>
             html += '<ul style="margin: 5px 0; padding-left: 20px;">';
             <?php foreach ($students as $student): ?>
@@ -1998,14 +2159,28 @@ document.addEventListener('DOMContentLoaded', function() {
         <?php else: ?>
             html += '<span style="font-style: italic; color: #666;">No members found</span>';
         <?php endif; ?>
+        html += '</td>';
+        
+        // Column 2 - Defense Info, Program, Adviser
+        html += '<td style="width: 50%; vertical-align: top; border: none; padding-left: 15px;">';
+        <?php if (!empty($academic_year)): ?>
+        html += '<strong>Academic Year:</strong> <?php echo htmlspecialchars($academic_year); ?><br>';
+        <?php endif; ?>
+        html += '<strong>Defense Date:</strong> <?php echo htmlspecialchars(date('F d, Y', strtotime($schedule_info['schedule_date'] ?? ''))); ?><br>';
+        html += '<strong>Defense Time:</strong> <?php echo htmlspecialchars(date('g:i A', strtotime($schedule_info['start_time'] ?? ''))) . ' - ' . htmlspecialchars(date('g:i A', strtotime($schedule_info['end_time'] ?? ''))); ?><br>';
+        html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?><br>';
+        html += '<strong>Research Adviser:</strong> <?php echo htmlspecialchars($adviser_name); ?>';
+        html += '</td>';
+        
+        html += '</tr></table>'; // End two-column layout
+        
+        // Research Title - Below the Two Columns
+        html += '<div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid #ddd;">';
+        html += '<strong>Research Title:</strong><br>';
+        html += '<span style="font-size: 1.05em;"><?php echo htmlspecialchars($researchTitle); ?></span>';
         html += '</div>';
         
-        // Adviser and Program
-        html += '<div style="margin-bottom: 15px;">';
-        html += '<strong>Adviser:</strong> <?php echo htmlspecialchars($adviser_name); ?><br>';
-        html += '<strong>Program:</strong> <?php echo htmlspecialchars($schedule_info['team_program'] ?? 'N/A'); ?>';
-        html += '</div>';
-        html += '</div>';
+        html += '</div>'; // End summary-section
         
         // Rubrics/Score Sheets Section
         html += '<div class="summary-section" style="margin-bottom: 30px;">';
@@ -2048,6 +2223,10 @@ document.addEventListener('DOMContentLoaded', function() {
         html += '<h3 style="margin-bottom: 15px; font-weight: bold; border-bottom: 2px solid #333; padding-bottom: 8px;">OVERALL COMMENTS</h3>';
         const comments = document.getElementById('comments')?.value || 'No comments provided.';
         html += '<div style="padding: 10px; background-color: #f9f9f9; border: 1px solid #ddd; white-space: pre-wrap; font-family: inherit;">' + escapeHtml(comments) + '</div>';
+        const commentsLastEditedText = document.getElementById('commentsLastEditedText')?.textContent?.trim() || '';
+        if (commentsLastEditedText) {
+            html += '<div style="margin-top: 8px; font-size: 0.85em; color: #666;">' + escapeHtml(commentsLastEditedText) + '</div>';
+        }
         html += '</div>';
         
         // Evaluator Section
@@ -2439,52 +2618,48 @@ document.addEventListener('DOMContentLoaded', function() {
     // -------------------------------------------------------------------
     // PDF DOWNLOAD FUNCTIONALITY
     // -------------------------------------------------------------------
-    window.downloadEvaluationPDF = function() {
-        const downloadBtn = document.getElementById('downloadPdfBtn');
-        const originalBtnHtml = downloadBtn?.innerHTML;
-        
-        if (downloadBtn) {
-            downloadBtn.disabled = true;
-            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
-        }
-        
-        const summaryContent = document.getElementById('summaryContent');
-        if (!summaryContent) {
-            Swal.fire('Error', 'Summary content not found', 'error');
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
+
+    /**
+     * Collect logical blocks from the summary content for page-aware rendering.
+     * Splits sections that contain rubric summaries into separate blocks so
+     * each rubric table can be placed on its own page if needed.
+     */
+    function collectPdfBlocks(contentRoot) {
+        const blocks = [];
+        const topChildren = contentRoot.children;
+
+        for (let i = 0; i < topChildren.length; i++) {
+            const section = topChildren[i];
+            const rubrics = section.querySelectorAll(':scope > .rubric-summary');
+
+            if (rubrics.length > 0) {
+                // Section has rubric tables inside — split header from rubrics
+                const header = document.createElement('div');
+                Array.from(section.children).forEach(child => {
+                    if (!child.classList.contains('rubric-summary')) {
+                        header.appendChild(child.cloneNode(true));
+                    }
+                });
+                if (header.innerHTML.trim()) blocks.push(header);
+
+                // Each rubric becomes its own block
+                rubrics.forEach(r => blocks.push(r));
+            } else {
+                blocks.push(section);
             }
-            return;
         }
-        
-        // Clone the content for PDF generation
-        const clonedContent = summaryContent.cloneNode(true);
-        
-        // Create a temporary container with better styling for PDF
-        const tempContainer = document.createElement('div');
-        tempContainer.style.position = 'absolute';
-        tempContainer.style.left = '-9999px';
-        tempContainer.style.top = '0';
-        tempContainer.style.width = '210mm'; // A4 width
-        tempContainer.style.padding = '20px';
-        tempContainer.style.backgroundColor = 'white';
-        tempContainer.style.fontFamily = 'Arial, sans-serif';
-        tempContainer.style.fontSize = '11px';
-        tempContainer.style.color = '#000';
-        tempContainer.style.lineHeight = '1.4';
-        tempContainer.appendChild(clonedContent);
-        document.body.appendChild(tempContainer);
-        
-        // Enhance table styling for PDF with page break handling
-        const tables = tempContainer.querySelectorAll('.summary-table');
-        tables.forEach(table => {
+        return blocks;
+    }
+
+    /**
+     * Apply consistent print-friendly styles to elements inside a container.
+     */
+    function applyPdfStyles(container) {
+        container.querySelectorAll('.summary-table').forEach(table => {
             table.style.width = '100%';
             table.style.borderCollapse = 'collapse';
             table.style.marginBottom = '15px';
-            table.style.pageBreakInside = 'avoid';
-            
-            // Style table headers
+
             table.querySelectorAll('thead th').forEach(th => {
                 th.style.backgroundColor = '#e0e0e0';
                 th.style.fontWeight = 'bold';
@@ -2492,132 +2667,162 @@ document.addEventListener('DOMContentLoaded', function() {
                 th.style.padding = '8px';
                 th.style.fontSize = '10px';
             });
-            
-            // Style table cells
-            table.querySelectorAll('tbody td').forEach(td => {
+            table.querySelectorAll('tbody td, tfoot td').forEach(td => {
                 td.style.border = '1px solid #666';
                 td.style.padding = '6px 8px';
                 td.style.fontSize = '10px';
             });
-            
-            // Prevent table rows from breaking across pages
-            table.querySelectorAll('tr').forEach(tr => {
-                tr.style.pageBreakInside = 'avoid';
-                tr.style.pageBreakAfter = 'auto';
-            });
         });
-        
-        // Ensure sections don't break
-        const sections = tempContainer.querySelectorAll('.summary-section, .rubric-summary');
-        sections.forEach(section => {
-            section.style.pageBreakInside = 'avoid';
-            section.style.marginBottom = '20px';
-        });
-        
-        // Style headings
-        tempContainer.querySelectorAll('h3').forEach(h => {
+
+        container.querySelectorAll('h3').forEach(h => {
             h.style.fontSize = '14px';
             h.style.fontWeight = 'bold';
             h.style.marginTop = '10px';
             h.style.marginBottom = '10px';
-            h.style.pageBreakAfter = 'avoid';
         });
-        
-        tempContainer.querySelectorAll('h4').forEach(h => {
+        container.querySelectorAll('h4').forEach(h => {
             h.style.fontSize = '12px';
             h.style.fontWeight = 'bold';
             h.style.marginTop = '8px';
             h.style.marginBottom = '8px';
-            h.style.pageBreakAfter = 'avoid';
         });
-        
-        // Use html2canvas with better settings
-        html2canvas(tempContainer, {
+    }
+
+    /**
+     * Render a single DOM block off-screen and return its canvas.
+     */
+    async function renderBlockToCanvas(block) {
+        const wrapper = document.createElement('div');
+        wrapper.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;padding:5px 20px;background:white;font-family:Arial,sans-serif;font-size:11px;color:#000;line-height:1.4;';
+        wrapper.appendChild(block.cloneNode(true));
+        applyPdfStyles(wrapper);
+        document.body.appendChild(wrapper);
+
+        const canvas = await html2canvas(wrapper, {
             scale: 2,
             useCORS: true,
             logging: false,
-            backgroundColor: '#ffffff',
-            windowWidth: tempContainer.scrollWidth,
-            windowHeight: tempContainer.scrollHeight,
-            onclone: (clonedDoc) => {
-                // Additional styling adjustments in the cloned document if needed
-                const clonedContainer = clonedDoc.querySelector('body > div');
-                if (clonedContainer) {
-                    clonedContainer.style.display = 'block';
+            backgroundColor: '#ffffff'
+        });
+
+        document.body.removeChild(wrapper);
+        return canvas;
+    }
+
+    window.downloadEvaluationPDF = async function() {
+        const downloadBtn = document.getElementById('downloadPdfBtn');
+        const originalBtnHtml = downloadBtn?.innerHTML;
+
+        if (downloadBtn) {
+            downloadBtn.disabled = true;
+            downloadBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i>Generating PDF...';
+        }
+
+        const summaryContent = document.getElementById('summaryContent');
+        if (!summaryContent) {
+            Swal.fire('Error', 'Summary content not found', 'error');
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+            return;
+        }
+
+        try {
+            // Clone content and apply base styles in a temp container
+            const clonedContent = summaryContent.cloneNode(true);
+            const tempContainer = document.createElement('div');
+            tempContainer.style.cssText = 'position:absolute;left:-9999px;top:0;width:210mm;padding:20px;background:white;font-family:Arial,sans-serif;font-size:11px;color:#000;line-height:1.4;';
+            tempContainer.appendChild(clonedContent);
+            document.body.appendChild(tempContainer);
+            applyPdfStyles(tempContainer);
+
+            // Split content into logical blocks
+            const blocks = collectPdfBlocks(clonedContent);
+
+            // Render each block to its own canvas image
+            const canvases = [];
+            for (const block of blocks) {
+                canvases.push(await renderBlockToCanvas(block));
+            }
+
+            document.body.removeChild(tempContainer);
+
+            // ---- Build the PDF, placing blocks page-by-page ----
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4', compress: true });
+
+            const pageWidth  = 210;
+            const pageHeight = 297;
+            const margin     = 10;
+            const contentWidth  = pageWidth  - 2 * margin;
+            const usableHeight  = pageHeight - 2 * margin;
+            let y = margin;  // current vertical position on the page
+
+            for (const canvas of canvases) {
+                const imgData    = canvas.toDataURL('image/png');
+                const blockHeight = (canvas.height * contentWidth) / canvas.width;
+
+                // If block won't fit and we're not already at the top, start a new page
+                if (y > margin && y + blockHeight > pageHeight - margin) {
+                    pdf.addPage();
+                    y = margin;
+                }
+
+                // Block fits on one page — place it directly
+                if (blockHeight <= usableHeight) {
+                    pdf.addImage(imgData, 'PNG', margin, y, contentWidth, blockHeight, undefined, 'FAST');
+                    y += blockHeight;
+                } else {
+                    // Rare: block taller than a full page — slice it across pages
+                    let remaining = blockHeight;
+                    let srcY = 0;
+
+                    while (remaining > 0) {
+                        const space = (y === margin) ? usableHeight : (pageHeight - margin - y);
+                        const slice = Math.min(remaining, space);
+                        const srcH  = (slice / blockHeight) * canvas.height;
+
+                        const sub = document.createElement('canvas');
+                        sub.width  = canvas.width;
+                        sub.height = Math.round(srcH);
+                        sub.getContext('2d').drawImage(
+                            canvas,
+                            0, Math.round(srcY), canvas.width, Math.round(srcH),
+                            0, 0,                 canvas.width, Math.round(srcH)
+                        );
+
+                        pdf.addImage(sub.toDataURL('image/png'), 'PNG', margin, y, contentWidth, slice, undefined, 'FAST');
+                        srcY      += srcH;
+                        remaining -= slice;
+
+                        if (remaining > 0) { pdf.addPage(); y = margin; }
+                        else               { y += slice; }
+                    }
                 }
             }
-        }).then(canvas => {
-            document.body.removeChild(tempContainer);
-            
-            const imgData = canvas.toDataURL('image/png');
-            const { jsPDF } = window.jspdf;
-            const pdf = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4',
-                compress: true
-            });
-            
-            const imgWidth = 210; // A4 width in mm
-            const pageHeight = 297; // A4 height in mm
-            const imgHeight = (canvas.height * imgWidth) / canvas.width;
-            let heightLeft = imgHeight;
-            let position = 0;
-            
-            // Add first page
-            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-            heightLeft -= pageHeight;
-            
-            // Add additional pages if content is longer than one page
-            while (heightLeft > 0) {
-                position = heightLeft - imgHeight;
-                pdf.addPage();
-                pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight, undefined, 'FAST');
-                heightLeft -= pageHeight;
-            }
-            
-            // Generate filename with timestamp
+
+            // Generate filename
             const researchTitle = '<?php echo addslashes($researchTitle ?? "Evaluation"); ?>';
             const date = new Date();
-            const timestamp = date.getFullYear() + 
-                             String(date.getMonth() + 1).padStart(2, '0') + 
-                             String(date.getDate()).padStart(2, '0') + '_' +
-                             String(date.getHours()).padStart(2, '0') + 
-                             String(date.getMinutes()).padStart(2, '0');
-            
-            // Sanitize filename
+            const timestamp = date.getFullYear() +
+                String(date.getMonth() + 1).padStart(2, '0') +
+                String(date.getDate()).padStart(2, '0') + '_' +
+                String(date.getHours()).padStart(2, '0') +
+                String(date.getMinutes()).padStart(2, '0');
             const sanitizedTitle = researchTitle.substring(0, 50).replace(/[^a-z0-9]/gi, '_');
             const filename = `Evaluation_Summary_${sanitizedTitle}_${timestamp}.pdf`;
-            
-            // Save the PDF
+
             pdf.save(filename);
-            
-            // Reset button
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
-            }
-            
-            Swal.fire({
-                title: 'Success!',
-                text: 'PDF downloaded successfully',
-                icon: 'success',
-                timer: 2000,
-                showConfirmButton: false
-            });
-        }).catch(error => {
+
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+
+            Swal.fire({ title: 'Success!', text: 'PDF downloaded successfully', icon: 'success', timer: 2000, showConfirmButton: false });
+
+        } catch (error) {
             console.error('PDF generation error:', error);
-            if (document.body.contains(tempContainer)) {
-                document.body.removeChild(tempContainer);
-            }
-            
-            if (downloadBtn) {
-                downloadBtn.disabled = false;
-                downloadBtn.innerHTML = originalBtnHtml;
-            }
-            
+
+            if (downloadBtn) { downloadBtn.disabled = false; downloadBtn.innerHTML = originalBtnHtml; }
+
             Swal.fire('Error', 'Failed to generate PDF. Please try again.', 'error');
-        });
+        }
     };
     
     // Handle download PDF button click
@@ -2853,6 +3058,11 @@ document.addEventListener('DOMContentLoaded', function() {
             e.preventDefault();
             formStatusDiv.innerHTML = ''; // Clear previous status
 
+            if (IS_UPDATE_LOCKED) {
+                showEvaluationSummary();
+                return;
+            }
+
             // --- Form Validation ---
             var isValid = true;
             var firstInvalidElement = null;
@@ -3048,6 +3258,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 // **** CORRECTED LOGIC ****
                 // Check the 'status' field in the JSON response
                 if (result.status === 'success') {
+                    clearDraft(); // remove saved draft after successful submission
                     formStatusDiv.innerHTML = `<div class="alert alert-success">Evaluation submitted successfully! ${result.message || ''}</div>`;
                     Swal.fire({
                         title: 'Success!',

@@ -71,7 +71,23 @@ try {
     $studentsStmt->execute([$teamId]);
     $students = $studentsStmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Get all evaluations for students in this team
+    // Get pass thresholds from rubric configuration for this team's latest defense
+    $thresholdQuery = "SELECT 
+        MIN(r.pass_threshold_1) as pass_threshold_1,
+        MIN(r.pass_threshold_2) as pass_threshold_2,
+        MIN(r.pass_threshold_3) as pass_threshold_3
+    FROM defense_schedules ds
+    JOIN rubric_groups rg ON rg.defense_type = ds.defense_type
+    JOIN rubric_group_items rgi ON rgi.group_id = rg.id
+    JOIN rubrics r ON rgi.rubric_id = r.id
+    WHERE ds.team_id = ? AND r.rubric_type = 'passfail'
+    ORDER BY ds.schedule_date DESC LIMIT 1";
+    $thresholdStmt = $pdo->prepare($thresholdQuery);
+    $thresholdStmt->execute([$teamId]);
+    $thresholds = $thresholdStmt->fetch(PDO::FETCH_ASSOC);
+    $passThreshold3 = $thresholds['pass_threshold_3'] ?? 75;
+
+    // Get all evaluations for students in this team (latest defense only)
     $evaluationsQuery = "SELECT 
         ep.student_id,
         ep.evaluator_id,
@@ -81,10 +97,15 @@ try {
         ep.comments
     FROM evaluation_per_panel ep
     JOIN team_members tm ON ep.student_id = tm.user_id
-    WHERE tm.team_id = ?";
+    WHERE tm.team_id = ?
+    AND ep.defense_schedule_id = (
+        SELECT ds2.id FROM defense_schedules ds2 
+        WHERE ds2.team_id = ? 
+        ORDER BY ds2.schedule_date DESC LIMIT 1
+    )";
     
     $evaluationsStmt = $pdo->prepare($evaluationsQuery);
-    $evaluationsStmt->execute([$teamId]);
+    $evaluationsStmt->execute([$teamId, $teamId]);
     $evaluations = $evaluationsStmt->fetchAll(PDO::FETCH_ASSOC);
 
     // Organize evaluations by student
@@ -116,7 +137,8 @@ try {
         'team_info' => $teamInfo,
         'panelists' => $panelists,
         'students' => $students,
-        'evaluations_by_student' => $evaluationsByStudent
+        'evaluations_by_student' => $evaluationsByStudent,
+        'pass_threshold_3' => floatval($passThreshold3)
     ]);
 
 } catch (PDOException $e) {

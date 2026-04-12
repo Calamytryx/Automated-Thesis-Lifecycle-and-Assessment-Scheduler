@@ -13,6 +13,7 @@ $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 // At the beginning of the file, after starting the session and including required files:
 require_once '../../assets/includes/auth_functions.php';
 require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
 
 // Current user info
 $userId = $_SESSION['id'] ?? 0;
@@ -36,6 +37,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if (!$table || !in_array($table, $allowedTables)) {
         $response['message'] = 'Invalid table specified.';
         echo json_encode($response);
+        exit;
+    }
+
+    $isProgramChair = ($usertype == 0 && $userId != 0);
+    $isSectionProfessor = ((int)$usertype === 2 && userCanAccessDashboard($pdo, (int)$userId, (int)$usertype));
+
+    if ($table === 'users' && ($isProgramChair || $isSectionProfessor)) {
+        echo json_encode([
+            'success' => false,
+            'message' => 'You have read-only access to the Users tab.'
+        ]);
         exit;
     }
 
@@ -748,10 +760,49 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $data['panelist_id']  = $panelist_ids[0] ?? null;
         $data['panelist_id2'] = $panelist_ids[1] ?? null;
         $data['panelist_id3'] = $panelist_ids[2] ?? null;
-        
+
+        $scheduleDate = trim((string)($data['schedule_date'] ?? ''));
+        $startTime = trim((string)($data['start_time'] ?? ''));
+        $endTime = trim((string)($data['end_time'] ?? ''));
+
+        if ($scheduleDate === '' || $startTime === '' || $endTime === '') {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Schedule date, start time, and end time are required.'
+            ]);
+            exit;
+        }
+
+        // Normalize to HH:MM:SS for consistent inserts.
+        if (strlen($startTime) === 5) {
+            $startTime .= ':00';
+        }
+        if (strlen($endTime) === 5) {
+            $endTime .= ':00';
+        }
+        $data['start_time'] = $startTime;
+        $data['end_time'] = $endTime;
+
+        $teamId = isset($data['team_id']) ? (int)$data['team_id'] : 0;
+        if ($teamId <= 0) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'Please select a valid team.'
+            ]);
+            exit;
+        }
+
+        if (!canUserAccessDefenseScheduleByTeam($pdo, (int)$userId, (int)$usertype, $teamId)) {
+            echo json_encode([
+                'success' => false,
+                'message' => 'You can only add defense schedules for your assigned scope.'
+            ]);
+            exit;
+        }
+
         // Set default values
         $data['status'] = $data['status'] ?? 'scheduled';
-        $data['approval_status'] = $data['approval_status'] ?? 'pending';
+        $data['approval_status'] = $data['approval_status'] ?? 'pending_chair';
         $data['created_at'] = date('Y-m-d H:i:s');
     }
 
@@ -855,39 +906,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             
             $scheduleId = $pdo->lastInsertId();
             $teamId = $data['team_id'];
-            $panelistIds = [$data['panelist_id'], $data['panelist_id2'], $data['panelist_id3']];
             $scheduleDate = $data['schedule_date'];
             $startTime = date('H:i', strtotime($data['start_time']));
             $endTime = date('H:i', strtotime($data['end_time']));
             $room = $data['room'];
             
-            // CREATE PANELIST APPROVAL RECORDS (same as generated schedules)
-            $approvalStmt = $pdo->prepare("
-                INSERT INTO panelist_approvals (defense_schedule_id, panelist_id) 
-                VALUES (?, ?)
-            ");
+            // Step 1: Notify program chairs for review (panelists NOT notified yet)
+            // Panelist approval records and notifications are created when chair approves
+            createChairReviewNotifications($pdo, $scheduleId, $teamId, $scheduleDate, $startTime, $endTime, $room);
             
-            // Create approval record for each panelist
-            foreach ($panelistIds as $panelistId) {
-                if ($panelistId && $panelistId !== '') {
-                    $approvalStmt->execute([$scheduleId, $panelistId]);
-                }
-            }
-            
-            // Create approval notifications for panelists (consistent with generated schedules)
-            createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelistIds, $scheduleDate, $startTime, $endTime, $room);
-            
-            // Create regular notifications for team members (they don't need to approve)
-            $teamMemberIds = getTeamMembersForNotifications($teamId);
-            $formattedDate = date('F j, Y', strtotime($scheduleDate));
-            $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
-            $messageForTeam = "Your team's defense has been scheduled for {$formattedDate} at {$formattedTime} in {$room}. Waiting for panelist approval.";
-            
-            foreach ($teamMemberIds as $userId) {
-                createNotification($pdo, $userId, 'Defense Schedule Created', $messageForTeam, 'defense_scheduled', $scheduleId);
-            }
-            
-            error_log("Manual defense schedule created with approval workflow for schedule ID: $scheduleId");
+            error_log("Manual defense schedule created - pending chair review for schedule ID: $scheduleId");
         }
         
         $response['success'] = true;

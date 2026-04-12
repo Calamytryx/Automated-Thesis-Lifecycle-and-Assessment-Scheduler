@@ -2,6 +2,7 @@
 require_once '../../../assets/setup/db.inc.php';
 require_once '../../../assets/includes/auth_functions.php';
 require_once '../section_access.php';
+require_once '../edit_functions.php';
 
 header('Content-Type: application/json');
 
@@ -17,7 +18,7 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['usertype'])) {
 // 📦 GET parameters
 $table    = $_GET['table'] ?? '';
 $page     = max(1, intval($_GET['page'] ?? 1));
-$perPage  = 10;
+$perPage  = isset($_GET['per_page']) ? max(1, min(500, intval($_GET['per_page']))) : 10;
 $offset   = ($page - 1) * $perPage;
 $search   = $_GET['search'] ?? '';
 $sortBy   = $_GET['sort_by'] ?? 'id';
@@ -31,6 +32,57 @@ if (!in_array($table, $allowedTables)) {
     echo json_encode(['error' => 'Invalid table specified.']);
     exit;
 }
+
+function runDefenseApprovedFinalizationBackfill($pdo, $table) {
+    if ($table !== 'defense_schedules') {
+        return;
+    }
+
+    if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
+        return;
+    }
+
+    $flagKey = 'DEFENSE_APPROVED_FINALIZATION_BACKFILL_DONE';
+
+    try {
+        $flagStmt = $pdo->prepare("SELECT id, value FROM env_variables WHERE `key` = ? LIMIT 1");
+        $flagStmt->execute([$flagKey]);
+        $flag = $flagStmt->fetch(PDO::FETCH_ASSOC);
+
+        if ($flag && (string)$flag['value'] === '1') {
+            return;
+        }
+
+        $backfillStmt = $pdo->prepare("\n            UPDATE defense_schedules
+            SET is_finalized = 1,
+                finalized_at = COALESCE(finalized_at, NOW())
+            WHERE approval_status = 'approved'
+              AND COALESCE(is_finalized, 0) = 0
+        ");
+        $backfillStmt->execute();
+
+        if ($flag) {
+            $updateFlagStmt = $pdo->prepare("\n                UPDATE env_variables
+                SET value = ?
+                WHERE id = ?
+            ");
+            $updateFlagStmt->execute(['1', $flag['id']]);
+        } else {
+            $insertFlagStmt = $pdo->prepare("\n                INSERT INTO env_variables (`key`, value, description)
+                VALUES (?, ?, ?)
+            ");
+            $insertFlagStmt->execute([
+                $flagKey,
+                '1',
+                'One-time backfill marker for legacy approved defense schedules finalized state'
+            ]);
+        }
+    } catch (Exception $e) {
+        error_log('get_table.php backfill warning: ' . $e->getMessage());
+    }
+}
+
+runDefenseApprovedFinalizationBackfill($pdo, $table);
 
 // 🧠 User details and Initialization
 $userId = $_SESSION['id'];
@@ -58,12 +110,24 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
     if ($isSuperAdmin) {
         switch ($table) {
             case 'users':
-                $baseQuery = "SELECT users.* FROM users";
+                $baseQuery = "SELECT users.*, user_defense.next_defense_type FROM users
+                              LEFT JOIN (
+                                  SELECT tm.user_id,
+                                         SUBSTRING_INDEX(
+                                             GROUP_CONCAT(COALESCE(t.next_defense_type, 'title_proposal') ORDER BY t.id SEPARATOR ','),
+                                             ',',
+                                             1
+                                         ) AS next_defense_type
+                                  FROM team_members tm
+                                  JOIN teams t ON t.id = tm.team_id
+                                  GROUP BY tm.user_id
+                              ) user_defense ON user_defense.user_id = users.id";
                 $countQuery = "SELECT COUNT(*) FROM users";
                 break;
             case 'teams':
                 // Select t.program directly. Remove JOIN to programs for name selection.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program, -- Select t.program
+                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                              t.locked_panelist1, t.locked_panelist2, t.locked_panelist3,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
                               FROM teams t
@@ -89,10 +153,17 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
             case 'defense_schedules':
                 $baseQuery = "SELECT
                      ds.id,
+                     ds.team_id,
                      ds.schedule_date,
                      ds.start_time,
                      ds.end_time,
                      ds.room,
+                     ds.defense_type,
+                     ds.approval_status,
+                     COALESCE(ds.is_finalized, 0) AS is_finalized,
+                     ds.panelist_id,
+                     ds.panelist_id2,
+                     ds.panelist_id3,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      GROUP_CONCAT(
@@ -214,8 +285,19 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
 
         switch ($table) {
             case 'users':
-                $baseQuery = "SELECT users.* FROM users
-                              LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
+                $baseQuery = "SELECT users.*, user_defense.next_defense_type FROM users
+                              LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program
+                              LEFT JOIN (
+                                  SELECT tm.user_id,
+                                         SUBSTRING_INDEX(
+                                             GROUP_CONCAT(COALESCE(t.next_defense_type, 'title_proposal') ORDER BY t.id SEPARATOR ','),
+                                             ',',
+                                             1
+                                         ) AS next_defense_type
+                                  FROM team_members tm
+                                  JOIN teams t ON t.id = tm.team_id
+                                  GROUP BY tm.user_id
+                              ) user_defense ON user_defense.user_id = users.id";
                 $collegeRestrictionClause = "WHERE (p.college = :college OR users.id = :user_id)";
                 $countQuery = "SELECT COUNT(users.id) FROM users
                                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = users.program";
@@ -330,10 +412,17 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 // Modified baseQuery to correctly fetch adviser and ordered panelists
                 $baseQuery = "SELECT
                      ds.id,
+                     ds.team_id,
                      ds.schedule_date,
                      ds.start_time,
                      ds.end_time,
                      ds.room,
+                     ds.defense_type,
+                     ds.approval_status,
+                     COALESCE(ds.is_finalized, 0) AS is_finalized,
+                     ds.panelist_id,
+                     ds.panelist_id2,
+                     ds.panelist_id3,
                      t.name AS team_name,
                      rt.title AS thesis_title,
                      (SELECT CONCAT(u_adviser.first_name, ' ', u_adviser.last_name)
@@ -355,10 +444,30 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 $countQuery = "SELECT COUNT(ds.id) FROM defense_schedules ds
                                JOIN teams t ON ds.team_id = t.id
                                JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
-                
-                // 🔐 NOTE: Faculty (usertype 2) can see ALL defense schedules (no section filter)
-                // Full visibility into all schedules while other restrictions still apply
-                // No need for LEFT JOIN team_members in count query
+
+                // Faculty (usertype 2) must be limited to teams in their assigned section(s).
+                if ($currentUsertype === 2) {
+                    $assignedSections = getProfessorSections($pdo, $userId);
+                    if (!empty($assignedSections)) {
+                        $sectionPlaceholders = [];
+                        foreach ($assignedSections as $idx => $section) {
+                            $paramKey = ":def_section_$idx";
+                            $sectionPlaceholders[] = $paramKey;
+                            $params[$paramKey] = $section;
+                        }
+
+                        $collegeRestrictionClause .= " AND EXISTS (
+                            SELECT 1
+                            FROM team_members tm_scope
+                            JOIN users u_scope ON u_scope.id = tm_scope.user_id
+                            WHERE tm_scope.team_id = t.id
+                              AND u_scope.usertype = 1
+                              AND u_scope.section IN (" . implode(',', $sectionPlaceholders) . ")
+                        )";
+                    } else {
+                        $collegeRestrictionClause .= " AND 1=0";
+                    }
+                }
                 break;
             case 'rubrics':
                 $baseQuery = "SELECT DISTINCT r.*
@@ -483,6 +592,15 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                        FROM user_schedules us
                        LEFT JOIN users u ON us.user_id = u.id"; // Also use LEFT JOIN here
 
+                  // Program chairs can only view schedules in their own college.
+                  if ($currentUsertype === 0 && $userId !== 0) {
+                      $collegeRestrictionClause = "WHERE p.college = :college";
+                      $countQuery = "SELECT COUNT(us.id)
+                          FROM user_schedules us
+                          LEFT JOIN users u ON us.user_id = u.id
+                          LEFT JOIN programs p ON us.program = p.id";
+                  }
+
                 break;
             default:
                 return ['error' => 'Invalid table context for Admin.'];
@@ -568,13 +686,13 @@ try {
                 $searchCondition = "(rt.title LIKE :search1 OR t.name LIKE :search2 OR 
                                    CASE WHEN rt.approved_at IS NOT NULL THEN 'approved' ELSE 'pending' END LIKE :search3)";
                 break;
+            case 'rubrics':
+                $alias = $isAdmin ? 'r.' : '';
+                $searchCondition = "({$alias}name LIKE :search1)";
+                break;
             /* COMMENTED OUT - No frontend search UI implemented for these tables
             case 'defense_schedules':
                 $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2)";
-                break;
-            case 'rubrics':
-                $alias = $isAdmin ? 'r.' : '';
-                $searchCondition = "({$alias}name LIKE :search1 OR {$alias}description LIKE :search2 OR {$alias}defense_type LIKE :search3)";
                 break;
             case 'rubric_groups':
                 $alias = $isAdmin ? 'rg.' : '';
@@ -612,6 +730,22 @@ try {
         $params[':usertypeFilter'] = $usertypeFilter;
     }
 
+    // --- Teams section filter condition ---
+    if ($table === 'teams') {
+        $teamSectionFilter = trim($_GET['team_section'] ?? '');
+        if ($teamSectionFilter !== '') {
+            $conditions[] = "EXISTS (
+                SELECT 1
+                FROM team_members tm_section
+                JOIN users u_section ON tm_section.user_id = u_section.id
+                WHERE tm_section.team_id = t.id
+                  AND u_section.usertype = 1
+                  AND u_section.section = :teamSectionFilter
+            )";
+            $params[':teamSectionFilter'] = $teamSectionFilter;
+        }
+    }
+
     // --- Schedule-specific filter conditions ---
     if ($table === 'user_schedules') {
         $programFilter = $_GET['program'] ?? '';
@@ -633,6 +767,18 @@ try {
         }
     }
 
+    // --- Defense schedules-specific filter conditions ---
+    if ($table === 'defense_schedules') {
+        $approvalStatusFilter = $_GET['approval_status'] ?? '';
+        if (!empty($approvalStatusFilter)) {
+            $allowedStatuses = ['pending_chair', 'pending', 'approved', 'rejected'];
+            if (in_array($approvalStatusFilter, $allowedStatuses)) {
+                $conditions[] = "ds.approval_status = :approvalStatus";
+                $params[':approvalStatus'] = $approvalStatusFilter;
+            }
+        }
+    }
+
     // --- Programs-specific filter conditions ---
     if ($table === 'programs') {
         $collegeFilter = $_GET['college'] ?? '';
@@ -640,6 +786,18 @@ try {
         if (!empty($collegeFilter)) {
             $conditions[] = "college = :collegeFilter";
             $params[':collegeFilter'] = $collegeFilter;
+        }
+    }
+
+    // --- Rubrics-specific filter conditions ---
+    if ($table === 'rubrics') {
+        $rubricTypeFilter = $_GET['rubric_type'] ?? 'all';
+        $allowedRubricTypes = ['numerical', 'yesno', 'passfail'];
+
+        if (in_array($rubricTypeFilter, $allowedRubricTypes, true)) {
+            $rubricTypeColumn = $isAdmin ? 'r.rubric_type' : 'rubric_type';
+            $conditions[] = $rubricTypeColumn . " = :rubricTypeFilter";
+            $params[':rubricTypeFilter'] = $rubricTypeFilter;
         }
     }
 
@@ -665,7 +823,7 @@ try {
     $allowedSortColumns = [
         'users' => ['id', 'username', 'email', 'first_name', 'last_name', 'usertype', 'program'],
         'teams' => ['id', 'name', 'research_title', 'program', 'adviser'], // Added 'program'
-        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists
+        'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'is_finalized', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status/finalized
         'rubrics' => ['id', 'name', 'description', 'rubric_type', 'defense_type', 'is_active', 'created_at'],
         'requirements' => ['id', 'name', 'description'],
         'evaluations' => ['id', 'team_name', 'evaluator_first_name', 'student_first_name', 'group_score', 'solo_score', 'total_score', 'created_at'],

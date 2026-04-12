@@ -299,9 +299,21 @@ main {
     padding: 4px 12px;
     border: 1px solid;
     transition: all 0.2s ease;
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    width: auto;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: break-word;
     text-align: center;
     line-height: 1.4;
+}
+
+.navbar-user-badge-wrap {
+    min-width: 0;
 }
 
 .navbar-user-type-badge.navbar-role-admin {
@@ -330,6 +342,13 @@ main {
 
 /* Make navbar badges responsive */
 @media (max-width: 767.98px) {
+    .navbar-user-badge-wrap {
+        width: 100%;
+        /* justify-content: flex-start !important; */
+        margin-right: 0 !important;
+        margin-bottom: 0.5rem;
+    }
+
     .navbar-user-type-badge {
         font-size: 0.6875rem;
         padding: 3px 8px;
@@ -750,6 +769,10 @@ border-top: solid 1px var(--main-bg-dark);
     color: var(--bs-danger);
 }
 
+.meatball-dropdown-item.delete-item i{
+    color: var(--bs-danger);
+}
+
 .meatball-dropdown-item.edit-item:hover {
     background-color: rgba(var(--bs-primary-rgb), 0.1);
     color: var(--bs-primary);
@@ -844,10 +867,10 @@ border-top: solid 1px var(--main-bg-dark);
     border: 1px solid var(--main-primary);
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 0.5rem;
     transition: all 0.2s ease;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-    margin-right: 0.75rem;
 }
 
 .feature-btn.scheduler-btn:hover,
@@ -882,6 +905,7 @@ border-top: solid 1px var(--main-bg-dark);
     .feature-btn.generate-btn {
         padding: 0.4rem 0.75rem;
         font-size: 0.8125rem;
+        width: 100%;
     }
     
     .feature-btn.scheduler-btn i,
@@ -1168,8 +1192,7 @@ border-top: solid 1px var(--main-bg-dark);
     padding: 0.75rem;
     transition: all 0.2s ease;
     cursor: pointer;
-    background-color: var(--main-white);
-    margin-bottom: 0.25rem;
+    background-color: var(--white-50);
 }
 
 .defense-item:hover {
@@ -1796,7 +1819,7 @@ color: #444 !important;
 
 .modal-header {
     background-color: var(--main-white);
-    border-bottom: 1px solid var(--neutral-100);
+    border-bottom: 1px solid var(--neutral-300);
     padding: 1.5rem;
 }
 
@@ -1821,15 +1844,15 @@ color: #444 !important;
 }
 
 .modal-body .form-label { 
-    color: var(--main-bg-dark);
-    font-weight: 500;
+    color: var(--black-400);
+    font-weight: 600;
     margin-bottom: 0.5rem;
 }
 
 .modal-body .form-control,
 .modal-body .form-select {
-    border: 1px solid var(--main-bg-dark);
-    border-radius: 6px;
+    border: 1px solid var(--neutral-400);
+    border-radius: 4px;
     padding: 0.75rem;
     transition: all 0.2s ease;
 }
@@ -1849,7 +1872,7 @@ color: #444 !important;
 
 .modal-footer {
     background-color: var(--neutral-50);
-    border-top: 1px solid var(--neutral-100);
+    border-top: 1px solid var(--neutral-300);
     padding: 1rem 1.5rem;
     border-bottom-right-radius: 10px;
     border-bottom-left-radius: 10px;
@@ -2288,8 +2311,7 @@ color: #444 !important;
 }
 
 .notification-item.unread {
-    background-color: #f0f8ff;
-    border-left: 3px solid #007bff;
+    background-color: #ededff;
 }
 
 .notification-item.read {

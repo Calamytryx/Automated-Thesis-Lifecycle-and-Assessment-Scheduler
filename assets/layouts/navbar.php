@@ -16,15 +16,22 @@
         <div class="collapse navbar-collapse" id="navbarSupportedContent">
 
             <!-- Navbar user Program and role -->
-            <div class="d-flex align-items-center me-3 justify-content-center">
+            <div class="d-flex align-items-center me-3 justify-content-center flex-wrap navbar-user-badge-wrap">
                 <?php
                 $userType = $_SESSION['usertype'];
                 $userId = $_SESSION['id'];
+                $programChairFlag = isset($_SESSION['program_chair']) ? (int)$_SESSION['program_chair'] : null;
                 $roleLabel = '';
                 $roleClass = '';
+                $canAccessDashboard = false;
+
+                require_once __DIR__ . '/../../dashboard/includes/section_access.php';
+                $canAccessDashboard = userCanAccessDashboard($pdo, (int)$userId, (int)$userType);
 
                 if ($userType == 0) {
-                    if (isset($_SESSION['program_chair']) && $_SESSION['program_chair'] == 1) {
+                    // Super admin (id=0) keeps Admin label; other type-0 accounts are Program Chair.
+                    $isProgramChair = ($userId != 0) || ($programChairFlag === 1);
+                    if ($isProgramChair) {
                         $roleLabel = 'Program Chair';
                         $roleClass = 'navbar-role-admin';
                     } else {
@@ -41,6 +48,13 @@
                     $roleLabel = 'Unknown';
                     $roleClass = 'navbar-role-user';
                 }
+
+                $program = trim((string)($_SESSION['program'] ?? ''));
+                // Preserve legacy stored values like "Program - Track" by keeping only the base program name.
+                if ($program !== '') {
+                    $program = preg_replace('/\s-\s.*$/', '', $program);
+                }
+
                 if ($_SESSION['id'] == 0) {
                     echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">ITD</span>';
                 } else
@@ -80,12 +94,11 @@
                             }
                         }
                     }
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $_SESSION['program']) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
+                    $studentBadgeText = $roleLabel . ($program !== '' ? ' - ' . $program : '');
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . ' text-start">' . htmlspecialchars($studentBadgeText) . '<br>' . htmlspecialchars($researchSubject) . '</span>';
                 } else if ($userType == 0 || $userType == 2) {
-                    $program = $_SESSION['program'];
-                    // Cut at the space before "-", if present
-                    $program = preg_replace('/\s-.*$/', '', $program);
-                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($roleLabel . ' - ' . $_SESSION['college'] . ' - ' . $program) . '</span>';
+                    $staffBadgeText = $roleLabel . ($program !== '' ? ' - ' . $program : '');
+                    echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">' . htmlspecialchars($staffBadgeText) . '</span>';
                 }
                 else {
                     echo '<span class="badge navbar-user-type-badge ' . $roleClass . '">Unknown Role</span>';
@@ -103,7 +116,7 @@
                 </li>
 
 
-                <?php if ($_SESSION['usertype'] != 1): ?>
+                <?php if ($canAccessDashboard): ?>
                     <li class="nav-item">
                         <a class="nav-link" href="../dashboard">Dashboard</a>
                     </li>
@@ -146,8 +159,8 @@
                     <div class="dropdown-menu dropdown-menu-end p-0" aria-labelledby="notificationsDropdown" style="min-width: 320px; max-width: 400px;">
                         <div class="dropdown-header d-flex justify-content-between align-items-center border-bottom px-3 py-2">
                             <h6 class="mb-0">Notifications</h6>
-                            <button type="button" class="btn btn-sm btn-outline-primary" id="markAllReadBtn" style="display: none;">
-                                Mark all read
+                            <button type="button" class="btn btn-sm" id="markAllReadBtn" style="display: none; color: #1304ee; border-color: #1304ee; font-size: 0.8rem;">
+                                <i class="fas fa-check-double me-1" style="color: #1304ee;"></i>Mark all read
                             </button>
                         </div>
                         <div id="notificationsList" class="notification-dropdown-body" style="max-height: 400px; overflow-y: auto;">
@@ -158,9 +171,9 @@
                                 <p class="mb-0 mt-2 text-muted">Loading notifications...</p>
                             </div>
                         </div>
-                        <div class="dropdown-footer border-top px-3 py-2">
-                            <a href="../notifications/" class="btn btn-sm btn-primary w-100">
-                                <i class="fas fa-list me-1"></i>View All Notifications
+                        <div class="dropdown-footer border-top px-3 py-2 text-center">
+                            <a href="../notifications/" class="text-decoration-none fw-semibold" style="color: #1304ee; font-size: 0.875rem;">
+                                <i class="fas fa-list me-1" style="color: #1304ee;"></i>View All Notifications
                             </a>
                         </div>
                     </div>

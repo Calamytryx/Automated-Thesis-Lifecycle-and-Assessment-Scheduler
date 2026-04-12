@@ -1,11 +1,25 @@
 <!-- Programs Tab -->
+<?php
+$programsTabUserType = (int)($_SESSION['usertype'] ?? -1);
+$programsTabUserId = (int)($_SESSION['id'] ?? 0);
+$isProgramsTabReadOnly = ($programsTabUserType === 0 && $programsTabUserId !== 0);
+?>
 <div class="tab-pane fade" id="programs" role="tabpanel" aria-labelledby="programs-tab">
   <div class="container-fluid py-4 content-container">
     <!-- Header with title and description -->
     <div class="row mb-4">
       <div class="col-12">
-        <h3 class="mb-2">Programs</h3>
-        <p class="text-muted">Manage academic programs and their associated colleges</p>
+        <h3 class="mb-2">Academic Structure</h3>
+        <p class="text-muted">Manage colleges, departments, program names, and specializations</p>
+        <?php if ($_SESSION['usertype'] == 0): ?>
+        <div class="mt-2">
+          <a href="#users" class="tab-redirect-link" onclick="document.getElementById('users-tab').click(); return false;">
+            <i class="bi bi-people-fill"></i>
+            <span>Create new users and assign created programs</span>
+            <i class="bi bi-arrow-right"></i>
+          </a>
+        </div>
+        <?php endif; ?>
       </div>
     </div>
 
@@ -31,19 +45,8 @@
             <div class="col-12 col-md-3 col-lg-2">
               <!-- College Dropdown -->
               <div class="programs-tab-controls">
-                <select class="form-select user-control-height" id="collegeFilterSelect">
+                <select class="form-select user-control-height" id="programsCollegeFilterSelect">
                   <option value="all">All Colleges</option>
-                  <?php
-                  // Get distinct colleges for filter
-                  try {
-                    $stmt = $pdo->query("SELECT DISTINCT college FROM programs WHERE college IS NOT NULL ORDER BY college");
-                    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                      echo '<option value="' . htmlspecialchars($row['college']) . '">' . htmlspecialchars($row['college']) . '</option>';
-                    }
-                  } catch (PDOException $e) {
-                    echo '<option disabled>Error loading colleges</option>';
-                  }
-                  ?>
                 </select>
               </div>
             </div>
@@ -51,17 +54,14 @@
             <div class="col-12 col-md-3 col-lg-3">
               <!-- Sort Dropdown -->
               <select class="form-select user-control-height" id="programSortSelect">
-                <option value="id:desc">Default (Newest First)</option>
-                <option value="id:asc">Default (Oldest First)</option>
+                <option value="id:desc">Newest First</option>
+                <option value="id:asc">Oldest First</option>
                 <option value="name:asc">Name (A-Z)</option>
                 <option value="name:desc">Name (Z-A)</option>
-                <option value="college:asc">College (A-Z)</option>
-                <option value="college:desc">College (Z-A)</option>
-                <option value="department:asc">Department (A-Z)</option>
-                <option value="department:desc">Department (Z-A)</option>
               </select>
             </div>
             
+            <?php if (!$isProgramsTabReadOnly): ?>
             <div class="col-12 col-md-2 col-lg-3">
               <!-- Add Button -->
               <div class="d-flex gap-2 justify-content-end">
@@ -72,6 +72,7 @@
                 </button>
               </div>
             </div>
+            <?php endif; ?>
           </div>
         </div>
       </div>
@@ -90,7 +91,9 @@
                 <th class="d-none d-lg-table-cell">Department</th>
                 <th>Program Name</th>
                 <th class="d-none d-md-table-cell">Specialization</th>
+                <?php if (!$isProgramsTabReadOnly): ?>
                 <th class="text-center">Actions</th>
+                <?php endif; ?>
               </tr>
             </thead>
             <tbody id="programsTableBody">
@@ -112,6 +115,10 @@
 
 <script>
   document.addEventListener('DOMContentLoaded', function() {
+    const collegeFilterElement = document.getElementById('programsCollegeFilterSelect');
+    const programsTabReadOnly = <?php echo $isProgramsTabReadOnly ? 'true' : 'false'; ?>;
+    const isProgramChair = <?php echo (($_SESSION['usertype'] == 0) && ((int)$_SESSION['id'] !== 0)) ? 'true' : 'false'; ?>;
+
     // Function to load programs based on filters with search and sorting
     const loadPrograms = (collegeFilter = 'all', page = 1, search = '', sort = 'id:desc') => {
       let url = `includes/tabs/get_table.php?table=programs&page=${page}&per_page=10`;
@@ -123,13 +130,20 @@
         url += `&search=${encodeURIComponent(search)}`;
       }
       if (sort) {
-        url += `&sort=${encodeURIComponent(sort)}`;
+        const [sortBy, sortDir] = sort.split(':');
+        if (sortBy) {
+          url += `&sort_by=${encodeURIComponent(sortBy)}`;
+        }
+        if (sortDir) {
+          url += `&sort_dir=${encodeURIComponent(sortDir.toUpperCase())}`;
+        }
       }
 
       fetch(url)
         .then(response => response.json())
         .then(data => {
           const tableBody = document.querySelector('#programsTableBody');
+          const tableColumns = document.querySelectorAll('#allProgramsTable thead th').length;
           if (!tableBody) {
             console.error('Could not find table body');
             return;
@@ -139,12 +153,12 @@
 
           if (data.error) {
             console.error(data.error);
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-danger">Error loading programs</td></tr>`;
             return;
           }
 
           if (!data.data || data.data.length === 0) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-muted">No programs found</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-muted">No programs found</td></tr>`;
             return;
           }
 
@@ -164,13 +178,19 @@
               <td class="d-none d-lg-table-cell">${program.department || 'N/A'}</td>
               <td>${program.name || 'N/A'}</td>
               <td class="d-none d-md-table-cell">${program.specialization || 'N/A'}</td>
+              ${programsTabReadOnly ? '' : `
               <td class="action-buttons text-center">
                 <button class="meatball-btn" data-program-id="${program.id}" aria-label="Actions">
                   <i class="fas fa-ellipsis-h"></i>
                 </button>
               </td>
+              `}
             `;
             tableBody.appendChild(row);
+
+            if (programsTabReadOnly) {
+              return;
+            }
             
             // Create dropdown portal outside table
             const dropdownPortal = document.createElement('div');
@@ -197,6 +217,12 @@
                 Delete
               </button>
             `;
+            const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+            if (deleteBtn) {
+              const programName = program.name || 'Unnamed program';
+              const specialization = (program.specialization || '').trim();
+              deleteBtn.dataset.deleteLabel = specialization ? `${programName} (${specialization})` : programName;
+            }
             document.body.appendChild(dropdownPortal);
           });
 
@@ -208,29 +234,54 @@
           }
           
           pagination.innerHTML = '';
-          pagination.innerHTML += `
-            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-              <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
-            </li>
-          `;
-          for (let i = 1; i <= data.total_pages; i++) {
+
+          if (data.total_pages > 1) {
+            const totalPages = data.total_pages;
+
             pagination.innerHTML += `
-              <li class="page-item ${page === i ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
+              <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
               </li>
             `;
-          }
-          pagination.innerHTML += `
-            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-              <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
-            </li>
-          `; 
+
+            const startPage = Math.max(1, page - 2);
+            const endPage = Math.min(totalPages, page + 2);
+
+            if (startPage > 1) {
+              pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+              if (startPage > 2) {
+                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+              }
+            }
+
+            for (let i = startPage; i <= endPage; i++) {
+              pagination.innerHTML += `
+                <li class="page-item ${page === i ? 'active' : ''}">
+                  <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+              `;
+            }
+
+            if (endPage < totalPages) {
+              if (endPage < totalPages - 1) {
+                pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+              }
+              pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+            }
+
+            pagination.innerHTML += `
+              <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
+              </li>
+            `;
+          } 
         })
         .catch(error => {
           console.error('Error loading programs:', error);
           const tableBody = document.querySelector('#programsTableBody');
+          const tableColumns = document.querySelectorAll('#allProgramsTable thead th').length;
           if (tableBody) {
-            tableBody.innerHTML = '<tr><td colspan="6" class="text-center text-danger">Error loading programs</td></tr>';
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-danger">Error loading programs</td></tr>`;
           }
         });
     };
@@ -238,7 +289,7 @@
     // Function to get current filters
     const getCurrentFilters = () => {
       return {
-        collegeFilter: document.getElementById('collegeFilterSelect').value,
+        collegeFilter: collegeFilterElement ? collegeFilterElement.value : 'all',
         search: document.getElementById('programSearchInput').value,
         sort: document.getElementById('programSortSelect').value
       };
@@ -253,13 +304,45 @@
     // Expose reloadCurrentView to global scope for use by main app.js.php
     window.reloadProgramsView = reloadCurrentView;
 
-    // Initialize on page load
-    loadPrograms('all', 1, '', 'id:desc');
+    const initializeCollegeFilter = () => {
+      if (!collegeFilterElement) {
+        loadPrograms('all', 1, '', 'id:desc');
+        return;
+      }
+
+      fetch('includes/tabs/load_colleges.php')
+        .then(response => response.text())
+        .then(optionsHtml => {
+          const trimmedOptions = optionsHtml.trim();
+
+          if (isProgramChair) {
+            collegeFilterElement.innerHTML = trimmedOptions || '<option value="all">No colleges available</option>';
+            const onlyOption = collegeFilterElement.querySelector('option');
+            if (onlyOption) {
+              collegeFilterElement.value = onlyOption.value;
+              collegeFilterElement.disabled = true;
+            }
+          } else {
+            collegeFilterElement.innerHTML = '<option value="all">All Colleges</option>' + optionsHtml;
+            collegeFilterElement.disabled = false;
+          }
+
+          reloadCurrentView(1);
+        })
+        .catch(error => {
+          console.error('Error loading colleges for programs filter:', error);
+          loadPrograms('all', 1, '', 'id:desc');
+        });
+    };
+
+    initializeCollegeFilter();
 
     // Handle college filter dropdown change
-    document.getElementById('collegeFilterSelect').addEventListener('change', function() {
-      reloadCurrentView(1);
-    });
+    if (collegeFilterElement) {
+      collegeFilterElement.addEventListener('change', function() {
+        reloadCurrentView(1);
+      });
+    }
 
     // Handle search input
     document.getElementById('programSearchInput').addEventListener('keyup', function(e) {
@@ -307,6 +390,10 @@
 
     // Handle meatball button clicks for programs
     document.addEventListener('click', function(e) {
+      if (programsTabReadOnly) {
+        return;
+      }
+
       const programsTab = document.getElementById('programs');
       if (!programsTab || (!programsTab.classList.contains('active') && !programsTab.classList.contains('show'))) {
         return;
@@ -372,6 +459,10 @@
 
     // Handle meatball dropdown item clicks for programs
     document.addEventListener('click', function(e) {
+      if (programsTabReadOnly) {
+        return;
+      }
+
       if (e.target.closest('.meatball-dropdown-item')) {
         const item = e.target.closest('.meatball-dropdown-item');
         

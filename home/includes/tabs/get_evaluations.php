@@ -85,24 +85,22 @@ try {
         $totalRows = count($data);
 
     // ==================================================================
-    // FACULTY VIEW (usertype = 2) - Adviser/Panelist
-    // Shows teams they advise + teams they evaluated as panelist
+    // FACULTY/ADMIN VIEW (usertype = 2 or 0)
+    // Home tab shows advisee teams only
     // ==================================================================
-    } elseif ($usertype == 2) {
-        // Count query
+    } elseif ($usertype == 2 || $usertype == 0) {
+        // Count advisee teams only (fixes inflated pagination)
         $countQuery = "SELECT COUNT(DISTINCT t.id)
             FROM teams t
-            LEFT JOIN team_members tm ON t.id = tm.team_id AND tm.user_id = ? AND tm.role = 'Adviser'
-            LEFT JOIN evaluation_per_panel ep ON ep.evaluator_id = ?
-            LEFT JOIN team_members tm_eval ON ep.student_id = tm_eval.user_id
-            WHERE tm.user_id = ? OR tm_eval.team_id IS NOT NULL";
-        
-        $countStmt = $pdo->prepare($countQuery);
-        $countStmt->execute([$userId, $userId, $userId]);
-        $totalRows = $countStmt->fetchColumn();
+            INNER JOIN team_members tm ON t.id = tm.team_id
+            WHERE tm.user_id = ? AND LOWER(tm.role) = 'adviser'";
 
-        // Data query with pagination
-        $query = "SELECT 
+        $countStmt = $pdo->prepare($countQuery);
+        $countStmt->execute([$userId]);
+        $totalRows = (int)$countStmt->fetchColumn();
+
+        // Data query with pagination (advisee teams only)
+        $query = "SELECT
             t.id AS team_id,
             t.name AS team_name,
             rt.title AS research_title,
@@ -113,32 +111,28 @@ try {
             ROUND(AVG(ep.total_score), 2) AS avg_total_score,
             MAX(ep.created_at) AS latest_evaluation,
             GROUP_CONCAT(DISTINCT CONCAT(adv.first_name, ' ', adv.last_name) SEPARATOR ', ') AS adviser,
-            CASE 
-                WHEN tm_adviser.user_id = ? THEN 'Adviser'
-                ELSE 'Panelist'
-            END AS role
+            'Advisee' AS role
         FROM teams t
+        INNER JOIN team_members tm_adviser
+            ON t.id = tm_adviser.team_id
+            AND tm_adviser.user_id = ?
+            AND LOWER(tm_adviser.role) = 'adviser'
         LEFT JOIN research_titles rt ON t.id = rt.team_id
-        LEFT JOIN team_members tm_adviser ON t.id = tm_adviser.team_id AND tm_adviser.user_id = ? AND tm_adviser.role = 'Adviser'
-        LEFT JOIN evaluation_per_panel ep_check ON ep_check.evaluator_id = ?
-        LEFT JOIN team_members tm_eval ON ep_check.student_id = tm_eval.user_id AND tm_eval.team_id = t.id
         LEFT JOIN evaluation_per_panel ep ON ep.student_id IN (
             SELECT user_id FROM team_members WHERE team_id = t.id
         )
-        LEFT JOIN team_members tm_adv ON t.id = tm_adv.team_id AND tm_adv.role = 'Adviser'
+        LEFT JOIN team_members tm_adv ON t.id = tm_adv.team_id AND LOWER(tm_adv.role) = 'adviser'
         LEFT JOIN users adv ON tm_adv.user_id = adv.id
-        WHERE tm_adviser.user_id = ? OR tm_eval.team_id IS NOT NULL
         GROUP BY t.id
-        ORDER BY latest_evaluation DESC
+        ORDER BY latest_evaluation DESC, t.name ASC
         LIMIT ? OFFSET ?";
 
         $stmt = $pdo->prepare($query);
-        $stmt->execute([$userId, $userId, $userId, $userId, $perPage, $offset]);
+        $stmt->execute([$userId, $perPage, $offset]);
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     } else {
-        // Invalid user type - admins should use dashboard
-        echo json_encode(['error' => 'Please use the dashboard for evaluation management.']);
+        echo json_encode(['error' => 'Invalid user type for evaluations tab.']);
         exit;
     }
 

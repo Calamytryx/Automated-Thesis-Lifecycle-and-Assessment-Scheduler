@@ -688,6 +688,8 @@
             
             $teamMembersContainer.find('.team-member').removeClass('title-proposal-mode');
         }
+
+        updateTeamMemberDropdowns();
     }
 
     // --- Adviser assignment check: warn when adviser already handles >= 3 teams ---
@@ -766,53 +768,6 @@
             });
         }
     });
-
-    // Helper function for showing toasts
-    function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
-        if (!$('#toastContainer').length) {
-            $('body').append(`
-                <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-                </div>
-                `);
-
-        }
-
-        // Generate unique ID for the toast
-        const toastId = 'toast-' + Date.now();
-
-        // Create toast HTML with more prominent styling
-        const toast = `
-                <div id="${toastId}" class="toast align-items-center border-0" 
-                    role="alert" 
-                    aria-live="assertive" 
-                    aria-atomic="true"
-                    style="min-width: 300px; opacity: 1; background-color: ${type === 'success' ? 'var(--main-accent)' : 'var(--main-btn-del)'};">
-                    <div class="d-flex">
-                        <div class="toast-body" style="font-size: 1rem; padding: 1rem; color:var(--main-bg-dark);">
-                            <strong>${title}:</strong> ${message}
-                        </div>
-                        <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Close"></button>
-                    </div>
-                </div>
-                `;
-
-        // Add toast to container
-        $('#toastContainer').append(toast);
-
-        // Initialize and show the toast with modified options
-        const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
-            autohide: true,
-            delay: 3000,
-            animation: true
-        });
-        toastElement.show();
-
-        // Remove toast element after it's hidden
-        $(`#${toastId}`).on('hidden.bs.toast', function () {
-            $(this).remove();
-        });
-    }
 
     // Adviser Warning Modal - Cancel button handler
     $(document).on('click', '#adviserWarningCancel', function () {
@@ -1457,6 +1412,22 @@
                 }
             });
 
+            // Enforce unique constrained roles across existing and new team members.
+            const existingRoles = formData.getAll('member_role[]') || [];
+            const newRoles = formData.getAll('new_role[]') || [];
+            const allRoles = existingRoles.concat(newRoles).filter(role => role === 'leader' || role === 'adviser');
+
+            const leaderCount = allRoles.filter(role => role === 'leader').length;
+            const adviserCount = allRoles.filter(role => role === 'adviser').length;
+
+            if (leaderCount > 1) {
+                errors['team_role_leader'] = ['Only one leader is allowed per team'];
+            }
+
+            if (adviserCount > 1) {
+                errors['team_role_adviser'] = ['Only one adviser is allowed per team'];
+            }
+
             return errors;
         },
 
@@ -1783,10 +1754,11 @@
                 },
                 dataType: 'json',
                 success: function (response) {
-                    console.log('Response data:', response)
                     if (response.success) {
                         var form = $('#editForm');
                         form.empty();
+                        $('#editFinalizeScheduleBtn').remove();
+                        $('#saveEdit').prop('disabled', false);
 
                         // Add hidden inputs for table and id
                         form.append('<input type="hidden" name="table" value="' + table + '">');
@@ -1896,6 +1868,19 @@
                                 </div>
                             </div>
                             `;
+                            
+                            // Add Year and Section fields for students (usertype 1)
+                            formHtml += `
+                            <div class="mb-3 student-year-field" ${response.data.usertype != 1 ? 'style="display:none;"' : ''}>
+                                <label for="year" class="form-label">Year</label>
+                                <input type="number" class="form-control" id="year" name="year" min="1" max="5" value="${response.data.year || ''}" placeholder="Enter year (1-5)">
+                            </div>
+                            <div class="mb-3 student-section-field" ${response.data.usertype != 1 ? 'style="display:none;"' : ''}>
+                                <label for="section" class="form-label">Section <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="section" name="section" value="${response.data.section || ''}" placeholder="Enter section (e.g., A, B, Section A)" required>
+                            </div>
+                            `;
+                            
                             formHtml += `
                             <div class="mb-3 is-program-chair-field" 
                                 ${(id == 0 || response.data.usertype != 0) ? 'style="display:none;"' : ''}>
@@ -1912,15 +1897,36 @@
 
 
                             // Populate the programs dropdown
-                            populateProgramDropdown($('#program_id'), response.data.program);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program);
 
                             $('#usertype').on('change', function () {
-                                if ($(this).val() == 2) {
+                                const usertype = $(this).val();
+                                if (usertype == 2) {
                                     $('.area-expertise-field').show();
                                     $('.is-part-time-field').show();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').hide();
+                                } else if (usertype == 1) {
+                                    $('.area-expertise-field').hide();
+                                    $('.is-part-time-field').hide();
+                                    $('.student-year-field').show();
+                                    $('.student-section-field').show();
+                                    $('.is-program-chair-field').hide();
+                                    // Make section required for students
+                                    $('#section').prop('required', true);
+                                } else if (usertype == 0) {
+                                    $('.area-expertise-field').hide();
+                                    $('.is-part-time-field').hide();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').show();
                                 } else {
                                     $('.area-expertise-field').hide();
                                     $('.is-part-time-field').hide();
+                                    $('.student-year-field').hide();
+                                    $('.student-section-field').hide();
+                                    $('.is-program-chair-field').hide();
                                 }
                             });
                         } else if (table === 'teams') {
@@ -1974,15 +1980,15 @@
                                 formHtml += `
                                 <div class="mb-3 row team-member" data-user-id="${member.id}">
                                     <div class="col-sm-5">
-                                        <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
-                                        <input type="hidden" name="member_ids[]" value="${member.id}">
-                                    </div>
-                                    <div class="col-sm-5">
                                         <select class="form-select role-select" name="member_role[]">
                                             <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
                                             <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
                                             <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
                                         </select>
+                                    </div>
+                                    <div class="col-sm-5">
+                                        <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
+                                        <input type="hidden" name="member_ids[]" value="${member.id}">
                                     </div>
                                     <div class="col-sm-2">
                                         <button type="button" class="btn btn-danger btn-sm remove-member">Remove</button>
@@ -2000,12 +2006,7 @@
 
                             // Populate the programs dropdown for the edit form, selecting the current value
                             populateProgramDropdown($('#editForm #program_id'), response.data.program);
-
-                            // Add team member functionality
-                            $('#addTeamMember').on('click', function () {
-                                console.log('Add Team Member button clicked');
-                                addNewTeamMember();
-                            });
+                            updateTeamMemberDropdowns();
 
                         } else if (table === 'programs') {
                             var d = response.data;
@@ -2096,7 +2097,7 @@
                             form.html(formHtml);
 
                             // Populate the programs dropdown
-                            populateProgramDropdown($('#program_id'), response.data.program_id);
+                            populateProgramDropdown($('#editForm #program_id'), response.data.program_id);
                         } else if (table === 'env_variables') {
 
                             if (response.data.key === 'APP_LOGO_NAVBAR') {
@@ -2231,7 +2232,7 @@
                                 <label for="team_id" class="form-label">Team</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
                                 <option value="">Select Team</option>
-                                    ${response.teams.map(team => `<option value="${team.id}"${team.id === response.data.team_id ? ' selected' : ''}>${team.name}</option>`).join('')}
+                                    ${response.teams.map(team => `<option value="${team.id}"${String(team.id) === String(response.data.team_id) ? ' selected' : ''}>${team.name}</option>`).join('')}
                                 </select>
                             </div>
                             <h5 class="mt-4">Panelists (Max 3)</h5>
@@ -2239,8 +2240,9 @@
                             `;
 
                             let panelistCount = 0; // Initialize panelist count
+                            
                             if (response.data.panelists && Array.isArray(response.data
-                                .panelists)) {
+                                .panelists) && response.data.panelists.length > 0) {
                                 panelistCount = response.data.panelists
                                     .length; // Get initial count
                                 response.data.panelists.forEach(function (panelist, index) {
@@ -2252,7 +2254,7 @@
                                     <select class="form-select" name="panelist_id[${index}]" required>
                                     <option value="">Select a panelist</option>
                                         ${response.staff.map(staff => `
-                                            <option value="${staff.id}"${staff.id === panelist.id ? ' selected' : ''}>
+                                            <option value="${staff.id}"${String(staff.id) === String(panelist.id) ? ' selected' : ''}>
                                                 ${staff.name}
                                             </option>
                                         `).join('')}
@@ -2266,8 +2268,28 @@
                                 });
                             } else {
                                 console.warn(
-                                    'Panelists data is missing or not an array in the response for edit form.'
+                                    'No panelists found or panelists data is not an array - showing empty dropdown.'
                                 );
+                                // Show at least one empty panelist dropdown
+                                formHtml += `
+                            <div class="mb-3 row panelist align-items-center">
+                                <label class="col-sm-2 col-form-label">Panelist 1</label>
+                                <div class="col-sm-8">
+                                    <select class="form-select" name="panelist_id[0]" required>
+                                    <option value="">Select a panelist</option>
+                                        ${response.staff ? response.staff.map(staff => `
+                                            <option value="${staff.id}">
+                                                ${staff.name}
+                                            </option>
+                                        `).join('') : ''}
+                                    </select>
+                                </div>
+                                <div class="col-sm-2">
+                                    <button type="button" class="btn btn-danger btn-sm remove-panelist">Remove</button>
+                                </div>
+                            </div>
+                            `;
+                                panelistCount = 1;
                             }
 
                             formHtml += `
@@ -2276,6 +2298,32 @@
                             `;
 
                             form.html(formHtml);
+
+                            let isFinalized = Number(response.data.is_finalized || 0) === 1;
+                            const editFooter = $('#editModal .modal-footer');
+                            const finalizeBtnClass = isFinalized ? 'btn-outline-warning' : 'btn-outline-dark';
+                            const finalizeBtnLabel = isFinalized ? 'Unfinalize' : 'Finalize';
+                            const finalizeBtn = $(`<button type="button" class="btn ${finalizeBtnClass} me-auto" id="editFinalizeScheduleBtn">${finalizeBtnLabel}</button>`);
+                            finalizeBtn.attr('data-schedule-id', id);
+                            editFooter.prepend(finalizeBtn);
+
+                            function setDefenseEditLockState(locked) {
+                                $('#editForm')
+                                    .find('input, select, textarea, #addPanelist, .remove-panelist')
+                                    .not('[name="table"], [name="id"]')
+                                    .prop('disabled', locked);
+                                if (!locked && $('#panelists .panelist').length >= 3) {
+                                    $('#addPanelist').prop('disabled', true);
+                                }
+                                $('#saveEdit').prop('disabled', locked);
+                                $('#editFinalizeScheduleBtn')
+                                    .attr('data-is-finalized', locked ? '1' : '0')
+                                    .text(locked ? 'Unfinalize' : 'Finalize')
+                                    .toggleClass('btn-outline-dark', !locked)
+                                    .toggleClass('btn-outline-warning', locked);
+                            }
+
+                            setDefenseEditLockState(isFinalized);
 
                             // Initialize the date picker with same options as in defense_schedules_tab.php
                             $('.datepicker').datepicker({
@@ -2717,28 +2765,28 @@
                 const validationErrors = ValidationUtils.validateUserForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'teams') {
                 const validationErrors = ValidationUtils.validateTeamsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'programs') {
                 const validationErrors = ValidationUtils.validateProgramsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'requirements') {
                 const validationErrors = ValidationUtils.validateRequirementsForm(this);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             }
@@ -2879,7 +2927,11 @@
                             }, 1000);
                         }
                     } else {
-                        showToast('Error', response.message || 'Update failed', 'error');
+                        let errorMessage = response.message || 'Update failed';
+                        if (table === 'defense_schedules' && typeof errorMessage === 'string' && errorMessage.includes('schedule conflict with:')) {
+                            errorMessage = errorMessage.replace(/\n/g, '<br>');
+                        }
+                        showToast('Error', errorMessage, 'error');
                     }
                 },
                 error: function (xhr, status, error) {
@@ -2893,6 +2945,78 @@
         $(document).on('click', '#saveEdit', function () { // Changed ID to match button in modal
             console.log('DEBUG: Save changes button clicked, triggering edit form submission');
             $('#editForm').submit();
+        });
+
+        // Defense schedules table edit modal finalize/unfinalize toggle
+        $(document).off('click.editFinalizeScheduleBtn').on('click.editFinalizeScheduleBtn', '#editFinalizeScheduleBtn', function (e) {
+            e.preventDefault();
+
+            const form = $('#editForm');
+            const table = form.find('input[name="table"]').val();
+            if (table !== 'defense_schedules') {
+                return;
+            }
+
+            const btn = $(this);
+            const scheduleId = form.find('input[name="id"]').val() || btn.attr('data-schedule-id');
+            if (!scheduleId) {
+                showToast('Error', 'Missing schedule ID.', 'error');
+                return;
+            }
+
+            const isFinalized = btn.attr('data-is-finalized') === '1';
+            const action = isFinalized ? 'unfinalize' : 'finalize';
+            const originalHtml = btn.html();
+
+            btn.prop('disabled', true).html('<i class="fas fa-spinner fa-spin me-1"></i>Processing...');
+
+            $.ajax({
+                url: 'includes/finalize_schedule.php',
+                method: 'POST',
+                data: {
+                    schedule_id: scheduleId,
+                    action: action
+                },
+                dataType: 'json',
+                success: function (result) {
+                    if (!result.success) {
+                        showToast('Error', result.message || 'Failed to update finalization state.', 'error');
+                        return;
+                    }
+
+                    const locked = !isFinalized;
+                    form
+                        .find('input, select, textarea, #addPanelist, .remove-panelist')
+                        .not('[name="table"], [name="id"]')
+                        .prop('disabled', locked);
+
+                    if (!locked && $('#panelists .panelist').length >= 3) {
+                        $('#addPanelist').prop('disabled', true);
+                    }
+
+                    $('#saveEdit').prop('disabled', locked);
+                    btn
+                        .attr('data-is-finalized', locked ? '1' : '0')
+                        .text(locked ? 'Unfinalize' : 'Finalize')
+                        .toggleClass('btn-outline-dark', !locked)
+                        .toggleClass('btn-outline-warning', locked);
+
+                    showToast('Success', result.message || 'Finalization state updated.', 'success');
+
+                    if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
+                        window.reloadCurrentDefenseSchedulesView(1);
+                    }
+                },
+                error: function (xhr, status, error) {
+                    showToast('Error', 'Unable to update finalization state: ' + error, 'error');
+                },
+                complete: function () {
+                    btn.prop('disabled', false);
+                    if (btn.html().includes('Processing')) {
+                        btn.html(originalHtml);
+                    }
+                }
+            });
         });
         // EDIT END
 
@@ -3174,6 +3298,15 @@
                     '<label class="form-check-label" for="addPartTime">Part Time</label>' +
                     '</div>' +
                     '</div>' +
+                    // Year and Section fields for students, hidden by default
+                    '<div class="mb-3 student-year-field" style="display:none;">' +
+                    '<label for="year" class="form-label">Year</label>' +
+                    '<input type="number" class="form-control" id="year" name="year" min="1" max="5" placeholder="Enter year (1-5)">' +
+                    '</div>' +
+                    '<div class="mb-3 student-section-field" style="display:none;">' +
+                    '<label for="section" class="form-label">Section <span class="text-danger">*</span></label>' +
+                    '<input type="text" class="form-control" id="section" name="section" placeholder="Enter section (e.g., A, B, Section A)">' +
+                    '</div>' +
                     // Program Chair field, hidden by default
                     '<div class="mb-3 is-program-chair-field" style="display:none;">' +
                     '<label class="form-label">Program Chair</label>' +
@@ -3188,22 +3321,40 @@
                 ValidationUtils.setupRealTimeValidation('#addForm');
 
                 // Populate the programs dropdown
-                populateProgramDropdown($('#program_id'));
+                populateProgramDropdown($('#addForm #program_id'));
 
                 // Add event listener for usertype change in add form
                 $('#addForm').on('change', '#usertype', function () {
-                    if ($(this).val() == 2) {
+                    const usertype = $(this).val();
+                    if (usertype == 2) {
                         $('.area-expertise-field').show();
                         $('.is-part-time-field').show();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();
-                    } else if ($(this).val() == 0) {
+                        $('#section').prop('required', false);
+                    } else if (usertype == 1) {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.student-year-field').show();
+                        $('.student-section-field').show();
+                        $('.is-program-chair-field').hide();
+                        // Make section required for students
+                        $('#section').prop('required', true);
+                    } else if (usertype == 0) {
+                        $('.area-expertise-field').hide();
+                        $('.is-part-time-field').hide();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').show();
+                        $('#section').prop('required', false);
                     } else {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.student-year-field').hide();
+                        $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();
+                        $('#section').prop('required', false);
                     }
                 });
             } else if (table === 'thesis_topics') {
@@ -3334,12 +3485,6 @@
 
                 // Populate the programs dropdown for the add form
                 populateProgramDropdown($('#addForm #program_id'));
-
-                // Add team member functionality
-                $('#addTeamMember').on('click', function () {
-                    console.log('Add Team Member button clicked');
-                    addNewTeamMember();
-                });
             } else if (table === 'env_variables') {
                 form.append('<div class="mb-3">' +
                     '<label for="name" class="form-label">Key</label>' +
@@ -3434,6 +3579,7 @@
                     success: function (data) {
                         // Store initial staff data for fallback or initial population
                         window.staffData = data.staff;
+                        const addForm = $('#addForm');
 
                         var formHtml = `
                 <input type="hidden" name="table" value="${table}">
@@ -3484,20 +3630,25 @@
 
                         form.html(formHtml);
 
+                        // Populate initial Panelist 1 dropdown with staff data
+                        if (data.staff && data.staff.length > 0) {
+                            updatePanelistDropdowns(data.staff);
+                        }
+
                         // Add real-time validation for defense schedules add form using ValidationUtils
                         ValidationUtils.setupRealTimeValidation('#addForm');
 
                         // Function to update all panelist dropdowns with new data
                         function updatePanelistDropdowns(staffList) {
                             const optionsHtml = staffList.map(staff => `<option value="${staff.id}">${staff.name}</option>`).join('');
-                            $('#panelists .panelist select').each(function () {
+                            addForm.find('#panelists .panelist select').each(function () {
                                 $(this).html(optionsHtml);
                             });
                         }
 
                         // --- New Code for Dynamic Staff Loading ---
                         // Event listener for the team dropdown
-                        $('#team_id').on('change', function () {
+                        addForm.find('#team_id').off('change.addDefenseTeam').on('change.addDefenseTeam', function () {
                             const teamId = $(this).val();
                             if (teamId) {
                                 $.ajax({
@@ -3521,7 +3672,7 @@
                                 });
                             } else {
                                 // If no team is selected, clear the panelist dropdowns
-                                $('#panelists .panelist select').html('');
+                                addForm.find('#panelists .panelist select').html('');
                             }
                         });
 
@@ -3546,17 +3697,18 @@
                         });
 
                         // Add panelist functionality
-                        $('#addPanelist').on('click', function () {
+                        addForm.off('click.addDefensePanelist', '#addPanelist').on('click.addDefensePanelist', '#addPanelist', function () {
                             addNewPanelist(window.staffData);
                         });
 
-                        // Remove panelist functionality
-                        $(document).on('click', '.remove-panelist', function () {
+                        // Remove panelist functionality scoped to add form
+                        addForm.off('click.addDefenseRemovePanelist', '.remove-panelist').on('click.addDefenseRemovePanelist', '.remove-panelist', function () {
                             $(this).closest('.panelist').remove();
-                            if ($('#panelists .panelist').length < 3) {
-                                $('#addPanelist').prop('disabled', false);
+                            const panelistRows = addForm.find('#panelists .panelist');
+                            if (panelistRows.length < 3) {
+                                addForm.find('#addPanelist').prop('disabled', false);
                             }
-                            $('#panelists .panelist').each(function (index) {
+                            panelistRows.each(function (index) {
                                 $(this).find('select').attr('name', `panelist_id[${index}]`);
                                 $(this).find('label.col-form-label').text(`Panelist ${index + 1}`);
                             });
@@ -3595,28 +3747,28 @@
                 const validationErrors = ValidationUtils.validateUserForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'teams') {
                 const validationErrors = ValidationUtils.validateTeamsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'programs') {
                 const validationErrors = ValidationUtils.validateProgramsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             } else if (table === 'requirements') {
                 const validationErrors = ValidationUtils.validateRequirementsForm(form);
                 if (Object.keys(validationErrors).length > 0) {
                     ValidationUtils.displayErrors(validationErrors);
-                    showToast('Error', 'Please fix the validation errors before submitting', 'error');
+                    showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
                     return;
                 }
             }
@@ -3786,12 +3938,32 @@
             e.preventDefault();
             var table = $(this).data('table');
             var id = $(this).data('id');
+            var customDeleteLabel = $(this).data('deleteLabel');
+            var rowFirstColumnText = $(this).closest('tr').find('td').first().text().replace(/\s+/g, ' ').trim();
+
+            const tableLabelMap = {
+                users: 'this user',
+                teams: 'this team',
+                user_schedules: 'this professor schedule',
+                research_titles: 'this research title',
+                programs: 'this academic program',
+                requirements: 'this requirement',
+                rubrics: 'this rubric',
+                rubric_groups: 'this rubric group',
+                defense_schedules: 'this defense schedule',
+                env_variables: 'this content page',
+                thesis_topics: 'this thesis topic'
+            };
 
             console.log('Delete button clicked. Table:', table, 'ID:', id);
 
-            // Populate the modal
-            $('#deleteTableName').text(table);
-            $('#deleteItemId').text(id);
+            // Populate the modal with either a custom label or a readable fallback.
+            if (!customDeleteLabel && rowFirstColumnText) {
+                customDeleteLabel = rowFirstColumnText;
+            }
+            var fallbackTargetLabel = tableLabelMap[table] || ('this item in ' + String(table).replace(/_/g, ' '));
+            var targetLabel = customDeleteLabel || (fallbackTargetLabel + ' (ID: ' + id + ')');
+            $('#deleteTargetLabel').text(targetLabel);
 
             // Store data on the confirm button for later use
             $('#confirmDelete').data('table', table);
@@ -4236,6 +4408,17 @@
         }
     });
 
+    // Handle dynamic Add Team Member buttons for both add/edit modals.
+    $(document).off('click.addTeamMember').on('click.addTeamMember', '#addTeamMember', function (e) {
+        e.preventDefault();
+        addNewTeamMember();
+    });
+
+    $(document).off('change.teamRoleRules').on('change.teamRoleRules', '.modal #teamMembers .role-select', function () {
+        updateUserDropdownForRole($(this));
+        updateTeamMemberDropdowns();
+    });
+
 
     // Define addNewTeamMember function globally
     function addNewTeamMember() {
@@ -4257,6 +4440,11 @@
         var requestUrl = 'includes/get_available_users.php?team_id=' + teamId +
             '&team_program=' + encodeURIComponent(teamProgram) +
             '&include_advisers=1';
+
+        var selectedSectionFilter = $('#teamSectionFilter').val() || '';
+        if (selectedSectionFilter) {
+            requestUrl += '&selected_section=' + encodeURIComponent(selectedSectionFilter);
+        }
 
         $.ajax({
             url: requestUrl,
@@ -4304,16 +4492,20 @@
                 // Handle both response formats:
                 // 1. New format: { success: true, data: [...] }
                 // 2. Legacy format: [...]
+            var datalistId = 'team-user-options-' + Date.now() + '-' + Math.floor(Math.random() * 10000);
             var newMemberHtml = `
                 <div class="mb-3 row team-member">
                     <div class="col-sm-5">
-                        <select class="form-select role-select" name="new_role[]" onchange="filterUsersByRole(this)">
+                        <select class="form-select role-select" name="new_role[]">
                             ${generateRoleOptions(availableRoles)}
                         </select>
                     </div>
                     <div class="col-sm-5">
-                        <select class="form-select user-select" name="new_user_id[]" style="display:block;">
-                            <option value="">Select a user</option>
+                        <div class="user-picker-container" style="display:block;">
+                            <input type="text" class="form-control user-search-input" list="${datalistId}" placeholder="Type to search user">
+                            <datalist id="${datalistId}" class="user-options-datalist"></datalist>
+                            <select class="form-select user-select d-none" name="new_user_id[]" data-datalist-id="${datalistId}">
+                                <option value="">Select a user</option>
                             ${users.map(user => {
                     // Add usertype indicator and filter logic
                     let userTypeLabel = '';
@@ -4338,7 +4530,8 @@
                     }
                     return '';
                 }).filter(option => option !== '').join('')}
-                        </select>
+                            </select>
+                        </div>
                         <input type="text" class="form-control new-username-input" name="new_username[]" placeholder="Enter username" style="display:none;">
                         <a href="#" class="toggle-input">Switch to manual</a>
                     </div>
@@ -4356,15 +4549,22 @@
 
                 $newMember.find('.toggle-input').on('click', function (e) {
                     e.preventDefault();
-                    var $select = $(this).siblings('.user-select');
+                    var $picker = $(this).siblings('.user-picker-container');
+                    var $select = $picker.find('.user-select');
+                    var $searchInput = $picker.find('.user-search-input');
                     var $input = $(this).siblings('.new-username-input');
-                    if ($select.is(':visible')) {
-                        $select.hide().prop('disabled', true); // Disable select when hidden
+
+                    if ($picker.is(':visible')) {
+                        $picker.hide();
+                        $select.prop('disabled', true);
+                        $searchInput.prop('disabled', true);
                         $input.show().prop('disabled', false); // Enable input when shown
                         $(this).text('Switch to select');
                     } else {
                         $input.hide().prop('disabled', true); // Disable input when hidden
-                        $select.show().prop('disabled', false); // Enable select when shown
+                        $picker.show();
+                        $select.prop('disabled', false);
+                        $searchInput.prop('disabled', false);
                         $(this).text('Switch to manual');
                     }
                 });
@@ -4373,13 +4573,26 @@
                 $newMember.find('.new-username-input').prop('disabled', true);
 
                 // Add change listeners for role and user selection
-                $newMember.find('.role-select').on('change', function () {
-                    updateUserDropdownForRole($(this));
+                $newMember.find('.user-select').on('change', function () {
+                    syncUserDatalistOptions($newMember);
                     updateTeamMemberDropdowns();
                 });
 
-                $newMember.find('.user-select').on('change', function () {
-                    updateTeamMemberDropdowns();
+                $newMember.find('.user-search-input').on('change', function () {
+                    var selectedLabel = ($(this).val() || '').trim();
+                    var $member = $(this).closest('.team-member');
+                    var $userSelect = $member.find('.user-select');
+                    var $datalist = $member.find('.user-options-datalist');
+                    var matchedUserId = '';
+
+                    $datalist.find('option').each(function () {
+                        if ($(this).attr('value') === selectedLabel) {
+                            matchedUserId = $(this).attr('data-user-id') || '';
+                            return false;
+                        }
+                    });
+
+                    $userSelect.val(matchedUserId).trigger('change');
                 });
 
                 // Initial setup for the new member
@@ -4429,6 +4642,52 @@
         }
 
         return available;
+    }
+
+    // Keep exclusive roles (adviser, leader) unique across all visible team-member rows.
+    function enforceExclusiveRoleOptions($container) {
+        if (!$container || !$container.length) {
+            return;
+        }
+
+        var leaderOwner = null;
+        var adviserOwner = null;
+
+        $container.find('.role-select').each(function () {
+            var role = $(this).val();
+            if (role === 'leader' && !leaderOwner) {
+                leaderOwner = this;
+            }
+            if (role === 'adviser' && !adviserOwner) {
+                adviserOwner = this;
+            }
+        });
+
+        var isTitleProposal = $('.modal.show').find('#title_proposal').is(':checked');
+
+        $container.find('.role-select').each(function () {
+            var $select = $(this);
+            var selectedRole = $select.val();
+            var hasOtherLeader = leaderOwner && leaderOwner !== this;
+            var hasOtherAdviser = adviserOwner && adviserOwner !== this;
+
+            var $leaderOption = $select.find('option[value="leader"]');
+            var $adviserOption = $select.find('option[value="adviser"]');
+
+            if ($leaderOption.length) {
+                $leaderOption.prop('disabled', !!hasOtherLeader);
+            }
+
+            if ($adviserOption.length) {
+                $adviserOption.prop('disabled', !!hasOtherAdviser || isTitleProposal);
+            }
+
+            // If this row became invalid because another row already owns the exclusive role, clear it.
+            if ((selectedRole === 'leader' && hasOtherLeader) || (selectedRole === 'adviser' && (hasOtherAdviser || isTitleProposal))) {
+                $select.val('');
+                updateUserDropdownForRole($select);
+            }
+        });
     }
 
     // Helper function to generate role options
@@ -4528,6 +4787,8 @@
         if ($userSelect.val() && $userSelect.find('option:selected').is(':hidden')) {
             $userSelect.val('');
         }
+
+        syncUserDatalistOptions($roleSelect.closest('.team-member'));
     }
 
     // Helper function to update all team member dropdowns to prevent duplicates
@@ -4535,6 +4796,8 @@
         var $modal = $('.modal.show');
         var $container = $modal.find('#teamMembers');
         var selectedUserIds = [];
+
+        enforceExclusiveRoleOptions($container);
 
         // Collect all selected user IDs
         $container.find('.team-member').each(function () {
@@ -4559,7 +4822,47 @@
                     $option.prop('disabled', false);
                 }
             });
+
+            syncUserDatalistOptions($(this));
         });
+    }
+
+    function syncUserDatalistOptions($teamMember) {
+        var $userSelect = $teamMember.find('.user-select');
+        var $datalist = $teamMember.find('.user-options-datalist');
+        var $searchInput = $teamMember.find('.user-search-input');
+
+        if (!$userSelect.length || !$datalist.length || !$searchInput.length) {
+            return;
+        }
+
+        var selectedValue = $userSelect.val();
+        $datalist.empty();
+
+        $userSelect.find('option').each(function () {
+            var $option = $(this);
+            var optionValue = $option.attr('value');
+
+            if (!optionValue) {
+                return;
+            }
+
+            if ($option.prop('disabled') || $option.css('display') === 'none') {
+                return;
+            }
+
+            var datalistOption = document.createElement('option');
+            datalistOption.value = $option.text();
+            datalistOption.setAttribute('data-user-id', optionValue);
+            $datalist.append(datalistOption);
+        });
+
+        if (selectedValue) {
+            var selectedText = $userSelect.find(`option[value="${selectedValue}"]`).text() || '';
+            $searchInput.val(selectedText);
+        } else {
+            $searchInput.val('');
+        }
     }
 
     // Remove team member functionality (works for both edit and add modals)
@@ -4589,57 +4892,95 @@
 
     // Helper function for showing toasts
     function showToast(title, message, type = 'success') {
-        // Create toast container if it doesn't exist
         if (!$('#toastContainer').length) {
             $('body').append(`
-    <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999">
-    </div>
-`);
-
+                <div id="toastContainer" class="position-fixed top-0 end-0 p-3" style="z-index: 9999"></div>
+            `);
         }
 
-        // Generate unique ID for the toast
+        const typeAliases = {
+            success: 'success',
+            error: 'error',
+            danger: 'error',
+            warning: 'notice',
+            notice: 'notice',
+            info: 'info'
+        };
+
+        const tone = typeAliases[String(type || '').toLowerCase()] || 'info';
+        const variants = {
+            success: {
+                defaultTitle: 'Success',
+                border: '#16a34a',
+                bg: '#ecfdf3',
+                iconBg: '#d1fae5',
+                iconStroke: '#15803d',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>'
+            },
+            error: {
+                defaultTitle: 'Error',
+                border: '#dc2626',
+                bg: '#fef2f2',
+                iconBg: '#fee2e2',
+                iconStroke: '#b91c1c',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>'
+            },
+            notice: {
+                defaultTitle: 'Notice',
+                border: '#d97706',
+                bg: '#fffbeb',
+                iconBg: '#fef3c7',
+                iconStroke: '#b45309',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M10.29 3.86l-8.17 14.1A2 2 0 004 21h16a2 2 0 001.73-3.04l-8.17-14.1a2 2 0 00-3.46 0z"/></svg>'
+            },
+            info: {
+                defaultTitle: 'Info',
+                border: '#2563eb',
+                bg: '#eff6ff',
+                iconBg: '#dbeafe',
+                iconStroke: '#1d4ed8',
+                icon: '<svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>'
+            }
+        };
+
+        const variant = variants[tone];
+        let toastTitle = String(title || '').trim() || variant.defaultTitle;
+        if (tone === 'notice' && toastTitle.toLowerCase() === 'warning') {
+            toastTitle = 'Notice';
+        }
+
+        let toastMessage = String(message || '').trim();
+        toastMessage = toastMessage.replace(
+            /Please fix the validation errors before (submitting|saving)\.?/i,
+            'Please complete all required fields correctly before $1.'
+        );
+
         const toastId = 'toast-' + Date.now();
-
-        // Modern universal toast styling and structure
-        const icon = type === 'success' ?
-            `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#eaf0fe;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#1304ee"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></span>` :
-            type === 'error' ?
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fbeaea;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#dc3545"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></span>` :
-                `<span style="display:inline-flex;align-items:center;justify-content:center;width:2.2rem;height:2.2rem;background:#fffbe6;border-radius:50%;margin-right:1rem;"><svg width="22" height="22" fill="none" viewBox="0 0 24 24" stroke="#ffc107"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg></span>`;
-
-        const bgColor = type === 'success' ? '#f6fffa' : (type === 'error' ? '#fff6f6' : '#fffbe6');
-        const borderColor = type === 'success' ? '#1304ee' : (type === 'error' ? '#dc3545' : '#ffc107');
-        const textColor = '#222';
         const toast = `
-<div id="${toastId}" class="toast align-items-center border-0 shadow-lg"
-    role="alert"
-    aria-live="assertive"
-    aria-atomic="true"
-    style="min-width:320px;max-width:400px;opacity:1;background:${bgColor};border-left:5px solid ${borderColor};border-radius:12px;margin-bottom:1rem;box-shadow:0 4px 24px 0 rgba(0,0,0,0.10);">
-    <div class="d-flex align-items-center" style="padding:1rem 1.25rem;">
-        ${icon}
-        <div class="toast-body p-0" style="font-size:1rem;color:${textColor};line-height:1.5;">
-            <div style="font-weight:600;font-size:1.08rem;margin-bottom:2px;">${title}</div>
-            <div>${message}</div>
-        </div>
-        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1.5rem;"></button>
-    </div>
-</div>
-`;
+            <div id="${toastId}" class="toast align-items-center border-0 shadow-lg" role="alert" aria-live="assertive" aria-atomic="true"
+                style="min-width:320px;max-width:420px;opacity:1;background:${variant.bg};border-left:5px solid ${variant.border};border-radius:12px;margin-bottom:1rem;">
+                <div class="d-flex align-items-center" style="padding:1rem 1.1rem;">
+                    <span style="display:inline-flex;align-items:center;justify-content:center;background:${variant.iconBg};color:${variant.iconStroke};border-radius:50%;margin-right:0.9rem;">
+                        ${variant.icon}
+                    </span>
+                    <div class="toast-body p-0" style="font-size:0.98rem;color:#1f2937;line-height:1.45;">
+                        <div style="font-weight:600;font-size:1.02rem;margin-bottom:2px;">${toastTitle}</div>
+                        <div>${toastMessage}</div>
+                    </div>
+                    <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close" style="margin-left:1rem;"></button>
+                </div>
+            </div>
+        `;
 
-        // Add toast to container
         $('#toastContainer').append(toast);
 
-        // Initialize and show the toast with modified options
         const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
             autohide: true,
-            delay: 3000,
+            delay: 3200,
             animation: true
         });
         toastElement.show();
 
-        // Remove toast element after it's hidden
         $(`#${toastId}`).on('hidden.bs.toast', function () {
             $(this).remove();
         });
@@ -4972,7 +5313,7 @@
             console.log('Save response:', data);
             
             if (data.success) {
-                showToast('Success', `✓ Saved ${selectedPrograms.length} program mapping(s) for ${defenseType}!`, 'success');
+                showToast('Success', `Saved ${selectedPrograms.length} program mapping(s) for ${defenseType}.`, 'success');
                 
                 // Reset button
                 saveBtn.innerHTML = originalText;
@@ -4988,7 +5329,7 @@
         })
         .catch(error => {
             console.error('Error saving configuration:', error);
-            showToast('Error', `❌ Error saving: ${error.message}`, 'danger');
+            showToast('Error', `Unable to save configuration: ${error.message}`, 'error');
             
             saveBtn.innerHTML = originalText;
             saveBtn.disabled = false;
@@ -5060,11 +5401,11 @@
     aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24"
                         stroke="currentColor">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
@@ -5072,9 +5413,8 @@
                     </svg>
                 </div>
                 <h4 class="fw-bold mb-3" id="deleteConfirmModalLabel">Confirm Deletion</h4>
-                <p>Are you sure you want to delete this item?</p>
-                <p class="mb-0"><strong>Table:</strong> <span id="deleteTableName"></span></p>
-                <p class="mb-0"><strong>ID:</strong> <span id="deleteItemId"></span></p>
+                <p>Are you sure you want to delete <span id="deleteTargetLabel" class="fw-semibold">this item</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>

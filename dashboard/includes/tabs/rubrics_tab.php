@@ -6,16 +6,45 @@
             <div class="col-12">
                 <h3 class="mb-2">Rubrics Management</h3>
                 <p class="text-muted">Create and manage evaluation rubrics for thesis defenses, including numerical, yes/no, and pass/fail scoring systems</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#rubric-groups" class="tab-redirect-link" onclick="document.getElementById('rubric-groups-tab').click(); return false;">
+                        <i class="bi bi-list-columns-reverse"></i>
+                        <span>Group created Rubrics for Defense</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
         <!-- Rubrics Management Controls -->
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap gap-2 justify-content-end mb-3">
-                    <button class="btn feature-btn add-btn" data-table="rubrics">
-                        <i class="fas fa-plus me-2"></i>Add New Rubric
-                    </button>
+                <div class="row g-2 mb-3 align-items-end">
+                    <div class="col-12 col-md-5 col-lg-4">
+                        <div class="input-group user-control-height m-0">
+                            <span class="input-group-text border-0">
+                                <i class="bi bi-search"></i>
+                            </span>
+                            <input type="text" class="form-control border-0" id="rubricsSearchInput" placeholder="Search rubric name...">
+                        </div>
+                    </div>
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <select class="form-select user-control-height" id="rubricsTypeFilterSelect">
+                            <option value="all">All Rubric Types</option>
+                            <option value="numerical">Numerical</option>
+                            <option value="yesno">Yes/No</option>
+                            <option value="passfail">Pass/Fail</option>
+                        </select>
+                    </div>
+                    <div class="col-12 col-md-3 col-lg-5">
+                        <div class="d-flex gap-2 justify-content-end">
+                            <button class="btn feature-btn add-btn user-control-height w-100 w-md-auto" data-table="rubrics">
+                                <i class="fas fa-plus me-2"></i>Add New Rubric
+                            </button>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -49,9 +78,8 @@
             </div>
         </div>
     </div>
-</div>
 
-<!-- Add/Edit Rubric Modal -->
+    <!-- Add/Edit Rubric Modal -->
 <div class="modal fade" id="rubricModal" tabindex="-1">
     <div class="modal-dialog modal-xl">
         <div class="modal-content">
@@ -292,17 +320,18 @@
 
 <!-- Delete Confirmation Modal -->
 <div class="modal fade" id="rubricDeleteConfirmModal" tabindex="-1">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
-            <div class="modal-header border-0 pb-0" style="display: flex; justify-content: flex-end;">
+            <div class="modal-header border-0 pb-0 justify-content-end">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body text-center">
-                <div style="font-size: 3rem; color: #dc3545; margin-bottom: 1rem;">
+                <div class="text-danger mb-3" style="font-size: 3rem;">
                     <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v4m0 4h.01M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z"/></svg>
                 </div>
                 <h4 class="fw-bold mb-3">Confirm Deletion</h4>
-                <p>Are you sure you want to delete this rubric?</p>
+                <p>Are you sure you want to delete <span id="rubricDeleteTarget" class="fw-semibold">this rubric</span>?</p>
+                <p class="text-muted mb-0">This action cannot be undone.</p>
                 <input type="hidden" id="rubricToDeleteId">
             </div>
             <div class="modal-footer">
@@ -311,6 +340,7 @@
             </div>
         </div>
     </div>
+</div>
 </div>
 
 <!-- jQuery UI for Sortable -->
@@ -412,7 +442,7 @@
 
 <script>
     // Initialize the rubrics table
-    function loadRubrics(page = 1) {
+    function loadRubrics(page = 1, search = '', rubricType = 'all') {
         // Clear any existing dropdowns to prevent duplicates 
         document.querySelectorAll('.meatball-dropdown-portal').forEach(portal => portal.remove());
         
@@ -421,7 +451,9 @@
             method: 'GET',
             data: {
                 table: 'rubrics',
-                page: page
+                page: page,
+                search: search,
+                rubric_type: rubricType
             },
             success: function(response) {
                 if (response.data) {
@@ -429,7 +461,7 @@
                     tbody.empty();
 
                     if (response.data.length === 0) {
-                        tbody.html('<tr><td colspan="5">No rubrics found.</td></tr>');
+                        tbody.html('<tr><td colspan="4" class="text-center text-muted">No rubrics found.</td></tr>');
                     } else {
                         response.data.forEach(function(rubric) {
                             let typeName = 'Unknown';
@@ -464,18 +496,26 @@
                     // Update pagination
                     updatePagination(response.total_pages, page);
                 } else {
-                    $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data.</td></tr>');
+                    $('#rubricsTableBody').html('<tr><td colspan="4" class="text-center text-danger">Error loading data.</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
-                $('#rubricsTableBody').html('<tr><td colspan="5">Error loading data. Please try again.</td></tr>');
+                $('#rubricsTableBody').html('<tr><td colspan="4" class="text-center text-danger">Error loading data. Please try again.</td></tr>');
             }
         });
     }
 
+    function getCurrentRubricsFilters() {
+        return {
+            search: ($('#rubricsSearchInput').val() || '').trim(),
+            rubricType: $('#rubricsTypeFilterSelect').val() || 'all'
+        };
+    }
+
     // Global reload function for rubrics (similar to other tabs)
     window.reloadCurrentRubricsView = function(page = 1) {
-        loadRubrics(page);
+        var filters = getCurrentRubricsFilters();
+        loadRubrics(page, filters.search, filters.rubricType);
     };
 
     // Update pagination
@@ -483,28 +523,47 @@
         var pagination = $('#rubricsPagination');
         pagination.empty();
 
+        if (totalPages <= 1) return;
+
         // Previous button
         pagination.append(`
-        <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
-        </li>
-    `);
-
-        // Page numbers
-        for (var i = 1; i <= totalPages; i++) {
-            pagination.append(`
-            <li class="page-item ${i === currentPage ? 'active' : ''}">
-                <a class="page-link" href="#" data-page="${i}">${i}</a>
+            <li class="page-item ${currentPage <= 1 ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage - 1}">&#8249;</a>
             </li>
         `);
+
+        // Page numbers with ellipsis
+        const startPage = Math.max(1, currentPage - 2);
+        const endPage = Math.min(totalPages, currentPage + 2);
+
+        if (startPage > 1) {
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`);
+            if (startPage > 2) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+        }
+
+        for (var i = startPage; i <= endPage; i++) {
+            pagination.append(`
+                <li class="page-item ${i === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                </li>
+            `);
+        }
+
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                pagination.append(`<li class="page-item disabled"><span class="page-link">...</span></li>`);
+            }
+            pagination.append(`<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`);
         }
 
         // Next button
         pagination.append(`
-        <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
-            <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
-        </li>
-    `);
+            <li class="page-item ${currentPage >= totalPages ? 'disabled' : ''}">
+                <a class="page-link" href="#" data-page="${currentPage + 1}">&#8250;</a>
+            </li>
+        `);
     }
 
     // Generate quality criteria inputs (Only for Numerical)
@@ -1448,7 +1507,7 @@
     });
 
     if (!valid) {
-        showToast('Error', 'Please fix the validation errors before submitting.', 'error');
+        showToast('Error', 'Please complete all required fields correctly before submitting.', 'error');
         return; // Stop the save if validation fails
     }
 
@@ -1653,8 +1712,9 @@
     }
 
     // Function to initiate rubric deletion
-    function deleteRubric(rubricId) {
+    function deleteRubric(rubricId, rubricName = 'this rubric') {
         $('#rubricToDeleteId').val(rubricId);
+        $('#rubricDeleteTarget').text(rubricName);
         $('#rubricDeleteConfirmModal').modal('show');
     }
 
@@ -1749,11 +1809,21 @@
         loadProgramsForCheckboxes();
         // --- END NEW ---
 
+        // Handle search input
+        $('#rubricsSearchInput').off('input').on('input', function() {
+            window.reloadCurrentRubricsView(1);
+        });
+
+        // Handle rubric type filter
+        $('#rubricsTypeFilterSelect').off('change').on('change', function() {
+            window.reloadCurrentRubricsView(1);
+        });
+
         // Handle pagination clicks
         $('#rubricsPagination').off('click').on('click', 'a.page-link', function(e) {
             e.preventDefault();
             var page = $(this).data('page');
-            loadRubrics(page);
+            window.reloadCurrentRubricsView(page);
         });
 
         // Handle add rubric button click - use a namespaced event to avoid conflicts
@@ -1799,7 +1869,8 @@
             e.stopPropagation();
 
             var rubricId = $(this).data('id');
-            deleteRubric(rubricId);
+            var rubricName = $(this).data('rubricName') || 'this rubric';
+            deleteRubric(rubricId, rubricName);
             return false; // Important: prevent other handlers from running
         });
 
@@ -2144,6 +2215,7 @@
                 
                 const btn = e.target.closest('.meatball-btn');
                 const rubricId = btn.getAttribute('data-rubric-id');
+                const rubricName = btn.closest('tr')?.querySelector('td')?.textContent?.trim() || 'Unnamed rubric';
                 let dropdown = document.getElementById(`rubric-dropdown-${rubricId}`);
                 
                 // Close all other dropdowns first
@@ -2178,6 +2250,10 @@
                             Delete
                         </button>
                     `;
+                    const deleteBtn = dropdown.querySelector('.delete-rubric-btn');
+                    if (deleteBtn) {
+                        deleteBtn.dataset.rubricName = rubricName;
+                    }
                     document.body.appendChild(dropdown);
                 }
                 

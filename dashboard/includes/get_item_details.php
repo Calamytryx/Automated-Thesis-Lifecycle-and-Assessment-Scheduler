@@ -29,10 +29,67 @@
  */
 
 require_once __DIR__ . '/../../assets/setup/db.inc.php';
+require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $response = ['success' => false, 'message' => '', 'data' => []];
 
+function getAccessibleDefenseTeamIds($pdo, $userId, $usertype) {
+    $ctx = getDefenseScheduleAccessContext($pdo, (int)$userId, (int)$usertype);
+
+    if ($ctx['scope'] === 'none') {
+        return [];
+    }
+
+    if ($ctx['scope'] === 'all') {
+        $stmt = $pdo->query("SELECT id FROM teams");
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'sections' && !empty($ctx['sections'])) {
+        $placeholders = implode(',', array_fill(0, count($ctx['sections']), '?'));
+        $stmt = $pdo->prepare(" 
+            SELECT DISTINCT t.id
+            FROM teams t
+            JOIN team_members tm ON tm.team_id = t.id
+            JOIN users u ON u.id = tm.user_id
+            WHERE u.usertype = 1
+              AND u.section IN ($placeholders)
+        ");
+        $stmt->execute($ctx['sections']);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    if ($ctx['scope'] === 'college' && !empty($ctx['college'])) {
+        $stmt = $pdo->prepare(" 
+            SELECT t.id
+            FROM teams t
+            JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+            WHERE p.college = ?
+        ");
+        $stmt->execute([$ctx['college']]);
+        return $stmt->fetchAll(PDO::FETCH_COLUMN);
+    }
+
+    return [];
+}
+
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
+    if (!isset($_SESSION['id'], $_SESSION['usertype'])) {
+        $response['message'] = 'Authentication required';
+        header('Content-Type: application/json');
+        echo json_encode($response);
+        exit;
+    }
+
+    $userId = (int)$_SESSION['id'];
+    $usertype = (int)$_SESSION['usertype'];
+
     $id = $_POST['id'];
     $table = $_POST['table'];
 
@@ -47,6 +104,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $data = $stmt->fetch(PDO::FETCH_ASSOC);
 
             if ($data) {
+                if ($table === 'defense_schedules') {
+                    $teamId = (int)($data['team_id'] ?? 0);
+                    if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+                        $response['message'] = 'You can only edit defense schedules from your assigned scope.';
+                        header('Content-Type: application/json');
+                        echo json_encode($response);
+                        exit;
+                    }
+                }
+
                 $response['success'] = true;
                 $response['data'] = $data;
                 if ($table === 'programs') {
@@ -62,36 +129,93 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $stmt = $pdo->query("SELECT id, title FROM thesis_topics");
                     $response['topics'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 } else if ($table === 'defense_schedules') {
-                    // Fetch teams
-                    $stmt = $pdo->query("SELECT id, name FROM teams");
-                    $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    // Fetch only teams within the caller's defense schedule scope.
+                    $accessibleTeamIds = getAccessibleDefenseTeamIds($pdo, $userId, $usertype);
+                    if (!empty($accessibleTeamIds)) {
+                        $teamPlaceholders = implode(',', array_fill(0, count($accessibleTeamIds), '?'));
+                        $stmt = $pdo->prepare("SELECT id, name FROM teams WHERE id IN ($teamPlaceholders) ORDER BY name");
+                        $stmt->execute($accessibleTeamIds);
+                        $response['teams'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    } else {
+                        $response['teams'] = [];
+                    }
 
                     // Fetch staff members filtered by current team (exclude adviser)
-                    $stmt = $pdo->prepare("
-                        SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
-                        FROM users u 
-                        WHERE u.usertype = 2
-                        AND u.id NOT IN (
-                            SELECT user_id FROM team_members 
-                            WHERE role = 'adviser' AND team_id = :team_id
-                        )
-                        ORDER BY name
+                    // Include faculty (usertype=2) and program chairs (usertype=0, id!=0) from same college
+                    
+                    // First get the team's college
+                    $teamCollegeStmt = $pdo->prepare("
+                        SELECT p.college 
+                        FROM teams t
+                        JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)
+                        WHERE t.id = :team_id
+                        LIMIT 1
                     ");
-                    $stmt->execute(['team_id' => $data['team_id']]);
+                    $teamCollegeStmt->execute(['team_id' => $data['team_id']]);
+                    $teamCollege = $teamCollegeStmt->fetchColumn();
+                    
+                    // Build staff query - include faculty AND program chairs from same college
+                    // Users don't have a college column, so we join to programs to get their college  
+                    if ($teamCollege) {
+                        $stmt = $pdo->prepare("
+                            SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
+                            FROM users u 
+                            LEFT JOIN programs p2 ON u.program = CONCAT(p2.name, CASE WHEN p2.specialization IS NOT NULL AND p2.specialization != '' THEN CONCAT(' - ', p2.specialization) ELSE '' END)
+                            WHERE (
+                                u.usertype = 2 
+                                OR (u.usertype = 0 AND u.id != 0 AND p2.college = :college)
+                            )
+                            AND u.id NOT IN (
+                                SELECT user_id FROM team_members 
+                                WHERE role = 'adviser' AND team_id = :team_id
+                            )
+                            ORDER BY name
+                        ");
+                        $stmt->execute(['college' => $teamCollege, 'team_id' => $data['team_id']]);
+                    } else {
+                        // Just include all faculty members
+                        $stmt = $pdo->prepare("
+                            SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name 
+                            FROM users u 
+                            WHERE u.usertype = 2
+                            AND u.id NOT IN (
+                                SELECT user_id FROM team_members 
+                                WHERE role = 'adviser' AND team_id = :team_id
+                            )
+                            ORDER BY name
+                        ");
+                        $stmt->execute(['team_id' => $data['team_id']]);
+                    }
+                    
                     $response['staff'] = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    error_log("Staff fetched for team {$data['team_id']}: " . count($response['staff']) . " members");
 
                     // Fetch current panelists for the defense schedule
-                    $stmt = $pdo->prepare("
-                        SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
-                        FROM users u
-                        WHERE u.id IN (:panelist_id, :panelist_id2, :panelist_id3)
-                    ");
-                    $stmt->execute([
-                        'panelist_id' => $data['panelist_id'],
-                        'panelist_id2' => $data['panelist_id2'],
-                        'panelist_id3' => $data['panelist_id3']
-                    ]);
-                    $currentPanelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    // Build array of panelist IDs that are not null/empty
+                    $panelistIds = [];
+                    if (!empty($data['panelist_id'])) {
+                        $panelistIds[] = $data['panelist_id'];
+                    }
+                    if (!empty($data['panelist_id2'])) {
+                        $panelistIds[] = $data['panelist_id2'];
+                    }
+                    if (!empty($data['panelist_id3'])) {
+                        $panelistIds[] = $data['panelist_id3'];
+                    }
+
+                    $currentPanelists = [];
+                    if (!empty($panelistIds)) {
+                        $placeholders = str_repeat('?,', count($panelistIds) - 1) . '?';
+                        $stmt = $pdo->prepare("
+                            SELECT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+                            FROM users u
+                            WHERE u.id IN ($placeholders)
+                            ORDER BY FIELD(u.id, " . implode(',', array_fill(0, count($panelistIds), '?')) . ")
+                        ");
+                        $stmt->execute(array_merge($panelistIds, $panelistIds));
+                        $currentPanelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+                    }
+                    
                     $response['data']['panelists'] = $currentPanelists;
 
                     // Debugging: Log the fetched panelists

@@ -938,31 +938,22 @@ function createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelis
         $formattedDate = date('F j, Y', strtotime($scheduleDate));
         $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
         
-        // Create approval notifications for each panelist
+        // Create notice-only notifications for each panelist
         foreach ($panelistIds as $panelistId) {
             if ($panelistId && $panelistId !== '') {
-                $title = "Defense Schedule Approval Required";
+                $title = "Defense Panel Assignment Notice";
                 $message = "You have been assigned as a panelist for {$teamInfo['name']}'s defense:\n\n" .
                           "📅 Date: {$formattedDate}\n" .
                           "🕒 Time: {$formattedTime}\n" .
                           "🏢 Room: {$room}\n" .
                           "🎓 Program: {$teamInfo['program']}\n" .
                           "📝 Research: " . ($teamInfo['research_title'] ?? 'N/A') . "\n\n" .
-                          "Please approve or decline this assignment.";
-                
-                // Create notification with approval type and reference to defense schedule
-                $notificationId = createNotification($pdo, $panelistId, $title, $message, 'defense_approval', $scheduleId, true);
-                
-                if ($notificationId) {
-                    // Add approval actions to notification_actions table
-                    $actionStmt = $pdo->prepare("
-                        INSERT INTO notification_actions (notification_id, action_type, action_data) 
-                        VALUES (?, ?, ?)
-                    ");
-                    
-                    $actionData = json_encode(['schedule_id' => $scheduleId]);
-                    $actionStmt->execute([$notificationId, 'approve_defense', $actionData]);
-                    $actionStmt->execute([$notificationId, 'reject_defense', $actionData]);
+                          "This assignment has been automatically accepted by the scheduling workflow.";
+
+                // Keep legacy-schema compatibility when notifications.type does not include defense_notice.
+                $created = createNotification($pdo, $panelistId, $title, $message, 'defense_notice', $scheduleId, false);
+                if (!$created) {
+                    createNotification($pdo, $panelistId, $title, $message, 'defense_approval', $scheduleId, false);
                 }
             }
         }
@@ -972,6 +963,90 @@ function createDefenseApprovalNotifications($pdo, $scheduleId, $teamId, $panelis
         
     } catch (Exception $e) {
         error_log("Error creating defense approval notifications: " . $e->getMessage());
+        return false;
+    }
+}
+
+/**
+ * Create chair review notifications for program chairs
+ * Sends notification to chairs of the program that the team belongs to
+ * @param PDO $pdo Database connection
+ * @param int $scheduleId Defense schedule ID
+ * @param int $teamId Team ID
+ * @param string $scheduleDate Defense date
+ * @param string $startTime Start time
+ * @param string $endTime End time
+ * @param string $room Room location
+ * @return bool Success status
+ */
+function createChairReviewNotifications($pdo, $scheduleId, $teamId, $scheduleDate, $startTime, $endTime, $room) {
+    try {
+        // Get team and research information
+        $teamStmt = $pdo->prepare("
+            SELECT t.name, t.program, rt.title as research_title
+            FROM teams t 
+            LEFT JOIN research_titles rt ON t.id = rt.team_id 
+            WHERE t.id = ?
+        ");
+        $teamStmt->execute([$teamId]);
+        $teamInfo = $teamStmt->fetch(PDO::FETCH_ASSOC);
+        
+        if (!$teamInfo) {
+            error_log("createChairReviewNotifications: Team not found with ID: $teamId");
+            return false;
+        }
+        
+        $formattedDate = date('F j, Y', strtotime($scheduleDate));
+        $formattedTime = date('g:i A', strtotime($startTime)) . ' - ' . date('g:i A', strtotime($endTime));
+        
+        // Find program chairs (usertype=0, is_program_chair=1)
+        // If the team has a specific program, find chairs for that program/college
+        $chairStmt = $pdo->prepare("
+            SELECT DISTINCT u.id 
+            FROM users u 
+            WHERE u.usertype = 0 
+            AND u.is_program_chair = 1
+            AND (u.deleted_at IS NULL)
+        ");
+        $chairStmt->execute();
+        $chairIds = $chairStmt->fetchAll(PDO::FETCH_COLUMN);
+        
+        if (empty($chairIds)) {
+            error_log("createChairReviewNotifications: No program chairs found, falling back to all admins");
+            $adminStmt = $pdo->query("SELECT id FROM users WHERE usertype = 0 AND deleted_at IS NULL");
+            $chairIds = $adminStmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+        
+        $title = "Defense Schedule - Chair Review Required";
+        $message = "A new defense schedule requires your review before panelists are notified:\n\n" .
+                  "🎓 Team: {$teamInfo['name']}\n" .
+                  "📝 Research: " . ($teamInfo['research_title'] ?? 'N/A') . "\n" .
+                  "🎓 Program: {$teamInfo['program']}\n" .
+                  "📅 Date: {$formattedDate}\n" .
+                  "🕒 Time: {$formattedTime}\n" .
+                  "🏢 Room: {$room}\n\n" .
+                  "Please approve or reject this schedule in the Defense Schedules tab.";
+        
+        foreach ($chairIds as $chairId) {
+            $notificationId = createNotification($pdo, $chairId, $title, $message, 'chair_review', $scheduleId, true);
+            
+            if ($notificationId) {
+                // Add approval actions
+                $actionStmt = $pdo->prepare("
+                    INSERT INTO notification_actions (notification_id, action_type, action_data) 
+                    VALUES (?, ?, ?)
+                ");
+                $actionData = json_encode(['schedule_id' => $scheduleId]);
+                $actionStmt->execute([$notificationId, 'approve_chair', $actionData]);
+                $actionStmt->execute([$notificationId, 'reject_chair', $actionData]);
+            }
+        }
+        
+        error_log("createChairReviewNotifications: Notifications sent to " . count($chairIds) . " chairs for schedule ID: $scheduleId");
+        return true;
+        
+    } catch (Exception $e) {
+        error_log("Error creating chair review notifications: " . $e->getMessage());
         return false;
     }
 }

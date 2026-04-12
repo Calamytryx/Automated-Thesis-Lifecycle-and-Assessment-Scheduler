@@ -61,22 +61,135 @@ function getProgramsForCollege(PDO $pdo, string $college): array {
     }
 }
 
-function fetchAccessibleStudents(PDO $pdo, int $userId, int $userType, ?int $currentTeamId, ?string $teamProgram = null, ?string $sessionCollege = null): array {
+function fetchAccessibleSections(PDO $pdo, int $userId, int $userType, ?string $sessionCollege = null): array {
+    try {
+        // Super Admin: all student sections
+        if ($userId === 0 && $userType === 0) {
+            $stmt = $pdo->prepare("SELECT DISTINCT section FROM users WHERE usertype = 1 AND section IS NOT NULL AND section != '' ORDER BY section");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        // Faculty: only assigned sections
+        if ($userType === 2) {
+            return getProfessorSections($pdo, $userId);
+        }
+
+        // Program Chair: sections from own college
+        if ($userType === 0 && $userId !== 0) {
+            $chairCollege = $sessionCollege ?: getProfessorCollege($pdo, $userId);
+            if (!$chairCollege) {
+                return [];
+            }
+
+            $stmt = $pdo->prepare("SELECT DISTINCT u.section
+                FROM users u
+                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                    THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+                WHERE u.usertype = 1
+                  AND u.section IS NOT NULL
+                  AND u.section != ''
+                  AND p.college = ?
+                ORDER BY u.section");
+            $stmt->execute([$chairCollege]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        return [];
+    } catch (Exception $e) {
+        error_log('fetchAccessibleSections error: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function fetchAccessibleTeamSections(PDO $pdo, int $userId, int $userType, ?string $sessionCollege = null): array {
+    try {
+        // Super Admin: all sections that already exist in teams
+        if ($userId === 0 && $userType === 0) {
+            $stmt = $pdo->prepare("SELECT DISTINCT u.section
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                WHERE u.usertype = 1
+                  AND u.section IS NOT NULL
+                  AND u.section != ''
+                ORDER BY u.section");
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        // Faculty: only sections assigned to this professor that have existing teams
+        if ($userType === 2) {
+            $sections = getProfessorSections($pdo, $userId);
+            if (empty($sections)) {
+                return [];
+            }
+
+            $placeholders = implode(',', array_fill(0, count($sections), '?'));
+            $stmt = $pdo->prepare("SELECT DISTINCT u.section
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                WHERE u.usertype = 1
+                  AND u.section IN ($placeholders)
+                ORDER BY u.section");
+            $stmt->execute($sections);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        // Program Chair: sections with existing teams in their college
+        if ($userType === 0 && $userId !== 0) {
+            $chairCollege = $sessionCollege ?: getProfessorCollege($pdo, $userId);
+            if (!$chairCollege) {
+                return [];
+            }
+
+            $stmt = $pdo->prepare("SELECT DISTINCT u.section
+                FROM team_members tm
+                JOIN users u ON tm.user_id = u.id
+                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                    THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
+                WHERE u.usertype = 1
+                  AND u.section IS NOT NULL
+                  AND u.section != ''
+                  AND p.college = ?
+                ORDER BY u.section");
+            $stmt->execute([$chairCollege]);
+            return $stmt->fetchAll(PDO::FETCH_COLUMN);
+        }
+
+        return [];
+    } catch (Exception $e) {
+        error_log('fetchAccessibleTeamSections error: ' . $e->getMessage());
+        return [];
+    }
+}
+
+function fetchAccessibleStudents(PDO $pdo, int $userId, int $userType, ?int $currentTeamId, ?string $teamProgram = null, ?string $sessionCollege = null, ?string $selectedSection = null): array {
     $teamCollege = getCollegeForProgram($pdo, $teamProgram);
+    $selectedSection = trim((string)$selectedSection);
 
     // 🔓 Super Admin (userId === 0): See ALL students without restrictions
     if ($userId === 0) {
         $sql = "SELECT DISTINCT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email, u.section
                 FROM users u
-                WHERE u.id != 0 AND u.usertype = 1
-                ORDER BY u.last_name, u.first_name";
+                WHERE u.id != 0 AND u.usertype = 1";
+        $params = [];
+        if ($selectedSection !== '') {
+            $sql .= " AND u.section = ?";
+            $params[] = $selectedSection;
+        }
+        $sql .= " ORDER BY u.last_name, u.first_name";
         $stmt = $pdo->prepare($sql);
-        $stmt->execute();
+        $stmt->execute($params);
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     if ($userType === 2) {
         $students = getAvailableStudentsForProfessor($pdo, $userId);
+        if ($selectedSection !== '') {
+            $students = array_values(array_filter($students, function ($student) use ($selectedSection) {
+                return isset($student['section']) && $student['section'] === $selectedSection;
+            }));
+        }
     } else {
         $sql = "SELECT DISTINCT u.id, u.first_name, u.last_name, u.usertype, u.username, u.email, u.section
                 FROM users u
@@ -116,6 +229,11 @@ function fetchAccessibleStudents(PDO $pdo, int $userId, int $userType, ?int $cur
                 $sql .= " AND u.program IN ($placeholders)";
                 $params = array_merge($params, $programNames);
             }
+        }
+
+        if ($selectedSection !== '') {
+            $sql .= " AND u.section = ?";
+            $params[] = $selectedSection;
         }
 
         $sql .= " ORDER BY u.last_name, u.first_name";
@@ -234,6 +352,7 @@ $type = $_GET['type'] ?? $_GET['usertype_filter'] ?? null;
 $teamProgram = $_GET['team_program'] ?? null;
 $currentTeamId = isset($_GET['team_id']) ? intval($_GET['team_id']) : null;
 $includeAdvisers = isset($_GET['include_advisers']) ? (bool)$_GET['include_advisers'] : false;
+$selectedSection = trim($_GET['selected_section'] ?? '');
 
 $userId = $_SESSION['id'] ?? 0;
 $usertype = $_SESSION['usertype'] ?? -1;
@@ -242,8 +361,16 @@ $sessionCollege = $_SESSION['college'] ?? null;
 error_log("get_available_users.php - type: $type, userId: $userId, usertype: $usertype");
 
 try {
-    if ($type === 'students') {
-        $students = fetchAccessibleStudents($pdo, $userId, $usertype, $currentTeamId, $teamProgram, $sessionCollege);
+    if ($type === 'sections') {
+        $sections = fetchAccessibleSections($pdo, $userId, $usertype, $sessionCollege);
+        $response['success'] = true;
+        $response['data'] = $sections;
+    } elseif ($type === 'team_sections') {
+        $sections = fetchAccessibleTeamSections($pdo, $userId, $usertype, $sessionCollege);
+        $response['success'] = true;
+        $response['data'] = $sections;
+    } elseif ($type === 'students') {
+        $students = fetchAccessibleStudents($pdo, $userId, $usertype, $currentTeamId, $teamProgram, $sessionCollege, $selectedSection);
         $response['success'] = true;
         $response['data'] = $students;
     } elseif ($type === 'advisers') {
@@ -257,7 +384,7 @@ try {
         $response['success'] = true;
         $response['data'] = $advisers;
     } else {
-        $students = fetchAccessibleStudents($pdo, $userId, $usertype, $currentTeamId, $teamProgram, $sessionCollege);
+        $students = fetchAccessibleStudents($pdo, $userId, $usertype, $currentTeamId, $teamProgram, $sessionCollege, $selectedSection);
         $users = $students;
 
         if ($includeAdvisers) {

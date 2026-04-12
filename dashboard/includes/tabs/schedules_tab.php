@@ -7,8 +7,17 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <h3 class="mb-2">User Schedules Management</h3>
-                <p class="text-muted">Manage class schedules and time availability for users</p>
+                <h3 class="mb-2">Professor Schedules</h3>
+                <p class="text-muted">Manage class schedules and time availability for professors</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#requirements" class="tab-redirect-link" onclick="document.getElementById('requirements-tab').click(); return false;">
+                        <i class="bi bi-check-square-fill"></i>
+                        <span>Manage Requirements and Research templates</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -138,24 +147,6 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     <div class="d-flex gap-2 align-items-center" id="instructorFilters">
                         <select class="form-select user-control-height" id="instructorFilterSelect" style="width: 220px; display: none;">
                             <option value="">Select Instructors</option>
-                            <?php
-                            try {
-                                $stmt = $pdo->query("
-                                    SELECT DISTINCT u.id, u.first_name, u.last_name 
-                                    FROM users u 
-                                    INNER JOIN user_schedules us ON u.id = us.user_id 
-                                    WHERE u.first_name IS NOT NULL AND u.last_name IS NOT NULL 
-                                    ORDER BY u.last_name, u.first_name
-                                ");
-                                while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
-                                    $fullName = htmlspecialchars($row['last_name'] . ', ' . $row['first_name']);
-                                    echo "<option value=\"" . htmlspecialchars($row['id']) . "\">{$fullName}</option>";
-                                }
-                            } catch (PDOException $e) {
-                                echo "<option value=\"\">Error loading instructors</option>";
-                                error_log("Database error: " . $e->getMessage());
-                            }
-                            ?>
                         </select>
                     </div>
                     <script>
@@ -269,6 +260,13 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 collegeSelect.innerHTML = '<option value="">Select College</option>' + html;
                             })
                             .catch(err => console.error('Failed to load colleges:', err));
+
+                        fetch('includes/tabs/load_instructors.php')
+                            .then(res => res.text())
+                            .then(html => {
+                                instructorSelect.innerHTML = '<option value="">Select Instructors</option>' + html;
+                            })
+                            .catch(err => console.error('Failed to load instructors:', err));
 
                         // ✅ Select "By Program" as default on load
                         document.querySelector('.view-type-btn[data-view="program"]').click();
@@ -579,6 +577,11 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                 }
 
                                 scheduleItem.innerHTML = displayContent;
+                                const deleteBtn = scheduleItem.querySelector('.delete-btn');
+                                if (deleteBtn) {
+                                    const selectedScheduleLabel = `${schedule.class_name || 'Class'} (${schedule.day_of_week || 'Day'} ${startTime} - ${endTime})`;
+                                    deleteBtn.dataset.deleteLabel = selectedScheduleLabel;
+                                }
                                 scheduleItem.setAttribute('data-id', schedule.id);
                                 scheduleItem.setAttribute('title',
                                     `${schedule.class_name} (${startTime} - ${endTime})`);

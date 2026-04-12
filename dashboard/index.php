@@ -59,6 +59,7 @@ check_verified();
 // Include database connection
 require '../assets/setup/db.inc.php';
 require_once 'includes/edit_functions.php';
+require_once 'includes/section_access.php';
 require_once '../assets/includes/title_proposal_setup.php';
 require_once '../assets/includes/program_filter.php';
 
@@ -67,8 +68,8 @@ if (function_exists('ensure_title_proposal_column')) {
     ensure_title_proposal_column($pdo);
 }
 
-if ($_SESSION['usertype'] === 1){
-    // block students
+if (!userCanAccessDashboard($pdo, (int)$_SESSION['id'], (int)$_SESSION['usertype'])) {
+    // Block students and non-section professors
     header("Location: /home");
     exit();
 }
@@ -246,7 +247,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 <script>
     document.addEventListener("DOMContentLoaded", function() {
         // Check if there's a previously selected tab stored in localStorage
-        const activeTab = localStorage.getItem("activeTab");
+        // Use a dashboard-specific localStorage key to avoid conflicts with the home page
+        const activeTab = localStorage.getItem("dashboardActiveTab");
 
         // If there is a stored active tab, activate it
         if (activeTab) {
@@ -313,7 +315,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 if (event.target.hasAttribute('data-bs-toggle') && event.target.getAttribute('data-bs-toggle') === 'pill') {
                     // Store the ID of the clicked tab-pane (only if it's a pill)
                     const clickedTabId = event.target.getAttribute('href').substring(1);
-                    localStorage.setItem('activeTab', clickedTabId);
+                    localStorage.setItem('dashboardActiveTab', clickedTabId);
                 }
                 // For links not intended as tabs (like ../files), do nothing with localStorage
             });
@@ -391,7 +393,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a>
                                 </div>
                             </div>
@@ -410,13 +412,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-file-text me-2 hollow"></i>
                                         <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
                                     </a>
+                                    <!-- Previously Programs tab -->
                                     <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
-                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Academic Structure
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
 </div>
                             </div>
@@ -451,9 +454,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <!-- Previously Team Overrides and Panelist tab -->
                                     <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
                                         <i class="bi bi-shield-lock me-2 hollow"></i>
-                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Defense Configuration
                                     </a>
                                 </div>
                             </div>
@@ -582,7 +586,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a>
                                 </div>
                             </div>
@@ -601,13 +605,14 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-file-text me-2 hollow"></i>
                                         <i class="bi bi-file-text-fill me-2 filled"></i>Research Titles
                                     </a>
+                                    <!-- Previously Programs tab -->
                                     <a class="nav-link my-1" id="programs-tab" data-bs-toggle="pill" href="#programs" role="tab" aria-controls="programs">
                                         <i class="bi bi-mortarboard me-2 hollow"></i>
-                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Programs
+                                        <i class="bi bi-mortarboard-fill me-2 filled"></i>Academic Structure 
                                     </a>
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
 </div>
                             </div>
@@ -642,9 +647,10 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                         <i class="bi bi-check-square me-2 hollow"></i>
                                         <i class="bi bi-check-square-fill me-2 filled"></i>Requirements
                                     </a>
+                                    <!-- Previously Team Overrides and Panelist tab -->
                                     <a class="nav-link my-1" id="team_management-tab" data-bs-toggle="pill" href="#team_management" role="tab" aria-controls="team_management" aria-selected="false">
                                         <i class="bi bi-shield-lock me-2 hollow"></i>
-                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Team Overrides & Panelists
+                                        <i class="bi bi-shield-lock-fill me-2 filled"></i>Defense Configuration
                                     </a>
                                 </div>
                             </div>
@@ -773,7 +779,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <!-- <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
                                     </a> -->
                                 </div>
                             </div>
@@ -798,7 +804,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a> -->
                                     <a class="nav-link my-1" id="specialization-management-tab" data-bs-toggle="pill" href="#specialization-management" role="tab" aria-controls="specialization-management" aria-selected="false">
                                         <i class="bi bi-collection me-2 hollow"></i>
-                                        <i class="bi bi-collection-fill me-2 filled"></i>Specializations
+                                        <i class="bi bi-collection-fill me-2 filled"></i>Field of specialization
                                     </a>
                                 </div>
                             </div>
@@ -939,29 +945,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 <button type="button" class="btn btn-primary" id="addItem">Add Item</button>
             </div>
             
-        </div>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="deleteConfirmModalLabel">Confirm Delete</h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <div class="text-center">
-                    <i class="bi bi-exclamation-triangle text-warning" style="font-size: 3rem;"></i>
-                    <h5 class="mt-3">Delete Confirmation</h5>
-                    <p>Are you sure you want to delete this item from <span id="deleteTableName" class="fw-bold"></span> with ID <span id="deleteItemId" class="fw-bold"></span>?</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                <button type="button" class="btn btn-danger" id="confirmDelete">Delete</button>
-            </div>
         </div>
     </div>
 </div>
@@ -1312,7 +1295,9 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             e.stopPropagation();
             
             const pageId = $(this).data('id');
+            const pageTitle = $(this).data('title');
             $('#delete_page_id').val(pageId);
+            $('#deletePageTargetLabel').text(pageTitle ? `"${pageTitle}"` : `page ID ${pageId}`);
             $('#deletePageModal').modal('show');
             
             // Return false to prevent other handlers from executing

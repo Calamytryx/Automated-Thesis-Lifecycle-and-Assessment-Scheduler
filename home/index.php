@@ -36,6 +36,11 @@ define('TITLE', "Home");
 include '../assets/layouts/header.php';
 check_verified();
 include '../assets/setup/db.inc.php';
+require_once '../dashboard/includes/section_access.php';
+
+$isSectionProfessor = ((int)$_SESSION['usertype'] === 2)
+    && professorHasSectionAssignment($pdo, (int)$_SESSION['id']);
+
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
@@ -45,243 +50,15 @@ error_reporting(E_ALL);
 ?>
 
 <script>
+const USER_TYPE = <?php echo (int)$_SESSION['usertype']; ?>;
+
 // Move fetchTeamOverview to global scope
 function fetchTeamOverview(teamId = null) {
-    <?php if ($_SESSION['usertype'] == 2): ?>
-    // Faculty: Show advisee teams and paneling defenses
+    // All user types use the unified dashboard
     fetchFacultyDashboard();
-    <?php else: ?>
-    // Students: Show team overview
-    const url = teamId ? `includes/get_team_overview.php?team_id=${teamId}` : 'includes/get_team_overview.php';
-
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const teamOverviewContent = document.getElementById('teamOverviewContent');
-
-                let content = ''; // Team Selector (if multiple teams available)
-                if (data.teams.length > 1) {
-                    content += `
-                                <div class="row mb-4">
-                                    <div class="col-12">
-                                        <div class="card team-selector-card">
-                                            <div class="card-body">
-                                                <h6 class="card-subtitle mb-3 text-muted">Select Team</h6>
-                                                <select id="teamSelector" class="form-select">
-                                                    ${data.teams.map(team => 
-                                                        `<option value="${team.id}" ${team.id == data.selectedTeam.id ? 'selected' : ''}>${team.name}</option>`
-                                                    ).join('')}
-                                                </select>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            `;
-                }
-
-                // Current Team Info
-                content += `
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="card team-info-card">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center">
-                                                <div>
-                                                    <h5 class="card-title mb-1">${data.selectedTeam.name}</h5>
-                                                    <p class="text-muted mb-0">Team Overview</p>
-                                                </div>
-                                                <div class="text-end">
-                                                    <div class="d-flex gap-3">
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0 text-success">${data.completedCount}</div>
-                                                            <small class="text-muted">Completed</small>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0 text-warning">${data.pendingCount}</div>
-                                                            <small class="text-muted">Pending</small>
-                                                        </div>
-                                                        <div class="text-center">
-                                                            <div class="h4 mb-0">${data.totalRequirements}</div>
-                                                            <small class="text-muted">Total</small>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                // Progress Overview
-                const progressPercentage = data.totalRequirements > 0 ? Math.round((data.completedCount / data
-                    .totalRequirements) * 100) : 0;
-                content += `
-                            <div class="row mb-4">
-                                <div class="col-12">
-                                    <div class="card progress-overview-card">
-                                        <div class="card-body">
-                                            <div class="d-flex justify-content-between align-items-center mb-2">
-                                                <h6 class="card-subtitle mb-0">Overall Progress</h6>
-                                                <span class="badge bg-dark">${progressPercentage}%</span>
-                                            </div>
-                                            <div class="progress" style="height: 8px;">
-                                                <div class="progress-bar bg-success" role="progressbar" style="width: ${progressPercentage}%" aria-valuenow="${progressPercentage}" aria-valuemin="0" aria-valuemax="100"></div>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `; // Requirements by Category
-                content += `
-                            <div class="row">
-                                <!-- Completed Requirements -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="card requirements-completed-card h-100">
-                                        <div class="card-header requirements-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Completed</h6>
-                                                    <small class="text-muted">${data.completedCount} requirements</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.requirements.completed.length > 0 
-                                                ? data.requirements.completed.map(req => `
-                                                    <div class="d-flex align-items-center py-2 border-bottom border-light">
-                                                        <i class="bi bi-check-circle-fill text-success me-2"></i>
-                                                        <span class="flex-grow-1">${req.name}</span>
-                                                    </div>
-                                                `).join('')
-                                                : '<p class="text-muted mb-0">No completed requirements yet</p>'
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Pending Requirements -->
-                                <div class="col-md-6 mb-4">
-                                    <div class="card requirements-pending-card h-100">
-                                        <div class="card-header requirements-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Pending</h6>
-                                                    <small class="text-muted">${data.pendingCount} requirements</small>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.requirements.pending.length > 0 
-                                                ? data.requirements.pending.map(req => {
-                                                    const statusIcon = req.status === 'submitted' ? 'bi-hourglass-split text-info' : 
-                                                                      req.status === 'rejected' ? 'bi-x-circle-fill text-danger' : 
-                                                                      'bi-circle text-muted';
-                                                    const statusText = req.status === 'submitted' ? 'Submitted' : 
-                                                                      req.status === 'rejected' ? 'Rejected' : 
-                                                                      'Not Started';
-                                                    return `
-                                                        <div class="d-flex align-items-center py-2 border-bottom border-light">
-                                                            <i class="bi ${statusIcon} me-2"></i>
-                                                            <div class="flex-grow-1">
-                                                                <div>${req.name}</div>
-                                                                <small class="text-muted">${statusText}</small>
-                                                            </div>
-                                                        </div>
-                                                    `;
-                                                }).join('')
-                                                : '<p class="text-muted mb-0">All requirements completed!</p>'
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `; // Defense Schedule
-                content += `
-                            <div class="row">
-                                <div class="col-12">
-                                    <div class="card defense-schedule-card">
-                                        <div class="card-header defense-schedule-header bg-transparent pb-3">
-                                            <div class="d-flex align-items-center">
-                                                <div>
-                                                    <h6 class="mb-0">Next Defense Schedule</h6>
-                                                </div>
-                                            </div>
-                                        </div>
-                                        <div class="card-body pt-3">
-                                            ${data.defense 
-                                                ? `
-                                                    <div class="row g-3 d-flex justify-content-center">
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-calendar3 text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${new Date(data.defense.schedule_date).toLocaleDateString()}</div>
-                                                                <small class="text-muted">Date</small>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-clock text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${data.defense.start_time} - ${data.defense.end_time}</div>
-                                                                <small class="text-muted">Time</small>
-                                                            </div>
-                                                        </div>
-                                                        <div class="col-sm-6 col-lg-3">
-                                                            <div class="text-center p-3 bg-light rounded">
-                                                                <i class="bi bi-geo-alt text-muted mb-2 d-block"></i>
-                                                                <div class="fw-semibold">${data.defense.room || 'TBA'}</div>
-                                                                <small class="text-muted">Room</small>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                `
-                                                : `
-                                                    <div class="text-center py-4">
-                                                        <i class="bi bi-calendar-x text-muted mb-2" style="font-size: 2rem;"></i>
-                                                        <p class="text-muted mb-0">No defense scheduled yet</p>
-                                                    </div>
-                                                `
-                                            }
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        `;
-
-                teamOverviewContent.innerHTML = content;
-
-                // Add event listener for team selector after content is inserted
-                const teamSelector = document.getElementById('teamSelector');
-                if (teamSelector) {
-                    teamSelector.addEventListener('change', function() {
-                        fetchTeamOverview(this.value);
-                    });
-                }
-            } else {
-                console.error(data.message);
-                document.getElementById('teamOverviewContent').innerHTML = `
-                        <div class="alert alert-warning" role="alert">
-                            <i class="bi bi-exclamation-triangle me-2"></i>
-                            ${data.message}
-                        </div>
-                    `;
-            }
-        })
-        .catch(error => {
-            console.error('Error fetching team overview:', error);
-            document.getElementById('teamOverviewContent').innerHTML = `
-                    <div class="alert alert-danger" role="alert">
-                        <i class="bi bi-exclamation-circle me-2"></i>
-                        Failed to load team overview. Please try again.
-                    </div>
-                `;
-        });
-    <?php endif; ?>
 }
 
-<?php if ($_SESSION['usertype'] == 2): ?>
-// Faculty Dashboard: Show advisee teams and paneling defenses
+// Unified Dashboard: Show teams and defense schedules for all user types
 function fetchFacultyDashboard() {
     const dashboardContent = document.getElementById('teamOverviewContent');
     
@@ -300,12 +77,18 @@ function fetchFacultyDashboard() {
             if (data.success) {
                 let content = '';
                 
-                // Advisee Teams Section - Card-based layout like student overview
+                // Section header - changes per role
+                const teamsHeader = USER_TYPE === 1 ? 'My Teams' : 'Advisee Teams';
+                const noTeamsMsg  = USER_TYPE === 1
+                    ? 'You are not currently a member of any team.'
+                    : 'You are not currently advising any teams.';
+                
+                // Advisee / My Teams Section
                 content += `
                     <div class="row mb-4 align-items-center">
                         <div class="col-auto">
                             <h4 class="mb-0">
-                                Advisee Teams
+                                ${teamsHeader}
                             </h4>
                         </div>
                 `;
@@ -331,7 +114,7 @@ function fetchFacultyDashboard() {
                     content += `
                         <div class="alert alert-info mb-4">
                             <i class="bi bi-info-circle me-2"></i>
-                            You are not currently advising any teams.
+                            ${noTeamsMsg}
                         </div>
                     `;
                 } else {
@@ -342,12 +125,17 @@ function fetchFacultyDashboard() {
                     content += `<div id="adviseeTeamContent"></div>`;
                 }
                 
-                // Paneling Defenses Section
+                // Defense Schedule Section
+                const defenseHeader = USER_TYPE === 1 ? 'Your Defense Schedules' : 'Panel Defense Schedule';
+                const noDefenseMsg  = USER_TYPE === 1
+                    ? 'No defense scheduled yet.'
+                    : 'No defense schedules assigned to you as panelist.';
+                
                 content += `
                     <div class="row mb-4 mt-5">
                         <div class="col-12">
                             <h4 class="mb-3">
-                                Panel Defense Schedule
+                                ${defenseHeader}
                                 <span class="defense-schedule-count">${data.paneling_defenses.length}</span>
                             </h4>
                         </div>
@@ -358,7 +146,69 @@ function fetchFacultyDashboard() {
                     content += `
                         <div class="alert alert-info">
                             <i class="bi bi-info-circle me-2"></i>
-                            No defense schedules assigned to you as panelist.
+                            ${noDefenseMsg}
+                        </div>
+                    `;
+                } else if (USER_TYPE === 1) {
+                    // ── Student view: read-only table with panelist names ──
+                    content += `
+                        <div class="table-responsive">
+                            <table class="db-table defense-schedule-table">
+                                <thead>
+                                    <tr>
+                                        <th>Date & Time</th>
+                                        <th>Defense Type</th>
+                                        <th>Room</th>
+                                        <th>Panelists</th>
+                                        <th class="text-center">Result</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                    `;
+                    
+                    data.paneling_defenses.forEach(defense => {
+                        const defenseDate = new Date(defense.schedule_date);
+                        const isUpcoming = defenseDate >= new Date();
+                        
+                        // Defense type pill
+                        const dtText = (defense.defense_type || 'general').replace(/_/g, ' ');
+                        let dtClass = 'type-general';
+                        if (dtText.includes('title proposal')) dtClass = 'type-proposal';
+                        else if (dtText.includes('title defense')) dtClass = 'type-title';
+                        else if (dtText.includes('final')) dtClass = 'type-final';
+                        else if (dtText.includes('re defense') || dtText.includes('re-defense')) dtClass = 'type-redefense';
+                        
+                        // Result badge
+                        let resultBadge = '';
+                        if (defense.defense_status === 'passed') {
+                            resultBadge = '<span class="defense-status-pill status-evaluated">Passed</span>';
+                        } else if (defense.defense_status === 'failed') {
+                            resultBadge = '<span class="defense-status-pill status-pending">Failed</span>';
+                        } else if (isUpcoming) {
+                            resultBadge = '<span class="defense-status-pill status-scheduled">Upcoming</span>';
+                        } else {
+                            resultBadge = '<span class="defense-status-pill status-pending">Pending</span>';
+                        }
+                        
+                        const panelists = defense.panelist_names || 'TBA';
+                        
+                        content += `
+                            <tr>
+                                <td>
+                                    <strong>${defenseDate.toLocaleDateString()}</strong><br>
+                                    <small class="text-muted">${defense.start_time} - ${defense.end_time}</small>
+                                </td>
+                                <td><span class="defense-type-pill ${dtClass}">${dtText}</span></td>
+                                <td>${defense.room || 'TBA'}</td>
+                                <td><small>${panelists}</small></td>
+                                <td class="text-center">${resultBadge}</td>
+                            </tr>
+                        `;
+                    });
+                    
+                    content += `
+                                </tbody>
+                            </table>
                         </div>
                     `;
                 } else {
@@ -392,11 +242,7 @@ function fetchFacultyDashboard() {
                                 </button>
                             `;
                         } else if (!isUpcoming) {
-                            actionButton = `
-                                <button class="btn btn-sm btn-primary defense-action-btn" onclick="redirectToDecisionSupport(${defense.schedule_id})">
-                                    Evaluate
-                                </button>
-                            `;
+                            actionButton = `<span class="text-muted small">Unavailable</span>`;
                         } else {
                             actionButton = `<span class="text-muted small">Upcoming</span>`;
                         }
@@ -501,6 +347,7 @@ function fetchFacultyDashboard() {
 function renderAdviseeTeamCard(teamIndex) {
     const team = window.adviseeTeamsData[teamIndex];
     if (!team) return;
+    const safeTeamName = escapeHtml(team.name || 'N/A');
     
     const container = document.getElementById('adviseeTeamContent');
     if (!container) return;
@@ -519,9 +366,11 @@ function renderAdviseeTeamCard(teamIndex) {
     };
     const stageInfo = defenseStageLabels[defenseType] || { label: 'Title Proposal', class: 'defense-stage-title-proposal' };
     
-    // Score display
+    // Score display with dynamic thresholds
     const avgScore = team.avg_score ? parseFloat(team.avg_score).toFixed(2) : null;
-    const scoreClass = avgScore >= 75 ? 'text-success' : avgScore >= 60 ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
+    const teamPassThreshold = team.pass_threshold_3 || 75;
+    const teamWarningThreshold = Math.max(teamPassThreshold - 15, 60);
+    const scoreClass = avgScore >= teamPassThreshold ? 'text-success' : avgScore >= teamWarningThreshold ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
     
     // Title status
     const titleApproved = team.title_approved_at ? true : false;
@@ -550,7 +399,7 @@ function renderAdviseeTeamCard(teamIndex) {
                         <h5 class="mb-0">Team Information</h5>
                     </div>
                     <div class="card-body">
-                        <h3 class="card-title">${team.name}</h3>
+                        <h3 class="card-title team-info-title-ellipsis" title="${safeTeamName}">${safeTeamName}</h3>
                         <p class="card-text mb-2">
                             <span class="program-pill" title="${team.program || 'N/A'}">${team.program || 'N/A'}</span>
                         </p>
@@ -866,6 +715,8 @@ function showTeamSummaryModal(teamId, teamName) {
             const panelists = data.panelists || [];
             const students = data.students || [];
             const evaluationsByStudent = data.evaluations_by_student || {};
+            const passThreshold = data.pass_threshold_3 || 75;
+            const warningThreshold = Math.max(passThreshold - 15, 60);
             const members = data.members || [];
             
             let html = `
@@ -916,7 +767,7 @@ function showTeamSummaryModal(teamId, teamName) {
                     if (scores.length > 0) {
                         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
                         allAverages.push(avg);
-                        const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                        const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                         avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
                     }
                     
@@ -927,7 +778,7 @@ function showTeamSummaryModal(teamId, teamName) {
                 let teamAvgDisplay = '<span class="text-muted">-</span>';
                 if (allAverages.length > 0) {
                     const teamAvg = allAverages.reduce((a, b) => a + b, 0) / allAverages.length;
-                    const teamAvgClass = teamAvg >= 75 ? 'text-success' : teamAvg >= 60 ? 'text-warning' : 'text-danger';
+                    const teamAvgClass = teamAvg >= passThreshold ? 'text-success' : teamAvg >= warningThreshold ? 'text-warning' : 'text-danger';
                     teamAvgDisplay = `<strong class="${teamAvgClass}">${teamAvg.toFixed(2)}</strong>`;
                 }
                 
@@ -951,10 +802,115 @@ function showTeamSummaryModal(teamId, teamName) {
         });
 }
 
+<?php if ($isSectionProfessor): ?>
+// --- Academic Year Feature ---
+// Update the academic year label in the class record header
+function updateAcademicYearLabel(academicYear) {
+    const ayLabel = document.getElementById('ayLabel');
+    if (!ayLabel) return;
+    if (academicYear) {
+        ayLabel.textContent = 'A.Y. ' + academicYear;
+        ayLabel.title = 'Click to edit academic year';
+    } else {
+        ayLabel.textContent = 'Academic year not set';
+        ayLabel.title = 'Click to set academic year';
+    }
+}
+
+// Populate start year dropdown: previous year and current year only
+function populateAyYears() {
+    const select = document.getElementById('ayStartYear');
+    if (!select) return;
+    select.innerHTML = '';
+    const now = new Date().getFullYear();
+    for (let y = now - 1; y <= now; y++) {
+        const opt = document.createElement('option');
+        opt.value = y;
+        opt.textContent = y;
+        if (y === now) opt.selected = true;
+        select.appendChild(opt);
+    }
+    // Set end year on change
+    select.addEventListener('change', function() {
+        document.getElementById('ayEndYear').value = parseInt(this.value) + 1;
+    });
+    document.getElementById('ayEndYear').value = parseInt(select.value) + 1;
+}
+
+// Open the academic year modal (set or edit)
+function openAcademicYearModal() {
+    populateAyYears();
+    const ayLabel = document.getElementById('ayLabel');
+    const modalTitle = document.getElementById('ayModalTitle');
+    const currentText = ayLabel?.textContent || '';
+
+    // If there's already an AY set, parse and prefill
+    if (currentText.startsWith('A.Y. ')) {
+        modalTitle.textContent = 'Edit Academic Year';
+        const parts = currentText.replace('A.Y. ', '').split(', ');
+        const years = (parts[0] || '').split('-');
+        const semester = parts[1] || '1st Semester';
+        const startYear = parseInt(years[0]);
+        if (!isNaN(startYear)) {
+            const select = document.getElementById('ayStartYear');
+            // Add option if not in range
+            if (!select.querySelector(`option[value="${startYear}"]`)) {
+                const opt = document.createElement('option');
+                opt.value = startYear;
+                opt.textContent = startYear;
+                select.insertBefore(opt, select.firstChild);
+            }
+            select.value = startYear;
+            document.getElementById('ayEndYear').value = startYear + 1;
+        }
+        document.getElementById('aySemester').value = semester;
+    } else {
+        modalTitle.textContent = 'Set Academic Year';
+    }
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById('academicYearModal'));
+    modal.show();
+}
+
+// Save academic year via AJAX
+function saveAcademicYear() {
+    const startYear = document.getElementById('ayStartYear').value;
+    const endYear = document.getElementById('ayEndYear').value;
+    const semester = document.getElementById('aySemester').value;
+    const academicYear = startYear + '-' + endYear + ', ' + semester;
+
+    const saveBtn = document.getElementById('saveAcademicYearBtn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<span class="spinner-border spinner-border-sm me-1"></span>Saving...';
+
+    $.ajax({
+        url: 'includes/save_academic_year.php',
+        method: 'POST',
+        data: { academic_year: academicYear },
+        dataType: 'json',
+        success: function(response) {
+            if (response.success) {
+                updateAcademicYearLabel(response.academic_year);
+                bootstrap.Modal.getInstance(document.getElementById('academicYearModal'))?.hide();
+                showToast('Success', 'Academic year updated successfully', 'success');
+            } else {
+                showToast('Error', response.message || 'Failed to save academic year', 'error');
+            }
+        },
+        error: function() {
+            showToast('Error', 'Failed to save academic year. Please try again.', 'error');
+        },
+        complete: function() {
+            saveBtn.disabled = false;
+            saveBtn.textContent = 'Save';
+        }
+    });
+}
+
 // Load class record for faculty
 function loadClassRecord(page = 1) {
     const classRecordContent = document.getElementById('classRecordContent');
-    const viewType = document.getElementById('classRecordViewSelect')?.value || 'team';
+    const viewType = document.getElementById('classRecordViewSelect')?.value || 'class';
     const sortContainer = document.getElementById('classRecordSortContainer');
     
     // Hide sort dropdown - class view now always sorts alphabetically by section
@@ -976,6 +932,9 @@ function loadClassRecord(page = 1) {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
+                // Update academic year display in header
+                updateAcademicYearLabel(data.academic_year);
+                
                 let content = '';
                 
                 if (Object.keys(data.sections).length === 0) {
@@ -1050,17 +1009,22 @@ function loadClassRecord(page = 1) {
                             `;
                             
                             students.forEach(student => {
-                                const avgScore = student.avg_score ? parseFloat(student.avg_score).toFixed(2) : null;
+                                // Use avg_total_score (from latest defense panelist grades) for consistency
+                                const avgScore = student.avg_total_score ? parseFloat(student.avg_total_score).toFixed(2) : (student.avg_score ? parseFloat(student.avg_score).toFixed(2) : null);
+                                
+                                // Get dynamic pass threshold from rubric (default to 75 if not set)
+                                const passThreshold = student.pass_threshold_3 || 75;
+                                const warningThreshold = Math.max(passThreshold - 15, 60);
                                 
                                 // Determine status based on average score
                                 let status = 'Pending';
                                 let statusClass = 'bg-secondary';
                                 
                                 if (avgScore !== null) {
-                                    if (avgScore >= 75) {
+                                    if (avgScore >= passThreshold) {
                                         status = 'Passed';
                                         statusClass = 'bg-success';
-                                    } else if (avgScore < 75) {
+                                    } else if (avgScore < passThreshold) {
                                         status = 'Failed';
                                         statusClass = 'bg-danger';
                                     }
@@ -1078,7 +1042,7 @@ function loadClassRecord(page = 1) {
                                     }
                                 });
                                 
-                                const avgScoreClass = avgScore >= 75 ? 'text-success' : avgScore >= 60 ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
+                                const avgScoreClass = avgScore >= passThreshold ? 'text-success' : avgScore >= warningThreshold ? 'text-warning' : avgScore ? 'text-danger' : 'text-muted';
                                 const avgScoreDisplay = avgScore !== null ? `<strong>${avgScore}</strong>` : '-';
                                 
                                 content += `
@@ -1245,27 +1209,31 @@ function loadClassRecord(page = 1) {
                         const avgGroupScore = student.avg_group_score ? parseFloat(student.avg_group_score).toFixed(2) : null;
                         const avgSoloScore = student.avg_solo_score ? parseFloat(student.avg_solo_score).toFixed(2) : null;
                         
+                        // Get dynamic pass threshold from rubric (default to 75 if not set)
+                        const passThreshold = student.pass_threshold_3 || 75;
+                        const warningThreshold = Math.max(passThreshold - 15, 60);
+                        
                         let status = 'Pending';
                         let statusClass = 'bg-secondary';
                         let statusValue = 2; // For sorting
                         
                         if (avgTotalScore !== null) {
-                            if (avgTotalScore >= 75) {
+                            if (avgTotalScore >= passThreshold) {
                                 status = 'Passed';
                                 statusClass = 'bg-success';
                                 statusValue = 0;
-                            } else if (avgTotalScore < 75) {
+                            } else if (avgTotalScore < passThreshold) {
                                 status = 'Failed';
                                 statusClass = 'bg-danger';
                                 statusValue = 1;
                             }
                         }
                         
-                        // Score display helpers
+                        // Score display helpers (using dynamic thresholds)
                         const getScoreClass = (score) => {
                             if (!score) return 'text-muted';
                             const val = parseFloat(score);
-                            return val >= 75 ? 'text-success' : val >= 60 ? 'text-warning' : 'text-danger';
+                            return val >= passThreshold ? 'text-success' : val >= warningThreshold ? 'text-warning' : 'text-danger';
                         };
                         
                         const groupScoreClass = getScoreClass(avgGroupScore);
@@ -1282,7 +1250,7 @@ function loadClassRecord(page = 1) {
                             student.panelist_grades.forEach(grade => {
                                 if (grade.total_score !== null) {
                                     const gradeValue = parseFloat(grade.total_score).toFixed(2);
-                                    const gradeClass = gradeValue >= 75 ? 'text-success' : gradeValue >= 60 ? 'text-warning' : 'text-danger';
+                                    const gradeClass = gradeValue >= passThreshold ? 'text-success' : gradeValue >= warningThreshold ? 'text-warning' : 'text-danger';
                                     panelistDetailsHTML += `${grade.panelist_name}: <span class="${gradeClass}">${gradeValue}</span> (G:${grade.group_score || 'N/A'} I:${grade.solo_score || 'N/A'}); `;
                                 } else {
                                     panelistDetailsHTML += `${grade.panelist_name}: <span class="text-muted">No grade</span>; `;
@@ -1304,6 +1272,7 @@ function loadClassRecord(page = 1) {
                                     data-status-text="${status}"
                                     data-status-class="${statusClass}"
                                     data-panelist-details="${panelistDetailsHTML.replace(/"/g, '&quot;')}"
+                                    data-pass-threshold="${passThreshold}"
                                     style="cursor: pointer;">
                                     <td class="text-center text-muted">${studentIdx + 1}</td>
                                     <td class="d-none d-md-table-cell"><small class="text-muted">${student.student_number || 'N/A'}</small></td>
@@ -1357,8 +1326,9 @@ function loadClassRecord(page = 1) {
 <?php endif; ?>
 
 document.addEventListener("DOMContentLoaded", function() {
-    // Check if there's a previously selected tab stored in localStorage
-    const activeTab = localStorage.getItem("activeTab") || "overview";
+    // Use a home-specific localStorage key to avoid conflicts with the dashboard
+    const activeTab = localStorage.getItem("homeActiveTab") || "overview";
+    const savedOverviewViewMode = sessionStorage.getItem('homeOverviewViewMode') || 'dashboard';
 
     // Deactivate all tab-panes and nav-links
     const allTabPanes = document.querySelectorAll('.tab-pane');
@@ -1372,9 +1342,10 @@ document.addEventListener("DOMContentLoaded", function() {
         link.classList.remove("active");
     });
 
-    // Activate the tab and its content
+    // Activate the tab and its content (fall back to overview if stored tab doesn't exist)
     const activeTabPane = document.getElementById(activeTab);
     const activeNavLink = document.querySelector(`.nav-link[href="#${activeTab}"]`);
+    const isOverview = !activeTabPane || activeTab === "overview";
 
     if (activeTabPane) {
         activeTabPane.classList.add("show", "active");
@@ -1395,7 +1366,7 @@ document.addEventListener("DOMContentLoaded", function() {
             const href = event.currentTarget.getAttribute('href');
             if (href) {
                 const clickedTabId = href.substring(1);
-                localStorage.setItem('activeTab', clickedTabId);
+                localStorage.setItem('homeActiveTab', clickedTabId);
             }
         });
     });
@@ -1406,13 +1377,24 @@ document.addEventListener("DOMContentLoaded", function() {
     });
 
     // Load class record when the class record tab is clicked (faculty only)
-    <?php if ($_SESSION['usertype'] == 2): ?>
+    <?php if ($isSectionProfessor): ?>
     const classRecordLink = document.getElementById('class-record-link');
     if (classRecordLink) {
         classRecordLink.addEventListener('click', function() {
             window.classRecordCurrentPage = 1; // Initialize page 1
             loadClassRecord(1);
         });
+    }
+    
+    // Academic year label click → open modal
+    const ayLabel = document.getElementById('ayLabel');
+    if (ayLabel) {
+        ayLabel.addEventListener('click', openAcademicYearModal);
+    }
+    // Save academic year button
+    const saveAyBtn = document.getElementById('saveAcademicYearBtn');
+    if (saveAyBtn) {
+        saveAyBtn.addEventListener('click', saveAcademicYear);
     }
     
     // Add event listener for view toggle
@@ -1460,11 +1442,15 @@ document.addEventListener("DOMContentLoaded", function() {
         const statusClass = row.getAttribute('data-status-class');
         const panelistDetails = row.getAttribute('data-panelist-details');
         
-        // Score display helpers
+        // Get dynamic thresholds from the row data
+        const passThreshold = parseFloat(row.getAttribute('data-pass-threshold')) || 75;
+        const warningThreshold = Math.max(passThreshold - 15, 60);
+        
+        // Score display helpers (using dynamic thresholds)
         const getScoreDisplay = (score, label) => {
             const scoreFloat = parseFloat(score);
             if (scoreFloat > 0) {
-                const scoreClass = scoreFloat >= 75 ? 'text-success' : scoreFloat >= 60 ? 'text-warning' : 'text-danger';
+                const scoreClass = scoreFloat >= passThreshold ? 'text-success' : scoreFloat >= warningThreshold ? 'text-warning' : 'text-danger';
                 return `<strong class="${scoreClass}">${scoreFloat.toFixed(2)}</strong>`;
             }
             return '<span class="text-muted">No grade yet</span>';
@@ -1554,31 +1540,52 @@ document.addEventListener("DOMContentLoaded", function() {
     <?php endif; ?>
 
     // Fetch team overview content on page load if the overview tab is active
-    if (activeTab === "overview") {
-        fetchTeamOverview();
+    if (isOverview) {
+        setTimeout(() => {
+            fetchTeamOverview();
+        }, 150);
     }
 
     // Load class record on page load if that tab is active
-    <?php if ($_SESSION['usertype'] == 2): ?>
+    <?php if ($isSectionProfessor): ?>
     if (activeTab === "class-record") {
-        loadClassRecord(1);
+        // Use setTimeout to ensure tab transition completes before loading content
+        setTimeout(() => {
+            loadClassRecord(1);
+        }, 150);
     }
     <?php endif; ?>
+
+    const applyOverviewViewMode = (mode, initializeCalendar = true) => {
+        const isCalendarMode = mode === 'calendar';
+        document.getElementById('dashboardView').style.display = isCalendarMode ? 'none' : 'block';
+        document.getElementById('calendarView').style.display = isCalendarMode ? 'block' : 'none';
+
+        const dashboardRadio = document.getElementById('dashboard-view');
+        const calendarRadio = document.getElementById('calendar-view');
+        if (dashboardRadio && calendarRadio) {
+            dashboardRadio.checked = !isCalendarMode;
+            calendarRadio.checked = isCalendarMode;
+        }
+
+        if (isCalendarMode && initializeCalendar) {
+            setTimeout(() => {
+                initializeOverviewCalendar();
+            }, 100);
+        }
+    };
+
+    // Restore Overview view mode on refresh (within current tab session)
+    if (isOverview) {
+        applyOverviewViewMode(savedOverviewViewMode, savedOverviewViewMode === 'calendar');
+    }
 
     // Handle view mode switching between Dashboard and Calendar
     document.querySelectorAll('input[name="viewMode"]').forEach(radio => {
         radio.addEventListener('change', function() {
-            if (this.id === 'calendar-view') {
-                document.getElementById('dashboardView').style.display = 'none';
-                document.getElementById('calendarView').style.display = 'block';
-                // Initialize calendar for the overview tab when calendar view is selected
-                setTimeout(() => {
-                    initializeOverviewCalendar();
-                }, 100);
-            } else {
-                document.getElementById('dashboardView').style.display = 'block';
-                document.getElementById('calendarView').style.display = 'none';
-            }
+            const selectedMode = this.id === 'calendar-view' ? 'calendar' : 'dashboard';
+            sessionStorage.setItem('homeOverviewViewMode', selectedMode);
+            applyOverviewViewMode(selectedMode, selectedMode === 'calendar');
         });
     });
 });
@@ -1602,8 +1609,52 @@ function initializeOverviewCalendar() {
         height: 'auto',
         events: [],
         eventClick: function(info) {
-            // Handle event click
-            console.log('Event clicked:', info.event);
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            const scheduleId = parseInt(info.event.extendedProps.scheduleId, 10);
+            const hasEvaluated = parseInt(info.event.extendedProps.hasEvaluated, 10) > 0;
+            const defenseIsPast = String(info.event.extendedProps.defenseIsPast) === '1';
+
+            if (!isDefenseEvent || Number.isNaN(scheduleId)) {
+                return;
+            }
+
+            if (USER_TYPE === 2 || USER_TYPE === 0) {
+                if (defenseIsPast && !hasEvaluated) {
+                    showDefenseScheduleUnavailableToast();
+                    return;
+                }
+                redirectToDecisionSupport(scheduleId);
+            }
+        },
+        eventContent: function(info) {
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            if (!isDefenseEvent) {
+                return true;
+            }
+
+            const room = info.event.extendedProps.location || 'TBA';
+            const compactText = info.timeText ? `${info.timeText} • ${room}` : room;
+
+            return {
+                html: `<div class="calendar-defense-compact-text">${compactText}</div>`
+            };
+        },
+        eventDidMount: function(info) {
+            const isDefenseEvent = info.event.extendedProps.eventType === 'defense';
+            if (!isDefenseEvent) {
+                return;
+            }
+
+            const hasEvaluated = parseInt(info.event.extendedProps.hasEvaluated, 10) > 0;
+            const defenseIsPast = String(info.event.extendedProps.defenseIsPast) === '1';
+            const isLockedDefense = defenseIsPast && !hasEvaluated;
+
+            info.el.classList.add('calendar-defense-compact-event');
+            if (isLockedDefense) {
+                info.el.classList.add('calendar-defense-locked-event');
+            }
+            const teamName = info.event.extendedProps.teamName || info.event.title || 'Defense Team';
+            info.el.setAttribute('title', teamName);
         },
         dateClick: function(info) {
             if (calendar.view.type === 'dayGridMonth') {
@@ -1628,7 +1679,11 @@ function initializeOverviewCalendar() {
                         start: `${defense.date}T${defense.start_time}`,
                         end: `${defense.date}T${defense.end_time}`,
                         location: defense.room,
-                        eventType: 'defense'
+                        eventType: 'defense',
+                        scheduleId: defense.defense_schedule_id,
+                        teamName: defense.team_name,
+                        hasEvaluated: defense.has_evaluated || 0,
+                        defenseIsPast: defense.defense_is_past || 0
                     });
                 });
 
@@ -1678,18 +1733,18 @@ function updateRequirementsList(teamId) {
                 let listHtml = '';
                 if (data.requirements && data.requirements.length > 0) {
                     data.requirements.forEach(requirement => {
-                        let badgeClass = 'bg-warning';
-                        let badgeText = 'Pending';
+                        let statusClass = 'status-pending';
+                        let statusText = 'Pending';
 
                         if (requirement.status === 'approved') {
-                            badgeClass = 'bg-success';
-                            badgeText = 'Approved';
+                            statusClass = 'status-evaluated';
+                            statusText = 'Approved';
                         } else if (requirement.status === 'submitted') {
-                            badgeClass = 'bg-info';
-                            badgeText = 'Submitted';
+                            statusClass = 'status-evaluated';
+                            statusText = 'Submitted';
                         } else if (requirement.status === 'rejected') {
-                            badgeClass = 'bg-danger';
-                            badgeText = 'Rejected';
+                            statusClass = 'status-rejected';
+                            statusText = 'Rejected';
                         }
 
                         const dueDate = new Date(requirement.due_date).toLocaleDateString('en-US', {
@@ -1699,13 +1754,12 @@ function updateRequirementsList(teamId) {
                         });
 
                         listHtml += `
-                                <li class="list-group-item d-flex justify-content-between align-items-center req-li">
-                                    <div>
-                                        <strong>${requirement.name}</strong>
-                                        <br>
-                                        <small class="text-muted due-date-txt">Due: ${dueDate}</small>
+                                <li class="list-group-item overview-requirement-item">
+                                    <div class="overview-requirement-content">
+                                        <div class="overview-requirement-title">${requirement.name}</div>
+                                        <span class="defense-status-pill overview-status-pill ${statusClass}">${statusText}</span>
+                                        <small class="overview-requirement-due-date">Due: ${dueDate}</small>
                                     </div>
-                                    <span class="badge ${badgeClass} rounded-pill">${badgeText}</span>
                                 </li>
                             `;
                     });
@@ -1726,9 +1780,77 @@ function updateRequirementsList(teamId) {
         });
 }
 
+function initializeDefenseScheduleFilter() {
+    const filterSelect = document.getElementById('defenseScheduleFilter');
+    const defenseList = document.getElementById('defenseSchedulesList');
+    if (!filterSelect || !defenseList) return;
+
+    const defenseItems = Array.from(defenseList.querySelectorAll('.defense-item'));
+    if (defenseItems.length === 0) return;
+
+    const getDateValue = (item) => {
+        const dateValue = item.dataset.defenseDate || '';
+        const timestamp = Date.parse(`${dateValue}T00:00:00`);
+        return Number.isNaN(timestamp) ? 0 : timestamp;
+    };
+
+    const getStatusPriority = (item) => {
+        const status = item.dataset.defenseStatus || '';
+        return status === 'status-evaluated' ? 1 : 0;
+    };
+
+    const sortItems = (items, oldestFirst = false) => {
+        return [...items].sort((leftItem, rightItem) => {
+            const leftDate = getDateValue(leftItem);
+            const rightDate = getDateValue(rightItem);
+
+            if (leftDate !== rightDate) {
+                return oldestFirst ? leftDate - rightDate : rightDate - leftDate;
+            }
+
+            // Keep evaluated below pending/scheduled on same date
+            return getStatusPriority(leftItem) - getStatusPriority(rightItem);
+        });
+    };
+
+    const applyDefenseFilter = () => {
+        const selectedFilter = filterSelect.value;
+        let filteredItems = defenseItems;
+        let oldestFirst = false;
+
+        if (selectedFilter === 'past_recent') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseIsPast === '1');
+        } else if (selectedFilter === 'past_oldest') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseIsPast === '1');
+            oldestFirst = true;
+        } else if (selectedFilter === 'status_evaluated') {
+            filteredItems = defenseItems.filter(item => item.dataset.defenseStatus === 'status-evaluated');
+        } else if (selectedFilter === 'status_pending') {
+            filteredItems = defenseItems.filter(item => {
+                const status = item.dataset.defenseStatus;
+                return status === 'status-pending' || status === 'status-scheduled';
+            });
+        }
+
+        const sortedItems = sortItems(filteredItems, oldestFirst);
+        defenseList.innerHTML = '';
+
+        if (sortedItems.length === 0) {
+            defenseList.innerHTML = '<li class="list-group-item text-center text-muted"><em>No defense schedules found for this filter</em></li>';
+            return;
+        }
+
+        sortedItems.forEach(item => defenseList.appendChild(item));
+    };
+
+    filterSelect.addEventListener('change', applyDefenseFilter);
+    applyDefenseFilter();
+}
+
 // Initialize requirements team selector when document is ready
 document.addEventListener("DOMContentLoaded", function() {
     handleRequirementsTeamChange();
+    initializeDefenseScheduleFilter();
 });
 </script>
 <main role="main" class="container-fluid p-0">
@@ -1749,7 +1871,11 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
                                     <p class="user-role"><?php 
                                         if ($_SESSION['usertype'] == 0) {
-                                            echo "Administrator";
+                                            if (isset($_SESSION['program_chair']) && (int)$_SESSION['program_chair'] === 1) {
+                                                echo "Program Chair";
+                                            } else {
+                                                echo "Administrator";
+                                            }
                                         } elseif ($_SESSION['usertype'] == 1) {
                                             echo "Student";
                                         } elseif ($_SESSION['usertype'] == 2) {
@@ -1829,7 +1955,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <i class="bi bi-list-check me-2 filled"></i>
                                         <span class="nav-text">Requirement Checker</span>
                                     </a>
-                                    <?php if ($_SESSION['usertype'] != 0): // Hide evaluations for admins - they use dashboard ?>
+                                    <?php if (in_array((int)$_SESSION['usertype'], [0, 1, 2], true)): ?>
                                     <a class="nav-link" id="research-evaluation-link" data-bs-toggle="pill"
                                         href="#research-evaluation" role="tab" aria-controls="research-evaluation"
                                         aria-selected="false">
@@ -1838,7 +1964,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <span class="nav-text">Team Evaluations</span>
                                     </a>
                                     <?php endif; ?>
-                                    <?php if ($_SESSION['usertype'] == 2): ?>
+                                    <?php if ($isSectionProfessor): ?>
                                     <a class="nav-link" id="class-record-link" data-bs-toggle="pill"
                                         href="#class-record" role="tab" aria-controls="class-record"
                                         aria-selected="false">
@@ -2356,8 +2482,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                             <?php 
                                             if ($_SESSION['usertype'] == 1) {
                                                 echo "View your team's evaluation results and feedback";
+                                            } elseif ($_SESSION['usertype'] == 0) {
+                                                echo "View evaluations for teams you advise";
                                             } elseif ($_SESSION['usertype'] == 2) {
-                                                echo "View evaluations for teams you advise or evaluated as panelist";
+                                                echo "View evaluations for teams you advise";
                                             }
                                             ?>
                                         </p>
@@ -2406,14 +2534,22 @@ document.addEventListener("DOMContentLoaded", function() {
                             </div>
                         </div>
 
-                        <?php if ($_SESSION['usertype'] == 2): ?>
+                        <?php if ($isSectionProfessor): ?>
                         <div class="tab-pane fade" id="class-record" role="tabpanel"
                             aria-labelledby="class-record-link">
                             <div class="container-fluid py-4 content-container">
                                 <div class="row mb-4">
-                                    <div class="col-12">
-                                        <h3 class="mb-2">Class Record</h3>
-                                        <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                    <div class="col-12 d-flex justify-content-between align-items-start">
+                                        <div>
+                                            <h3 class="mb-2">Class Record</h3>
+                                            <p class="text-muted">Student grades grouped by section, sorted alphabetically</p>
+                                        </div>
+                                        <div id="academicYearDisplay" class="text-end pt-1">
+                                            <button type="button" id="ayLabel" class="btn-ay"
+                                                    title="Click to set academic year">
+                                                Academic year not set
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                                 
@@ -2426,7 +2562,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                     <!-- View Toggle Dropdown -->
                                                     <select class="form-select user-control-height" id="classRecordViewSelect">
                                                         <option value="team">Team View</option>
-                                                        <option value="class">Class View</option>
+                                                        <option value="class" selected>Class View</option>
                                                     </select>
                                                 </div>
                                                 
@@ -2458,6 +2594,44 @@ document.addEventListener("DOMContentLoaded", function() {
                                 </div>
                             </div>
                         </div>
+
+                        <!-- Academic Year Modal -->
+                        <div class="modal fade" id="academicYearModal" tabindex="-1" aria-hidden="true">
+                            <div class="modal-dialog modal-dialog-centered">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title" id="ayModalTitle">Set Academic Year</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                    </div>
+                                    <div class="modal-body">
+                                        <form id="academicYearForm">
+                                            <div class="mb-3">
+                                                <label for="ayStartYear" class="form-label">Start Year</label>
+                                                <select class="form-select" id="ayStartYear" required>
+                                                    <!-- Populated by JS -->
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="ayEndYear" class="form-label">End Year</label>
+                                                <input type="text" class="form-control" id="ayEndYear" readonly>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="aySemester" class="form-label">Semester</label>
+                                                <select class="form-select" id="aySemester" required>
+                                                    <option value="1st Semester">1st Semester</option>
+                                                    <option value="2nd Semester">2nd Semester</option>
+                                                    <option value="Summer">Summer</option>
+                                                </select>
+                                            </div>
+                                        </form>
+                                    </div>
+                                    <div class="modal-footer">
+                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                        <button type="button" class="btn btn-primary" id="saveAcademicYearBtn">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
                         <?php endif; ?>
 
                         <div class="tab-pane fade show active" id="overview" role="tabpanel"
@@ -2468,18 +2642,27 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <div class="col-md-8">
                                         <h3 class="mb-2">Dashboard</h3>
                                         <p class="text-muted">Track your requirement progress and defense schedule</p>
+                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
+                                        <div class="my-2">
+                                            <a href="#requirement-checker" class="tab-redirect-link" onclick="document.getElementById('requirement-checker-link').click(); return false;">
+                                                <i class="bi bi-list-check"></i>
+                                                <span>View Team requirements</span>
+                                                <i class="bi bi-arrow-right"></i>
+                                            </a>
+                                        </div>
+                                        <?php endif; ?>
                                     </div>
                                     <div class="col-md-4 text-end">
                                         <div class="btn-group z-0" role="group">
                                             <input type="radio" class="btn-check" name="viewMode" id="dashboard-view"
                                                 checked>
                                             <label class="btn btn-outline-primary" for="dashboard-view">
-                                                <i class="bi bi-grid-3x3"></i> Dashboard
+                                                Dashboard
                                             </label>
 
                                             <input type="radio" class="btn-check" name="viewMode" id="calendar-view">
                                             <label class="btn btn-outline-primary" for="calendar-view">
-                                                <i class="bi bi-calendar"></i> Calendar
+                                                Calendar
                                             </label>
                                         </div>
                                     </div>
@@ -2505,7 +2688,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                 <div id="calendar2"></div>
                                             </div>
                                         </div>
-                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 1): ?>
+                                        <?php if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 1 || $_SESSION['usertype'] == 0): ?>
                                         <?php
                                     // Fetch teams for current user
                                     $userId = $_SESSION['id'];
@@ -2557,8 +2740,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
                                                             <!-- Team Selector (only for professors) -->
-                                                            <?php if ($_SESSION['usertype'] == 2 && count($teams) > 1): ?>
-                                                            <div class="mb-3">
+                                                            <?php if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) > 1): ?>
+                                                            <div class="mb-3 requirements-team-selector-wrap">
                                                                 <label for="requirementsTeamSelector"
                                                                     class="form-label small text-muted">Select
                                                                     Team:</label>
@@ -2572,8 +2755,8 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                     <?php endforeach; ?>
                                                                 </select>
                                                             </div>
-                                                            <?php elseif ($_SESSION['usertype'] == 2 && count($teams) == 1): ?>
-                                                            <div class="mb-3">
+                                                            <?php elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && count($teams) == 1): ?>
+                                                            <div class="mb-3 requirements-team-selector-wrap">
                                                                 <p class="small text-muted mb-2">Team:
                                                                     <strong><?php echo htmlspecialchars($teams[0]['name']); ?></strong>
                                                                 </p>
@@ -2589,29 +2772,27 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 <?php elseif (!empty($requirements)): ?>
                                                                 <?php foreach ($requirements as $requirement): ?>
                                                                 <li
-                                                                    class="list-group-item d-flex justify-content-between align-items-center req-li">
-                                                                    <div>
-                                                                        <strong><?php echo htmlspecialchars($requirement['name']); ?></strong>
-                                                                        <br>
-                                                                        <small class="text-muted due-date-txt">Due:
-                                                                            <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
-                                                                    </div>
+                                                                    class="list-group-item overview-requirement-item">
+                                                                    <div class="overview-requirement-content">
+                                                                        <div class="overview-requirement-title"><?php echo htmlspecialchars($requirement['name']); ?></div>
                                                                     <?php
-                                                                        $badgeClass = 'bg-warning';
-                                                                        $badgeText = 'Pending';
+                                                                        $statusClass = 'status-pending';
+                                                                        $statusText = 'Pending';
                                                                         if ($requirement['status'] === 'approved') {
-                                                                            $badgeClass = 'bg-success';
-                                                                            $badgeText = 'Approved';
+                                                                            $statusClass = 'status-evaluated';
+                                                                            $statusText = 'Approved';
                                                                         } elseif ($requirement['status'] === 'submitted') {
-                                                                            $badgeClass = 'bg-info';
-                                                                            $badgeText = 'Submitted';
+                                                                            $statusClass = 'status-evaluated';
+                                                                            $statusText = 'Submitted';
                                                                         } elseif ($requirement['status'] === 'rejected') {
-                                                                            $badgeClass = 'bg-danger';
-                                                                            $badgeText = 'Rejected';
+                                                                            $statusClass = 'status-rejected';
+                                                                            $statusText = 'Rejected';
                                                                         }
                                                                         ?>
-                                                                    <span
-                                                                        class="badge <?php echo $badgeClass; ?> rounded-pill"><?php echo $badgeText; ?></span>
+                                                                        <span class="defense-status-pill overview-status-pill <?php echo $statusClass; ?>"><?php echo $statusText; ?></span>
+                                                                        <small class="overview-requirement-due-date">Due:
+                                                                            <?php echo date('M d, Y', strtotime($requirement['due_date'])); ?></small>
+                                                                    </div>
                                                                 </li>
                                                                 <?php endforeach; ?>
                                                                 <?php else: ?>
@@ -2642,6 +2823,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         JOIN teams t ON ds.team_id = t.id
                                                         JOIN team_members tm ON t.id = tm.team_id
                                                         WHERE tm.user_id = :user_id
+                                                        AND ds.approval_status = 'approved'
                                                         ORDER BY ds.schedule_date, ds.start_time";
                                                 $stmt = $pdo->prepare($query);
                                                 $stmt->execute(['user_id' => $userId]);
@@ -2664,9 +2846,10 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         FROM defense_schedules ds
                                                         JOIN teams t ON ds.team_id = t.id
                                                         WHERE
-                                                            ds.panelist_id = :user_id1
+                                                            (ds.panelist_id = :user_id1
                                                             OR ds.panelist_id2 = :user_id2
-                                                            OR ds.panelist_id3 = :user_id3
+                                                            OR ds.panelist_id3 = :user_id3)
+                                                            AND ds.approval_status = 'approved'
                                                         ORDER BY
                                                             CASE 
                                                                 WHEN CONCAT(ds.schedule_date, ' ', ds.end_time) < NOW() THEN 3
@@ -2697,9 +2880,18 @@ document.addEventListener("DOMContentLoaded", function() {
                                                         aria-labelledby="headingDefenses2"
                                                         data-bs-parent="#requirementsAccordion2">
                                                         <div class="accordion-body custom-scrollbar">
-                                                            <ul class="list-group">
+                                                            <div class="mb-3 defense-filter-wrap">
+                                                                <label for="defenseScheduleFilter" class="form-label small text-muted">Filter / Sort:</label>
+                                                                <select id="defenseScheduleFilter" class="form-select form-select-sm">
+                                                                    <option value="all_recent" selected>All Defenses (Most Recent)</option>
+                                                                    <option value="past_recent">Past Defenses (Most Recent)</option>
+                                                                    <option value="past_oldest">Past Defenses (Oldest)</option>
+                                                                    <option value="status_evaluated">Status: Evaluated</option>
+                                                                    <option value="status_pending">Status: Pending</option>
+                                                                </select>
+                                                            </div>
+                                                            <ul class="list-group" id="defenseSchedulesList">
                                                                 <?php 
-                                                                $current_status = null;
                                                                 foreach ($schedules as $schedule):
                                                                 $formatted_date = date('F j, Y', strtotime($schedule['schedule_date']));
                                                                 $formatted_start_time = date('g:i a', strtotime($schedule['start_time']));
@@ -2709,51 +2901,54 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 $defense_status = $schedule['defense_status'] ?? 'upcoming';
                                                                 $has_evaluated = isset($schedule['has_evaluated']) ? $schedule['has_evaluated'] > 0 : false;
                                                                 $defense_type = $schedule['defense_type'] ?? 'general';
-                                                                
-                                                                // Add section headers for different statuses
-                                                                if ($_SESSION['usertype'] == 2 && $current_status !== $defense_status) {
-                                                                    $current_status = $defense_status;
-                                                                    $status_icon = $defense_status === 'ongoing' ? 'bi-clock-history text-warning' : 
-                                                                                 ($defense_status === 'upcoming' ? 'bi-calendar-event text-primary' : 'bi-calendar-check text-muted');
-                                                                    $status_label = $defense_status === 'ongoing' ? 'Ongoing' : 
-                                                                                  ($defense_status === 'upcoming' ? 'Upcoming' : 'Past');
-                                                                    echo '<li class="list-group-item bg-light"><strong><i class="bi ' . $status_icon . ' me-2"></i>' . $status_label . ' Defenses</strong></li>';
-                                                                }
 
                                                                 $onclick_attr = '';
                                                                 $item_class = 'list-group-item defense-item';
-                                                                $disabled_message = '';
                                                                 
-                                                                // Badge for defense type
+                                                                // Defense type pill
                                                                 $type_badge = '';
-                                                                $type_color = 'secondary';
+                                                                $type_class = 'type-general';
                                                                 switch ($defense_type) {
                                                                     case 'title_proposal':
-                                                                        $type_color = 'info';
+                                                                        $type_class = 'type-proposal';
                                                                         $type_badge = 'Title Proposal';
                                                                         break;
                                                                     case 'title_defense':
-                                                                        $type_color = 'primary';
+                                                                        $type_class = 'type-title';
                                                                         $type_badge = 'Title Defense';
                                                                         break;
                                                                     case 'final_defense':
-                                                                        $type_color = 'success';
+                                                                        $type_class = 'type-final';
                                                                         $type_badge = 'Final Defense';
                                                                         break;
                                                                     case 're-defense':
-                                                                        $type_color = 'warning';
+                                                                        $type_class = 'type-redefense';
                                                                         $type_badge = 'Re-Defense';
                                                                         break;
                                                                     default:
                                                                         $type_badge = ucfirst($defense_type);
                                                                 }
+
+                                                                // Defense status pill
+                                                                $status_badge = 'Scheduled';
+                                                                $status_class = 'status-scheduled';
+                                                                if (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $has_evaluated) {
+                                                                    $status_badge = 'Evaluated';
+                                                                    $status_class = 'status-evaluated';
+                                                                } elseif (($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) && $defense_status !== 'upcoming') {
+                                                                    $status_badge = 'Pending';
+                                                                    $status_class = 'status-pending';
+                                                                }
                                                                 
                                                                 // Only allow faculty to access evaluation system
-                                                                if ($_SESSION['usertype'] == 2) { // Faculty
+                                                                if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) { // Faculty or Program Chair
                                                                     // For past defenses, make read-only if already evaluated
                                                                     if ($defense_status === 'past' && $has_evaluated) {
                                                                         $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ', true)"';
                                                                         $item_class .= ' defense-item-completed';
+                                                                    } elseif ($defense_status === 'past' && !$has_evaluated) {
+                                                                        $item_class .= ' defense-item-locked';
+                                                                        $onclick_attr = 'onclick="handleUnavailableDefenseAccess(event)"';
                                                                     } else {
                                                                         $onclick_attr = 'onclick="redirectToDecisionSupport(' . $schedule_id . ')"';
                                                                     }
@@ -2763,39 +2958,23 @@ document.addEventListener("DOMContentLoaded", function() {
                                                                 }
                                                             ?>
                                                                 <li class="<?php echo $item_class; ?>"
+                                                                    data-defense-date="<?php echo htmlspecialchars($schedule['schedule_date']); ?>"
+                                                                    data-defense-status="<?php echo htmlspecialchars($status_class); ?>"
+                                                                    data-defense-is-past="<?php echo ($defense_status === 'past') ? '1' : '0'; ?>"
                                                                     <?php echo $onclick_attr; ?>>
-                                                                    <div class="defense-content">
-                                                                        <div class="d-flex justify-content-between align-items-start mb-2">
-                                                                            <h6 class="team-name mb-0">
-                                                                                <?php echo htmlspecialchars($schedule['team_name']); ?>
-                                                                            </h6>
-                                                                            <div>
-                                                                                <span class="badge bg-<?php echo $type_color; ?> me-1"><?php echo $type_badge; ?></span>
-                                                                                <?php if ($_SESSION['usertype'] == 2 && $has_evaluated): ?>
-                                                                                    <span class="badge bg-success"><i class="bi bi-check-circle"></i> Evaluated</span>
-                                                                                <?php elseif ($_SESSION['usertype'] == 2 && $defense_status !== 'upcoming'): ?>
-                                                                                    <span class="badge bg-warning"><i class="bi bi-exclamation-circle"></i> Pending</span>
-                                                                                <?php endif; ?>
-                                                                            </div>
+                                                                    <div class="defense-content overview-defense-content">
+                                                                        <h6 class="overview-defense-team-name mb-0">
+                                                                            <?php echo htmlspecialchars($schedule['team_name']); ?>
+                                                                        </h6>
+                                                                        <div class="overview-defense-pill-row">
+                                                                            <span class="defense-type-pill <?php echo $type_class; ?>"><?php echo $type_badge; ?></span>
+                                                                            <span class="defense-status-pill overview-status-pill <?php echo $status_class; ?>"><?php echo $status_badge; ?></span>
                                                                         </div>
-                                                                        <div class="defense-details">
-                                                                            <div class="detail-item">
-                                                                                <i class="far fa-calendar me-2"></i>
-                                                                                <?php echo htmlspecialchars($formatted_date); ?>
-                                                                            </div>
-                                                                            <div class="detail-item">
-                                                                                <i class="far fa-clock me-2"></i>
-                                                                                <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?>
-                                                                            </div>
-                                                                            <div class="detail-item">
-                                                                                <i class="fas fa-door-open me-2"></i>
-                                                                                <?php echo htmlspecialchars($schedule['room']); ?>
-                                                                            </div>
+                                                                        <div class="overview-defense-meta">
+                                                                            <div><strong>Date:</strong> <?php echo htmlspecialchars($formatted_date); ?></div>
+                                                                            <div><strong>Time:</strong> <?php echo htmlspecialchars($formatted_start_time . " - " . $formatted_end_time); ?></div>
+                                                                            <div><strong>Room:</strong> <?php echo htmlspecialchars($schedule['room']); ?></div>
                                                                         </div>
-                                                                        <?php if ($_SESSION['usertype'] == 2 && $defense_status === 'past' && $has_evaluated): ?>
-                                                                            <small class="text-muted"><i class="bi bi-info-circle"></i> Click to view your evaluation (read-only)</small>
-                                                                        <?php endif; ?>
-                                                                        <?php echo $disabled_message; ?>
                                                                     </div>
                                                                 </li>
                                                                 <?php endforeach; ?>
@@ -2816,30 +2995,6 @@ document.addEventListener("DOMContentLoaded", function() {
         </div>
     </div>
 </main>
-
-<!-- Defense Approval Modal -->
-<div class="modal fade" id="defenseApprovalModal" tabindex="-1" aria-labelledby="defenseApprovalModalLabel"
-    aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header bg-primary text-white">
-                <h5 class="modal-title" id="defenseApprovalModalLabel">
-                    <i class="bi bi-calendar-check me-2"></i>Defense Schedule Approval Required
-                </h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                    aria-label="Close"></button>
-            </div>
-            <div class="modal-body" id="approvalModalBody">
-                <div class="text-center">
-                    <div class="spinner-border text-primary" role="status">
-                        <span class="visually-hidden">Loading...</span>
-                    </div>
-                    <p class="mt-2">Loading approval request...</p>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
 
 <!-- Logout Confirmation Modal -->
 <div class="modal fade" id="logoutConfirmModal" tabindex="-1" aria-labelledby="logoutConfirmModalLabel" aria-hidden="true">
@@ -3103,7 +3258,8 @@ $(document).ready(function() {
         $teamId = isset($_SESSION['team_id']) ? $_SESSION['team_id'] : [];
 
         if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) {
-            if ($role === 'adviser') {
+            $roleList = array_map('trim', explode(',', strtolower((string)$role)));
+            if (in_array('adviser', $roleList, true)) {
                 // Retrieve the teams from the session (ensure $teamId is an array)
                 $teams = [];
                 if (!empty($teamId)) {
@@ -3158,7 +3314,13 @@ $(document).ready(function() {
                 if (response.success) {
                     var checklistHtml =
                         '<form id="requirementChecklistForm" method="POST" action="includes/update_requirements.php" enctype="multipart/form-data" class="row g-4 g-lg-5">';
+                    checklistHtml += `<input type="hidden" name="team_id" value="${teamId}">`;
                     response.requirements.forEach(function(req) {
+                        const submittedFiles = Array.isArray(req.submitted_files) ? req.submitted_files : [];
+                        const allowsMultiple = Number(req.allow_multiple_submissions) === 1;
+                        const maxSubmissions = Number(req.max_submissions) > 0 ? Number(req.max_submissions) : 1;
+                        const hasAnySubmission = submittedFiles.length > 0 || !!req.file_name;
+
                         checklistHtml += `
                         <div class="col-12 col-md-6 requirement-card-wrapper">
                             <div class="card requirement-adviser-card h-100" id="req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
@@ -3218,9 +3380,9 @@ $(document).ready(function() {
                                             <div class="form-check form-check-inline">
                                                 <input class="form-check-input requirement-status-radio" type="radio" 
                                                        name="status[${req.id}]" id="status-rejected-${req.id}" 
-                                                       value="rejected" ${req.status === 'rejected' ? 'checked' : ''}>
+                                                       value="rejected" ${(req.status === 'rejected' || req.status === 'closed') ? 'checked' : ''}>
                                                 <label class="form-check-label requirement-status-option-label" for="status-rejected-${req.id}">
-                                                    Rejected
+                                                    Closed
                                                 </label>
                                             </div>
                                         </div>
@@ -3251,25 +3413,35 @@ $(document).ready(function() {
                                         <textarea id="feedback${req.id}" name="feedback[${req.id}]" class="form-control requirement-feedback-textarea mt-3" rows="1" placeholder="Enter your feedback here...">${req.feedback}</textarea>
                                     </div>
                                     
-                                    ${req.file_name && req.status !== 'pending'
+                                    ${hasAnySubmission
                                         ? `
                                             <!-- Submitted File Section -->
                                             <div class="requirement-submitted-file-section">
-                                                <div class="submitted-file-header">
-                                                    <h6>Submitted File:</h6>
+                                                <div class="submitted-file-header d-flex justify-content-between align-items-center">
+                                                    <h6 class="mb-0">${submittedFiles.length > 1 ? 'Submitted Files:' : 'Submitted File:'}</h6>
+                                                    ${submittedFiles.length > 0 ? `<small class="text-muted">${submittedFiles.length}${allowsMultiple ? `/${maxSubmissions}` : ''}</small>` : ''}
                                                 </div>
-                                                <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download>
-                                                    ${req.file_name}
-                                                </a>
+                                                <div class="mt-2 d-flex flex-column gap-1">
+                                                    ${submittedFiles.length > 0
+                                                        ? submittedFiles.map(file => `
+                                                            <a href="../assets/uploads/submission/${file.file_name}" class="requirement-submitted-file-pill" download title="${file.original_file_name || file.file_name}">
+                                                                ${file.original_file_name || file.file_name}
+                                                            </a>
+                                                        `).join('')
+                                                        : `<a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">${req.file_name}</a>`
+                                                    }
+                                                </div>
                                                 <div class="requirement-file-actions">
-                                                    <a href="../assets/uploads/submission/viewer.html#file=${encodeURIComponent(req.file_name)}" class="requirement-view-btn">
-                                                        <i class="far fa-eye"></i> View
-                                                    </a>
-                                                    <button type="button" class="btn btn-sm revert-submission-btn" 
-                                                            data-req-id="${req.id}" data-req-name="${req.name}" 
-                                                            title="Revert submission to allow resubmission">
-                                                        <i class="bi bi-arrow-counterclockwise"></i> Revert
-                                                    </button>
+                                                    ${req.status !== 'pending'
+                                                        ? `
+                                                            <button type="button" class="btn btn-sm revert-submission-btn" 
+                                                                    data-req-id="${req.id}" data-req-name="${req.name}" 
+                                                                    title="Revert submission to allow resubmission">
+                                                                <i class="bi bi-arrow-counterclockwise"></i> Revert
+                                                            </button>
+                                                        `
+                                                        : `<small class="text-muted">Submission is pending. Team may remove and resubmit files.</small>`
+                                                    }
                                                 </div>
                                             </div>
                                         ` 
@@ -3364,7 +3536,7 @@ $(document).ready(function() {
             revertModal.hide();
             
             // Get the current team ID from session
-            const teamId = <?php echo isset($_SESSION['team_id']) ? $_SESSION['team_id'][0] : 'null'; ?>;
+            const teamId = $('#teamSelect').val() || <?php echo isset($_SESSION['team_id']) ? $_SESSION['team_id'][0] : 'null'; ?>;
             
             if (!teamId) {
                 showToast("Error", "No team selected.", "error");
@@ -3471,6 +3643,13 @@ $(document).ready(function() {
                 if (response.success) {
                     var displayHtml = '<div class="row">';
                     response.requirements.forEach(function(req) {
+                        const allowsMultiple = Number(req.allow_multiple_submissions) === 1;
+                        const maxSubmissions = Number(req.max_submissions) > 0 ? Number(req.max_submissions) : 1;
+                        const submissionCount = Number(req.submission_count) >= 0 ? Number(req.submission_count) : 0;
+                        const submittedFiles = Array.isArray(req.submitted_files) ? req.submitted_files : [];
+                        const canUploadMoreByCount = allowsMultiple ? submissionCount < maxSubmissions : !req.file_name;
+                        const canUploadMore = canUploadMoreByCount && req.status !== 'closed';
+
                         <?php if ($role === 'leader' || $role === 'member') { ?>
                             displayHtml += `
                                 <div class="col-md-6 mb-4 requirement-card-wrapper">
@@ -3497,7 +3676,7 @@ $(document).ready(function() {
                                             <div class="requirement-status-section requirement-status-readonly">
                                                 <label class="requirement-status-label">Status:</label>
                                                 <div class="requirement-status-display">
-                                                    <span class="badge status-badge status-${req.status}">${req.status.charAt(0).toUpperCase() + req.status.slice(1)}</span>
+                                                    <span class="badge status-badge status-${req.status === 'closed' ? 'rejected' : req.status}">${req.status === 'closed' ? 'Closed' : (req.status.charAt(0).toUpperCase() + req.status.slice(1))}</span>
                                                 </div>
                                             </div>
                                             
@@ -3518,31 +3697,54 @@ $(document).ready(function() {
                                             </div>
                                             
                                             <!-- Current Submission Section -->
-                                            ${req.file_name ? 
+                                            ${allowsMultiple && submittedFiles.length > 0 ?
                                                 `<div class="requirement-submitted-file-section">
-                                                    <div class="submitted-file-header">
-                                                        <h6>Current Submission:</h6>
+                                                    <div class="submitted-file-header d-flex justify-content-between align-items-center">
+                                                        <h6 class="mb-0">Submitted Files:</h6>
+                                                        <small class="text-muted">${submissionCount}/${maxSubmissions}</small>
                                                     </div>
-                                                    <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">
-                                                        ${req.file_name}
-                                                    </a>
-                                                    ${req.status === 'pending' ? `
-                                                        <div class="requirement-file-actions">
-                                                            <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" title="Remove current file">
-                                                                <i class="bi bi-trash"></i> Remove
-                                                            </button>
+                                                    <div class="mt-2 d-flex flex-column gap-1">
+                                                        ${submittedFiles.map(file => `
+                                                            <div class="d-flex align-items-center gap-2">
+                                                                <a href="../assets/uploads/submission/${file.file_name}" class="requirement-submitted-file-pill" download title="${file.original_file_name || file.file_name}">
+                                                                    ${file.original_file_name || file.file_name}
+                                                                </a>
+                                                                ${req.status === 'pending' ? `
+                                                                    <?php if ($role === 'leader') { ?>
+                                                                    <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" data-file-name="${file.file_name}" title="Remove this file">
+                                                                        <i class="bi bi-trash"></i>
+                                                                    </button>
+                                                                    <?php } ?>
+                                                                ` : ''}
+                                                            </div>
+                                                        `).join('')}
+                                                    </div>
+                                                </div>`
+                                                : req.file_name ?
+                                                    `<div class="requirement-submitted-file-section">
+                                                        <div class="submitted-file-header">
+                                                            <h6>Current Submission:</h6>
                                                         </div>
-                                                    ` : ''}
-                                                </div>` 
-                                                : ''
+                                                        <a href="../assets/uploads/submission/${req.file_name}" class="requirement-submitted-file-pill" download title="${req.file_name}">
+                                                            ${req.file_name}
+                                                        </a>
+                                                        ${req.status === 'pending' ? `
+                                                            <div class="requirement-file-actions">
+                                                                <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" data-file-name="${req.file_name}" title="Remove current file">
+                                                                    <i class="bi bi-trash"></i> Remove
+                                                                </button>
+                                                            </div>
+                                                        ` : ''}
+                                                    </div>`
+                                                    : ''
                                             }
                                             
                                             <!-- Upload Section (Leader Only) -->
                                             <?php if ($role === 'leader') { ?>
-                                            ${req.file_name 
-                                                ? '' 
-                                                : `<div class="requirement-upload-section-student">
+                                            ${canUploadMore 
+                                                ? `<div class="requirement-upload-section-student">
                                                     <label class="requirement-upload-label">Upload File:</label>
+                                                    ${allowsMultiple ? `<small class="d-block text-muted mb-2">Submissions: ${submissionCount}/${maxSubmissions}</small>` : ''}
                                                     <form class="upload-form requirement-upload-form" data-req-id="${req.id}" enctype="multipart/form-data" action="includes/upload_file.php" method="POST">
                                                         <input type="hidden" name="document_name" value="${req.name}">
                                                         <input type="hidden" name="requirement_id" value="${req.id}">
@@ -3556,6 +3758,11 @@ $(document).ready(function() {
                                                         </div>
                                                     </form>
                                                 </div>`
+                                                : req.status === 'closed'
+                                                    ? `<div class="requirement-upload-section-student"><small class="text-muted">Submission closed. The deadline has passed.</small></div>`
+                                                : allowsMultiple
+                                                    ? `<div class="requirement-upload-section-student"><small class="text-muted">Maximum submissions reached (${maxSubmissions}).</small></div>`
+                                                    : ''
                                             }
                                             <?php } ?>
                                         </div>
@@ -3605,7 +3812,10 @@ $(document).ready(function() {
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
-                    showToast("Success!", "File uploaded successfully!", "success");
+                    const successMessage = response.submission_number
+                        ? `File uploaded successfully! (${response.submission_number}/${response.max_submissions})`
+                        : "File uploaded successfully!";
+                    showToast("Success!", successMessage, "success");
                     setTimeout(loadRequirements, 1000);
                 } else {
                     showToast("Upload Failed", response.error || 'Unknown error', "error");
@@ -3625,17 +3835,21 @@ $(document).ready(function() {
         event.preventDefault();
         
         const reqId = $(this).data('req-id');
+        const fileName = $(this).data('file-name') || '';
         const button = $(this);
         
         // Get requirement name for the modal
-        const requirementRow = button.closest('.requirement-item');
-        const requirementName = requirementRow.find('.requirement-title').text() || 'this requirement';
+        const requirementCard = button.closest('.requirement-card-wrapper, .card');
+        const requirementName = requirementCard.find('.requirement-name').first().text().trim() || 'this requirement';
         
         // Set the requirement name in the modal
         $('#deleteRequirementName').text(requirementName);
         
-        // Store the requirement ID for later use
+        // Store request data for confirmation
         $('#confirmDeleteFile').data('req-id', reqId);
+        $('#confirmDeleteFile').data('file-name', fileName);
+        $('#confirmDeleteFile').data('trigger-button', button);
+        $('#confirmDeleteFile').data('trigger-html', button.html());
         
         // Show confirmation modal
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteFileConfirmModal'));
@@ -3645,20 +3859,25 @@ $(document).ready(function() {
     // Handle confirmation of file deletion
     $(document).on('click', '#confirmDeleteFile', function() {
         const reqId = $(this).data('req-id');
-        const originalButton = $(`.remove-current-file-btn[data-req-id="${reqId}"]`);
+        const fileName = $(this).data('file-name') || '';
+        const originalButton = $(this).data('trigger-button');
+        const originalHtml = $(this).data('trigger-html') || 'Remove';
         
         // Hide the modal
         const deleteModal = bootstrap.Modal.getInstance(document.getElementById('deleteFileConfirmModal'));
         deleteModal.hide();
         
         // Disable button during request (no animation, just text change)
-        originalButton.prop('disabled', true).text('Removing...');
+        if (originalButton && originalButton.length) {
+            originalButton.prop('disabled', true).text('Removing...');
+        }
         
         $.ajax({
             url: 'includes/remove_file.php',
             method: 'POST',
             data: {
-                requirement_id: reqId
+                requirement_id: reqId,
+                file_name: fileName
             },
             dataType: 'json',
             success: function(response) {
@@ -3675,8 +3894,10 @@ $(document).ready(function() {
                 showToast("Error", "An error occurred while removing the file.", "error");
             },
             complete: function() {
-                // Re-enable button (simple text, no icon)
-                originalButton.prop('disabled', false).text('Remove');
+                // Re-enable only the clicked button
+                if (originalButton && originalButton.length) {
+                    originalButton.prop('disabled', false).html(originalHtml);
+                }
             }
         });
     });
@@ -3816,6 +4037,19 @@ function redirectToDecisionSupport(scheduleId, viewOnly = false) {
     
     console.log(`Redirecting to: ${url}`);
     window.location.href = url;
+}
+
+function showDefenseScheduleUnavailableToast() {
+    showToast('Notice', 'Defense schedule access no longer available past the date scheduled.', 'warning');
+}
+
+function handleUnavailableDefenseAccess(event) {
+    if (event) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+    showDefenseScheduleUnavailableToast();
+    return false;
 }
 
 // ==========================================
@@ -4054,6 +4288,8 @@ function renderEvaluationDetails(data) {
     const panelists = data.panelists || [];
     const students = data.students || [];
     const usertype = data.usertype;
+    const passThreshold = data.pass_threshold_3 || 75;
+    const warningThreshold = Math.max(passThreshold - 15, 60);
     
     let detailsHtml = `
         <div class="mb-4">
@@ -4136,7 +4372,7 @@ function renderEvaluationDetails(data) {
             } else if (studentScores.length > 0) {
                 const avg = studentScores.reduce((a, b) => a + b, 0) / studentScores.length;
                 allStudentAverages.push(avg);
-                const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                 avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
             } else {
                 avgDisplay = '<span class="text-muted">-</span>';
@@ -4155,7 +4391,7 @@ function renderEvaluationDetails(data) {
         let overallAvgDisplay;
         if (allStudentAverages.length > 0) {
             const overallAvg = allStudentAverages.reduce((a, b) => a + b, 0) / allStudentAverages.length;
-            const overallClass = overallAvg >= 75 ? 'text-success' : overallAvg >= 60 ? 'text-warning' : 'text-danger';
+            const overallClass = overallAvg >= passThreshold ? 'text-success' : overallAvg >= warningThreshold ? 'text-warning' : 'text-danger';
             overallAvgDisplay = `<strong class="${overallClass}">${overallAvg.toFixed(2)}</strong>`;
         } else {
             overallAvgDisplay = '<span class="text-muted">-</span>';
@@ -4232,171 +4468,4 @@ function escapeHtml(text) {
     };
     return text.toString().replace(/[&<>"']/g, m => map[m]);
 }
-
-// Defense Approval Modal System
-$(document).ready(function() {
-    // Check for pending defense approvals on page load
-    checkPendingApprovals();
-
-    function checkPendingApprovals() {
-        $.ajax({
-            url: '../assets/includes/get_pending_approvals.php',
-            method: 'GET',
-            dataType: 'json',
-            success: function(response) {
-                if (response.success && response.pendingApprovals.length > 0) {
-                    // Show modal for the first pending approval
-                    showApprovalModal(response.pendingApprovals[0]);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error checking pending approvals:', error);
-            }
-        });
-    }
-
-    function showApprovalModal(approval) {
-        const modalBody = `
-                <div class="alert alert-info border-0 mb-4">
-                    <div class="d-flex align-items-center">
-                        <i class="bi bi-info-circle-fill me-2 fs-5"></i>
-                        <strong>You have been assigned as a panelist for the following defense:</strong>
-                    </div>
-                </div>
-                
-                <div class="row mb-4">
-                    <div class="col-md-6">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body">
-                                <h6 class="card-title text-primary">
-                                    <i class="bi bi-calendar3 me-2"></i>Schedule Details
-                                </h6>
-                                <p class="mb-1"><strong>Date:</strong> ${approval.formatted_date}</p>
-                                <p class="mb-1"><strong>Time:</strong> ${approval.formatted_time}</p>
-                                <p class="mb-0"><strong>Room:</strong> ${approval.room}</p>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="col-md-6">
-                        <div class="card border-0 bg-light">
-                            <div class="card-body">
-                                <h6 class="card-title text-primary">
-                                    <i class="bi bi-people me-2"></i>Team Information
-                                </h6>
-                                <p class="mb-1"><strong>Team:</strong> ${approval.team_name}</p>
-                                <p class="mb-1"><strong>Program:</strong> ${approval.program || 'N/A'}</p>
-                                <p class="mb-0"><strong>Research:</strong> ${approval.research_title || 'N/A'}</p>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="mb-4">
-                    <h6 class="text-primary">
-                        <i class="bi bi-person-badge me-2"></i>Other Panelists
-                    </h6>
-                    <p class="mb-0">${approval.other_panelists}</p>
-                </div>
-                
-                <div class="mb-4">
-                    <label for="rejectionReason" class="form-label">
-                        <i class="bi bi-chat-text me-2"></i>Reason for declining (optional):
-                    </label>
-                    <textarea class="form-control" id="rejectionReason" rows="3" 
-                              placeholder="Please provide a reason if you cannot attend this defense session..."></textarea>
-                </div>
-                
-                <div class="d-flex justify-content-end gap-3">
-                    <button type="button" class="btn btn-outline-danger" onclick="respondToApproval('reject', ${approval.schedule_id})">
-                        <i class="bi bi-x-circle me-2"></i>Decline
-                    </button>
-                    <button type="button" class="btn btn-success" onclick="respondToApproval('approve', ${approval.schedule_id})">
-                        <i class="bi bi-check-circle me-2"></i>Accept
-                    </button>
-                </div>
-            `;
-
-        $('#approvalModalBody').html(modalBody);
-        $('#defenseApprovalModal').modal('show');
-    }
-
-    // Global function for handling approval responses
-    window.respondToApproval = function(action, scheduleId) {
-        const reason = $('#rejectionReason').val().trim();
-        const actionText = action === 'approve' ? 'accepting' : 'declining';
-
-        // Show loading state
-        const modalBody = $('#approvalModalBody');
-        const originalContent = modalBody.html();
-        modalBody.html(`
-                <div class="text-center py-4">
-                    <div class="spinner-border text-primary mb-3" role="status">
-                        <span class="visually-hidden">Processing...</span>
-                    </div>
-                    <p>Processing your response...</p>
-                </div>
-            `);
-
-        $.ajax({
-            url: '../assets/includes/handle_defense_approval.php',
-            method: 'POST',
-            data: {
-                action: action,
-                schedule_id: scheduleId,
-                rejection_reason: reason
-            },
-            dataType: 'json',
-            success: function(response) {
-                if (response.success) {
-                    // Show success message
-                    modalBody.html(`
-                            <div class="text-center py-4">
-                                <div class="text-success mb-3">
-                                    <i class="bi bi-check-circle-fill" style="font-size: 3rem;"></i>
-                                </div>
-                                <h5 class="text-success">Response Recorded!</h5>
-                                <p class="mb-0">${response.message}</p>
-                            </div>
-                        `);
-
-                    // Close modal after 3 seconds and check for more approvals
-                    setTimeout(function() {
-                        $('#defenseApprovalModal').modal('hide');
-                        checkPendingApprovals(); // Check for more pending approvals
-                    }, 3000);
-
-                } else {
-                    // Show error message with retry option
-                    modalBody.html(`
-                            <div class="text-center py-4">
-                                <div class="text-danger mb-3">
-                                    <i class="bi bi-exclamation-circle-fill" style="font-size: 3rem;"></i>
-                                </div>
-                                <h5 class="text-danger">Error</h5>
-                                <p class="mb-3">${response.message}</p>
-                                <button class="btn btn-primary" onclick="location.reload()">
-                                    <i class="bi bi-arrow-clockwise me-2"></i>Try Again
-                                </button>
-                            </div>
-                        `);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error processing approval:', error);
-                modalBody.html(`
-                        <div class="text-center py-4">
-                            <div class="text-danger mb-3">
-                                <i class="bi bi-exclamation-triangle-fill" style="font-size: 3rem;"></i>
-                            </div>
-                            <h5 class="text-danger">Connection Error</h5>
-                            <p class="mb-3">Failed to process your response. Please try again.</p>
-                            <button class="btn btn-primary" onclick="location.reload()">
-                                <i class="bi bi-arrow-clockwise me-2"></i>Reload Page
-                            </button>
-                        </div>
-                    `);
-            }
-        });
-    };
-});
 </script>

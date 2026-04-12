@@ -1,4 +1,9 @@
 <!-- Users Tab -->
+<?php
+$sessionUserType = (int)($_SESSION['usertype'] ?? -1);
+$sessionUserId = (int)($_SESSION['id'] ?? 0);
+$isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $sessionUserId !== 0);
+?>
 <div class="tab-pane fade" id="users" role="tabpanel" aria-labelledby="users-tab">
     <div class="container-fluid py-4 content-container">
         <!-- Header with title and description -->
@@ -6,6 +11,15 @@
             <div class="col-12">
                 <h3 class="mb-2">User Management</h3>
                 <p class="text-muted">Manage system users, including admins, students, and staff members</p>
+                <?php if ($_SESSION['usertype'] == 0): ?>
+                <div class="mt-2">
+                    <a href="#teams" class="tab-redirect-link" onclick="document.getElementById('teams-tab').click(); return false;">
+                        <i class="bi bi-people-fill"></i>
+                        <span>Manage Research Teams</span>
+                        <i class="bi bi-arrow-right"></i>
+                    </a>
+                </div>
+                <?php endif; ?>
             </div>
         </div>
 
@@ -54,6 +68,7 @@
                             </select>
                         </div>
                         
+                        <?php if (!$isUsersTabReadOnly): ?>
                         <div class="col-12 col-md-2 col-lg-3">
                             <!-- Action buttons container -->
                             <div class="d-flex gap-2">
@@ -64,9 +79,11 @@
                                 </button>
                             </div>
                         </div>
+                        <?php endif; ?>
                     </div>
                     
                     <!-- Bulk Add Button Row (conditional) -->
+                    <?php if (!$isUsersTabReadOnly): ?>
                     <div class="row">
                         <div class="col-12">
                             <button class="btn feature-btn bulk-add-btn user-control-height w-100 w-md-auto" data-table="users" id="bulkAddBtn" style="display: none;">
@@ -74,6 +91,7 @@
                             </button>
                         </div>
                     </div>
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
@@ -92,7 +110,10 @@
                                 <th class="d-none d-sm-table-cell">First Name</th>
                                 <th class="d-none d-sm-table-cell">Last Name</th>
                                 <th class="d-none d-md-table-cell">User Type</th>
+                                <th class="d-none d-md-table-cell">Defense Type</th>
+                                <?php if (!$isUsersTabReadOnly): ?>
                                 <th class="text-center">Action</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody></tbody>
@@ -187,6 +208,8 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
+            const usersTabReadOnly = <?php echo $isUsersTabReadOnly ? 'true' : 'false'; ?>;
+
             const getUserType = (type) => {
                 return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Staff' : 'Unknown';
             };
@@ -195,6 +218,21 @@
                 const userType = getUserType(type);
                 const badgeClass = userType.toLowerCase();
                 return `<span class="user-type-badge ${badgeClass}">${userType}</span>`;
+            };
+
+            const getDefenseTypeBadge = (defenseType, userType) => {
+                if (parseInt(userType, 10) !== 1) {
+                    return '';
+                }
+
+                const defenseTypeMap = {
+                    'title_proposal': '<span class="badge bg-info status-badge">Title Proposal</span>',
+                    'title_defense': '<span class="badge bg-primary status-badge">Title Defense</span>',
+                    'final_defense': '<span class="badge bg-success status-badge">Final Defense</span>',
+                    're-defense': '<span class="badge bg-warning status-badge">Re-Defense</span>'
+                };
+
+                return defenseTypeMap[defenseType] || '<span class="badge bg-secondary status-badge">N/A</span>';
             };
 
             // Function to load users based on type with search and sorting
@@ -234,11 +272,10 @@
 
                         // Show a message if no results
                         if (data.data.length === 0) {
-                            const isSmallScreen = window.innerWidth < 768;
-                            const colspan = isSmallScreen ? "3" : "6";
+                            const tableColumns = document.querySelectorAll('#allUsersTable thead th').length;
                             tableBody.innerHTML = `
                                 <tr>
-                                    <td colspan="${colspan}" class="text-center">No matching users found</td>
+                                    <td colspan="${tableColumns}" class="text-center">No matching users found</td>
                                 </tr>
                             `;
                             return;
@@ -257,18 +294,26 @@
                                         <div class="text-muted small d-sm-none">${user.email}</div>
                                         <div class="text-muted small d-sm-none">${user.first_name} ${user.last_name}</div>
                                         <div class="d-sm-none mt-1">${getUserTypeBadge(user.usertype)}</div>
+                                        <div class="d-md-none mt-1">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</div>
                                     </td>
                                     <td class="d-none d-lg-table-cell">${user.email}</td>
                                     <td class="d-none d-sm-table-cell">${user.first_name}</td>
                                     <td class="d-none d-sm-table-cell">${user.last_name}</td>
                                     <td class="d-none d-md-table-cell">${getUserTypeBadge(user.usertype)}</td>
+                                    <td class="d-none d-md-table-cell">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</td>
+                                    ${usersTabReadOnly ? '' : `
                                     <td class="action-buttons text-center"> 
                                         <button class="meatball-btn" data-user-id="${user.id}" aria-label="Actions">
                                             <i class="fas fa-ellipsis-h"></i>
                                         </button>
                                     </td>
+                                    `}
                                 </tr>
                             `;
+                            
+                            if (usersTabReadOnly) {
+                                return;
+                            }
                             
                             // Create dropdown portal outside table
                             const dropdownPortal = document.createElement('div');
@@ -297,6 +342,11 @@
                                     </button>
                                 ` : ''}
                             `;
+
+                            const deleteBtn = dropdownPortal.querySelector('.delete-btn');
+                            if (deleteBtn) {
+                                deleteBtn.dataset.deleteLabel = user.username || 'Unknown user';
+                            }
                             document.body.appendChild(dropdownPortal);
                         });
 
@@ -308,23 +358,50 @@
                         }
                         
                         pagination.innerHTML = '';
-                        pagination.innerHTML += `
-                            <li class="page-item ${page <= 1 ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
-                            </li>
-                        `;
-                        for (let i = 1; i <= data.total_pages; i++) {
+
+                        if (data.total_pages > 1) {
+                            const totalPages = data.total_pages;
+
+                            // Previous button
                             pagination.innerHTML += `
-                                <li class="page-item ${page === i ? 'active' : ''}">
-                                    <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                <li class="page-item ${page <= 1 ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page - 1}">&#8249;</a>
                                 </li>
                             `;
-                        }
-                        pagination.innerHTML += `
-                            <li class="page-item ${page >= data.total_pages ? 'disabled' : ''}">
-                                <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
-                            </li>
-                        `; 
+
+                            // Page numbers with ellipsis
+                            const startPage = Math.max(1, page - 2);
+                            const endPage = Math.min(totalPages, page + 2);
+
+                            if (startPage > 1) {
+                                pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="1">1</a></li>`;
+                                if (startPage > 2) {
+                                    pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                            }
+
+                            for (let i = startPage; i <= endPage; i++) {
+                                pagination.innerHTML += `
+                                    <li class="page-item ${page === i ? 'active' : ''}">
+                                        <a class="page-link" href="#" data-page="${i}">${i}</a>
+                                    </li>
+                                `;
+                            }
+
+                            if (endPage < totalPages) {
+                                if (endPage < totalPages - 1) {
+                                    pagination.innerHTML += `<li class="page-item disabled"><span class="page-link">...</span></li>`;
+                                }
+                                pagination.innerHTML += `<li class="page-item"><a class="page-link" href="#" data-page="${totalPages}">${totalPages}</a></li>`;
+                            }
+
+                            // Next button
+                            pagination.innerHTML += `
+                                <li class="page-item ${page >= totalPages ? 'disabled' : ''}">
+                                    <a class="page-link" href="#" data-page="${page + 1}">&#8250;</a>
+                                </li>
+                            `;
+                        } 
                     })
                     .catch(error => {
                         console.error('Error loading users:', error);
@@ -335,9 +412,13 @@
             const updateButtonVisibility = (userType) => {
                 const addBtn = document.getElementById('addUserBtn');
                 const bulkAddBtn = document.getElementById('bulkAddBtn');
+
+                if (usersTabReadOnly) {
+                    return;
+                }
                 
                 if (userType === '1') { // Students
-                    bulkAddBtn.style.display = 'inline-flex';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -346,7 +427,7 @@
                         `;
                     }
                 } else if (userType === '0') { // Admins
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -355,7 +436,7 @@
                         `;
                     }
                 } else if (userType === '2') { // Staff
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
@@ -364,7 +445,7 @@
                         `;
                     }
                 } else { // All users
-                    bulkAddBtn.style.display = 'none';
+                    if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>

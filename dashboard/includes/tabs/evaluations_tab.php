@@ -51,22 +51,22 @@
             <p class="text-muted mb-0">No evaluations available yet.</p>
         </div>
     </div>
-</div>
 
-<!-- Evaluation Details Modal -->
-<div class="modal fade" id="evaluationDetailsModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog modal-xl modal-dialog-scrollable">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title">
-                    Team Evaluation Details:
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body" id="evaluationDetailsBody">
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-3">Loading evaluation details...</p>
+    <!-- Evaluation Details Modal -->
+    <div class="modal fade" id="evaluationDetailsModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">
+                        Team Evaluation Details:
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body" id="evaluationDetailsBody">
+                    <div class="text-center py-5">
+                        <div class="spinner-border text-primary" role="status"></div>
+                        <p class="mt-3">Loading evaluation details...</p>
+                    </div>
                 </div>
             </div>
         </div>
@@ -260,6 +260,8 @@ function showDashboardEvaluationDetails(teamId) {
             const panelists = data.panelists || [];
             const students = data.students || [];
             const evaluationsByStudent = data.evaluations_by_student || {};
+            const passThreshold = data.pass_threshold_3 || 75;
+            const warningThreshold = Math.max(passThreshold - 15, 60);
             
             let html = `
                 <div class="mb-4">
@@ -307,7 +309,7 @@ function showDashboardEvaluationDetails(teamId) {
                     if (scores.length > 0) {
                         const avg = scores.reduce((a, b) => a + b, 0) / scores.length;
                         allAverages.push(avg);
-                        const avgClass = avg >= 75 ? 'text-success' : avg >= 60 ? 'text-warning' : 'text-danger';
+                        const avgClass = avg >= passThreshold ? 'text-success' : avg >= warningThreshold ? 'text-warning' : 'text-danger';
                         avgDisplay = `<strong class="${avgClass}">${avg.toFixed(2)}</strong>`;
                     }
                     
@@ -318,7 +320,7 @@ function showDashboardEvaluationDetails(teamId) {
                 let teamAvgDisplay = '<span class="text-muted">-</span>';
                 if (allAverages.length > 0) {
                     const teamAvg = allAverages.reduce((a, b) => a + b, 0) / allAverages.length;
-                    const teamAvgClass = teamAvg >= 75 ? 'text-success' : teamAvg >= 60 ? 'text-warning' : 'text-danger';
+                    const teamAvgClass = teamAvg >= passThreshold ? 'text-success' : teamAvg >= warningThreshold ? 'text-warning' : 'text-danger';
                     teamAvgDisplay = `<strong class="${teamAvgClass}">${teamAvg.toFixed(2)}</strong>`;
                 }
                 

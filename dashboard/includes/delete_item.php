@@ -2,6 +2,8 @@
 // Include necessary files
 require_once '../../assets/setup/db.inc.php';
 require_once '../../assets/includes/auth_functions.php';
+require_once __DIR__ . '/section_access.php';
+require_once __DIR__ . '/edit_functions.php';
 
 // Start session if not already started
 if (session_status() == PHP_SESSION_NONE) {
@@ -16,6 +18,25 @@ $id = isset($_POST['id']) ? intval($_POST['id']) : 0;
 $userId = $_SESSION['id'];
 $usertype = $_SESSION['usertype'];
 $response = ['success' => false, 'message' => 'Unknown error'];
+
+$isProgramChair = ($usertype == 0 && $userId != 0);
+$isSectionProfessor = ((int)$usertype === 2 && userCanAccessDashboard($pdo, (int)$userId, (int)$usertype));
+
+if ($table === 'users' && ($isProgramChair || $isSectionProfessor)) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'You have read-only access to the Users tab.'
+    ]);
+    exit;
+}
+
+if ($table === 'programs' && $isProgramChair) {
+    echo json_encode([
+        'success' => false,
+        'message' => 'You have read-only access to the Academic Structure tab.'
+    ]);
+    exit;
+}
 
 try {
     // For admin users (usertype 0) who aren't the superadmin (userId 0), check their college
@@ -74,6 +95,20 @@ try {
                 // If the user being deleted has no college assigned, or belongs to the admin's college, allow deletion.
                 break;
 
+            case 'defense_schedules':
+                $stmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ?");
+                $stmt->execute([$id]);
+                $teamId = (int)$stmt->fetchColumn();
+
+                if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+                    echo json_encode([
+                        'success' => false,
+                        'message' => 'You can only delete defense schedules from your access scope.'
+                    ]);
+                    exit;
+                }
+                break;
+
             // Add similar checks for other tables if needed
         }
     }
@@ -86,6 +121,20 @@ try {
     }
     if ($id <= 0) {
         throw new Exception("Invalid ID specified for deletion.");
+    }
+
+    if ($table === 'defense_schedules' && isDefenseScheduleFinalized($pdo, $id)) {
+        throw new Exception('Finalized schedules are locked and cannot be deleted.');
+    }
+
+    if ($table === 'defense_schedules' && !((int)$usertype === 0 && (int)$userId === 0)) {
+        $stmt = $pdo->prepare("SELECT team_id FROM defense_schedules WHERE id = ?");
+        $stmt->execute([$id]);
+        $teamId = (int)$stmt->fetchColumn();
+
+        if ($teamId <= 0 || !canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+            throw new Exception('You can only delete defense schedules from your assigned scope.');
+        }
     }
 
 
