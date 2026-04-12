@@ -245,13 +245,13 @@
                                 .then(defenseInfo => {
                                     const defenseType = defenseInfo.defense_type || 'Not set';
                                     const override = defenseInfo.override || null;
-                                    const panelists = defenseInfo.panelists || [];
+                                    const lockedPanelists = defenseInfo.locked_panelists || defenseInfo.panelists || [];
 
                                     const overrideStatus = override && override.active 
                                         ? `<span class="badge override-badge-active">${override.override_type}</span>`
                                         : '<span class="badge override-badge-none">None</span>';
 
-                                    const lockedCount = panelists.filter(p => p.locked).length;
+                                    const lockedCount = Array.isArray(lockedPanelists) ? lockedPanelists.length : 0;
                                     const panelistsInfo = lockedCount > 0
                                         ? `<span class="badge panelist-badge-locked">${lockedCount} Locked</span>`
                                         : '<span class="badge panelist-badge-unlocked">Not locked</span>';
@@ -377,6 +377,15 @@
                 fetch(buildUrl(`api/admin_overrides.php?action=get_team_defense_info&team_id=${teamId}`))
                     .then(r => r.json())
                     .then(data => {
+                        // Refresh dropdown values with latest saved locks from API.
+                        if (Object.prototype.hasOwnProperty.call(data, 'locked_panelist1')) {
+                            populatePanelistDropdowns(
+                                data.locked_panelist1 || '',
+                                data.locked_panelist2 || '',
+                                data.locked_panelist3 || ''
+                            );
+                        }
+
                         // Set override fields
                         if (data.override && data.override.active) {
                             document.getElementById('overrideType').value = data.override.override_type || '';
@@ -445,12 +454,12 @@
 
             Promise.all([overridePromise, panelistPromise])
                 .then(([overrideResult, panelistResult]) => {
-                    if (overrideResult.success !== false && panelistResult.success !== false) {
+                    if (overrideResult.success === true && panelistResult.success === true) {
                         alert('Team settings saved successfully!');
                         bootstrap.Modal.getInstance(document.getElementById('teamManageModal')).hide();
                         loadTeams(currentPage);
                     } else {
-                        alert('Error saving settings: ' + (overrideResult.error || panelistResult.error || 'Unknown error'));
+                        alert('Error saving settings: ' + (overrideResult.error || overrideResult.message || panelistResult.error || panelistResult.message || 'Unknown error'));
                     }
                 })
                 .catch(err => {
@@ -477,10 +486,18 @@
                 }).then(r => r.json());
 
                 Promise.all([clearOverride, clearPanelists])
-                    .then(() => {
-                        alert('All settings cleared!');
-                        bootstrap.Modal.getInstance(document.getElementById('teamManageModal')).hide();
-                        loadTeams(currentPage);
+                    .then(([clearOverrideResult, clearPanelistsResult]) => {
+                        if (clearOverrideResult.success === true && clearPanelistsResult.success === true) {
+                            alert('All settings cleared!');
+                            bootstrap.Modal.getInstance(document.getElementById('teamManageModal')).hide();
+                            loadTeams(currentPage);
+                        } else {
+                            alert('Error clearing settings: ' + (clearOverrideResult.error || clearOverrideResult.message || clearPanelistsResult.error || clearPanelistsResult.message || 'Unknown error'));
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        alert('Error clearing settings');
                     });
             }
         });

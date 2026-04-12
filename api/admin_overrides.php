@@ -85,7 +85,45 @@ function handleGetTeamDefenseInfo() {
     }
 
     $defenseType = getTeamDefenseType($pdo, $teamId);
-    $panelists = getPersistentPanelists($pdo, $teamId, $defenseType);
+
+    // Read locked panelists from teams table so this endpoint matches set_locked_panelists.
+    $locksStmt = $pdo->prepare("\n        SELECT
+            t.locked_panelist1, t.locked_panelist2, t.locked_panelist3,
+            CONCAT(u1.first_name, ' ', u1.last_name) AS locked_panelist1_name,
+            CONCAT(u2.first_name, ' ', u2.last_name) AS locked_panelist2_name,
+            CONCAT(u3.first_name, ' ', u3.last_name) AS locked_panelist3_name
+        FROM teams t
+        LEFT JOIN users u1 ON t.locked_panelist1 = u1.id
+        LEFT JOIN users u2 ON t.locked_panelist2 = u2.id
+        LEFT JOIN users u3 ON t.locked_panelist3 = u3.id
+        WHERE t.id = ?
+        LIMIT 1
+    ");
+    $locksStmt->execute([$teamId]);
+    $locksRow = $locksStmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$locksRow) {
+        $response = ['success' => false, 'error' => 'Team not found'];
+        return;
+    }
+
+    $panelists = [];
+    for ($position = 1; $position <= 3; $position++) {
+        $idKey = "locked_panelist{$position}";
+        $nameKey = "{$idKey}_name";
+
+        if (!empty($locksRow[$idKey])) {
+            $panelists[] = [
+                'id' => (int)$locksRow[$idKey],
+                'name' => $locksRow[$nameKey] ?: ('Panelist #' . $locksRow[$idKey]),
+                'locked' => true,
+                'position' => $position
+            ];
+        }
+    }
+
+    // Keep this for compatibility/debugging with legacy defense-type scoped lock flow.
+    $persistentPanelistIds = getPersistentPanelists($pdo, $teamId, $defenseType);
     
     // Get override info if any
     $overrideStmt = $pdo->prepare("
@@ -132,6 +170,11 @@ function handleGetTeamDefenseInfo() {
         'team_id' => $teamId,
         'defense_type' => $defenseType,
         'panelists' => $panelists,
+        'locked_panelists' => $panelists,
+        'locked_panelist1' => !empty($locksRow['locked_panelist1']) ? (int)$locksRow['locked_panelist1'] : null,
+        'locked_panelist2' => !empty($locksRow['locked_panelist2']) ? (int)$locksRow['locked_panelist2'] : null,
+        'locked_panelist3' => !empty($locksRow['locked_panelist3']) ? (int)$locksRow['locked_panelist3'] : null,
+        'persistent_panelists' => $persistentPanelistIds,
         'override' => $override,
         'current_panelists' => $currentPanelists
     ];

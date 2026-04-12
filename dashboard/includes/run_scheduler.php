@@ -1110,7 +1110,7 @@ function crossover($parent1, $parent2, $userSchedules, $timeSlots, $days, $rooms
             // Re-select panelists to resolve conflicts
             $team = fetchTeamById($parent1->pdo, $defense['team_id']);
             $panelistsByProgram = fetchPanelistsByProgram($parent1->pdo, $team['program'], $team['area_of_expertise'], $panelists);
-            $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+            $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id'], $defense['team_id']);
 
             $attempts++;
         }
@@ -1133,7 +1133,7 @@ function mutation($schedule, $mutationRate, $panelists, $rooms, $timeSlots, $day
                 case 0:
                     $team = fetchTeamById($schedule->pdo, $defense['team_id']);
                     $panelistsByProgram = fetchPanelistsByProgram($schedule->pdo, $team['program'], $team['area_of_expertise'], $panelists);
-                    $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+                    $defense['panelist_ids'] = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id'], $defense['team_id']);
                     break;
                 case 1:
                     $defense['room'] = $rooms[array_rand($rooms)];
@@ -1359,7 +1359,7 @@ function prepareScheduleData($pdo, $schedule)
                 $rooms = $_POST['rooms'];
                 $panelists = fetchPanelists($pdo);
                 $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-                $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+                $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
 
                 $teamDefense = [
                     'team_id' => $missingTeamId,
@@ -1551,7 +1551,7 @@ function saveScheduleToDatabase($pdo, $schedule)
                     $panelists = fetchPanelists($pdo);
 
                     $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-                    $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+                    $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
 
                     $teamDefense = [
                         'team_id' => $missingTeamId,
@@ -1716,7 +1716,7 @@ class DefenseSchedule
         $this->pdo = $pdo;
         foreach ($teams as $team) {
             $panelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-            $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id']);
+            $selectedPanelists = selectPanelists($panelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
 
             // Use defense_type from team data (set by progression logic)
             $defenseType = $team['defense_type'] ?? 'title_proposal';
@@ -1912,7 +1912,8 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
 function fetchTeamById($pdo, $team_id)
 {
     $stmt = $pdo->prepare("
-        SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise
+        SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise,
+               t.locked_panelist1, t.locked_panelist2, t.locked_panelist3
         FROM teams t
         JOIN team_members tm ON t.id = tm.team_id
         WHERE t.id = ? AND tm.role = 'adviser'
@@ -2061,18 +2062,32 @@ function calculateSpecializationMatch($teamSpecializations, $panelistSpecializat
     return $matchCount * 10; // 10 points per matching specialization
 }
 
-function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
+function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
 {
     global $pdo; // needed to call getPanelistData()
     $selectedPanelists = [];
     $teamData = null;
-    // Find the team based on adviser
-    foreach ($GLOBALS['teams'] as $team) {
-        if ($team['adviser_id'] == $adviserId) {
-            $teamData = $team;
-            break;
+
+    // Prefer team ID lookup to avoid adviser-based cross-team matches.
+    if ($teamId !== null) {
+        foreach ($GLOBALS['teams'] as $team) {
+            if ((int)$team['id'] === (int)$teamId) {
+                $teamData = $team;
+                break;
+            }
         }
     }
+
+    // Backward-compatible fallback for older call sites.
+    if (!$teamData) {
+        foreach ($GLOBALS['teams'] as $team) {
+            if ($team['adviser_id'] == $adviserId) {
+                $teamData = $team;
+                break;
+            }
+        }
+    }
+
     if (!$teamData) {
         // Fallback: randomly pick 3 panelists excluding the adviser
         $remaining = array_diff(array_keys($allPanelists), [$adviserId]);
@@ -2083,14 +2098,24 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     // If team has locked panelists, use them instead of auto-assigning
     $lockedPanelists = [];
     if (!empty($teamData['locked_panelist1'])) {
-        $lockedPanelists[] = (int)$teamData['locked_panelist1'];
+        $lockedId = (int)$teamData['locked_panelist1'];
+        if (isset($allPanelists[$lockedId])) {
+            $lockedPanelists[] = $lockedId;
+        }
     }
     if (!empty($teamData['locked_panelist2'])) {
-        $lockedPanelists[] = (int)$teamData['locked_panelist2'];
+        $lockedId = (int)$teamData['locked_panelist2'];
+        if (isset($allPanelists[$lockedId])) {
+            $lockedPanelists[] = $lockedId;
+        }
     }
     if (!empty($teamData['locked_panelist3'])) {
-        $lockedPanelists[] = (int)$teamData['locked_panelist3'];
+        $lockedId = (int)$teamData['locked_panelist3'];
+        if (isset($allPanelists[$lockedId])) {
+            $lockedPanelists[] = $lockedId;
+        }
     }
+    $lockedPanelists = array_values(array_unique($lockedPanelists));
     
     // If all 3 panelists are locked, return them directly
     if (count($lockedPanelists) >= 3) {
@@ -2138,7 +2163,7 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId)
     arsort($panelistScores);
     
     // Select top 3 panelists with some randomization for diversity
-    $topCandidates = array_keys($panelistScores);
+    $topCandidates = array_values(array_diff(array_keys($panelistScores), $selectedPanelists));
     
     // Candidate 0: Best match (top scorer or random from top 3)
     $top3 = array_slice($topCandidates, 0, min(3, count($topCandidates)));
