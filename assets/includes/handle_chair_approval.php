@@ -26,7 +26,7 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
 }
 
 $action = $_POST['action'] ?? '';
-$scheduleId = $_POST['schedule_id'] ?? '';
+$scheduleId = isset($_POST['schedule_id']) ? (int)$_POST['schedule_id'] : 0;
 $rejectionReason = $_POST['rejection_reason'] ?? '';
 
 // Validate user can access dashboard defense features.
@@ -37,7 +37,7 @@ if (!userCanAccessDashboard($pdo, $userId, $usertype)) {
     exit;
 }
 
-if (!$scheduleId || !$userId || !in_array($action, ['approve', 'reject'])) {
+if ($scheduleId <= 0 || $userId < 0 || !in_array($action, ['approve', 'reject'], true)) {
     echo json_encode(['success' => false, 'message' => 'Invalid request parameters']);
     exit;
 }

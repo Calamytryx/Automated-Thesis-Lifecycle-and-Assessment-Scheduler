@@ -134,7 +134,7 @@
                             
                             <div class="col-12 col-md-4 col-lg-4">
                                 <!-- Sort Dropdown -->
-                                <select class="form-select user-control-height" id="teamSortSelect">
+                                <select class="form-select user-control-height" id="teamSpecSortSelect">
                                     <option value="name:asc">Team Name (A-Z)</option>
                                     <option value="name:desc">Team Name (Z-A)</option>
                                 </select>
@@ -1038,7 +1038,7 @@ $(document).ready(function() {
         // Get filter and sort values
         const searchFilter = $('#teamSearch').val().toLowerCase();
         const programFilter = $('#teamProgramFilter').val();
-        const sortValue = $('#teamSortSelect').val();
+        const sortValue = $('#teamSpecSortSelect').val();
 
         // Apply filters
         let filtered = myTeams;
@@ -1384,7 +1384,7 @@ $(document).ready(function() {
     });
 
     // Team sort change
-    $('#teamSortSelect').change(function() {
+    $('#teamSpecSortSelect').change(function() {
         renderTeams(1);
     });
 
