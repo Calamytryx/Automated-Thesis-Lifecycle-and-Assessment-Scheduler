@@ -684,29 +684,16 @@ function handleRequirementTemplateUpload($file) {
             // Collect the members that should remain from the form submission
             $membersToKeep = [];
             
-            // Process existing member roles from the form
+            // Process existing members from the form.
+            // Roles are intentionally locked in the UI, so we only keep/remove membership here.
             if (isset($data['member_ids']) && is_array($data['member_ids'])) {
                 $memberIds = $data['member_ids'];
-                $memberRoles = isset($data['member_role']) ? $data['member_role'] : [];
                 
                 for ($i = 0; $i < count($memberIds); $i++) {
                     $userId = $memberIds[$i];
-                    $role = isset($memberRoles[$i]) ? $memberRoles[$i] : null;
-                    
-                    if ($userId && $role) {
+
+                    if ($userId) {
                         $membersToKeep[] = $userId;
-                        
-                        // Update role if it has changed
-                        $stmtUpdateRole = $pdo->prepare("UPDATE team_members 
-                                                       SET role = :role 
-                                                       WHERE team_id = :team_id AND user_id = :user_id");
-                        $stmtUpdateRole->execute([
-                            ':role' => $role,
-                            ':team_id' => $id,
-                            ':user_id' => $userId
-                        ]);
-                        
-                        error_log("Updated team member (ID: {$userId}) role to: {$role}");
                     }
                 }
             }
@@ -748,11 +735,8 @@ function handleRequirementTemplateUpload($file) {
                             
                             error_log("Added new member to team $id: User ID $userId with role $role");
                         } else {
-                            // Update role if member already exists
-                            $stmtUpdateRole = $pdo->prepare("UPDATE team_members SET role = ? WHERE team_id = ? AND user_id = ?");
-                            $stmtUpdateRole->execute([$role, $id, $userId]);
-                            
-                            error_log("Updated existing member in team $id: User ID $userId with role $role");
+                            // Existing members keep their current role.
+                            error_log("Skipped role update for existing member in team $id: User ID $userId");
                         }
                     }
                 }

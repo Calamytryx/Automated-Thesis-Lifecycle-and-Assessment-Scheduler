@@ -273,8 +273,18 @@ function canProfessorCreateTeam($pdo, $professor_id, $memberIds = []) {
         if (empty($memberIds)) {
             return ['canCreate' => true, 'message' => ''];
         }
+
+        // Only student members are constrained by section.
+        // Advisers/faculty often have NULL section values and should not fail this check.
+        $memberIds = array_values(array_unique(array_filter(array_map('intval', $memberIds), function ($id) {
+            return $id > 0;
+        })));
+
+        if (empty($memberIds)) {
+            return ['canCreate' => true, 'message' => ''];
+        }
         
-        // Check if all members are from professor's assigned sections
+        // Check if all student members are from professor's assigned sections
         $sectionPlaceholders = implode(',', array_fill(0, count($assignedSections), '?'));
         $memberPlaceholders = implode(',', array_fill(0, count($memberIds), '?'));
         
@@ -283,6 +293,7 @@ function canProfessorCreateTeam($pdo, $professor_id, $memberIds = []) {
                    SUM(CASE WHEN section IN ($sectionPlaceholders) THEN 1 ELSE 0 END) as in_allowed_sections
             FROM users
             WHERE id IN ($memberPlaceholders)
+              AND usertype = 1
         ");
         
         $params = array_merge($assignedSections, $memberIds);

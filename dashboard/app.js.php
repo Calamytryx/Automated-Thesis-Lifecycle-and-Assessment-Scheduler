@@ -728,7 +728,7 @@
 
     // When role becomes 'adviser' or when selecting a user while role is adviser,
     // warn if adviser already handles 3 teams. If user cancels, clear the role selection.
-    $(document).on('change', '.role-select, select[name="member_role[]"], select[name="new_role[]"]', function () {
+    $(document).on('change', '.role-select, select[name="new_role[]"]', function () {
         var $role = $(this);
         var roleVal = $role.val();
         if (roleVal !== 'adviser') return; // only care about adviser role
@@ -1977,14 +1977,14 @@
                         `;
 
                             response.data.members.forEach(function (member, index) {
+                                const roleLabel = member.role === 'adviser'
+                                    ? 'Adviser'
+                                    : (member.role === 'leader' ? 'Leader' : 'Member');
                                 formHtml += `
                                 <div class="mb-3 row team-member" data-user-id="${member.id}">
                                     <div class="col-sm-5">
-                                        <select class="form-select role-select" name="member_role[]">
-                                            <option value="adviser"${member.role === 'adviser' ? ' selected' : ''}>Adviser</option>
-                                            <option value="leader"${member.role === 'leader' ? ' selected' : ''}>Leader</option>
-                                            <option value="member"${member.role === 'member' ? ' selected' : ''}>Member</option>
-                                        </select>
+                                        <input type="text" class="form-control" value="${roleLabel}" readonly>
+                                        <input type="hidden" name="member_role[]" value="${member.role}">
                                     </div>
                                     <div class="col-sm-5">
                                         <input type="text" class="form-control" name="member_name[]" value="${member.name}" readonly>
@@ -4618,7 +4618,7 @@
         };
 
         $container.find('.team-member').each(function () {
-            var role = $(this).find('select[name*="role"]').val() || $(this).find('select[name*="member_role"]').val();
+            var role = $(this).find('.role-select').val() || $(this).find('input[name="member_role[]"]').val();
             if (role && count.hasOwnProperty(role)) {
                 count[role]++;
             }
@@ -4799,11 +4799,19 @@
 
         enforceExclusiveRoleOptions($container);
 
-        // Collect all selected user IDs
+        // Collect existing member IDs (read-only rows in edit mode)
+        $container.find('input[name="member_ids[]"]').each(function () {
+            var userId = $(this).val();
+            if (userId) {
+                selectedUserIds.push(String(userId));
+            }
+        });
+
+        // Collect all selected user IDs from new member rows
         $container.find('.team-member').each(function () {
             var userId = $(this).find('.user-select').val();
             if (userId) {
-                selectedUserIds.push(userId);
+                selectedUserIds.push(String(userId));
             }
         });
 
