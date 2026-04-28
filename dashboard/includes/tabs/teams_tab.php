@@ -261,6 +261,8 @@
                 });
         };
 
+        window.reloadTeamsWithoutTitlesView = loadTeamsWithoutTitles;
+
         // Function to load teams with search and sorting
         const loadTeams = (page = 1, search = '', sort = 'id:desc', section = '') => {
             let url = `includes/tabs/get_table.php?table=teams&page=${page}`;

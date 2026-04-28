@@ -2865,6 +2865,10 @@
                                     location.reload();
                                 }, 1000);
                             }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
+                            }
                         } else if (table === 'research_titles') {
                             // For research titles tab, use the research titles-specific reload function
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
@@ -2875,6 +2879,10 @@
                                 setTimeout(function () {
                                     location.reload();
                                 }, 1000);
+                            }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
                             }
                         } else if (table === 'requirements') {
                             // For requirements tab, use the requirements-specific reload function
@@ -3849,6 +3857,10 @@
                                     location.reload();
                                 }, 1000);
                             }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
+                            }
                         } else if (table === 'research_titles') {
                             // For research titles tab, use the research titles-specific reload function
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
@@ -3859,6 +3871,10 @@
                                 setTimeout(function () {
                                     location.reload();
                                 }, 1000);
+                            }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
                             }
                         } else if (table === 'requirements') {
                             // For requirements tab, use the requirements-specific reload function
@@ -4027,6 +4043,10 @@
                                     location.reload();
                                 }, 1000);
                             }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
+                            }
                         } else if (table === 'research_titles') {
                             // For research titles tab, use the research titles-specific reload function
                             if (typeof window.reloadCurrentResearchTitlesView === 'function') {
@@ -4037,6 +4057,10 @@
                                 setTimeout(function () {
                                     location.reload();
                                 }, 1000);
+                            }
+
+                            if (typeof window.reloadTeamsWithoutTitlesView === 'function') {
+                                window.reloadTeamsWithoutTitlesView();
                             }
                         } else if (table === 'requirements') {
                             // For requirements tab, use the requirements-specific reload function
