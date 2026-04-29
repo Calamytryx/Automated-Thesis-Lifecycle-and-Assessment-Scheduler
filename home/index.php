@@ -3255,6 +3255,9 @@ function showToast(title, message, type = 'success') {
 $(document).ready(function() {
     <?php
         $role = isset($_SESSION['team_role']) ? $_SESSION['team_role'] : '';
+        $roleList = array_filter(array_map('trim', explode(',', strtolower((string)$role))));
+        $isLeader = in_array('leader', $roleList, true);
+        $isMember = in_array('member', $roleList, true);
         $teamId = isset($_SESSION['team_id']) ? $_SESSION['team_id'] : [];
 
         if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0) {
@@ -3630,14 +3633,31 @@ $(document).ready(function() {
     <?php
             }
         } else if ($_SESSION['usertype'] == 1) { ?>
-    // console.log("Loading requirements for teamId:", teamId);
-    loadRequirements(); // Just call the function here for usertype 1
+    const defaultStudentTeamId = <?php
+        $studentTeamId = null;
+        if (isset($_SESSION['team_id'])) {
+            if (is_array($_SESSION['team_id'])) {
+                $studentTeamId = $_SESSION['team_id'][0] ?? null;
+            } else {
+                $studentTeamId = $_SESSION['team_id'];
+            }
+        }
+        echo json_encode($studentTeamId, JSON_NUMERIC_CHECK);
+    ?>;
 
-    function loadRequirements() {
+    // console.log("Loading requirements for teamId:", defaultStudentTeamId);
+    loadRequirements(defaultStudentTeamId); // Load requirements for the student's active team
+
+    function loadRequirements(teamId = defaultStudentTeamId) {
+        if (!teamId) {
+            $('#requirementChecklist').html('<p class="text-danger">No team selected.</p>');
+            return;
+        }
 
         $.ajax({
             url: 'includes/get_requirements.php',
             method: 'GET',
+            data: { team_id: teamId },
             dataType: 'json',
             success: function(response) {
                 if (response.success) {
@@ -3650,7 +3670,7 @@ $(document).ready(function() {
                         const canUploadMoreByCount = allowsMultiple ? submissionCount < maxSubmissions : !req.file_name;
                         const canUploadMore = canUploadMoreByCount && req.status !== 'closed';
 
-                        <?php if ($role === 'leader' || $role === 'member') { ?>
+                        <?php if ($isLeader || $isMember) { ?>
                             displayHtml += `
                                 <div class="col-md-6 mb-4 requirement-card-wrapper">
                                     <div class="card requirement-student-card h-100" id="student-req-card-${req.id}" data-req-id="${req.id}" data-status="${req.status}">
@@ -3710,7 +3730,7 @@ $(document).ready(function() {
                                                                     ${file.original_file_name || file.file_name}
                                                                 </a>
                                                                 ${req.status === 'pending' ? `
-                                                                    <?php if ($role === 'leader') { ?>
+                                                                    <?php if ($isLeader) { ?>
                                                                     <button type="button" class="btn btn-sm remove-current-file-btn" data-req-id="${req.id}" data-file-name="${file.file_name}" title="Remove this file">
                                                                         <i class="bi bi-trash"></i>
                                                                     </button>
@@ -3740,7 +3760,7 @@ $(document).ready(function() {
                                             }
                                             
                                             <!-- Upload Section (Leader Only) -->
-                                            <?php if ($role === 'leader') { ?>
+                                            <?php if ($isLeader) { ?>
                                             ${canUploadMore 
                                                 ? `<div class="requirement-upload-section-student">
                                                     <label class="requirement-upload-label">Upload File:</label>
