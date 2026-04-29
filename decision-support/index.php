@@ -289,6 +289,16 @@ try {
         }
     }
 
+    // Final fallback: if we still do not have an active file, use the first available submission.
+    if (empty($pdf_file_name) && !empty($submissionFiles)) {
+        $fallbackFile = $submissionFiles[0];
+        if (!empty($fallbackFile['file_name'])) {
+            $pdf_file_name = $fallbackFile['file_name'];
+            $activeSubmissionId = $fallbackFile['id'] ?? null;
+            error_log("DS-Index: Falling back to first available submission file: {$pdf_file_name} (ID: {$activeSubmissionId})");
+        }
+    }
+
     // 2. Fetch Team Members (Students) (New Logic)
     $stmt_students = $pdo->prepare("
         SELECT u.id, u.username, u.first_name, u.last_name, CONCAT(u.first_name, ' ', u.last_name) AS fullname
@@ -1228,7 +1238,7 @@ include '../assets/layouts/header.php';
                                             </div>
                                             <div class="col-md-8">
                                                 <div class="panel-content">
-                                                    <iframe id="pdf" src="../assets/uploads/submission/<?php echo urlencode($pdf_file_name); ?>"
+                                                    <iframe id="pdf" src="viewer.html?file=<?php echo rawurlencode('../assets/uploads/submission/' . $pdf_file_name); ?>"
                                                         frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
                                                     </iframe>
                                                 </div>
@@ -1236,7 +1246,7 @@ include '../assets/layouts/header.php';
                                         </div>
                                         <?php else: ?>
                                         <div class="panel-content">
-                                            <iframe id="pdf" src="../assets/uploads/submission/<?php echo urlencode($pdf_file_name); ?>"
+                                            <iframe id="pdf" src="viewer.html?file=<?php echo rawurlencode('../assets/uploads/submission/' . $pdf_file_name); ?>"
                                                 frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
                                             </iframe>
                                         </div>
@@ -1769,7 +1779,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const fname = submissionMap[fid];
             const iframe = document.getElementById('pdf');
             if (iframe && fname) {
-                iframe.src = `../assets/uploads/submission/${encodeURIComponent(fname)}`;
+                iframe.src = `viewer.html?file=${encodeURIComponent('../assets/uploads/submission/' + fname)}`;
             }
         });
     });
