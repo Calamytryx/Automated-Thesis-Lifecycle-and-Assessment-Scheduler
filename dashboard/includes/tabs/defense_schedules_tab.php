@@ -500,6 +500,76 @@
                                     window.showLoadingState = showLoadingState;
                                     window.updateScheduleProgress = updateProgress;
 
+                                    // Post-generation validation summary helper
+                                    function showPostGenerationSummary(validation, overlapWarnings, overlapFixes) {
+                                        const statusEl = document.getElementById('scheduleGenerationStatus');
+                                        if (!statusEl) return;
+
+                                        let summaryHtml = '';
+
+                                        // Resource counts
+                                        const slotOk = validation.totalCapacity >= validation.teamCount;
+                                        const panelOk = validation.panelistCount >= 3;
+                                        summaryHtml += `
+                                            <div class="card mt-2" style="font-size:0.82rem;">
+                                                <div class="card-header py-1 fw-semibold bg-light">
+                                                    <i class="fas fa-chart-bar me-1"></i>Schedule Generation Summary
+                                                </div>
+                                                <div class="card-body py-2 px-3">
+                                                    <div class="row g-2">
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="text-muted">Teams Scheduled</div>
+                                                            <div class="fw-bold">${validation.teamCount}</div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="text-muted">Panelists Available</div>
+                                                            <div class="fw-bold ${panelOk ? 'text-success' : 'text-danger'}">${validation.panelistCount}</div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="text-muted">Total Slot Capacity</div>
+                                                            <div class="fw-bold ${slotOk ? 'text-success' : 'text-danger'}">${validation.totalCapacity}</div>
+                                                        </div>
+                                                        <div class="col-6 col-md-3">
+                                                            <div class="text-muted">Overlap Issues Fixed</div>
+                                                            <div class="fw-bold">${overlapFixes}</div>
+                                                        </div>
+                                                    </div>`;
+
+                                        if (overlapWarnings && overlapWarnings.length > 0) {
+                                            summaryHtml += `
+                                                    <div class="mt-2">
+                                                        <span class="badge bg-warning text-dark me-1">${overlapWarnings.length}</span>
+                                                        remaining overlap warning(s) — please review the calendar.
+                                                    </div>`;
+                                        }
+
+                                        if (validation.warnings && validation.warnings.length > 0) {
+                                            summaryHtml += validation.warnings.map(w =>
+                                                `<div class="alert alert-warning py-1 px-2 mb-1 mt-1" style="font-size:0.8rem;"><i class="fas fa-exclamation-triangle me-1"></i>${w}</div>`
+                                            ).join('');
+                                        }
+
+                                        if (validation.panelistConflicts && validation.panelistConflicts.length > 0) {
+                                            const conflictList = validation.panelistConflicts
+                                                .map(p => `<span class="badge bg-light text-dark border me-1">${p.name}</span>`)
+                                                .join('');
+                                            summaryHtml += `<div class="mt-1" style="font-size:0.8rem;"><i class="fas fa-user-clock text-warning me-1"></i>Panelists with class conflicts: ${conflictList}</div>`;
+                                        }
+
+                                        summaryHtml += `</div></div>`;
+
+                                        // Append summary after the main status element
+                                        let summaryContainer = document.getElementById('postGenSummaryContainer');
+                                        if (!summaryContainer) {
+                                            summaryContainer = document.createElement('div');
+                                            summaryContainer.id = 'postGenSummaryContainer';
+                                            statusEl.after(summaryContainer);
+                                        }
+                                        summaryContainer.innerHTML = summaryHtml;
+                                    }
+
+                                    window.showPostGenerationSummary = showPostGenerationSummary;
+
                                     // Progress polling system
                                     function pollScheduleProgress(progressId) {
                                         const pollInterval = setInterval(() => {
@@ -591,9 +661,17 @@
                                                 console.log('AJAX Success Response:', response);
                                                 if (response.success && response.preview && response.schedules) {
                                                     // Preview mode: show editable calendar
-                                                    hideLoadingState(true, 'Preview ready! Review the schedule below.');
+                                                    let previewMsg = 'Preview ready! Review the schedule below.';
+                                                    if (response.validation && response.validation.warnings && response.validation.warnings.length > 0) {
+                                                        previewMsg += ' <span class="badge bg-warning text-dark ms-1"><i class="fas fa-exclamation-triangle"></i> ' + response.validation.warnings.length + ' warning(s)</span>';
+                                                    }
+                                                    hideLoadingState(true, previewMsg);
                                                     if (typeof window.showDefensePreviewCalendar === 'function') {
                                                         window.showDefensePreviewCalendar(response.schedules);
+                                                    }
+                                                    // Show validation warnings/panelist conflicts in a summary
+                                                    if (response.validation) {
+                                                        showPostGenerationSummary(response.validation, response.overlapWarnings || [], response.overlapFixes || 0);
                                                     }
                                                 } else if (response.success) {
                                                     if (response.progressId) {
@@ -605,12 +683,22 @@
                                                         if (response.overwrittenTeams > 0) {
                                                             updateProgress(`Success! Overwrote ${response.overwrittenTeams} existing schedules`);
                                                         }
+                                                        if (response.validation) {
+                                                            showPostGenerationSummary(response.validation, response.overlapWarnings || [], response.overlapFixes || 0);
+                                                        }
                                                         // Reload table automatically
                                                         setTimeout(() => {
                                                             if (typeof window.reloadCurrentDefenseSchedulesView === 'function') {
                                                                 window.reloadCurrentDefenseSchedulesView(1);
                                                             }
                                                         }, 1000);
+                                                    }
+                                                } else if (response.validation && !response.validation.canProceed) {
+                                                    // Backend blocked generation due to pre-validation errors
+                                                    const errorMsg = response.validation.errors ? response.validation.errors.join('<br>') : (response.message || 'Validation failed');
+                                                    hideLoadingState(false, errorMsg);
+                                                    if (response.validation) {
+                                                        showPostGenerationSummary(response.validation, [], 0);
                                                     }
                                                 } else if (response.requireUpgradeConfirmation) {
                                                     hideLoadingState(false, 'Defense type upgrade confirmation required');
@@ -815,6 +903,14 @@
                         $totalTeams = $row['total'] ?? 0;
                         ?>
                         <div class="mt-3">Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
+
+                        <!-- Pre-Validation Resource Summary -->
+                        <div id="preValidationPanel" class="mt-3" style="display:none;">
+                            <h6 class="mb-2 fw-semibold"><i class="fas fa-clipboard-check me-1"></i>Resource Check</h6>
+                            <div id="preValidationResourceTable"></div>
+                            <div id="preValidationMessages" class="mt-2"></div>
+                        </div>
+
                         <div id="scheduleGenerationStatus" class="mt-2"></div>
                     </div>
                     <div class="modal-footer">
@@ -837,6 +933,141 @@
 <script>
                         // USE THIS SCRIPT
                         let totalScheds = <?php echo $totalScheds; ?>;
+
+                        // ---- Pre-Validation Helpers ----
+                        function buildPrevalidatePayload() {
+                            const rooms      = (document.getElementById('rooms')?.value || '').split(',').map(r => r.trim()).filter(r => r);
+                            const duration   = parseFloat(document.getElementById('timeDuration')?.value || '1');
+                            const startTime  = document.getElementById('startTime')?.value || '';
+                            const endTime    = document.getElementById('endTime')?.value || '';
+                            const daysRaw    = document.getElementById('days')?.value || '';
+                            const days       = daysRaw.split(',').map(d => d.trim()).filter(d => d);
+                            const section    = document.getElementById('selectedSection')?.value || '';
+                            const includeLunch = document.getElementById('includeLunchBreak')?.checked || false;
+
+                            // Build time slots (mirrors the logic in the generate handler)
+                            const timeSlots = [];
+                            if (startTime && endTime && duration > 0) {
+                                const increment = (duration % 1 === 0) ? 60 : 30;
+                                let cur = new Date('1970-01-01T' + startTime);
+                                const end = new Date('1970-01-01T' + endTime);
+                                while (cur < end) {
+                                    timeSlots.push(cur.toTimeString().substring(0, 5));
+                                    cur.setMinutes(cur.getMinutes() + increment);
+                                }
+                            }
+
+                            const payload = {
+                                action: 'prevalidate',
+                                rooms: rooms,
+                                timeDuration: duration,
+                                timeSlots: timeSlots,
+                                days: days,
+                                section: section,
+                                includeLunchBreak: includeLunch ? '1' : '0'
+                            };
+                            return payload;
+                        }
+
+                        function renderPreValidationPanel(validation) {
+                            const panel    = document.getElementById('preValidationPanel');
+                            const tableEl  = document.getElementById('preValidationResourceTable');
+                            const msgsEl   = document.getElementById('preValidationMessages');
+
+                            if (!panel || !tableEl || !msgsEl) return;
+
+                            const ok   = '<span class="badge bg-success">OK</span>';
+                            const warn = '<span class="badge bg-warning text-dark">Warning</span>';
+                            const err  = '<span class="badge bg-danger">Error</span>';
+
+                            const slotStatus = validation.totalCapacity >= validation.teamCount
+                                ? (validation.totalCapacity < validation.teamCount * 2 ? warn : ok)
+                                : err;
+                            const panelStatus = validation.panelistCount >= validation.teamCount * 3
+                                ? ok
+                                : (validation.panelistCount >= 3 ? warn : err);
+
+                            tableEl.innerHTML = `
+                                <table class="table table-sm table-bordered mb-0" style="font-size:0.85rem;">
+                                    <thead class="table-light"><tr><th>Resource</th><th>Count</th><th>Status</th></tr></thead>
+                                    <tbody>
+                                        <tr><td>Teams to schedule</td><td>${validation.teamCount}</td><td></td></tr>
+                                        <tr><td>Available panelists</td><td>${validation.panelistCount}</td><td>${panelStatus}</td></tr>
+                                        <tr><td>Rooms</td><td>${validation.roomCount}</td><td></td></tr>
+                                        <tr><td>Days selected</td><td>${validation.dayCount}</td><td></td></tr>
+                                        <tr><td>Total time slots capacity</td><td>${validation.totalCapacity}</td><td>${slotStatus}</td></tr>
+                                    </tbody>
+                                </table>
+                            `;
+
+                            let html = '';
+
+                            if (validation.errors && validation.errors.length > 0) {
+                                html += validation.errors.map(e =>
+                                    `<div class="alert alert-danger py-1 px-2 mb-1" style="font-size:0.82rem;"><i class="fas fa-times-circle me-1"></i>${e}</div>`
+                                ).join('');
+                            }
+
+                            if (validation.warnings && validation.warnings.length > 0) {
+                                html += validation.warnings.map(w =>
+                                    `<div class="alert alert-warning py-1 px-2 mb-1" style="font-size:0.82rem;"><i class="fas fa-exclamation-triangle me-1"></i>${w}</div>`
+                                ).join('');
+                            }
+
+                            if (validation.panelistConflicts && validation.panelistConflicts.length > 0) {
+                                const conflictList = validation.panelistConflicts.map(p =>
+                                    `<li>${p.name} (${p.blockedSlots} slot${p.blockedSlots !== 1 ? 's' : ''} blocked)</li>`
+                                ).join('');
+                                html += `<div class="alert alert-warning py-1 px-2 mb-1" style="font-size:0.82rem;">
+                                    <i class="fas fa-user-clock me-1"></i><strong>Panelists with conflicting schedules:</strong>
+                                    <ul class="mb-0 mt-1">${conflictList}</ul>
+                                </div>`;
+                            }
+
+                            if (!html && validation.canProceed) {
+                                html = `<div class="alert alert-success py-1 px-2 mb-0" style="font-size:0.82rem;"><i class="fas fa-check-circle me-1"></i>All resources look good. You can generate the schedule.</div>`;
+                            }
+
+                            msgsEl.innerHTML = html;
+                            panel.style.display = '';
+                        }
+
+                        function runPreValidation(onDone) {
+                            const payload = buildPrevalidatePayload();
+                            if (!payload.days.length || !payload.rooms.length || !payload.timeSlots.length) {
+                                // Not enough info yet – hide panel silently
+                                const panel = document.getElementById('preValidationPanel');
+                                if (panel) panel.style.display = 'none';
+                                if (typeof onDone === 'function') onDone(null);
+                                return;
+                            }
+
+                            $.ajax({
+                                url: '../dashboard/includes/run_scheduler.php',
+                                method: 'POST',
+                                data: payload,
+                                dataType: 'json',
+                                success: function(response) {
+                                    if (response.success && response.validation) {
+                                        renderPreValidationPanel(response.validation);
+                                        if (typeof onDone === 'function') onDone(response.validation);
+                                    } else {
+                                        const panel = document.getElementById('preValidationPanel');
+                                        if (panel) panel.style.display = 'none';
+                                        if (typeof onDone === 'function') onDone(null);
+                                    }
+                                },
+                                error: function() {
+                                    const panel = document.getElementById('preValidationPanel');
+                                    if (panel) panel.style.display = 'none';
+                                    if (typeof onDone === 'function') onDone(null);
+                                }
+                            });
+                        }
+
+                        // Expose pre-validation runner globally so event listeners can call it
+                        window.runSchedulerPreValidation = runPreValidation;
+
                         // Use the global validateInputs function in saveSchedulerSettings click handler
                         document.getElementById('saveSchedulerSettings').addEventListener('click', function() {
                             // Call the global updateTeamCount function with validateInputs as callback
@@ -846,32 +1077,69 @@
                                 const generateScheduleButton = document.getElementById('generateSchedule');
                                 
                                 if (!saveButtonInstance.disabled) { // Check if save button is NOT disabled (i.e., settings are valid)
-                                     // Enable generate schedule button
-                                     console.log("Settings are valid");
-                                    if(generateScheduleButton) {
-                                        generateScheduleButton.disabled = false;
-                                        console.log("enabling generate schedule button")
-                                    }
-                                    $('#schedulerSettingsModal').modal('hide'); // Close the modal
+                                    // Run pre-validation before closing the modal
+                                    runPreValidation(function(validation) {
+                                        const canProceed = !validation || validation.canProceed;
 
-                                    // Update the generationSetting display
-                                    const settingsOutput = "Rooms: " + (document.getElementById("rooms").value || "N/A") + "<br>" +
-                                        "Time Duration: " + (document.getElementById("timeDuration").value || "N/A") + " hours<br>" +
-                                        "Start Time: " + (document.getElementById("startTime").value || "N/A") + "<br>" +
-                                        "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
-                                        "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
-                                        "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
-                                    const generationSettingEl = document.getElementById("generationSetting");
-                                    generationSettingEl.innerHTML = settingsOutput;
-                                    generationSettingEl.style.display = 'block';
+                                        if (!canProceed) {
+                                            // Keep modal open so user can see errors
+                                            if (generateScheduleButton) generateScheduleButton.disabled = true;
+                                            return;
+                                        }
 
+                                        // Enable generate schedule button
+                                        console.log("Settings are valid");
+                                        if (generateScheduleButton) {
+                                            generateScheduleButton.disabled = false;
+                                            console.log("enabling generate schedule button");
+                                        }
+                                        $('#schedulerSettingsModal').modal('hide'); // Close the modal
+
+                                        // Update the generationSetting display
+                                        const settingsOutput = "Rooms: " + (document.getElementById("rooms").value || "N/A") + "<br>" +
+                                            "Time Duration: " + (document.getElementById("timeDuration").value || "N/A") + " hours<br>" +
+                                            "Start Time: " + (document.getElementById("startTime").value || "N/A") + "<br>" +
+                                            "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
+                                            "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
+                                            "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
+                                        const generationSettingEl = document.getElementById("generationSetting");
+                                        generationSettingEl.innerHTML = settingsOutput;
+                                        generationSettingEl.style.display = 'block';
+
+                                        // Show a concise validation summary outside the modal if there were warnings
+                                        if (validation && validation.warnings && validation.warnings.length > 0) {
+                                            const existingWarning = document.getElementById('preValidationOutsideWarning');
+                                            const warningEl = existingWarning || document.createElement('div');
+                                            warningEl.id = 'preValidationOutsideWarning';
+                                            warningEl.className = 'alert alert-warning alert-dismissible fade show mt-2';
+                                            warningEl.innerHTML = '<i class="fas fa-exclamation-triangle me-2"></i><strong>Resource warnings:</strong> ' +
+                                                validation.warnings.join(' &bull; ') +
+                                                '<button type="button" class="btn-close" data-bs-dismiss="alert"></button>';
+                                            if (!existingWarning) {
+                                                generationSettingEl.after(warningEl);
+                                            }
+                                        }
+                                    });
                                 } else { // Settings are invalid
-                                    if(generateScheduleButton) {
+                                    if (generateScheduleButton) {
                                         generateScheduleButton.disabled = true;
                                     }
                                     // Do not close the modal if settings are invalid
                                 }
                             });
+                        });
+
+                        // Trigger pre-validation when the scheduler settings modal is shown
+                        document.addEventListener('DOMContentLoaded', function() {
+                            const settingsModal = document.getElementById('schedulerSettingsModal');
+                            if (settingsModal) {
+                                settingsModal.addEventListener('shown.bs.modal', function() {
+                                    // Only run if all basic inputs are present
+                                    if (document.getElementById('days')?.value && document.getElementById('rooms')?.value) {
+                                        runPreValidation(null);
+                                    }
+                                });
+                            }
                         });
                     </script>
 

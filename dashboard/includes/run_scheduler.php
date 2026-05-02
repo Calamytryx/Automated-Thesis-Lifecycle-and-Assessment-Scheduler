@@ -99,6 +99,56 @@ try {
 
     // Main execution
     if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+        // === PRE-VALIDATION ONLY MODE ===
+        // When action=prevalidate is passed, run resource checks without running the GA
+        if (isset($_POST['action']) && $_POST['action'] === 'prevalidate') {
+            if (!validateInputs()) {
+                if (ob_get_level()) ob_end_clean();
+                echo json_encode(['success' => false, 'message' => 'Please fill in all required fields (Rooms, Duration, Start/End Time, Days).']);
+                exit;
+            }
+
+            $selectedSections = [];
+            if (isset($_POST['section']) && !empty($_POST['section'])) {
+                $selectedSections = is_array($_POST['section'])
+                    ? array_filter($_POST['section'], fn($s) => !empty(trim($s)))
+                    : [trim($_POST['section'])];
+            }
+
+            $currentUserId   = $_SESSION['id'] ?? 0;
+            $currentUsertype = $_SESSION['usertype'] ?? -1;
+            $accessibleSections = getAccessibleSections($pdo, $currentUserId, $currentUsertype);
+
+            if (!empty($selectedSections)) {
+                $invalid = array_diff($selectedSections, $accessibleSections);
+                if (!empty($invalid)) {
+                    if (ob_get_level()) ob_end_clean();
+                    echo json_encode(['success' => false, 'message' => 'You do not have access to one or more selected sections.']);
+                    exit;
+                }
+            } else {
+                $selectedSections = $accessibleSections;
+            }
+
+            $teams     = fetchTeams($pdo, $selectedSections);
+            $panelists = fetchPanelists($pdo);
+
+            $duration  = floatval($_POST['timeDuration']);
+            $rooms     = $_POST['rooms'];
+            $timeSlots = $_POST['timeSlots'];
+            $days      = $_POST['days'];
+            $GLOBALS['timeDuration'] = $duration;
+
+            $userSchedules = fetchUserSchedules($pdo);
+
+            $validationReport = preValidateScheduleResources($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules);
+
+            if (ob_get_level()) ob_end_clean();
+            echo json_encode(['success' => true, 'validation' => $validationReport]);
+            exit;
+        }
+
         // Generate unique progress ID for tracking
         $progressId = uniqid('sched_', true);
         updateProgress($pdo, $progressId, 'running', 'Validating inputs...', 5);
@@ -401,6 +451,24 @@ try {
 
         error_log("SCHEDULER: About to generate schedules for " . count($teams) . " teams");
 
+        // === PRE-GA VALIDATION: Check resource availability before running the algorithm ===
+        updateProgress($pdo, $progressId, 'running', 'Pre-validating resource availability...', 30);
+        $preValidation = preValidateScheduleResources($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules);
+        if (!$preValidation['canProceed']) {
+            $errorMsg = implode(' | ', $preValidation['errors']);
+            updateProgress($pdo, $progressId, 'error', $errorMsg, null);
+            if (ob_get_level()) ob_end_clean();
+            echo json_encode([
+                'success'     => false,
+                'message'     => $errorMsg,
+                'validation'  => $preValidation,
+            ]);
+            exit;
+        }
+        if (!empty($preValidation['warnings'])) {
+            error_log("PRE-VALIDATION WARNINGS: " . implode(' | ', $preValidation['warnings']));
+        }
+
         updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization...', 35);
 
         // Optimize parameters for better performance-quality balance
@@ -461,6 +529,7 @@ try {
                 'schedules' => $previewData,
                 'overlapWarnings' => $overlapIssues,
                 'overlapFixes' => $overlapFixes,
+                'validation' => $preValidation,
                 'message' => empty($overlapIssues) 
                     ? 'Schedule preview generated. Review and confirm to save.' 
                     : 'Schedule preview generated with ' . count($overlapIssues) . ' overlap warning(s). ' . $overlapFixes . ' auto-fixed.'
@@ -493,6 +562,7 @@ try {
                     'overwrittenTeams' => !empty($scheduledTeams) ? count($scheduledTeams) : 0,
                     'overlapWarnings' => $overlapIssues,
                     'overlapFixes' => $overlapFixes,
+                    'validation' => $preValidation,
                     'message' => empty($overlapIssues)
                         ? 'Schedule generated and saved successfully'
                         : 'Schedule saved with ' . count($overlapIssues) . ' overlap warning(s). ' . $overlapFixes . ' auto-fixed.'
@@ -552,6 +622,149 @@ function validateInputs() {
     }
     
     return true;
+}
+
+/**
+ * Pre-validate that there are sufficient resources to run the scheduler.
+ * This runs BEFORE the genetic algorithm so that the user gets immediate feedback
+ * about data problems (too few panelists, not enough time slots, etc.).
+ *
+ * @param PDO   $pdo
+ * @param array $teams         Teams to schedule (from fetchTeams)
+ * @param array $panelists     Available panelists (from fetchPanelists)
+ * @param array $rooms         Selected room names
+ * @param array $timeSlots     Time-slot strings (e.g. ["08:00","09:00",...])
+ * @param array $days          Selected date strings
+ * @param array $userSchedules User schedule map [userId => [[day_of_week,start_time,end_time],...]]
+ * @return array {
+ *   teamCount, panelistCount, roomCount, dayCount, slotCount,
+ *   totalCapacity, canProceed, errors[], warnings[], panelistConflicts[]
+ * }
+ */
+function preValidateScheduleResources($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules)
+{
+    $teamCount     = count($teams);
+    $panelistCount = count($panelists);
+    $roomCount     = count($rooms);
+    $dayCount      = count($days);
+    $slotCount     = count($timeSlots);
+    $duration      = isset($GLOBALS['timeDuration']) ? floatval($GLOBALS['timeDuration']) : 1;
+
+    // Each room × each day × number of non-overlapping slots = total capacity
+    $slotsPerRoomPerDay = ($duration > 0 && $slotCount > 0) ? $slotCount : 0;
+    $totalCapacity      = $roomCount * $dayCount * $slotsPerRoomPerDay;
+
+    $errors   = [];
+    $warnings = [];
+    $panelistConflicts = [];
+
+    // --- 1. Basic counts ---
+    if ($teamCount === 0) {
+        $errors[] = 'No teams found for the selected section(s). Please make sure teams exist and the section filter is correct.';
+    }
+
+    if ($panelistCount < 3) {
+        $errors[] = "Only $panelistCount panelist(s) available. At least 3 are needed to form a panel.";
+    } elseif ($panelistCount < $teamCount * 3) {
+        // Soft warning: with enough schedule variation the GA may still work, but flag it
+        $warnings[] = "Panelist pool ($panelistCount) may be insufficient to assign 3 unique panelists to all $teamCount teams without reuse. Consider adding more panelists.";
+    }
+
+    if ($totalCapacity === 0) {
+        $errors[] = 'Total scheduling capacity is zero. Check rooms, time slots, and selected dates.';
+    } elseif ($totalCapacity < $teamCount) {
+        $errors[] = "Not enough time slots ($totalCapacity available) to schedule all $teamCount teams. Add more rooms, dates, or extend the time window.";
+    } elseif ($totalCapacity < $teamCount * 2) {
+        $warnings[] = "Limited scheduling capacity ($totalCapacity slots for $teamCount teams). The algorithm may struggle to find a conflict-free schedule.";
+    }
+
+    // --- 2. Panelist availability conflicts in selected time windows ---
+    // Build a day-of-week map from the selected date strings (mm-dd-yyyy or Y-m-d)
+    $dayOfWeekMap = [];
+    foreach ($days as $dateStr) {
+        $dateStr = trim($dateStr);
+        if (empty($dateStr)) continue;
+        // Try multiple formats
+        $ts = strtotime($dateStr);
+        if ($ts === false) {
+            // Try mm-dd-yyyy
+            $parts = explode('-', $dateStr);
+            if (count($parts) === 3) {
+                $ts = mktime(0, 0, 0, (int)$parts[0], (int)$parts[1], (int)$parts[2]);
+            }
+        }
+        if ($ts !== false) {
+            $dayOfWeekMap[$dateStr] = (int)date('w', $ts); // 0=Sun, 6=Sat
+        }
+    }
+
+    $blockedPanelistSlots = []; // panelistId => count of blocked slots
+    foreach ($panelists as $panelistId => $pData) {
+        if (!isset($userSchedules[$panelistId])) continue;
+        $blockedCount = 0;
+        foreach ($userSchedules[$panelistId] as $sched) {
+            $dow = (int)$sched['day_of_week'];
+            $sStart = strtotime($sched['start_time']);
+            $sEnd   = strtotime($sched['end_time']);
+            // Check each selected day that matches this day-of-week
+            foreach ($dayOfWeekMap as $dow2) {
+                if ($dow2 !== $dow) continue;
+                // Count how many defense time-slots overlap this user schedule entry
+                foreach ($timeSlots as $slotStr) {
+                    $slotStr = trim($slotStr);
+                    if (empty($slotStr)) continue;
+                    $slotStart = strtotime($slotStr);
+                    $slotEnd   = $slotStart + (int)($duration * 3600);
+                    if ($slotStart < $sEnd && $slotEnd > $sStart) {
+                        $blockedCount++;
+                    }
+                }
+            }
+        }
+        if ($blockedCount > 0) {
+            $blockedPanelistSlots[$panelistId] = $blockedCount;
+        }
+    }
+
+    if (!empty($blockedPanelistSlots)) {
+        // Fetch names for conflicting panelists
+        try {
+            $ids = array_keys($blockedPanelistSlots);
+            $placeholders = implode(',', array_fill(0, count($ids), '?'));
+            $stmt = $pdo->prepare("SELECT id, CONCAT(first_name,' ',last_name) AS name FROM users WHERE id IN ($placeholders)");
+            $stmt->execute($ids);
+            while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                $panelistConflicts[] = [
+                    'id'            => $row['id'],
+                    'name'          => $row['name'],
+                    'blockedSlots'  => $blockedPanelistSlots[$row['id']]
+                ];
+            }
+        } catch (Exception $e) {
+            error_log("preValidateScheduleResources: Could not fetch panelist names: " . $e->getMessage());
+        }
+
+        if (count($panelistConflicts) >= $panelistCount) {
+            $warnings[] = 'All available panelists have schedule conflicts during the selected time window. The algorithm will still attempt to find a solution, but may produce sub-optimal results.';
+        } else {
+            $warnings[] = count($panelistConflicts) . ' panelist(s) have existing class schedules that overlap the selected defense time window.';
+        }
+    }
+
+    $canProceed = empty($errors);
+
+    return [
+        'teamCount'         => $teamCount,
+        'panelistCount'     => $panelistCount,
+        'roomCount'         => $roomCount,
+        'dayCount'          => $dayCount,
+        'slotCount'         => $slotCount,
+        'totalCapacity'     => $totalCapacity,
+        'canProceed'        => $canProceed,
+        'errors'            => $errors,
+        'warnings'          => $warnings,
+        'panelistConflicts' => $panelistConflicts,
+    ];
 }
 
 // Check existing schedules with detailed information (date, status, defense_type)
