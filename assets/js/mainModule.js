@@ -17,7 +17,7 @@ async function initializeGemini() {
     
     genAI = new GoogleGenerativeAI(API_KEY);
     model = genAI.getGenerativeModel({
-        model: "gemini-2.0-flash-lite",
+        model: "gemini-2.5-flash-lite",
         systemInstruction: `You are ATLAS: Advanced Thesis Logistics and AI System for Lyceum of the Philippines University Cavite. 
         Your primary function is to assist with the "AI-Driven System for Efficient Scheduling and Performance Assessment of College Research Presentations in the College of Engineering, Computer Studies, and Architecture (COECSA) at Lyceum of the Philippines University-Cavite Campus (LPU-C)".
         

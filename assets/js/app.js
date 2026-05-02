@@ -8,6 +8,98 @@
  */
 
 import { initializeChatSession, sendMessageToModel, performWebSearch } from './mainModule.js';
+import { getDocument, GlobalWorkerOptions } from '../vendor/PDFJS/build/pdf.mjs';
+
+GlobalWorkerOptions.workerSrc = new URL('../vendor/PDFJS/build/pdf.worker.mjs', import.meta.url).href;
+
+async function extractPdfText(pdfUrl, outputElement) {
+    if (!pdfUrl || !outputElement) {
+        return '';
+    }
+
+    const response = await fetch(pdfUrl);
+    if (!response.ok) {
+        throw new Error(`Failed to fetch PDF: HTTP ${response.status}`);
+    }
+
+    const arrayBuffer = await response.arrayBuffer();
+    const pdfData = new Uint8Array(arrayBuffer);
+    const pdf = await getDocument({ data: pdfData }).promise;
+    let extractedText = '';
+
+    for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
+        const page = await pdf.getPage(pageNum);
+        const textContent = await page.getTextContent();
+        let pageText = `--- Page ${pageNum} ---\n`;
+        let lastY = null;
+
+        textContent.items.forEach(item => {
+            const currentY = item.transform[5];
+            if (lastY !== null && Math.abs(currentY - lastY) > 5) {
+                pageText += '\n';
+            }
+            pageText += item.str;
+            lastY = currentY;
+        });
+
+        extractedText += pageText + '\n\n';
+    }
+
+    outputElement.value = extractedText.trim();
+    return outputElement.value;
+}
+
+function getCurrentPdfUrl() {
+    if (window.__decisionSupportPdfUrl) {
+        return window.__decisionSupportPdfUrl;
+    }
+
+    const iframe = document.getElementById('pdf');
+    if (!iframe || !iframe.src) {
+        return '';
+    }
+
+    try {
+        const iframeUrl = new URL(iframe.src, window.location.href);
+        const fileParam = iframeUrl.searchParams.get('file');
+        if (fileParam) {
+            return new URL(fileParam, window.location.href).href;
+        }
+        return iframeUrl.href;
+    } catch (error) {
+        console.warn('Could not resolve current PDF URL:', error);
+        return '';
+    }
+}
+
+async function ensurePdfTextReady(outputPdfElement, timeoutMs = 15000) {
+    const existingText = outputPdfElement.value.trim();
+    if (existingText) {
+        return existingText;
+    }
+
+    const pdfUrl = getCurrentPdfUrl();
+    if (!pdfUrl) {
+        return '';
+    }
+
+    try {
+        await extractPdfText(pdfUrl, outputPdfElement);
+    } catch (error) {
+        console.warn('PDF text extraction failed:', error.message);
+    }
+
+    const deadline = Date.now() + timeoutMs;
+    while (Date.now() < deadline) {
+        const currentText = outputPdfElement.value.trim();
+        if (currentText) {
+            return currentText;
+        }
+        await new Promise(resolve => setTimeout(resolve, 250));
+    }
+
+    return outputPdfElement.value.trim();
+}
 
 /**
  * Analyzes a research title in a given field and provides feedback on its clarity, specificity, potential impact, uniqueness, and originality.
@@ -451,6 +543,10 @@ document.addEventListener('DOMContentLoaded', function () {
 
 // New function to send output to AI and display the response
 async function processOutputToAI() {
+    if (window.__decisionSupportAIProcessing) {
+        return;
+    }
+
     const aiOutputElement = document.getElementById('ai-output');
     const outputPdfElement = document.getElementById('output-pdf');
 
@@ -460,11 +556,21 @@ async function processOutputToAI() {
         return;
     }
 
+    window.__decisionSupportAIProcessing = true;
+
     aiOutputElement.innerHTML = 'Processing output...';
-    let outputValue = '';
-    while (!outputValue) {
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        outputValue = outputPdfElement.value;
+    const outputValue = await ensurePdfTextReady(outputPdfElement);
+
+    if (!outputValue) {
+        aiOutputElement.innerHTML = `
+            <div class="alert alert-warning mb-0">
+                <i class="bi bi-exclamation-triangle me-2"></i>
+                <strong>AI analysis unavailable</strong><br>
+                <small>No PDF text could be extracted from the current document.</small>
+            </div>
+        `;
+        window.__decisionSupportAIProcessing = false;
+        return;
     }
 
     try {
@@ -515,6 +621,8 @@ async function processOutputToAI() {
     } catch (error) {
         console.error('Error processing AI response:', error);
         document.getElementById('ai-output').innerText = 'An error occurred while processing the AI response.';
+    } finally {
+        window.__decisionSupportAIProcessing = false;
     }
 }
 

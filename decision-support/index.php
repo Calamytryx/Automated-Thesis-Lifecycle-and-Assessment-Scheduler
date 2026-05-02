@@ -1003,63 +1003,49 @@ function render_passfail_rubric($rubric, $existing_details) {
 include '../assets/layouts/header.php';
 ?>
 
-<!-- PDF.js Integration (from Old Logic) -->
-<script type="module">
-  import { getDocument, GlobalWorkerOptions } from 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.min.mjs';
-  GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/4.7.76/pdf.worker.min.mjs';
-
-  const predefinedPdfUrl = `../assets/uploads/submission/<?php echo htmlspecialchars($pdf_file_name ?? ''); ?>`;
-  const outputPdfTextarea = document.getElementById('output-pdf'); // Hidden textarea for AI
-
-  window.extractText = async function(pdfUrl) {
-    if (!pdfUrl || pdfUrl.includes('/submission/') && pdfUrl.endsWith('/submission/')) {
-        console.log("PDF URL not set or empty, skipping text extraction.");
-        return;
-    }
-    if (!outputPdfTextarea) {
-        console.warn("Output element not available for text extraction.");
-        return;
-    }
-    try {
-      const response = await fetch(pdfUrl);
-      if (!response.ok) {
-        console.warn(`Failed to fetch PDF: HTTP ${response.status}. PDF might not be uploaded yet.`);
-        return;
-      }
-      const arrayBuffer = await response.arrayBuffer();
-      const pdfData = new Uint8Array(arrayBuffer);
-      const pdf = await getDocument(pdfData).promise;
-      let extractedText = '';
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const textContent = await page.getTextContent();
-        let pageText = `--- Page ${pageNum} ---\n`;
-        let lastY = null;
-        textContent.items.forEach(item => {
-          const currentY = item.transform[5];
-          if (lastY !== null && Math.abs(currentY - lastY) > 5) pageText += '\n';
-          pageText += item.str;
-          lastY = currentY;
-        });
-        extractedText += pageText + '\n\n';
-      }
-      outputPdfTextarea.value = extractedText.trim();
-      console.log("PDF text extracted for AI analysis.");
-      if (typeof window.initiateAiAnalysis === 'function') {
-          window.initiateAiAnalysis();
-      }
-    } catch (error) {
-      console.warn('Could not extract text from PDF:', error.message);
-    }
-  }
-
-  window.addEventListener('DOMContentLoaded', () => {
-    if (predefinedPdfUrl && !predefinedPdfUrl.endsWith('/submission/')) {
-        extractText(predefinedPdfUrl);
+<?php
+// Resolve server path for the configured PDF file and check existence to avoid loading viewer with missing file.
+$pdf_server_path = null;
+$pdf_exists = false;
+$pdf_server_path = null;
+if (!empty($pdf_file_name)) {
+    // Check if configured PDF file exists (use simple file_exists, no realpath complications)
+    $pdf_server_path = __DIR__ . '/../assets/uploads/submission/' . $pdf_file_name;
+    error_log("DS-Index: Checking PDF file at path: {$pdf_server_path}");
+    if (file_exists($pdf_server_path) && is_file($pdf_server_path)) {
+        $pdf_exists = true;
+        error_log("DS-Index: PDF file found: {$pdf_file_name}");
     } else {
-        console.log("No PDF file available for this evaluation.");
+        error_log("DS-Index: PDF configured but not found on server: {$pdf_file_name} | checked_path={$pdf_server_path}");
+
+        // If configured file is stale, try auto-switching to the first existing submitted file.
+        if (!empty($submissionFiles)) {
+            foreach ($submissionFiles as $sf) {
+                $candidate_name = $sf['file_name'] ?? '';
+                if (empty($candidate_name)) {
+                    continue;
+                }
+                $candidate_full_path = __DIR__ . '/../assets/uploads/submission/' . $candidate_name;
+                if (file_exists($candidate_full_path) && is_file($candidate_full_path)) {
+                    $pdf_file_name = $candidate_name;
+                    $activeSubmissionId = $sf['id'] ?? $activeSubmissionId;
+                    $pdf_server_path = $candidate_full_path;
+                    $pdf_exists = true;
+                    error_log("DS-Index: Auto-switched to existing submission file: {$pdf_file_name} (ID: " . ($activeSubmissionId ?? 'N/A') . ")");
+                    break;
+                }
+            }
+        }
     }
-  });
+}
+?>
+
+<!-- PDF rendering handled by viewer.html iframe -->
+        }
+    });
+</script>
+<script>
+        window.__decisionSupportPdfUrl = <?php echo json_encode(!empty($pdf_file_name) ? '../assets/uploads/submission/' . $pdf_file_name : ''); ?>;
 </script>
 <textarea id="output-pdf" style="display:none;"></textarea>
 <main role="main" class="decision-support-bg">
@@ -1205,8 +1191,8 @@ include '../assets/layouts/header.php';
             </div>
           </div>
 
-          <div class="section-toggle" id="pdf-section">
-                         <?php if ($pdf_file_name): ?>
+           <div class="section-toggle" id="pdf-section">
+                    <?php if (!empty($pdf_file_name)): ?>
                                 <div class="card pdf-view-card" id="pdf-view-card">
                                     <div class="card-body">
                                         <div class="panel-header d-flex justify-content-between align-items-center">
@@ -1238,20 +1224,45 @@ include '../assets/layouts/header.php';
                                             </div>
                                             <div class="col-md-8">
                                                 <div class="panel-content">
-                                                    <iframe id="pdf" src="viewer.html?file=<?php echo rawurlencode('../assets/uploads/submission/' . $pdf_file_name); ?>"
+                                                    <?php if ($pdf_exists): ?>
+                                                    <iframe id="pdf" src="viewer.html?file=../assets/uploads/submission/<?php echo rawurlencode($pdf_file_name); ?>"
                                                         frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
                                                     </iframe>
+                                                    <?php else: ?>
+                                                    <div class="alert alert-danger">
+                                                        <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> PDF File Not Found on Server</h5>
+                                                        <p>The configured PDF file <code><?php echo htmlspecialchars($pdf_file_name); ?></code> does not exist on the server.</p>
+                                                        <p><strong>Checked Path:</strong> <code><?php echo htmlspecialchars($pdf_server_path ?? 'N/A'); ?></code></p>
+                                                        <p class="mb-0"><strong>Note:</strong> Please ensure the file has been properly uploaded to the server before attempting to view it.</p>
+                                                    </div>
+                                                    <?php endif; ?>
                                                 </div>
                                             </div>
                                         </div>
                                         <?php else: ?>
                                         <div class="panel-content">
-                                            <iframe id="pdf" src="viewer.html?file=<?php echo rawurlencode('../assets/uploads/submission/' . $pdf_file_name); ?>"
+                                            <?php if ($pdf_exists): ?>
+                                            <iframe id="pdf" src="viewer.html?file=../assets/uploads/submission/<?php echo rawurlencode($pdf_file_name); ?>"
                                                 frameborder="0" style="width: 100%; height: 600px;" allowfullscreen>
                                             </iframe>
+                                            <?php else: ?>
+                                            <div class="alert alert-danger">
+                                                <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> PDF File Not Found on Server</h5>
+                                                <p>The configured PDF file <code><?php echo htmlspecialchars($pdf_file_name); ?></code> does not exist on the server.</p>
+                                                <p><strong>Checked Path:</strong> <code><?php echo htmlspecialchars($pdf_server_path ?? 'N/A'); ?></code></p>
+                                                <p class="mb-0"><strong>Note:</strong> Please ensure the file has been properly uploaded to the server before attempting to view it.</p>
+                                            </div>
+                                            <?php endif; ?>
                                         </div>
                                         <?php endif; ?>
                                     </div>
+                                </div>
+                         <?php elseif (!empty($pdf_file_name) && !$pdf_exists): ?>
+                                <div class="alert alert-danger">
+                                    <h5 class="alert-heading"><i class="bi bi-exclamation-triangle"></i> PDF File Not Found on Server</h5>
+                                    <p>The configured PDF file <code><?php echo htmlspecialchars($pdf_file_name); ?></code> does not exist on the server.</p>
+                                    <p><strong>Checked Path:</strong> <code><?php echo htmlspecialchars($pdf_server_path ?? 'N/A'); ?></code></p>
+                                    <p class="mb-0"><strong>Note:</strong> Please ensure the file has been properly uploaded to the server before attempting to view it.</p>
                                 </div>
                          <?php else: ?>
                                 <div class="alert alert-warning">
@@ -1259,6 +1270,7 @@ include '../assets/layouts/header.php';
                                     <p><strong>Defense Type:</strong> <?php echo htmlspecialchars($defense_type); ?></p>
                                     <p><strong>Team ID:</strong> <?php echo htmlspecialchars($team_id); ?></p>
                                     <p><strong>Requirement ID Used:</strong> <?php echo htmlspecialchars($requirement_id); ?></p>
+                                    <p><strong>Checked Path:</strong> <code><?php echo htmlspecialchars($pdf_server_path ?? 'N/A'); ?></code></p>
                                     
                                     <hr>
                                     
@@ -1772,15 +1784,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // --- Submission files map for preview and selection ---
     const submissionMap = <?php echo json_encode(array_reduce($submissionFiles, function($carry, $item){ $carry[$item['id']] = $item['file_name']; return $carry; }, []), JSON_HEX_TAG|JSON_HEX_APOS|JSON_HEX_AMP|JSON_HEX_QUOT); ?> || {};
 
-    // When a radio is selected, update preview iframe (client-side only)
+    // Client-side: Verify selected submission exists on server before updating preview iframe
+    function checkPdfExistsClient(fname) {
+        return fetch('debug_pdf.php?file=' + encodeURIComponent('../assets/uploads/submission/' + fname))
+            .then(r => r.json())
+            .catch(() => ({ exists: false }));
+    }
+
     document.querySelectorAll('input[name="selected_submission"]').forEach(radio => {
         radio.addEventListener('change', function() {
             const fid = this.value;
             const fname = submissionMap[fid];
             const iframe = document.getElementById('pdf');
-            if (iframe && fname) {
-                iframe.src = `viewer.html?file=${encodeURIComponent('../assets/uploads/submission/' + fname)}`;
-            }
+            if (!iframe || !fname) return;
+
+            checkPdfExistsClient(fname).then(info => {
+                if (info && info.exists) {
+                    iframe.src = `viewer.html?file=../assets/uploads/submission/${encodeURIComponent(fname)}`;
+                } else {
+                    try {
+                        Swal.fire('File not available', 'The selected file was not found or is not readable on the server.', 'warning');
+                    } catch (e) {
+                        alert('The selected file was not found or is not readable on the server.');
+                    }
+                }
+            });
         });
     });
 
@@ -3334,6 +3362,8 @@ document.addEventListener('DOMContentLoaded', function() {
 }); // end DOMContentLoaded
 </script>
 
+<!-- Load validation utilities before app.js module -->
+<script src="../assets/js/validation-utils.js"></script>
 <script type="module" src="../assets/js/mainModule.js"></script>
 <script type="module" src="../assets/js/app.js"></script>
 

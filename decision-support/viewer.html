@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <!--
 Copyright 2012 Mozilla Foundation
 
@@ -28,12 +28,23 @@ See https://github.com/adobe-type-tools/cmap-resources
     <title>PDF.js viewer</title>
 
 <!-- This snippet is used in production (included from viewer.html) -->
-<link rel="resource" type="application/l10n" href="../assets\vendor\PDFJS\web/locale/locale.json">
-<script src="../assets\vendor\PDFJS\build\pdf.mjs" type="module"></script>
+<link rel="resource" type="application/l10n" href="../assets/vendor/PDFJS/web/locale/locale.json">
+<link rel="stylesheet" href="../assets/vendor/PDFJS/web/viewer.css">
 
-    <link rel="stylesheet" href="../assets\vendor\PDFJS\web\viewer.css">
+  <script type="module">
+    const pdfModule = await import('../assets/vendor/PDFJS/build/pdf.mjs');
+    const { GlobalWorkerOptions } = pdfModule;
+    const workerPath = '../assets/vendor/PDFJS/build/pdf.worker.mjs';
+    const workerResponse = await fetch(workerPath);
+    if (!workerResponse.ok) {
+      throw new Error(`Unable to load PDF.js worker: HTTP ${workerResponse.status}`);
+    }
+    const workerCode = await workerResponse.text();
+    const workerBlob = new Blob([workerCode], { type: 'application/javascript' });
+    GlobalWorkerOptions.workerSrc = URL.createObjectURL(workerBlob);
 
-  <script src="../assets\vendor\PDFJS\web/viewer.mjs" type="module"></script>
+    await import('../assets/vendor/PDFJS/web/viewer.mjs');
+  </script>
   </head>
 
   <body tabindex="0">

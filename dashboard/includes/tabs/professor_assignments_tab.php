@@ -4,8 +4,8 @@
         <!-- Header -->
         <div class="row mb-4">
             <div class="col-12">
-                <h3 class="mb-2">Class Professor Assignments</h3>
-                <p class="text-muted">Assign research professors to class sections</p>
+                <h3 class="mb-2">Faculty Assignments</h3>
+                <p class="text-muted">Assign subject teachers to class sections</p>
             </div>
         </div>
 
@@ -22,9 +22,9 @@
                         </div>
                         
                         <div class="col-12 col-md-4">
-                            <label for="profAssignProfSelect" class="form-label">Select a research professor</label>
+                            <label for="profAssignProfSelect" class="form-label">Select a subject teacher</label>
                             <select class="form-select user-control-height" id="profAssignProfSelect" required>
-                                <option value="">Select a professor...</option>
+                                <option value="">Select a faculty...</option>
                             </select>
                         </div>
                         
@@ -49,7 +49,7 @@
                         <thead class="table-light">
                             <tr>
                                 <th style="width: 30%">Section</th>
-                                <th style="width: 30%">Research Professor</th>
+                                <th style="width: 30%">Subject Teacher</th>
                                 <th style="width: 25%">Email</th>
                                 <th class="text-center" style="width: 15%">Action</th>
                             </tr>

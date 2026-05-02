@@ -1871,7 +1871,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
                                     <p class="user-role"><?php 
                                         if ($_SESSION['usertype'] == 0) {
-                                            if (isset($_SESSION['program_chair']) && (int)$_SESSION['program_chair'] === 1) {
+                                            if (isset($_SESSION['program_chair']) && (int)$_SESSION['id'] != 0) {
                                                 echo "Program Chair";
                                             } else {
                                                 echo "Administrator";

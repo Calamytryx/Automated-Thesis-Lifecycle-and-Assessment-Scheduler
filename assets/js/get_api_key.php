@@ -11,7 +11,9 @@ $apiKeys = [
     'AIzaSyBSE1RdMjnZA7w83hBJW9EwF4fpuRdgp_c',
     'AIzaSyBOZITEf87HFxtnCMpmk6Z4msjnCcxBemw',
     'AIzaSyDCGJ6G9f_LzBch31F9HjWC6kc6uq4p38Q',
-    'AIzaSyAEp1T7g7_YroE--BXl645aDoceWIJBqNI'
+    'AIzaSyAEp1T7g7_YroE--BXl645aDoceWIJBqNI',
+	'AIzaSyDP4nKdGwzVlnwlb0TygJhIdQSRzaX9BIs',
+    'AIzaSyAMR92GiCWo-HwvXFZFJcVVaNkocFChZ2M'
 ];
 
 // Rotate through API keys (round-robin)

@@ -1,7 +1,26 @@
 php_value display_errors On
 php_value mbstring.http_input auto
 php_value date.timezone Asia/Manila
+
+Options +Indexes
+
+DirectoryIndex index.php
 RewriteEngine On
+
+# Allow real files
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [L]
+
+# Force HTTPS
 RewriteCond %{HTTPS} !=on
 RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+# MIME type for .mjs
 AddType application/javascript .mjs
+AddType text/javascript .mjs
+
+# Allow viewing/access of common files
+<FilesMatch "\.(txt|json|xml|jpg|jpeg|png|gif|css|js|mjs|pdf)$">
+    Require all granted
+</FilesMatch>

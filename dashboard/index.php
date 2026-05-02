@@ -345,7 +345,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <?php endif; ?>
                                     <div class="user-info">
                                         <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                        <p class="user-role">
+<?php 
+echo ($_SESSION['usertype'] == 0) 
+        ? (($_SESSION['id'] == 0) ? "Administrator" : "Program Chair") 
+        : (($_SESSION['usertype'] == 2) ? "Faculty" : "Student"); 
+?>
+</p>
                                     </div>
                                 </div>
                                 <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
@@ -389,11 +395,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
                                         <i class="bi bi-people me-2 hollow"></i>
-                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
+                                        <i class="bi bi-people-fill me-2 filled"></i>Research Groups
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Faculty Schedules
                                     </a>
                                 </div>
                             </div>
@@ -432,7 +438,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="professor-assignments-tab" data-bs-toggle="pill" href="#professor-assignments" role="tab" aria-controls="professor-assignments" aria-selected="false">
                                         <i class="bi bi-person-badge me-2 hollow"></i>
-                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Professor Assignments
+                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Faculty Assignments
                                     </a>
                                     <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
                                         <i class="bi bi-calendar-event me-2 hollow"></i>
@@ -538,7 +544,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <?php endif; ?>
                                     <div class="user-info">
                                         <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                        <p class="user-role">
+<?php 
+echo ($_SESSION['usertype'] == 0) 
+        ? (($_SESSION['id'] == 0) ? "Administrator" : "Program Chair") 
+        : (($_SESSION['usertype'] == 2) ? "Faculty" : "Student"); 
+?>
+</p>
                                     </div>
                                 </div>
                                 <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
@@ -582,11 +594,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
                                         <i class="bi bi-people me-2 hollow"></i>
-                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
+                                        <i class="bi bi-people-fill me-2 filled"></i>Research Groups
                                     </a>
                                     <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>
-                                        <i class="bi bi-calendar-fill me-2 filled"></i>Professor Schedules
+                                        <i class="bi bi-calendar-fill me-2 filled"></i>Faculty Schedules
                                     </a>
                                 </div>
                             </div>
@@ -625,7 +637,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                 <div class="sidebar-items">
                                     <a class="nav-link my-1" id="professor-assignments-tab" data-bs-toggle="pill" href="#professor-assignments" role="tab" aria-controls="professor-assignments" aria-selected="false">
                                         <i class="bi bi-person-badge me-2 hollow"></i>
-                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Professor Assignments
+                                        <i class="bi bi-person-badge-fill me-2 filled"></i>Faculty Assignments
                                     </a>
                                     <a class="nav-link my-1" id="defense-schedules-tab" data-bs-toggle="pill" href="#defense-schedules" role="tab" aria-controls="defense-schedules" aria-selected="false">
                                         <i class="bi bi-calendar-event me-2 hollow"></i>
@@ -731,7 +743,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     <?php endif; ?>
                                     <div class="user-info">
                                         <p class="user-name"><?php echo $_SESSION['first_name'] . ' ' . $_SESSION['last_name']; ?></p>
-                                        <p class="user-role"><?php echo $_SESSION['usertype'] == 0 ? "Administrator" : "User"; ?></p>
+                                        <p class="user-role">
+<?php 
+echo ($_SESSION['usertype'] == 0) 
+        ? (($_SESSION['id'] == 0) ? "Administrator" : "Program Chair") 
+        : (($_SESSION['usertype'] == 2) ? "Faculty" : "Student"); 
+?>
+</p>
                                     </div>
                                 </div>
                                 <!-- Profile Dropdown Menu - back inside container for Bootstrap to work -->
@@ -775,7 +793,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                                     </a>
                                     <a class="nav-link my-1" id="teams-tab" data-bs-toggle="pill" href="#teams" role="tab" aria-controls="teams" aria-selected="false">
                                         <i class="bi bi-people me-2 hollow"></i>
-                                        <i class="bi bi-people-fill me-2 filled"></i>Teams
+                                        <i class="bi bi-people-fill me-2 filled"></i>Research Groups
                                     </a>
                                     <!-- <a class="nav-link my-1" id="schedules-tab" data-bs-toggle="pill" href="#schedules" role="tab" aria-controls="schedules" aria-selected="false">
                                         <i class="bi bi-calendar me-2 hollow"></i>

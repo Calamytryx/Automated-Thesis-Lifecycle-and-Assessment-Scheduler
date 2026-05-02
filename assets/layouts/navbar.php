@@ -112,14 +112,23 @@
             <ul class="navbar-nav ms-auto">
 
                 <li class="nav-item">
-                    <a class="nav-link" href="../home">Home</a>
-                </li>
+    <a class="nav-link" href="../home">
+        <?php 
+            echo ($_SESSION['usertype'] == 1) ? 'Home' : 'Faculty View';
+        ?>
+    </a>
+</li>
 
 
                 <?php if ($canAccessDashboard): ?>
                     <li class="nav-item">
-                        <a class="nav-link" href="../dashboard">Dashboard</a>
-                    </li>
+    <a class="nav-link" href="../dashboard">
+        <?php
+        echo ($_SESSION['usertype'] == 2) ? 'Subject Teacher View' :
+             (($_SESSION['usertype'] == 0 && $_SESSION['id'] == 0) ? 'Admin View' : 'Program Chair View');
+        ?>
+    </a>
+</li>
                 <?php endif; ?>
                 <!-- <?php //if ($_SESSION['usertype'] == 2 || $_SESSION['usertype'] == 0): ?>
                     <li class="nav-item"> 
@@ -132,9 +141,9 @@
                 </li> -->
 
                 <li class="nav-item dropdown">
-                    <a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                    <!---<a class="nav-link dropdown-toggle" href="#" id="pagesDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
                         Pages
-                    </a>
+                    </a>-->
                     <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="pagesDropdown">
                         <?php
                         // Get all published pages for the menu
