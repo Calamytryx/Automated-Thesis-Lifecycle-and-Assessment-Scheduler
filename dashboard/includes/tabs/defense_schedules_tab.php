@@ -934,6 +934,29 @@
                         // USE THIS SCRIPT
                         let totalScheds = <?php echo $totalScheds; ?>;
 
+                        // ---- Utility helpers ----
+                        /**
+                         * Returns `singular` if count === 1, otherwise `plural` (default: singular + 's').
+                         */
+                        function pluralize(count, singular, plural) {
+                            plural = plural || (singular + 's');
+                            return count === 1 ? singular : plural;
+                        }
+
+                        /**
+                         * Escapes special HTML characters in a string to prevent XSS when inserting
+                         * dynamic content via innerHTML / template literals.
+                         */
+                        function escapeHtml(str) {
+                            if (str == null) return '';
+                            return String(str)
+                                .replace(/&/g, '&amp;')
+                                .replace(/</g, '&lt;')
+                                .replace(/>/g, '&gt;')
+                                .replace(/"/g, '&quot;')
+                                .replace(/'/g, '&#39;');
+                        }
+
                         // ---- Pre-Validation Helpers ----
                         function buildPrevalidatePayload() {
                             const rooms      = (document.getElementById('rooms')?.value || '').split(',').map(r => r.trim()).filter(r => r);
@@ -1016,7 +1039,7 @@
 
                             if (validation.panelistConflicts && validation.panelistConflicts.length > 0) {
                                 const conflictList = validation.panelistConflicts.map(p =>
-                                    `<li>${p.name} (${p.blockedSlots} slot${p.blockedSlots !== 1 ? 's' : ''} blocked)</li>`
+                                    `<li>${p.name} (${p.blockedSlots} ${pluralize(p.blockedSlots, 'slot')} blocked)</li>`
                                 ).join('');
                                 html += `<div class="alert alert-warning py-1 px-2 mb-1" style="font-size:0.82rem;">
                                     <i class="fas fa-user-clock me-1"></i><strong>Panelists with conflicting schedules:</strong>

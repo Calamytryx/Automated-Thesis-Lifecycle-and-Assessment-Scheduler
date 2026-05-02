@@ -679,22 +679,18 @@ function preValidateScheduleResources($pdo, $teams, $panelists, $rooms, $timeSlo
     }
 
     // --- 2. Panelist availability conflicts in selected time windows ---
-    // Build a day-of-week map from the selected date strings (mm-dd-yyyy or Y-m-d)
+    // Build a day-of-week map from the selected date strings.
+    // The UI datepicker sends dates in mm-dd-yyyy format (e.g. "04-15-2025").
+    // We try mm-dd-yyyy first (matching the datepicker config), then Y-m-d as fallback.
     $dayOfWeekMap = [];
     foreach ($days as $dateStr) {
         $dateStr = trim($dateStr);
         if (empty($dateStr)) continue;
-        // Try multiple formats
-        $ts = strtotime($dateStr);
-        if ($ts === false) {
-            // Try mm-dd-yyyy
-            $parts = explode('-', $dateStr);
-            if (count($parts) === 3) {
-                $ts = mktime(0, 0, 0, (int)$parts[0], (int)$parts[1], (int)$parts[2]);
-            }
-        }
-        if ($ts !== false) {
-            $dayOfWeekMap[$dateStr] = (int)date('w', $ts); // 0=Sun, 6=Sat
+        $dt = DateTime::createFromFormat('m-d-Y', $dateStr)
+            ?: DateTime::createFromFormat('Y-m-d', $dateStr)
+            ?: DateTime::createFromFormat('m/d/Y', $dateStr);
+        if ($dt) {
+            $dayOfWeekMap[$dateStr] = (int)$dt->format('w'); // 0=Sun, 6=Sat
         }
     }
 
