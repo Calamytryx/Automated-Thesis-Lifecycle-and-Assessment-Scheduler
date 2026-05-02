@@ -1934,6 +1934,11 @@
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
                             <div class="mb-3">
+                                <label for="editTeamCodeDisplay" class="form-label text-muted">Team Code</label>
+                                <input type="text" class="form-control team-code-display" id="editTeamCodeDisplay" value="${response.data.team_code || 'Not yet generated'}" readonly>
+                                <div class="form-text text-muted">Auto-generated and not editable.</div>
+                            </div>
+                            <div class="mb-3">
                                 <label for="name" class="form-label">Team Name</label>
                                 <input type="text" class="form-control" id="name" name="name" value="${response.data.name}">
                             </div>
@@ -3441,6 +3446,11 @@
                 });
             } else if (table === 'teams') {
                 var formHtml = `
+                    <div class="mb-3">
+                    <label for="addTeamCodeDisplay" class="form-label text-muted">Team Code</label>
+                    <input type="text" class="form-control team-code-display" id="addTeamCodeDisplay" value="Generated after save" readonly>
+                    <div class="form-text text-muted">This code is generated automatically from the selected program and academic year.</div>
+                    </div>
                     <div class="mb-3">
                     <label for="name" class="form-label">Team Name</label>
                     <input type="text" class="form-control" id="name" name="name" required>

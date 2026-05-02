@@ -126,7 +126,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                 break;
             case 'teams':
                 // Select t.program directly. Remove JOIN to programs for name selection.
-                $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                $baseQuery = "SELECT t.id, t.team_code, t.name, rt.title AS research_title, t.program,
                               t.locked_panelist1, t.locked_panelist2, t.locked_panelist3,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                               GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
@@ -346,7 +346,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                         }
                         
                         // Select t.program directly.
-                        $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                        $baseQuery = "SELECT t.id, t.team_code, t.name, rt.title AS research_title, t.program,
                                        GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                                        GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
                                        FROM teams t
@@ -363,7 +363,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                                        JOIN programs p ON t.program = CONCAT(p.name, CASE WHEN p.specialization IS NOT NULL AND p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END)";
                     } else {
                         // Professor has no section assignment - show all teams in their college
-                        $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                        $baseQuery = "SELECT t.id, t.team_code, t.name, rt.title AS research_title, t.program,
                                        GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                                        GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
                                        FROM teams t
@@ -381,7 +381,7 @@ function get_table_query($pdo, $table, $userId, $currentUsertype) {
                     }
                 } else {
                     // Admin or super admin - see all teams in college
-                    $baseQuery = "SELECT t.id, t.name, rt.title AS research_title, t.program,
+                    $baseQuery = "SELECT t.id, t.team_code, t.name, rt.title AS research_title, t.program,
                                    GROUP_CONCAT(DISTINCT CASE WHEN u.usertype != 2 THEN CONCAT(u.first_name, ' ', u.last_name, ' (', tm.role, ')') END ORDER BY tm.id SEPARATOR ', ') AS team_members,
                                    GROUP_CONCAT(DISTINCT CASE WHEN u.usertype = 2 THEN CONCAT(u.first_name, ' ', u.last_name) END ORDER BY tm.id SEPARATOR ', ') AS adviser
                                    FROM teams t
@@ -675,8 +675,8 @@ try {
                 $searchCondition = "(users.username LIKE :search1 OR users.email LIKE :search2 OR users.first_name LIKE :search3 OR users.last_name LIKE :search4)";
                 break;
             case 'teams':
-                // Search t.program directly
-                $searchCondition = "(t.name LIKE :search1 OR rt.title LIKE :search2 OR t.program LIKE :search3)";
+                // Search team code, name, title, and program directly
+                $searchCondition = "(t.team_code LIKE :search1 OR t.name LIKE :search2 OR rt.title LIKE :search3 OR t.program LIKE :search4)";
                 break;
             case 'thesis_topics':
                 $alias = $isAdmin ? 'tt.' : '';
@@ -822,7 +822,7 @@ try {
     // --- Sorting (only for data query) ---
     $allowedSortColumns = [
         'users' => ['id', 'username', 'email', 'first_name', 'last_name', 'usertype', 'program'],
-        'teams' => ['id', 'name', 'research_title', 'program', 'adviser'], // Added 'program'
+        'teams' => ['id', 'team_code', 'name', 'research_title', 'program', 'adviser'], // Added team_code and program
         'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'is_finalized', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status/finalized
         'rubrics' => ['id', 'name', 'description', 'rubric_type', 'defense_type', 'is_active', 'created_at'],
         'requirements' => ['id', 'name', 'description'],
@@ -898,6 +898,8 @@ try {
             else $safeSortBy = $sortPrefix . $sortBy;
         } elseif ($table === 'teams' && $sortBy == 'research_title') {
             $safeSortBy = 'rt.title';
+        } elseif ($table === 'teams' && $sortBy == 'team_code') {
+            $safeSortBy = 't.team_code';
         } elseif ($table === 'teams' && $sortBy == 'program') { // Sort by t.program
             $safeSortBy = 't.program';
         } elseif ($table === 'teams' && $sortBy == 'adviser') {

@@ -14,6 +14,7 @@ $response = ['success' => false, 'message' => 'An unknown error occurred.'];
 require_once '../../assets/includes/auth_functions.php';
 require_once __DIR__ . '/section_access.php';
 require_once __DIR__ . '/edit_functions.php';
+require_once __DIR__ . '/team_code_functions.php';
 
 // Current user info
 $userId = $_SESSION['id'] ?? 0;
@@ -23,6 +24,34 @@ $usertype = $_SESSION['usertype'] ?? -1;
 $userCollege = null;
 if ($usertype == 0 && $userId != 0) {
     $userCollege = get_user_college($pdo, $userId);
+}
+
+function collectTeamMemberIds(array $data): array {
+    $memberIds = [];
+
+    if (isset($data['members']) && !empty($data['members'])) {
+        $members = $data['members'];
+        if (is_string($members)) {
+            $members = json_decode($members, true);
+        }
+        if (is_array($members)) {
+            foreach ($members as $member) {
+                if (isset($member['id'])) {
+                    $memberIds[] = (int)$member['id'];
+                }
+            }
+        }
+    }
+
+    if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
+        foreach ($data['new_user_id'] as $userId_member) {
+            if (!empty($userId_member)) {
+                $memberIds[] = (int)$userId_member;
+            }
+        }
+    }
+
+    return array_values(array_unique(array_filter($memberIds)));
 }
 
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
@@ -499,31 +528,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // 🔐 Section-based permission check for professors (usertype 2)
     if ($table === 'teams' && $usertype == 2 && $userId != 0) {
         // Collect all member IDs that will be added to this team
-        $memberIds = [];
-        
-        // Get member IDs from 'members' field if provided (JSON or array format)
-        if (isset($data['members']) && !empty($data['members'])) {
-            $members = $data['members'];
-            if (is_string($members)) {
-                $members = json_decode($members, true);
-            }
-            if (is_array($members)) {
-                foreach ($members as $member) {
-                    if (isset($member['id'])) {
-                        $memberIds[] = $member['id'];
-                    }
-                }
-            }
-        }
-        
-        // Get member IDs from 'new_user_id' field (form input)
-        if (isset($data['new_user_id']) && is_array($data['new_user_id'])) {
-            foreach ($data['new_user_id'] as $userId_member) {
-                if (!empty($userId_member)) {
-                    $memberIds[] = $userId_member;
-                }
-            }
-        }
+        $memberIds = collectTeamMemberIds($data);
         
         // Check if professor can create team with these members
         $permCheck = canProfessorCreateTeam($pdo, $userId, $memberIds);
@@ -557,12 +562,40 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if (!isset($data['program']) || $data['program'] === '') {
                 $data['program'] = 'Unspecified';
             }
+
+            $memberIds = collectTeamMemberIds($data);
+            $academicYearResult = resolveTeamAcademicYear(
+                $pdo,
+                $memberIds,
+                (int)$userId,
+                (int)$usertype,
+                $data['academic_year'] ?? null
+            );
+
+            if (empty($academicYearResult['success'])) {
+                $response['message'] = $academicYearResult['message'] ?? 'Academic year must be set before creating teams.';
+                echo json_encode($response);
+                exit;
+            }
+
+            $teamCodeResult = generateTeamCode(
+                $pdo,
+                (string)$data['program'],
+                (string)$academicYearResult['academic_year']
+            );
+
+            if (empty($teamCodeResult['success'])) {
+                $response['message'] = $teamCodeResult['message'] ?? 'Unable to generate team code.';
+                echo json_encode($response);
+                exit;
+            }
             
             // Handle title_proposal checkbox
             $titleProposal = isset($data['title_proposal']) && $data['title_proposal'] == 1 ? 1 : 0;
 
-            $stmt = $pdo->prepare("INSERT INTO teams (name, program, area_of_expertise, title_proposal, created_at) VALUES (:name, :program, :area_of_expertise, :title_proposal, NOW())");
+            $stmt = $pdo->prepare("INSERT INTO teams (team_code, name, program, area_of_expertise, title_proposal, created_at) VALUES (:team_code, :name, :program, :area_of_expertise, :title_proposal, NOW())");
             $stmt->execute([
+                'team_code' => $teamCodeResult['team_code'],
                 'name' => $data['name'],
                 'program' => $data['program'],
                 'area_of_expertise' => $data['area_of_expertise'] ?? null,
@@ -664,12 +697,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $pdo->commit();
             $response['success'] = true;
             $response['message'] = 'Team added successfully.';
+            $response['team_code'] = $teamCodeResult['team_code'];
         } catch (Exception $e) {
             $pdo->rollBack();
 
             if ($e instanceof PDOException && $e->getCode() == '23000') {
                 if (strpos($e->getMessage(), 'Duplicate entry') !== false) {
-                    $response['message'] = "Error: This team name is already in use. Please choose a different name.";
+                    $response['message'] = "Error: This team name or generated team code is already in use. Please check the academic year and team name.";
                 } else if (strpos($e->getMessage(), 'foreign key constraint') !== false) {
                     $response['message'] = "Error: One of the selected team members or program doesn't exist.";
                 } else if (strpos($e->getMessage(), 'Column \'program\' cannot be null') !== false) {

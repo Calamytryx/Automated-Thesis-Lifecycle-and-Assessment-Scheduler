@@ -55,6 +55,8 @@
                             <select class="form-select user-control-height" id="teamSortSelect">
                                 <option value="id:desc">Default (Newest First)</option>
                                 <option value="id:asc">Default (Oldest First)</option>
+                                <option value="team_code:asc">Team Code (A-Z)</option>
+                                <option value="team_code:desc">Team Code (Z-A)</option>
                                 <option value="name:asc">Team Name (A-Z)</option>
                                 <option value="name:desc">Team Name (Z-A)</option>
                             </select>
@@ -88,6 +90,7 @@
                     <table class="table table-bordered table-hover table-sm db-table" id="teams-table" data-table="teams">
                         <thead>
                             <tr>
+                                <th class="d-none d-lg-table-cell">Team Code</th>
                                 <th class="d-none d-md-table-cell">Team Name</th>
                                 <th class="d-table-cell d-md-none">Team</th>
                                 <th class="d-none d-lg-table-cell">Research Title</th>
@@ -295,7 +298,7 @@
                     if (data.data.length === 0) {
                         tbody.innerHTML = `
                             <tr>
-                                <td colspan="8" class="text-center py-4">
+                                <td colspan="9" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-search fs-1 d-block mb-2"></i>
                                         <p class="mb-0">No teams found matching your search criteria.</p>
@@ -360,9 +363,13 @@
                         
                         tbody.innerHTML += `
                             <tr>
+                                <td class="d-none d-lg-table-cell">
+                                    <span class="team-code-text">${team.team_code || '<span class="text-muted">N/A</span>'}</span>
+                                </td>
                                 <td class="d-none d-md-table-cell">${team.name}</td>
                                 <td class="d-table-cell d-md-none">
                                     <div class="fw-semibold">${team.name}</div>
+                                    <div class="text-muted small team-code-text">${team.team_code || 'N/A'}</div>
                                     <div class="text-muted small">${team.program || 'N/A'}</div>
                                 </td>
                                 <td class="d-none d-lg-table-cell text-truncate" style="max-width: 200px;" title="${team.research_title || 'No title assigned'}">${team.research_title || '<span class="text-muted">No title</span>'}</td>

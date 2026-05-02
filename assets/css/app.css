@@ -1186,6 +1186,26 @@ border-top: solid 1px var(--main-bg-dark);
     color: #991b1b;
 }
 
+.team-code-display,
+.team-code-text {
+    font-family: 'Courier New', Courier, monospace;
+    letter-spacing: 0.03em;
+}
+
+.team-code-display {
+    background-color: var(--neutral-100);
+    color: var(--neutral-800);
+    border-color: var(--neutral-300);
+}
+
+.team-code-display[readonly] {
+    cursor: default;
+}
+
+.team-code-text {
+    color: var(--neutral-700);
+}
+
 /* Defense Schedule */
 .defense-item {
     border: none;
