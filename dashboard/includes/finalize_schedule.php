@@ -35,7 +35,7 @@ if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
 }
 
 try {
-    $stmt = $pdo->prepare("SELECT team_id, schedule_date, start_time, end_time FROM defense_schedules WHERE id = ? LIMIT 1");
+    $stmt = $pdo->prepare('SELECT team_id, schedule_date, start_time, end_time, panelist_id, panelist_id2, panelist_id3 FROM defense_schedules WHERE id = ? LIMIT 1');
     $stmt->execute([$scheduleId]);
     $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
     $teamId = (int)($schedule['team_id'] ?? 0);
@@ -49,13 +49,20 @@ try {
     }
 
     if ($action === 'finalize') {
+        $panelistsFinalize = array_values(array_filter(array_map('intval', [
+            (int) ($schedule['panelist_id'] ?? 0),
+            (int) ($schedule['panelist_id2'] ?? 0),
+            (int) ($schedule['panelist_id3'] ?? 0),
+        ])));
+
         $conflictCheck = validateStudentScheduleConflicts(
             $pdo,
             $teamId,
             $schedule['schedule_date'] ?? '',
             $schedule['start_time'] ?? '',
             $schedule['end_time'] ?? '',
-            $scheduleId
+            $scheduleId,
+            $panelistsFinalize
         );
         if (!$conflictCheck['ok']) {
             throw new Exception($conflictCheck['message']);

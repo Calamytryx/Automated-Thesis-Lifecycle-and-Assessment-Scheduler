@@ -47,7 +47,7 @@ $days = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // Define working hours (in minutes from midnight)
 $dayStart = 7 * 60;  // 7:00 AM = 420 minutes
-$dayEnd = 21 * 60;   // 9:00 PM = 1260 minutes
+$dayEnd = 20 * 60 + 30;   // 8:30 PM = 1230 minutes
 $breakTimes = [
     ['start' => 12 * 60, 'end' => 13 * 60], // Lunch break 12:00-13:00
 ];

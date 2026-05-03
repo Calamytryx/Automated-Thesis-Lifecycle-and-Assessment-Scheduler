@@ -193,6 +193,205 @@ function canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId) {
     return false;
 }
 
+/**
+ * user_schedules.day_of_week may be ENUM string (Monday…Sunday) or int 0–6.
+ * Align with PHP date('w'): 0=Sunday … 6=Saturday.
+ */
+function normalize_user_schedule_day_to_week_int($dow): ?int
+{
+    if ($dow === null || $dow === '') {
+        return null;
+    }
+    if (is_int($dow) || (is_string($dow) && ctype_digit($dow))) {
+        $n = (int) $dow;
+        return ($n >= 0 && $n <= 6) ? $n : null;
+    }
+    $map = [
+        'sunday' => 0,
+        'monday' => 1,
+        'tuesday' => 2,
+        'wednesday' => 3,
+        'thursday' => 4,
+        'friday' => 5,
+        'saturday' => 6,
+    ];
+    $k = strtolower(trim((string) $dow));
+
+    return $map[$k] ?? null;
+}
+
+function user_schedules_has_program_section_columns(PDO $pdo): bool
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+    $cache = false;
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM user_schedules WHERE Field IN ('program','section')");
+        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $cache = in_array('program', $cols, true) && in_array('section', $cols, true);
+    } catch (Exception $e) {
+        error_log('user_schedules_has_program_section_columns: ' . $e->getMessage());
+    }
+    return $cache;
+}
+
+function scheduling_blocks_same_slot(array $a, array $b): bool
+{
+    return (int) ($a['day_of_week'] ?? -1) === (int) ($b['day_of_week'] ?? -2)
+        && (string) ($a['start_time'] ?? '') === (string) ($b['start_time'] ?? '')
+        && (string) ($a['end_time'] ?? '') === (string) ($b['end_time'] ?? '')
+        && (string) ($a['class_name'] ?? '') === (string) ($b['class_name'] ?? '');
+}
+
+/**
+ * Merge section/program class rows from user_schedules into each student's map entry
+ * (same rows the save path uses). Without this, the GA only sees rows keyed by user_id.
+ */
+function mergeProgramSectionClassTemplatesIntoUserSchedules(PDO $pdo, array &$schedulesByUserId): void
+{
+    if (!user_schedules_has_program_section_columns($pdo)) {
+        return;
+    }
+
+    $sql = "
+        SELECT u.id AS user_id,
+               us.day_of_week,
+               us.start_time,
+               us.end_time,
+               us.room,
+               us.class_name
+        FROM users u
+        INNER JOIN programs p_student ON (
+            u.program = p_student.name OR
+            u.program = CONCAT(p_student.name, CASE WHEN p_student.specialization IS NOT NULL AND p_student.specialization != '' THEN CONCAT(' - ', p_student.specialization) ELSE '' END)
+        )
+        INNER JOIN user_schedules us ON us.program = p_student.id AND us.section = u.section
+        WHERE u.usertype = 1
+          AND u.section IS NOT NULL
+          AND u.section != ''
+    ";
+
+    try {
+        $stmt = $pdo->query($sql);
+    } catch (Exception $e) {
+        error_log('mergeProgramSectionClassTemplatesIntoUserSchedules: ' . $e->getMessage());
+        return;
+    }
+
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $uid = (int) $row['user_id'];
+        $d = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
+        if ($d === null) {
+            continue;
+        }
+        $norm = [
+            'day_of_week' => $d,
+            'start_time' => $row['start_time'],
+            'end_time' => $row['end_time'],
+            'room' => $row['room'] ?? '',
+            'class_name' => $row['class_name'] ?? '',
+        ];
+        $schedulesByUserId[$uid] = $schedulesByUserId[$uid] ?? [];
+        $dup = false;
+        foreach ($schedulesByUserId[$uid] as $exist) {
+            if (scheduling_blocks_same_slot($exist, $norm)) {
+                $dup = true;
+                break;
+            }
+        }
+        if (!$dup) {
+            $schedulesByUserId[$uid][] = $norm;
+        }
+    }
+}
+
+/**
+ * Personal user_schedules rows plus program/section template classes (students).
+ *
+ * @return list<array{day_of_week:int,start_time:mixed,end_time:mixed,room?:string,class_name?:string}>
+ */
+function collectSchedulingBlocksForUser(PDO $pdo, int $userId): array
+{
+    $blocks = [];
+
+    $stmt = $pdo->prepare('SELECT day_of_week, start_time, end_time, room, class_name FROM user_schedules WHERE user_id = ?');
+    $stmt->execute([$userId]);
+    while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+        $d = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
+        if ($d === null) {
+            continue;
+        }
+        $row['day_of_week'] = $d;
+        $blocks[] = $row;
+    }
+
+    if (!user_schedules_has_program_section_columns($pdo)) {
+        return $blocks;
+    }
+
+    $uStmt = $pdo->prepare('SELECT usertype, section FROM users WHERE id = ? LIMIT 1');
+    $uStmt->execute([$userId]);
+    $uRow = $uStmt->fetch(PDO::FETCH_ASSOC);
+    if (!$uRow || (int) $uRow['usertype'] !== 1) {
+        return $blocks;
+    }
+    if (trim((string) ($uRow['section'] ?? '')) === '') {
+        return $blocks;
+    }
+
+    $tplStmt = $pdo->prepare("
+        SELECT DISTINCT us.day_of_week, us.start_time, us.end_time, us.room, us.class_name
+        FROM user_schedules us
+        INNER JOIN users u_student ON u_student.id = ?
+        INNER JOIN programs p_student ON (
+            u_student.program = p_student.name OR
+            u_student.program = CONCAT(p_student.name, CASE WHEN p_student.specialization IS NOT NULL AND p_student.specialization != '' THEN CONCAT(' - ', p_student.specialization) ELSE '' END)
+        )
+        WHERE us.program = p_student.id
+          AND us.section = u_student.section
+          AND u_student.section IS NOT NULL
+          AND u_student.section != ''
+    ");
+    $tplStmt->execute([$userId]);
+    while ($row = $tplStmt->fetch(PDO::FETCH_ASSOC)) {
+        $d = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
+        if ($d === null) {
+            continue;
+        }
+        $row['day_of_week'] = $d;
+        $dup = false;
+        foreach ($blocks as $exist) {
+            if (scheduling_blocks_same_slot($exist, $row)) {
+                $dup = true;
+                break;
+            }
+        }
+        if (!$dup) {
+            $blocks[] = $row;
+        }
+    }
+
+    return $blocks;
+}
+
+function calendarIntervalOverlapsSchedulingBlock(string $scheduleDateYmd, int $defStartTs, int $defEndTs, array $block): bool
+{
+    $dowEvent = (int) date('w', strtotime($scheduleDateYmd));
+    if ($dowEvent !== (int) $block['day_of_week']) {
+        return false;
+    }
+    $base = trim($scheduleDateYmd) . ' ';
+    $bStart = strtotime($base . trim((string) $block['start_time']));
+    $bEnd = strtotime($base . trim((string) $block['end_time']));
+    if ($bStart === false || $bEnd === false) {
+        return false;
+    }
+
+    return ($defStartTs < $bEnd) && ($defEndTs > $bStart);
+}
+
 function isDefenseScheduleFinalized($pdo, $scheduleId) {
     if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
         return false;
@@ -214,114 +413,138 @@ function getTeamStudentIds($pdo, $teamId) {
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
 }
 
-function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTime, $endTime, $excludeScheduleId = null) {
-    $studentIds = getTeamStudentIds($pdo, (int)$teamId);
-    if (empty($studentIds)) {
-        return ['ok' => true, 'message' => ''];
-    }
+function getTeamMemberUserIds($pdo, $teamId): array
+{
+    $stmt = $pdo->prepare("
+        SELECT DISTINCT u.id
+        FROM team_members tm
+        JOIN users u ON u.id = tm.user_id
+        WHERE tm.team_id = ?
+    ");
+    $stmt->execute([(int) $teamId]);
+    return $stmt->fetchAll(PDO::FETCH_COLUMN);
+}
 
-    $start = (strlen((string)$startTime) === 5) ? $startTime . ':00' : $startTime;
-    $end = (strlen((string)$endTime) === 5) ? $endTime . ':00' : $endTime;
+/**
+ * Block save/finalize when defense overlaps student classes, panelist teaching/classes, or other defenses involving any team member.
+ *
+ * @param list<int> $panelistIds
+ */
+function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTime, $endTime, $excludeScheduleId = null, array $panelistIds = [])
+{
+    $start = (strlen((string) $startTime) === 5) ? $startTime . ':00' : $startTime;
+    $end = (strlen((string) $endTime) === 5) ? $endTime . ':00' : $endTime;
 
     if ($start >= $end) {
         return ['ok' => false, 'message' => 'End time must be later than start time.'];
     }
 
-    $teamLabel = 'Team ' . (int)$teamId;
-    $teamStmt = $pdo->prepare("SELECT name FROM teams WHERE id = ? LIMIT 1");
-    $teamStmt->execute([(int)$teamId]);
-    $teamName = trim((string)$teamStmt->fetchColumn());
+    $teamLabel = 'Team ' . (int) $teamId;
+    $teamStmt = $pdo->prepare('SELECT name FROM teams WHERE id = ? LIMIT 1');
+    $teamStmt->execute([(int) $teamId]);
+    $teamName = trim((string) $teamStmt->fetchColumn());
     if ($teamName !== '') {
         $teamLabel = $teamName;
     }
 
     $formatTime = static function ($timeValue) {
-        $ts = strtotime((string)$timeValue);
-        return $ts ? date('g:i A', $ts) : (string)$timeValue;
+        $ts = strtotime((string) $timeValue);
+        return $ts ? date('g:i A', $ts) : (string) $timeValue;
     };
 
-        $studentPlaceholders = implode(',', array_fill(0, count($studentIds), '?'));
+    $tsDay = strtotime(trim((string) $scheduleDate));
+    if ($tsDay === false) {
+        return ['ok' => false, 'message' => 'Invalid defense date.'];
+    }
+    $dateNorm = date('Y-m-d', $tsDay);
 
-        // Prefer reporting student class conflicts first with specific schedule details.
-        // This checks student program+section against class schedules from user_schedules.
-    $dayOfWeek = date('l', strtotime($scheduleDate));
-        $classParams = [(int)$teamId];
-    $classParams[] = $dayOfWeek;
-    $classParams[] = $end;
-    $classParams[] = $start;
+    $defStart = strtotime($dateNorm . ' ' . trim((string) $start));
+    $defEnd = strtotime($dateNorm . ' ' . trim((string) $end));
+    if ($defStart === false || $defEnd === false || $defEnd <= $defStart) {
+        return ['ok' => false, 'message' => 'Invalid defense start or end time.'];
+    }
 
-    $classConflictStmt = $pdo->prepare(" 
-        SELECT DISTINCT us.class_name, us.day_of_week, us.start_time, us.end_time
-        FROM user_schedules us
-                JOIN team_members tm ON tm.team_id = ?
-                JOIN users u_student ON u_student.id = tm.user_id AND u_student.usertype = 1
-                LEFT JOIN programs p_student ON (
-                        u_student.program = p_student.name OR
-                        u_student.program = CONCAT(p_student.name, CASE WHEN p_student.specialization IS NOT NULL AND p_student.specialization != '' THEN CONCAT(' - ', p_student.specialization) ELSE '' END)
-                )
-                WHERE u_student.section IS NOT NULL
-                    AND u_student.section != ''
-                    AND p_student.id IS NOT NULL
-                    AND us.program = p_student.id
-                    AND us.section = u_student.section
-          AND us.day_of_week = ?
-          AND us.start_time < ?
-          AND us.end_time > ?
-        ORDER BY us.start_time
-        LIMIT 1
-    ");
-    $classConflictStmt->execute($classParams);
-    $classConflicts = $classConflictStmt->fetchAll(PDO::FETCH_ASSOC);
-    if (!empty($classConflicts)) {
-        $row = $classConflicts[0];
-        $subject = trim((string)($row['class_name'] ?? 'Subject'));
-        if ($subject === '') {
-            $subject = 'Subject';
+    $memberIdsTeam = getTeamMemberUserIds($pdo, (int) $teamId);
+    foreach ($memberIdsTeam as $mid) {
+        foreach (collectSchedulingBlocksForUser($pdo, (int) $mid) as $block) {
+            if (!calendarIntervalOverlapsSchedulingBlock($dateNorm, $defStart, $defEnd, $block)) {
+                continue;
+            }
+            $subject = trim((string) ($block['class_name'] ?? 'Subject'));
+            if ($subject === '') {
+                $subject = 'Subject';
+            }
+            $timeLine = $formatTime($block['start_time'] ?? '') . ' – ' . $formatTime($block['end_time'] ?? '');
+
+            return [
+                'ok' => false,
+                'message' => $teamLabel . " schedule conflicts with a team member's class or teaching block:\n" . $subject . "\n" . $timeLine,
+            ];
         }
-        $timeLine = ($row['day_of_week'] ?? $dayOfWeek) . ' ' .
-            $formatTime($row['start_time'] ?? '') . '-' . $formatTime($row['end_time'] ?? '');
-
-        return [
-            'ok' => false,
-            'message' => $teamLabel . " schedule conflict with:\n" . $subject . "\n" . $timeLine
-        ];
     }
 
-    $params = $studentIds;
-    $params[] = (int)$teamId;
-    $params[] = $scheduleDate;
-    $params[] = $end;
-    $params[] = $start;
+    foreach ($panelistIds as $pid) {
+        $pid = (int) $pid;
+        if ($pid <= 0) {
+            continue;
+        }
+        foreach (collectSchedulingBlocksForUser($pdo, $pid) as $block) {
+            if (!calendarIntervalOverlapsSchedulingBlock($dateNorm, $defStart, $defEnd, $block)) {
+                continue;
+            }
+            $subject = trim((string) ($block['class_name'] ?? 'Subject'));
+            if ($subject === '') {
+                $subject = 'Subject';
+            }
+            $timeLine = $formatTime($block['start_time'] ?? '') . ' – ' . $formatTime($block['end_time'] ?? '');
 
-    $excludeSql = '';
-    if ($excludeScheduleId !== null) {
-        $excludeSql = ' AND ds.id != ?';
-        $params[] = (int)$excludeScheduleId;
+            return [
+                'ok' => false,
+                'message' => $teamLabel . " schedule conflicts with panelist class/teaching load:\n" . $subject . "\n" . $timeLine,
+            ];
+        }
     }
 
-    $defenseConflictStmt = $pdo->prepare(" 
-        SELECT DISTINCT ds.team_id, t.name AS team_name
-        FROM defense_schedules ds
-        JOIN team_members tm ON tm.team_id = ds.team_id
-        LEFT JOIN teams t ON t.id = ds.team_id
-        WHERE tm.user_id IN ($studentPlaceholders)
-          AND ds.team_id != ?
-          AND ds.schedule_date = ?
-          AND ds.start_time < ?
-          AND ds.end_time > ?
-          AND COALESCE(ds.status, 'scheduled') != 'cancelled'
-          AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
-          $excludeSql
-        ORDER BY ds.team_id
-        LIMIT 5
-    ");
-    $defenseConflictStmt->execute($params);
-    $conflictingTeams = $defenseConflictStmt->fetchAll(PDO::FETCH_ASSOC);
-    if (!empty($conflictingTeams)) {
-        return [
-            'ok' => false,
-            'message' => $teamLabel . ' schedule conflict with: Existing defense schedule for one or more students at this time.'
-        ];
+    $memberIds = getTeamMemberUserIds($pdo, (int) $teamId);
+    if ($memberIds !== []) {
+        $memberPlaceholders = implode(',', array_fill(0, count($memberIds), '?'));
+
+        $params = $memberIds;
+        $params[] = (int) $teamId;
+        $params[] = $dateNorm;
+        $params[] = $end;
+        $params[] = $start;
+
+        $excludeSql = '';
+        if ($excludeScheduleId !== null) {
+            $excludeSql = ' AND ds.id != ?';
+            $params[] = (int) $excludeScheduleId;
+        }
+
+        $defenseConflictStmt = $pdo->prepare("
+            SELECT DISTINCT ds.team_id, t.name AS team_name
+            FROM defense_schedules ds
+            JOIN team_members tm ON tm.team_id = ds.team_id
+            LEFT JOIN teams t ON t.id = ds.team_id
+            WHERE tm.user_id IN ($memberPlaceholders)
+              AND ds.team_id != ?
+              AND ds.schedule_date = ?
+              AND ds.start_time < ?
+              AND ds.end_time > ?
+              AND COALESCE(ds.status, 'scheduled') != 'cancelled'
+              AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
+              $excludeSql
+            ORDER BY ds.team_id
+            LIMIT 5
+        ");
+        $defenseConflictStmt->execute($params);
+        $conflictingTeams = $defenseConflictStmt->fetchAll(PDO::FETCH_ASSOC);
+        if (!empty($conflictingTeams)) {
+            return [
+                'ok' => false,
+                'message' => $teamLabel . ' schedule conflicts with another defense that overlaps a team member at this time.',
+            ];
+        }
     }
 
     return ['ok' => true, 'message' => ''];
@@ -622,6 +845,8 @@ function handleEditSubmission($pdo, $table, $id, $data) {
 
     // Enforce the same defense schedule checks for edit_items.php table edits.
     if ($table === 'defense_schedules') {
+        unset($data['allow_schedule_conflicts']);
+
         $scheduleId = (int)$id;
         $sessionUserId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : -1;
         $sessionUserType = isset($_SESSION['usertype']) ? (int)$_SESSION['usertype'] : -1;
@@ -631,7 +856,7 @@ function handleEditSubmission($pdo, $table, $id, $data) {
             return false;
         }
 
-        $currentStmt = $pdo->prepare("SELECT team_id, schedule_date, start_time, end_time FROM defense_schedules WHERE id = ? LIMIT 1");
+        $currentStmt = $pdo->prepare('SELECT team_id, schedule_date, start_time, end_time, panelist_id, panelist_id2, panelist_id3 FROM defense_schedules WHERE id = ? LIMIT 1');
         $currentStmt->execute([$scheduleId]);
         $currentSchedule = $currentStmt->fetch(PDO::FETCH_ASSOC);
         if (!$currentSchedule) {
@@ -649,13 +874,27 @@ function handleEditSubmission($pdo, $table, $id, $data) {
         $startTime = $data['start_time'] ?? $currentSchedule['start_time'];
         $endTime = $data['end_time'] ?? $currentSchedule['end_time'];
 
+        $panelistsForConflict = [];
+        if (isset($data['panelist_id']) && is_array($data['panelist_id'])) {
+            $panelistsForConflict = array_values(array_filter(array_map('intval', $data['panelist_id'])));
+        } else {
+            foreach (['panelist_id', 'panelist_id2', 'panelist_id3'] as $col) {
+                if (!empty($data[$col])) {
+                    $panelistsForConflict[] = (int) $data[$col];
+                } elseif (!empty($currentSchedule[$col])) {
+                    $panelistsForConflict[] = (int) $currentSchedule[$col];
+                }
+            }
+        }
+
         $conflictCheck = validateStudentScheduleConflicts(
             $pdo,
             $teamId,
             $scheduleDate,
             $startTime,
             $endTime,
-            $scheduleId
+            $scheduleId,
+            $panelistsForConflict
         );
         if (!$conflictCheck['ok']) {
             $GLOBALS['edit_error_message'] = $conflictCheck['message'];

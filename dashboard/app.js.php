@@ -32,11 +32,11 @@
             totalMinutes += step;
         }
 
-        // 🔄 Loop if out of range
-        if (totalMinutes > 1260) {
+        // 🔄 Loop if out of range (wrap to allowed window 07:00-20:30)
+        if (totalMinutes > 1230) {
             totalMinutes = 420; // back to 07:00
         } else if (totalMinutes < 420) {
-            totalMinutes = 1260; // back to 21:00
+            totalMinutes = 1230; // back to 20:30
         }
 
         // 🧮 Convert back to hour/minute
@@ -64,7 +64,7 @@
                 // If start >= end, auto-adjust end to next slot
                 let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
                 let nextEndMinutes = startMinutes + 30;
-                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                if (nextEndMinutes > 1230) nextEndMinutes = 1230;
                 let nextEndHour = Math.floor(nextEndMinutes / 60);
                 let nextEndMinute = nextEndMinutes % 60;
                 endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;
@@ -102,7 +102,7 @@
                 // If start == end, auto-adjust end to next slot
                 let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
                 let nextEndMinutes = startMinutes + 30;
-                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                if (nextEndMinutes > 1230) nextEndMinutes = 1230;
                 let nextEndHour = Math.floor(nextEndMinutes / 60);
                 let nextEndMinute = nextEndMinutes % 60;
                 endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;
@@ -140,8 +140,8 @@
         if (meridian === 'PM') militaryHour += 12;
         const totalMinutes = militaryHour * 60 + minute;
 
-        // Validate range: 07:00 (420) to 21:00 (1260)
-        if (totalMinutes < 420 || totalMinutes > 1260) return; // ❌ cancel toggle
+        // Validate range: 07:00 (420) to 20:30 (1230)
+        if (totalMinutes < 420 || totalMinutes > 1230) return; // ❌ cancel toggle
 
         meridianEl.innerText = meridian;
         inputEl.value = `${String(militaryHour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
@@ -156,7 +156,7 @@
                 // If start >= end, auto-adjust end to next slot
                 let startMinutes = parseInt(startVal.split(':')[0]) * 60 + parseInt(startVal.split(':')[1]);
                 let nextEndMinutes = startMinutes + 30;
-                if (nextEndMinutes > 1260) nextEndMinutes = 1260;
+                if (nextEndMinutes > 1230) nextEndMinutes = 1230;
                 let nextEndHour = Math.floor(nextEndMinutes / 60);
                 let nextEndMinute = nextEndMinutes % 60;
                 endInput.value = `${String(nextEndHour).padStart(2, '0')}:${String(nextEndMinute).padStart(2, '0')}`;

@@ -7,3 +7,7 @@ if (isset($_SESSION['auth']) || !isset($_COOKIE['rememberme'])){
         echo 'logout_redirect';
     }
 }
+
+if (session_status() === PHP_SESSION_ACTIVE) {
+    session_write_close();
+}

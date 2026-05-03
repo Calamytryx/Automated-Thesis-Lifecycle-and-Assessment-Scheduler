@@ -21,17 +21,20 @@ $(document).ready(function() {
         checkInProgress = true;
         $.ajax({
             type: 'GET',
-            url: '../assets/includes/checkinactive.ajax.php',
+            url: '/assets/includes/checkinactive.ajax.php',
             // Removed async:false to prevent UI blocking
-            timeout: 5000, // Add timeout to prevent hanging requests
+            timeout: 15000, // Allow a little more room if the PHP session was briefly busy
             success: function(response) {
                 if (response == 'logout_redirect') {
                     location.href = "../login/";
                 }
             },
-            error: function(status, error) {
-                // Silent fail - don't bother the user with connection issues
-                console.log("Session check error:", status, error);
+            error: function(xhr, status, error) {
+                // Ignore transient aborts/timeouts; session locking or navigation can cause readyState 0.
+                if (status === 'timeout' || status === 'abort') {
+                    return;
+                }
+                console.log("Session check error:", xhr, status, error);
             },
             complete: function() {
                 checkInProgress = false;

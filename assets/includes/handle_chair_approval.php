@@ -88,13 +88,20 @@ try {
     $actionStmt->execute([$userId, $scheduleId]);
 
     if ($action === 'approve') {
+        $panelistsChair = array_values(array_filter(array_map('intval', [
+            (int) ($schedule['panelist_id'] ?? 0),
+            (int) ($schedule['panelist_id2'] ?? 0),
+            (int) ($schedule['panelist_id3'] ?? 0),
+        ])));
+
         $conflictCheck = validateStudentScheduleConflicts(
             $pdo,
             (int)$schedule['team_id'],
             $schedule['schedule_date'] ?? '',
             $schedule['start_time'] ?? '',
             $schedule['end_time'] ?? '',
-            (int)$scheduleId
+            (int)$scheduleId,
+            $panelistsChair
         );
         if (!$conflictCheck['ok']) {
             throw new Exception($conflictCheck['message']);
