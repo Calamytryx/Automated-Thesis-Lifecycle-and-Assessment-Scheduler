@@ -168,13 +168,20 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $panelist_id2 = $postedPanelists[1] ?? null;
                 $panelist_id3 = $postedPanelists[2] ?? null;
 
+                $panelistsForConflict = array_values(array_filter(array_map('intval', [
+                    $panelist_id,
+                    $panelist_id2,
+                    $panelist_id3,
+                ])));
+
                 $conflictCheck = validateStudentScheduleConflicts(
                     $pdo,
                     (int)$team_id,
                     $schedule_date,
                     $start_time,
                     $end_time,
-                    (int)$id
+                    (int)$id,
+                    $panelistsForConflict
                 );
                 if (!$conflictCheck['ok']) {
                     throw new Exception($conflictCheck['message']);

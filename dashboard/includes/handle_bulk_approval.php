@@ -71,7 +71,8 @@ try {
     if ($action === 'approve') {
             // Pre-validate all schedules for student conflicts before approving/finalizing.
             $currentScheduleStmt = $pdo->prepare("
-                SELECT ds.team_id, ds.schedule_date, ds.start_time, ds.end_time, t.name AS team_name
+                SELECT ds.team_id, ds.schedule_date, ds.start_time, ds.end_time,
+                       ds.panelist_id, ds.panelist_id2, ds.panelist_id3, t.name AS team_name
                 FROM defense_schedules ds
                 LEFT JOIN teams t ON t.id = ds.team_id
                 WHERE ds.id = ?
@@ -110,13 +111,20 @@ try {
                 $startTime = $normalizeTime($sched['start_time'] ?? $currentSchedule['start_time']);
                 $endTime = $normalizeTime($sched['end_time'] ?? $currentSchedule['end_time']);
 
+                $panelistsBulk = array_values(array_filter(array_map('intval', [
+                    (int) ($sched['panelist_id'] ?? $currentSchedule['panelist_id'] ?? 0),
+                    (int) ($sched['panelist_id2'] ?? $currentSchedule['panelist_id2'] ?? 0),
+                    (int) ($sched['panelist_id3'] ?? $currentSchedule['panelist_id3'] ?? 0),
+                ])));
+
                 $conflictCheck = validateStudentScheduleConflicts(
                     $pdo,
                     $teamId,
                     $scheduleDate,
                     $startTime,
                     $endTime,
-                    (int)$sched['id']
+                    (int)$sched['id'],
+                    $panelistsBulk
                 );
 
                 if (!$conflictCheck['ok']) {

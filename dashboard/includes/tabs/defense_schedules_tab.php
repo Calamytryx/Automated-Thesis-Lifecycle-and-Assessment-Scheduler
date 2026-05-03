@@ -118,11 +118,20 @@
                                 <label for="timeDuration" class="form-label">Time Duration (hours)</label>
                                 <input type="number" class="form-control" id="timeDuration" name="timeDuration" min="0.25" max="5" step="0.25" required>
                             </div>
+                            <div class="mb-3">
+                                <label for="validationMode" class="form-label">Validation Mode</label>
+                                <select class="form-select" id="validationMode" name="validationMode">
+                                    <option value="hybrid" selected>Hybrid - stop on hard blockers, continue on warnings</option>
+                                    <option value="strict">Strict - stop generation if any conflict remains</option>
+                                    <option value="soft">Soft - continue and report unresolved groups</option>
+                                </select>
+                                <small class="form-text text-muted">Strict mode blocks generation when no conflict-free slot exists. Soft mode keeps going and reports unresolved teams.</small>
+                            </div>
                             <script>
                                 // Define validateInputs and other functions at the global scope
                                 // Declare global variables
                                 let timeDurationInput, startTimeInput, endTimeInput, daysInput, roomsInput, sectionSelect, 
-                                    saveButton, statusElement, includeLunchBreakCheckbox;
+                                    saveButton, statusElement, includeLunchBreakCheckbox, validationModeSelect;
 
                                 // Define the correctTimeDuration function in global scope
                                 function correctTimeDuration() {
@@ -315,6 +324,7 @@
                                     saveButton = document.getElementById('saveSchedulerSettings');
                                     statusElement = document.getElementById('scheduleGenerationStatus');
                                     includeLunchBreakCheckbox = document.getElementById('includeLunchBreak');
+                                    validationModeSelect = document.getElementById('validationMode');
 
                                     // Limit time inputs to working hours
                                     if (startTimeInput) {
@@ -328,39 +338,48 @@
                                     }
 
                                     // Add event listeners
+                                    function touchSchedulerForm() {
+                                        updateTeamCount(validateInputs);
+                                        debouncedSchedulerSlotEstimate();
+                                    }
+
                                     if (timeDurationInput) {
                                         timeDurationInput.addEventListener('input', () => {
                                             correctTimeDuration();
-                                            updateTeamCount(validateInputs);
+                                            touchSchedulerForm();
                                         });
                                         timeDurationInput.addEventListener('change', () => {
                                             correctTimeDuration();
-                                            updateTeamCount(validateInputs);
+                                            touchSchedulerForm();
                                         });
                                     }
 
                                     if (startTimeInput) {
-                                        startTimeInput.addEventListener('input', () => updateTeamCount(validateInputs));
+                                        startTimeInput.addEventListener('input', touchSchedulerForm);
                                     }
                                     
                                     if (endTimeInput) {
-                                        endTimeInput.addEventListener('input', () => updateTeamCount(validateInputs));
+                                        endTimeInput.addEventListener('input', touchSchedulerForm);
                                     }
                                     
                                     if (daysInput) {
-                                        daysInput.addEventListener('change', () => updateTeamCount(validateInputs));
+                                        daysInput.addEventListener('change', touchSchedulerForm);
                                     }
                                     
                                     if (roomsInput) {
-                                        roomsInput.addEventListener('input', () => updateTeamCount(validateInputs));
+                                        roomsInput.addEventListener('input', touchSchedulerForm);
                                     }
                                     
                                     if (includeLunchBreakCheckbox) {
-                                        includeLunchBreakCheckbox.addEventListener('change', () => updateTeamCount(validateInputs));
+                                        includeLunchBreakCheckbox.addEventListener('change', touchSchedulerForm);
                                     }
                                     
                                     if (sectionSelect) {
-                                        sectionSelect.addEventListener('change', () => updateTeamCount(validateInputs));
+                                        sectionSelect.addEventListener('change', touchSchedulerForm);
+                                    }
+
+                                    if (validationModeSelect) {
+                                        validationModeSelect.addEventListener('change', touchSchedulerForm);
                                     }
 
                                     // Room preset button handlers
@@ -379,7 +398,7 @@
                                                 }
                                             }
                                             // Trigger validation
-                                            updateTeamCount(validateInputs);
+                                            touchSchedulerForm();
                                         });
                                     });
 
@@ -388,12 +407,12 @@
                             </script>
                             <div class="mb-3">
                                 <label for="startTime" class="form-label">Start Time</label>
-                                <input type="time" class="form-control" id="startTime" name="startTime" min="07:00 AM" max="20:00 PM" step="1800" required
+                                <input type="time" class="form-control" id="startTime" name="startTime" min="07:00 AM" max="20:30" step="1800" required
                                     onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             </div>
                             <div class="mb-3">
                                 <label for="endTime" class="form-label">End Time</label>
-                                <input type="time" class="form-control" id="endTime" name="endTime" min="07:00" max="20:00" step="1800" required
+                                <input type="time" class="form-control" id="endTime" name="endTime" min="07:00" max="20:30" step="1800" required
                                     onchange="this.value = this.value.substr(0,3) + (this.value.substr(3,2) >= '30' ? '30' : '00')">
                             </div>
                             <div class="mb-3">
@@ -425,6 +444,150 @@
                                     
                                     // Global flag to prevent duplicate scheduler runs
                                     let schedulerRunning = false;
+                                let schedulerEstimateTimer = null;
+
+                                /** Build discrete start times (same rules as Generate) for server-side feasibility count. */
+                                function buildSchedulerTimeSlotsArray() {
+                                    const duration = parseFloat(document.getElementById('timeDuration')?.value);
+                                    const startTime = document.getElementById('startTime')?.value;
+                                    const endTime = document.getElementById('endTime')?.value;
+                                    if (!startTime || !endTime || !Number.isFinite(duration) || duration <= 0) {
+                                        return [];
+                                    }
+                                    const increment = (duration % 1 === 0) ? 60 : 30;
+                                    let currentTime = new Date(`1970-01-01T${startTime}`);
+                                    if (duration % 1 === 0) {
+                                        currentTime.setMinutes(0);
+                                    }
+                                    const endDateTime = new Date(`1970-01-01T${endTime}`);
+                                    function slotPasses2030Ceiling(slotHHMM, durHrs) {
+                                        const pt = /^(\d{1,2}):(\d{2})$/.exec(String(slotHHMM).trim()) || /^(\d{1,2}):(\d{2}):\d{2}$/.exec(String(slotHHMM).trim());
+                                        if (!pt) return false;
+                                        const hh = parseInt(pt[1], 10);
+                                        const mm = parseInt(pt[2], 10);
+                                        if (Number.isNaN(hh) || Number.isNaN(mm)) return false;
+                                        const startMin = hh * 60 + mm;
+                                        const capMin = 20 * 60 + 30;
+                                        const endMin = startMin + Math.round(Number(durHrs) * 60);
+                                        return endMin <= capMin;
+                                    }
+                                    const timeSlots = [];
+                                    while (currentTime < endDateTime) {
+                                        const hhmm = currentTime.toTimeString().substring(0, 5);
+                                        if (slotPasses2030Ceiling(hhmm, duration)) {
+                                            timeSlots.push(hhmm);
+                                        }
+                                        currentTime.setMinutes(currentTime.getMinutes() + increment);
+                                    }
+                                    return timeSlots;
+                                }
+
+                                function requestSchedulerSlotEstimate() {
+                                    const el = document.getElementById('schedulerSlotEstimate');
+                                    if (!el) return;
+
+                                    const generateBtn = document.getElementById('generateSchedule');
+                                    const escapeHtml = function(value) {
+                                        return String(value)
+                                            .replace(/&/g, '&amp;')
+                                            .replace(/</g, '&lt;')
+                                            .replace(/>/g, '&gt;')
+                                            .replace(/"/g, '&quot;')
+                                            .replace(/'/g, '&#39;');
+                                    };
+
+                                    const rooms = (document.getElementById('rooms')?.value || '').split(',').map(r => r.trim()).filter(Boolean);
+                                    const days = (document.getElementById('days')?.value || '').split(',').map(d => d.trim()).filter(Boolean);
+                                    const duration = parseFloat(document.getElementById('timeDuration')?.value);
+                                    const timeSlots = buildSchedulerTimeSlotsArray();
+                                    const sectionHidden = document.getElementById('selectedSection');
+                                    const sectionSel = document.getElementById('sectionSelect');
+                                    const section = (sectionHidden && sectionHidden.value) ? sectionHidden.value : (sectionSel ? sectionSel.value : '');
+
+                                    if (!rooms.length || !days.length || !Number.isFinite(duration) || duration <= 0 || !timeSlots.length) {
+                                        el.innerHTML = '<span class="text-muted">Save valid settings to see how many conflict-free placements exist after class schedules are loaded.</span>';
+                                        return;
+                                    }
+
+                                    el.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Loading class schedules and counting feasible slots…</span>';
+
+                                    $.ajax({
+                                        url: '../dashboard/includes/run_scheduler.php',
+                                        method: 'POST',
+                                        data: {
+                                            estimate_slots: 'true',
+                                            rooms: rooms,
+                                            days: days,
+                                            timeSlots: timeSlots,
+                                            timeDuration: duration,
+                                            selectedSection: section,
+                                            validationMode: document.getElementById('validationMode') ? document.getElementById('validationMode').value : 'hybrid'
+                                        },
+                                        dataType: 'json',
+                                        success: function(res) {
+                                            if (!res || !res.success) {
+                                                el.innerHTML = '<span class="text-danger">' + (res && res.message ? res.message : 'Could not estimate slots.') + '</span>';
+                                                if (generateBtn) {
+                                                    generateBtn.disabled = true;
+                                                }
+                                                return;
+                                            }
+                                            const n = res.feasible_placement_count;
+                                            const teams = res.teams_considered != null ? res.teams_considered : '—';
+                                            const maxChk = res.theoretical_max_checked != null ? res.theoretical_max_checked : '—';
+                                            const blockedByDay = res.blocked_time_slots_by_day && typeof res.blocked_time_slots_by_day === 'object'
+                                                ? res.blocked_time_slots_by_day
+                                                : {};
+                                            const blockedDays = Object.keys(blockedByDay);
+                                            let warnHtml = '';
+                                            if (Array.isArray(res.estimate_warnings) && res.estimate_warnings.length) {
+                                                warnHtml = '<ul class="mb-0 mt-2 text-warning-emphasis small ps-3">' +
+                                                    res.estimate_warnings.map(function(w) {
+                                                        return '<li>' + String(w).replace(/</g, '&lt;') + '</li>';
+                                                    }).join('') + '</ul>';
+                                            }
+                                            let blockedHtml = '';
+                                            if (blockedDays.length) {
+                                                blockedHtml = '<div class="alert alert-warning mt-2 mb-0 small">' +
+                                                    '<div class="fw-semibold mb-1">Blocked start times to remove</div>' +
+                                                    '<ul class="mb-0 ps-3">' +
+                                                    blockedDays.slice(0, 6).map(function(day) {
+                                                        const slots = Array.isArray(blockedByDay[day]) ? blockedByDay[day] : [];
+                                                        const slotHtml = slots.slice(0, 6).map(function(slot) {
+                                                            const reasons = Array.isArray(slot.reasons) && slot.reasons.length
+                                                                ? '<div class="text-muted">' + slot.reasons.map(function(reason) {
+                                                                    return escapeHtml(reason);
+                                                                }).join('<br>') + '</div>'
+                                                                : '';
+                                                            return '<li><strong>' + escapeHtml(slot.time_slot) + '</strong>' + reasons + '</li>';
+                                                        }).join('');
+                                                        return '<li><strong>' + escapeHtml(day) + '</strong><ul class="mb-0 ps-3">' + slotHtml + '</ul></li>';
+                                                    }).join('') +
+                                                    '</ul>' +
+                                                '</div>';
+                                            }
+                                            if (generateBtn) {
+                                                generateBtn.disabled = n <= 0;
+                                            }
+                                            if (n > 0) {
+                                                el.innerHTML = '<span class="text-success fw-semibold">' + n + '</span> conflict-free placement(s) for <span class="text-muted">' + teams + ' team(s)</span> (student + faculty class loads applied)'
+                                                    + (maxChk !== '—' ? ' <span class="text-muted">(upper bound naive combinations: ' + maxChk + ')</span>.' : '.') + warnHtml + blockedHtml;
+                                            } else {
+                                                el.innerHTML = '<span class="text-danger fw-semibold">0</span> conflict-free placements — class conflicts remove all available start times for the current rooms/dates/time window.' + warnHtml + blockedHtml;
+                                            }
+                                        },
+                                        error: function() {
+                                            el.innerHTML = '<span class="text-danger">Failed to reach server for slot estimate.</span>';
+                                        }
+                                    });
+                                }
+
+                                function debouncedSchedulerSlotEstimate() {
+                                    if (schedulerEstimateTimer) {
+                                        clearTimeout(schedulerEstimateTimer);
+                                    }
+                                    schedulerEstimateTimer = setTimeout(requestSchedulerSlotEstimate, 400);
+                                }
 
                                     // Enhanced loading state management
                                     function showLoadingState() {
@@ -564,10 +727,24 @@
                                             currentTime.setMinutes(0);
                                         }
                                         const endDateTime = new Date(`1970-01-01T${endTime}`);
+                                        function slotPasses2030Ceiling(slotHHMM, durHrs) {
+                                            const pt = /^(\d{1,2}):(\d{2})$/.exec(String(slotHHMM).trim()) || /^(\d{1,2}):(\d{2}):\d{2}$/.exec(String(slotHHMM).trim());
+                                            if (!pt) return false;
+                                            const hh = parseInt(pt[1], 10);
+                                            const mm = parseInt(pt[2], 10);
+                                            if (Number.isNaN(hh) || Number.isNaN(mm)) return false;
+                                            const startMin = hh * 60 + mm;
+                                            const capMin = 20 * 60 + 30;
+                                            const endMin = startMin + Math.round(Number(durHrs) * 60);
+                                            return endMin <= capMin;
+                                        }
 
                                         const timeSlots = [];
                                         while (currentTime < endDateTime) {
-                                            timeSlots.push(currentTime.toTimeString().substring(0, 5));
+                                            const hhmm = currentTime.toTimeString().substring(0, 5);
+                                            if (slotPasses2030Ceiling(hhmm, duration)) {
+                                                timeSlots.push(hhmm);
+                                            }
                                             currentTime.setMinutes(currentTime.getMinutes() + increment);
                                         }
 
@@ -576,6 +753,7 @@
                                             timeDuration: duration,
                                             timeSlots: timeSlots,
                                             days: days,
+                                            validationMode: document.getElementById("validationMode") ? document.getElementById("validationMode").value : 'hybrid',
                                             section: section,
                                             confirm_overwrite: confirmOverwrite,
                                             preview: 'true'
@@ -593,7 +771,7 @@
                                                     // Preview mode: show editable calendar
                                                     hideLoadingState(true, 'Preview ready! Review the schedule below.');
                                                     if (typeof window.showDefensePreviewCalendar === 'function') {
-                                                        window.showDefensePreviewCalendar(response.schedules);
+                                                        window.showDefensePreviewCalendar(response.schedules, response);
                                                     }
                                                 } else if (response.success) {
                                                     if (response.progressId) {
@@ -860,10 +1038,15 @@
                                         "Start Time: " + (document.getElementById("startTime").value || "N/A") + "<br>" +
                                         "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
                                         "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
-                                        "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No");
+                                        "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No") + "<br>" +
+                                        "Validation Mode: " + (document.getElementById("validationMode") ? document.getElementById("validationMode").value : "hybrid") +
+                                        '<div class="mt-3 pt-2 border-top"><div id="schedulerSlotEstimate" class="small text-muted">Loading class schedules…</div></div>';
                                     const generationSettingEl = document.getElementById("generationSetting");
                                     generationSettingEl.innerHTML = settingsOutput;
                                     generationSettingEl.style.display = 'block';
+                                    if (typeof requestSchedulerSlotEstimate === 'function') {
+                                        requestSchedulerSlotEstimate();
+                                    }
 
                                 } else { // Settings are invalid
                                     if(generateScheduleButton) {
@@ -926,8 +1109,14 @@
         <div class="modal fade" id="schedulePreviewModal" tabindex="-1" aria-labelledby="schedulePreviewModalLabel" data-bs-backdrop="static" aria-hidden="true">
             <div class="modal-dialog modal-fullscreen">
                 <div class="modal-content">
-                    <div class="modal-header">
-                        <h5 class="modal-title" id="schedulePreviewModalLabel">Schedule Preview — Review & Edit Before Saving</h5>
+                    <div class="modal-header flex-wrap gap-2 align-items-center">
+                        <div class="me-auto">
+                            <h5 class="modal-title mb-0" id="schedulePreviewModalLabel">Schedule Preview — Review & Edit Before Saving</h5>
+                        </div>
+                        <div id="previewVariantWrap" class="d-none d-flex align-items-center gap-2">
+                            <label for="previewVariantSelect" class="small mb-0 text-muted text-nowrap">Layout options</label>
+                            <select id="previewVariantSelect" class="form-select form-select-sm" style="min-width:13rem;"></select>
+                        </div>
                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                     </div>
                     <div class="modal-body p-0">
@@ -936,13 +1125,22 @@
                                 <i class="fas fa-info-circle me-2"></i>
                                 <strong>Drag events</strong> to move them to different times/days. <strong>Click an event</strong> to edit details (room, panelists). When satisfied, click <strong>Confirm & Save</strong>.
                             </div>
+                            <div id="previewDiagnostics" class="mb-3"></div>
+                            <div class="def-calendar-legend mb-3" aria-label="Defense schedule preview legend">
+                                <span class="def-legend-item"><span class="def-legend-dot def-legend-valid"></span>Valid schedule</span>
+                                <span class="def-legend-item"><span class="def-legend-dot def-legend-conflict"></span>Conflict detected</span>
+                                <span class="def-legend-item"><span class="def-legend-dot def-legend-overlay"></span>Section class schedule (preview teams)</span>
+                            </div>
                             <div id="previewCalendar" style="min-height:70vh;"></div>
                         </div>
                     </div>
-                    <div class="modal-footer">
-                        <span id="previewScheduleCount" class="me-auto text-muted"></span>
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
-                        <button type="button" class="btn btn-primary" id="confirmSavePreview">Confirm & Save</button>
+                    <div class="modal-footer flex-column align-items-stretch gap-2">
+                        <div class="d-flex flex-wrap align-items-center gap-2 w-100">
+                            <span id="previewScheduleCount" class="me-auto text-muted"></span>
+                            <button type="button" class="btn btn-outline-primary" id="regeneratePreviewSchedule">Generate Another Schedule</button>
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
+                            <button type="button" class="btn btn-primary" id="confirmSavePreview">Confirm & Save</button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -973,11 +1171,11 @@
                             </div>
                             <div class="col-3">
                                 <label class="form-label fw-bold">Start</label>
-                                <input type="time" class="form-control" id="editStartTime">
+                                <input type="time" class="form-control" id="editStartTime" step="1800" min="07:00" max="20:30">
                             </div>
                             <div class="col-3">
                                 <label class="form-label fw-bold">End</label>
-                                <input type="time" class="form-control" id="editEndTime">
+                                <input type="time" class="form-control" id="editEndTime" step="1800" min="07:00" max="20:30">
                             </div>
                         </div>
                         <div class="mb-3">
@@ -1063,6 +1261,54 @@
             .fc-event.status-approved { background-color: #10b981 !important; border-color: #059669 !important; color: #fff !important; }
             .fc-event.status-rejected { background-color: #ef4444 !important; border-color: #dc2626 !important; color: #fff !important; }
             .fc-event.status-preview { background-color: #8b5cf6 !important; border-color: #7c3aed !important; color: #fff !important; }
+            .fc-event.status-preview.preview-slot-clear:not(.preview-conflict) {
+                border-left: 5px solid #22c55e !important;
+            }
+            .fc-event.status-preview.preview-warning {
+                border-left: 5px solid #eab308 !important;
+                box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.45);
+            }
+            .fc-event.status-preview.preview-conflict { background-color: #dc2626 !important; border-color: #b91c1c !important; color: #fff !important; }
+            .preview-diagnostics-card {
+                border: 1px solid rgba(15, 23, 42, 0.08);
+                border-radius: 14px;
+                background: linear-gradient(180deg, #ffffff 0%, #f8fafc 100%);
+                box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08);
+            }
+            .preview-diagnostics-list {
+                max-height: 180px;
+                overflow: auto;
+                margin: 0;
+                padding-left: 1rem;
+            }
+            .preview-overlay-chip {
+                display: inline-flex;
+                align-items: center;
+                gap: 0.35rem;
+                border-radius: 999px;
+                padding: 0.35rem 0.75rem;
+                font-size: 0.82rem;
+                background: #eef2ff;
+                color: #3730a3;
+                margin: 0.2rem 0.2rem 0 0;
+            }
+            .def-legend-valid { background-color: #10b981; }
+            .def-legend-conflict { background-color: #dc2626; }
+            .def-legend-overlay { background-color: #f59e0b; }
+            #previewCalendar .fc-bg-event.preview-overlay-class {
+                opacity: 1 !important;
+                background-color: rgba(245, 158, 11, 0.42) !important;
+            }
+            #previewCalendar .fc-event.preview-overlay-class:not(.fc-bg-event) {
+                background-color: rgba(253, 230, 138, 0.95) !important;
+                border: 1px dashed #d97706 !important;
+                color: #451a03 !important;
+                font-size: 0.72rem;
+                z-index: 1 !important;
+            }
+            #previewCalendar .fc-event.status-preview {
+                z-index: 4 !important;
+            }
             /* Stacked modal z-index: eventEditModal sits above schedulePreviewModal */
             #eventEditModal { z-index: 1060; }
             #eventEditModal + .modal-backdrop, #eventEditModal ~ .modal-backdrop:last-of-type { z-index: 1055; }
@@ -1494,17 +1740,54 @@
                             right: 'timeGridWeek,timeGridDay,dayGridMonth'
                         },
                         slotMinTime: '07:00:00',
-                        slotMaxTime: '20:00:00',
+                        slotMaxTime: '20:30:00',
                         allDaySlot: false,
                         height: 'auto',
                         editable: true,
                         eventDurationEditable: true,
                         events: events,
-                        eventContent: function(arg) {
+eventContent: function(arg) {
                             const props = arg.event.extendedProps;
+                            // Build enhanced display with team, room, defense type, and time
+                            const teamName = arg.event.title || 'Unknown Team';
+                            const room = props.room || '';
+                            const defenseType = props.defense_type || '';
+                            const status = props.status || 'pending_chair';
+                            const startTime = props.start_time || '';
+                            const endTime = props.end_time || '';
+                            
+                            // Format defense type for display
+                            const typeLabel = defenseType ? defenseType.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase()) : 'Defense';
+                            
+                            // Get status color class
+                            const statusClass = `status-${status}`;
+                            
+                            // Format time range
+                            let timeDisplay = '';
+                            if (startTime) {
+                                const start = new Date('1970-01-01T' + startTime);
+                                const end = new Date('1970-01-01T' + (endTime || startTime));
+                                const formatTime = (d) => {
+                                    const h = d.getHours();
+                                    const m = d.getMinutes();
+                                    const ampm = h >= 12 ? 'PM' : 'AM';
+                                    const h12 = h % 12 || 12;
+                                    return `${h12}:${m.toString().padStart(2, '0')} ${ampm}`;
+                                };
+                                timeDisplay = `${formatTime(start)}-${formatTime(end)}`;
+                            }
+                            
                             return {
-                                html: `<div class="event-team">${arg.event.title}</div>
-                                       <div class="event-room">${props.room || ''}</div>`
+                                html: `<div class="event-content-wrapper ${statusClass}">
+                                    <div class="event-header">
+                                        <span class="event-team">${teamName}</span>
+                                        <span class="event-type">${typeLabel}</span>
+                                    </div>
+                                    <div class="event-body">
+                                        <span class="event-room">📍 ${room}</span>
+                                        <span class="event-time">🕐 ${timeDisplay}</span>
+                                    </div>
+                                </div>`
                             };
                         },
                         eventClick: function(info) {
@@ -1541,87 +1824,562 @@
                 // ========== PREVIEW CALENDAR (for new schedule generation) ==========
                 let previewCalendarInstance = null;
                 let previewScheduleData = []; // The array of schedules from preview mode
+                let previewGenerationMeta = null;
+                let previewClassScheduleData = [];
 
-                function showPreviewCalendar(schedules) {
-                    previewScheduleData = schedules;
-                    const events = schedules.map((s, idx) => ({
-                        id: 'preview_' + idx,
-                        title: s.team_name || 'Unknown',
-                        start: s.schedule_date + 'T' + s.start_time,
-                        end: s.schedule_date + 'T' + s.end_time,
-                        editable: true,
-                        classNames: ['status-preview'],
-                        extendedProps: {
-                            ...s,
-                            previewIndex: idx,
-                            panelist1: s.panelist1_name || '',
-                            panelist2: s.panelist2_name || '',
-                            panelist3: s.panelist3_name || '',
-                            status: 'preview'
-                        }
-                    }));
+                const toMinutes = (timeStr) => {
+                    if (!timeStr) return null;
+                    const parts = String(timeStr).split(':').map(Number);
+                    if (parts.length < 2 || parts.some(Number.isNaN)) return null;
+                    return (parts[0] * 60) + parts[1];
+                };
 
-                    // Determine initial date
-                    let initialDate = new Date();
-                    if (events.length > 0) {
-                        const dates = events.map(e => new Date(e.start)).sort((a, b) => a - b);
-                        initialDate = dates[0];
+                const timeRangesOverlap = (startA, endA, startB, endB) => {
+                    return startA < endB && endA > startB;
+                };
+
+                /** user_schedules.day_of_week is stored as weekday names (Monday…Saturday); FullCalendar expects 0–6 (Sun–Sat). */
+                function userScheduleDayToJsDay(dow) {
+                    if (dow === null || dow === undefined || dow === '') return null;
+                    if (typeof dow === 'number' && Number.isInteger(dow) && dow >= 0 && dow <= 6) return dow;
+                    const n = Number(dow);
+                    if (!Number.isNaN(n) && n >= 0 && n <= 6) return n;
+                    const map = {
+                        sunday: 0, monday: 1, tuesday: 2, wednesday: 3,
+                        thursday: 4, friday: 5, saturday: 6
+                    };
+                    const key = String(dow).trim().toLowerCase();
+                    return map[key] !== undefined ? map[key] : null;
+                }
+
+                /** Class blocks for students' program+section on the preview teams only (not all user_schedules). */
+                function loadPreviewTeamSectionSchedules(schedules) {
+                    const teamIds = [...new Set((schedules || [])
+                        .map(s => s.team_id)
+                        .filter(id => id != null && String(id).trim() !== ''))];
+                    const numericIds = teamIds.map(id => parseInt(id, 10)).filter(n => !Number.isNaN(n) && n > 0);
+                    if (numericIds.length === 0) {
+                        return Promise.resolve([]);
                     }
+                    return fetch('../dashboard/includes/get_preview_overlay_schedules.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ team_ids: numericIds })
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.error && !Array.isArray(data.data)) {
+                                return [];
+                            }
+                            return Array.isArray(data.data) ? data.data : [];
+                        })
+                        .catch((err) => {
+                            console.warn('Class overlay fetch failed:', err);
+                            return [];
+                        });
+                }
 
-                    document.getElementById('previewScheduleCount').textContent = `${schedules.length} schedule(s) generated`;
+                /**
+                 * Section class overlay: always show the full weekly pattern for every class row.
+                 * Times come only from user_schedules (API) — never from defense generator timeSlots or selected defense days.
+                 */
+                function formatClassTimeFromDb(raw) {
+                    if (raw === null || raw === undefined || raw === '') return '';
+                    const s = String(raw).trim();
+                    const m = s.match(/^(\d{1,2}):(\d{2})(?::(\d{2}))?/);
+                    if (!m) return '';
+                    const h = String(Math.min(23, parseInt(m[1], 10))).padStart(2, '0');
+                    const min = String(Math.min(59, parseInt(m[2], 10))).padStart(2, '0');
+                    const sec = m[3] !== undefined ? String(Math.min(59, parseInt(m[3], 10))).padStart(2, '0') : '00';
+                    return `${h}:${min}:${sec}`;
+                }
 
-                    const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
-                    previewModal.show();
+                /** Matches FullCalendar's firstDay — weekStart is the calendar column start (e.g. Monday when firstDay=1). */
+                function startOfDisplayedWeek(referenceDate, firstDayFc) {
+                    const rd = referenceDate instanceof Date ? new Date(referenceDate.getTime()) : new Date(referenceDate);
+                    rd.setHours(12, 0, 0, 0);
+                    const fd = firstDayFc !== undefined ? firstDayFc : 1;
+                    const dow = rd.getDay();
+                    const delta = (dow - fd + 7) % 7;
+                    rd.setDate(rd.getDate() - delta);
+                    rd.setHours(0, 0, 0, 0);
+                    return rd;
+                }
 
-                    // Render after modal is shown
-                    document.getElementById('schedulePreviewModal').addEventListener('shown.bs.modal', function initCal() {
-                        if (previewCalendarInstance) previewCalendarInstance.destroy();
-                        const calEl = document.getElementById('previewCalendar');
-                        previewCalendarInstance = new FullCalendar.Calendar(calEl, {
-                            initialView: 'timeGridWeek',
-                            initialDate: initialDate,
-                            headerToolbar: {
-                                left: 'prev,next today',
-                                center: 'title',
-                                right: 'timeGridWeek,timeGridDay'
-                            },
-                            slotMinTime: '07:00:00',
-                            slotMaxTime: '20:00:00',
-                            allDaySlot: false,
-                            height: 'auto',
-                            editable: true,
-                            eventDurationEditable: true,
-                            events: events,
-                            eventContent: function(arg) {
-                                const props = arg.event.extendedProps;
-                                return {
-                                    html: `<div class="event-team">${arg.event.title}</div>
-                                           <div class="event-room">${props.room || ''}</div>`
-                                };
-                            },
-                            eventClick: function(info) {
-                                openEventEditModal(info.event, 'preview');
-                            },
-                            eventDrop: function(info) {
-                                updatePreviewDataFromEvent(info.event);
-                            },
-                            eventResize: function(info) {
-                                updatePreviewDataFromEvent(info.event);
+                function isoDateLocal(d) {
+                    const y = d.getFullYear();
+                    const m = String(d.getMonth() + 1).padStart(2, '0');
+                    const dd = String(d.getDate()).padStart(2, '0');
+                    return `${y}-${m}-${dd}`;
+                }
+
+                function formatPreviewLocalYmd(d) {
+                    return isoDateLocal(d);
+                }
+
+                function formatPreviewLocalHms(d) {
+                    const h = String(d.getHours()).padStart(2, '0');
+                    const m = String(d.getMinutes()).padStart(2, '0');
+                    const s = String(d.getSeconds()).padStart(2, '0');
+                    return `${h}:${m}:${s}`;
+                }
+
+                /** Defense preview: start times may only sit on :00 or :30; keep end within 8:30 PM cap. */
+                function snapPreviewMomentToHalfHour(date) {
+                    const d = new Date(date.getTime());
+                    const durH = parseFloat(document.getElementById('timeDuration')?.value) || 1;
+                    const durMin = Math.round(durH * 60);
+                    const capEndMin = 20 * 60 + 30;
+                    let totalMinutes = d.getHours() * 60 + d.getMinutes() + d.getSeconds() / 60;
+                    let snapped = Math.round(totalMinutes / 30) * 30;
+                    let endMin = snapped + durMin;
+                    if (endMin > capEndMin) {
+                        snapped = Math.max(7 * 60, capEndMin - durMin);
+                        snapped = Math.round(snapped / 30) * 30;
+                    }
+                    const hh = Math.floor(snapped / 60);
+                    const mm = snapped % 60;
+                    d.setHours(hh, mm, 0, 0);
+                    return d;
+                }
+
+                function snapHmStringToHalfHour(hm) {
+                    const raw = String(hm || '').trim();
+                    const m = /^(\d{1,2}):(\d{2})/.exec(raw);
+                    if (!m) return raw;
+                    let h = parseInt(m[1], 10);
+                    let mi = parseInt(m[2], 10);
+                    if (Number.isNaN(h)) h = 0;
+                    if (Number.isNaN(mi)) mi = 0;
+                    mi = mi < 30 ? 0 : 30;
+                    h = Math.min(23, Math.max(0, h));
+
+                    const durH = parseFloat(document.getElementById('timeDuration')?.value) || 1;
+                    const durMin = Math.round(durH * 60);
+                    const capEndMin = 20 * 60 + 30;
+                    let startMin = h * 60 + mi;
+                    if (startMin + durMin > capEndMin) {
+                        startMin = Math.max(7 * 60, capEndMin - durMin);
+                        startMin = Math.round(startMin / 30) * 30;
+                        h = Math.floor(startMin / 60);
+                        mi = startMin % 60;
+                    }
+                    return `${String(h).padStart(2, '0')}:${String(mi).padStart(2, '0')}`;
+                }
+
+                /** Map JS weekday (0–6 Sun–Sat) to the concrete date inside the visible FC week. */
+                function dateForFcWeekdayInWeek(fcDow, weekStartDate, fcFirstDay) {
+                    const start = new Date(weekStartDate.getTime());
+                    start.setHours(12, 0, 0, 0);
+                    const fd = fcFirstDay !== undefined ? fcFirstDay : 1;
+                    const delta = (fcDow - fd + 7) % 7;
+                    start.setDate(start.getDate() + delta);
+                    return isoDateLocal(start);
+                }
+
+                /** Explicit start/end per date so timeGridWeek always paints Mon–Sat overlays (avoid FC daysOfWeek recurrence quirks). */
+                function buildClassOverlayEvents(classSchedules, weekStartDate, fcFirstDay) {
+                    const fd = fcFirstDay !== undefined ? fcFirstDay : 1;
+                    const events = [];
+                    (classSchedules || []).forEach((schedule, index) => {
+                        const fcDay = userScheduleDayToJsDay(schedule.day_of_week);
+                        if (fcDay === null) return;
+
+                        const startT = formatClassTimeFromDb(schedule.start_time);
+                        const endT = formatClassTimeFromDb(schedule.end_time);
+                        if (!startT || !endT) return;
+
+                        const dateStr = dateForFcWeekdayInWeek(fcDay, weekStartDate, fd);
+
+                        events.push({
+                            id: `class_overlay_${schedule.id != null ? schedule.id : 'row'}_${index}`,
+                            title: schedule.class_name || 'Class block',
+                            start: `${dateStr}T${startT}`,
+                            end: `${dateStr}T${endT}`,
+                            display: 'block',
+                            backgroundColor: 'rgba(253, 230, 138, 0.92)',
+                            borderColor: '#d97706',
+                            textColor: '#451a03',
+                            classNames: ['preview-overlay-class'],
+                            editable: false,
+                            durationEditable: false,
+                            overlap: true,
+                            extendedProps: {
+                                overlayType: 'class',
+                                section: schedule.section || '',
+                                room: schedule.room || '',
+                                facultyName: [schedule.first_name, schedule.last_name].filter(Boolean).join(' ').trim(),
+                                class_name: schedule.class_name || ''
                             }
                         });
-                        previewCalendarInstance.render();
-                        document.getElementById('schedulePreviewModal').removeEventListener('shown.bs.modal', initCal);
-                    }, { once: true });
+                    });
+                    return events;
                 }
+
+                function findPreviewConflicts(generatedSchedules, classSchedules) {
+                    const conflicts = [];
+
+                    generatedSchedules.forEach((schedule, index) => {
+                        const scheduleDate = new Date(`${schedule.schedule_date}T00:00:00`);
+                        const generatedDow = scheduleDate.getDay();
+                        const generatedStart = toMinutes(schedule.start_time);
+                        const generatedEnd = toMinutes(schedule.end_time);
+
+                        classSchedules.forEach(classSchedule => {
+                            const applies = classSchedule.applies_to_team_id;
+                            if (applies !== null && applies !== undefined && String(applies).trim() !== '') {
+                                if (Number(applies) !== Number(schedule.team_id)) {
+                                    return;
+                                }
+                            }
+                            const classDow = userScheduleDayToJsDay(classSchedule.day_of_week);
+                            if (classDow === null || classDow !== Number(generatedDow)) {
+                                return;
+                            }
+
+                            const classStart = toMinutes(classSchedule.start_time);
+                            const classEnd = toMinutes(classSchedule.end_time);
+                            if (classStart === null || classEnd === null || generatedStart === null || generatedEnd === null) {
+                                return;
+                            }
+
+                            if (!timeRangesOverlap(generatedStart, generatedEnd, classStart, classEnd)) {
+                                return;
+                            }
+
+                            conflicts.push({
+                                previewIndex: index,
+                                team_name: schedule.team_name || 'Unknown',
+                                class_name: classSchedule.class_name || 'Class block',
+                                section: classSchedule.section || '',
+                                room: schedule.room || '',
+                                class_room: classSchedule.room || '',
+                                day_of_week: generatedDow,
+                                start_time: schedule.start_time,
+                                end_time: schedule.end_time,
+                                class_start: classSchedule.start_time,
+                                class_end: classSchedule.end_time,
+                                faculty_name: [classSchedule.first_name, classSchedule.last_name].filter(Boolean).join(' ').trim()
+                            });
+                        });
+                    });
+
+                    return conflicts;
+                }
+
+                function setupPreviewVariantsUI(variants) {
+                    const wrap = document.getElementById('previewVariantWrap');
+                    const sel = document.getElementById('previewVariantSelect');
+                    if (!wrap || !sel) return;
+                    if (!variants || variants.length <= 1) {
+                        wrap.classList.add('d-none');
+                        sel.innerHTML = '';
+                        sel.onchange = null;
+                        return;
+                    }
+                    wrap.classList.remove('d-none');
+                    sel.innerHTML = variants.map((v, i) => {
+                        const owCount = Array.isArray(v.overlap_warnings) ? v.overlap_warnings.length : 0;
+                        const lbl = String(v.label || ('Option ' + (v.variant_id || (i + 1)))).replace(/</g, '&lt;');
+                        return `<option value="${i}">${lbl} — ${owCount} post-GA repair move(s)</option>`;
+                    }).join('');
+                    sel.onchange = function() {
+                        const idx = parseInt(sel.value, 10);
+                        const chosen = variants[idx];
+                        if (!chosen || !Array.isArray(chosen.schedules)) return;
+                        showPreviewCalendar(chosen.schedules, {
+                            validationMode: window.__defensePreviewSharedMeta.validationMode,
+                            validationSummary: window.__defensePreviewSharedMeta.validationSummary,
+                            validationCounts: window.__defensePreviewSharedMeta.validationCounts,
+                            validationIssues: window.__defensePreviewSharedMeta.validationIssues,
+                            overlapWarnings: chosen.overlap_warnings || [],
+                            overlapFixes: chosen.overlap_fixes,
+                            remaining_conflicts: chosen.remaining_conflicts
+                        }, { openModal: false, reuseClassOverlay: true });
+                        sel.value = String(idx);
+                    };
+                }
+
+                function renderPreviewDiagnostics(meta, conflicts) {
+                    const target = document.getElementById('previewDiagnostics');
+                    if (!target) return;
+
+                    const validationCounts = meta?.validationCounts || { teams: 0, room: 0, panelist: 0, member: 0, invalid: 0 };
+                    const unresolvedIssues = Array.isArray(meta?.validationIssues) ? meta.validationIssues : [];
+                    const conflictCount = Array.isArray(conflicts) ? conflicts.length : 0;
+                    const overlapPostGa = Array.isArray(meta?.overlapWarnings) ? meta.overlapWarnings : [];
+
+                    target.innerHTML = `
+                        <div class="preview-diagnostics-card p-3">
+                            <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
+                                <div>
+                                    <div class="fw-bold">Preview diagnostics</div>
+                                    <div class="text-muted small">Overlay = each team’s own class rows (section + personal). Post‑GA list = server repair log, not the overlay.</div>
+                                </div>
+                                <div class="d-flex flex-wrap gap-2">
+                                    <span class="preview-overlay-chip">Teams with issues: ${validationCounts.teams || 0}</span>
+                                    <span class="preview-overlay-chip">Room: ${validationCounts.room || 0}</span>
+                                    <span class="preview-overlay-chip">Panelist: ${validationCounts.panelist || 0}</span>
+                                    <span class="preview-overlay-chip">Member: ${validationCounts.member || 0}</span>
+                                    <span class="preview-overlay-chip">Overlay conflicts: ${conflictCount}</span>
+                                </div>
+                            </div>
+                            ${unresolvedIssues.length ? `
+                                <div class="small fw-semibold text-danger mb-1">Unresolved generation issues</div>
+                                <ul class="preview-diagnostics-list text-danger small">
+                                    ${unresolvedIssues.slice(0, 5).map(issue => `<li>${issue}</li>`).join('')}
+                                </ul>
+                            ` : '<div class="small text-success">No unresolved generation issues reported by the validator.</div>'}
+                            ${conflicts.length ? `
+                                <div class="small fw-semibold text-danger mt-3 mb-1">Overlay: section class vs defense (overlap)</div>
+                                <ul class="preview-diagnostics-list small">
+                                    ${conflicts.slice(0, 5).map(conflict => `<li><strong>${conflict.team_name}</strong> vs <strong>${conflict.class_name}</strong> on ${formatTime(conflict.start_time)}-${formatTime(conflict.end_time)} (team room ${conflict.room || 'N/A'}, class venue ${conflict.class_room || 'N/A'})</li>`).join('')}
+                                </ul>
+                            ` : '<div class="small text-muted mt-3">No section-class overlap in this layout.</div>'}
+                            ${overlapPostGa.length ? `
+                                <div class="small fw-semibold mt-3 mb-1" style="color:#b45309;">Post‑GA overlap / repair notes (check before saving)</div>
+                                <ul class="preview-diagnostics-list small">
+                                    ${overlapPostGa.slice(0, 8).map(msg => `<li>${String(msg).replace(/</g, '&lt;')}</li>`).join('')}
+                                </ul>
+                            ` : ''}
+                            ${typeof meta.remaining_conflicts === 'number' && meta.remaining_conflicts > 0 ? `
+                                <div class="small text-danger mt-2"><strong>Unfixed internal overlaps:</strong> ${meta.remaining_conflicts} — widen rooms/times or re-run generator.</div>
+                            ` : ''}
+                        </div>
+                    `;
+                }
+
+                function previewEventTooltip(scheduleLike, clash) {
+                    const lines = [
+                        scheduleLike.team_name || 'Team',
+                        `Room ${scheduleLike.room || '—'}`,
+                        `Panel ${[scheduleLike.panelist1_name, scheduleLike.panelist2_name, scheduleLike.panelist3_name].filter(Boolean).join(', ') || '—'}`
+                    ];
+                    if (clash && clash.class_name) {
+                        lines.push(`Overlaps section class: «${clash.class_name}»`);
+                        lines.push(`${formatTime(clash.class_start)}–${formatTime(clash.class_end)}${clash.faculty_name ? '; faculty: ' + clash.faculty_name : ''}`);
+                    }
+                    return lines.join('\n');
+                }
+
+                function showPreviewCalendar(schedules, meta = {}, opts = {}) {
+                    const openModal = opts.openModal !== false;
+                    const reuseClassOverlay = opts.reuseClassOverlay === true;
+
+                    previewScheduleData = Array.isArray(schedules) ? schedules : [];
+
+                    if (!reuseClassOverlay) {
+                        window.__defensePreviewSharedMeta = {
+                            validationMode: meta.validationMode,
+                            validationSummary: meta.validationSummary,
+                            validationCounts: meta.validationCounts,
+                            validationIssues: meta.validationIssues
+                        };
+                        window.__defensePreviewVariants = meta.schedule_variants || [];
+                    }
+
+                    previewGenerationMeta = Object.assign({}, window.__defensePreviewSharedMeta || {}, {
+                        overlapWarnings: meta.overlapWarnings || [],
+                        overlapFixes: meta.overlapFixes,
+                        remaining_conflicts: meta.remaining_conflicts
+                    });
+
+                    const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
+                    if (openModal) {
+                        previewModal.show();
+                        setupPreviewVariantsUI(window.__defensePreviewVariants || []);
+                        const selVar = document.getElementById('previewVariantSelect');
+                        if (selVar && selVar.options.length) {
+                            selVar.value = '0';
+                        }
+                    }
+
+                    document.getElementById('previewScheduleCount').textContent = `${previewScheduleData.length} schedule(s) generated`;
+
+                    const overlayPromise = reuseClassOverlay
+                        ? Promise.resolve(previewClassScheduleData)
+                        : loadPreviewTeamSectionSchedules(previewScheduleData);
+
+                    overlayPromise.then(classSchedules => {
+                        previewClassScheduleData = classSchedules;
+                        const conflictDetails = findPreviewConflicts(previewScheduleData, classSchedules);
+
+                        let postGaWarnIdx = {};
+                        try {
+                            (previewGenerationMeta.overlapWarnings || []).forEach(raw => {
+                                const m = String(raw).match(/Team\s+(\d+)/);
+                                if (m) postGaWarnIdx[m[1]] = true;
+                            });
+                        } catch (e) { /* ignore parse */ }
+
+                        const generatedEvents = previewScheduleData.map((s, idx) => {
+                            const matchingConflict = conflictDetails.find(conflict => conflict.previewIndex === idx);
+                            const pgWarn = s.team_id && postGaWarnIdx[String(s.team_id)];
+
+                            return {
+                                id: 'preview_' + idx,
+                                title: s.team_name || 'Unknown',
+                                start: s.schedule_date + 'T' + s.start_time,
+                                end: s.schedule_date + 'T' + s.end_time,
+                                editable: true,
+                                extendedProps: {
+                                    ...s,
+                                    previewIndex: idx,
+                                    panelist1: s.panelist1_name || '',
+                                    panelist2: s.panelist2_name || '',
+                                    panelist3: s.panelist3_name || '',
+                                    status: 'preview',
+                                    previewConflict: matchingConflict || null,
+                                    previewPostGaFlag: Boolean(pgWarn),
+                                    tooltip: previewEventTooltip(s, matchingConflict)
+                                }
+                            };
+                        });
+
+                        let initialDate = new Date();
+                        if (generatedEvents.length > 0) {
+                            const dates = generatedEvents.map(e => new Date(e.start)).sort((a, b) => a - b);
+                            initialDate = dates[0];
+                        }
+
+                        const PREVIEW_FIRST_DAY = 1; // Match Mon-first week strip (hidden Sundays)
+                        const weekStartForOverlay = startOfDisplayedWeek(initialDate, PREVIEW_FIRST_DAY);
+                        const classOverlayEvents = buildClassOverlayEvents(classSchedules, weekStartForOverlay, PREVIEW_FIRST_DAY);
+
+                        renderPreviewDiagnostics(previewGenerationMeta, conflictDetails);
+
+                        const previewModalEl = document.getElementById('schedulePreviewModal');
+                        const initCal = function() {
+                            if (previewCalendarInstance) previewCalendarInstance.destroy();
+                            const calEl = document.getElementById('previewCalendar');
+                            previewCalendarInstance = new FullCalendar.Calendar(calEl, {
+                                initialView: 'timeGridWeek',
+                                initialDate: initialDate,
+                                firstDay: 1,
+                                hiddenDays: [0],
+                                headerToolbar: {
+                                    left: 'prev,next today',
+                                    center: 'title',
+                                    right: 'timeGridWeek,timeGridDay'
+                                },
+                                /* Preview window 7:00 AM – includes finishes through 8:30 PM (slotMax exclusive). */
+                                slotMinTime: '07:00:00',
+                                slotMaxTime: '21:00:00',
+                                slotDuration: '00:30:00',
+                                snapDuration: '00:30:00',
+                                allDaySlot: false,
+                                height: 'auto',
+                                editable: true,
+                                eventDurationEditable: false,
+                                eventOverlap: true,
+                                eventDidMount: function(arg) {
+                                    const tp = arg.event.extendedProps && arg.event.extendedProps.tooltip;
+                                    if (tp) {
+                                        arg.el.setAttribute('title', tp);
+                                    }
+                                },
+                                eventSources: [
+                                    {
+                                        events: classOverlayEvents
+                                    },
+                                    {
+                                        events: generatedEvents
+                                    }
+                                ],
+                                eventContent: function(arg) {
+                                    const props = arg.event.extendedProps;
+                                    if (props.overlayType === 'class') {
+                                        return {
+                                            html: `<div class="event-team">${arg.event.title}</div><div class="event-room">${props.facultyName || props.section || ''}</div>`
+                                        };
+                                    }
+                                    return {
+                                        html: `<div class="event-team">${arg.event.title}</div>
+                                               <div class="event-room">${props.room || ''}${props.previewConflict ? ' · Conflict' : ''}</div>`
+                                    };
+                                },
+                                eventClassNames: function(arg) {
+                                    const props = arg.event.extendedProps;
+                                    if (props.overlayType === 'class') {
+                                        return ['preview-overlay-class'];
+                                    }
+                                    const out = ['status-preview'];
+                                    if (props.previewConflict) {
+                                        out.push('preview-conflict');
+                                    } else {
+                                        out.push('preview-slot-clear');
+                                    }
+                                    if (props.previewPostGaFlag && !props.previewConflict) {
+                                        out.push('preview-warning');
+                                    }
+                                    return out;
+                                },
+                                eventClick: function(info) {
+                                    if (info.event.extendedProps.overlayType === 'class') {
+                                        info.jsEvent.preventDefault();
+                                        return;
+                                    }
+                                    openEventEditModal(info.event, 'preview');
+                                },
+                                eventDrop: function(info) {
+                                    if (info.event.extendedProps && info.event.extendedProps.overlayType === 'class') {
+                                        info.revert();
+                                        return;
+                                    }
+                                    updatePreviewDataFromEvent(info.event);
+                                },
+                                eventResize: function(info) {
+                                    if (info.event.extendedProps && info.event.extendedProps.overlayType === 'class') {
+                                        info.revert();
+                                        return;
+                                    }
+                                    updatePreviewDataFromEvent(info.event);
+                                }
+                            });
+                            previewCalendarInstance.render();
+                            previewModalEl.removeEventListener('shown.bs.modal', initCal);
+                        };
+
+                        previewModalEl.addEventListener('shown.bs.modal', initCal, { once: true });
+                    });
+                }
+
+                window.showDefensePreviewCalendar = showPreviewCalendar;
 
                 function updatePreviewDataFromEvent(event) {
                     const idx = event.extendedProps.previewIndex;
                     if (idx !== undefined && previewScheduleData[idx]) {
-                        const start = event.start;
-                        const end = event.end;
-                        previewScheduleData[idx].schedule_date = start.toISOString().split('T')[0];
-                        previewScheduleData[idx].start_time = start.toTimeString().substring(0, 8);
-                        previewScheduleData[idx].end_time = end.toTimeString().substring(0, 8);
+                        const durH = parseFloat(document.getElementById('timeDuration')?.value) || 1;
+                        const snappedStart = snapPreviewMomentToHalfHour(event.start);
+                        const snappedEnd = new Date(snappedStart.getTime() + durH * 3600000);
+                        event.setStart(snappedStart);
+                        event.setEnd(snappedEnd);
+                        previewScheduleData[idx].schedule_date = formatPreviewLocalYmd(snappedStart);
+                        previewScheduleData[idx].start_time = formatPreviewLocalHms(snappedStart);
+                        previewScheduleData[idx].end_time = formatPreviewLocalHms(snappedEnd);
+                    }
+
+                    refreshPreviewConflictDiagnostics();
+                }
+
+                function refreshPreviewConflictDiagnostics() {
+                    if (!previewScheduleData.length) {
+                        return;
+                    }
+
+                    const conflicts = findPreviewConflicts(previewScheduleData, previewClassScheduleData);
+                    renderPreviewDiagnostics(previewGenerationMeta, conflicts);
+
+                    if (previewCalendarInstance) {
+                        previewCalendarInstance.getEvents().forEach(event => {
+                            const props = event.extendedProps || {};
+                            if (props.overlayType === 'class') {
+                                return;
+                            }
+
+                            const conflict = conflicts.find(item => String(item.previewIndex) === String(props.previewIndex));
+                            event.setExtendedProp('previewConflict', conflict || null);
+                        });
                     }
                 }
 
@@ -1638,7 +2396,7 @@
                     document.getElementById('editEventId').value = event.id;
                     document.getElementById('editTeamName').value = event.title;
                     document.getElementById('editRoom').value = props.room || '';
-                    document.getElementById('editDate').value = event.start.toISOString().split('T')[0];
+                    document.getElementById('editDate').value = formatPreviewLocalYmd(event.start);
                     document.getElementById('editStartTime').value = event.start.toTimeString().substring(0, 5);
                     document.getElementById('editEndTime').value = event.end.toTimeString().substring(0, 5);
 
@@ -1683,8 +2441,18 @@
 
                     const saveBtn = this;
                     const newDate = document.getElementById('editDate').value;
-                    const newStart = document.getElementById('editStartTime').value;
-                    const newEnd = document.getElementById('editEndTime').value;
+                    let newStart = document.getElementById('editStartTime').value;
+                    let newEnd = document.getElementById('editEndTime').value;
+                    if (currentEditContext === 'preview') {
+                        newStart = snapHmStringToHalfHour(newStart);
+                        const durH = parseFloat(document.getElementById('timeDuration')?.value) || 1;
+                        const p = String(newStart).split(':');
+                        const sh = parseInt(p[0], 10) || 0;
+                        const sm = parseInt(p[1], 10) || 0;
+                        const s = new Date(2000, 0, 1, sh, sm, 0);
+                        const e = new Date(s.getTime() + durH * 3600000);
+                        newEnd = String(e.getHours()).padStart(2, '0') + ':' + String(e.getMinutes()).padStart(2, '0');
+                    }
                     const newRoom = document.getElementById('editRoom').value;
                     const newP1 = document.getElementById('editPanelist1').value;
                     const newP2 = document.getElementById('editPanelist2').value;
@@ -1732,7 +2500,6 @@
                             params.append('panelist_id[]', newP1 || '');
                             params.append('panelist_id[]', newP2 || '');
                             params.append('panelist_id[]', newP3 || '');
-
                             const response = await fetch('../dashboard/includes/update_item.php', {
                                 method: 'POST',
                                 headers: {
@@ -1778,6 +2545,7 @@
                                 previewScheduleData[idx].panelist2_name = p2Name;
                                 previewScheduleData[idx].panelist3_name = p3Name;
                             }
+                            refreshPreviewConflictDiagnostics();
                         } else if (currentEditContext === 'calendar') {
                             const sched = allScheduleData.find(s => String(s.id) === String(currentEditEvent.id));
                             if (sched) {
@@ -1865,7 +2633,9 @@
                     fetch('../dashboard/includes/save_preview_schedule.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ schedules: previewScheduleData })
+                        body: JSON.stringify({
+                            schedules: previewScheduleData
+                        })
                     })
                     .then(r => r.json())
                     .then(data => {
@@ -1884,6 +2654,21 @@
                         btn.textContent = 'Confirm & Save';
                         showDefAlert('Network error: ' + err.message, 'error');
                     });
+                });
+
+                document.getElementById('regeneratePreviewSchedule').addEventListener('click', function() {
+                    const previewModalEl = document.getElementById('schedulePreviewModal');
+                    const previewModal = bootstrap.Modal.getInstance(previewModalEl);
+                    if (previewModal) {
+                        previewModal.hide();
+                    }
+
+                    setTimeout(() => {
+                        const generateButton = document.getElementById('generateSchedule');
+                        if (generateButton) {
+                            generateButton.click();
+                        }
+                    }, 200);
                 });
 
                 // ========== BULK APPROVAL ==========
@@ -2088,8 +2873,6 @@
                     .catch(err => showDefAlert('Network error. Please try again.', 'error'));
                 }
 
-                // ========== EXPOSE showPreviewCalendar for generate handler ==========
-                window.showDefensePreviewCalendar = showPreviewCalendar;
             });
         </script>
     </div>

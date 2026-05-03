@@ -55,12 +55,20 @@ try {
             throw new Exception('Team ' . $teamId . ': no access.');
         }
 
+        $panelistIds = array_values(array_filter([
+            isset($sched['panelist_id']) ? (int) $sched['panelist_id'] : 0,
+            isset($sched['panelist_id2']) ? (int) $sched['panelist_id2'] : 0,
+            isset($sched['panelist_id3']) ? (int) $sched['panelist_id3'] : 0,
+        ]));
+
         $conflictCheck = validateStudentScheduleConflicts(
             $pdo,
             $teamId,
             $sched['schedule_date'],
             $sched['start_time'],
-            $sched['end_time']
+            $sched['end_time'],
+            null,
+            $panelistIds
         );
         if (!$conflictCheck['ok']) {
             throw new Exception($conflictCheck['message']);
