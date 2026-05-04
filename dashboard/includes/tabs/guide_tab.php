@@ -43,8 +43,8 @@
                         <div class="mb-3">
                             <i class="fas fa-user-friends fa-3x text-primary"></i>
                         </div>
-                        <h5 class="card-title">Teams</h5>
-                        <p class="card-text text-muted">Create and manage research teams, assign advisers, and track team progress throughout the thesis process.</p>
+                        <h5 class="card-title">Groups</h5>
+                        <p class="card-text text-muted">Create and manage research groups, assign advisers, and track group progress throughout the thesis process.</p>
                     </div>
                 </div>
             </div>
@@ -70,7 +70,7 @@
                             <i class="fas fa-file-alt fa-3x text-primary"></i>
                         </div>
                         <h5 class="card-title">Research Titles</h5>
-                        <p class="card-text text-muted">Manage research titles assigned to teams and track their approval status throughout the review process.</p>
+                        <p class="card-text text-muted">Manage research titles assigned to groups and track their approval status throughout the review process.</p>
                     </div>
                 </div>
             </div>
@@ -148,7 +148,7 @@
                             <i class="fas fa-tasks fa-3x text-primary"></i>
                         </div>
                         <h5 class="card-title">Requirements</h5>
-                        <p class="card-text text-muted">Manage submission requirements, deadlines, and track completion status across all teams.</p>
+                        <p class="card-text text-muted">Manage submission requirements, deadlines, and track completion status across all groups.</p>
                     </div>
                 </div>
             </div>
@@ -187,19 +187,19 @@
                 <h6><i class="fas fa-info-circle me-2 text-primary"></i>What you can see:</h6>
                 <ul>
                     <li><strong>User Statistics:</strong> Total counts of admins, students, and staff</li>
-                    <li><strong>Team Metrics:</strong> Total teams and completion status</li>
+                    <li><strong>Group Metrics:</strong> Total groups and completion status</li>
                     <li><strong>Research Progress:</strong> Approved vs. pending research titles</li>
                     <li><strong>Defense Overview:</strong> Upcoming, today's, and past defense schedules</li>
-                    <li><strong>Requirement Progress:</strong> Visual charts showing team completion status</li>
+                    <li><strong>Requirement Progress:</strong> Visual charts showing group completion status</li>
                 </ul>
 
                 <h6><i class="fas fa-mouse-pointer me-2 text-primary"></i>How to use:</h6>
                 <ol>
                     <li>View dashboard statistics at the top of the page</li>
                     <li>Click on metric cards to view detailed breakdowns in modal windows</li>
-                    <li>Analyze the requirement progress charts to identify teams needing attention</li>
+                    <li>Analyze the requirement progress charts to identify groups needing attention</li>
                     <li>Use the defense schedule widgets to quickly see today's activities</li>
-                    <li>Review team completion pie charts for overall progress assessment</li>
+                    <li>Review group completion pie charts for overall progress assessment</li>
                 </ol>
 
                 <div class="alert alert-info">

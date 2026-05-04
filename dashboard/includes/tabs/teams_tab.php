@@ -4,8 +4,8 @@
         <!-- Header with title and description -->
         <div class="row mb-4">
             <div class="col-8 col-md-9">
-                <h3 class="mb-2">Team Management</h3>
-                <p class="text-muted">Manage research teams, advisers, and team members</p>
+                <h3 class="mb-2">Group Management</h3>
+                <p class="text-muted">Manage research groups, advisers, and group members</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
                     <a href="#rubrics" class="tab-redirect-link" onclick="document.getElementById('rubrics-tab').click(); return false;">
@@ -17,7 +17,7 @@
                 <?php endif; ?>
             </div>
             <div class="col-4 col-md-3 text-end">
-                <button type="button" class="btn btn-warning btn-sm position-relative" id="warningTeamsBtn" style="display: none;" title="Teams without research titles" data-bs-toggle="tooltip" data-bs-placement="left">
+                <button type="button" class="btn btn-warning btn-sm position-relative" id="warningTeamsBtn" style="display: none;" title="Groups without research titles" data-bs-toggle="tooltip" data-bs-placement="left">
                     <i class="fas fa-exclamation-triangle"></i>
                     <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="warningTeamsCount">0</span>
                 </button>
@@ -38,7 +38,7 @@
                                     <span class="input-group-text border-0"> 
                                         <i class="bi bi-search"></i>
                                     </span>
-                                    <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search teams...">
+                                    <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search groups...">
                                 </div>
                             </div>
                         </div>
@@ -55,10 +55,10 @@
                             <select class="form-select user-control-height" id="teamSortSelect">
                                 <option value="id:desc">Default (Newest First)</option>
                                 <option value="id:asc">Default (Oldest First)</option>
-                                <option value="team_code:asc">Team Code (A-Z)</option>
-                                <option value="team_code:desc">Team Code (Z-A)</option>
-                                <option value="name:asc">Team Name (A-Z)</option>
-                                <option value="name:desc">Team Name (Z-A)</option>
+                                <option value="team_code:asc">Group Code (A-Z)</option>
+                                <option value="team_code:desc">Group Code (Z-A)</option>
+                                <option value="name:asc">Group Name (A-Z)</option>
+                                <option value="name:desc">Group Name (Z-A)</option>
                             </select>
                         </div>
                         
@@ -67,12 +67,12 @@
                             <div class="d-flex gap-2">
                                 <button class="btn feature-btn bulk-add-btn user-control-height flex-fill" data-table="teams" id="bulkAddTeamsBtn" style="display:none;">
                                     <i class="fas fa-upload me-1 d-none d-lg-inline"></i>
-                                    <span class="d-none d-lg-inline">Bulk Add Teams</span>
+                                    <span class="d-none d-lg-inline">Bulk Add Groups</span>
                                     <span class="d-lg-none">Bulk Add</span>
                                 </button> 
                                 <button class="btn feature-btn add-btn user-control-height flex-fill" data-table="teams" id="addTeamBtn" onclick="addNewTeamMember()">
                                     <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
-                                    <span class="d-none d-lg-inline">Add Team</span>
+                                    <span class="d-none d-lg-inline">Add Group</span>
                                     <span class="d-lg-none">Add</span>
                                 </button>
                             </div>
@@ -90,9 +90,9 @@
                     <table class="table table-bordered table-hover table-sm db-table" id="teams-table" data-table="teams">
                         <thead>
                             <tr>
-                                <th class="d-none d-lg-table-cell">Team Code</th>
-                                <th class="d-none d-md-table-cell">Team Name</th>
-                                <th class="d-table-cell d-md-none">Team</th>
+                                <th class="d-none d-lg-table-cell">Group Code</th>
+                                <th class="d-none d-md-table-cell">Group Name</th>
+                                <th class="d-table-cell d-md-none">Group</th>
                                 <th class="d-none d-lg-table-cell">Research Title</th>
                                 <th class="d-none d-sm-table-cell">Program</th>
                                 <th class="d-none d-md-table-cell">Adviser</th>
@@ -118,7 +118,7 @@
         <div class="modal-content">
             <form id="bulkAddTeamsForm">
                 <div class="modal-header bg-info text-white">
-                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Teams</h5>
+                    <h5 class="modal-title" id="bulkAddTeamsModalLabel">Bulk Add Groups</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
@@ -143,13 +143,13 @@
                     </div>
                     <div class="mb-3">
                         <label for="bulkTeamsTextInput" class="form-label">Paste Bulk Data</label>
-                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5" placeholder="Team Name, Research Title, Area of Expertise, Program, Members (optional)"></textarea>
+                        <textarea class="form-control" id="bulkTeamsTextInput" name="bulkTeamsTextInput" rows="5" placeholder="Group Name, Research Title, Area of Expertise, Program, Members (optional)"></textarea>
                     </div>
                     <div class="table-responsive">
                         <table class="table table-bordered" id="bulkAddTeamsTable">
                             <thead>
                                 <tr>
-                                    <th>Team Name</th>
+                                    <th>Group Name</th>
                                     <th>Research Title <small>(optional)</small></th>
                                     <th>Area of Expertise</th>
                                     <th>Program</th>
@@ -193,17 +193,17 @@
         <div class="modal-content">
             <div class="modal-header bg-warning text-dark">
                 <h5 class="modal-title" id="teamsWarningModalLabel">
-                    <i class="fas fa-exclamation-triangle me-2"></i>Teams Without Research Titles
+                    <i class="fas fa-exclamation-triangle me-2"></i>Groups Without Research Titles
                 </h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="mb-3">The following teams do not have assigned research titles. Please add titles for these teams in the <span class="text-danger fw-bold">Research Titles Tab</span>.</p>
+                <p class="mb-3">The following groups do not have assigned research titles. Please add titles for these groups in the <span class="text-danger fw-bold">Research Titles Tab</span>.</p>
                 <div class="table-responsive">
                     <table class="table table-sm table-warning table-bordered mb-0">
                         <thead>
                             <tr>
-                                <th>Team Name</th>
+                                <th>Group Name</th>
                                 <th>Program</th>
                             </tr>
                         </thead>
@@ -212,7 +212,7 @@
                         </tbody>
                     </table>
                 </div>
-                <div id="no-title-teams-message" class="text-center py-2" style="display: none;">All teams have research titles assigned.</div>
+                <div id="no-title-teams-message" class="text-center py-2" style="display: none;">All groups have research titles assigned.</div>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -239,7 +239,7 @@
                         // Hide warning button when no teams without titles
                         warningBtn.style.display = 'none';
                         messageDiv.style.display = 'block';
-                        messageDiv.textContent = 'All teams have research titles assigned.';
+                        messageDiv.textContent = 'All groups have research titles assigned.';
                     } else {
                         // Show warning button with count
                         warningBtn.style.display = 'inline-flex';
@@ -301,7 +301,7 @@
                                 <td colspan="9" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-search fs-1 d-block mb-2"></i>
-                                        <p class="mb-0">No teams found matching your search criteria.</p>
+                                        <p class="mb-0">No groups found matching your search criteria.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -432,7 +432,7 @@
                         dropdownPortal.innerHTML = dropdownHTML;
                         const deleteBtn = dropdownPortal.querySelector('.delete-btn');
                         if (deleteBtn) {
-                            deleteBtn.dataset.deleteLabel = team.name || 'Unnamed team';
+                            deleteBtn.dataset.deleteLabel = team.name || 'Unnamed group';
                         }
                         document.body.appendChild(dropdownPortal);
                     });
@@ -675,12 +675,12 @@
         // CSV template download for teams
         document.getElementById('downloadTeamsCsvTemplate').addEventListener('click', function(e) {
             e.preventDefault();
-            const csvContent = 'Team Name,Research Title,Area of Expertise,Program,Members\n';
+            const csvContent = 'Group Name,Research Title,Area of Expertise,Program,Members\n';
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
-            a.download = 'teams_template.csv';
+            a.download = 'groups_template.csv';
             document.body.appendChild(a);
             a.click();
             document.body.removeChild(a);
@@ -708,19 +708,19 @@
             .then(data => {
                 if (data.success) {
                     // Show success message (you can implement showToast function)
-                    alert('Teams added successfully');
+                    alert('Groups added successfully');
                     const modal = bootstrap.Modal.getInstance(document.getElementById('bulkAddTeamsModal'));
                     modal.hide();
                     setTimeout(() => {
                         location.reload();
                     }, 1000);
                 } else {
-                    alert('Error: ' + (data.message || 'Failed to add teams'));
+                    alert('Error: ' + (data.message || 'Failed to add groups'));
                 }
             })
             .catch(error => {
                 console.error('Error:', error);
-                alert('An error occurred while adding teams');
+                alert('An error occurred while adding groups');
             });
         });
 

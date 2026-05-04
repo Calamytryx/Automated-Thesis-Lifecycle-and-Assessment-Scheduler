@@ -153,7 +153,7 @@ function getTeamName($pdo, $team_id)
     $stmt = $pdo->prepare("SELECT name FROM teams WHERE id = ?");
     $stmt->execute([$team_id]);
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
-    return $result ? $result['name'] : 'Unknown Team';
+    return $result ? $result['name'] : 'Unknown Group';
 }
 
 // Function to get research title

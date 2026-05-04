@@ -228,7 +228,7 @@ $acceptedAssignments = $acceptedStmt->fetchAll(PDO::FETCH_ASSOC);
                     <div class="empty-state">
                         <i class="bi bi-inbox"></i>
                         <h5>No Pending Assignments</h5>
-                        <p class="text-muted">You have no pending team assignments at the moment.</p>
+                        <p class="text-muted">You have no pending group assignments at the moment.</p>
                     </div>
                 </div>
             <?php endif; ?>
@@ -275,7 +275,7 @@ $acceptedAssignments = $acceptedStmt->fetchAll(PDO::FETCH_ASSOC);
 
                                     <div class="mt-3">
                                         <a href="../decision-support/index.php?team_id=<?php echo $assignment['team_id']; ?>" class="btn btn-info btn-sm btn-action">
-                                            <i class="bi bi-eye"></i> View Team
+                                            <i class="bi bi-eye"></i> View Group
                                         </a>
                                     </div>
                                 </div>
@@ -301,7 +301,7 @@ $acceptedAssignments = $acceptedStmt->fetchAll(PDO::FETCH_ASSOC);
         function acceptAssignment(assignmentId, teamName) {
             Swal.fire({
                 title: 'Accept Assignment?',
-                html: `You are accepting the assignment for <strong>${teamName}</strong>.<br><br>This will notify the team and admin of your acceptance.`,
+                html: `You are accepting the assignment for <strong>${teamName}</strong>.<br><br>This will notify the group and admin of your acceptance.`,
                 icon: 'question',
                 showCancelButton: true,
                 confirmButtonText: 'Yes, Accept',

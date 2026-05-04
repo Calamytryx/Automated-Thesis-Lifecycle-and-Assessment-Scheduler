@@ -35,12 +35,12 @@
             <?php if ($_SESSION['usertype'] === 0): ?>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Admin Access:</strong> You can assign specializations to teams and users (faculty and admins only).
+                    <strong>Admin Access:</strong> You can assign specializations to groups and users (faculty and admins only).
                 </div>
             <?php else: ?>
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    <strong>Research Professor Access:</strong> You can assign specializations to your teams.
+                    <strong>Research Professor Access:</strong> You can assign specializations to your groups.
                 </div>
             <?php endif; ?>
         </div>
@@ -50,7 +50,7 @@
     <ul class="nav nav-tabs mb-4" id="assignmentTabs" role="tablist">
         <li class="nav-item" role="presentation">
             <button class="nav-link active" id="team-assignment-tab" data-bs-toggle="tab" data-bs-target="#teamAssignment" type="button" role="tab">
-                <i class="bi bi-people-fill me-2"></i>Assign to Teams
+                <i class="bi bi-people-fill me-2"></i>Assign to Groups
             </button>
         </li>
         <?php if ($_SESSION['usertype'] === 0): ?>
@@ -70,7 +70,7 @@
                     <div class="card h-100">
                         <div class="card-header bg-primary text-white">
                             <h5 class="mb-0">
-                                <i class="bi bi-people me-2"></i>My Teams
+                                <i class="bi bi-people me-2"></i>My Groups
                             </h5>
                         </div>
                         <div class="card-body">
@@ -82,12 +82,12 @@
                     <div class="card h-100">
                         <div class="card-header bg-success text-white">
                             <h5 class="mb-0">
-                                <i class="bi bi-mortarboard me-2"></i>Team Specializations
+                                <i class="bi bi-mortarboard me-2"></i>Group Specializations
                             </h5>
                         </div>
                         <div class="card-body">
                             <div id="selectedTeamInfo" class="mb-3 text-muted">
-                                <i class="bi bi-arrow-left"></i> Select a team to view and manage specializations
+                                <i class="bi bi-arrow-left"></i> Select a group to view and manage specializations
                             </div>
                             <div id="teamSpecializations"></div>
                             <div id="addTeamSpecSection" style="display: none;">
@@ -191,11 +191,11 @@ $(document).ready(function() {
                     myTeams = response.data;
                     renderTeams();
                 } else {
-                    $('#teamsList').html('<p class="text-muted">No teams assigned</p>');
+                    $('#teamsList').html('<p class="text-muted">No groups assigned</p>');
                 }
             },
             error: function() {
-                $('#teamsList').html('<p class="text-danger">Error loading teams</p>');
+                $('#teamsList').html('<p class="text-danger">Error loading groups</p>');
             }
         });
     }

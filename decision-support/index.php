@@ -1110,7 +1110,7 @@ if (!empty($pdf_file_name)) {
                     <div class="card-body">
                         <h5 class="card-title d-flex align-items-center mb-3">
                             <i class="fas fa-users me-2" style="color: var(--main-primary)"></i>
-                            <span class="feature-title">Team Members</span>
+                            <span class="feature-title">Group Members</span>
                         </h5>
                         <div class="d-flex flex-wrap justify-content-center gap-2">
                             <?php if (!empty($students)): ?>

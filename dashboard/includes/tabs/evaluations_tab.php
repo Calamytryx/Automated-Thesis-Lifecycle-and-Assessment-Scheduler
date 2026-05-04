@@ -4,8 +4,8 @@
         <!-- Header Row -->
         <div class="row mb-4">
             <div class="col">
-                <h3 class="mb-2">Team Evaluations</h3>
-                <p class="text-muted">View evaluation results organized by team with aggregated scores</p>
+                <h3 class="mb-2">Group Evaluations</h3>
+                <p class="text-muted">View evaluation results organized by group with aggregated scores</p>
             </div>
         </div>
 
@@ -23,7 +23,7 @@
                 <table class="table db-table" id="evaluations-table">
                     <thead>
                         <tr>
-                            <th>Team Name</th>
+                            <th>Group Name</th>
                             <th class="d-none d-md-table-cell">Research Title</th>
                             <th class="d-none d-lg-table-cell">Program</th>
                             <th class="d-none d-lg-table-cell">Adviser</th>
@@ -58,7 +58,7 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title">
-                        Team Evaluation Details:
+                        Group Evaluation Details:
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -327,7 +327,7 @@ function showDashboardEvaluationDetails(teamId) {
                 html += `
                             </tbody>
                             <tfoot class="table-secondary">
-                                <tr><th>Team Average</th>${panelists.map(() => '<td></td>').join('')}<th class="text-center">${teamAvgDisplay}</th></tr>
+                                <tr><th>Group Average</th>${panelists.map(() => '<td></td>').join('')}<th class="text-center">${teamAvgDisplay}</th></tr>
                             </tfoot>
                         </table>
                     </div>
