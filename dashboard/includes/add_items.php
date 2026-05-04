@@ -550,46 +550,46 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             }
         }
 
+        // Fix for program_id field - rename it to match the database column name
+        if (isset($data['program_id'])) {
+            $data['program'] = $data['program_id'];
+            unset($data['program_id']);
+        }
+
+        // Ensure program has a value to avoid NULL constraint errors
+        if (!isset($data['program']) || $data['program'] === '') {
+            $data['program'] = 'Unspecified';
+        }
+
+        $memberIds = collectTeamMemberIds($data);
+        $academicYearResult = resolveTeamAcademicYear(
+            $pdo,
+            $memberIds,
+            (int)$userId,
+            (int)$usertype,
+            $data['academic_year'] ?? null
+        );
+
+        if (empty($academicYearResult['success'])) {
+            $response['message'] = $academicYearResult['message'] ?? 'Academic year must be set before creating teams.';
+            echo json_encode($response);
+            exit;
+        }
+
+        $teamCodeResult = generateTeamCode(
+            $pdo,
+            (string)$data['program'],
+            (string)$academicYearResult['academic_year']
+        );
+
+         if (empty($teamCodeResult['success'])) {
+            $response['message'] = $teamCodeResult['message'] ?? 'Unable to generate team code.';
+            echo json_encode($response);
+            exit;
+        }
+
         $pdo->beginTransaction();
         try {
-            // Fix for program_id field - rename it to match the database column name
-            if (isset($data['program_id'])) {
-                $data['program'] = $data['program_id'];
-                unset($data['program_id']);
-            }
-
-            // Ensure program has a value to avoid NULL constraint errors
-            if (!isset($data['program']) || $data['program'] === '') {
-                $data['program'] = 'Unspecified';
-            }
-
-            $memberIds = collectTeamMemberIds($data);
-            $academicYearResult = resolveTeamAcademicYear(
-                $pdo,
-                $memberIds,
-                (int)$userId,
-                (int)$usertype,
-                $data['academic_year'] ?? null
-            );
-
-            if (empty($academicYearResult['success'])) {
-                $response['message'] = $academicYearResult['message'] ?? 'Academic year must be set before creating teams.';
-                echo json_encode($response);
-                exit;
-            }
-
-            $teamCodeResult = generateTeamCode(
-                $pdo,
-                (string)$data['program'],
-                (string)$academicYearResult['academic_year']
-            );
-
-            if (empty($teamCodeResult['success'])) {
-                $response['message'] = $teamCodeResult['message'] ?? 'Unable to generate team code.';
-                echo json_encode($response);
-                exit;
-            }
-            
             // Handle title_proposal checkbox
             $titleProposal = isset($data['title_proposal']) && $data['title_proposal'] == 1 ? 1 : 0;
 
