@@ -1097,6 +1097,7 @@ try {
 
         $teams = fetchTeams($pdo, $selectedSections);
         $panelists = fetchPanelists($pdo);
+        $requestedTeamIds = parseSchedulerTeamIdList($_POST['unresolved_team_ids'] ?? []);
         
         // Filter out teams that should NOT be scheduled:
         // 1. Teams with future pending schedules that were NOT confirmed for overwrite
@@ -1132,6 +1133,11 @@ try {
             // Exclude teams with future pending schedules
             return !in_array($team['id'], $teamsWithFuturePending);
         });
+        if (!empty($requestedTeamIds)) {
+            $teams = array_filter($teams, function ($team) use ($requestedTeamIds) {
+                return in_array((int) ($team['id'] ?? 0), $requestedTeamIds, true);
+            });
+        }
         $teams = array_values($teams); // Re-index array
         
         error_log("SCHEDULER: After filtering - " . count($teams) . " teams to schedule (excluded " . ($originalTeamCount - count($teams)) . " with future pending schedules)");
@@ -1374,6 +1380,25 @@ try {
         }
 
         $scheduleVariantsPrepared = [];
+        $scheduledTeamIds = [];
+        $rowsForResolution = $isPreview
+            ? ($scheduleVariantsPrepared[0]['schedules'] ?? [])
+            : (isset($gateRows) ? $gateRows : []);
+        foreach ($rowsForResolution as $row) {
+            $tidRow = (int) ($row['team_id'] ?? 0);
+            if ($tidRow > 0) {
+                $scheduledTeamIds[] = $tidRow;
+            }
+        }
+        $scheduledTeamIds = array_values(array_unique($scheduledTeamIds));
+        $requestedScopeTeamIds = array_values(array_unique(array_map(static function ($team) {
+            return (int) ($team['id'] ?? 0);
+        }, $teams)));
+        $unresolvedTeamIds = array_values(array_unique(array_merge(
+            array_map('intval', $validationSummary['unresolvedTeams'] ?? []),
+            array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds))
+        )));
+
         if ($isPreview) {
             $scheduleVariantsPrepared[] = [
                 'variant_id' => 'A',
@@ -1470,6 +1495,10 @@ try {
                 'validationMode' => $validationMode,
                 'validationSummary' => $validationSummary,
                 'validationCounts' => summarizeValidationIssues($validationIssues),
+                'accepted_schedules' => $previewData,
+                'accepted_team_ids' => $scheduledTeamIds,
+                'unresolved_team_ids' => $unresolvedTeamIds,
+                'is_partial' => !empty($unresolvedTeamIds),
                 'message' => 'Schedule preview is conflict-free. Review then confirm to save.',
             ];
             ob_end_clean(); // Discard any buffered output (PHP warnings etc.)
@@ -1505,6 +1534,9 @@ try {
                     'validationMode' => $validationMode,
                     'validationSummary' => $validationSummary,
                     'validationCounts' => summarizeValidationIssues($validationIssues),
+                    'accepted_team_ids' => $scheduledTeamIds,
+                    'unresolved_team_ids' => $unresolvedTeamIds,
+                    'is_partial' => !empty($unresolvedTeamIds),
                     'message' => $completionMessage,
                 ];
 
@@ -1652,6 +1684,36 @@ function validateInputs() {
     }
     
     return true;
+}
+
+function parseSchedulerTeamIdList($raw): array
+{
+    if (is_string($raw)) {
+        $trimmed = trim($raw);
+        if ($trimmed === '') {
+            return [];
+        }
+        $decoded = json_decode($trimmed, true);
+        if (json_last_error() === JSON_ERROR_NONE && is_array($decoded)) {
+            $raw = $decoded;
+        } else {
+            $raw = preg_split('/\s*,\s*/', $trimmed);
+        }
+    }
+
+    if (!is_array($raw)) {
+        return [];
+    }
+
+    $ids = [];
+    foreach ($raw as $value) {
+        $id = (int) $value;
+        if ($id > 0) {
+            $ids[] = $id;
+        }
+    }
+
+    return array_values(array_unique($ids));
 }
 
 /**
@@ -2159,11 +2221,11 @@ function geneticAlgorithm(
         for ($c = 0; $c < $childrenToCreate; $c++) {
             $parent1 = $selected[mt_rand(0, $selectedCount - 1)];
             $parent2 = $selected[mt_rand(0, $selectedCount - 1)];
-            $child = crossover($parent1, $parent2, $userSchedules, $existingSchedules, $roomOccupancyMap, $slotsByTeamDay, $eligibleDaysByTeam, $rooms, $panelists, $validCandidatePool);
+            $child = crossover($parent1, $parent2, $userSchedules, $slotsByTeamDay, $eligibleDaysByTeam, $rooms, $panelists, $validCandidatePool);
 
             // Only mutate some children to save time
             if (mt_rand(0, 1) == 1) {
-                mutation($child, $mutationRate, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $userSchedules, $existingSchedules, $roomOccupancyMap, $validCandidatePool);
+                mutation($child, $mutationRate, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $userSchedules, $validCandidatePool);
             }
 
             $newPopulation[] = $child;
@@ -2610,7 +2672,7 @@ function prepareScheduleData($pdo, $schedule)
 
     // Second pass - missing teams (same logic as saveScheduleToDatabase)
     $missingTeams = array_diff($expectedTeams, $scheduledTeams);
-    if (!empty($missingTeams)) {
+    if (false && !empty($missingTeams)) {
         foreach ($missingTeams as $missingTeamId) {
             $teamDefense = null;
             foreach ($defenses as $defense) {
@@ -2819,7 +2881,7 @@ function saveScheduleToDatabase($pdo, $schedule)
         $missingTeams = array_diff($expectedTeams, $scheduledTeams);
 
         // Second pass - ensure all teams get scheduled
-        if (!empty($missingTeams)) {
+        if (false && !empty($missingTeams)) {
             error_log("Missing teams detected: " . implode(", ", $missingTeams));
 
             // For any missed teams, create a schedule forcefully

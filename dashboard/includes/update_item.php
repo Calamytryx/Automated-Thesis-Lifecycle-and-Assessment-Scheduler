@@ -181,7 +181,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                     $start_time,
                     $end_time,
                     (int)$id,
-                    $panelistsForConflict
+                    $panelistsForConflict,
+                    $room
                 );
                 if (!$conflictCheck['ok']) {
                     throw new Exception($conflictCheck['message']);
@@ -193,7 +194,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
                 $valid_panelists = [];
                 foreach ([$panelist_id, $panelist_id2, $panelist_id3] as $pid) {
                     if ($pid !== null) {
-                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `id` = ?");
+                        $stmt = $pdo->prepare("SELECT COUNT(*) FROM `users` WHERE `id` = ? AND deleted_at IS NULL");
                         $stmt->execute([$pid]);
                         if ($stmt->fetchColumn() > 0) {
                             $valid_panelists[] = $pid;

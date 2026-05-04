@@ -407,7 +407,7 @@ function getTeamStudentIds($pdo, $teamId) {
         SELECT DISTINCT u.id
         FROM team_members tm
         JOIN users u ON u.id = tm.user_id
-        WHERE tm.team_id = ? AND u.usertype = 1
+        WHERE tm.team_id = ? AND u.usertype = 1 AND u.deleted_at IS NULL
     ");
     $stmt->execute([(int)$teamId]);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -419,7 +419,7 @@ function getTeamMemberUserIds($pdo, $teamId): array
         SELECT DISTINCT u.id
         FROM team_members tm
         JOIN users u ON u.id = tm.user_id
-        WHERE tm.team_id = ?
+        WHERE tm.team_id = ? AND u.deleted_at IS NULL
     ");
     $stmt->execute([(int) $teamId]);
     return $stmt->fetchAll(PDO::FETCH_COLUMN);
@@ -430,13 +430,17 @@ function getTeamMemberUserIds($pdo, $teamId): array
  *
  * @param list<int> $panelistIds
  */
-function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTime, $endTime, $excludeScheduleId = null, array $panelistIds = [])
+function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTime, $endTime, $excludeScheduleId = null, array $panelistIds = [], $room = '')
 {
     $start = (strlen((string) $startTime) === 5) ? $startTime . ':00' : $startTime;
     $end = (strlen((string) $endTime) === 5) ? $endTime . ':00' : $endTime;
 
+    $conflictItems = [];
+    $room = trim((string) $room);
+    $panelistIds = array_values(array_unique(array_filter(array_map('intval', $panelistIds))));
+
     if ($start >= $end) {
-        return ['ok' => false, 'message' => 'End time must be later than start time.'];
+        return ['ok' => false, 'message' => 'End time must be later than start time.', 'conflict_items' => ['End time must be later than start time.']];
     }
 
     $teamLabel = 'Team ' . (int) $teamId;
@@ -454,14 +458,41 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
 
     $tsDay = strtotime(trim((string) $scheduleDate));
     if ($tsDay === false) {
-        return ['ok' => false, 'message' => 'Invalid defense date.'];
+        return ['ok' => false, 'message' => 'Invalid defense date.', 'conflict_items' => ['Invalid defense date.']];
     }
     $dateNorm = date('Y-m-d', $tsDay);
 
     $defStart = strtotime($dateNorm . ' ' . trim((string) $start));
     $defEnd = strtotime($dateNorm . ' ' . trim((string) $end));
     if ($defStart === false || $defEnd === false || $defEnd <= $defStart) {
-        return ['ok' => false, 'message' => 'Invalid defense start or end time.'];
+        return ['ok' => false, 'message' => 'Invalid defense start or end time.', 'conflict_items' => ['Invalid defense start or end time.']];
+    }
+
+    $startMin = ((int) date('H', $defStart) * 60) + (int) date('i', $defStart);
+    $endMin = ((int) date('H', $defEnd) * 60) + (int) date('i', $defEnd);
+    if ($startMin < (7 * 60) || $endMin > (20 * 60 + 30)) {
+        $conflictItems[] = 'Defense time must be within 07:00 to 20:30.';
+    }
+
+    if (count($panelistIds) !== count(array_unique($panelistIds))) {
+        $conflictItems[] = 'Panelists must be unique within a defense schedule.';
+    }
+    if (count($panelistIds) < 3) {
+        $conflictItems[] = 'Each defense schedule requires 3 valid panelists.';
+    } else {
+        $activePanelistsStmt = $pdo->prepare('SELECT COUNT(*) FROM users WHERE id IN (?, ?, ?) AND deleted_at IS NULL');
+        $activePanelistsStmt->execute([$panelistIds[0], $panelistIds[1], $panelistIds[2]]);
+        if ((int) $activePanelistsStmt->fetchColumn() !== 3) {
+            $conflictItems[] = 'One or more selected panelists are inactive or unavailable.';
+        }
+    }
+
+    if (!empty($conflictItems)) {
+        return [
+            'ok' => false,
+            'message' => $conflictItems[0],
+            'conflict_items' => array_values(array_unique($conflictItems)),
+        ];
     }
 
     $memberIdsTeam = getTeamMemberUserIds($pdo, (int) $teamId);
@@ -479,6 +510,9 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
             return [
                 'ok' => false,
                 'message' => $teamLabel . " schedule conflicts with a team member's class or teaching block:\n" . $subject . "\n" . $timeLine,
+                'conflict_items' => [
+                    $teamLabel . " schedule conflicts with a team member's class or teaching block:\n" . $subject . "\n" . $timeLine,
+                ],
             ];
         }
     }
@@ -501,6 +535,9 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
             return [
                 'ok' => false,
                 'message' => $teamLabel . " schedule conflicts with panelist class/teaching load:\n" . $subject . "\n" . $timeLine,
+                'conflict_items' => [
+                    $teamLabel . " schedule conflicts with panelist class/teaching load:\n" . $subject . "\n" . $timeLine,
+                ],
             ];
         }
     }
@@ -543,11 +580,67 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
             return [
                 'ok' => false,
                 'message' => $teamLabel . ' schedule conflicts with another defense that overlaps a team member at this time.',
+                'conflict_items' => [
+                    $teamLabel . ' schedule conflicts with another defense that overlaps a team member at this time.',
+                ],
             ];
         }
     }
 
-    return ['ok' => true, 'message' => ''];
+    $excludeSql = '';
+    $excludeParams = [];
+    if ($excludeScheduleId !== null) {
+        $excludeSql = ' AND ds.id != ?';
+        $excludeParams[] = (int) $excludeScheduleId;
+    }
+
+    if ($room !== '') {
+        $roomStmt = $pdo->prepare("
+            SELECT ds.id
+            FROM defense_schedules ds
+            WHERE ds.schedule_date = ?
+              AND ds.start_time < ?
+              AND ds.end_time > ?
+              AND COALESCE(ds.status, 'scheduled') != 'cancelled'
+              AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
+              AND ds.room = ?
+              $excludeSql
+            LIMIT 1
+        ");
+        $roomParams = array_merge([$dateNorm, $end, $start, $room], $excludeParams);
+        $roomStmt->execute($roomParams);
+        if ($roomStmt->fetchColumn()) {
+            $conflictItems[] = $teamLabel . ' schedule conflicts with another defense using the same room at this time.';
+        }
+    }
+
+    foreach ($panelistIds as $pid) {
+        $panelDefenseStmt = $pdo->prepare("
+            SELECT ds.id
+            FROM defense_schedules ds
+            WHERE ds.schedule_date = ?
+              AND ds.start_time < ?
+              AND ds.end_time > ?
+              AND COALESCE(ds.status, 'scheduled') != 'cancelled'
+              AND COALESCE(ds.approval_status, 'pending_chair') != 'rejected'
+              AND (? IN (ds.panelist_id, ds.panelist_id2, ds.panelist_id3))
+              $excludeSql
+            LIMIT 1
+        ");
+        $panelParams = array_merge([$dateNorm, $end, $start, (int) $pid], $excludeParams);
+        $panelDefenseStmt->execute($panelParams);
+        if ($panelDefenseStmt->fetchColumn()) {
+            $conflictItems[] = $teamLabel . ' schedule conflicts with another defense assigned to one of its panelists.';
+            break;
+        }
+    }
+
+    if (!empty($conflictItems)) {
+        $conflictItems = array_values(array_unique($conflictItems));
+        return ['ok' => false, 'message' => $conflictItems[0], 'conflict_items' => $conflictItems];
+    }
+
+    return ['ok' => true, 'message' => '', 'conflict_items' => []];
 }
 
 // Function to update user information

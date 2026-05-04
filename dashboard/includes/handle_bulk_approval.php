@@ -72,6 +72,7 @@ try {
             // Pre-validate all schedules for student conflicts before approving/finalizing.
             $currentScheduleStmt = $pdo->prepare("
                 SELECT ds.team_id, ds.schedule_date, ds.start_time, ds.end_time,
+                       ds.room,
                        ds.panelist_id, ds.panelist_id2, ds.panelist_id3, t.name AS team_name
                 FROM defense_schedules ds
                 LEFT JOIN teams t ON t.id = ds.team_id
@@ -91,6 +92,7 @@ try {
             };
 
             $proposedSchedules = [];
+            $normalizedForUpdate = [];
 
             foreach ($schedules as $sched) {
                 if (empty($sched['id'])) {
@@ -124,7 +126,8 @@ try {
                     $startTime,
                     $endTime,
                     (int)$sched['id'],
-                    $panelistsBulk
+                    $panelistsBulk,
+                    (string) ($sched['room'] ?? $currentSchedule['room'] ?? '')
                 );
 
                 if (!$conflictCheck['ok']) {
@@ -138,12 +141,18 @@ try {
 
                 $proposedSchedules[] = [
                     'id' => (int)$sched['id'],
+                    'team_id' => $teamId,
                     'team_name' => $teamName,
                     'schedule_date' => (string)$scheduleDate,
                     'start_time' => $startTime,
                     'end_time' => $endTime,
+                    'room' => (string) ($sched['room'] ?? $currentSchedule['room'] ?? ''),
+                    'panelist_id' => $panelistsBulk[0] ?? null,
+                    'panelist_id2' => $panelistsBulk[1] ?? null,
+                    'panelist_id3' => $panelistsBulk[2] ?? null,
                     'student_ids' => array_map('intval', getTeamStudentIds($pdo, (int)$teamId))
                 ];
+                $normalizedForUpdate[(int)$sched['id']] = end($proposedSchedules);
             }
 
             $proposedCount = count($proposedSchedules);
@@ -202,29 +211,33 @@ try {
 
         foreach ($schedules as $sched) {
             if (empty($sched['id'])) continue;
+            $norm = $normalizedForUpdate[(int)$sched['id']] ?? null;
+            if (!$norm) {
+                continue;
+            }
 
             // Update the schedule with any edits + change status
             if ($supportsFinalization) {
                 $updateStmt->execute([
-                    $sched['schedule_date'] ?? null,
-                    $sched['start_time'] ?? null,
-                    $sched['end_time'] ?? null,
-                    $sched['room'] ?? null,
-                    $sched['panelist_id'] ?? null,
-                    $sched['panelist_id2'] ?? null,
-                    $sched['panelist_id3'] ?? null,
+                    $norm['schedule_date'],
+                    $norm['start_time'],
+                    $norm['end_time'],
+                    $norm['room'],
+                    $norm['panelist_id'],
+                    $norm['panelist_id2'],
+                    $norm['panelist_id3'],
                     $userId,
                     $sched['id']
                 ]);
             } else {
                 $updateStmt->execute([
-                    $sched['schedule_date'] ?? null,
-                    $sched['start_time'] ?? null,
-                    $sched['end_time'] ?? null,
-                    $sched['room'] ?? null,
-                    $sched['panelist_id'] ?? null,
-                    $sched['panelist_id2'] ?? null,
-                    $sched['panelist_id3'] ?? null,
+                    $norm['schedule_date'],
+                    $norm['start_time'],
+                    $norm['end_time'],
+                    $norm['room'],
+                    $norm['panelist_id'],
+                    $norm['panelist_id2'],
+                    $norm['panelist_id3'],
                     $sched['id']
                 ]);
             }
@@ -232,9 +245,9 @@ try {
             if ($updateStmt->rowCount() > 0) {
                 // Create panelist approval records
                 $panelistIds = array_filter([
-                    $sched['panelist_id'] ?? null,
-                    $sched['panelist_id2'] ?? null,
-                    $sched['panelist_id3'] ?? null
+                    $norm['panelist_id'] ?? null,
+                    $norm['panelist_id2'] ?? null,
+                    $norm['panelist_id3'] ?? null
                 ]);
                 foreach ($panelistIds as $panelistId) {
                     $approvalStmt->execute([$sched['id'], $panelistId]);

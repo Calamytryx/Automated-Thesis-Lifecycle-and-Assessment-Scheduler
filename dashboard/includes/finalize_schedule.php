@@ -35,7 +35,8 @@ if (!defenseScheduleColumnExists($pdo, 'is_finalized')) {
 }
 
 try {
-    $stmt = $pdo->prepare('SELECT team_id, schedule_date, start_time, end_time, panelist_id, panelist_id2, panelist_id3 FROM defense_schedules WHERE id = ? LIMIT 1');
+    $pdo->beginTransaction();
+    $stmt = $pdo->prepare('SELECT team_id, schedule_date, start_time, end_time, room, panelist_id, panelist_id2, panelist_id3 FROM defense_schedules WHERE id = ? LIMIT 1');
     $stmt->execute([$scheduleId]);
     $schedule = $stmt->fetch(PDO::FETCH_ASSOC);
     $teamId = (int)($schedule['team_id'] ?? 0);
@@ -62,7 +63,8 @@ try {
             $schedule['start_time'] ?? '',
             $schedule['end_time'] ?? '',
             $scheduleId,
-            $panelistsFinalize
+            $panelistsFinalize,
+            (string) ($schedule['room'] ?? '')
         );
         if (!$conflictCheck['ok']) {
             throw new Exception($conflictCheck['message']);
@@ -77,6 +79,7 @@ try {
             WHERE id = ?
         ");
         $update->execute([$userId, $scheduleId]);
+        $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Schedule finalized (approved) and locked.']);
     } else {
         $canUnfinalize = ($userId === 0 || $usertype === 0);
@@ -93,9 +96,13 @@ try {
             WHERE id = ?
         ");
         $update->execute([$scheduleId]);
+        $pdo->commit();
         echo json_encode(['success' => true, 'message' => 'Schedule unfinalized. It remains approved and editable.']);
     }
 } catch (Exception $e) {
+    if ($pdo->inTransaction()) {
+        $pdo->rollBack();
+    }
     error_log('finalize_schedule.php ERROR: ' . $e->getMessage());
     echo json_encode(['success' => false, 'message' => $e->getMessage()]);
 }

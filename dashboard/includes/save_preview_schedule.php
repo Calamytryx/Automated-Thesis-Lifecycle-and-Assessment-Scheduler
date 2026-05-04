@@ -33,6 +33,60 @@ try {
         throw new Exception('No schedules to save.');
     }
 
+    $normalizedSchedules = [];
+    $conflictItems = [];
+    foreach ($schedules as $index => $sched) {
+        if (empty($sched['team_id']) || empty($sched['schedule_date']) || empty($sched['start_time']) || empty($sched['end_time']) || empty($sched['room'])) {
+            $conflictItems[] = 'Row ' . ($index + 1) . ': team/date/time/room are required.';
+            continue;
+        }
+        $teamId = (int)$sched['team_id'];
+        if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
+            $conflictItems[] = 'Team ' . $teamId . ': no access.';
+            continue;
+        }
+        $normalizedSchedules[] = [
+            'team_id' => $teamId,
+            'panelist_id' => isset($sched['panelist_id']) ? (int) $sched['panelist_id'] : null,
+            'panelist_id2' => isset($sched['panelist_id2']) ? (int) $sched['panelist_id2'] : null,
+            'panelist_id3' => isset($sched['panelist_id3']) ? (int) $sched['panelist_id3'] : null,
+            'schedule_date' => $sched['schedule_date'],
+            'start_time' => $sched['start_time'],
+            'end_time' => $sched['end_time'],
+            'room' => trim((string) ($sched['room'] ?? '')),
+            'defense_type' => $sched['defense_type'] ?? 'title_proposal'
+        ];
+    }
+    if (!empty($conflictItems)) {
+        $conflictItems = array_values(array_unique($conflictItems));
+        throw new Exception(implode("\n", $conflictItems));
+    }
+
+    foreach ($normalizedSchedules as $sched) {
+        $panelistIds = array_values(array_filter([
+            (int) ($sched['panelist_id'] ?? 0),
+            (int) ($sched['panelist_id2'] ?? 0),
+            (int) ($sched['panelist_id3'] ?? 0),
+        ]));
+        $conflictCheck = validateStudentScheduleConflicts(
+            $pdo,
+            (int) $sched['team_id'],
+            $sched['schedule_date'],
+            $sched['start_time'],
+            $sched['end_time'],
+            null,
+            $panelistIds,
+            $sched['room']
+        );
+        if (!$conflictCheck['ok']) {
+            $conflictItems = array_merge($conflictItems, (array) ($conflictCheck['conflict_items'] ?? [$conflictCheck['message']]));
+        }
+    }
+    if (!empty($conflictItems)) {
+        $conflictItems = array_values(array_unique($conflictItems));
+        throw new Exception(implode("\n", $conflictItems));
+    }
+
     $pdo->beginTransaction();
 
     $stmt = $pdo->prepare("
@@ -44,52 +98,22 @@ try {
     $savedCount = 0;
     $savedIds = [];
 
-    foreach ($schedules as $sched) {
-        // Validate required fields
-        if (empty($sched['team_id']) || empty($sched['schedule_date']) || empty($sched['start_time']) || empty($sched['end_time'])) {
-            continue;
-        }
-
-        $teamId = (int)$sched['team_id'];
-        if (!canUserAccessDefenseScheduleByTeam($pdo, $userId, $usertype, $teamId)) {
-            throw new Exception('Team ' . $teamId . ': no access.');
-        }
-
-        $panelistIds = array_values(array_filter([
-            isset($sched['panelist_id']) ? (int) $sched['panelist_id'] : 0,
-            isset($sched['panelist_id2']) ? (int) $sched['panelist_id2'] : 0,
-            isset($sched['panelist_id3']) ? (int) $sched['panelist_id3'] : 0,
-        ]));
-
-        $conflictCheck = validateStudentScheduleConflicts(
-            $pdo,
-            $teamId,
-            $sched['schedule_date'],
-            $sched['start_time'],
-            $sched['end_time'],
-            null,
-            $panelistIds
-        );
-        if (!$conflictCheck['ok']) {
-            throw new Exception($conflictCheck['message']);
-        }
-
+    foreach ($normalizedSchedules as $sched) {
         $stmt->execute([
-            $teamId,
-            $sched['panelist_id'] ?? null,
-            $sched['panelist_id2'] ?? null,
-            $sched['panelist_id3'] ?? null,
+            $sched['team_id'],
+            $sched['panelist_id'],
+            $sched['panelist_id2'],
+            $sched['panelist_id3'],
             $sched['schedule_date'],
             $sched['start_time'],
             $sched['end_time'],
-            $sched['room'] ?? '',
-            $sched['defense_type'] ?? 'title_proposal'
+            $sched['room'],
+            $sched['defense_type']
         ]);
 
         $scheduleId = $pdo->lastInsertId();
         $savedIds[] = $scheduleId;
 
-        // Create chair review notifications
         createChairReviewNotifications(
             $pdo,
             $scheduleId,
@@ -97,7 +121,7 @@ try {
             $sched['schedule_date'],
             substr($sched['start_time'], 0, 5),
             substr($sched['end_time'], 0, 5),
-            $sched['room'] ?? ''
+            $sched['room']
         );
 
         $savedCount++;
@@ -120,8 +144,11 @@ try {
         $pdo->rollBack();
     }
     error_log("save_preview_schedule.php ERROR: " . $e->getMessage());
+    $errorMessage = $e->getMessage();
+    $items = array_values(array_filter(array_map('trim', explode("\n", $errorMessage))));
     echo json_encode([
         'success' => false,
-        'message' => $e->getMessage()
+        'message' => $errorMessage,
+        'conflict_items' => $items
     ]);
 }

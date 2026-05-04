@@ -101,7 +101,8 @@ try {
             $schedule['start_time'] ?? '',
             $schedule['end_time'] ?? '',
             (int)$scheduleId,
-            $panelistsChair
+            $panelistsChair,
+            (string) ($schedule['room'] ?? '')
         );
         if (!$conflictCheck['ok']) {
             throw new Exception($conflictCheck['message']);

@@ -758,6 +758,10 @@
                                             confirm_overwrite: confirmOverwrite,
                                             preview: 'true'
                                         };
+                                        if (Array.isArray(window.__defensePendingUnresolvedTeamIds) && window.__defensePendingUnresolvedTeamIds.length > 0) {
+                                            requestData.unresolved_team_ids = window.__defensePendingUnresolvedTeamIds;
+                                            window.__defensePendingUnresolvedTeamIds = [];
+                                        }
                                         console.log('Request data for generateSchedule:', requestData);
 
                                         $.ajax({
@@ -1138,6 +1142,7 @@
                         <div class="d-flex flex-wrap align-items-center gap-2 w-100">
                             <span id="previewScheduleCount" class="me-auto text-muted"></span>
                             <button type="button" class="btn btn-outline-primary" id="regeneratePreviewSchedule">Generate Another Schedule</button>
+                            <button type="button" class="btn btn-outline-warning d-none" id="generateUnresolvedPreview">Generate Unresolved Only</button>
                             <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Discard</button>
                             <button type="button" class="btn btn-primary" id="confirmSavePreview">Confirm & Save</button>
                         </div>
@@ -1826,6 +1831,7 @@ eventContent: function(arg) {
                 let previewScheduleData = []; // The array of schedules from preview mode
                 let previewGenerationMeta = null;
                 let previewClassScheduleData = [];
+                let previewUnresolvedTeamIds = [];
 
                 const toMinutes = (timeStr) => {
                     if (!timeStr) return null;
@@ -2183,6 +2189,7 @@ eventContent: function(arg) {
                         overlapFixes: meta.overlapFixes,
                         remaining_conflicts: meta.remaining_conflicts
                     });
+                    previewUnresolvedTeamIds = Array.isArray(meta.unresolved_team_ids) ? meta.unresolved_team_ids.map(Number).filter(Number.isFinite) : [];
 
                     const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
                     if (openModal) {
@@ -2195,6 +2202,15 @@ eventContent: function(arg) {
                     }
 
                     document.getElementById('previewScheduleCount').textContent = `${previewScheduleData.length} schedule(s) generated`;
+                    const unresolvedBtn = document.getElementById('generateUnresolvedPreview');
+                    if (unresolvedBtn) {
+                        if (previewUnresolvedTeamIds.length > 0) {
+                            unresolvedBtn.classList.remove('d-none');
+                            unresolvedBtn.textContent = `Generate Unresolved Only (${previewUnresolvedTeamIds.length})`;
+                        } else {
+                            unresolvedBtn.classList.add('d-none');
+                        }
+                    }
 
                     const overlayPromise = reuseClassOverlay
                         ? Promise.resolve(previewClassScheduleData)
@@ -2626,6 +2642,15 @@ eventContent: function(arg) {
 
                 // ========== CONFIRM SAVE PREVIEW ==========
                 document.getElementById('confirmSavePreview').addEventListener('click', function() {
+                    const overlayConflicts = findPreviewConflicts(previewScheduleData, previewClassScheduleData);
+                    if (Array.isArray(overlayConflicts) && overlayConflicts.length > 0) {
+                        showDefAlert('Resolve overlay conflicts before saving preview schedules.', 'error');
+                        return;
+                    }
+                    if (Array.isArray(previewUnresolvedTeamIds) && previewUnresolvedTeamIds.length > 0) {
+                        showDefAlert('Some teams are unresolved. Use "Generate Unresolved Only" before saving.', 'warning');
+                        return;
+                    }
                     const btn = this;
                     btn.disabled = true;
                     btn.textContent = 'Saving...';
@@ -2670,6 +2695,28 @@ eventContent: function(arg) {
                         }
                     }, 200);
                 });
+
+                const unresolvedBtn = document.getElementById('generateUnresolvedPreview');
+                if (unresolvedBtn) {
+                    unresolvedBtn.addEventListener('click', function() {
+                        if (!Array.isArray(previewUnresolvedTeamIds) || previewUnresolvedTeamIds.length === 0) {
+                            showDefAlert('No unresolved teams to regenerate.', 'warning');
+                            return;
+                        }
+                        window.__defensePendingUnresolvedTeamIds = previewUnresolvedTeamIds.slice();
+                        const previewModalEl = document.getElementById('schedulePreviewModal');
+                        const previewModal = bootstrap.Modal.getInstance(previewModalEl);
+                        if (previewModal) {
+                            previewModal.hide();
+                        }
+                        setTimeout(() => {
+                            const generateButton = document.getElementById('generateSchedule');
+                            if (generateButton) {
+                                generateButton.click();
+                            }
+                        }, 200);
+                    });
+                }
 
                 // ========== BULK APPROVAL ==========
                 document.getElementById('bulkApproveBtn').addEventListener('click', function() {
