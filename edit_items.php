@@ -773,10 +773,6 @@ function handleRequirementTemplateUpload($file) {
 
     // Special handling for users
     if ($table === 'users') {
-        if (isset($data['usertype']) && (int)$data['usertype'] !== 1) {
-        unset($data['year']);
-        unset($data['section']);
-    }
         // Sanitize text fields to prevent HTML/script injection
         $textFields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'headline', 'bio'];
         foreach ($textFields as $field) {

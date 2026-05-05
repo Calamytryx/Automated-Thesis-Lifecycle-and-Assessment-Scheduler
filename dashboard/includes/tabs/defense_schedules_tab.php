@@ -6,6 +6,15 @@
             <div class="col-12">
                 <h3 class="mb-2">Defense Schedules Management</h3>
                 <p class="text-muted">Manage thesis defense schedules, generate automated schedules, and assign panelists to groups</p>
+                        <!-- Scheduler Status -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="bg-light border rounded-3 p-3">
+                            <div id="generationSetting" class="mb-2" style="display: none;"></div>
+                            <div id="scheduleGenerationStatus" class="mt-2"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
 

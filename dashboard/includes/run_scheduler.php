@@ -20,11 +20,37 @@ if (session_status() === PHP_SESSION_ACTIVE) {
     session_write_close();
 }
 
-// If the POST submission contains 'startTime', ignore this submission.
-if (isset($_POST['startTime'])) {
-    error_log("Ignoring submission with startTime. Expected submission without startTime.");
-    echo json_encode(['success' => false, 'message' => 'Ignoring unintended submission']);
-    exit;
+// If the POST submission contains 'startTime' but no 'timeSlots', convert it server-side
+if (isset($_POST['startTime']) && isset($_POST['endTime']) && (!isset($_POST['timeSlots']) || empty($_POST['timeSlots']))) {
+    error_log("Converting startTime/endTime to timeSlots on server-side");
+    $startTime = trim((string)($_POST['startTime'] ?? ''));
+    $endTime = trim((string)($_POST['endTime'] ?? ''));
+    $duration = floatval($_POST['timeDuration'] ?? 1);
+    
+    if ($startTime && $endTime && $duration > 0) {
+        $timeSlots = [];
+        $increment = ($duration == intval($duration)) ? 3600 : 1800; // 60 min or 30 min increments
+        
+        $currentTime = strtotime("1970-01-01 $startTime");
+        $endDateTime = strtotime("1970-01-01 $endTime");
+        
+        if ($currentTime !== false && $endDateTime !== false) {
+            while ($currentTime < $endDateTime) {
+                $hhmm = date('H:i', $currentTime);
+                // Check 20:30 ceiling: slot must end by 20:30
+                $slotEndTime = $currentTime + ($duration * 3600);
+                $capTime = strtotime('1970-01-01 20:30:00');
+                if ($slotEndTime <= $capTime) {
+                    $timeSlots[] = $hhmm;
+                }
+                $currentTime += $increment;
+            }
+            if (!empty($timeSlots)) {
+                $_POST['timeSlots'] = $timeSlots;
+                error_log("Generated " . count($timeSlots) . " timeSlots from $startTime to $endTime with duration $duration hours");
+            }
+        }
+    }
 }
 
 header('Content-Type: application/json');
@@ -79,6 +105,19 @@ try {
             'end' => $r['end'],
             'day_of_week' => date('w', strtotime($dStr)),
         ];
+    }
+
+    function scheduler_schedule_day_of_week(array $schedule): ?int
+    {
+        if (array_key_exists('day_of_week', $schedule)) {
+            return normalize_user_schedule_day_to_week_int($schedule['day_of_week']);
+        }
+
+        if (array_key_exists('day', $schedule)) {
+            return normalize_user_schedule_day_to_week_int($schedule['day']);
+        }
+
+        return null;
     }
 
     function slotRangesOverlap($startA, $endA, $startB, $endB)
@@ -140,7 +179,15 @@ try {
     function fetchExistingDefenseSchedules($pdo)
     {
         $stmt = $pdo->query("SELECT team_id, room, schedule_date AS day, start_time, end_time FROM defense_schedules WHERE status = 'scheduled'");
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        foreach ($rows as &$row) {
+            $normalizedDay = scheduler_calendar_day_from_raw((string) ($row['day'] ?? ''));
+            if ($normalizedDay !== null) {
+                $row['day'] = $normalizedDay;
+            }
+        }
+
+        return $rows;
     }
 
     function buildRoomOccupancyMap($userSchedules)
@@ -158,7 +205,10 @@ try {
                 }
 
                 $room = $schedule['room'];
-                $day = $schedule['day_of_week'];
+                $day = scheduler_schedule_day_of_week($schedule);
+                if ($day === null) {
+                    continue;
+                }
                 $rawStart = trim((string)($schedule['start_time'] ?? ''));
                 $rawEnd = trim((string)($schedule['end_time'] ?? ''));
                 if ($rawStart === '' || $rawEnd === '') {
@@ -447,7 +497,8 @@ try {
                     continue;
                 }
 
-                if ((int)$schedule['day_of_week'] !== (int)$defenseDayOfWeek) {
+                $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedule);
+                if ($scheduleDayOfWeek === null || (int) $scheduleDayOfWeek !== (int) $defenseDayOfWeek) {
                     continue;
                 }
 
@@ -488,7 +539,8 @@ try {
                     continue;
                 }
 
-                if ((int)$schedule['day_of_week'] !== (int)$defenseDayOfWeek) {
+                $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedule);
+                if ($scheduleDayOfWeek === null || (int) $scheduleDayOfWeek !== (int) $defenseDayOfWeek) {
                     continue;
                 }
 
@@ -556,7 +608,8 @@ try {
                 if (schedulerClassRowAllowsOverlap($schedule)) {
                     continue;
                 }
-                if ((int) $schedule['day_of_week'] !== (int) $defenseDayOfWeek) {
+                $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedule);
+                if ($scheduleDayOfWeek === null || (int) $scheduleDayOfWeek !== (int) $defenseDayOfWeek) {
                     continue;
                 }
 
@@ -630,7 +683,8 @@ try {
                 if (schedulerClassRowAllowsOverlap($schedule)) {
                     continue;
                 }
-                if ((int) $schedule['day_of_week'] !== (int) $defenseDayOfWeek) {
+                $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedule);
+                if ($scheduleDayOfWeek === null || (int) $scheduleDayOfWeek !== (int) $defenseDayOfWeek) {
                     continue;
                 }
 
@@ -1726,6 +1780,54 @@ try {
         $userSchedules = fetchUserSchedules($pdo);
         $GLOBALS['schedulerUserSchedulesSnapshot'] = $userSchedules;
 
+        // ENHANCEMENT: If user enabled smart slot generation or provided startTime/endTime,
+        // intelligently filter time slots by removing class schedule conflicts
+        // Auto-enable if startTime/endTime are provided (even without explicit flag)
+        $hasTimeRange = isset($_POST['startTime']) && isset($_POST['endTime']) && !empty($_POST['startTime']) && !empty($_POST['endTime']);
+        $smartSlotGeneration = isset($_POST['smartSlotGeneration']) && $_POST['smartSlotGeneration'] === 'true';
+        $autoEnabledSmartGeneration = $hasTimeRange && !isset($_POST['smartSlotGeneration']); // Auto-enable if time range provided
+        
+        error_log("SCHEDULER: Smart slot generation check:");
+        error_log("  - hasTimeRange: " . ($hasTimeRange ? 'YES' : 'NO') . " (startTime=" . $_POST['startTime'] . ", endTime=" . $_POST['endTime'] . ")");
+        error_log("  - smartSlotGeneration flag: " . ($smartSlotGeneration ? 'YES' : 'NO'));
+        error_log("  - autoEnabledSmartGeneration: " . ($autoEnabledSmartGeneration ? 'YES' : 'NO'));
+        error_log("  - Will use smart generation: " . (($smartSlotGeneration || $autoEnabledSmartGeneration) ? 'YES' : 'NO'));
+        
+        if ($hasTimeRange && ($smartSlotGeneration || $autoEnabledSmartGeneration)) {
+            error_log("SCHEDULER: Using smart time slot generation (automatically excluding class schedules)");
+            if ($autoEnabledSmartGeneration) {
+                error_log("SCHEDULER: Auto-enabled smart slot generation (startTime/endTime provided)");
+            }
+            updateProgress($pdo, $progressId, 'running', 'Generating time slots while excluding class schedules…', 24);
+            
+            $startTime = trim((string)($_POST['startTime'] ?? ''));
+            $endTime = trim((string)($_POST['endTime'] ?? ''));
+            
+            if ($startTime && $endTime) {
+                // Build slots for each day, excluding class conflicts
+                error_log("SCHEDULER: Building time slots from $startTime to $endTime for " . count($days) . " days");
+                $slotsByDay = buildSchedulerTimeSlotsExcludingClasses($startTime, $endTime, $duration, $days, $userSchedules);
+                
+                if (!empty($slotsByDay)) {
+                    // Flatten the slots by day into a single list
+                    $allAvailableSlots = [];
+                    foreach ($slotsByDay as $day => $slots) {
+                        $allAvailableSlots = array_merge($allAvailableSlots, $slots);
+                    }
+                    $allAvailableSlots = array_values(array_unique($allAvailableSlots));
+                    
+                    if (!empty($allAvailableSlots)) {
+                        error_log("SCHEDULER: Before ceiling filter: " . count($allAvailableSlots) . " slots");
+                        $timeSlots = filter_time_slots_respecting_latest_end($allAvailableSlots, $duration);
+                        error_log("SCHEDULER: Smart generation produced " . count($timeSlots) . " conflict-free time slots");
+                        $_POST['timeSlots'] = $timeSlots;
+                    }
+                } else {
+                    error_log("SCHEDULER: Smart slot generation found no available slots on any day");
+                }
+            }
+        }
+
         updateProgress($pdo, $progressId, 'running', 'Computing conflict-free time slots per defense day (classes, faculty, venues, existing defenses)…', 25);
 
         $slotContext = computeSchedulerSlotContext($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $duration);
@@ -2253,8 +2355,24 @@ function scheduler_normalize_hms(string $frag): string
 
 function scheduler_calendar_day_from_raw($dayRaw): ?string
 {
-    $ts = strtotime(trim((string) $dayRaw));
+    $raw = trim((string) $dayRaw);
+    if ($raw === '') {
+        return null;
+    }
 
+    // Prefer explicit parsing for ambiguous numeric dates.
+    // UI often submits "MM-DD-YYYY" (e.g. 05-11-2026 meaning May 11, 2026).
+    if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $raw)) {
+        $dt = DateTime::createFromFormat('m-d-Y', $raw);
+        if ($dt instanceof DateTime) {
+            return $dt->format('Y-m-d');
+        }
+    }
+    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+        return $raw;
+    }
+
+    $ts = strtotime($raw);
     return $ts !== false ? date('Y-m-d', $ts) : null;
 }
 
@@ -2291,7 +2409,8 @@ function scheduler_user_class_range_on_calendar_day(?string $defenseDayRaw, arra
     if ($ymd === null) {
         return null;
     }
-    if ((int) date('w', strtotime($ymd)) !== (int) ($schedRow['day_of_week'] ?? -999)) {
+    $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedRow);
+    if ($scheduleDayOfWeek === null || (int) date('w', strtotime($ymd)) !== (int) $scheduleDayOfWeek) {
         return null;
     }
     $schedStart = scheduler_unix_on_calendar_day($ymd, $schedRow['start_time'] ?? '');
@@ -2374,6 +2493,213 @@ function parseSchedulerTeamIdList($raw): array
     }
 
     return array_values(array_unique($ids));
+}
+
+/**
+ * Generate time slots from startTime to endTime, automatically excluding class schedule conflicts.
+ * 
+ * Example:
+ * - Class schedule: Monday 7am-10am, 12pm-3pm
+ * - Input: startTime="07:00", endTime="20:30", duration=1.0 hour, classSchedules=[...]
+ * - Output: ["10:00", "11:00", "15:00", "16:00", "17:00", "18:00", "19:00"]
+ *
+ * @param string $startTime Start time (HH:MM format)
+ * @param string $endTime End time (HH:MM format)
+ * @param float $durationHours Defense duration in hours
+ * @param array $classSchedulesForDay List of class schedules with 'start' and 'end' timestamps (can be from any date)
+ * @return array List of available time slots (HH:MM format)
+ */
+function generateTimeSlotsExcludingClassSchedules(string $startTime, string $endTime, float $durationHours, array $classSchedulesForDay = []): array
+{
+    $baseAnchor = '2000-06-07'; // Fixed weekday anchor for consistency
+    $startTimestamp = strtotime($baseAnchor . ' ' . $startTime);
+    $endTimestamp = strtotime($baseAnchor . ' ' . $endTime);
+    
+    if ($startTimestamp === false || $endTimestamp === false || $startTimestamp >= $endTimestamp) {
+        error_log("Invalid time range: $startTime to $endTime");
+        return [];
+    }
+    
+    // Convert duration to seconds
+    $durationSeconds = (int)($durationHours * 3600);
+    
+    // Determine increment: 60 min for whole hours, 30 min for fractional
+    $increment = ($durationHours == intval($durationHours)) ? 3600 : 1800;
+    
+    // Normalize class schedules - extract ONLY the time-of-day component and convert to anchor date
+    $blockedPeriods = [];
+    foreach ($classSchedulesForDay as $classSchedule) {
+        // Class schedules might be timestamps from a different date, so extract time-of-day only
+        if (is_numeric($classSchedule['start']) && is_numeric($classSchedule['end'])) {
+            // Convert from timestamp to time-of-day, then back to anchor date for comparison
+            $classStartTime = date('H:i', $classSchedule['start']);
+            $classEndTime = date('H:i', $classSchedule['end']);
+            $classStart = strtotime($baseAnchor . ' ' . $classStartTime);
+            $classEnd = strtotime($baseAnchor . ' ' . $classEndTime);
+        } else {
+            // Already in time format
+            $classStart = strtotime($baseAnchor . ' ' . $classSchedule['start']);
+            $classEnd = strtotime($baseAnchor . ' ' . $classSchedule['end']);
+        }
+        
+        if ($classStart !== false && $classEnd !== false && $classStart < $classEnd) {
+            $blockedPeriods[] = [
+                'start' => $classStart,
+                'end' => $classEnd,
+                'class_name' => $classSchedule['class_name'] ?? 'Class'
+            ];
+            error_log("    Class block: " . $classSchedule['class_name'] . " (" . date('H:i', $classStart) . "-" . date('H:i', $classEnd) . ")");
+        }
+    }
+    
+    // Sort blocked periods by start time
+    usort($blockedPeriods, function($a, $b) {
+        return $a['start'] - $b['start'];
+    });
+    
+    error_log("  Generating slots from " . date('H:i', $startTimestamp) . " to " . date('H:i', $endTimestamp) . 
+              " with duration " . $durationHours . "h, blocked periods: " . count($blockedPeriods));
+    
+    $availableSlots = [];
+    $currentTime = $startTimestamp;
+    
+    while ($currentTime < $endTimestamp) {
+        $slotEnd = $currentTime + $durationSeconds;
+        
+        // Check if slot would exceed the end time
+        if ($slotEnd > $endTimestamp) {
+            break;
+        }
+        
+        // Check if this time slot conflicts with any class schedule
+        $hasConflict = false;
+        foreach ($blockedPeriods as $blocked) {
+            // Conflict exists if slot overlaps with blocked period
+            if ($currentTime < $blocked['end'] && $slotEnd > $blocked['start']) {
+                $hasConflict = true;
+                error_log("    ❌ Slot " . date('H:i', $currentTime) . "-" . date('H:i', $slotEnd) . " CONFLICTS with " . $blocked['class_name'] . 
+                         " (" . date('H:i', $blocked['start']) . "-" . date('H:i', $blocked['end']) . ")");
+                break;
+            }
+        }
+        
+        if (!$hasConflict) {
+            $availableSlots[] = date('H:i', $currentTime);
+            error_log("    ✅ Slot " . date('H:i', $currentTime) . "-" . date('H:i', $slotEnd) . " is available");
+        }
+        
+        $currentTime += $increment;
+    }
+    
+    error_log("  Generated " . count($availableSlots) . " available time slots after excluding classes");
+    return array_values(array_unique($availableSlots));
+}
+
+/**
+ * Build time slots for the scheduler, automatically excluding class schedule conflicts.
+ * 
+ * This function intelligently generates time slots by:
+ * 1. Taking the start/end times from scheduler settings
+ * 2. Extracting class schedules for each day
+ * 3. Removing blocked periods
+ * 4. Generating slots only in available time gaps
+ * 
+ * Example:
+ * - Class schedule on Monday: 7am-10am, 12pm-3pm
+ * - Scheduler settings: 7am to 8:30pm, 1-hour duration
+ * - Result: {"Monday" => ["10:00", "11:00", "15:00", "16:00", ...]}
+ *
+ * @param string $startTime Start time (HH:MM format)
+ * @param string $endTime End time (HH:MM format)
+ * @param float $durationHours Defense duration in hours
+ * @param array $days List of calendar days (YYYY-MM-DD format)
+ * @param array $userSchedules User schedules keyed by user_id
+ * @return array Associative array: calendar_day => [list of available time slots]
+ */
+function buildSchedulerTimeSlotsExcludingClasses(string $startTime, string $endTime, float $durationHours, array $days, array $userSchedules): array
+{
+    $result = [];
+    
+    error_log("=== Building scheduler time slots excluding class schedules ===");
+    error_log("Time window: $startTime to $endTime, Duration: $durationHours hours");
+    error_log("Days to process: " . implode(", ", $days));
+    
+    foreach ($days as $day) {
+        $calendarDay = scheduler_calendar_day_from_raw((string) $day);
+        if ($calendarDay === null) {
+            error_log("Warning: Could not normalize day '$day'");
+            continue;
+        }
+        
+        error_log("Processing day: $calendarDay (" . date('l', strtotime($calendarDay)) . ")");
+        
+        // Extract class schedule blocks for this day
+        $classBlocks = extractClassScheduleBlocksForDay($calendarDay, $userSchedules);
+        error_log("  Found " . count($classBlocks) . " class schedule blocks");
+        
+        // Generate available time slots excluding class blocks
+        $availableSlots = generateTimeSlotsExcludingClassSchedules($startTime, $endTime, $durationHours, $classBlocks);
+        
+        if (!empty($availableSlots)) {
+            $result[$calendarDay] = $availableSlots;
+            error_log("  Generated " . count($availableSlots) . " available slots for $calendarDay");
+        } else {
+            error_log("  No available slots for $calendarDay (all times blocked by classes)");
+        }
+    }
+    
+    error_log("=== Scheduler time slot generation complete ===");
+    return $result;
+}
+
+/**
+ * Extract all class schedule blocks for a specific calendar day from user schedules.
+ * 
+ * @param string $calendarDay Calendar day in YYYY-MM-DD format
+ * @param array $userSchedules User schedules keyed by user_id
+ * @return array List of blocked periods with 'start', 'end', 'class_name' keys (timestamps)
+ */
+function extractClassScheduleBlocksForDay(string $calendarDay, array $userSchedules): array
+{
+    $blockedPeriods = [];
+    $dayOfWeek = (int) date('w', strtotime($calendarDay));
+    
+    foreach ($userSchedules as $userId => $schedules) {
+        foreach ($schedules as $schedule) {
+            // Check if this schedule applies to this day of week
+            $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedule);
+            if ($scheduleDayOfWeek === null || (int) $scheduleDayOfWeek !== $dayOfWeek) {
+                error_log("    Skipping schedule (wrong day of week): dow=" . ($schedule['day_of_week'] ?? 'null') . " vs " . $dayOfWeek);
+                continue;
+            }
+            
+            // Skip classes that allow overlap (e.g., research classes)
+            if ((int)($schedule['allow_overlap'] ?? 0) === 1 || (int)($schedule['is_research_class'] ?? 0) === 1) {
+                error_log("    Skipping " . $schedule['class_name'] . " (allows overlap/research)");
+                continue;
+            }
+            
+            // Get the actual time range for this schedule on this calendar day
+            $classRange = scheduler_user_class_range_on_calendar_day($calendarDay, $schedule);
+            if ($classRange !== null) {
+                $blockedPeriods[] = [
+                    'start' => $classRange['start'],
+                    'end' => $classRange['end'],
+                    'class_name' => $schedule['class_name'] ?? 'Class',
+                    'user_id' => $userId
+                ];
+                error_log("    Added class block: " . $schedule['class_name'] . " (" . date('H:i', $classRange['start']) . "-" . date('H:i', $classRange['end']) . ") for user $userId");
+            } else {
+                error_log("    Could not get class range for " . $schedule['class_name'] . " (calendar day normalization issue?)");
+            }
+        }
+    }
+    
+    error_log("  Total blocked periods extracted: " . count($blockedPeriods));
+    foreach ($blockedPeriods as $bp) {
+        error_log("    - " . $bp['class_name'] . ": " . date('H:i', $bp['start']) . " to " . date('H:i', $bp['end']));
+    }
+    return $blockedPeriods;
 }
 
 /**
@@ -3276,6 +3602,8 @@ function prepareScheduleData($pdo, $schedule)
 
     $scheduledTeams = [];
     $previewSchedules = [];
+    $scheduledDefenses = [];
+    $userSchedules = $GLOBALS['schedulerUserSchedulesSnapshot'] ?? fetchUserSchedules($pdo);
 
     $defenses = $schedule->chromosomes;
     foreach ($defenses as &$defense) {
@@ -3315,7 +3643,13 @@ function prepareScheduleData($pdo, $schedule)
         if (in_array($defense['team_id'], $scheduledTeams)) continue;
         if (!isset($defense['panelist_ids']) || count($defense['panelist_ids']) < 3) continue;
 
+        if (function_exists('hasConflicts') && hasConflicts($pdo, $defense, $userSchedules, $scheduledDefenses)) {
+            error_log('prepareScheduleData: skipping conflicted defense for team ' . $defense['team_id'] . ' — ' . $defense['day'] . ' ' . $defense['time_slot']);
+            continue;
+        }
+
         $scheduledTeams[] = $defense['team_id'];
+        $scheduledDefenses[] = $defense;
         $dateObj = parseDate($defense['day']);
         $date = $dateObj->format('Y-m-d');
         $startTime = new DateTime($defense['time_slot']);
@@ -3485,6 +3819,8 @@ function saveScheduleToDatabase($pdo, $schedule)
 
         // Track teams that have been scheduled to prevent duplicates
         $scheduledTeams = [];
+        $scheduledDefenses = [];
+        $userSchedules = $GLOBALS['schedulerUserSchedulesSnapshot'] ?? fetchUserSchedules($pdo);
 
         // Sort chromosomes by fitness score
         $defenses = $schedule->chromosomes;
@@ -3512,7 +3848,13 @@ function saveScheduleToDatabase($pdo, $schedule)
                 continue;
             }
 
+            if (function_exists('hasConflicts') && hasConflicts($pdo, $defense, $userSchedules, $scheduledDefenses)) {
+                error_log("saveScheduleToDatabase: skipping conflicted defense for team {$defense['team_id']} at {$defense['day']} {$defense['time_slot']}");
+                continue;
+            }
+
             $scheduledTeams[] = $defense['team_id'];
+            $scheduledDefenses[] = $defense;
 
             $dateObj = parseDate($defense['day']);
             $date = $dateObj->format('Y-m-d');
@@ -4485,20 +4827,28 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId
 // Unused functions are kept at the end
 function isTimeSlotAvailable($schedule, $day, $timeSlot, $duration, $room)
 {
+    $candidateDay = scheduler_calendar_day_from_raw((string) $day);
+    $candidateRange = $candidateDay !== null ? scheduler_defense_range_on_day($candidateDay, (string) $timeSlot, $duration) : null;
+    if ($candidateDay === null || $candidateRange === null) {
+        return false;
+    }
+
+    $candidateStart = $candidateRange['start'];
+    $candidateEnd = $candidateRange['end'];
+
     foreach ($schedule->chromosomes as $defense) {
-        if ($defense['day'] == $day && $defense['room'] == $room) {
-            // Calculate start and end times for the existing defense
-            $existingStart = strtotime($defense['time_slot']);
-            $existingEnd = strtotime('+' . $duration . ' hour', $existingStart);
+        $existingDay = scheduler_calendar_day_from_raw((string) ($defense['day'] ?? ''));
+        if ($existingDay === null || $existingDay !== $candidateDay || (string) ($defense['room'] ?? '') !== (string) $room) {
+            continue;
+        }
 
-            // Calculate start and end times for the new defense
-            $newStart = strtotime($timeSlot);
-            $newEnd = strtotime('+' . $duration . ' hour', $newStart);
+        $existingRange = scheduler_defense_range_on_day($existingDay, (string) ($defense['time_slot'] ?? ''), $duration);
+        if ($existingRange === null) {
+            continue;
+        }
 
-            // Check if the time slots overlap
-            if (($newStart < $existingEnd) && ($newEnd > $existingStart)) {
-                return false;
-            }
+        if (scheduler_slot_ranges_overlap($candidateStart, $candidateEnd, $existingRange['start'], $existingRange['end'])) {
+            return false;
         }
     }
     return true;
@@ -4743,12 +5093,14 @@ function fixDefenseSlot(&$defenses, $idx, &$defense, $rooms, array $slotsByTeamD
     $defense['room'] = $originalRoom; // revert
 
     // Strategy 2: Try a different time (same calendar day — only pre-validated feasible starts)
-    foreach (scheduler_slots_for_team_day($slotsByTeamDay, $defense['team_id'], $originalDay) as $altTime) {
-        if ($altTime === $originalTime) continue;
-        $defense['time_slot'] = $altTime;
+    $sameDayPick = getAvailableTimeSlot((object) ['chromosomes' => $defenses], [$defense['team_id'] => [$originalDay]], $slotsByTeamDay, $duration, $rooms);
+    if ($sameDayPick !== null) {
+        $defense['day'] = $sameDayPick['day'];
+        $defense['time_slot'] = $sameDayPick['time_slot'];
+        $defense['room'] = $sameDayPick['room'];
         $defenses[$idx] = $defense;
         if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
-            error_log("FIX: Team {$defense['team_id']} → time $altTime");
+            error_log("FIX: Team {$defense['team_id']} → {$sameDayPick['day']} {$sameDayPick['time_slot']} {$sameDayPick['room']}");
             return true;
         }
     }
