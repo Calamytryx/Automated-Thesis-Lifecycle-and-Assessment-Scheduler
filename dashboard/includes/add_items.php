@@ -766,6 +766,11 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Special handling for users
     if ($table === 'users') {
+        // Only students should have year level
+    if (isset($data['usertype']) && (int)$data['usertype'] !== 1) {
+        unset($data['year']);
+        unset($data['section']);
+    }
         // Sanitize text fields to prevent HTML/script injection
         $textFields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'headline', 'bio'];
         foreach ($textFields as $field) {
