@@ -237,6 +237,30 @@ function user_schedules_has_program_section_columns(PDO $pdo): bool
     return $cache;
 }
 
+function user_schedules_has_overlap_exception_columns(PDO $pdo): array
+{
+    static $cache = null;
+    if ($cache !== null) {
+        return $cache;
+    }
+
+    $cache = [
+        'allow_overlap' => false,
+        'is_research_class' => false,
+    ];
+
+    try {
+        $stmt = $pdo->query("SHOW COLUMNS FROM user_schedules WHERE Field IN ('allow_overlap','is_research_class')");
+        $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+        $cache['allow_overlap'] = in_array('allow_overlap', $cols, true);
+        $cache['is_research_class'] = in_array('is_research_class', $cols, true);
+    } catch (Exception $e) {
+        error_log('user_schedules_has_overlap_exception_columns: ' . $e->getMessage());
+    }
+
+    return $cache;
+}
+
 function scheduling_blocks_same_slot(array $a, array $b): bool
 {
     return (int) ($a['day_of_week'] ?? -1) === (int) ($b['day_of_week'] ?? -2)
@@ -255,13 +279,19 @@ function mergeProgramSectionClassTemplatesIntoUserSchedules(PDO $pdo, array &$sc
         return;
     }
 
+    $overlapCols = user_schedules_has_overlap_exception_columns($pdo);
+    $allowOverlapSelect = $overlapCols['allow_overlap'] ? 'COALESCE(us.allow_overlap, 0)' : '0';
+    $isResearchClassSelect = $overlapCols['is_research_class'] ? 'COALESCE(us.is_research_class, 0)' : '0';
+
     $sql = "
         SELECT u.id AS user_id,
                us.day_of_week,
                us.start_time,
                us.end_time,
                us.room,
-               us.class_name
+               us.class_name,
+               {$allowOverlapSelect} AS allow_overlap,
+               {$isResearchClassSelect} AS is_research_class
         FROM users u
         INNER JOIN programs p_student ON (
             u.program = p_student.name OR
@@ -292,6 +322,8 @@ function mergeProgramSectionClassTemplatesIntoUserSchedules(PDO $pdo, array &$sc
             'end_time' => $row['end_time'],
             'room' => $row['room'] ?? '',
             'class_name' => $row['class_name'] ?? '',
+            'allow_overlap' => (int) ($row['allow_overlap'] ?? 0),
+            'is_research_class' => (int) ($row['is_research_class'] ?? 0),
         ];
         $schedulesByUserId[$uid] = $schedulesByUserId[$uid] ?? [];
         $dup = false;
@@ -316,7 +348,11 @@ function collectSchedulingBlocksForUser(PDO $pdo, int $userId): array
 {
     $blocks = [];
 
-    $stmt = $pdo->prepare('SELECT day_of_week, start_time, end_time, room, class_name FROM user_schedules WHERE user_id = ?');
+    $overlapCols = user_schedules_has_overlap_exception_columns($pdo);
+    $allowOverlapSelect = $overlapCols['allow_overlap'] ? 'COALESCE(allow_overlap, 0)' : '0';
+    $isResearchClassSelect = $overlapCols['is_research_class'] ? 'COALESCE(is_research_class, 0)' : '0';
+
+    $stmt = $pdo->prepare("SELECT day_of_week, start_time, end_time, room, class_name, {$allowOverlapSelect} AS allow_overlap, {$isResearchClassSelect} AS is_research_class FROM user_schedules WHERE user_id = ?");
     $stmt->execute([$userId]);
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $d = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
@@ -324,6 +360,8 @@ function collectSchedulingBlocksForUser(PDO $pdo, int $userId): array
             continue;
         }
         $row['day_of_week'] = $d;
+        $row['allow_overlap'] = (int) ($row['allow_overlap'] ?? 0);
+        $row['is_research_class'] = (int) ($row['is_research_class'] ?? 0);
         $blocks[] = $row;
     }
 
@@ -342,7 +380,9 @@ function collectSchedulingBlocksForUser(PDO $pdo, int $userId): array
     }
 
     $tplStmt = $pdo->prepare("
-        SELECT DISTINCT us.day_of_week, us.start_time, us.end_time, us.room, us.class_name
+        SELECT DISTINCT us.day_of_week, us.start_time, us.end_time, us.room, us.class_name,
+               " . ($overlapCols['allow_overlap'] ? 'COALESCE(us.allow_overlap, 0)' : '0') . " AS allow_overlap,
+               " . ($overlapCols['is_research_class'] ? 'COALESCE(us.is_research_class, 0)' : '0') . " AS is_research_class
         FROM user_schedules us
         INNER JOIN users u_student ON u_student.id = ?
         INNER JOIN programs p_student ON (
@@ -361,6 +401,8 @@ function collectSchedulingBlocksForUser(PDO $pdo, int $userId): array
             continue;
         }
         $row['day_of_week'] = $d;
+        $row['allow_overlap'] = (int) ($row['allow_overlap'] ?? 0);
+        $row['is_research_class'] = (int) ($row['is_research_class'] ?? 0);
         $dup = false;
         foreach ($blocks as $exist) {
             if (scheduling_blocks_same_slot($exist, $row)) {

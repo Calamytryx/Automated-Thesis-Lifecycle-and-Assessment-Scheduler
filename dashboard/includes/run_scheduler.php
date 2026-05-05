@@ -86,6 +86,57 @@ try {
         return ($startA < $endB) && ($endA > $startB);
     }
 
+    function schedulerClassRowAllowsOverlap(array $scheduleRow): bool
+    {
+        $allowOverlap = (int) ($scheduleRow['allow_overlap'] ?? 0);
+        $isResearchClass = (int) ($scheduleRow['is_research_class'] ?? 0);
+        return $allowOverlap === 1 || $isResearchClass === 1;
+    }
+
+    function schedulerClassRowDescriptor(array $scheduleRow): string
+    {
+        $className = trim((string) ($scheduleRow['class_name'] ?? 'Class'));
+        $room = trim((string) ($scheduleRow['room'] ?? ''));
+        $start = trim((string) ($scheduleRow['start_time'] ?? ''));
+        $end = trim((string) ($scheduleRow['end_time'] ?? ''));
+        $parts = [$className !== '' ? $className : 'Class'];
+        if ($start !== '' || $end !== '') {
+            $parts[] = trim($start . '-' . $end, '-');
+        }
+        if ($room !== '') {
+            $parts[] = 'room ' . $room;
+        }
+        if (schedulerClassRowAllowsOverlap($scheduleRow)) {
+            $parts[] = '(overlap-exempt)';
+        }
+
+        return implode(', ', $parts);
+    }
+
+    function userSchedulesHasOverlapExceptionColumns($pdo)
+    {
+        static $cache = null;
+        if ($cache !== null) {
+            return $cache;
+        }
+
+        $cache = [
+            'allow_overlap' => false,
+            'is_research_class' => false,
+        ];
+
+        try {
+            $stmt = $pdo->query("SHOW COLUMNS FROM user_schedules WHERE Field IN ('allow_overlap','is_research_class')");
+            $cols = $stmt->fetchAll(PDO::FETCH_COLUMN);
+            $cache['allow_overlap'] = in_array('allow_overlap', $cols, true);
+            $cache['is_research_class'] = in_array('is_research_class', $cols, true);
+        } catch (Exception $e) {
+            error_log('userSchedulesHasOverlapExceptionColumns: ' . $e->getMessage());
+        }
+
+        return $cache;
+    }
+
     function fetchExistingDefenseSchedules($pdo)
     {
         $stmt = $pdo->query("SELECT team_id, room, schedule_date AS day, start_time, end_time FROM defense_schedules WHERE status = 'scheduled'");
@@ -98,31 +149,34 @@ try {
 
         foreach ($userSchedules as $scheduleList) {
             foreach ($scheduleList as $schedule) {
+                if (schedulerClassRowAllowsOverlap($schedule)) {
+                    continue;
+                }
+
                 if (empty($schedule['room'])) {
                     continue;
                 }
 
                 $room = $schedule['room'];
                 $day = $schedule['day_of_week'];
-                $start = strtotime($schedule['start_time']);
-                $end = strtotime($schedule['end_time']);
-
-                if ($start === false || $end === false) {
+                $rawStart = trim((string)($schedule['start_time'] ?? ''));
+                $rawEnd = trim((string)($schedule['end_time'] ?? ''));
+                if ($rawStart === '' || $rawEnd === '') {
                     continue;
                 }
 
                 // Avoid adding duplicate identical scheduling blocks for the same room/day.
                 // Program/section templates may add the same class for many users; dedupe here.
                 $entry = [
-                    'start' => $start,
-                    'end' => $end,
+                    'start_time' => $rawStart,
+                    'end_time' => $rawEnd,
                     'class_name' => $schedule['class_name'] ?? null,
                 ];
 
                 $roomMap[$room][$day] = $roomMap[$room][$day] ?? [];
                 $isDup = false;
                 foreach ($roomMap[$room][$day] as $existing) {
-                    if (isset($existing['start'], $existing['end']) && $existing['start'] === $entry['start'] && $existing['end'] === $entry['end'] && ((string)($existing['class_name'] ?? '') === (string)($entry['class_name'] ?? ''))) {
+                    if (isset($existing['start_time'], $existing['end_time']) && $existing['start_time'] === $entry['start_time'] && $existing['end_time'] === $entry['end_time'] && ((string)($existing['class_name'] ?? '') === (string)($entry['class_name'] ?? ''))) {
                         $isDup = true;
                         break;
                     }
@@ -135,15 +189,15 @@ try {
                     // for the same room/day, log details to help track duplication sources.
                     if (count($roomMap[$room][$day]) > 1) {
                         static $dupLogged = [];
-                        $key = $room . '|' . $day . '|' . $entry['start'] . '|' . $entry['end'] . '|' . (string)($entry['class_name'] ?? '');
+                        $key = $room . '|' . $day . '|' . $entry['start_time'] . '|' . $entry['end_time'] . '|' . (string)($entry['class_name'] ?? '');
                         if (empty($dupLogged[$key])) {
                             $dupLogged[$key] = true;
                             error_log(sprintf(
                                 "Duplicate room occupancy detected: room=%s day=%s start=%s end=%s class=%s current_count=%d",
                                 $room,
                                 $day,
-                                date('H:i', $entry['start']),
-                                date('H:i', $entry['end']),
+                                $entry['start_time'],
+                                $entry['end_time'],
                                 $entry['class_name'] ?? '',
                                 count($roomMap[$room][$day])
                             ));
@@ -153,7 +207,171 @@ try {
             }
         }
 
+        // Diagnostic: log the final occupancy map structure
+        error_log("=== ROOM OCCUPANCY MAP SUMMARY ===");
+        foreach ($roomMap as $room => $dayMap) {
+            foreach ($dayMap as $day => $entries) {
+                foreach ($entries as $entry) {
+                    error_log(sprintf(
+                        "Room Occupancy: room=%s day=%d start=%s end=%s class=%s",
+                        $room,
+                        $day,
+                        $entry['start_time'],
+                        $entry['end_time'],
+                        $entry['class_name'] ?? 'UNKNOWN'
+                    ));
+                }
+            }
+        }
+        error_log("=== END OCCUPANCY MAP ===");
+
         return $roomMap;
+    }
+
+    /**
+     * Augment occupancy map with schedule rows for specified teams.
+     * Fetches section template and personal schedules directly from DB (like preview overlay does)
+     * to ensure all applicable classes are included in conflict checking.
+     */
+    function augmentOccupancyMapWithTeamSchedules($pdo, &$roomMap, $teamIds)
+    {
+        if (empty($teamIds)) {
+            return;
+        }
+
+        error_log("AUGMENTING OCCUPANCY MAP for teams: " . implode(', ', $teamIds));
+
+        $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
+
+        // Fetch section template classes
+        $sqlSection = "
+            SELECT DISTINCT
+                us.day_of_week,
+                us.start_time,
+                us.end_time,
+                us.room,
+                us.class_name,
+                COALESCE(us.allow_overlap, 0) AS allow_overlap,
+                COALESCE(us.is_research_class, 0) AS is_research_class
+            FROM team_members tm
+            JOIN users u_student ON u_student.id = tm.user_id AND u_student.usertype = 1
+            LEFT JOIN programs p_student ON (
+                u_student.program = p_student.name OR
+                u_student.program = CONCAT(
+                    p_student.name,
+                    CASE
+                        WHEN p_student.specialization IS NOT NULL AND p_student.specialization != ''
+                        THEN CONCAT(' - ', p_student.specialization)
+                        ELSE ''
+                    END
+                )
+            )
+            INNER JOIN user_schedules us ON us.program = p_student.id
+                AND TRIM(us.section) = TRIM(u_student.section)
+            WHERE tm.team_id IN ($placeholders)
+              AND u_student.section IS NOT NULL
+              AND TRIM(u_student.section) <> ''
+              AND p_student.id IS NOT NULL
+            LIMIT 2000
+        ";
+
+        try {
+            $stmt = $pdo->prepare($sqlSection);
+            $stmt->execute($teamIds);
+            $sectionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("AUGMENT: Found " . count($sectionRows) . " section template rows");
+        } catch (Exception $e) {
+            error_log("AUGMENT section classes error: " . $e->getMessage());
+            $sectionRows = [];
+        }
+
+        // Fetch personal schedules
+        $sqlPersonal = "
+            SELECT DISTINCT
+                us.day_of_week,
+                us.start_time,
+                us.end_time,
+                us.room,
+                us.class_name,
+                COALESCE(us.allow_overlap, 0) AS allow_overlap,
+                COALESCE(us.is_research_class, 0) AS is_research_class
+            FROM team_members tm
+            JOIN users u_student ON u_student.id = tm.user_id AND u_student.usertype = 1
+            INNER JOIN user_schedules us ON us.user_id = u_student.id
+            WHERE tm.team_id IN ($placeholders)
+            LIMIT 2000
+        ";
+
+        try {
+            $stmt = $pdo->prepare($sqlPersonal);
+            $stmt->execute($teamIds);
+            $personalRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            error_log("AUGMENT: Found " . count($personalRows) . " personal schedule rows");
+        } catch (Exception $e) {
+            error_log("AUGMENT personal classes error: " . $e->getMessage());
+            $personalRows = [];
+        }
+
+        $allRows = array_merge($sectionRows, $personalRows);
+
+        // Add to occupancy map
+        foreach ($allRows as $row) {
+            if (schedulerClassRowAllowsOverlap($row)) {
+                continue;
+            }
+
+            if (empty($row['room'])) {
+                continue;
+            }
+
+            $dowNorm = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
+            if ($dowNorm === null) {
+                continue;
+            }
+
+            $room = $row['room'];
+            $day = $dowNorm;
+            $rawStart = trim((string)($row['start_time'] ?? ''));
+            $rawEnd = trim((string)($row['end_time'] ?? ''));
+            if ($rawStart === '' || $rawEnd === '') {
+                continue;
+            }
+
+            $entry = [
+                'start_time' => $rawStart,
+                'end_time' => $rawEnd,
+                'class_name' => $row['class_name'] ?? null,
+            ];
+
+            $roomMap[$room] = $roomMap[$room] ?? [];
+            $roomMap[$room][$day] = $roomMap[$room][$day] ?? [];
+
+            // Check for duplicates
+            $isDup = false;
+            foreach ($roomMap[$room][$day] as $existing) {
+                if (isset($existing['start'], $existing['end']) && 
+                    $existing['start'] === $entry['start'] && 
+                    $existing['end'] === $entry['end'] && 
+                    ((string)($existing['class_name'] ?? '') === (string)($entry['class_name'] ?? ''))) {
+                    $isDup = true;
+                    break;
+                }
+            }
+
+            if (!$isDup) {
+                $roomMap[$room][$day][] = $entry;
+                error_log(sprintf(
+                    "AUGMENT ADDED: room=%s day=%d time=%s-%s class=%s",
+                    $room,
+                    $day,
+                    date('H:i', $start),
+                    date('H:i', $end),
+                    $row['class_name'] ?? 'UNKNOWN'
+                ));
+            }
+        }
+
+        error_log("AUGMENT COMPLETE: occupancy map now has " . count($roomMap) . " rooms");
     }
 
     function validateCandidateSlot($pdo, $defense, $userSchedules, $existingSchedules, $roomOccupancyMap, $duration)
@@ -177,11 +395,40 @@ try {
         $defenseEnd = $range['end'];
         $defenseDay = $range['day'];
         $defenseDayOfWeek = $range['day_of_week'];
+        $defenseWindow = date('H:i', $defenseStart) . '-' . date('H:i', $defenseEnd);
+
+        // Debug logging for room check
+        if ($roomValue !== '') {
+            if (isset($roomOccupancyMap[$roomValue][$defenseDayOfWeek])) {
+                error_log(sprintf(
+                    "Room occupancy check: room=%s day=%d time=%s has %d entries",
+                    $roomValue,
+                    $defenseDayOfWeek,
+                    $defenseWindow,
+                    count($roomOccupancyMap[$roomValue][$defenseDayOfWeek])
+                ));
+            } else {
+                error_log(sprintf(
+                    "Room occupancy check: room=%s day=%d time=%s - NO ENTRIES IN MAP",
+                    $roomValue,
+                    $defenseDayOfWeek,
+                    $defenseWindow
+                ));
+            }
+        }
 
         if ($roomValue !== '' && isset($roomOccupancyMap[$roomValue][$defenseDayOfWeek])) {
             foreach ($roomOccupancyMap[$roomValue][$defenseDayOfWeek] as $occupied) {
-                if (slotRangesOverlap($defenseStart, $defenseEnd, $occupied['start'], $occupied['end'])) {
-                    $conflicts[] = "Room {$roomValue} is occupied by an existing class on {$defenseDay} at {$timeValue}";
+                $occStart = scheduler_unix_on_calendar_day($defenseDay, $occupied['start_time'] ?? '');
+                $occEnd = scheduler_unix_on_calendar_day($defenseDay, $occupied['end_time'] ?? '');
+                if ($occStart === false || $occEnd === false) {
+                    continue;
+                }
+                if (slotRangesOverlap($defenseStart, $defenseEnd, $occStart, $occEnd)) {
+                    $classStart = date('H:i', $occStart);
+                    $classEnd = date('H:i', $occEnd);
+                    $className = trim((string) ($occupied['class_name'] ?? 'Class'));
+                    $conflicts[] = "Room schedule conflict: room {$roomValue} occupied by {$className} ({$classStart}-{$classEnd}) on {$defenseDay}, candidate {$defenseWindow}";
                     break;
                 }
             }
@@ -196,18 +443,21 @@ try {
             }
 
             foreach ($userSchedules[$panelistId] as $schedule) {
+                if (schedulerClassRowAllowsOverlap($schedule)) {
+                    continue;
+                }
+
                 if ((int)$schedule['day_of_week'] !== (int)$defenseDayOfWeek) {
                     continue;
                 }
 
-                $scheduleStart = strtotime($schedule['start_time']);
-                $scheduleEnd = strtotime($schedule['end_time']);
-                if ($scheduleStart === false || $scheduleEnd === false) {
+                $sch = scheduler_user_class_range_on_calendar_day($defenseDay, $schedule);
+                if ($sch === null) {
                     continue;
                 }
 
-                if (slotRangesOverlap($defenseStart, $defenseEnd, $scheduleStart, $scheduleEnd)) {
-                    $conflicts[] = "Panelist {$panelistId} has a class conflict on {$defenseDay} at {$timeValue}";
+                if (slotRangesOverlap($defenseStart, $defenseEnd, $sch['start'], $sch['end'])) {
+                    $conflicts[] = "Panelist schedule conflict: panelist {$panelistId}, {$defenseDay} {$defenseWindow}, blocked by " . schedulerClassRowDescriptor($schedule);
                     break;
                 }
             }
@@ -217,22 +467,38 @@ try {
         foreach ($teamMembers as $member) {
             $memberId = $member['id'];
             if (!isset($userSchedules[$memberId])) {
+                error_log(sprintf(
+                    "Team member %d (ID=%s) has NO schedules loaded",
+                    $memberId,
+                    $memberId
+                ));
                 continue;
             }
 
+            error_log(sprintf(
+                "Team member %d has %d schedules, checking against defense %s day=%d",
+                $memberId,
+                count($userSchedules[$memberId]),
+                $defenseWindow,
+                $defenseDayOfWeek
+            ));
+
             foreach ($userSchedules[$memberId] as $schedule) {
+                if (schedulerClassRowAllowsOverlap($schedule)) {
+                    continue;
+                }
+
                 if ((int)$schedule['day_of_week'] !== (int)$defenseDayOfWeek) {
                     continue;
                 }
 
-                $scheduleStart = strtotime($schedule['start_time']);
-                $scheduleEnd = strtotime($schedule['end_time']);
-                if ($scheduleStart === false || $scheduleEnd === false) {
+                $sch = scheduler_user_class_range_on_calendar_day($defenseDay, $schedule);
+                if ($sch === null) {
                     continue;
                 }
 
-                if (slotRangesOverlap($defenseStart, $defenseEnd, $scheduleStart, $scheduleEnd)) {
-                    $conflicts[] = "Team member {$memberId} has a class conflict on {$defenseDay} at {$timeValue}";
+                if (slotRangesOverlap($defenseStart, $defenseEnd, $sch['start'], $sch['end'])) {
+                    $conflicts[] = "Student schedule conflict: member {$memberId}, {$defenseDay} {$defenseWindow}, blocked by " . schedulerClassRowDescriptor($schedule);
                     break;
                 }
             }
@@ -243,14 +509,147 @@ try {
                 continue;
             }
 
-            $existingStart = strtotime($existing['start_time']);
-            $existingEnd = strtotime($existing['end_time']);
+            $existingStart = scheduler_unix_on_calendar_day($defenseDay, $existing['start_time'] ?? '');
+            $existingEnd = scheduler_unix_on_calendar_day($defenseDay, $existing['end_time'] ?? '');
             if ($existingStart === false || $existingEnd === false) {
                 continue;
             }
 
             if (slotRangesOverlap($defenseStart, $defenseEnd, $existingStart, $existingEnd) && $existing['room'] === $roomValue) {
-                $conflicts[] = "Room {$roomValue} already occupied on {$defenseDay} at {$timeValue}";
+                $existWindow = date('H:i', $existingStart) . '-' . date('H:i', $existingEnd);
+                $conflicts[] = "Existing defense occupancy: room {$roomValue}, {$defenseDay} {$defenseWindow}, clashes with team {$existing['team_id']} at {$existWindow}";
+            }
+        }
+
+        return array_values(array_unique($conflicts));
+    }
+
+    function validateCandidateClassConflicts($pdo, $defense, $userSchedules, $duration)
+    {
+        $conflicts = [];
+        $dayValue = is_array($defense['day'] ?? null) ? ($defense['day'][0] ?? '') : ($defense['day'] ?? '');
+        $timeValue = is_array($defense['time_slot'] ?? null) ? ($defense['time_slot'][0] ?? '') : ($defense['time_slot'] ?? '');
+        $panelistIds = $defense['panelist_ids'] ?? [];
+        if (!is_array($panelistIds)) {
+            $panelistIds = [$panelistIds];
+        }
+
+        $range = parseTimeRange($dayValue, $timeValue, $duration);
+        if ($range === null) {
+            return ['Invalid day or time slot format'];
+        }
+
+        $defenseStart = $range['start'];
+        $defenseEnd = $range['end'];
+        $defenseDayOfWeek = $range['day_of_week'];
+        $defenseWindow = date('H:i', $defenseStart) . '-' . date('H:i', $defenseEnd);
+
+        foreach ($panelistIds as $panelistId) {
+            if (is_array($panelistId)) {
+                continue;
+            }
+            if (!isset($userSchedules[$panelistId])) {
+                continue;
+            }
+
+            foreach ($userSchedules[$panelistId] as $schedule) {
+                if (schedulerClassRowAllowsOverlap($schedule)) {
+                    continue;
+                }
+                if ((int) $schedule['day_of_week'] !== (int) $defenseDayOfWeek) {
+                    continue;
+                }
+
+                $sch = scheduler_user_class_range_on_calendar_day($range['day'], $schedule);
+                if ($sch === null) {
+                    continue;
+                }
+
+                if (slotRangesOverlap($defenseStart, $defenseEnd, $sch['start'], $sch['end'])) {
+                    $conflicts[] = "Panelist class conflict: panelist {$panelistId}, {$dayValue} {$defenseWindow}, blocked by " . schedulerClassRowDescriptor($schedule);
+                    break;
+                }
+            }
+        }
+
+        $teamMembers = getTeamMembers($pdo, $defense['team_id'], 'array');
+        static $loggedTeams = [];
+        if (!in_array($defense['team_id'], $loggedTeams)) {
+            $loggedTeams[] = $defense['team_id'];
+            error_log(sprintf(
+                "CLASS CONFLICT CHECK: Team %d, time=%s day=%d, found %d members",
+                $defense['team_id'],
+                $defenseWindow,
+                $defenseDayOfWeek,
+                count($teamMembers)
+            ));
+        }
+
+        foreach ($teamMembers as $member) {
+            $memberId = $member['id'];
+            if (!isset($userSchedules[$memberId])) {
+                static $missedMembers = [];
+                if (!in_array($memberId, $missedMembers)) {
+                    $missedMembers[] = $memberId;
+                    error_log(sprintf(
+                        "CLASS CONFLICT: Team member %d has NO schedules loaded (team_id=%d)",
+                        $memberId,
+                        $defense['team_id']
+                    ));
+                }
+                continue;
+            }
+
+            static $memberScheds = [];
+            if (!in_array($memberId, $memberScheds)) {
+                $memberScheds[] = $memberId;
+                error_log(sprintf(
+                    "CLASS CONFLICT: Team member %d has %d schedules loaded",
+                    $memberId,
+                    count($userSchedules[$memberId])
+                ));
+                // Log first few schedules for debugging
+                $count = 0;
+                foreach ($userSchedules[$memberId] as $s) {
+                    error_log(sprintf(
+                        "  Schedule: %s day %d %s-%s room %s allow_overlap=%d is_research=%d",
+                        $s['class_name'] ?? 'UNKNOWN',
+                        $s['day_of_week'] ?? -1,
+                        $s['start_time'],
+                        $s['end_time'],
+                        $s['room'] ?? 'N/A',
+                        $s['allow_overlap'] ?? 0,
+                        $s['is_research_class'] ?? 0
+                    ));
+                    $count++;
+                    if ($count >= 3) break;
+                }
+            }
+
+            foreach ($userSchedules[$memberId] as $schedule) {
+                if (schedulerClassRowAllowsOverlap($schedule)) {
+                    continue;
+                }
+                if ((int) $schedule['day_of_week'] !== (int) $defenseDayOfWeek) {
+                    continue;
+                }
+
+                $sch = scheduler_user_class_range_on_calendar_day($range['day'], $schedule);
+                if ($sch === null) {
+                    continue;
+                }
+
+                if (slotRangesOverlap($defenseStart, $defenseEnd, $sch['start'], $sch['end'])) {
+                    error_log(sprintf(
+                        "CLASS CONFLICT DETECTED: member %d class %s overlaps defense %s day %d",
+                        $memberId,
+                        $schedule['class_name'] ?? 'UNKNOWN',
+                        $defenseWindow,
+                        $defenseDayOfWeek
+                    ));
+                    $conflicts[] = "Student class conflict: member {$memberId}, {$dayValue} {$defenseWindow}, blocked by " . schedulerClassRowDescriptor($schedule);
+                    break;
+                }
             }
         }
 
@@ -332,6 +731,15 @@ try {
         $slotsByTeamDay = [];
         $eligibleDaysByTeam = [];
 
+        // Diagnostic: show what schedules we have loaded
+        error_log("=== COMPUTE SLOT CONTEXT START ===");
+        error_log("Total users with schedules: " . count($userSchedules));
+        $totalScheds = 0;
+        foreach ($userSchedules as $uid => $scheds) {
+            $totalScheds += count($scheds);
+        }
+        error_log("Total schedule entries across all users: " . $totalScheds);
+
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
             $slotsByTeamDay[$tid] = [];
@@ -341,6 +749,18 @@ try {
             foreach ($days as $day) {
                 $good = [];
                 foreach ($timeSlotsFlat as $timeSlot) {
+                    $classConflicts = validateCandidateClassConflicts($pdo, [
+                        'team_id' => $tid,
+                        'panelist_ids' => $selectedPanelists,
+                        'time_slot' => $timeSlot,
+                        'day' => $day,
+                        'defense_type' => $team['defense_type'] ?? 'title_proposal',
+                    ], $userSchedules, $duration);
+                    if (!empty($classConflicts)) {
+                        error_log("Slot REJECTED (class conflict): team=$tid day=$day time=$timeSlot");
+                        continue;
+                    }
+
                     $hasRoom = false;
                     foreach ($rooms as $room) {
                         $probe = [
@@ -357,10 +777,19 @@ try {
                         }
                     }
                     if ($hasRoom) {
+                        error_log("Slot ADDED to pool: team=$tid day=$day time=$timeSlot");
                         $good[] = $timeSlot;
+                    } else {
+                        error_log("Slot REJECTED (no room): team=$tid day=$day time=$timeSlot");
                     }
                 }
                 $slotsByTeamDay[$tid][$day] = array_values(array_unique($good));
+                error_log(sprintf(
+                    "Final slots for team %d day %s: %d valid times",
+                    $tid,
+                    $day,
+                    count($slotsByTeamDay[$tid][$day])
+                ));
             }
 
             $eligibleDaysByTeam[$tid] = [];
@@ -391,6 +820,8 @@ try {
                 $daysWithNoSlots[] = $d;
             }
         }
+
+        error_log("=== COMPUTE SLOT CONTEXT END ===");
 
         return [
             'slotsByTeamDay' => $slotsByTeamDay,
@@ -461,6 +892,7 @@ try {
 
             foreach ($timeSlots as $timeSlot) {
                 $isUsable = false;
+                $reasonCounts = [];
                 $sampleReasons = [];
 
                 foreach ($teams as $team) {
@@ -477,22 +909,58 @@ try {
                             'defense_type' => $team['defense_type'] ?? 'title_proposal',
                         ];
 
+                        $classConflicts = validateCandidateClassConflicts($pdo, $candidate, $userSchedules, $duration);
+                        if (!empty($classConflicts)) {
+                            foreach ($classConflicts as $conflict) {
+                                $reasonCounts[$conflict] = ($reasonCounts[$conflict] ?? 0) + 1;
+                            }
+                            if (count($sampleReasons) < 5) {
+                                foreach ($classConflicts as $conflict) {
+                                    if (!in_array($conflict, $sampleReasons, true)) {
+                                        $sampleReasons[] = $conflict;
+                                    }
+                                    if (count($sampleReasons) >= 5) {
+                                        break;
+                                    }
+                                }
+                            }
+                            continue;
+                        }
+
                         $conflicts = validateCandidateSlot($pdo, $candidate, $userSchedules, $existingSchedules, $roomOccupancyMap, $duration);
                         if (empty($conflicts)) {
                             $isUsable = true;
                             break 2;
                         }
 
-                        if (empty($sampleReasons)) {
-                            $sampleReasons = $conflicts;
+                        foreach ($conflicts as $conflict) {
+                            $reasonCounts[$conflict] = ($reasonCounts[$conflict] ?? 0) + 1;
+                        }
+                        if (count($sampleReasons) < 5) {
+                            foreach ($conflicts as $conflict) {
+                                if (!in_array($conflict, $sampleReasons, true)) {
+                                    $sampleReasons[] = $conflict;
+                                }
+                                if (count($sampleReasons) >= 5) {
+                                    break;
+                                }
+                            }
                         }
                     }
                 }
 
                 if (!$isUsable) {
+                    arsort($reasonCounts);
+                    $topReasons = [];
+                    foreach (array_slice($reasonCounts, 0, 5, true) as $reason => $count) {
+                        $topReasons[] = ($count > 1 ? "[x{$count}] " : '') . $reason;
+                    }
                     $dayBlocked[] = [
                         'time_slot' => $timeSlot,
-                        'reasons' => array_values(array_slice(array_unique($sampleReasons), 0, 3)),
+                        'reasons' => !empty($topReasons)
+                            ? $topReasons
+                            : array_values(array_slice(array_unique($sampleReasons), 0, 3)),
+                        'conflict_breakdown' => array_slice($reasonCounts, 0, 10, true),
                     ];
                 }
             }
@@ -512,6 +980,19 @@ try {
     {
         $existing = fetchExistingDefenseSchedules($pdo);
         $roomMap = buildRoomOccupancyMap($userSchedules);
+        
+        // Extract team IDs from preview rows
+        $teamIds = [];
+        foreach ($previewRows as $row) {
+            if (!empty($row['team_id'])) {
+                $teamIds[] = (int) $row['team_id'];
+            }
+        }
+        $teamIds = array_values(array_unique($teamIds));
+        
+        // Augment occupancy map with all team schedules (fetches from DB like preview overlay does)
+        augmentOccupancyMapWithTeamSchedules($pdo, $roomMap, $teamIds);
+        
         $failures = [];
 
         foreach ($previewRows as $row) {
@@ -530,12 +1011,21 @@ try {
                 return $id > 0;
             }));
 
+            $normalizedDay = scheduler_calendar_day_from_raw($row['schedule_date']);
+            if ($normalizedDay === null) {
+                error_log(sprintf(
+                    "PREVIEW ROW DATE NORMALIZATION FAILED: team=%s raw_date=%s",
+                    $row['team_id'] ?? '(unknown)',
+                    $row['schedule_date'] ?? '(empty)'
+                ));
+            }
+
             $defense = [
                 'team_id' => (int) $row['team_id'],
                 'panelist_ids' => $panelIds,
                 'room' => $row['room'] ?? '',
                 'time_slot' => $ts,
-                'day' => $row['schedule_date'],
+                'day' => $normalizedDay ?? $row['schedule_date'],
                 'defense_type' => $row['defense_type'] ?? 'title_proposal',
             ];
 
@@ -545,9 +1035,54 @@ try {
                 continue;
             }
 
-            $errs = validateCandidateSlot($pdo, $defense, $userSchedules, $existing, $roomMap, $duration);
-            if (!empty($errs)) {
-                $failures[] = 'Team ' . $defense['team_id'] . ': ' . implode('; ', array_slice($errs, 0, 3));
+            // Only check room/venue conflicts. Skip class conflicts since GA already validated against pre-filtered slots.
+            $roomErrs = [];
+            $defenseDay = $normalizedDay ?? $row['schedule_date'];
+            $ts = trim((string) $row['start_time']);
+            if (strlen($ts) >= 8) {
+                $ts = substr($ts, 0, 5);
+            }
+            $range = parseTimeRange($defenseDay, $ts, $duration);
+            if ($range !== null) {
+                $defenseStart = $range['start'];
+                $defenseEnd = $range['end'];
+                $defenseDayOfWeek = $range['day_of_week'];
+                $roomValue = $defense['room'] ?? '';
+                
+                // Check room occupancy
+                if ($roomValue !== '' && isset($roomMap[$roomValue][$defenseDayOfWeek])) {
+                    foreach ($roomMap[$roomValue][$defenseDayOfWeek] as $occupied) {
+                        $occStart = scheduler_unix_on_calendar_day($defenseDay, $occupied['start_time'] ?? '');
+                        $occEnd = scheduler_unix_on_calendar_day($defenseDay, $occupied['end_time'] ?? '');
+                        if ($occStart === false || $occEnd === false) {
+                            continue;
+                        }
+                        if (slotRangesOverlap($defenseStart, $defenseEnd, $occStart, $occEnd)) {
+                            $roomErrs[] = "Room schedule conflict: room {$roomValue} occupied by " . schedulerClassRowDescriptor($occupied);
+                            break;
+                        }
+                    }
+                }
+                
+                // Check existing defense occupancy
+                foreach ($existing as $existingDef) {
+                    if ($existingDef['day'] !== $defenseDay) {
+                        continue;
+                    }
+                    $existingStart = scheduler_unix_on_calendar_day($defenseDay, $existingDef['start_time'] ?? '');
+                    $existingEnd = scheduler_unix_on_calendar_day($defenseDay, $existingDef['end_time'] ?? '');
+                    if ($existingStart === false || $existingEnd === false) {
+                        continue;
+                    }
+                    if (slotRangesOverlap($defenseStart, $defenseEnd, $existingStart, $existingEnd) && $existingDef['room'] === $roomValue) {
+                        $roomErrs[] = "Room already scheduled: team {$existingDef['team_id']} at {$defenseDay}";
+                        break;
+                    }
+                }
+            }
+            
+            if (!empty($roomErrs)) {
+                $failures[] = 'Team ' . $defense['team_id'] . ': ' . implode('; ', array_slice($roomErrs, 0, 3));
             }
         }
 
@@ -1139,6 +1674,9 @@ try {
             });
         }
         $teams = array_values($teams); // Re-index array
+        $requestedScopeTeamIds = array_values(array_unique(array_map(static function ($team) {
+            return (int) ($team['id'] ?? 0);
+        }, $teams)));
         
         error_log("SCHEDULER: After filtering - " . count($teams) . " teams to schedule (excluded " . ($originalTeamCount - count($teams)) . " with future pending schedules)");
         
@@ -1243,6 +1781,7 @@ try {
         $validCandidatePool = $preValidation['candidatePool'];
         $validationIssues = $preValidation['issues'];
         $validationSummary = $preValidation['summary'];
+        $unresolvedFromPreValidation = array_values(array_unique(array_map('intval', $validationSummary['unresolvedTeams'] ?? [])));
 
         updateProgress(
             $pdo,
@@ -1283,6 +1822,52 @@ try {
                 32
             );
             error_log('SOFT MODE: ' . $summaryText . ' ' . $detailText);
+        }
+
+        if (!empty($unresolvedFromPreValidation)) {
+            if ($validationMode === 'strict') {
+                $teamsBeforeFilter = count($teams);
+                $teams = array_values(array_filter($teams, static function ($team) use ($unresolvedFromPreValidation) {
+                    return !in_array((int) ($team['id'] ?? 0), $unresolvedFromPreValidation, true);
+                }));
+
+                foreach ($unresolvedFromPreValidation as $badTeamId) {
+                    unset($validCandidatePool[$badTeamId]);
+                }
+
+                updateProgress(
+                    $pdo,
+                    $progressId,
+                    'info',
+                    'Constraint pre-filter removed ' . count($unresolvedFromPreValidation) . ' unschedulable team(s); continuing with ' . count($teams) . ' schedulable team(s).',
+                    33
+                );
+                error_log('PRE-FILTER: reduced GA scope from ' . $teamsBeforeFilter . ' to ' . count($teams) . ' teams; unresolved=' . implode(',', $unresolvedFromPreValidation));
+            } else {
+                updateProgress(
+                    $pdo,
+                    $progressId,
+                    'info',
+                    count($unresolvedFromPreValidation) . ' team(s) have no candidate slots under the current filters; continuing in ' . $validationMode . ' mode with partial scheduling enabled.',
+                    33
+                );
+                error_log('PRE-FILTER WARNING: unresolved teams kept in ' . $validationMode . ' mode: ' . implode(',', $unresolvedFromPreValidation));
+            }
+        }
+
+        if (empty($teams)) {
+            $payload = buildValidationFailurePayload($pdo, $validationMode, $validationSummary, $validationIssues);
+            $msgNoRunnable = 'No schedulable teams remain after conflict pre-filtering. Widen dates/rooms or enable overlap exceptions for research classes where appropriate.';
+            updateProgress($pdo, $progressId, 'error', $msgNoRunnable, null);
+            if (ob_get_level()) {
+                ob_end_clean();
+            }
+            echo json_encode(array_merge([
+                'success' => false,
+                'message' => $msgNoRunnable,
+                'unresolved_team_ids' => $unresolvedFromPreValidation,
+            ], $payload));
+            exit;
         }
 
         // Validate input parameters
@@ -1362,6 +1947,80 @@ try {
         // Check if this is a preview request
         $isPreview = isset($_POST['preview']) && $_POST['preview'] === 'true';
 
+        $candidateVariants = [];
+        $candidateVariants[] = [
+            'variant_id' => 'A',
+            'source' => 'primary',
+            'validated' => [
+                'schedule' => $bestSchedule,
+                'issues' => $overlapIssues,
+                'fixes' => $overlapFixes,
+                'remainingConflicts' => $remainingConflicts,
+            ],
+        ];
+
+        $variantLabelOrd = ['B', 'C', 'D', 'E', 'F'];
+        $variantOrdIdx = 0;
+        foreach ($gaAlternates as $altSchedule) {
+            if ($variantOrdIdx >= count($variantLabelOrd)) {
+                break;
+            }
+
+            $workingCopy = copyDefenseScheduleForPostProcess($altSchedule);
+            $altValidation = validateAndFixOverlaps($pdo, $workingCopy, $userSchedules, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $panelists);
+            $candidateVariants[] = [
+                'variant_id' => $variantLabelOrd[$variantOrdIdx],
+                'source' => 'alternate',
+                'validated' => $altValidation,
+            ];
+            $variantOrdIdx++;
+        }
+
+        foreach ($candidateVariants as $idx => $variant) {
+            $rows = prepareScheduleData($pdo, $variant['validated']['schedule']);
+            $quality = computeScheduleQualityMetrics($rows);
+            $remaining = (int) ($variant['validated']['remainingConflicts'] ?? 0);
+            $fitness = (float) ($variant['validated']['schedule']->fitness ?? 0.0);
+            $rankScore = (100000 - ($remaining * 10000)) + ($quality['score'] * 10.0) + ($fitness * 0.01);
+
+            $candidateVariants[$idx]['rows'] = $rows;
+            $candidateVariants[$idx]['quality'] = $quality;
+            $candidateVariants[$idx]['rank_score'] = $rankScore;
+        }
+
+        usort($candidateVariants, static function ($a, $b) {
+            return $b['rank_score'] <=> $a['rank_score'];
+        });
+
+        $topVariant = $candidateVariants[0] ?? null;
+        if ($topVariant !== null) {
+            $bestSchedule = $topVariant['validated']['schedule'];
+            $overlapIssues = $topVariant['validated']['issues'];
+            $overlapFixes = $topVariant['validated']['fixes'];
+            $remainingConflicts = (int) $topVariant['validated']['remainingConflicts'];
+        }
+
+        $scheduleVariantsPrepared = [];
+        if ($isPreview) {
+            foreach (array_slice($candidateVariants, 0, 3) as $idx => $variant) {
+                $isPrimary = $variant['source'] === 'primary';
+                $labelSuffix = $isPrimary ? 'primary result' : 'alternate GA candidate';
+                $scheduleVariantsPrepared[] = [
+                    'variant_id' => $variant['variant_id'],
+                    'label' => 'Option ' . $variant['variant_id'] . ' — ' . $labelSuffix
+                        . ' · score ' . number_format((float) ($variant['quality']['score'] ?? 0), 1)
+                        . ' · util ' . number_format((float) ($variant['quality']['utilization_pct'] ?? 0), 1) . '%'
+                        . ' · gap ' . number_format((float) ($variant['quality']['avg_gap_minutes'] ?? 0), 1) . 'm',
+                    'schedules' => $variant['rows'],
+                    'overlap_warnings' => $variant['validated']['issues'],
+                    'overlap_fixes' => $variant['validated']['fixes'],
+                    'remaining_conflicts' => (int) $variant['validated']['remainingConflicts'],
+                    'quality' => $variant['quality'],
+                    'rank_score' => $variant['rank_score'],
+                ];
+            }
+        }
+
         if ($remainingConflicts > 0) {
             $conflictFailMsg = 'Cannot produce a strictly conflict-free schedule with the current rooms, dates, times, class timetables, and existing defenses. '
                 . 'Broaden availability or resolve overlaps. (' . $remainingConflicts . ' internal conflict marker(s) remain after automated repair.)';
@@ -1374,86 +2033,71 @@ try {
                 'preview' => $isPreview ? true : null,
                 'message' => $conflictFailMsg,
                 'remaining_conflicts' => $remainingConflicts,
-                'overlap_warnings' => $overlapIssues,
+                'overlap_warnings' => array_slice($overlapIssues, 0, 20),
+                'candidate_rankings' => array_map(static function ($v) {
+                    return [
+                        'variant_id' => $v['variant_id'],
+                        'rank_score' => $v['rank_score'],
+                        'quality' => $v['quality'],
+                        'remaining_conflicts' => (int) ($v['validated']['remainingConflicts'] ?? 0),
+                    ];
+                }, array_slice($candidateVariants, 0, 3)),
             ]);
             exit;
         }
 
-        $scheduleVariantsPrepared = [];
-        $scheduledTeamIds = [];
-        $rowsForResolution = $isPreview
+        $acceptedRowsForResolution = $isPreview
             ? ($scheduleVariantsPrepared[0]['schedules'] ?? [])
-            : (isset($gateRows) ? $gateRows : []);
-        foreach ($rowsForResolution as $row) {
+            : prepareScheduleData($pdo, $bestSchedule);
+        $scheduledTeamIds = [];
+        foreach ($acceptedRowsForResolution as $row) {
             $tidRow = (int) ($row['team_id'] ?? 0);
             if ($tidRow > 0) {
                 $scheduledTeamIds[] = $tidRow;
             }
         }
         $scheduledTeamIds = array_values(array_unique($scheduledTeamIds));
-        $requestedScopeTeamIds = array_values(array_unique(array_map(static function ($team) {
-            return (int) ($team['id'] ?? 0);
-        }, $teams)));
         $unresolvedTeamIds = array_values(array_unique(array_merge(
-            array_map('intval', $validationSummary['unresolvedTeams'] ?? []),
+            $unresolvedFromPreValidation,
             array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds))
         )));
 
-        if ($isPreview) {
-            $scheduleVariantsPrepared[] = [
-                'variant_id' => 'A',
-                'label' => 'Option A — primary result',
-                'schedules' => prepareScheduleData($pdo, $bestSchedule),
-                'overlap_warnings' => $overlapIssues,
-                'overlap_fixes' => $overlapFixes,
-                'remaining_conflicts' => $remainingConflicts,
-            ];
-            $altLabels = ['B', 'C'];
-            $altAdded = 0;
-            foreach ($gaAlternates as $altSchedule) {
-                if ($altAdded >= 2) {
-                    break;
-                }
-                $workingCopy = copyDefenseScheduleForPostProcess($altSchedule);
-                $altValidation = validateAndFixOverlaps($pdo, $workingCopy, $userSchedules, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $panelists);
-                if ((int) $altValidation['remainingConflicts'] !== 0) {
-                    continue;
-                }
-                $lbl = $altLabels[$altAdded];
-                $scheduleVariantsPrepared[] = [
-                    'variant_id' => $lbl,
-                    'label' => 'Option ' . $lbl . ' — alternate GA candidate',
-                    'schedules' => prepareScheduleData($pdo, $altValidation['schedule']),
-                    'overlap_warnings' => $altValidation['issues'],
-                    'overlap_fixes' => $altValidation['fixes'],
-                    'remaining_conflicts' => $altValidation['remainingConflicts'],
-                ];
-                $altAdded++;
-            }
-        }
-
         if ($isPreview && !empty($scheduleVariantsPrepared)) {
+            $validPreviewVariants = [];
+            $classGateFailures = [];
             foreach ($scheduleVariantsPrepared as $idx => $variant) {
                 $classGate = validatePreviewScheduleRowsAgainstClasses($pdo, $variant['schedules'], $userSchedules, $duration);
                 if (!empty($classGate)) {
-                    $msg = 'Generated layout failed final class/faculty/venue checks (must match schedules used in generation). '
-                        . implode(' | ', array_slice($classGate, 0, 4));
-                    updateProgress($pdo, $progressId, 'error', $msg, null);
-                    while (ob_get_level()) {
-                        ob_end_clean();
-                    }
-                    echo json_encode([
-                        'success' => false,
-                        'preview' => true,
-                        'message' => $msg,
-                        'class_gate_errors' => $classGate,
-                        'failed_variant_index' => $idx,
-                    ]);
-                    exit;
+                    $classGateFailures[] = [
+                        'variant_id' => $variant['variant_id'] ?? ('#' . $idx),
+                        'errors' => $classGate,
+                    ];
+                    error_log('CLASS-GATE DROP: variant ' . ($variant['variant_id'] ?? $idx) . ' rejected: ' . implode(' | ', array_slice($classGate, 0, 3)));
+                    continue;
                 }
+                $validPreviewVariants[] = $variant;
             }
+
+            if (empty($validPreviewVariants)) {
+                $firstFailure = $classGateFailures[0]['errors'] ?? [];
+                $msg = 'All generated layout options failed final class/faculty/venue checks. '
+                    . implode(' | ', array_slice($firstFailure, 0, 4));
+                updateProgress($pdo, $progressId, 'error', $msg, null);
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                echo json_encode([
+                    'success' => false,
+                    'preview' => true,
+                    'message' => $msg,
+                    'class_gate_failures' => $classGateFailures,
+                ]);
+                exit;
+            }
+
+            $scheduleVariantsPrepared = array_values($validPreviewVariants);
         } elseif (!$isPreview) {
-            $gateRows = prepareScheduleData($pdo, $bestSchedule);
+            $gateRows = $acceptedRowsForResolution;
             $classGate = validatePreviewScheduleRowsAgainstClasses($pdo, $gateRows, $userSchedules, $duration);
             if (!empty($classGate)) {
                 $msg = 'Schedule failed final class/faculty/venue checks before save: ' . implode(' | ', array_slice($classGate, 0, 4));
@@ -1469,6 +2113,22 @@ try {
                 exit;
             }
         }
+
+        if ($isPreview) {
+            $acceptedRowsForResolution = $scheduleVariantsPrepared[0]['schedules'] ?? [];
+        }
+        $scheduledTeamIds = [];
+        foreach ($acceptedRowsForResolution as $row) {
+            $tidRow = (int) ($row['team_id'] ?? 0);
+            if ($tidRow > 0) {
+                $scheduledTeamIds[] = $tidRow;
+            }
+        }
+        $scheduledTeamIds = array_values(array_unique($scheduledTeamIds));
+        $unresolvedTeamIds = array_values(array_unique(array_merge(
+            $unresolvedFromPreValidation,
+            array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds))
+        )));
 
         if ($isPreview) {
             // Preview mode: prepare data without saving
@@ -2074,7 +2734,11 @@ function getPanelistData($pdo, $panelistId)
 
 function fetchUserSchedules($pdo)
 {
-    $stmt = $pdo->query("SELECT user_id, day_of_week, start_time, end_time, room, class_name FROM user_schedules");
+    $overlapCols = userSchedulesHasOverlapExceptionColumns($pdo);
+    $allowOverlapSelect = $overlapCols['allow_overlap'] ? 'COALESCE(allow_overlap, 0)' : '0';
+    $isResearchClassSelect = $overlapCols['is_research_class'] ? 'COALESCE(is_research_class, 0)' : '0';
+
+    $stmt = $pdo->query("SELECT user_id, day_of_week, start_time, end_time, room, class_name, {$allowOverlapSelect} AS allow_overlap, {$isResearchClassSelect} AS is_research_class FROM user_schedules");
     $schedules = [];
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $dowNorm = normalize_user_schedule_day_to_week_int($row['day_of_week'] ?? '');
@@ -2082,6 +2746,8 @@ function fetchUserSchedules($pdo)
             continue;
         }
         $row['day_of_week'] = $dowNorm;
+        $row['allow_overlap'] = (int) ($row['allow_overlap'] ?? 0);
+        $row['is_research_class'] = (int) ($row['is_research_class'] ?? 0);
         $schedules[$row['user_id']][] = $row;
     }
 
@@ -2289,7 +2955,7 @@ function geneticAlgorithm(
         }
         $signatureSeen[$sigCandidate] = true;
         $alternateSchedules[] = copyDefenseScheduleForPostProcess($candidateSol);
-        if (count($alternateSchedules) >= 2) {
+        if (count($alternateSchedules) >= 5) {
             break;
         }
     }
@@ -2385,11 +3051,31 @@ function crossover($parent1, $parent2, $userSchedules, array $slotsByTeamDay, ar
 
             $tid = (int) $defense['team_id'];
             $eligible = $eligibleDaysByTeam[$tid] ?? [];
+            
+            // Try to pick a new day with valid slots
+            $dayToUse = $defense['day'];
             if (!empty($eligible)) {
-                $defense['day'] = $eligible[array_rand($eligible)];
+                // Try eligible days until we find one with slots
+                $eligibleShuffled = $eligible;
+                shuffle($eligibleShuffled);
+                foreach ($eligibleShuffled as $candidateDay) {
+                    $slotsForDay = scheduler_slots_for_team_day($slotsByTeamDay, $tid, $candidateDay);
+                    if (!empty($slotsForDay)) {
+                        $dayToUse = $candidateDay;
+                        break;
+                    }
+                }
             }
+            
+            $defense['day'] = $dayToUse;
             $slots = scheduler_slots_for_team_day($slotsByTeamDay, $tid, $defense['day']);
-            $defense['time_slot'] = !empty($slots) ? $slots[array_rand($slots)] : $defense['time_slot'];
+            if (empty($slots)) {
+                // No valid slots for this team on any eligible day; repair attempt failed
+                error_log("Crossover: team $tid has no valid slots even on eligible days; repair failed");
+                $attempts = $maxAttempts; // Force exit of repair loop
+                break;
+            }
+            $defense['time_slot'] = $slots[array_rand($slots)];
             $defense['room'] = $rooms[array_rand($rooms)];
 
             $team = fetchTeamById($parent1->pdo, $defense['team_id']);
@@ -2693,8 +3379,11 @@ function prepareScheduleData($pdo, $schedule)
                 $slotMapFb = $GLOBALS['schedulerSlotsByTeamDay'] ?? null;
                 $pickDayFb = is_array($eligibleFb) && !empty($eligibleFb) ? $eligibleFb[array_rand($eligibleFb)] : date('n/j/Y');
                 $slotOpts = scheduler_slots_for_team_day($slotMapFb, (int) $missingTeamId, $pickDayFb);
-                $postSlots = isset($_POST['timeSlots']) && is_array($_POST['timeSlots']) ? $_POST['timeSlots'] : [];
-                $pickTimeFb = !empty($slotOpts) ? $slotOpts[array_rand($slotOpts)] : (!empty($postSlots) ? $postSlots[array_rand($postSlots)] : '08:00');
+                if (empty($slotOpts)) {
+                    error_log("No candidate slot available for fallback team $missingTeamId; skipping fallback (will remain unresolved)");
+                    continue;
+                }
+                $pickTimeFb = $slotOpts[array_rand($slotOpts)];
 
                 $rooms = $_POST['rooms'];
                 $panelists = fetchPanelists($pdo);
@@ -2919,8 +3608,11 @@ function saveScheduleToDatabase($pdo, $schedule)
                     $slotMapFb = $GLOBALS['schedulerSlotsByTeamDay'] ?? null;
                     $pickDayFb = is_array($eligibleFb) && !empty($eligibleFb) ? $eligibleFb[array_rand($eligibleFb)] : date('n/j/Y');
                     $slotOpts = scheduler_slots_for_team_day($slotMapFb, (int) $missingTeamId, $pickDayFb);
-                    $postSlots = isset($_POST['timeSlots']) && is_array($_POST['timeSlots']) ? $_POST['timeSlots'] : [];
-                    $pickTimeFb = !empty($slotOpts) ? $slotOpts[array_rand($slotOpts)] : (!empty($postSlots) ? $postSlots[array_rand($postSlots)] : '08:00');
+                    if (empty($slotOpts)) {
+                        error_log("No candidate slot available for fallback team $missingTeamId; skipping fallback (will remain unresolved)");
+                        continue;
+                    }
+                    $pickTimeFb = $slotOpts[array_rand($slotOpts)];
 
                     $rooms = $_POST['rooms'];
                     $panelists = fetchPanelists($pdo);
@@ -3071,6 +3763,140 @@ function calculateDefenseFitness($pdo, $defense)
     return $fitness;
 }
 
+function scheduleClockToMinutes($clock)
+{
+    $frag = scheduler_time_fragment_from_db($clock);
+    if ($frag === '') {
+        return null;
+    }
+    $parts = explode(':', $frag);
+    if (count($parts) < 2) {
+        return null;
+    }
+    $h = (int) $parts[0];
+    $m = (int) $parts[1];
+    if ($h < 0 || $h > 23 || $m < 0 || $m > 59) {
+        return null;
+    }
+
+    return ($h * 60) + $m;
+}
+
+function computeScheduleQualityMetrics(array $preparedRows): array
+{
+    if (empty($preparedRows)) {
+        return [
+            'score' => 0.0,
+            'utilization_pct' => 0.0,
+            'avg_gap_minutes' => 0.0,
+            'room_balance_std' => 0.0,
+            'morning_ratio_pct' => 0.0,
+        ];
+    }
+
+    $rowsByDay = [];
+    $roomLoadMin = [];
+    $morningStarts = 0;
+    $totalRows = 0;
+    $sumDuration = 0;
+
+    foreach ($preparedRows as $row) {
+        $day = (string) ($row['schedule_date'] ?? '');
+        $startMin = scheduleClockToMinutes($row['start_time'] ?? '');
+        $endMin = scheduleClockToMinutes($row['end_time'] ?? '');
+        if ($day === '' || $startMin === null || $endMin === null || $endMin <= $startMin) {
+            continue;
+        }
+
+        $duration = $endMin - $startMin;
+        $sumDuration += $duration;
+        $totalRows++;
+
+        if ($startMin < 12 * 60) {
+            $morningStarts++;
+        }
+
+        $room = trim((string) ($row['room'] ?? ''));
+        if ($room === '') {
+            $room = 'UNASSIGNED';
+        }
+        $roomLoadMin[$room] = ($roomLoadMin[$room] ?? 0) + $duration;
+
+        $rowsByDay[$day][] = [
+            'start' => $startMin,
+            'end' => $endMin,
+            'room' => $room,
+        ];
+    }
+
+    if ($totalRows === 0) {
+        return [
+            'score' => 0.0,
+            'utilization_pct' => 0.0,
+            'avg_gap_minutes' => 0.0,
+            'room_balance_std' => 0.0,
+            'morning_ratio_pct' => 0.0,
+        ];
+    }
+
+    $totalGap = 0;
+    $gapCount = 0;
+    $totalSpan = 0;
+    foreach ($rowsByDay as $dayRows) {
+        usort($dayRows, static function ($a, $b) {
+            return $a['start'] <=> $b['start'];
+        });
+
+        $minStart = $dayRows[0]['start'];
+        $maxEnd = $dayRows[0]['end'];
+        $prevEnd = $dayRows[0]['end'];
+
+        for ($i = 1; $i < count($dayRows); $i++) {
+            $curr = $dayRows[$i];
+            if ($curr['start'] > $prevEnd) {
+                $totalGap += ($curr['start'] - $prevEnd);
+                $gapCount++;
+            }
+            if ($curr['end'] > $maxEnd) {
+                $maxEnd = $curr['end'];
+            }
+            if ($curr['end'] > $prevEnd) {
+                $prevEnd = $curr['end'];
+            }
+        }
+
+        $totalSpan += max(0, $maxEnd - $minStart);
+    }
+
+    $avgGap = $gapCount > 0 ? ($totalGap / $gapCount) : 0.0;
+    $utilization = $totalSpan > 0 ? min(1.0, $sumDuration / $totalSpan) : 0.0;
+
+    $loads = array_values($roomLoadMin);
+    $roomStd = 0.0;
+    if (count($loads) > 1) {
+        $mean = array_sum($loads) / count($loads);
+        $variance = 0.0;
+        foreach ($loads as $load) {
+            $variance += pow($load - $mean, 2);
+        }
+        $roomStd = sqrt($variance / count($loads));
+    }
+
+    $morningRatio = $totalRows > 0 ? ($morningStarts / $totalRows) : 0.0;
+    $score = (35.0 * $utilization)
+        + (12.0 * $morningRatio)
+        - (0.07 * $avgGap)
+        - (0.02 * $roomStd);
+
+    return [
+        'score' => round($score, 2),
+        'utilization_pct' => round($utilization * 100, 2),
+        'avg_gap_minutes' => round($avgGap, 2),
+        'room_balance_std' => round($roomStd, 2),
+        'morning_ratio_pct' => round($morningRatio * 100, 2),
+    ];
+}
+
 class DefenseSchedule
 {
     public $pdo;  // Change this to public
@@ -3098,29 +3924,41 @@ class DefenseSchedule
 
             $tidConst = (int) $team['id'];
             $eligibleConst = isset($eligibleDaysByTeam[$tidConst]) ? $eligibleDaysByTeam[$tidConst] : [];
-            if (!empty($eligibleConst)) {
-                $dayPick = $eligibleConst[array_rand($eligibleConst)];
-            } elseif (isset($_POST['days']) && is_array($_POST['days']) && !empty($_POST['days'])) {
-                $dayPick = $_POST['days'][array_rand($_POST['days'])];
-            } else {
-                $dayPick = date('n/j/Y');
+            $eligibleWithSlots = [];
+            foreach ($eligibleConst as $dayCandidate) {
+                $slotCandidateList = scheduler_slots_for_team_day($slotsByTeamDay, $tidConst, $dayCandidate);
+                if (!empty($slotCandidateList)) {
+                    $eligibleWithSlots[] = $dayCandidate;
+                }
             }
-            $slotList = scheduler_slots_for_team_day($slotsByTeamDay, $tidConst, $dayPick);
-            $postSlotsInit = isset($_POST['timeSlots']) && is_array($_POST['timeSlots']) ? $_POST['timeSlots'] : [];
-            $slotPick = !empty($slotList)
-                ? $slotList[array_rand($slotList)]
-                : (!empty($postSlotsInit) ? $postSlotsInit[array_rand($postSlotsInit)] : '08:00');
 
-            $defense = [
-                'team_id' => $team['id'],
-                'panelist_ids' => $selectedPanelists,
-                'room' => $rooms[array_rand($rooms)],
-                'time_slot' => $slotPick,
-                'day' => $dayPick,
-                'defense_type' => $defenseType
-            ];
-            $this->chromosomes[] = $defense;
-            $this->all_defenses[] = $defense;
+            // Only schedule teams with at least one valid slot on an eligible day.
+            // Teams with no valid slots will remain unscheduled (unresolved).
+            if (!empty($eligibleWithSlots)) {
+                $dayPick = $eligibleWithSlots[array_rand($eligibleWithSlots)];
+                $slotList = scheduler_slots_for_team_day($slotsByTeamDay, $tidConst, $dayPick);
+                $slotPick = !empty($slotList) ? $slotList[array_rand($slotList)] : null;
+
+                // Guard against null slot (should not happen if eligibleWithSlots was built correctly)
+                if ($slotPick === null) {
+                    error_log("WARNING: team $tidConst picked day $dayPick but got null slot; skipping");
+                    continue; // Skip this team; it will be unresolved
+                }
+
+                $defense = [
+                    'team_id' => $team['id'],
+                    'panelist_ids' => $selectedPanelists,
+                    'room' => !empty($rooms) ? $rooms[array_rand($rooms)] : '',
+                    'time_slot' => $slotPick,
+                    'day' => $dayPick,
+                    'defense_type' => $defenseType
+                ];
+                $this->chromosomes[] = $defense;
+                $this->all_defenses[] = $defense;
+            } else {
+                // No valid slots for this team on any eligible day
+                error_log("Team $tidConst has no valid slots in slotsByTeamDay; will remain unscheduled");
+            }
         }
     }
 
@@ -3814,10 +4652,13 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
             foreach ($usersToCheck as $userId) {
                 if (!isset($userSchedules[$userId])) continue;
                 foreach ($userSchedules[$userId] as $sched) {
+                    if (schedulerClassRowAllowsOverlap($sched)) {
+                        continue;
+                    }
                     $schedR = scheduler_user_class_range_on_calendar_day($dYmd, $sched);
                     if ($schedR === null) continue;
                     if (scheduler_slot_ranges_overlap($defStart, $defEnd, $schedR['start'], $schedR['end'])) {
-                        $msg = "USER SCHED CONFLICT: User $userId class ({$sched['start_time']}-{$sched['end_time']}) vs Team {$d['team_id']} on {$d['day']} at {$d['time_slot']}";
+                        $msg = "USER SCHED CONFLICT: User $userId vs Team {$d['team_id']} on {$d['day']} {$d['time_slot']} (" . schedulerClassRowDescriptor($sched) . ")";
                         $allIssues[] = $msg;
                         error_log("PASS $pass: $msg");
                         $issuesThisPass++;
@@ -3992,6 +4833,9 @@ function hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSch
     foreach ($involvedUsers as $userId) {
         if (!isset($userSchedules[$userId])) continue;
         foreach ($userSchedules[$userId] as $sched) {
+            if (schedulerClassRowAllowsOverlap($sched)) {
+                continue;
+            }
             $sr = scheduler_user_class_range_on_calendar_day($myYmd, $sched);
             if ($sr === null) continue;
             if (scheduler_slot_ranges_overlap($dStart, $dEnd, $sr['start'], $sr['end'])) {
@@ -4055,10 +4899,13 @@ function countRemainingConflicts($pdo, $defenses, $duration, $userSchedules, $me
         foreach ($allUsers as $userId) {
             if (!isset($userSchedules[$userId])) continue;
             foreach ($userSchedules[$userId] as $sched) {
+                if (schedulerClassRowAllowsOverlap($sched)) {
+                    continue;
+                }
                 $sr = scheduler_user_class_range_on_calendar_day($dn1, $sched);
                 if ($sr === null) continue;
                 if (scheduler_slot_ranges_overlap($d1Start, $d1End, $sr['start'], $sr['end'])) {
-                    error_log("REMAINING CONFLICT: User $userId schedule vs Team {$d1['team_id']}");
+                    error_log("REMAINING CONFLICT: User $userId schedule vs Team {$d1['team_id']} ({$d1['day']} {$d1['time_slot']}, " . schedulerClassRowDescriptor($sched) . ")");
                     $conflicts++;
                 }
             }

@@ -9,6 +9,16 @@
             </div>
         </div>
 
+        <!-- Scheduler Status -->
+        <div class="row mb-4">
+            <div class="col-12">
+                <div class="bg-light border rounded-3 p-3">
+                    <div id="generationSetting" class="mb-2" style="display: none;"></div>
+                    <div id="scheduleGenerationStatus" class="mt-2"></div>
+                </div>
+            </div>
+        </div>
+
         <!-- Defense Schedule Management Controls -->
         <div class="row">
             <div class="col-12">
@@ -78,14 +88,6 @@
             </div>
         </div>
 
-        <!-- Settings display area -->
-        <div class="row">
-            <div class="col-12">
-                <div id="generationSetting" class="bg-light p-3 rounded" style="display: none;"></div>
-                <span id="scheduleGenerationStatusSpan" class="text-muted"></span>
-            </div>
-        </div>
-
         <!-- Modal for Scheduler Settings -->
         <div class="modal fade" id="schedulerSettingsModal" tabindex="-1" aria-labelledby="schedulerSettingsModalLabel" aria-hidden="true">
             <div class="modal-dialog">
@@ -131,7 +133,8 @@
                                 // Define validateInputs and other functions at the global scope
                                 // Declare global variables
                                 let timeDurationInput, startTimeInput, endTimeInput, daysInput, roomsInput, sectionSelect, 
-                                    saveButton, statusElement, includeLunchBreakCheckbox, validationModeSelect;
+                                    saveButton, statusElement, includeLunchBreakCheckbox, validationModeSelect,
+                                    schedulerEstimateTimer = null, schedulerRunning = false;
 
                                 // Define the correctTimeDuration function in global scope
                                 function correctTimeDuration() {
@@ -402,6 +405,149 @@
                                         });
                                     });
 
+                                    // Build discrete start times (same rules as Generate) for server-side feasibility count.
+                                    function buildSchedulerTimeSlotsArray() {
+                                        const duration = parseFloat(document.getElementById('timeDuration')?.value);
+                                        const startTime = document.getElementById('startTime')?.value;
+                                        const endTime = document.getElementById('endTime')?.value;
+                                        if (!startTime || !endTime || !Number.isFinite(duration) || duration <= 0) {
+                                            return [];
+                                        }
+                                        const increment = (duration % 1 === 0) ? 60 : 30;
+                                        let currentTime = new Date(`1970-01-01T${startTime}`);
+                                        if (duration % 1 === 0) {
+                                            currentTime.setMinutes(0);
+                                        }
+                                        const endDateTime = new Date(`1970-01-01T${endTime}`);
+                                        function slotPasses2030Ceiling(slotHHMM, durHrs) {
+                                            const pt = /^(\d{1,2}):(\d{2})$/.exec(String(slotHHMM).trim()) || /^(\d{1,2}):(\d{2}):\d{2}$/.exec(String(slotHHMM).trim());
+                                            if (!pt) return false;
+                                            const hh = parseInt(pt[1], 10);
+                                            const mm = parseInt(pt[2], 10);
+                                            if (Number.isNaN(hh) || Number.isNaN(mm)) return false;
+                                            const startMin = hh * 60 + mm;
+                                            const capMin = 20 * 60 + 30;
+                                            const endMin = startMin + Math.round(Number(durHrs) * 60);
+                                            return endMin <= capMin;
+                                        }
+                                        const timeSlots = [];
+                                        while (currentTime < endDateTime) {
+                                            const hhmm = currentTime.toTimeString().substring(0, 5);
+                                            if (slotPasses2030Ceiling(hhmm, duration)) {
+                                                timeSlots.push(hhmm);
+                                            }
+                                            currentTime.setMinutes(currentTime.getMinutes() + increment);
+                                        }
+                                        return timeSlots;
+                                    }
+
+                                    function requestSchedulerSlotEstimate() {
+                                        const el = document.getElementById('schedulerSlotEstimate');
+                                        if (!el) return;
+
+                                        const generateBtn = document.getElementById('generateSchedule');
+                                        const escapeHtml = function(value) {
+                                            return String(value)
+                                                .replace(/&/g, '&amp;')
+                                                .replace(/</g, '&lt;')
+                                                .replace(/>/g, '&gt;')
+                                                .replace(/"/g, '&quot;')
+                                                .replace(/'/g, '&#39;');
+                                        };
+
+                                        const rooms = (document.getElementById('rooms')?.value || '').split(',').map(r => r.trim()).filter(Boolean);
+                                        const days = (document.getElementById('days')?.value || '').split(',').map(d => d.trim()).filter(Boolean);
+                                        const duration = parseFloat(document.getElementById('timeDuration')?.value);
+                                        const timeSlots = buildSchedulerTimeSlotsArray();
+                                        const sectionHidden = document.getElementById('selectedSection');
+                                        const sectionSel = document.getElementById('sectionSelect');
+                                        const section = (sectionHidden && sectionHidden.value) ? sectionHidden.value : (sectionSel ? sectionSel.value : '');
+
+                                        if (!rooms.length || !days.length || !Number.isFinite(duration) || duration <= 0 || !timeSlots.length) {
+                                            el.innerHTML = '<span class="text-muted">Save valid settings to see how many conflict-free placements exist after class schedules are loaded.</span>';
+                                            return;
+                                        }
+
+                                        el.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Loading class schedules and counting feasible slots…</span>';
+
+                                        $.ajax({
+                                            url: '../dashboard/includes/run_scheduler.php',
+                                            method: 'POST',
+                                            data: {
+                                                estimate_slots: 'true',
+                                                rooms: rooms,
+                                                days: days,
+                                                timeSlots: timeSlots,
+                                                timeDuration: duration,
+                                                selectedSection: section,
+                                                validationMode: document.getElementById('validationMode') ? document.getElementById('validationMode').value : 'hybrid'
+                                            },
+                                            dataType: 'json',
+                                            success: function(res) {
+                                                if (!res || !res.success) {
+                                                    el.innerHTML = '<span class="text-danger">' + (res && res.message ? res.message : 'Could not estimate slots.') + '</span>';
+                                                    if (generateBtn) {
+                                                        generateBtn.disabled = true;
+                                                    }
+                                                    return;
+                                                }
+                                                const n = res.feasible_placement_count;
+                                                const teams = res.teams_considered != null ? res.teams_considered : '—';
+                                                const maxChk = res.theoretical_max_checked != null ? res.theoretical_max_checked : '—';
+                                                const blockedByDay = res.blocked_time_slots_by_day && typeof res.blocked_time_slots_by_day === 'object'
+                                                    ? res.blocked_time_slots_by_day
+                                                    : {};
+                                                const blockedDays = Object.keys(blockedByDay);
+                                                let warnHtml = '';
+                                                if (Array.isArray(res.estimate_warnings) && res.estimate_warnings.length) {
+                                                    warnHtml = '<ul class="mb-0 mt-2 text-warning-emphasis small ps-3">' +
+                                                        res.estimate_warnings.map(function(w) {
+                                                            return '<li>' + String(w).replace(/</g, '&lt;') + '</li>';
+                                                        }).join('') + '</ul>';
+                                                }
+                                                let blockedHtml = '';
+                                                if (blockedDays.length) {
+                                                    blockedHtml = '<div class="alert alert-warning mt-2 mb-0 small">' +
+                                                        '<div class="fw-semibold mb-1">Blocked start times to remove</div>' +
+                                                        '<ul class="mb-0 ps-3">' +
+                                                        blockedDays.slice(0, 6).map(function(day) {
+                                                            const slots = Array.isArray(blockedByDay[day]) ? blockedByDay[day] : [];
+                                                            const slotHtml = slots.slice(0, 6).map(function(slot) {
+                                                                const reasons = Array.isArray(slot.reasons) && slot.reasons.length
+                                                                    ? '<div class="text-muted">' + slot.reasons.map(function(reason) {
+                                                                        return escapeHtml(reason);
+                                                                    }).join('<br>') + '</div>'
+                                                                    : '';
+                                                                return '<li><strong>' + escapeHtml(slot.time_slot) + '</strong>' + reasons + '</li>';
+                                                            }).join('');
+                                                            return '<li><strong>' + escapeHtml(day) + '</strong><ul class="mb-0 ps-3">' + slotHtml + '</ul></li>';
+                                                        }).join('') +
+                                                        '</ul>' +
+                                                    '</div>';
+                                                }
+                                                if (generateBtn) {
+                                                    generateBtn.disabled = n <= 0;
+                                                }
+                                                if (n > 0) {
+                                                    el.innerHTML = '<span class="text-success fw-semibold">' + n + '</span> conflict-free placement(s) for <span class="text-muted">' + teams + ' team(s)</span> (student + faculty class loads applied)'
+                                                        + (maxChk !== '—' ? ' <span class="text-muted">(upper bound naive combinations: ' + maxChk + ')</span>.' : '.') + warnHtml + blockedHtml;
+                                                } else {
+                                                    el.innerHTML = '<span class="text-danger fw-semibold">0</span> conflict-free placements — class conflicts remove all available start times for the current rooms/dates/time window.' + warnHtml + blockedHtml;
+                                                }
+                                            },
+                                            error: function() {
+                                                el.innerHTML = '<span class="text-danger">Failed to reach server for slot estimate.</span>';
+                                            }
+                                        });
+                                    }
+
+                                    function debouncedSchedulerSlotEstimate() {
+                                        if (schedulerEstimateTimer) {
+                                            clearTimeout(schedulerEstimateTimer);
+                                        }
+                                        schedulerEstimateTimer = setTimeout(requestSchedulerSlotEstimate, 400);
+                                    }
+
                                     console.log('DOM Content Loaded: All event listeners attached');
                                 });
                             </script>
@@ -442,153 +588,6 @@
                                     console.log('jQuery ready: About to call updateTeamCount');
                                     updateTeamCount(validateInputs);
                                     
-                                    // Global flag to prevent duplicate scheduler runs
-                                    let schedulerRunning = false;
-                                let schedulerEstimateTimer = null;
-
-                                /** Build discrete start times (same rules as Generate) for server-side feasibility count. */
-                                function buildSchedulerTimeSlotsArray() {
-                                    const duration = parseFloat(document.getElementById('timeDuration')?.value);
-                                    const startTime = document.getElementById('startTime')?.value;
-                                    const endTime = document.getElementById('endTime')?.value;
-                                    if (!startTime || !endTime || !Number.isFinite(duration) || duration <= 0) {
-                                        return [];
-                                    }
-                                    const increment = (duration % 1 === 0) ? 60 : 30;
-                                    let currentTime = new Date(`1970-01-01T${startTime}`);
-                                    if (duration % 1 === 0) {
-                                        currentTime.setMinutes(0);
-                                    }
-                                    const endDateTime = new Date(`1970-01-01T${endTime}`);
-                                    function slotPasses2030Ceiling(slotHHMM, durHrs) {
-                                        const pt = /^(\d{1,2}):(\d{2})$/.exec(String(slotHHMM).trim()) || /^(\d{1,2}):(\d{2}):\d{2}$/.exec(String(slotHHMM).trim());
-                                        if (!pt) return false;
-                                        const hh = parseInt(pt[1], 10);
-                                        const mm = parseInt(pt[2], 10);
-                                        if (Number.isNaN(hh) || Number.isNaN(mm)) return false;
-                                        const startMin = hh * 60 + mm;
-                                        const capMin = 20 * 60 + 30;
-                                        const endMin = startMin + Math.round(Number(durHrs) * 60);
-                                        return endMin <= capMin;
-                                    }
-                                    const timeSlots = [];
-                                    while (currentTime < endDateTime) {
-                                        const hhmm = currentTime.toTimeString().substring(0, 5);
-                                        if (slotPasses2030Ceiling(hhmm, duration)) {
-                                            timeSlots.push(hhmm);
-                                        }
-                                        currentTime.setMinutes(currentTime.getMinutes() + increment);
-                                    }
-                                    return timeSlots;
-                                }
-
-                                function requestSchedulerSlotEstimate() {
-                                    const el = document.getElementById('schedulerSlotEstimate');
-                                    if (!el) return;
-
-                                    const generateBtn = document.getElementById('generateSchedule');
-                                    const escapeHtml = function(value) {
-                                        return String(value)
-                                            .replace(/&/g, '&amp;')
-                                            .replace(/</g, '&lt;')
-                                            .replace(/>/g, '&gt;')
-                                            .replace(/"/g, '&quot;')
-                                            .replace(/'/g, '&#39;');
-                                    };
-
-                                    const rooms = (document.getElementById('rooms')?.value || '').split(',').map(r => r.trim()).filter(Boolean);
-                                    const days = (document.getElementById('days')?.value || '').split(',').map(d => d.trim()).filter(Boolean);
-                                    const duration = parseFloat(document.getElementById('timeDuration')?.value);
-                                    const timeSlots = buildSchedulerTimeSlotsArray();
-                                    const sectionHidden = document.getElementById('selectedSection');
-                                    const sectionSel = document.getElementById('sectionSelect');
-                                    const section = (sectionHidden && sectionHidden.value) ? sectionHidden.value : (sectionSel ? sectionSel.value : '');
-
-                                    if (!rooms.length || !days.length || !Number.isFinite(duration) || duration <= 0 || !timeSlots.length) {
-                                        el.innerHTML = '<span class="text-muted">Save valid settings to see how many conflict-free placements exist after class schedules are loaded.</span>';
-                                        return;
-                                    }
-
-                                    el.innerHTML = '<span class="text-muted"><i class="fas fa-spinner fa-spin me-1"></i>Loading class schedules and counting feasible slots…</span>';
-
-                                    $.ajax({
-                                        url: '../dashboard/includes/run_scheduler.php',
-                                        method: 'POST',
-                                        data: {
-                                            estimate_slots: 'true',
-                                            rooms: rooms,
-                                            days: days,
-                                            timeSlots: timeSlots,
-                                            timeDuration: duration,
-                                            selectedSection: section,
-                                            validationMode: document.getElementById('validationMode') ? document.getElementById('validationMode').value : 'hybrid'
-                                        },
-                                        dataType: 'json',
-                                        success: function(res) {
-                                            if (!res || !res.success) {
-                                                el.innerHTML = '<span class="text-danger">' + (res && res.message ? res.message : 'Could not estimate slots.') + '</span>';
-                                                if (generateBtn) {
-                                                    generateBtn.disabled = true;
-                                                }
-                                                return;
-                                            }
-                                            const n = res.feasible_placement_count;
-                                            const teams = res.teams_considered != null ? res.teams_considered : '—';
-                                            const maxChk = res.theoretical_max_checked != null ? res.theoretical_max_checked : '—';
-                                            const blockedByDay = res.blocked_time_slots_by_day && typeof res.blocked_time_slots_by_day === 'object'
-                                                ? res.blocked_time_slots_by_day
-                                                : {};
-                                            const blockedDays = Object.keys(blockedByDay);
-                                            let warnHtml = '';
-                                            if (Array.isArray(res.estimate_warnings) && res.estimate_warnings.length) {
-                                                warnHtml = '<ul class="mb-0 mt-2 text-warning-emphasis small ps-3">' +
-                                                    res.estimate_warnings.map(function(w) {
-                                                        return '<li>' + String(w).replace(/</g, '&lt;') + '</li>';
-                                                    }).join('') + '</ul>';
-                                            }
-                                            let blockedHtml = '';
-                                            if (blockedDays.length) {
-                                                blockedHtml = '<div class="alert alert-warning mt-2 mb-0 small">' +
-                                                    '<div class="fw-semibold mb-1">Blocked start times to remove</div>' +
-                                                    '<ul class="mb-0 ps-3">' +
-                                                    blockedDays.slice(0, 6).map(function(day) {
-                                                        const slots = Array.isArray(blockedByDay[day]) ? blockedByDay[day] : [];
-                                                        const slotHtml = slots.slice(0, 6).map(function(slot) {
-                                                            const reasons = Array.isArray(slot.reasons) && slot.reasons.length
-                                                                ? '<div class="text-muted">' + slot.reasons.map(function(reason) {
-                                                                    return escapeHtml(reason);
-                                                                }).join('<br>') + '</div>'
-                                                                : '';
-                                                            return '<li><strong>' + escapeHtml(slot.time_slot) + '</strong>' + reasons + '</li>';
-                                                        }).join('');
-                                                        return '<li><strong>' + escapeHtml(day) + '</strong><ul class="mb-0 ps-3">' + slotHtml + '</ul></li>';
-                                                    }).join('') +
-                                                    '</ul>' +
-                                                '</div>';
-                                            }
-                                            if (generateBtn) {
-                                                generateBtn.disabled = n <= 0;
-                                            }
-                                            if (n > 0) {
-                                                el.innerHTML = '<span class="text-success fw-semibold">' + n + '</span> conflict-free placement(s) for <span class="text-muted">' + teams + ' team(s)</span> (student + faculty class loads applied)'
-                                                    + (maxChk !== '—' ? ' <span class="text-muted">(upper bound naive combinations: ' + maxChk + ')</span>.' : '.') + warnHtml + blockedHtml;
-                                            } else {
-                                                el.innerHTML = '<span class="text-danger fw-semibold">0</span> conflict-free placements — class conflicts remove all available start times for the current rooms/dates/time window.' + warnHtml + blockedHtml;
-                                            }
-                                        },
-                                        error: function() {
-                                            el.innerHTML = '<span class="text-danger">Failed to reach server for slot estimate.</span>';
-                                        }
-                                    });
-                                }
-
-                                function debouncedSchedulerSlotEstimate() {
-                                    if (schedulerEstimateTimer) {
-                                        clearTimeout(schedulerEstimateTimer);
-                                    }
-                                    schedulerEstimateTimer = setTimeout(requestSchedulerSlotEstimate, 400);
-                                }
-
                                     // Enhanced loading state management
                                     function showLoadingState() {
                                         const statusElement = document.getElementById('scheduleGenerationStatus');
@@ -997,7 +996,6 @@
                         $totalTeams = $row['total'] ?? 0;
                         ?>
                         <div class="mt-3">Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
-                        <div id="scheduleGenerationStatus" class="mt-2"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1044,7 +1042,7 @@
                                         "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
                                         "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No") + "<br>" +
                                         "Validation Mode: " + (document.getElementById("validationMode") ? document.getElementById("validationMode").value : "hybrid") +
-                                        '<div class="mt-3 pt-2 border-top"><div id="schedulerSlotEstimate" class="small text-muted">Loading class schedules…</div></div>';
+                                        '<div class="mt-3 pt-2 border-top"><div id="schedulerSlotEstimate" class="small text-muted">Class schedule estimate will appear below after you save settings.</div></div>';
                                     const generationSettingEl = document.getElementById("generationSetting");
                                     generationSettingEl.innerHTML = settingsOutput;
                                     generationSettingEl.style.display = 'block';
@@ -2032,8 +2030,20 @@ eventContent: function(arg) {
                         const generatedEnd = toMinutes(schedule.end_time);
 
                         classSchedules.forEach(classSchedule => {
+                            const classAllowsOverlap = Number(classSchedule.allow_overlap || 0) === 1 || Number(classSchedule.is_research_class || 0) === 1;
+                            if (classAllowsOverlap) {
+                                return;
+                            }
+
+                            const appliesList = Array.isArray(classSchedule.applies_to_team_ids)
+                                ? classSchedule.applies_to_team_ids.map(id => Number(id)).filter(Number.isFinite)
+                                : [];
                             const applies = classSchedule.applies_to_team_id;
-                            if (applies !== null && applies !== undefined && String(applies).trim() !== '') {
+                            if (appliesList.length > 0) {
+                                if (!appliesList.includes(Number(schedule.team_id))) {
+                                    return;
+                                }
+                            } else if (applies !== null && applies !== undefined && String(applies).trim() !== '') {
                                 if (Number(applies) !== Number(schedule.team_id)) {
                                     return;
                                 }
@@ -2120,7 +2130,7 @@ eventContent: function(arg) {
                             <div class="d-flex flex-wrap justify-content-between align-items-center gap-2 mb-2">
                                 <div>
                                     <div class="fw-bold">Preview diagnostics</div>
-                                    <div class="text-muted small">Overlay = each team’s own class rows (section + personal). Post‑GA list = server repair log, not the overlay.</div>
+                                    <div class="text-muted small">Overlay = unique class blocks for the selected teams. Post‑GA list = server repair log, not the overlay.</div>
                                 </div>
                                 <div class="d-flex flex-wrap gap-2">
                                     <span class="preview-overlay-chip">Teams with issues: ${validationCounts.teams || 0}</span>
@@ -2191,7 +2201,8 @@ eventContent: function(arg) {
                     });
                     previewUnresolvedTeamIds = Array.isArray(meta.unresolved_team_ids) ? meta.unresolved_team_ids.map(Number).filter(Number.isFinite) : [];
 
-                    const previewModal = new bootstrap.Modal(document.getElementById('schedulePreviewModal'));
+                    const previewModalEl = document.getElementById('schedulePreviewModal');
+                    const previewModal = new bootstrap.Modal(previewModalEl);
                     if (openModal) {
                         previewModal.show();
                         setupPreviewVariantsUI(window.__defensePreviewVariants || []);
@@ -2264,7 +2275,6 @@ eventContent: function(arg) {
 
                         renderPreviewDiagnostics(previewGenerationMeta, conflictDetails);
 
-                        const previewModalEl = document.getElementById('schedulePreviewModal');
                         const initCal = function() {
                             if (previewCalendarInstance) previewCalendarInstance.destroy();
                             const calEl = document.getElementById('previewCalendar');
@@ -2356,7 +2366,11 @@ eventContent: function(arg) {
                             previewModalEl.removeEventListener('shown.bs.modal', initCal);
                         };
 
-                        previewModalEl.addEventListener('shown.bs.modal', initCal, { once: true });
+                        if (!openModal && previewModalEl.classList.contains('show')) {
+                            initCal();
+                        } else {
+                            previewModalEl.addEventListener('shown.bs.modal', initCal, { once: true });
+                        }
                     });
                 }
 

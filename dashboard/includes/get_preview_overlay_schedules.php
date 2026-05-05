@@ -54,6 +54,19 @@ try {
 
     $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
 
+    $allowOverlapColumnExists = false;
+    $isResearchClassColumnExists = false;
+    try {
+        $colStmt = $pdo->query("SHOW COLUMNS FROM user_schedules WHERE Field IN ('allow_overlap','is_research_class')");
+        $foundCols = $colStmt->fetchAll(PDO::FETCH_COLUMN);
+        $allowOverlapColumnExists = in_array('allow_overlap', $foundCols, true);
+        $isResearchClassColumnExists = in_array('is_research_class', $foundCols, true);
+    } catch (Throwable $e) {
+        error_log('get_preview_overlay_schedules column check failed: ' . $e->getMessage());
+    }
+    $allowOverlapExpr = $allowOverlapColumnExists ? 'COALESCE(us.allow_overlap, 0)' : '0';
+    $isResearchClassExpr = $isResearchClassColumnExists ? 'COALESCE(us.is_research_class, 0)' : '0';
+
     /* Per-team rows: section template applies only to students on that specific team_id. */
     $sql = "
         SELECT DISTINCT
@@ -68,6 +81,8 @@ try {
             us.class_name,
             us.room,
             us.section,
+            {$allowOverlapExpr} AS allow_overlap,
+            {$isResearchClassExpr} AS is_research_class,
             p.name AS program_name,
             p.specialization
         FROM team_members tm
@@ -113,6 +128,8 @@ try {
             us.class_name,
             us.room,
             us.section,
+            {$allowOverlapExpr} AS allow_overlap,
+            {$isResearchClassExpr} AS is_research_class,
             p.name AS program_name,
             p.specialization
         FROM team_members tm
@@ -143,6 +160,8 @@ try {
                 us.class_name,
                 us.room,
                 us.section,
+                {$allowOverlapExpr} AS allow_overlap,
+                {$isResearchClassExpr} AS is_research_class,
                 p.name AS program_name,
                 p.specialization
             FROM team_members tm
@@ -170,14 +189,25 @@ try {
             continue;
         }
         $tid = isset($row['applies_to_team_id']) ? (int) $row['applies_to_team_id'] : 0;
-        $k = $tid . '|' . $d . '|' . trim((string) $row['start_time']) . '|' . trim((string) $row['end_time']) . '|'
-            . trim((string) ($row['class_name'] ?? ''));
+        $k = (string) ($row['id'] ?? $row['user_schedule_id'] ?? '') . '|' . $d . '|'
+            . trim((string) $row['start_time']) . '|' . trim((string) $row['end_time']) . '|'
+            . trim((string) ($row['class_name'] ?? '')) . '|' . trim((string) ($row['section'] ?? '')) . '|' . trim((string) ($row['room'] ?? ''));
         if (isset($seenKeys[$k])) {
+            $existingIndex = $seenKeys[$k];
+            if (!isset($normalized[$existingIndex]['applies_to_team_ids'])) {
+                $normalized[$existingIndex]['applies_to_team_ids'] = [];
+            }
+            if ($tid > 0 && !in_array($tid, $normalized[$existingIndex]['applies_to_team_ids'], true)) {
+                $normalized[$existingIndex]['applies_to_team_ids'][] = $tid;
+            }
             continue;
         }
-        $seenKeys[$k] = true;
+        $seenKeys[$k] = count($normalized);
         $row['day_of_week'] = $d;
         $row['applies_to_team_id'] = $tid > 0 ? $tid : null;
+        $row['applies_to_team_ids'] = $tid > 0 ? [$tid] : [];
+        $row['allow_overlap'] = (int) ($row['allow_overlap'] ?? 0);
+        $row['is_research_class'] = (int) ($row['is_research_class'] ?? 0);
         $normalized[] = $row;
     }
 
