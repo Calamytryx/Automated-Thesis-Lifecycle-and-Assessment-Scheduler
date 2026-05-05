@@ -263,7 +263,7 @@ $(document).ready(function() {
         }
 
         if (filtered.length === 0) {
-            container.html('<p class="text-muted">No users found</p>');
+            container.html('<p class="text-muted">No records found.</p>');
             return;
         }
 

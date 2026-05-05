@@ -950,6 +950,7 @@
                     break;
 
                 case 'first_name':
+                case 'middle_name':
                 case 'last_name':
                     if (this.isTooShort(trimmedValue)) {
                         errors.push('Name must be at least 2 characters long');
@@ -1370,7 +1371,7 @@
             }
 
             // Validate headline and bio only if not empty/null
-            const optionalFields = ['headline', 'bio'];
+            const optionalFields = ['middle_name', 'headline', 'bio'];
             optionalFields.forEach(fieldName => {
                 const value = formData.get(fieldName);
                 if (value && value.trim() !== '') {
@@ -1780,7 +1781,7 @@
                                 </div>
                             `;
 
-                            var fieldsToShow = ['username', 'email', 'first_name', 'last_name',
+                            var fieldsToShow = ['username', 'email', 'first_name', 'middle_name', 'last_name',
                                 'gender', 'headline', 'bio'
                             ];
 
@@ -3267,6 +3268,10 @@
                     '<div class="mb-3">' +
                     '<label for="first_name" class="form-label">First Name</label>' +
                     '<input type="text" class="form-control" id="first_name" name="first_name" placeholder="Enter first name" required>' +
+                    '</div>' +
+                    '<div class="mb-3">' +
+                    '<label for="middle_name" class="form-label">Middle Name</label>' +
+                    '<input type="text" class="form-control" id="middle_name" name="middle_name" placeholder="Enter middle name">' +
                     '</div>' +
                     '<div class="mb-3">' +
                     '<label for="last_name" class="form-label">Last Name</label>' +

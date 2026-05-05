@@ -420,7 +420,7 @@
                         if (data.data.length === 0) {
                             tbody.innerHTML = `
                                 <tr>
-                                    <td colspan="5" class="text-center">No matching topics found</td>
+                                    <td colspan="5" class="text-center text-muted">No records found.</td>
                                 </tr>
                             `;
                             return;

@@ -158,7 +158,7 @@ $isProgramsTabReadOnly = ($programsTabUserType === 0 && $programsTabUserId !== 0
           }
 
           if (!data.data || data.data.length === 0) {
-            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-muted">No programs found</td></tr>`;
+            tableBody.innerHTML = `<tr><td colspan="${tableColumns}" class="text-center text-muted">No records found.</td></tr>`;
             return;
           }
 

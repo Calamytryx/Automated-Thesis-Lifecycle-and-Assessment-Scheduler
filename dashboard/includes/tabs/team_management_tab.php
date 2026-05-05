@@ -221,25 +221,30 @@
             fetch(buildUrl(`dashboard/includes/tabs/get_table.php?table=teams&page=${page}&search=${encodeURIComponent(search)}`))
                 .then(response => response.json())
                 .then(data => {
-                    if (data.error) {
-                        console.error('API Error:', data.error);
-                        alert('Error loading groups: ' + data.error);
-                        return;
-                    }
-
-                    if (!data.data || !Array.isArray(data.data)) {
-                        console.error('Invalid data format:', data);
-                        return;
-                    }
-
                     const tbody = document.querySelector('#team_management-table tbody');
                     if (!tbody) return;
                     tbody.innerHTML = '';
 
-                    if (data.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">No groups found</td></tr>';
+                    const teams = Array.isArray(data && data.data) ? data.data : [];
+
+                    if (data && data.error) {
+                        console.error('API Error:', data.error);
+                    }
+
+                    if (!Array.isArray(data && data.data)) {
+                        console.error('Invalid data format:', data);
+                    }
+
+                    if (teams.length === 0) {
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center text-muted">No records found.</td></tr>';
+                        const paginationList = document.querySelector('#team_management-container #pagination .pagination');
+                        if (paginationList) {
+                            paginationList.innerHTML = '';
+                        }
+                        currentPage = page;
+                        return;
                     } else {
-                        data.data.forEach(team => {
+                        teams.forEach(team => {
                             fetch(buildUrl(`api/admin_overrides.php?action=get_team_defense_info&team_id=${team.id}`))
                                 .then(r => r.json())
                                 .then(defenseInfo => {

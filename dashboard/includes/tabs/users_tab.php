@@ -63,6 +63,8 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                 <option value="username:desc">Username (Z-A)</option>
                                 <option value="first_name:asc">First Name (A-Z)</option>
                                 <option value="first_name:desc">First Name (Z-A)</option>
+                                <option value="middle_name:asc">Middle Name (A-Z)</option>
+                                <option value="middle_name:desc">Middle Name (Z-A)</option>
                                 <option value="last_name:asc">Last Name (A-Z)</option>
                                 <option value="last_name:desc">Last Name (Z-A)</option>
                             </select>
@@ -108,6 +110,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                 <th class="d-table-cell d-md-none">User</th>
                                 <th class="d-none d-lg-table-cell">Email</th>
                                 <th class="d-none d-sm-table-cell">First Name</th>
+                                <th class="d-none d-sm-table-cell">Middle Name</th>
                                 <th class="d-none d-sm-table-cell">Last Name</th>
                                 <th class="d-none d-md-table-cell">User Type</th>
                                 <th class="d-none d-md-table-cell">Defense Type</th>
@@ -235,6 +238,12 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                 return defenseTypeMap[defenseType] || '<span class="badge bg-secondary status-badge">N/A</span>';
             };
 
+            const formatUserName = (user) => {
+                return [user.first_name, user.middle_name, user.last_name]
+                    .filter(part => part && String(part).trim() !== '')
+                    .join(' ');
+            };
+
             // Function to load users based on type with search and sorting
             const loadUsers = (userType = 'all', page = 1, search = '', sort = 'id:desc') => {
                 let url = `includes/tabs/get_table.php?table=users&page=${page}`;
@@ -275,7 +284,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                             const tableColumns = document.querySelectorAll('#allUsersTable thead th').length;
                             tableBody.innerHTML = `
                                 <tr>
-                                    <td colspan="${tableColumns}" class="text-center">No matching users found</td>
+                                    <td colspan="${tableColumns}" class="text-center text-muted">No records found.</td>
                                 </tr>
                             `;
                             return;
@@ -292,12 +301,13 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                     <td class="d-table-cell d-md-none">
                                         <div class="fw-bold">${user.username}</div>
                                         <div class="text-muted small d-sm-none">${user.email}</div>
-                                        <div class="text-muted small d-sm-none">${user.first_name} ${user.last_name}</div>
+                                        <div class="text-muted small d-sm-none">${formatUserName(user)}</div>
                                         <div class="d-sm-none mt-1">${getUserTypeBadge(user.usertype)}</div>
                                         <div class="d-md-none mt-1">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</div>
                                     </td>
                                     <td class="d-none d-lg-table-cell">${user.email}</td>
                                     <td class="d-none d-sm-table-cell">${user.first_name}</td>
+                                    <td class="d-none d-sm-table-cell">${user.middle_name || ''}</td>
                                     <td class="d-none d-sm-table-cell">${user.last_name}</td>
                                     <td class="d-none d-md-table-cell">${getUserTypeBadge(user.usertype)}</td>
                                     <td class="d-none d-md-table-cell">${getDefenseTypeBadge(user.next_defense_type, user.usertype)}</td>

@@ -461,7 +461,7 @@
                     tbody.empty();
 
                     if (response.data.length === 0) {
-                        tbody.html('<tr><td colspan="4" class="text-center text-muted">No rubrics found.</td></tr>');
+                        tbody.html('<tr><td colspan="4" class="text-center text-muted">No records found.</td></tr>');
                     } else {
                         response.data.forEach(function(rubric) {
                             let typeName = 'Unknown';

@@ -672,7 +672,7 @@ try {
         // Determine alias based on user type and table
         switch ($table) {
             case 'users':
-                $searchCondition = "(users.username LIKE :search1 OR users.email LIKE :search2 OR users.first_name LIKE :search3 OR users.last_name LIKE :search4)";
+                $searchCondition = "(users.username LIKE :search1 OR users.email LIKE :search2 OR users.first_name LIKE :search3 OR users.middle_name LIKE :search4 OR users.last_name LIKE :search5)";
                 break;
             case 'teams':
                 // Search team code, name, title, and program directly
@@ -821,7 +821,7 @@ try {
 
     // --- Sorting (only for data query) ---
     $allowedSortColumns = [
-        'users' => ['id', 'username', 'email', 'first_name', 'last_name', 'usertype', 'program'],
+        'users' => ['id', 'username', 'email', 'first_name', 'middle_name', 'last_name', 'usertype', 'program'],
         'teams' => ['id', 'team_code', 'name', 'research_title', 'program', 'adviser'], // Added team_code and program
         'defense_schedules' => ['id', 'schedule_date', 'start_time', 'end_time', 'room', 'defense_type', 'approval_status', 'is_finalized', 'team_name', 'thesis_title', 'adviser', 'panelists'], // Added adviser/panelists/status/finalized
         'rubrics' => ['id', 'name', 'description', 'rubric_type', 'defense_type', 'is_active', 'created_at'],

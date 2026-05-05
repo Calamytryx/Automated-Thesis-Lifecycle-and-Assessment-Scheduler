@@ -162,7 +162,7 @@
                                             </tr>';
                                         }
                                     } else {
-                                        echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
+                                        echo '<tr><td colspan="5" class="text-center text-muted">No records found.</td></tr>';
                                     }
                                 } catch (PDOException $e) {
                                     echo '<tr><td colspan="5" class="text-center text-danger">Error loading pages: ' . $e->getMessage() . '</td></tr>';
@@ -280,7 +280,7 @@
                                     </tr>';
                                 }
                             } else {
-                                echo '<tr><td colspan="5" class="text-center">No pages found</td></tr>';
+                                echo '<tr><td colspan="5" class="text-center text-muted">No records found.</td></tr>';
                             }
                             ?>
                         </tbody>

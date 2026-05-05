@@ -92,7 +92,7 @@
 
                     <ul id="selectedRubricsList" class="list-group mb-3">
                         <!-- Selected rubrics will be added here via JS -->
-                        <li class="list-group-item text-muted">No rubrics added yet.</li>
+                        <li class="list-group-item text-muted">No records found.</li>
                     </ul>
                      <div class="alert alert-info small">
                         Drag and drop rubrics to reorder. Enter weight (%) for numerical rubrics. Total weight should ideally be 100%.
@@ -214,7 +214,7 @@ $(document).ready(function() {
                         `);
                     });
                 } else {
-                    tbody.html('<tr><td colspan="4">No rubric groups found.</td></tr>');
+                    tbody.html('<tr><td colspan="4" class="text-center text-muted">No records found.</td></tr>');
                 }
             },
             error: function(xhr, status, error) {
@@ -269,7 +269,7 @@ $(document).ready(function() {
         $('#rubricGroupForm')[0].reset();
         $('#groupId').val('');
         $('#rubricGroupModalTitle').text('Add New Rubric Group');
-        selectedRubricsList.empty().html('<li class="list-group-item text-muted">No rubrics added yet.</li>');
+        selectedRubricsList.empty().html('<li class="list-group-item text-muted">No records found.</li>');
         $('#totalWeightWarning').hide();
         populateAvailableRubricsDropdown(); // Repopulate with all available
     }
@@ -331,7 +331,7 @@ $(document).ready(function() {
         populateAvailableRubricsDropdown();
         // Add placeholder if list becomes empty
         if (selectedRubricsList.children().length === 0) {
-            selectedRubricsList.html('<li class="list-group-item text-muted">No rubrics added yet.</li>');
+            selectedRubricsList.html('<li class="list-group-item text-muted">No records found.</li>');
         }
         updateTotalWeight();
     });
@@ -549,7 +549,7 @@ $(document).ready(function() {
                             `);
                         });
                     } else {
-                         selectedRubricsList.html('<li class="list-group-item text-muted">No rubrics added yet.</li>');
+                         selectedRubricsList.html('<li class="list-group-item text-muted">No records found.</li>');
                     }
 
                     populateAvailableRubricsDropdown(); // Filter dropdown based on newly loaded selection

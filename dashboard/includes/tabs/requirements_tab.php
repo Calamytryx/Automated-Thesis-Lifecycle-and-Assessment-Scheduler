@@ -73,6 +73,9 @@
 
                     const tbody = document.querySelector('#requirements .db-table tbody');
                     tbody.innerHTML = '';
+                    if (!data.data || data.data.length === 0) {
+                        tbody.innerHTML = `<tr><td colspan="${document.querySelectorAll('#requirements-table thead th').length}" class="text-center text-muted">No records found.</td></tr>`;
+                    } else {
                     data.data.forEach(requirement => {
                         // Format template column
                         let templateCell = 'No template';
@@ -113,6 +116,7 @@
                             </tr>
                         `;
                     });
+                    }
 
                     // Update Pagination
                     const pagination = document.querySelector('#requirements .pagination');

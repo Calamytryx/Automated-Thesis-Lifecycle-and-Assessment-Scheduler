@@ -543,7 +543,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modalContent.innerHTML = `
                 <div class="alert alert-info">
                     <i class="bi bi-info-circle me-2"></i>
-                    No teams found matching your search criteria.
+                    No records found.
                 </div>
             `;
         } else {
@@ -828,7 +828,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 modalContent.innerHTML = `
                     <div class="alert alert-info">
                         <i class="bi bi-info-circle me-2"></i>
-                        No teams found matching your search criteria.
+                        No records found.
                     </div>
                 `;
             } else {
@@ -894,7 +894,7 @@ document.addEventListener('DOMContentLoaded', function() {
             modalContent.innerHTML = `
                 <div class="alert alert-warning">
                     <i class="bi bi-exclamation-triangle me-2"></i>
-                    No requirements data available.
+                    No records found.
                 </div>
             `;
             return;

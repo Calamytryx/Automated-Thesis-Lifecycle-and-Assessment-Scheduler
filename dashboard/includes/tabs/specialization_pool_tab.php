@@ -177,7 +177,7 @@ $(document).ready(function() {
         if (specializationsData.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="7" class="text-center text-muted">No specializations found</td>
+                    <td colspan="7" class="text-center text-muted">No records found.</td>
                 </tr>
             `);
             return;

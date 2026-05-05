@@ -115,7 +115,7 @@
                                 <td colspan="5" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-search fs-1 d-block mb-2"></i>
-                                        <p class="mb-0">No research titles found matching your search criteria.</p>
+                                        <p class="mb-0">No records found.</p>
                                     </div>
                                 </td>
                             </tr>

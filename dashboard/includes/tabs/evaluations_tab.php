@@ -48,7 +48,7 @@
         <!-- Empty State -->
         <div id="evaluations-empty" class="text-center py-5" style="display: none;">
             <i class="fas fa-clipboard-list fa-3x text-muted mb-3"></i>
-            <p class="text-muted mb-0">No evaluations available yet.</p>
+            <p class="text-muted mb-0">No records found.</p>
         </div>
     </div>
 
@@ -134,8 +134,8 @@ function renderDashboardEvaluationsTable(data) {
     tbody.empty();
 
     data.forEach(function(team) {
-        const researchTitle = team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No title yet</em>';
-        const adviser = team.adviser ? escapeHtml(team.adviser) : '<em class="text-muted">No adviser</em>';
+        const researchTitle = team.research_title ? escapeHtml(team.research_title) : '<em class="text-muted">No records found.</em>';
+        const adviser = team.adviser ? escapeHtml(team.adviser) : '<em class="text-muted">No records found.</em>';
         const avgScore = team.avg_total_score !== null ? `<strong>${parseFloat(team.avg_total_score).toFixed(2)}</strong>` : '<em class="text-muted">N/A</em>';
         
         const row = `
@@ -275,7 +275,7 @@ function showDashboardEvaluationDetails(teamId) {
             `;
             
             if (panelists.length === 0 || Object.keys(evaluationsByStudent).length === 0) {
-                html += `<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No evaluations recorded yet.</div>`;
+                html += `<div class="alert alert-info"><i class="bi bi-info-circle me-2"></i>No records found.</div>`;
             } else {
                 html += `
                     <div class="table-responsive">

@@ -331,7 +331,7 @@ function displayAssignments(assignments) {
     const tbody = $('#assignmentsBody');
     
     if (!assignments || assignments.length === 0) {
-        tbody.html('<tr><td colspan="4" class="text-center text-muted py-5">No assignments yet</td></tr>');
+        tbody.html('<tr><td colspan="4" class="text-center text-muted py-5">No records found.</td></tr>');
         return;
     }
 

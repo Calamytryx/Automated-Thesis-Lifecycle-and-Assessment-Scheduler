@@ -5,7 +5,7 @@
  *
  * Functions:
  *
- * - updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype)
+ * - updateUser($pdo, $id, $username, $email, $first_name, $middle_name, $last_name, $gender, $headline, $bio, $usertype)
  *   Updates user information in the database.
  *
  * - updateThesisTopic($pdo, $id, $topic, $description, $category, $suggested_by)
@@ -686,19 +686,20 @@ function validateStudentScheduleConflicts($pdo, $teamId, $scheduleDate, $startTi
 }
 
 // Function to update user information
-function updateUser($pdo, $id, $username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype) {
+function updateUser($pdo, $id, $username, $email, $first_name, $middle_name, $last_name, $gender, $headline, $bio, $usertype) {
     // Sanitize all text inputs to prevent HTML/script injection
     $username = sanitize_html_input($username);
     $email = sanitize_html_input($email);
     $first_name = sanitize_html_input($first_name);
+    $middle_name = sanitize_html_input($middle_name);
     $last_name = sanitize_html_input($last_name);
     $gender = sanitize_html_input($gender);
     $headline = sanitize_html_input($headline);
     $bio = sanitize_html_input($bio);
     
-    $sql = "UPDATE users SET username = ?, email = ?, first_name = ?, last_name = ?, gender = ?, headline = ?, bio = ?, usertype = ? WHERE id = ?";
+    $sql = "UPDATE users SET username = ?, email = ?, first_name = ?, middle_name = ?, last_name = ?, gender = ?, headline = ?, bio = ?, usertype = ? WHERE id = ?";
     $stmt = $pdo->prepare($sql);
-    return $stmt->execute([$username, $email, $first_name, $last_name, $gender, $headline, $bio, $usertype, $id]);
+    return $stmt->execute([$username, $email, $first_name, $middle_name, $last_name, $gender, $headline, $bio, $usertype, $id]);
 }
 
 // Function to update thesis topic

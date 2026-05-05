@@ -38,7 +38,7 @@
                     </div>
                     <div class="card-body">
                         <div id="mappedRequirementsContainer">
-                            <p class="text-muted">No requirements mapped yet.</p>
+                            <p class="text-muted">No records found.</p>
                         </div>
                     </div>
                 </div>
@@ -273,7 +273,7 @@
                 html += '</div>';
                 mappedContainer.innerHTML = html;
             } else {
-                mappedContainer.innerHTML = '<p class="text-muted">No requirements mapped yet.</p>';
+                mappedContainer.innerHTML = '<p class="text-muted">No records found.</p>';
             }
             
             // Display unmapped requirements

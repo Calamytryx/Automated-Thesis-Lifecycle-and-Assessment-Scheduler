@@ -286,22 +286,23 @@
             fetch(url)
                 .then(response => response.json())
                 .then(data => {
-                    if (data.error) {
-                        console.error(data.error);
-                        return;
-                    }
-
                     const tbody = document.querySelector('#teams-table tbody');
                     tbody.innerHTML = '';
+
+                    const teams = Array.isArray(data.data) ? data.data : [];
+
+                    if (data.error || !Array.isArray(data.data)) {
+                        console.error(data.error || 'Invalid data format:', data);
+                    }
                     
                     // Show a message if no results
-                    if (data.data.length === 0) {
+                    if (teams.length === 0) {
                         tbody.innerHTML = `
                             <tr>
                                 <td colspan="9" class="text-center py-4">
                                     <div class="text-muted">
                                         <i class="fas fa-search fs-1 d-block mb-2"></i>
-                                        <p class="mb-0">No groups found matching your search criteria.</p>
+                                        <p class="mb-0">No records found.</p>
                                     </div>
                                 </td>
                             </tr>
@@ -318,7 +319,7 @@
                     // Clear any existing dropdowns
                     document.querySelectorAll('.meatball-dropdown-portal[id^="dropdown-team-"]').forEach(portal => portal.remove());
                     
-                    data.data.forEach(team => {
+                    teams.forEach(team => {
                         // Process team members
                         let adviser = team.adviser || ''; 
                         let leader = '';

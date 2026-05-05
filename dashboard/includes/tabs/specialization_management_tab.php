@@ -387,7 +387,7 @@ $(document).ready(function() {
         if (specializationsData.length === 0) {
             tbody.append(`
                 <tr>
-                    <td colspan="7" class="text-center text-muted">No specializations found</td>
+                    <td colspan="7" class="text-center text-muted">No records found.</td>
                 </tr>
             `);
             $('#poolPagination').empty();
@@ -1071,7 +1071,7 @@ $(document).ready(function() {
         if (filtered.length === 0) {
             tbody.html(`
                 <tr>
-                    <td colspan="5" class="text-center text-muted">No teams found</td>
+                    <td colspan="5" class="text-center text-muted">No records found.</td>
                 </tr>
             `);
             $('#teamsSpecPagination').empty();

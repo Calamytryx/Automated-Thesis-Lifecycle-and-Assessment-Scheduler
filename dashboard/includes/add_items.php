@@ -767,7 +767,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Special handling for users
     if ($table === 'users') {
         // Sanitize text fields to prevent HTML/script injection
-        $textFields = ['username', 'email', 'first_name', 'last_name', 'gender', 'headline', 'bio'];
+        $textFields = ['username', 'email', 'first_name', 'middle_name', 'last_name', 'gender', 'headline', 'bio'];
         foreach ($textFields as $field) {
             if (isset($data[$field])) {
                 $data[$field] = sanitize_html_input($data[$field]);
