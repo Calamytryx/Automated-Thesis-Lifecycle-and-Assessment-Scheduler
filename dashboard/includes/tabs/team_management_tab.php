@@ -5,7 +5,7 @@
         <div class="row mb-4">
             <div class="col">
                 <h3 class="mb-2">Defense Configuration</h3>
-                <p class="text-muted">Manage defense types, panelist assignments, and team override settings.</p>
+                <p class="text-muted">Manage defense types, panelist assignments, and group override settings.</p>
             </div>
         </div>
 
@@ -18,13 +18,13 @@
                         <span class="input-group-text border-0"> 
                             <i class="bi bi-search"></i>
                         </span>
-                        <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search team name...">
+                        <input type="text" class="form-control border-0" id="teamSearchInput" placeholder="Search group name...">
                     </div>
                 </div>
             </div>
             <div class="col-12 col-md-6 col-lg-4">
                 <button class="btn btn-outline-dark user-control-height w-100" id="refreshTeamsBtn" style="border: 1px solid var(--neutral-300); background-color: var(--neutral-100); color: var(--neutral-800);">
-                    <i class="fas fa-sync me-2"></i>Refresh Teams
+                    <i class="fas fa-sync me-2"></i>Refresh Groups
                 </button>
             </div>
         </div>
@@ -34,7 +34,7 @@
             <table class="table table-hover db-table" id="team_management-table">
                 <thead>
                     <tr>
-                        <th>Team Name</th>
+                        <th>Group Name</th>
                         <th>Current Defense Type</th>
                         <th>Override Status</th>
                         <th>Panelists (Locked)</th>
@@ -61,7 +61,7 @@
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="teamManageModalLabel">Manage Team Settings</h5>
+                <h5 class="modal-title" id="teamManageModalLabel">Manage Group Settings</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
@@ -69,7 +69,7 @@
                     <input type="hidden" id="manageTeamId" name="team_id">
                     
                     <div class="mb-3">
-                        <label class="form-label fw-bold">Team Name</label>
+                        <label class="form-label fw-bold">Group Name</label>
                         <input type="text" id="manageTeamName" class="form-control" readonly>
                     </div>
 
@@ -89,7 +89,7 @@
                                     <option value="re-defense">Re-Defense</option>
                                 </select>
                                 <small class="form-text text-muted">
-                                    Force this team to be treated as this defense stage.
+                                    Force this group to be treated as this defense stage.
                                 </small>
                             </div>
 
@@ -121,7 +121,7 @@
                                 <hr>
                             </div>
                             
-                            <p class="text-muted small mb-3">Pre-assign panelists that the scheduler must use for this team. Leave empty for automatic assignment.</p>
+                            <p class="text-muted small mb-3">Pre-assign panelists that the scheduler must use for this group. Leave empty for automatic assignment.</p>
                             
                             <div class="row">
                                 <div class="col-md-4 mb-2">
@@ -144,7 +144,7 @@
                                 </div>
                             </div>
                             <div class="alert alert-warning mt-2 mb-0 py-2" role="alert">
-                                <small><strong>Note:</strong> Locked panelists will always be assigned to this team's defenses.</small>
+                                <small><strong>Note:</strong> Locked panelists will always be assigned to this group's defenses.</small>
                             </div>
                         </div>
                     </div>
@@ -223,7 +223,7 @@
                 .then(data => {
                     if (data.error) {
                         console.error('API Error:', data.error);
-                        alert('Error loading teams: ' + data.error);
+                        alert('Error loading groups: ' + data.error);
                         return;
                     }
 
@@ -237,7 +237,7 @@
                     tbody.innerHTML = '';
 
                     if (data.data.length === 0) {
-                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">No teams found</td></tr>';
+                        tbody.innerHTML = '<tr><td colspan="5" class="text-center">No groups found</td></tr>';
                     } else {
                         data.data.forEach(team => {
                             fetch(buildUrl(`api/admin_overrides.php?action=get_team_defense_info&team_id=${team.id}`))
@@ -455,7 +455,7 @@
             Promise.all([overridePromise, panelistPromise])
                 .then(([overrideResult, panelistResult]) => {
                     if (overrideResult.success === true && panelistResult.success === true) {
-                        alert('Team settings saved successfully!');
+                        alert('Group settings saved successfully!');
                         bootstrap.Modal.getInstance(document.getElementById('teamManageModal')).hide();
                         loadTeams(currentPage);
                     } else {
@@ -470,7 +470,7 @@
 
         // Clear all settings
         document.getElementById('clearAllSettingsBtn').addEventListener('click', function() {
-            if (confirm('Clear all overrides and locked panelists for this team?')) {
+            if (confirm('Clear all overrides and locked panelists for this group?')) {
                 const teamId = document.getElementById('manageTeamId').value;
 
                 const clearOverride = fetch(buildUrl('api/admin_overrides.php?action=remove_defense_type_override'), {

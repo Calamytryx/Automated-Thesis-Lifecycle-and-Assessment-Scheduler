@@ -5,17 +5,7 @@
         <div class="row mb-4">
             <div class="col-12">
                 <h3 class="mb-2">Defense Schedules Management</h3>
-                <p class="text-muted">Manage thesis defense schedules, generate automated schedules, and assign panelists to teams</p>
-            </div>
-        </div>
-
-        <!-- Scheduler Status -->
-        <div class="row mb-4">
-            <div class="col-12">
-                <div class="bg-light border rounded-3 p-3">
-                    <div id="generationSetting" class="mb-2" style="display: none;"></div>
-                    <div id="scheduleGenerationStatus" class="mt-2"></div>
-                </div>
+                <p class="text-muted">Manage thesis defense schedules, generate automated schedules, and assign panelists to groups</p>
             </div>
         </div>
 
@@ -255,7 +245,7 @@
                                                 warningMessage = 'Time must be within working hours (7:00 AM to 8:30 PM).';
                                             } else if (totalSlots < numberOfTeams) {
                                                 isValid = false;
-                                                warningMessage = `Not enough time slots (${totalSlots}) for the selected teams (${numberOfTeams}). Adjust settings or filter.`;
+                                                warningMessage = `Not enough time slots (${totalSlots}) for the selected groups (${numberOfTeams}). Adjust settings or filter.`;
                                             }
                                         }
                                     }
@@ -803,7 +793,7 @@
                                                     upgradeList += '</ul>';
                                                     
                                                     if (response.missingGrades && response.missingGrades.length > 0) {
-                                                        upgradeList += `<p class="text-muted"><small>Note: ${response.missingGrades.length} team(s) cannot be upgraded because grades are missing.</small></p>`;
+                                                        upgradeList += `<p class="text-muted"><small>Note: ${response.missingGrades.length} group(s) cannot be upgraded because grades are missing.</small></p>`;
                                                     }
                                                     
                                                     // Create or update confirmation UI
@@ -985,7 +975,7 @@
                                     }
                                     ?>
                                 </select>
-                                <small class="form-text text-muted">Select a section to filter teams for scheduling.</small>
+                                <small class="form-text text-muted">Select a section to filter groups for scheduling.</small>
                                 <input type="hidden" id="selectedTeamCount" name="selectedTeamCount" value="0">
                             </div>
                         </form>
@@ -995,7 +985,8 @@
                         $row = $stmt->fetch(PDO::FETCH_ASSOC);
                         $totalTeams = $row['total'] ?? 0;
                         ?>
-                        <div class="mt-3">Selected Teams for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
+                        <div class="mt-3">Selected Groups for Scheduling: <span id="teamCountDisplay"><?php echo $totalTeams; ?></span></div>
+                        <div id="scheduleGenerationStatus" class="mt-2"></div>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -1070,7 +1061,7 @@
             <thead>
                 <tr>
                     <th>Date & Time</th>
-                    <th>Team</th>
+                    <th>Group</th>
                     <th>Adviser</th>
                     <th>Thesis Title</th>
                     <th>Panelist 1</th>
@@ -1160,7 +1151,7 @@
                     <div class="modal-body">
                         <input type="hidden" id="editEventId">
                         <div class="mb-3">
-                            <label class="form-label fw-bold">Team</label>
+                            <label class="form-label fw-bold">Group</label>
                             <input type="text" class="form-control" id="editTeamName" readonly>
                         </div>
                         <div class="mb-3">
@@ -2860,7 +2851,7 @@ eventContent: function(arg) {
                             const deleteBtn = dropdown.querySelector('.delete-btn');
                             if (deleteBtn && matchedSchedule) {
                                 const scheduleDate = matchedSchedule.schedule_date ? formatDate(matchedSchedule.schedule_date) : 'Unknown date';
-                                const teamName = matchedSchedule.team_name || 'Unknown team';
+                                const teamName = matchedSchedule.team_name || 'Unknown group';
                                 deleteBtn.dataset.deleteLabel = `${scheduleDate} - ${teamName}`;
                             }
                             document.body.appendChild(dropdown);

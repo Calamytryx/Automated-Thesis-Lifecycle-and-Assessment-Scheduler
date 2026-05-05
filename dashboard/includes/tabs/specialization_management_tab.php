@@ -18,7 +18,7 @@
             </button>
             <?php endif; ?>
             <button type="button" class="btn spec-tab-btn <?php echo ($_SESSION['usertype'] == 2) ? 'active' : ''; ?>" data-spec-tab="teamAssignment">
-                <i class="bi bi-people-fill me-2"></i>Assign to Teams
+                <i class="bi bi-people-fill me-2"></i>Assign to Groups
             </button>
         </div>
     </div>
@@ -135,8 +135,8 @@
                             <div class="col-12 col-md-4 col-lg-4">
                                 <!-- Sort Dropdown -->
                                 <select class="form-select user-control-height" id="teamSpecSortSelect">
-                                    <option value="name:asc">Team Name (A-Z)</option>
-                                    <option value="name:desc">Team Name (Z-A)</option>
+                                    <option value="name:asc">Group Name (A-Z)</option>
+                                    <option value="name:desc">Group Name (Z-A)</option>
                                 </select>
                             </div>
                         </div>
@@ -147,7 +147,7 @@
                         <table class="table table-bordered table-hover table-sm db-table" id="teamsSpecTable">
                             <thead>
                                 <tr>
-                                    <th>Team Name</th>
+                                    <th>Group Name</th>
                                     <th class="d-none d-md-table-cell">Program</th>
                                     <th class="d-none d-lg-table-cell">Adviser</th>
                                     <th class="d-none d-lg-table-cell">Members</th>

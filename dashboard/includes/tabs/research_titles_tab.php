@@ -6,7 +6,7 @@
         <div class="row mb-4">
             <div class="col-12">
                 <h3 class="mb-2">Research Titles Management</h3>
-                <p class="text-muted">Manage research titles assigned to teams and track their approval status</p>
+                <p class="text-muted">Manage research titles assigned to groups and track their approval status</p>
             </div>
         </div>
 
@@ -66,7 +66,7 @@
                             <tr>
                                 <th class="d-none d-md-table-cell">Title</th>
                                 <th class="d-table-cell d-md-none">Research Title</th>
-                                <th class="d-none d-sm-table-cell">Team</th>
+                                <th class="d-none d-sm-table-cell">Group</th>
                                 <th class="d-none d-lg-table-cell">Status</th>
                                 <th class="text-center">Action</th>
                             </tr>
@@ -134,7 +134,7 @@
                         const statusText = isApproved ? 'Approved' : 'Pending';
                         const statusClass = isApproved ? 'approved' : 'pending';
                         const statusDate = title.updated_at || '';
-                        const teamName = title.team_name || 'No Team Assigned';
+                        const teamName = title.team_name || 'No Group Assigned';
                         
                         tbody.innerHTML += `
                             <tr>

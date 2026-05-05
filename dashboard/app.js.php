@@ -364,7 +364,7 @@
                 dataType: 'json',
                 success: function (response) {
                     if (response.success) {
-                        showToast('Success', 'Teams added successfully', 'success');
+                        showToast('Success', 'Groups added successfully', 'success');
                         $('#bulkAddTeamsModal').modal('hide');
                         setTimeout(function () {
                             location.reload();
@@ -372,7 +372,7 @@
                     } else {
                         // More descriptive error message
                         showToast('Error', response.message ||
-                            'Failed to add teams. Please check your data and try again.',
+                            'Failed to add groups. Please check your data and try again.',
                             'error');
                     }
                 },
@@ -808,7 +808,7 @@
             success: function (response) {
                 if (response.success) {
                     teamMember.remove();
-                    showToast('Success', 'Team member removed successfully', 'success');
+                    showToast('Success', 'Group member removed successfully', 'success');
                     $modal.modal('hide');
                     
                     // Re-enable add button and update dropdowns
@@ -822,7 +822,7 @@
                 }
             },
             error: function () {
-                showToast('Error', 'Unable to remove team member', 'error');
+                showToast('Error', 'Unable to remove group member', 'error');
             }
         });
     });
@@ -1122,13 +1122,13 @@
                 // Teams-specific validations
                 case 'name': // Team name
                     if (this.isTooShort(trimmedValue)) {
-                        errors.push('Team name must be at least 2 characters long');
+                        errors.push('Group name must be at least 2 characters long');
                     }
                     if (this.isTooLong(trimmedValue, 80)) {
-                        errors.push('Team name cannot exceed 80 characters');
+                        errors.push('Group name cannot exceed 80 characters');
                     }
                     if (this.isOnlyNumbers(trimmedValue)) {
-                        errors.push('Team name cannot be only numbers');
+                        errors.push('Group name cannot be only numbers');
                     }
                     break;
 
@@ -1421,11 +1421,11 @@
             const adviserCount = allRoles.filter(role => role === 'adviser').length;
 
             if (leaderCount > 1) {
-                errors['team_role_leader'] = ['Only one leader is allowed per team'];
+                errors['team_role_leader'] = ['Only one leader is allowed per group'];
             }
 
             if (adviserCount > 1) {
-                errors['team_role_adviser'] = ['Only one adviser is allowed per team'];
+                errors['team_role_adviser'] = ['Only one adviser is allowed per group'];
             }
 
             return errors;
@@ -1934,7 +1934,12 @@
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
                             <div class="mb-3">
-                                <label for="name" class="form-label">Team Name</label>
+                                <label for="editTeamCodeDisplay" class="form-label text-muted">Group Code</label>
+                                <input type="text" class="form-control team-code-display" id="editTeamCodeDisplay" value="${response.data.team_code || 'Not yet generated'}" readonly>
+                                <div class="form-text text-muted">Auto-generated and not editable.</div>
+                            </div>
+                            <div class="mb-3">
+                                <label for="name" class="form-label">Group Name</label>
                                 <input type="text" class="form-control" id="name" name="name" value="${response.data.name}">
                             </div>
                             <div class="mb-3">
@@ -1972,7 +1977,7 @@
                                     // <option value="">Loading programs...</option>
                                 </select>
                             </div>
-                            <h5 class="mt-4">Team Members</h5>
+                            <h5 class="mt-4">Group Members</h5>
                             <div id="teamMembers">
                         `;
 
@@ -1999,7 +2004,7 @@
 
                             formHtml += `
                             </div>
-                            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+                            <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Group Member</button>
                         `;
 
                             form.html(formHtml);
@@ -2070,12 +2075,12 @@
                             <input type="hidden" name="table" value="${table}">
                             <input type="hidden" name="id" value="${id}">
                             <div class="mb-3">
-                                <label for="team_id" class="form-label">Team</label>
+                                <label for="team_id" class="form-label">Group</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
-                                    <option value="">Select Team</option>
+                                    <option value="">Select Group</option>
                                     ${teamOptions}
                                 </select>
-                                <div class="form-text text-muted">Only teams without existing research titles are shown (plus current team).</div>
+                                <div class="form-text text-muted">Only groups without existing research titles are shown (plus current group).</div>
                             </div>
                             <div class="mb-3">
                                 <label for="title" class="form-label">Title</label>
@@ -2229,9 +2234,9 @@
                                 <input type="text" class="form-control" id="room" name="room" required value="${response.data.room || ''}">
                             </div>
                             <div class="mb-3">
-                                <label for="team_id" class="form-label">Team</label>
+                                <label for="team_id" class="form-label">Group</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
-                                <option value="">Select Team</option>
+                                <option value="">Select Group</option>
                                     ${response.teams.map(team => `<option value="${team.id}"${String(team.id) === String(response.data.team_id) ? ' selected' : ''}>${team.name}</option>`).join('')}
                                 </select>
                             </div>
@@ -2384,7 +2389,7 @@
                                                 updatePanelistDropdowns(staffData.staff);
                                             } else {
                                                 console.warn('Invalid staff data received:', staffData);
-                                                showToast('Error', 'Unable to fetch panelists for this team.', 'error');
+                                                showToast('Error', 'Unable to fetch panelists for this group.', 'error');
                                             }
                                         },
                                         error: function () {
@@ -3391,19 +3396,19 @@
 
                         var teamOptions = '';
                         if (availableTeams.length === 0) {
-                            teamOptions = '<option value="" disabled>No teams available (all teams already have research titles)</option>';
+                            teamOptions = '<option value="" disabled>No groups available (all groups already have research titles)</option>';
                         } else {
                             teamOptions = availableTeams.map(team => `<option value="${team.id}">${team.name}</option>`).join('');
                         }
 
                         var formHtml = `
                             <div class="mb-3">
-                                <label for="team_id" class="form-label">Team Name</label>
+                                <label for="team_id" class="form-label">Group Name</label>
                                 <select class="form-select" id="team_id" name="team_id" required>
-                                    <option value="">Select Team</option>
+                                    <option value="">Select Group</option>
                                     ${teamOptions}
                                 </select>
-                                ${availableTeams.length === 0 ? '<div class="form-text text-muted">All teams already have research titles assigned. You can manage existing titles in the table below.</div>' : ''}
+                                ${availableTeams.length === 0 ? '<div class="form-text text-muted">All groups already have research titles assigned. You can manage existing titles in the table below.</div>' : ''}
                             </div>
                             <div class="mb-3">
                                 <label for="title" class="form-label">Title</label>
@@ -3420,10 +3425,10 @@
                         ValidationUtils.setupRealTimeValidation('#addForm');
                     },
                     error: function () {
-                        showToast('Error', 'Unable to fetch teams data', 'error');
+                        showToast('Error', 'Unable to fetch groups data', 'error');
                         // Fallback to simple input field if AJAX fails
                         form.append('<div class="mb-3">' +
-                            '<label for="team_id" class="form-label">Team ID</label>' +
+                            '<label for="team_id" class="form-label">Group ID</label>' +
                             '<input type="number" class="form-control" id="team_id" name="team_id" required>' +
                             '</div>' +
                             '<div class="mb-3">' +
@@ -3442,7 +3447,12 @@
             } else if (table === 'teams') {
                 var formHtml = `
                     <div class="mb-3">
-                    <label for="name" class="form-label">Team Name</label>
+                    <label for="addTeamCodeDisplay" class="form-label text-muted">Group Code</label>
+                    <input type="text" class="form-control team-code-display" id="addTeamCodeDisplay" value="Generated after save" readonly>
+                    <div class="form-text text-muted">This code is generated automatically from the selected program and academic year.</div>
+                    </div>
+                    <div class="mb-3">
+                    <label for="name" class="form-label">Group Name</label>
                     <input type="text" class="form-control" id="name" name="name" required>
                     </div>
                     <div class="mb-3">
@@ -3480,11 +3490,11 @@
                         <label for="professor_name" class="form-label">Professor</label>
                         <input type="text" class="form-control" id="professor_name" name="professor_name" readonly>
                     </div>
-                    <h5 class="mt-4">Team Members</h5>
+                    <h5 class="mt-4">Group Members</h5>
                     <div id="teamMembers">
                     <!-- Team members will be added here -->
                     </div>
-                    <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Team Member</button>
+                    <button type="button" class="btn btn-secondary mt-2" id="addTeamMember">Add Group Member</button>
                 `;
                 form.append(formHtml);
 
@@ -3611,9 +3621,9 @@
                     <input type="text" class="form-control" id="room" name="room" required>
                 </div>
                 <div class="mb-3">
-                    <label for="team_id" class="form-label">Team</label>
+                    <label for="team_id" class="form-label">Group</label>
                     <select class="form-select" id="team_id" name="team_id" required>
-                    <option value="">Select Team</option>
+                    <option value="">Select Group</option>
                         ${data.teams.map(team => `
                             <option value="${team.id}" ${team.has_schedule ? 'disabled' : ''}>
                                 ${team.name} ${team.has_schedule ? '(Already Scheduled)' : ''}
@@ -4451,7 +4461,7 @@
         var currentMemberCount = $modal.find('#teamMembers .team-member').length;
 
         if (currentMemberCount >= 6) {
-            showToast('Warning', 'Maximum of 6 team members allowed.', 'warning');
+            showToast('Warning', 'Maximum of 6 group members allowed.', 'warning');
             return;
         }
 
@@ -5389,8 +5399,8 @@
                     </svg>
                 </div>
                 <h4 class="fw-bold mb-3" id="adviserWarningModalLabel">Adviser Load Warning</h4>
-                <p>This adviser already handles <strong><span id="adviserWarningTeamCount"></span></strong> teams.</p>
-                <p>Are you sure you want to add them to another team? This will override the usual limit.</p>
+                <p>This adviser already handles <strong><span id="adviserWarningTeamCount"></span></strong> groups.</p>
+                <p>Are you sure you want to add them to another group? This will override the usual limit.</p>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" id="adviserWarningCancel">Cancel</button>
@@ -5417,7 +5427,7 @@
                     </svg>
                 </div>
                 <h4 class="fw-bold mb-3" id="removeMemberModalLabel">Confirm Removal</h4>
-                <p>Are you sure you want to remove this team member from the team?</p>
+                <p>Are you sure you want to remove this group member from the group?</p>
                 <p class="text-muted">This action cannot be undone.</p>
             </div>
             <div class="modal-footer">

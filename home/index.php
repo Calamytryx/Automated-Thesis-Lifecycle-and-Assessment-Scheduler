@@ -78,7 +78,7 @@ function fetchFacultyDashboard() {
                 let content = '';
                 
                 // Section header - changes per role
-                const teamsHeader = USER_TYPE === 1 ? 'My Teams' : 'Advisee Teams';
+                const teamsHeader = USER_TYPE === 1 ? 'My Group' : 'Advisee Groups';
                 const noTeamsMsg  = USER_TYPE === 1
                     ? 'You are not currently a member of any team.'
                     : 'You are not currently advising any teams.';
@@ -218,7 +218,7 @@ function fetchFacultyDashboard() {
                                 <thead>
                                     <tr>
                                         <th>Date & Time</th>
-                                        <th>Team</th>
+                                        <th>Group Name</th>
                                         <th>Research Title</th>
                                         <th>Defense Type</th>
                                         <th>Room</th>
@@ -396,7 +396,7 @@ function renderAdviseeTeamCard(teamIndex) {
             <div class="col-md-6 mb-4">
                 <div class="card h-100 team-info-card">
                     <div class="card-header d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0">Team Information</h5>
+                        <h5 class="mb-0">Group Information</h5>
                     </div>
                     <div class="card-body">
                         <h3 class="card-title team-info-title-ellipsis" title="${safeTeamName}">${safeTeamName}</h3>
@@ -785,7 +785,7 @@ function showTeamSummaryModal(teamId, teamName) {
                 html += `
                             </tbody>
                             <tfoot class="table-secondary">
-                                <tr><th>Team Average</th>${panelists.map(() => '<td></td>').join('')}<th class="text-center">${teamAvgDisplay}</th></tr>
+                                <tr><th>Group Average</th>${panelists.map(() => '<td></td>').join('')}<th class="text-center">${teamAvgDisplay}</th></tr>
                             </tfoot>
                         </table>
                     </div>
@@ -1961,7 +1961,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         aria-selected="false">
                                         <i class="bi bi-chat-dots me-2 hollow"></i>
                                         <i class="bi bi-chat-dots-fill me-2 filled"></i>
-                                        <span class="nav-text">Team Evaluations</span>
+                                        <span class="nav-text">Group Evaluations</span>
                                     </a>
                                     <?php endif; ?>
                                     <?php if ($isSectionProfessor): ?>
@@ -2477,15 +2477,15 @@ document.addEventListener("DOMContentLoaded", function() {
                             <div class="home-sidebar-box">
                                 <div class="d-flex align-items-center justify-content-between mb-4">
                                     <div>
-                                        <h4 class="mb-1 feature-title">Team Evaluations</h4>
+                                        <h4 class="mb-1 feature-title">Group Evaluations</h4>
                                         <p class="text-muted mb-0" id="evaluations-subtitle">
                                             <?php 
                                             if ($_SESSION['usertype'] == 1) {
-                                                echo "View your team's evaluation results and feedback";
+                                                echo "View your group's evaluation results and feedback";
                                             } elseif ($_SESSION['usertype'] == 0) {
-                                                echo "View evaluations for teams you advise";
+                                                echo "View evaluations for groups you advise";
                                             } elseif ($_SESSION['usertype'] == 2) {
-                                                echo "View evaluations for teams you advise";
+                                                echo "View evaluations for groups you advise";
                                             }
                                             ?>
                                         </p>
@@ -2506,7 +2506,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <table class="table db-table" id="evaluationsTable">
                                             <thead>
                                                 <tr>
-                                                    <th>Team Name</th>
+                                                    <th>Group Name</th>
                                                     <th class="d-none d-md-table-cell">Research Title</th>
                                                     <th class="d-none d-lg-table-cell">Program</th>
                                                     <th class="text-center">Action</th>
@@ -2646,7 +2646,7 @@ document.addEventListener("DOMContentLoaded", function() {
                                         <div class="my-2">
                                             <a href="#requirement-checker" class="tab-redirect-link" onclick="document.getElementById('requirement-checker-link').click(); return false;">
                                                 <i class="bi bi-list-check"></i>
-                                                <span>View Team requirements</span>
+                                                <span>View Group requirements</span>
                                                 <i class="bi bi-arrow-right"></i>
                                             </a>
                                         </div>
@@ -3276,7 +3276,7 @@ $(document).ready(function() {
 
     $(document).ready(function() {
         var teamSelectHtml = '<div class="d-flex align-items-center mb-4">';
-        teamSelectHtml += '<label for="teamSelect" class="me-3 mb-0 fw-semibold">Select Team:</label>';
+        teamSelectHtml += '<label for="teamSelect" class="me-3 mb-0 fw-semibold">Select Group:</label>';
         teamSelectHtml += '<select id="teamSelect" class="form-select advisee-team-select">';
         <?php if (!empty($teams)) { ?>
         <?php foreach ($teams as $team) { ?>
@@ -4251,7 +4251,7 @@ function showEvaluationDetails(teamId) {
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title">
-                            Team Evaluation Details
+                            Group Evaluation Details
                         </h5>
                         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                     </div>
@@ -4421,7 +4421,7 @@ function renderEvaluationDetails(data) {
                     </tbody>
                     <tfoot class="table-secondary">
                         <tr>
-                            <th>Team Average</th>
+                            <th>Group Average</th>
                             ${panelists.map(() => '<td></td>').join('')}
                             <th class="text-center">${overallAvgDisplay}</th>
                         </tr>
