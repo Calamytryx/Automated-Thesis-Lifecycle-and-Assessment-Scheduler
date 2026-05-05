@@ -118,7 +118,12 @@ function handleRequirementTemplateUpload($file) {
     }
 
     // Upload directory (already exists, no mkdir)
-    $uploadDir = $_SERVER['DOCUMENT_ROOT'].'/assets/images/';
+    $uploadDir = __DIR__ . '/../../assets/images/';
+    
+    // Ensure directory exists with proper permissions
+    if (!is_dir($uploadDir)) {
+        mkdir($uploadDir, 0777, true);
+    }
 
 
     // Get file extension
