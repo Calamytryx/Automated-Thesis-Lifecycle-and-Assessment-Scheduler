@@ -228,12 +228,20 @@ function assignProfessorToSection() {
         return;
     }
 
-    // Verify professor exists and is faculty (usertype 2)
-    $profStmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND usertype = 2");
+    // Verify assignee exists and is faculty/program chair (exclude super admin id 0)
+    $profStmt = $pdo->prepare("
+        SELECT id
+        FROM users
+        WHERE id = ?
+          AND (
+              usertype = 2
+              OR (usertype = 0 AND id != 0)
+          )
+    ");
     $profStmt->execute([$professorId]);
     if (!$profStmt->fetchColumn()) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid professor ID: ' . $professorId]);
+        echo json_encode(['success' => false, 'message' => 'Invalid teacher ID: ' . $professorId]);
         return;
     }
 
@@ -452,12 +460,20 @@ function assignProfessorToTeam() {
         return;
     }
 
-    // Verify professor exists and is faculty
-    $profStmt = $pdo->prepare("SELECT id FROM users WHERE id = ? AND usertype = 2");
+    // Verify assignee exists and is faculty/program chair (exclude super admin id 0)
+    $profStmt = $pdo->prepare("
+        SELECT id
+        FROM users
+        WHERE id = ?
+          AND (
+              usertype = 2
+              OR (usertype = 0 AND id != 0)
+          )
+    ");
     $profStmt->execute([$professorId]);
     if (!$profStmt->fetchColumn()) {
         http_response_code(400);
-        echo json_encode(['success' => false, 'message' => 'Invalid professor ID']);
+        echo json_encode(['success' => false, 'message' => 'Invalid teacher ID']);
         return;
     }
 
@@ -710,7 +726,7 @@ function getAssignmentStatus() {
 function listTeamProfessors() {
     global $pdo;
 
-    // Get all teams with their adviser (team member with role='adviser' and usertype=2)
+    // Get all teams with their adviser (faculty or program chair)
     $query = "
         SELECT 
             t.id AS team_id,
@@ -725,7 +741,8 @@ function listTeamProfessors() {
         FROM team_members tm
         JOIN teams t ON tm.team_id = t.id
         JOIN users u ON tm.user_id = u.id
-        WHERE tm.role = 'adviser' AND u.usertype = 2
+        WHERE tm.role = 'adviser'
+          AND (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))
         ORDER BY t.name, u.last_name
     ";
 
@@ -767,7 +784,7 @@ function listTeams() {
  * List all professors/faculty (for dropdown in admin interface)
  */
 function listProfessors() {
-    global $pdo, $userType;
+    global $pdo, $userType, $userId;
     
     if ($userType !== 0) {
         http_response_code(403);
@@ -775,13 +792,57 @@ function listProfessors() {
         return;
     }
 
-    $stmt = $pdo->prepare("
-        SELECT id, first_name, last_name, email
-        FROM users
-        WHERE usertype = 2
-        ORDER BY first_name, last_name ASC
-    ");
-    $stmt->execute();
+    // Super admin sees faculty + all program chairs.
+    if ((int)$userId === 0) {
+        $stmt = $pdo->prepare("
+            SELECT id, first_name, last_name, email, usertype
+            FROM users
+            WHERE usertype = 2
+               OR (usertype = 0 AND id != 0)
+            ORDER BY first_name, last_name ASC
+        ");
+        $stmt->execute();
+    } else {
+        // Program chair/faculty: faculty + program chairs from their own college only.
+        $currentUserCollegeStmt = $pdo->prepare("
+            SELECT p.college
+            FROM users u
+            LEFT JOIN programs p ON CONCAT(
+                p.name,
+                CASE
+                    WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                        THEN CONCAT(' - ', p.specialization)
+                    ELSE ''
+                END
+            ) = u.program
+            WHERE u.id = ?
+            LIMIT 1
+        ");
+        $currentUserCollegeStmt->execute([(int)$userId]);
+        $currentUserCollege = $currentUserCollegeStmt->fetchColumn();
+
+        if (!$currentUserCollege) {
+            echo json_encode(['success' => true, 'data' => []]);
+            return;
+        }
+
+        $stmt = $pdo->prepare("
+            SELECT DISTINCT u.id, u.first_name, u.last_name, u.email, u.usertype
+            FROM users u
+            LEFT JOIN programs p ON CONCAT(
+                p.name,
+                CASE
+                    WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                        THEN CONCAT(' - ', p.specialization)
+                    ELSE ''
+                END
+            ) = u.program
+            WHERE (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))
+              AND p.college = ?
+            ORDER BY u.first_name, u.last_name ASC
+        ");
+        $stmt->execute([$currentUserCollege]);
+    }
     $professors = $stmt->fetchAll(PDO::FETCH_ASSOC);
     
     echo json_encode(['success' => true, 'data' => $professors]);
@@ -815,7 +876,8 @@ function listAssignmentHistory() {
         FROM team_members tm
         JOIN teams t ON tm.team_id = t.id
         JOIN users u ON tm.user_id = u.id
-        WHERE tm.role = 'adviser' AND u.usertype = 2
+        WHERE tm.role = 'adviser'
+          AND (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))
         ORDER BY tm.updated_at DESC
         LIMIT 100
     ");

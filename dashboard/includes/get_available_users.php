@@ -287,7 +287,8 @@ function fetchAccessibleAdvisers(PDO $pdo, int $userId, int $userType, ?string $
                     WHERE tm2.user_id = u.id AND tm2.role = 'adviser'
                 ) AS adviser_count
             FROM users u
-            WHERE u.id != 0 AND u.usertype = 2
+            WHERE u.id != 0
+              AND (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))
             ORDER BY u.last_name, u.first_name";
         $stmt = $pdo->prepare($sql);
         $stmt->execute();
@@ -302,7 +303,8 @@ function fetchAccessibleAdvisers(PDO $pdo, int $userId, int $userType, ?string $
                     WHERE tm2.user_id = u.id AND tm2.role = 'adviser'
                 ) AS adviser_count
             FROM users u
-            WHERE u.id != 0 AND u.usertype = 2";
+            WHERE u.id != 0
+              AND (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))";
     $params = [];
 
     $programNames = [];

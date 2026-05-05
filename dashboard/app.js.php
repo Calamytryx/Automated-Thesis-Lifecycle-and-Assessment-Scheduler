@@ -3128,8 +3128,58 @@
                     '<option value="">Select Instructor</option>' +
                     <?php
                     try {
-                        $stmt = $pdo->prepare("SELECT id, CONCAT(first_name, ' ', last_name) AS name FROM users WHERE usertype = 2 ORDER BY name");
-                        $stmt->execute();
+                        $sessionUserId = isset($_SESSION['id']) ? (int)$_SESSION['id'] : 0;
+                        $sessionUserType = isset($_SESSION['usertype']) ? (int)$_SESSION['usertype'] : -1;
+
+                        if ($sessionUserType === 0 && $sessionUserId === 0) {
+                            $stmt = $pdo->prepare("
+                                SELECT id, CONCAT(first_name, ' ', last_name) AS name
+                                FROM users
+                                WHERE usertype = 2
+                                   OR (usertype = 0 AND id != 0)
+                                ORDER BY name
+                            ");
+                            $stmt->execute();
+                        } elseif ($sessionUserType === 0 && $sessionUserId !== 0) {
+                            $stmt = $pdo->prepare("
+                                SELECT DISTINCT u.id, CONCAT(u.first_name, ' ', u.last_name) AS name
+                                FROM users u
+                                LEFT JOIN programs p ON u.program = CONCAT(
+                                    p.name,
+                                    CASE
+                                        WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                                            THEN CONCAT(' - ', p.specialization)
+                                        ELSE ''
+                                    END
+                                )
+                                WHERE (u.usertype = 2 OR (u.usertype = 0 AND u.id != 0))
+                                  AND p.college = (
+                                      SELECT p2.college
+                                      FROM users self_u
+                                      LEFT JOIN programs p2 ON self_u.program = CONCAT(
+                                          p2.name,
+                                          CASE
+                                              WHEN p2.specialization IS NOT NULL AND p2.specialization != ''
+                                                  THEN CONCAT(' - ', p2.specialization)
+                                              ELSE ''
+                                          END
+                                      )
+                                      WHERE self_u.id = ?
+                                      LIMIT 1
+                                  )
+                                ORDER BY name
+                            ");
+                            $stmt->execute([$sessionUserId]);
+                        } else {
+                            $stmt = $pdo->prepare("
+                                SELECT id, CONCAT(first_name, ' ', last_name) AS name
+                                FROM users
+                                WHERE usertype = 2
+                                   OR (usertype = 0 AND id != 0)
+                                ORDER BY name
+                            ");
+                            $stmt->execute();
+                        }
                         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
                             echo "'<option value=\"" . htmlspecialchars($row['id']) . "\">" . htmlspecialchars($row['name']) . "</option>' +";
                         }

@@ -25,7 +25,10 @@ try {
         $stmt = $pdo->prepare(" 
             SELECT DISTINCT u.id, u.first_name, u.last_name
             FROM users u
-            WHERE u.usertype = 2
+            WHERE (
+                u.usertype = 2
+                OR (u.usertype = 0 AND u.id != 0)
+            )
               AND u.first_name IS NOT NULL
               AND u.last_name IS NOT NULL
             ORDER BY u.last_name, u.first_name
@@ -51,7 +54,10 @@ try {
                     END
                 )
             )
-            WHERE u.usertype = 2
+            WHERE (
+                u.usertype = 2
+                OR (u.usertype = 0 AND u.id != 0)
+            )
               AND u.first_name IS NOT NULL
               AND u.last_name IS NOT NULL
               AND p.college = :college
