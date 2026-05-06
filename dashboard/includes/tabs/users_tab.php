@@ -10,7 +10,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
         <div class="row mb-4">
             <div class="col-12">
                 <h3 class="mb-2">User Management</h3>
-                <p class="text-muted">Manage system users, including admins, students, and staff members</p>
+                <p class="text-muted">Manage system users, including admins, students, and faculty members</p>
                 <?php if ($_SESSION['usertype'] == 0): ?>
                 <div class="mt-2">
                     <a href="#teams" class="tab-redirect-link" onclick="document.getElementById('teams-tab').click(); return false;">
@@ -49,7 +49,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                                     <option value="all">All Users</option>
                                     <option value="0">Admins</option>
                                     <option value="1">Students</option>
-                                    <option value="2">Staff</option>
+                                    <option value="2">Faculty</option>
                                 </select>
                             </div>
                         </div>
@@ -214,7 +214,7 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
             const usersTabReadOnly = <?php echo $isUsersTabReadOnly ? 'true' : 'false'; ?>;
 
             const getUserType = (type) => {
-                return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Staff' : 'Unknown';
+                return type === 0 ? 'Admin' : type === 1 ? 'Student' : type === 2 ? 'Faculty' : 'Unknown';
             };
 
             const getUserTypeBadge = (type) => {
@@ -445,12 +445,12 @@ $isUsersTabReadOnly = ($sessionUserType === 2) || ($sessionUserType === 0 && $se
                             <span class="d-sm-none">Add</span>
                         `;
                     }
-                } else if (userType === '2') { // Staff
+                } else if (userType === '2') { // Faculty
                     if (bulkAddBtn) bulkAddBtn.style.display = 'none';
                     if (addBtn) {
                         addBtn.innerHTML = `
                             <i class="fas fa-plus me-1 d-none d-sm-inline"></i>
-                            <span class="d-none d-sm-inline">Add Staff</span>
+                            <span class="d-none d-sm-inline">Add Faculty</span>
                             <span class="d-sm-none">Add</span>
                         `;
                     }

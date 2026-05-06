@@ -31,7 +31,7 @@
                             <i class="fas fa-users fa-3x text-primary"></i>
                         </div>
                         <h5 class="card-title">Users</h5>
-                        <p class="card-text text-muted">Manage system users including administrators, students, and staff members with full CRUD operations.</p>
+                        <p class="card-text text-muted">Manage system users including administrators, students, and faculty members with full CRUD operations.</p>
                     </div>
                 </div>
             </div>
@@ -186,7 +186,7 @@
                 
                 <h6><i class="fas fa-info-circle me-2 text-primary"></i>What you can see:</h6>
                 <ul>
-                    <li><strong>User Statistics:</strong> Total counts of admins, students, and staff</li>
+                    <li><strong>User Statistics:</strong> Total counts of admins, students, and faculty</li>
                     <li><strong>Group Metrics:</strong> Total groups and completion status</li>
                     <li><strong>Research Progress:</strong> Approved vs. pending research titles</li>
                     <li><strong>Defense Overview:</strong> Upcoming, today's, and past defense schedules</li>
@@ -222,7 +222,7 @@
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
-                <p class="lead">Manage all system users including administrators, students, and staff members.</p>
+                <p class="lead">Manage all system users including administrators, students, and faculty members.</p>
                 
                 <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
                 <ul>
@@ -236,7 +236,7 @@
                 <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
                 <ol>
                     <li><strong>Search Users:</strong> Use the search bar to find specific users by name or email</li>
-                    <li><strong>Filter by Type:</strong> Select user type (Admin, Student, Staff) from the dropdown</li>
+                    <li><strong>Filter by Type:</strong> Select user type (Admin, Student, Faculty) from the dropdown</li>
                     <li><strong>Sort Results:</strong> Choose sorting criteria from the sort dropdown</li>
                     <li><strong>Add New User:</strong> Click "Add User" button and fill in the required information</li>
                     <li><strong>Bulk Import:</strong> Use "Bulk Add Users" for importing multiple users via CSV</li>
@@ -247,7 +247,7 @@
                 <ul>
                     <li><span class="badge bg-danger">Admin</span> - Full system access and management</li>
                     <li><span class="badge bg-primary">Student</span> - Limited access for thesis submissions</li>
-                    <li><span class="badge bg-success">Staff</span> - Faculty and evaluation access</li>
+                    <li><span class="badge bg-success">Faculty</span> - Faculty and evaluation access</li>
                 </ul>
 
                 <div class="alert alert-warning">
