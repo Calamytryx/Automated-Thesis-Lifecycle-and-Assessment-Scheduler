@@ -59,6 +59,7 @@ try {
     require_once __DIR__ . '/../../assets/setup/db.inc.php';
     require_once __DIR__ . '/../includes/edit_functions.php';
     require_once __DIR__ . '/../includes/defense_type_functions.php'; // Add defense type helper
+    require_once __DIR__ . '/../includes/panelist_combination_functions.php'; // Panelist combination logic
 
     if (!isset($pdo) || !($pdo instanceof PDO)) {
         throw new Exception('Database connection error');
@@ -2988,15 +2989,15 @@ function fetchTeams($pdo, $sections = [])
 
 function fetchPanelists($pdo)
 {
-    $stmt = $pdo->query("SELECT id, area_of_expertise, is_parttime FROM users WHERE usertype = 2 OR (usertype = 0 AND id != 0)");
+    $stmt = $pdo->query("SELECT id, area_of_expertise, is_parttime, is_external FROM users WHERE usertype = 2 OR (usertype = 0 AND id != 0)");
     $panelists = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-    // Convert the result to a more usable format: id => [expertise, is_parttime]
     $formattedPanelists = [];
     foreach ($panelists as $panelist) {
         $formattedPanelists[$panelist['id']] = [
-            'expertise' => $panelist['area_of_expertise'],
-            'is_parttime' => isset($panelist['is_parttime']) ? $panelist['is_parttime'] : 0
+            'expertise'    => $panelist['area_of_expertise'],
+            'is_parttime'  => (int)($panelist['is_parttime'] ?? 0),
+            'is_external'  => (int)($panelist['is_external'] ?? 0),
         ];
     }
 
@@ -3044,13 +3045,11 @@ function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelis
 function getPanelistData($pdo, $panelistId)
 {
     static $cache = [];
-
     if (!isset($cache[$panelistId])) {
-        $stmt = $pdo->prepare("SELECT program, area_of_expertise, is_parttime FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT program, area_of_expertise, is_parttime, is_external FROM users WHERE id = ?");
         $stmt->execute([$panelistId]);
         $cache[$panelistId] = $stmt->fetch(PDO::FETCH_ASSOC);
     }
-
     return $cache[$panelistId];
 }
 
@@ -4680,163 +4679,96 @@ function calculateSpecializationMatch($teamSpecializations, $panelistSpecializat
 
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
 {
-    global $pdo; // needed to call getPanelistData()
-    $selectedPanelists = [];
-    $teamData = null;
+    global $pdo; // ensure $pdo is available
 
-    // Prefer team ID lookup to avoid adviser-based cross-team matches.
+    // 1. Locked panelists (from teams table) take highest priority
+    $lockedPanelists = [];
     if ($teamId !== null) {
+        // Find team data (already loaded in $GLOBALS['teams'] or fetch again)
+        $teamData = null;
         foreach ($GLOBALS['teams'] as $team) {
             if ((int)$team['id'] === (int)$teamId) {
                 $teamData = $team;
                 break;
             }
         }
-    }
-
-    // Backward-compatible fallback for older call sites.
-    if (!$teamData) {
-        foreach ($GLOBALS['teams'] as $team) {
-            if ($team['adviser_id'] == $adviserId) {
-                $teamData = $team;
-                break;
+        if ($teamData && (!empty($teamData['locked_panelist1']) || !empty($teamData['locked_panelist2']) || !empty($teamData['locked_panelist3']))) {
+            $locked = [];
+            if (!empty($teamData['locked_panelist1'])) $locked[] = (int)$teamData['locked_panelist1'];
+            if (!empty($teamData['locked_panelist2'])) $locked[] = (int)$teamData['locked_panelist2'];
+            if (!empty($teamData['locked_panelist3'])) $locked[] = (int)$teamData['locked_panelist3'];
+            $locked = array_unique($locked);
+            if (count($locked) === 3) {
+                error_log("Team {$teamId}: using locked panelists: " . implode(',', $locked));
+                return $locked;
             }
+            // If some are locked, use them as a base and try to complete the combination
+            $lockedPanelists = $locked;
         }
     }
 
-    if (!$teamData) {
-        // Fallback: randomly pick 3 panelists excluding the adviser
-        $remaining = array_diff(array_keys($allPanelists), [$adviserId]);
-        return array_slice($remaining, 0, 3);
-    }
-    
-    // CHECK FOR LOCKED PANELISTS FIRST
-    // If team has locked panelists, use them instead of auto-assigning
-    $lockedPanelists = [];
-    if (!empty($teamData['locked_panelist1'])) {
-        $lockedId = (int)$teamData['locked_panelist1'];
-        if (isset($allPanelists[$lockedId])) {
-            $lockedPanelists[] = $lockedId;
-        }
-    }
-    if (!empty($teamData['locked_panelist2'])) {
-        $lockedId = (int)$teamData['locked_panelist2'];
-        if (isset($allPanelists[$lockedId])) {
-            $lockedPanelists[] = $lockedId;
-        }
-    }
-    if (!empty($teamData['locked_panelist3'])) {
-        $lockedId = (int)$teamData['locked_panelist3'];
-        if (isset($allPanelists[$lockedId])) {
-            $lockedPanelists[] = $lockedId;
-        }
-    }
-    $lockedPanelists = array_values(array_unique($lockedPanelists));
-    
-    // If all 3 panelists are locked, return them directly
-    if (count($lockedPanelists) >= 3) {
-        error_log("Team {$teamData['id']}: Using all 3 locked panelists: " . implode(', ', $lockedPanelists));
-        return array_slice($lockedPanelists, 0, 3);
-    }
-    
-    // If some panelists are locked, start with them
+    // 2. Try to build optimal combination respecting is_external / is_parttime rules
+    $exclude = [$adviserId];
     if (!empty($lockedPanelists)) {
-        $selectedPanelists = $lockedPanelists;
-        error_log("Team {$teamData['id']}: Starting with " . count($lockedPanelists) . " locked panelists: " . implode(', ', $lockedPanelists));
+        $exclude = array_merge($exclude, $lockedPanelists);
     }
-    
-    $teamProgram = (string)$teamData['program'];
-    $teamDepartment = getDepartment($teamProgram);
-    $teamSpecializations = getTeamSpecializations($pdo, $teamData['id']);
+    $optimalCombo = buildOptimalPanelistCombination($pdo, null, $exclude);
+    if ($optimalCombo !== null && count($optimalCombo) === 3) {
+        // Merge with any locked panelists (ensuring uniqueness)
+        $final = array_values(array_unique(array_merge($lockedPanelists, $optimalCombo)));
+        if (count($final) >= 3) {
+            error_log("Team {$teamId}: using optimal combination: " . implode(',', array_slice($final, 0, 3)));
+            return array_slice($final, 0, 3);
+        }
+    }
 
-    // Score all panelists based on multiple criteria
-    $panelistScores = [];
-    foreach (array_keys($allPanelists) as $id) {
-        if ($id == $adviserId) continue;
-        
-        $pdata = getPanelistData($pdo, $id);
+    // 3. Fallback: Original scoring logic (program, department, specialization)
+    error_log("Team {$teamId}: falling back to scoring-based panelist selection");
+    $selected = $lockedPanelists;
+    $teamProgram = null;
+    $teamExpertise = null;
+    if ($teamId !== null) {
+        $stmt = $pdo->prepare("SELECT program, area_of_expertise FROM teams WHERE id = ?");
+        $stmt->execute([$teamId]);
+        $team = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($team) {
+            $teamProgram = $team['program'];
+            $teamExpertise = $team['area_of_expertise'];
+        }
+    }
+    $teamDepartment = $teamProgram ? getDepartment($teamProgram) : 'Computer Studies';
+    $teamSpecializations = $teamExpertise ? array_filter(array_map('trim', explode(',', $teamExpertise))) : [];
+
+    // Score all eligible panelists (excluding adviser and already selected)
+    $eligibleIds = array_diff(array_keys($allPanelists), [$adviserId], $selected);
+    $scores = [];
+    foreach ($eligibleIds as $pid) {
+        $pdata = getPanelistData($pdo, $pid);
         $score = 0;
-        
-        // Same program (highest priority)
-        if (strcasecmp((string)($pdata['program'] ?? ''), $teamProgram) === 0) {
-            $score += 100;
+        if (strcasecmp($pdata['program'] ?? '', $teamProgram) === 0) $score += 100;
+        if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) $score += 50;
+        $panelistSpecs = !empty($pdata['area_of_expertise']) ? array_filter(array_map('trim', explode(',', $pdata['area_of_expertise']))) : [];
+        $specScore = 0;
+        foreach ($teamSpecializations as $ts) {
+            if (in_array($ts, $panelistSpecs)) $specScore += 10;
         }
-        
-        // Same department
-        if (strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0) {
-            $score += 50;
-        }
-        
-        // Specialization matching (new!)
-        $panelistSpecializations = getUserSpecializations($pdo, $id);
-        $specializationScore = calculateSpecializationMatch($teamSpecializations, $panelistSpecializations);
-        $score += $specializationScore;
-        
-        $panelistScores[$id] = $score;
+        $score += $specScore;
+        $scores[$pid] = $score;
     }
-    
-    // Sort panelists by score (descending)
-    arsort($panelistScores);
-    
-    // Select top 3 panelists with some randomization for diversity
-    $topCandidates = array_values(array_diff(array_keys($panelistScores), $selectedPanelists));
-    
-    // Candidate 0: Best match (top scorer or random from top 3)
-    $top3 = array_slice($topCandidates, 0, min(3, count($topCandidates)));
-    if (!empty($top3)) {
-        $selectedPanelists[] = $top3[array_rand($top3)];
-    }
-    
-    // Candidate 1: From same department (prefer not already selected)
-    $sameDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
-        if (in_array($id, $selectedPanelists)) return false;
-        $pdata = getPanelistData($pdo, $id);
-        if (!$pdata) return false;
-        return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) === 0;
-    });
-    
-    if (!empty($sameDept)) {
-        $sameDeptValues = array_values($sameDept);
-        $selectedPanelists[] = $sameDeptValues[array_rand($sameDeptValues)];
-    } else {
-        $remaining = array_diff($topCandidates, $selectedPanelists);
-        if (!empty($remaining)) {
-            $remainingValues = array_values($remaining);
-            $selectedPanelists[] = $remainingValues[0];
-        }
-    }
-    
-    // Candidate 2: From different department for diversity
-    $diffDept = array_filter($topCandidates, function($id) use ($pdo, $teamDepartment, $selectedPanelists) {
-        if (in_array($id, $selectedPanelists)) return false;
-        $pdata = getPanelistData($pdo, $id);
-        if (!$pdata) return false;
-        return strcasecmp(getDepartment($pdata['program'] ?? ''), $teamDepartment) !== 0;
-    });
-    
-    if (!empty($diffDept)) {
-        $diffDeptValues = array_values($diffDept);
-        $selectedPanelists[] = $diffDeptValues[array_rand($diffDeptValues)];
-    } else {
-        $remaining = array_diff($topCandidates, $selectedPanelists);
-        if (!empty($remaining)) {
-            $remainingValues = array_values($remaining);
-            $selectedPanelists[] = $remainingValues[0];
-        }
-    }
-    
-    // Ensure we have exactly 3 panelists
-    while (count($selectedPanelists) < 3 && count($selectedPanelists) < count($topCandidates)) {
-        $remaining = array_diff($topCandidates, $selectedPanelists);
-        if (!empty($remaining)) {
-            $remainingValues = array_values($remaining);
-            $selectedPanelists[] = $remainingValues[0];
-        } else {
-            break;
-        }
+    arsort($scores);
+    $topCandidates = array_keys($scores);
+
+    while (count($selected) < 3 && !empty($topCandidates)) {
+        $selected[] = array_shift($topCandidates);
     }
 
-    return $selectedPanelists;
+    // Ensure we have exactly 3 (pad with any remaining candidates if needed)
+    while (count($selected) < 3 && !empty($topCandidates)) {
+        $selected[] = array_shift($topCandidates);
+    }
+
+    error_log("Team {$teamId}: fallback selection: " . implode(',', $selected));
+    return $selected;
 }
 
 // Unused functions are kept at the end
