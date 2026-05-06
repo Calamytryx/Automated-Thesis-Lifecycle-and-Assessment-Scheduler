@@ -1893,6 +1893,17 @@
                             </div>
                             `;
 
+                            // Add Is External Panelist checkbox for faculty (usertype 2)
+                            formHtml += `
+                            <div class="mb-3 is-external-panelist-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
+                                <label class="form-label">External Panelist</label>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="is_external" id="is_external" value="1" ${response.data.is_external == 1 ? 'checked' : ''}>
+                                    <label class="form-check-label" for="is_external">Mark as Pure External Panelist (will be assigned as 3rd panelist)</label>
+                                </div>
+                            </div>
+                            `;
+
                             form.html(formHtml);
                             console.log(`Program data: ${response.data.program}`);
 
@@ -1905,12 +1916,14 @@
                                 if (usertype == 2) {
                                     $('.area-expertise-field').show();
                                     $('.is-part-time-field').show();
+                                    $('.is-external-panelist-field').show();
                                     $('.student-year-field').hide();
                                     $('.student-section-field').hide();
                                     $('.is-program-chair-field').hide();
                                 } else if (usertype == 1) {
                                     $('.area-expertise-field').hide();
                                     $('.is-part-time-field').hide();
+                                    $('.is-external-panelist-field').hide();
                                     $('.student-year-field').show();
                                     $('.student-section-field').show();
                                     $('.is-program-chair-field').hide();
@@ -1919,12 +1932,14 @@
                                 } else if (usertype == 0) {
                                     $('.area-expertise-field').hide();
                                     $('.is-part-time-field').hide();
+                                    $('.is-external-panelist-field').hide();
                                     $('.student-year-field').hide();
                                     $('.student-section-field').hide();
                                     $('.is-program-chair-field').show();
                                 } else {
                                     $('.area-expertise-field').hide();
                                     $('.is-part-time-field').hide();
+                                    $('.is-external-panelist-field').hide();
                                     $('.student-year-field').hide();
                                     $('.student-section-field').hide();
                                     $('.is-program-chair-field').hide();
@@ -3382,6 +3397,14 @@
                     '<input class="form-check-input" type="checkbox" name="is_program_chair" id="program_chair" value="0">' +
                     '<label class="form-check-label" for="program_chair">Program Chair</label>' +
                     '</div>' +
+                    '</div>' +
+                    // External Panelist field for faculty, hidden by default
+                    '<div class="mb-3 is-external-panelist-field" style="display:none;">' +
+                    '<label class="form-label">External Panelist</label>' +
+                    '<div class="form-check">' +
+                    '<input class="form-check-input" type="checkbox" name="is_external" id="is_external" value="1">' +
+                    '<label class="form-check-label" for="is_external">Mark as Pure External Panelist (will be assigned as 3rd panelist)</label>' +
+                    '</div>' +
                     '</div>'
                 );
 
@@ -3397,6 +3420,7 @@
                     if (usertype == 2) {
                         $('.area-expertise-field').show();
                         $('.is-part-time-field').show();
+                        $('.is-external-panelist-field').show();
                         $('.student-year-field').hide();
                         $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();
@@ -3404,6 +3428,7 @@
                     } else if (usertype == 1) {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.is-external-panelist-field').hide();
                         $('.student-year-field').show();
                         $('.student-section-field').show();
                         $('.is-program-chair-field').hide();
@@ -3412,6 +3437,7 @@
                     } else if (usertype == 0) {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.is-external-panelist-field').hide();
                         $('.student-year-field').hide();
                         $('.student-section-field').hide();
                         $('.is-program-chair-field').show();
@@ -3419,6 +3445,7 @@
                     } else {
                         $('.area-expertise-field').hide();
                         $('.is-part-time-field').hide();
+                        $('.is-external-panelist-field').hide();
                         $('.student-year-field').hide();
                         $('.student-section-field').hide();
                         $('.is-program-chair-field').hide();

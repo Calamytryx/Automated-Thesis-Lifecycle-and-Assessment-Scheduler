@@ -973,6 +973,7 @@ CREATE TABLE `users` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   `last_login_at` timestamp NULL DEFAULT NULL,
   `is_program_chair` int(1) DEFAULT NULL,
+  `is_external` tinyint(1) DEFAULT 0 COMMENT 'Mark usertype 2 as external panelist (pure panelist, not faculty)',
   `year` int(1) DEFAULT NULL,
   `section` varchar(10) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
