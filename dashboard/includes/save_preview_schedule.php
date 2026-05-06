@@ -62,6 +62,75 @@ try {
         throw new Exception(implode("\n", $conflictItems));
     }
 
+    // Validate overlaps inside the incoming preview batch itself
+    // (not only against already-saved defense schedules).
+    $batchCount = count($normalizedSchedules);
+    for ($i = 0; $i < $batchCount; $i++) {
+        $a = $normalizedSchedules[$i];
+        $aDate = trim((string) ($a['schedule_date'] ?? ''));
+        $aStartTs = strtotime($aDate . ' ' . trim((string) ($a['start_time'] ?? '')));
+        $aEndTs = strtotime($aDate . ' ' . trim((string) ($a['end_time'] ?? '')));
+        $aRoomNorm = strtolower(trim((string) ($a['room'] ?? '')));
+        $aPanelists = array_values(array_unique(array_filter([
+            (int) ($a['panelist_id'] ?? 0),
+            (int) ($a['panelist_id2'] ?? 0),
+            (int) ($a['panelist_id3'] ?? 0),
+        ])));
+
+        if ($aStartTs === false || $aEndTs === false || $aStartTs >= $aEndTs) {
+            $conflictItems[] = 'Row ' . ($i + 1) . ': invalid time range.';
+            continue;
+        }
+
+        for ($j = $i + 1; $j < $batchCount; $j++) {
+            $b = $normalizedSchedules[$j];
+            $bDate = trim((string) ($b['schedule_date'] ?? ''));
+            if ($aDate !== $bDate) {
+                continue;
+            }
+
+            $bStartTs = strtotime($bDate . ' ' . trim((string) ($b['start_time'] ?? '')));
+            $bEndTs = strtotime($bDate . ' ' . trim((string) ($b['end_time'] ?? '')));
+            if ($bStartTs === false || $bEndTs === false) {
+                $conflictItems[] = 'Row ' . ($j + 1) . ': invalid time range.';
+                continue;
+            }
+
+            // True overlap test: catches 1:00-3:00 vs 2:00-3:00.
+            $overlaps = ($aStartTs < $bEndTs) && ($aEndTs > $bStartTs);
+            if (!$overlaps) {
+                continue;
+            }
+
+            $bRoomNorm = strtolower(trim((string) ($b['room'] ?? '')));
+            if ($aRoomNorm !== '' && $bRoomNorm !== '' && $aRoomNorm === $bRoomNorm) {
+                $conflictItems[] = sprintf(
+                    'Rows %d and %d: room conflict (%s) with overlapping time on %s.',
+                    $i + 1,
+                    $j + 1,
+                    $a['room'],
+                    $aDate
+                );
+            }
+
+            $bPanelists = array_values(array_unique(array_filter([
+                (int) ($b['panelist_id'] ?? 0),
+                (int) ($b['panelist_id2'] ?? 0),
+                (int) ($b['panelist_id3'] ?? 0),
+            ])));
+            $sharedPanelists = array_values(array_intersect($aPanelists, $bPanelists));
+            if (!empty($sharedPanelists)) {
+                $conflictItems[] = sprintf(
+                    'Rows %d and %d: panelist conflict (ID %s) with overlapping time on %s.',
+                    $i + 1,
+                    $j + 1,
+                    implode(', ', $sharedPanelists),
+                    $aDate
+                );
+            }
+        }
+    }
+
     foreach ($normalizedSchedules as $sched) {
         $panelistIds = array_values(array_filter([
             (int) ($sched['panelist_id'] ?? 0),
@@ -100,7 +169,7 @@ try {
 
     foreach ($normalizedSchedules as $sched) {
         $stmt->execute([
-            $sched['team_id'],
+            (int) ($sched['team_id'] ?? 0),
             $sched['panelist_id'],
             $sched['panelist_id2'],
             $sched['panelist_id3'],

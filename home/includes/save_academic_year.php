@@ -4,8 +4,8 @@ require_once '../../assets/setup/db.inc.php';
 
 header('Content-Type: application/json');
 
-// Only faculty (usertype 2) can save academic year
-if (!isset($_SESSION['id']) || !isset($_SESSION['usertype']) || $_SESSION['usertype'] != 2) {
+// Only faculty/program chair (usertype 2 or 0) can save academic year
+if (!isset($_SESSION['id']) || !isset($_SESSION['usertype']) || !in_array((int)$_SESSION['usertype'], [0, 2], true)) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit;
 }

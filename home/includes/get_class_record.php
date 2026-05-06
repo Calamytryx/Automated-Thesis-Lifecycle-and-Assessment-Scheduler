@@ -4,13 +4,13 @@ require_once '../../assets/setup/db.inc.php';
 
 header('Content-Type: application/json');
 
-// Check if user is faculty
-if (!isset($_SESSION['id']) || $_SESSION['usertype'] != 2) {
+// Check if user is faculty or program chair
+if (!isset($_SESSION['id']) || !in_array((int)($_SESSION['usertype'] ?? -1), [0, 2], true)) {
     echo json_encode(['success' => false, 'message' => 'Unauthorized access']);
     exit;
 }
 
-$facultyId = $_SESSION['id'];
+$facultyId = (int)$_SESSION['id'];
 
 try {
     // Get sections accessible to this faculty member

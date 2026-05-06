@@ -38,8 +38,8 @@ check_verified();
 include '../assets/setup/db.inc.php';
 require_once '../dashboard/includes/section_access.php';
 
-$isSectionProfessor = ((int)$_SESSION['usertype'] === 2)
-    && professorHasSectionAssignment($pdo, (int)$_SESSION['id']);
+$isSectionProfessor = in_array((int)($_SESSION['usertype'] ?? -1), [0, 2], true)
+    && professorHasSectionAssignment($pdo, (int)($_SESSION['id'] ?? 0));
 
 ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);

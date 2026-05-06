@@ -80,6 +80,11 @@
                                     <span class="d-none d-lg-inline">Generate Schedule</span>
                                     <span class="d-lg-none">Generate</span>
                                 </button>
+                                <div class="input-group ms-2" style="max-width:520px;">
+                                    <input type="date" class="form-control form-control-sm" id="reportStartDate" aria-label="Start date">
+                                    <input type="date" class="form-control form-control-sm" id="reportEndDate" aria-label="End date">
+                                    <button class="btn btn-outline-secondary btn-sm" id="exportDefensePdf">Export PDF</button>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -1679,6 +1684,228 @@
                 };
                 loadDefenseSchedules(currentTablePage, false, false);
 
+                // ========== EXPORT PDF (Date range) ==========
+                document.getElementById('exportDefensePdf').addEventListener('click', function() {
+                    const start = document.getElementById('reportStartDate').value;
+                    const end = document.getElementById('reportEndDate').value;
+                    if (!start || !end) {
+                        showDefAlert('Please select both start and end dates for the report.', 'warning');
+                        return;
+                    }
+                    if (start > end) {
+                        showDefAlert('Start date must be before or equal to end date.', 'warning');
+                        return;
+                    }
+
+                    const payload = { start_date: start, end_date: end };
+                    fetch('../dashboard/includes/get_defense_report.php', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    }).then(r => r.json())
+                      .then(res => {
+                          if (!res || !res.success) {
+                              showDefAlert(res && res.message ? res.message : 'No schedules found for the selected range.', 'warning');
+                              return;
+                          }
+                          const rows = res.data || [];
+                          if (!rows.length) {
+                              showDefAlert('No schedules found for the selected range.', 'warning');
+                              return;
+                          }
+
+                          // Group by date -> room
+                          const grouped = {};
+                          rows.forEach(r => {
+                              const d = r.schedule_date;
+                              const room = r.room || 'Unspecified';
+                              grouped[d] = grouped[d] || {};
+                              grouped[d][room] = grouped[d][room] || [];
+                              grouped[d][room].push(r);
+                          });
+
+                          function ensureJsPdf(cb) {
+                              if (window.jspdf) return cb();
+                              const s = document.createElement('script');
+                              s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                              s.onload = cb;
+                              s.onerror = function() { showDefAlert('Failed to load PDF library.', 'error'); };
+                              document.head.appendChild(s);
+                          }
+
+                          ensureJsPdf(function() {
+                              const { jsPDF } = window.jspdf;
+                              const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                              const pageWidth = 297; // A4 landscape
+                              const pageHeight = 210; // A4 landscape
+                              const margin = 10;
+                              const rightMargin = 10;
+                              const usableWidth = pageWidth - margin - rightMargin;
+                              
+                              let y = margin;
+                              pdf.setFont('time new roman');
+                              pdf.setFontSize(12);
+
+                              const formatDateForLabel = (ymd) => {
+                                  try {
+                                      const d = new Date(ymd + 'T00:00:00');
+                                      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                                  } catch (e) { return ymd; }
+                              };
+
+                              Object.keys(grouped).sort().forEach(date => {
+                                  // Start new date on a fresh page (unless it's the first page)
+                                  if (y > margin) {
+                                      pdf.addPage();
+                                      y = margin;
+                                  }
+                                  
+                                  // Date header
+                                  pdf.setFontSize(14);
+                                  pdf.text(formatDateForLabel(date), margin, y);
+                                  y += 8;
+
+                                  const rooms = Object.keys(grouped[date]).sort();
+                                  rooms.forEach(room => {
+                                      pdf.setFontSize(11);
+                                      pdf.text('Room: ' + room, margin, y);
+                                      y += 7;
+
+                                      // Column widths optimized for landscape A4: time, title, adviser, members, p1, p2, p3
+                                      const colW = { time: 22, title: 48, adviser: 35, members: 42, p1: 25, p2: 25, p3: 25 };
+                                      const colX = {
+                                          time: margin,
+                                          title: margin + colW.time,
+                                          adviser: margin + colW.time + colW.title,
+                                          members: margin + colW.time + colW.title + colW.adviser,
+                                          p1: margin + colW.time + colW.title + colW.adviser + colW.members,
+                                          p2: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1,
+                                          p3: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1 + colW.p2
+                                      };
+                                      const lineHeight = 4.5;
+                                      const bottomThreshold = pageHeight - margin - 20;
+                                      
+                                      const drawTableHeader = () => {
+                                          pdf.setFontSize(9);
+                                          const headerTop = y;
+                                          const headerHeight = 6;
+                                          // Draw all column borders
+                                          pdf.rect(colX.time, headerTop, colW.time, headerHeight);
+                                          pdf.rect(colX.title, headerTop, colW.title, headerHeight);
+                                          pdf.rect(colX.adviser, headerTop, colW.adviser, headerHeight);
+                                          pdf.rect(colX.members, headerTop, colW.members, headerHeight);
+                                          pdf.rect(colX.p1, headerTop, colW.p1, headerHeight);
+                                          pdf.rect(colX.p2, headerTop, colW.p2, headerHeight);
+                                          pdf.rect(colX.p3, headerTop, colW.p3, headerHeight);
+
+                                          const textY = headerTop + 4.2;
+                                          pdf.text('Time', colX.time + 0.8, textY);
+                                          pdf.text('Title', colX.title + 0.8, textY);
+                                          pdf.text('Adviser', colX.adviser + 0.8, textY);
+                                          pdf.text('Members', colX.members + 0.8, textY);
+                                          pdf.text('P1', colX.p1 + 0.8, textY);
+                                          pdf.text('P2', colX.p2 + 0.8, textY);
+                                          pdf.text('P3', colX.p3 + 0.8, textY);
+                                          y += headerHeight;
+                                      };
+
+                                      drawTableHeader();
+
+                                      // Helper to format HH:MM -> h:MM AM/PM for PDF printing
+                                      const formatTimeForPdf = (hm) => {
+                                          if (!hm) return '';
+                                          const parts = String(hm).split(':');
+                                          if (parts.length < 2) return hm;
+                                          let hh = parseInt(parts[0], 10);
+                                          const mm = parts[1];
+                                          const ampm = hh >= 12 ? 'PM' : 'AM';
+                                          hh = hh % 12 || 12;
+                                          return `${hh}:${mm} ${ampm}`;
+                                      };
+
+                                      grouped[date][room].forEach(item => {
+                                          const time = formatTimeForPdf(item.start_time) + ' - ' + formatTimeForPdf(item.end_time);
+                                          const title = item.thesis_title || item.team_name || 'N/A';
+                                          const adviser = item.adviser || 'N/A';
+                                          const members = item.members || 'N/A';
+                                          const panel = (item.panelists || '').split(',').map(p => p.trim()).filter(Boolean);
+                                          while (panel.length < 3) panel.push('');
+
+                                          const splitTime = pdf.splitTextToSize(time, colW.time - 1.6);
+                                          const splitTitle = pdf.splitTextToSize(title, colW.title - 1.6);
+                                          const splitAdviser = pdf.splitTextToSize(adviser, colW.adviser - 1.6);
+
+                                          const memberNames = members
+                                              .split(',')
+                                              .map(name => name.trim())
+                                              .filter(Boolean);
+                                          const splitMembers = memberNames.length
+                                              ? memberNames.flatMap(name => pdf.splitTextToSize(name, colW.members - 1.6))
+                                              : ['N/A'];
+
+                                          const splitP1 = pdf.splitTextToSize(panel[0] || '', colW.p1 - 1.6);
+                                          const splitP2 = pdf.splitTextToSize(panel[1] || '', colW.p2 - 1.6);
+                                          const splitP3 = pdf.splitTextToSize(panel[2] || '', colW.p3 - 1.6);
+
+                                          const lineCount = Math.max(
+                                              Array.isArray(splitTime) ? splitTime.length : 1,
+                                              Array.isArray(splitTitle) ? splitTitle.length : 1,
+                                              Array.isArray(splitAdviser) ? splitAdviser.length : 1,
+                                              Array.isArray(splitMembers) ? splitMembers.length : 1,
+                                              Array.isArray(splitP1) ? splitP1.length : 1,
+                                              Array.isArray(splitP2) ? splitP2.length : 1,
+                                              Array.isArray(splitP3) ? splitP3.length : 1
+                                          );
+                                          const rowHeight = Math.max(6, lineCount * lineHeight + 1);
+
+                                          // Check if row fits on current page BEFORE rendering
+                                          if ((y + rowHeight) > bottomThreshold) {
+                                              pdf.addPage();
+                                              y = margin;
+                                              pdf.setFontSize(10);
+                                              pdf.text('Room: ' + room + ' (continued)', margin, y);
+                                              y += 6;
+                                              drawTableHeader();
+                                          }
+
+                                          pdf.setFontSize(8);
+                                          const textY = y + 3.5;
+                                          
+                                          // Draw cell borders
+                                          pdf.rect(colX.time, y, colW.time, rowHeight);
+                                          pdf.rect(colX.title, y, colW.title, rowHeight);
+                                          pdf.rect(colX.adviser, y, colW.adviser, rowHeight);
+                                          pdf.rect(colX.members, y, colW.members, rowHeight);
+                                          pdf.rect(colX.p1, y, colW.p1, rowHeight);
+                                          pdf.rect(colX.p2, y, colW.p2, rowHeight);
+                                          pdf.rect(colX.p3, y, colW.p3, rowHeight);
+
+                                          // Render text in cells
+                                          pdf.text(splitTime, colX.time + 0.8, textY);
+                                          pdf.text(splitTitle, colX.title + 0.8, textY);
+                                          pdf.text(splitAdviser, colX.adviser + 0.8, textY);
+                                          pdf.text(splitMembers, colX.members + 0.8, textY);
+                                          pdf.text(splitP1, colX.p1 + 0.8, textY);
+                                          pdf.text(splitP2, colX.p2 + 0.8, textY);
+                                          pdf.text(splitP3, colX.p3 + 0.8, textY);
+
+                                          y += rowHeight;
+                                      });
+
+                                      y += 4; // gap after room
+                                  });
+                              });
+
+                              const filename = `defense_schedules_${start}_to_${end}.pdf`;
+                              pdf.save(filename);
+                          });
+                      })
+                      .catch(err => {
+                          console.error('Export error', err);
+                          showDefAlert('Failed to generate report: ' + (err.message || err), 'error');
+                      });
+                });
+
                 // Filter/sort change listeners
                 document.getElementById('defStatusFilter').addEventListener('change', () => {
                     currentTablePage = 1;
@@ -2083,6 +2310,102 @@ eventContent: function(arg) {
                     return conflicts;
                 }
 
+                function getPreviewPanelistIds(schedule) {
+                    const ids = [
+                        Number(schedule?.panelist_id || 0),
+                        Number(schedule?.panelist_id2 || 0),
+                        Number(schedule?.panelist_id3 || 0)
+                    ].filter(n => Number.isFinite(n) && n > 0);
+                    return [...new Set(ids)];
+                }
+
+                function normalizeRoomForConflict(room) {
+                    return String(room || '').trim().toLowerCase();
+                }
+
+                function findPreviewInternalConflicts(generatedSchedules) {
+                    const conflicts = [];
+                    const total = Array.isArray(generatedSchedules) ? generatedSchedules.length : 0;
+
+                    for (let i = 0; i < total; i++) {
+                        const a = generatedSchedules[i] || {};
+                        const aDate = String(a.schedule_date || '').trim();
+                        const aStart = toMinutes(a.start_time);
+                        const aEnd = toMinutes(a.end_time);
+                        const aRoomNorm = normalizeRoomForConflict(a.room);
+                        const aPanelists = getPreviewPanelistIds(a);
+
+                        if (!aDate || aStart === null || aEnd === null || aStart >= aEnd) continue;
+
+                        for (let j = i + 1; j < total; j++) {
+                            const b = generatedSchedules[j] || {};
+                            const bDate = String(b.schedule_date || '').trim();
+                            if (aDate !== bDate) continue;
+
+                            const bStart = toMinutes(b.start_time);
+                            const bEnd = toMinutes(b.end_time);
+                            if (bStart === null || bEnd === null || bStart >= bEnd) continue;
+
+                            if (!timeRangesOverlap(aStart, aEnd, bStart, bEnd)) continue;
+
+                            const bRoomNorm = normalizeRoomForConflict(b.room);
+                            if (aRoomNorm && bRoomNorm && aRoomNorm === bRoomNorm) {
+                                conflicts.push({
+                                    type: 'room',
+                                    previewIndex: i,
+                                    otherIndex: j,
+                                    team_name: a.team_name || 'Unknown',
+                                    other_team_name: b.team_name || 'Unknown',
+                                    room: a.room || '',
+                                    day_of_week: new Date(`${aDate}T00:00:00`).getDay(),
+                                    start_time: a.start_time,
+                                    end_time: a.end_time
+                                });
+                                conflicts.push({
+                                    type: 'room',
+                                    previewIndex: j,
+                                    otherIndex: i,
+                                    team_name: b.team_name || 'Unknown',
+                                    other_team_name: a.team_name || 'Unknown',
+                                    room: b.room || '',
+                                    day_of_week: new Date(`${bDate}T00:00:00`).getDay(),
+                                    start_time: b.start_time,
+                                    end_time: b.end_time
+                                });
+                            }
+
+                            const bPanelists = getPreviewPanelistIds(b);
+                            const sharedPanelists = aPanelists.filter(id => bPanelists.includes(id));
+                            if (sharedPanelists.length > 0) {
+                                conflicts.push({
+                                    type: 'panelist',
+                                    previewIndex: i,
+                                    otherIndex: j,
+                                    team_name: a.team_name || 'Unknown',
+                                    other_team_name: b.team_name || 'Unknown',
+                                    panelist_ids: sharedPanelists,
+                                    day_of_week: new Date(`${aDate}T00:00:00`).getDay(),
+                                    start_time: a.start_time,
+                                    end_time: a.end_time
+                                });
+                                conflicts.push({
+                                    type: 'panelist',
+                                    previewIndex: j,
+                                    otherIndex: i,
+                                    team_name: b.team_name || 'Unknown',
+                                    other_team_name: a.team_name || 'Unknown',
+                                    panelist_ids: sharedPanelists,
+                                    day_of_week: new Date(`${bDate}T00:00:00`).getDay(),
+                                    start_time: b.start_time,
+                                    end_time: b.end_time
+                                });
+                            }
+                        }
+                    }
+
+                    return conflicts;
+                }
+
                 function setupPreviewVariantsUI(variants) {
                     const wrap = document.getElementById('previewVariantWrap');
                     const sel = document.getElementById('previewVariantSelect');
@@ -2122,7 +2445,10 @@ eventContent: function(arg) {
 
                     const validationCounts = meta?.validationCounts || { teams: 0, room: 0, panelist: 0, member: 0, invalid: 0 };
                     const unresolvedIssues = Array.isArray(meta?.validationIssues) ? meta.validationIssues : [];
-                    const conflictCount = Array.isArray(conflicts) ? conflicts.length : 0;
+                    const allConflicts = Array.isArray(conflicts) ? conflicts : [];
+                    const classConflicts = allConflicts.filter(c => !c.type || c.type === 'class');
+                    const internalConflicts = allConflicts.filter(c => c.type === 'room' || c.type === 'panelist');
+                    const conflictCount = allConflicts.length;
                     const overlapPostGa = Array.isArray(meta?.overlapWarnings) ? meta.overlapWarnings : [];
 
                     target.innerHTML = `
@@ -2137,7 +2463,7 @@ eventContent: function(arg) {
                                     <span class="preview-overlay-chip">Room: ${validationCounts.room || 0}</span>
                                     <span class="preview-overlay-chip">Panelist: ${validationCounts.panelist || 0}</span>
                                     <span class="preview-overlay-chip">Member: ${validationCounts.member || 0}</span>
-                                    <span class="preview-overlay-chip">Overlay conflicts: ${conflictCount}</span>
+                                    <span class="preview-overlay-chip">Total conflicts: ${conflictCount}</span>
                                 </div>
                             </div>
                             ${unresolvedIssues.length ? `
@@ -2146,12 +2472,23 @@ eventContent: function(arg) {
                                     ${unresolvedIssues.slice(0, 5).map(issue => `<li>${issue}</li>`).join('')}
                                 </ul>
                             ` : '<div class="small text-success">No unresolved generation issues reported by the validator.</div>'}
-                            ${conflicts.length ? `
+                            ${classConflicts.length ? `
                                 <div class="small fw-semibold text-danger mt-3 mb-1">Overlay: section class vs defense (overlap)</div>
                                 <ul class="preview-diagnostics-list small">
-                                    ${conflicts.slice(0, 5).map(conflict => `<li><strong>${conflict.team_name}</strong> vs <strong>${conflict.class_name}</strong> on ${formatTime(conflict.start_time)}-${formatTime(conflict.end_time)} (team room ${conflict.room || 'N/A'}, class venue ${conflict.class_room || 'N/A'})</li>`).join('')}
+                                    ${classConflicts.slice(0, 5).map(conflict => `<li><strong>${conflict.team_name}</strong> vs <strong>${conflict.class_name}</strong> on ${formatTime(conflict.start_time)}-${formatTime(conflict.end_time)} (team room ${conflict.room || 'N/A'}, class venue ${conflict.class_room || 'N/A'})</li>`).join('')}
                                 </ul>
                             ` : '<div class="small text-muted mt-3">No section-class overlap in this layout.</div>'}
+                            ${internalConflicts.length ? `
+                                <div class="small fw-semibold text-danger mt-3 mb-1">Internal schedule overlaps (must be fixed)</div>
+                                <ul class="preview-diagnostics-list small">
+                                    ${internalConflicts.slice(0, 8).map(conflict => {
+                                        if (conflict.type === 'room') {
+                                            return `<li><strong>${conflict.team_name}</strong> overlaps with <strong>${conflict.other_team_name}</strong> in room <strong>${conflict.room || 'N/A'}</strong> at ${formatTime(conflict.start_time)}-${formatTime(conflict.end_time)}</li>`;
+                                        }
+                                        return `<li><strong>${conflict.team_name}</strong> shares panelist(s) <strong>${(conflict.panelist_ids || []).join(', ') || 'N/A'}</strong> with <strong>${conflict.other_team_name}</strong> at ${formatTime(conflict.start_time)}-${formatTime(conflict.end_time)}</li>`;
+                                    }).join('')}
+                                </ul>
+                            ` : '<div class="small text-muted mt-3">No room/panelist overlaps between generated defenses.</div>'}
                             ${overlapPostGa.length ? `
                                 <div class="small fw-semibold mt-3 mb-1" style="color:#b45309;">Post‑GA overlap / repair notes (check before saving)</div>
                                 <ul class="preview-diagnostics-list small">
@@ -2229,7 +2566,9 @@ eventContent: function(arg) {
 
                     overlayPromise.then(classSchedules => {
                         previewClassScheduleData = classSchedules;
-                        const conflictDetails = findPreviewConflicts(previewScheduleData, classSchedules);
+                        const classConflictDetails = findPreviewConflicts(previewScheduleData, classSchedules);
+                        const internalConflictDetails = findPreviewInternalConflicts(previewScheduleData);
+                        const conflictDetails = [...classConflictDetails, ...internalConflictDetails];
 
                         let postGaWarnIdx = {};
                         try {
@@ -2270,6 +2609,7 @@ eventContent: function(arg) {
                         }
 
                         const PREVIEW_FIRST_DAY = 1; // Match Mon-first week strip (hidden Sundays)
+                        const CLASS_OVERLAY_SOURCE_ID = 'preview-class-overlay';
                         const weekStartForOverlay = startOfDisplayedWeek(initialDate, PREVIEW_FIRST_DAY);
                         const classOverlayEvents = buildClassOverlayEvents(classSchedules, weekStartForOverlay, PREVIEW_FIRST_DAY);
 
@@ -2306,12 +2646,26 @@ eventContent: function(arg) {
                                 },
                                 eventSources: [
                                     {
+                                        id: CLASS_OVERLAY_SOURCE_ID,
                                         events: classOverlayEvents
                                     },
                                     {
                                         events: generatedEvents
                                     }
                                 ],
+                                datesSet: function(info) {
+                                    // Rebuild class overlay for any navigated week/day.
+                                    const overlayWeekStart = startOfDisplayedWeek(info.start, PREVIEW_FIRST_DAY);
+                                    const overlayEvents = buildClassOverlayEvents(classSchedules, overlayWeekStart, PREVIEW_FIRST_DAY);
+                                    const existingOverlaySource = previewCalendarInstance.getEventSourceById(CLASS_OVERLAY_SOURCE_ID);
+                                    if (existingOverlaySource) {
+                                        existingOverlaySource.remove();
+                                    }
+                                    previewCalendarInstance.addEventSource({
+                                        id: CLASS_OVERLAY_SOURCE_ID,
+                                        events: overlayEvents
+                                    });
+                                },
                                 eventContent: function(arg) {
                                     const props = arg.event.extendedProps;
                                     if (props.overlayType === 'class') {
@@ -2397,7 +2751,10 @@ eventContent: function(arg) {
                         return;
                     }
 
-                    const conflicts = findPreviewConflicts(previewScheduleData, previewClassScheduleData);
+                    const conflicts = [
+                        ...findPreviewConflicts(previewScheduleData, previewClassScheduleData),
+                        ...findPreviewInternalConflicts(previewScheduleData)
+                    ];
                     renderPreviewDiagnostics(previewGenerationMeta, conflicts);
 
                     if (previewCalendarInstance) {
@@ -2656,9 +3013,12 @@ eventContent: function(arg) {
 
                 // ========== CONFIRM SAVE PREVIEW ==========
                 document.getElementById('confirmSavePreview').addEventListener('click', function() {
-                    const overlayConflicts = findPreviewConflicts(previewScheduleData, previewClassScheduleData);
-                    if (Array.isArray(overlayConflicts) && overlayConflicts.length > 0) {
-                        showDefAlert('Resolve overlay conflicts before saving preview schedules.', 'error');
+                    const allConflicts = [
+                        ...findPreviewConflicts(previewScheduleData, previewClassScheduleData),
+                        ...findPreviewInternalConflicts(previewScheduleData)
+                    ];
+                    if (Array.isArray(allConflicts) && allConflicts.length > 0) {
+                        showDefAlert('Resolve class/room/panelist overlaps before saving preview schedules.', 'error');
                         return;
                     }
                     if (Array.isArray(previewUnresolvedTeamIds) && previewUnresolvedTeamIds.length > 0) {

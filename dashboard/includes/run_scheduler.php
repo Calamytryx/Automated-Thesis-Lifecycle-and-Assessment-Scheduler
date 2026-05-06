@@ -1920,7 +1920,7 @@ try {
                 $pdo,
                 $progressId,
                 'info',
-                'Schedule generation completed with unresolved conflicts: ' . implode(' | ', array_slice($failurePayload['validationIssues'], 0, 3)),
+                'Pre-validation flagged potential unresolved teams; proceeding with optimization and final conflict repair.',
                 32
             );
             error_log('SOFT MODE: ' . $summaryText . ' ' . $detailText);
@@ -2159,10 +2159,7 @@ try {
             }
         }
         $scheduledTeamIds = array_values(array_unique($scheduledTeamIds));
-        $unresolvedTeamIds = array_values(array_unique(array_merge(
-            $unresolvedFromPreValidation,
-            array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds))
-        )));
+        $unresolvedTeamIds = array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds));
 
         if ($isPreview && !empty($scheduleVariantsPrepared)) {
             $validPreviewVariants = [];
@@ -2227,10 +2224,9 @@ try {
             }
         }
         $scheduledTeamIds = array_values(array_unique($scheduledTeamIds));
-        $unresolvedTeamIds = array_values(array_unique(array_merge(
-            $unresolvedFromPreValidation,
-            array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds))
-        )));
+        $unresolvedTeamIds = array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds));
+        $finalValidationSummary = $validationSummary;
+        $finalValidationSummary['unresolvedTeams'] = $unresolvedTeamIds;
 
         if ($isPreview) {
             // Preview mode: prepare data without saving
@@ -2255,7 +2251,7 @@ try {
                 'overlapFixes' => $overlapFixes,
                 'remaining_conflicts' => 0,
                 'validationMode' => $validationMode,
-                'validationSummary' => $validationSummary,
+                'validationSummary' => $finalValidationSummary,
                 'validationCounts' => summarizeValidationIssues($validationIssues),
                 'accepted_schedules' => $previewData,
                 'accepted_team_ids' => $scheduledTeamIds,
@@ -2294,7 +2290,7 @@ try {
                     'overlapFixes' => $overlapFixes,
                     'remaining_conflicts' => 0,
                     'validationMode' => $validationMode,
-                    'validationSummary' => $validationSummary,
+                    'validationSummary' => $finalValidationSummary,
                     'validationCounts' => summarizeValidationIssues($validationIssues),
                     'accepted_team_ids' => $scheduledTeamIds,
                     'unresolved_team_ids' => $unresolvedTeamIds,
@@ -3821,6 +3817,13 @@ function saveScheduleToDatabase($pdo, $schedule)
         $scheduledTeams = [];
         $scheduledDefenses = [];
         $userSchedules = $GLOBALS['schedulerUserSchedulesSnapshot'] ?? fetchUserSchedules($pdo);
+        $teamTitleById = [];
+        foreach (($GLOBALS['teams'] ?? []) as $teamRow) {
+            $tid = (int) ($teamRow['id'] ?? 0);
+            if ($tid > 0) {
+                $teamTitleById[$tid] = trim((string) ($teamRow['title'] ?? ''));
+            }
+        }
 
         // Sort chromosomes by fitness score
         $defenses = $schedule->chromosomes;
@@ -3834,8 +3837,8 @@ function saveScheduleToDatabase($pdo, $schedule)
 
         $stmt = $pdo->prepare("
             INSERT INTO defense_schedules 
-            (team_id, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, defense_type, status, approval_status) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            (team_id, title, panelist_id, panelist_id2, panelist_id3, schedule_date, start_time, end_time, room, defense_type, status, approval_status) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
 
         // Include notification functions
@@ -3869,6 +3872,11 @@ function saveScheduleToDatabase($pdo, $schedule)
 
             // Get defense type from defense array (set during initialization)
             $defenseType = $defense['defense_type'] ?? 'title_proposal';
+            $teamId = (int) ($defense['team_id'] ?? 0);
+            $title = trim((string) ($defense['title'] ?? ($teamTitleById[$teamId] ?? '')));
+            if ($title === '') {
+                $title = 'Untitled';
+            }
 
             // Validate panelist_ids array has exactly 3 elements
             if (!isset($defense['panelist_ids']) || count($defense['panelist_ids']) < 3) {
@@ -3877,7 +3885,8 @@ function saveScheduleToDatabase($pdo, $schedule)
             }
 
             $stmt->execute([
-                $defense['team_id'],
+                $teamId,
+                $title,
                 $defense['panelist_ids'][0],
                 $defense['panelist_ids'][1],
                 $defense['panelist_ids'][2],
@@ -3984,6 +3993,11 @@ function saveScheduleToDatabase($pdo, $schedule)
 
                 // Get defense type for missing team
                 $defenseType = $teamDefense['defense_type'] ?? 'title_proposal';
+                $teamId = (int) ($teamDefense['team_id'] ?? 0);
+                $title = trim((string) ($teamDefense['title'] ?? ($teamTitleById[$teamId] ?? '')));
+                if ($title === '') {
+                    $title = 'Untitled';
+                }
 
                 // Validate panelist_ids array has exactly 3 elements
                 if (!isset($teamDefense['panelist_ids']) || count($teamDefense['panelist_ids']) < 3) {
@@ -3992,7 +4006,8 @@ function saveScheduleToDatabase($pdo, $schedule)
                 }
 
                 $stmt->execute([
-                    $teamDefense['team_id'],
+                    $teamId,
+                    $title,
                     $teamDefense['panelist_ids'][0],
                     $teamDefense['panelist_ids'][1],
                     $teamDefense['panelist_ids'][2],
