@@ -484,6 +484,15 @@ try {
                 }
             }
         }
+// PART-TIME RESTRICTION: block slots before 4:00 PM for part-time panelists
+foreach ($panelistIds as $panelistId) {
+    if (is_array($panelistId)) continue;
+    $pdata = getPanelistData($pdo, $panelistId);
+    if ((int)($pdata['is_parttime'] ?? 0) === 1 && !isParttimePanelistAllowedAtTime($timeValue)) {
+        $conflicts[] = "Part-time panelist {$panelistId} cannot be scheduled before 4:00 PM (slot: {$timeValue})";
+    }
+}
+if (!empty($conflicts)) return $conflicts;
 
         foreach ($panelistIds as $panelistId) {
             if (is_array($panelistId)) {
@@ -1352,6 +1361,7 @@ try {
 
             $teams = fetchTeams($pdo, $selectedSections);
             $panelists = fetchPanelists($pdo);
+$GLOBALS['schedulerPanelists'] = $panelists;
             $teams = array_values($teams);
 
             $rooms = $_POST['rooms'];
@@ -1687,6 +1697,7 @@ try {
 
         $teams = fetchTeams($pdo, $selectedSections);
         $panelists = fetchPanelists($pdo);
+        $GLOBALS['schedulerPanelists'] = $panelists;
         $requestedTeamIds = parseSchedulerTeamIdList($_POST['unresolved_team_ids'] ?? []);
         
         // Filter out teams that should NOT be scheduled:
@@ -3511,6 +3522,14 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
     return false;
 }
 
+function isParttimePanelistAllowedAtTime(string $timeSlot): bool
+{
+    // Part-time panelists may only be scheduled from 16:00 (4:00 PM) onwards
+    $start = strtotime('2000-01-01 ' . $timeSlot);
+    $cutoff = strtotime('2000-01-01 16:00');
+    return $start !== false && $cutoff !== false && $start >= $cutoff;
+}
+
 function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses, $currentTeamId = null)
 {
     $duration = $GLOBALS['timeDuration'];
@@ -3522,6 +3541,13 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
 
     $defense_start = $defRange['start'];
     $defense_end = $defRange['end'];
+
+// PART-TIME RESTRICTION: part-time panelists cannot be scheduled before 4:00 PM
+if (isset($GLOBALS['schedulerPanelists'][$user_id]['is_parttime'])
+    && (int)$GLOBALS['schedulerPanelists'][$user_id]['is_parttime'] === 1
+    && !isParttimePanelistAllowedAtTime((string)$time_slot)) {
+    return true; // treat as conflict — blocks the slot
+}
 
     // CHECK 1: User personal schedule (classes) vs this defense
     if (isset($userSchedules[$user_id])) {
@@ -4712,7 +4738,24 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId
     if (!empty($lockedPanelists)) {
         $exclude = array_merge($exclude, $lockedPanelists);
     }
-    $optimalCombo = buildOptimalPanelistCombination($pdo, null, $exclude);
+    // Determine team program and college to force slots 1&2 to match
+    $teamProgram = null;
+    $teamCollege = null;
+    if ($teamId !== null) {
+        $stmt = $pdo->prepare("SELECT program FROM teams WHERE id = ? LIMIT 1");
+        $stmt->execute([$teamId]);
+        $t = $stmt->fetch(PDO::FETCH_ASSOC);
+        if ($t && !empty($t['program'])) {
+            $teamProgram = $t['program'];
+            $norm = preg_split('/\s*[-–—]\s*/u', $teamProgram);
+            $norm = trim($norm[0]);
+            $pstmt = $pdo->prepare("SELECT college FROM programs WHERE name = ? LIMIT 1");
+            $pstmt->execute([$norm]);
+            $prog = $pstmt->fetch(PDO::FETCH_ASSOC);
+            $teamCollege = $prog ? $prog['college'] : null;
+        }
+    }
+    $optimalCombo = buildOptimalPanelistCombination($pdo, null, $exclude, $teamProgram, $teamCollege);
     if ($optimalCombo !== null && count($optimalCombo) === 3) {
         // Merge with any locked panelists (ensuring uniqueness)
         $final = array_values(array_unique(array_merge($lockedPanelists, $optimalCombo)));
