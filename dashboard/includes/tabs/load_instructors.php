@@ -16,29 +16,51 @@ $userId = (int) $_SESSION['id'];
 $userType = (int) $_SESSION['usertype'];
 $isSuperAdmin = ($userType === 0 && $userId === 0);
 $isProgramChair = ($userType === 0 && $userId !== 0);
+$requestedCollege = trim((string)($_GET['college'] ?? ''));
 
 $data = json_decode(file_get_contents("php://input"), true);
 $selectedUserId = isset($data['user_id']) ? (int)$data['user_id'] : null;
 
 try {
     if ($isSuperAdmin) {
-        $stmt = $pdo->prepare(" 
+        $sql = " 
             SELECT DISTINCT u.id, u.first_name, u.last_name
             FROM users u
+            LEFT JOIN programs p ON (
+                u.program = p.name OR
+                u.program = CONCAT(
+                    p.name,
+                    CASE
+                        WHEN p.specialization IS NOT NULL AND p.specialization != ''
+                        THEN CONCAT(' - ', p.specialization)
+                        ELSE ''
+                    END
+                )
+            )
             WHERE (
                 u.usertype = 2
                 OR (u.usertype = 0 AND u.id != 0)
             )
               AND u.first_name IS NOT NULL
               AND u.last_name IS NOT NULL
-            ORDER BY u.last_name, u.first_name
-        ");
-        $stmt->execute();
+        ";
+        $params = [];
+
+        if ($requestedCollege !== '') {
+            $sql .= " AND p.college = :college";
+            $params[':college'] = $requestedCollege;
+        }
+
+        $sql .= " ORDER BY u.last_name, u.first_name";
+        $stmt = $pdo->prepare($sql);
+        $stmt->execute($params);
     } elseif ($isProgramChair) {
         $userCollege = get_user_college($pdo, $userId);
         if (!$userCollege) {
             exit;
         }
+
+        $collegeToUse = $userCollege;
 
         $stmt = $pdo->prepare(" 
             SELECT DISTINCT u.id, u.first_name, u.last_name
@@ -63,7 +85,7 @@ try {
               AND p.college = :college
             ORDER BY u.last_name, u.first_name
         ");
-        $stmt->execute([':college' => $userCollege]);
+        $stmt->execute([':college' => $collegeToUse]);
     } else {
         exit;
     }

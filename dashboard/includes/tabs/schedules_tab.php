@@ -127,13 +127,15 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                         </div>
                         <input type="hidden" id="viewTypeSelect" value="">
                     </div>
-                    <!-- Program and Section Filters -->
-                    <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
-                        <!-- College select (required) -->
+                    <!-- College Filter -->
+                    <div class="d-flex gap-2 align-items-center">
                         <select class="form-select user-control-height" id="collegeFilterSelect" style="width: 220px; display: none;">
                             <option value="">Select College</option>
                         </select>
+                    </div>
 
+                    <!-- Program and Section Filters -->
+                    <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
                         <!-- Program select (disabled until college selected) -->
                         <select class="form-select user-control-height" id="programFilterSelect" style="width: 200px; display: none;" disabled>
                             <option value="">Select Program</option>
@@ -158,11 +160,32 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                         const sectionSelect = document.getElementById("sectionFilterSelect");
                         const instructorSelect = document.getElementById("instructorFilterSelect");
 
+                        const loadInstructorsForCollege = (college = '') => {
+                            instructorSelect.innerHTML = '<option value="">Select Instructors</option>';
+
+                            const url = college ?
+                                `includes/tabs/load_instructors.php?college=${encodeURIComponent(college)}` :
+                                'includes/tabs/load_instructors.php';
+
+                            return fetch(url)
+                                .then(res => res.text())
+                                .then(html => {
+                                    instructorSelect.innerHTML = '<option value="">Select Instructors</option>' + html;
+                                })
+                                .catch(err => {
+                                    console.error('Error loading instructors:', err);
+                                    alert('Failed to load instructors.');
+                                });
+                        };
+                        window.loadInstructorsForCollege = loadInstructorsForCollege;
+
                         function updateFilterVisibility() {
                             const selectedView = viewTypeInput.value;
+                            const showCollege = selectedView === 'program' || selectedView === 'instructor';
+
+                            collegeSelect.style.display = showCollege ? 'inline-block' : 'none';
 
                             if (selectedView === 'program') {
-                                collegeSelect.style.display = 'inline-block';
                                 programSelect.style.display = 'inline-block';
                                 sectionSelect.style.display = 'inline-block';
                                 instructorSelect.style.display = 'none';
@@ -231,8 +254,9 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                             programSelect.disabled = true;
                             sectionSelect.innerHTML = '<option value="">Select Section</option>';
                             sectionSelect.disabled = true;
+                            instructorSelect.value = '';
 
-                            if (college) {
+                            if (viewTypeInput.value === 'program' && college) {
                                 fetch(`includes/tabs/load_programs.php?college=${encodeURIComponent(college)}`)
                                     .then(res => {
                                         if (!res.ok) throw new Error('Network response was not ok');
@@ -249,6 +273,10 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                                     });
                             }
 
+                            if (viewTypeInput.value === 'instructor') {
+                                loadInstructorsForCollege(college);
+                            }
+
                             // Clear board until user picks program & section
                             loadSchedules();
                         });
@@ -261,12 +289,7 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                             })
                             .catch(err => console.error('Failed to load colleges:', err));
 
-                        fetch('includes/tabs/load_instructors.php')
-                            .then(res => res.text())
-                            .then(html => {
-                                instructorSelect.innerHTML = '<option value="">Select Instructors</option>' + html;
-                            })
-                            .catch(err => console.error('Failed to load instructors:', err));
+                        loadInstructorsForCollege();
 
                         // ✅ Select "By Program" as default on load
                         document.querySelector('.view-type-btn[data-view="program"]').click();
@@ -634,6 +657,31 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                 '<option value="">Select Section</option>';
             document.getElementById('sectionFilterSelect').disabled = true;
             document.getElementById('instructorFilterSelect').value = "";
+
+            const college = document.getElementById('collegeFilterSelect').value;
+            if (this.value === 'program' && college) {
+                fetch(`includes/tabs/load_programs.php?college=${encodeURIComponent(college)}`)
+                    .then(res => {
+                        if (!res.ok) throw new Error('Network response was not ok');
+                        return res.text();
+                    })
+                    .then(html => {
+                        document.getElementById('programFilterSelect').innerHTML =
+                            '<option value="">Select Program</option>' + html;
+                        document.getElementById('programFilterSelect').disabled = false;
+                    })
+                    .catch(err => {
+                        console.error('Error loading programs for college:', err);
+                        alert('Failed to load programs for selected college.');
+                    });
+            }
+
+            if (this.value === 'instructor') {
+                document.getElementById('instructorFilterSelect').innerHTML =
+                    '<option value="">Select Instructors</option>';
+                window.loadInstructorsForCollege(college);
+            }
+
             loadSchedules(); // This will clear the board
         });
         document.getElementById('programFilterSelect').addEventListener('change', function() {
