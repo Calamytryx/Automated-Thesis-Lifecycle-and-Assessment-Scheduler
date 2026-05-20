@@ -10,9 +10,29 @@ ob_start(); // Buffer any stray output to protect JSON response
 
 // Increase PHP timeout for long-running scheduler
 set_time_limit(600); // 10 minutes
-error_log("=== SCHEDULER START === Execution time limit set to 600 seconds");
-error_log("POST data: " . print_r($_POST, true));
-error_log("SESSION data: " . print_r($_SESSION, true));
+
+// Verbose diagnostic logging. The scheduler emits hundreds of per-slot/per-candidate
+// log lines; writing them all to disk synchronously was a major cause of slow runs.
+// Keep this OFF in production; flip to true (or set env SCHEDULER_DEBUG=1) when debugging.
+if (!defined('SCHEDULER_DEBUG')) {
+    define('SCHEDULER_DEBUG', getenv('SCHEDULER_DEBUG') === '1');
+}
+
+/**
+ * Gated diagnostic log. No-op (and skips string building) unless SCHEDULER_DEBUG is on.
+ * @param string|callable $msg String, or callable returning a string for lazy formatting.
+ */
+function sdebug($msg)
+{
+    if (!SCHEDULER_DEBUG) {
+        return;
+    }
+    error_log(is_callable($msg) ? $msg() : $msg);
+}
+
+sdebug("=== SCHEDULER START === Execution time limit set to 600 seconds");
+sdebug(function () { return "POST data: " . print_r($_POST, true); });
+sdebug(function () { return "SESSION data: " . print_r($_SESSION, true); });
 
 // Release the PHP session lock early so inactivity/session polls do not block
 // behind this long-running request.
@@ -179,6 +199,12 @@ try {
 
     function fetchExistingDefenseSchedules($pdo)
     {
+        // Memoized: called by every validation pass (slot context, feasibility count,
+        // candidate pool, blocked-slot map) but the data is constant during a run.
+        static $cached = null;
+        if ($cached !== null) {
+            return $cached;
+        }
         $stmt = $pdo->query("SELECT team_id, room, schedule_date AS day, start_time, end_time FROM defense_schedules WHERE status = 'scheduled'");
         $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
         foreach ($rows as &$row) {
@@ -187,12 +213,23 @@ try {
                 $row['day'] = $normalizedDay;
             }
         }
+        unset($row);
 
-        return $rows;
+        $cached = $rows;
+        return $cached;
     }
 
     function buildRoomOccupancyMap($userSchedules)
     {
+        // Memoized: $userSchedules is loaded once per request and this map is rebuilt by
+        // each validation pass. Keyed on the dataset's identity so it's safe if it changes.
+        static $cachedMap = null;
+        static $cachedCount = -1;
+        $count = count($userSchedules);
+        if ($cachedMap !== null && $cachedCount === $count) {
+            return $cachedMap;
+        }
+
         $roomMap = [];
 
         foreach ($userSchedules as $scheduleList) {
@@ -243,7 +280,7 @@ try {
                         $key = $room . '|' . $day . '|' . $entry['start_time'] . '|' . $entry['end_time'] . '|' . (string)($entry['class_name'] ?? '');
                         if (empty($dupLogged[$key])) {
                             $dupLogged[$key] = true;
-                            error_log(sprintf(
+                            sdebug(sprintf(
                                 "Duplicate room occupancy detected: room=%s day=%s start=%s end=%s class=%s current_count=%d",
                                 $room,
                                 $day,
@@ -259,11 +296,11 @@ try {
         }
 
         // Diagnostic: log the final occupancy map structure
-        error_log("=== ROOM OCCUPANCY MAP SUMMARY ===");
+        sdebug("=== ROOM OCCUPANCY MAP SUMMARY ===");
         foreach ($roomMap as $room => $dayMap) {
             foreach ($dayMap as $day => $entries) {
                 foreach ($entries as $entry) {
-                    error_log(sprintf(
+                    sdebug(sprintf(
                         "Room Occupancy: room=%s day=%d start=%s end=%s class=%s",
                         $room,
                         $day,
@@ -274,8 +311,10 @@ try {
                 }
             }
         }
-        error_log("=== END OCCUPANCY MAP ===");
+        sdebug("=== END OCCUPANCY MAP ===");
 
+        $cachedMap = $roomMap;
+        $cachedCount = $count;
         return $roomMap;
     }
 
@@ -290,7 +329,7 @@ try {
             return;
         }
 
-        error_log("AUGMENTING OCCUPANCY MAP for teams: " . implode(', ', $teamIds));
+        sdebug("AUGMENTING OCCUPANCY MAP for teams: " . implode(', ', $teamIds));
 
         $placeholders = implode(',', array_fill(0, count($teamIds), '?'));
 
@@ -330,9 +369,9 @@ try {
             $stmt = $pdo->prepare($sqlSection);
             $stmt->execute($teamIds);
             $sectionRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("AUGMENT: Found " . count($sectionRows) . " section template rows");
+            sdebug("AUGMENT: Found " . count($sectionRows) . " section template rows");
         } catch (Exception $e) {
-            error_log("AUGMENT section classes error: " . $e->getMessage());
+            sdebug("AUGMENT section classes error: " . $e->getMessage());
             $sectionRows = [];
         }
 
@@ -357,9 +396,9 @@ try {
             $stmt = $pdo->prepare($sqlPersonal);
             $stmt->execute($teamIds);
             $personalRows = $stmt->fetchAll(PDO::FETCH_ASSOC);
-            error_log("AUGMENT: Found " . count($personalRows) . " personal schedule rows");
+            sdebug("AUGMENT: Found " . count($personalRows) . " personal schedule rows");
         } catch (Exception $e) {
-            error_log("AUGMENT personal classes error: " . $e->getMessage());
+            sdebug("AUGMENT personal classes error: " . $e->getMessage());
             $personalRows = [];
         }
 
@@ -397,12 +436,15 @@ try {
             $roomMap[$room] = $roomMap[$room] ?? [];
             $roomMap[$room][$day] = $roomMap[$room][$day] ?? [];
 
-            // Check for duplicates
+            // Check for duplicates. Entries are keyed by start_time/end_time (see $entry
+            // above); the previous code compared non-existent 'start'/'end' keys so it
+            // never deduped, and the log below referenced undefined $start/$end vars
+            // (a TypeError under PHP 8).
             $isDup = false;
             foreach ($roomMap[$room][$day] as $existing) {
-                if (isset($existing['start'], $existing['end']) && 
-                    $existing['start'] === $entry['start'] && 
-                    $existing['end'] === $entry['end'] && 
+                if (isset($existing['start_time'], $existing['end_time']) &&
+                    $existing['start_time'] === $entry['start_time'] &&
+                    $existing['end_time'] === $entry['end_time'] &&
                     ((string)($existing['class_name'] ?? '') === (string)($entry['class_name'] ?? ''))) {
                     $isDup = true;
                     break;
@@ -411,18 +453,18 @@ try {
 
             if (!$isDup) {
                 $roomMap[$room][$day][] = $entry;
-                error_log(sprintf(
+                sdebug(sprintf(
                     "AUGMENT ADDED: room=%s day=%d time=%s-%s class=%s",
                     $room,
                     $day,
-                    date('H:i', $start),
-                    date('H:i', $end),
+                    $rawStart,
+                    $rawEnd,
                     $row['class_name'] ?? 'UNKNOWN'
                 ));
             }
         }
 
-        error_log("AUGMENT COMPLETE: occupancy map now has " . count($roomMap) . " rooms");
+        sdebug("AUGMENT COMPLETE: occupancy map now has " . count($roomMap) . " rooms");
     }
 
     function validateCandidateSlot($pdo, $defense, $userSchedules, $existingSchedules, $roomOccupancyMap, $duration)
@@ -451,7 +493,7 @@ try {
         // Debug logging for room check
         if ($roomValue !== '') {
             if (isset($roomOccupancyMap[$roomValue][$defenseDayOfWeek])) {
-                error_log(sprintf(
+                sdebug(sprintf(
                     "Room occupancy check: room=%s day=%d time=%s has %d entries",
                     $roomValue,
                     $defenseDayOfWeek,
@@ -459,7 +501,7 @@ try {
                     count($roomOccupancyMap[$roomValue][$defenseDayOfWeek])
                 ));
             } else {
-                error_log(sprintf(
+                sdebug(sprintf(
                     "Room occupancy check: room=%s day=%d time=%s - NO ENTRIES IN MAP",
                     $roomValue,
                     $defenseDayOfWeek,
@@ -528,7 +570,7 @@ if (!empty($conflicts)) return $conflicts;
         foreach ($teamMembers as $member) {
             $memberId = $member['id'];
             if (!isset($userSchedules[$memberId])) {
-                error_log(sprintf(
+                sdebug(sprintf(
                     "Team member %d (ID=%s) has NO schedules loaded",
                     $memberId,
                     $memberId
@@ -536,7 +578,7 @@ if (!empty($conflicts)) return $conflicts;
                 continue;
             }
 
-            error_log(sprintf(
+            sdebug(sprintf(
                 "Team member %d has %d schedules, checking against defense %s day=%d",
                 $memberId,
                 count($userSchedules[$memberId]),
@@ -639,7 +681,7 @@ if (!empty($conflicts)) return $conflicts;
         static $loggedTeams = [];
         if (!in_array($defense['team_id'], $loggedTeams)) {
             $loggedTeams[] = $defense['team_id'];
-            error_log(sprintf(
+            sdebug(sprintf(
                 "CLASS CONFLICT CHECK: Team %d, time=%s day=%d, found %d members",
                 $defense['team_id'],
                 $defenseWindow,
@@ -654,7 +696,7 @@ if (!empty($conflicts)) return $conflicts;
                 static $missedMembers = [];
                 if (!in_array($memberId, $missedMembers)) {
                     $missedMembers[] = $memberId;
-                    error_log(sprintf(
+                    sdebug(sprintf(
                         "CLASS CONFLICT: Team member %d has NO schedules loaded (team_id=%d)",
                         $memberId,
                         $defense['team_id']
@@ -666,7 +708,7 @@ if (!empty($conflicts)) return $conflicts;
             static $memberScheds = [];
             if (!in_array($memberId, $memberScheds)) {
                 $memberScheds[] = $memberId;
-                error_log(sprintf(
+                sdebug(sprintf(
                     "CLASS CONFLICT: Team member %d has %d schedules loaded",
                     $memberId,
                     count($userSchedules[$memberId])
@@ -674,7 +716,7 @@ if (!empty($conflicts)) return $conflicts;
                 // Log first few schedules for debugging
                 $count = 0;
                 foreach ($userSchedules[$memberId] as $s) {
-                    error_log(sprintf(
+                    sdebug(sprintf(
                         "  Schedule: %s day %d %s-%s room %s allow_overlap=%d is_research=%d",
                         $s['class_name'] ?? 'UNKNOWN',
                         $s['day_of_week'] ?? -1,
@@ -704,7 +746,7 @@ if (!empty($conflicts)) return $conflicts;
                 }
 
                 if (slotRangesOverlap($defenseStart, $defenseEnd, $sch['start'], $sch['end'])) {
-                    error_log(sprintf(
+                    sdebug(sprintf(
                         "CLASS CONFLICT DETECTED: member %d class %s overlaps defense %s day %d",
                         $memberId,
                         $schedule['class_name'] ?? 'UNKNOWN',
@@ -729,8 +771,7 @@ if (!empty($conflicts)) return $conflicts;
 
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
-            $teamPanelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-            $selectedPanelists = selectPanelists($teamPanelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
+            $selectedPanelists = getTeamSelectedPanelistsCached($pdo, $team, $panelists);
 
             $teamCandidates = [];
             foreach ($days as $day) {
@@ -796,19 +837,18 @@ if (!empty($conflicts)) return $conflicts;
         $eligibleDaysByTeam = [];
 
         // Diagnostic: show what schedules we have loaded
-        error_log("=== COMPUTE SLOT CONTEXT START ===");
-        error_log("Total users with schedules: " . count($userSchedules));
+        sdebug("=== COMPUTE SLOT CONTEXT START ===");
+        sdebug("Total users with schedules: " . count($userSchedules));
         $totalScheds = 0;
         foreach ($userSchedules as $uid => $scheds) {
             $totalScheds += count($scheds);
         }
-        error_log("Total schedule entries across all users: " . $totalScheds);
+        sdebug("Total schedule entries across all users: " . $totalScheds);
 
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
             $slotsByTeamDay[$tid] = [];
-            $teamPanelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-            $selectedPanelists = selectPanelists($teamPanelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
+            $selectedPanelists = getTeamSelectedPanelistsCached($pdo, $team, $panelists);
 
             foreach ($days as $day) {
                 $good = [];
@@ -821,7 +861,7 @@ if (!empty($conflicts)) return $conflicts;
                         'defense_type' => $team['defense_type'] ?? 'title_proposal',
                     ], $userSchedules, $duration);
                     if (!empty($classConflicts)) {
-                        error_log("Slot REJECTED (class conflict): team=$tid day=$day time=$timeSlot");
+                        sdebug("Slot REJECTED (class conflict): team=$tid day=$day time=$timeSlot");
                         continue;
                     }
 
@@ -841,14 +881,14 @@ if (!empty($conflicts)) return $conflicts;
                         }
                     }
                     if ($hasRoom) {
-                        error_log("Slot ADDED to pool: team=$tid day=$day time=$timeSlot");
+                        sdebug("Slot ADDED to pool: team=$tid day=$day time=$timeSlot");
                         $good[] = $timeSlot;
                     } else {
-                        error_log("Slot REJECTED (no room): team=$tid day=$day time=$timeSlot");
+                        sdebug("Slot REJECTED (no room): team=$tid day=$day time=$timeSlot");
                     }
                 }
                 $slotsByTeamDay[$tid][$day] = array_values(array_unique($good));
-                error_log(sprintf(
+                sdebug(sprintf(
                     "Final slots for team %d day %s: %d valid times",
                     $tid,
                     $day,
@@ -885,7 +925,7 @@ if (!empty($conflicts)) return $conflicts;
             }
         }
 
-        error_log("=== COMPUTE SLOT CONTEXT END ===");
+        sdebug("=== COMPUTE SLOT CONTEXT END ===");
 
         return [
             'slotsByTeamDay' => $slotsByTeamDay,
@@ -905,8 +945,7 @@ if (!empty($conflicts)) return $conflicts;
         $n = 0;
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
-            $teamPanelistsByProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists);
-            $selectedPanelists = selectPanelists($teamPanelistsByProgram, $panelists, $team['adviser_id'], $team['id']);
+            $selectedPanelists = getTeamSelectedPanelistsCached($pdo, $team, $panelists);
 
             foreach (($eligibleDaysByTeam[$tid] ?? []) as $day) {
                 foreach (scheduler_slots_for_team_day($slotsByTeamDay, $tid, $day) as $timeSlot) {
@@ -943,12 +982,7 @@ if (!empty($conflicts)) return $conflicts;
         $selectedPanelistsByTeam = [];
 
         foreach ($teams as $team) {
-            $selectedPanelistsByTeam[(int) $team['id']] = selectPanelists(
-                fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $panelists),
-                $panelists,
-                $team['adviser_id'],
-                $team['id']
-            );
+            $selectedPanelistsByTeam[(int) $team['id']] = getTeamSelectedPanelistsCached($pdo, $team, $panelists);
         }
 
         foreach ($days as $day) {
@@ -1035,6 +1069,283 @@ if (!empty($conflicts)) return $conflicts;
         }
 
         return $blockedByDay;
+    }
+
+    /**
+     * Pre-flight feasibility classifier: map one conflict string to the actor that caused it.
+     *
+     * The validators (validateCandidateClassConflicts / validateCandidateSlot) already embed
+     * the offending actor's id in stable, greppable formats, so we attribute by parsing rather
+     * than re-running the conflict math per actor.
+     *
+     * @return array{type:'panelist'|'member'|'room'|'time', id:?int}
+     */
+    function classifyConflictActor($conflict)
+    {
+        if (preg_match('/(?:Panelist (?:class|schedule) conflict: panelist|Part-time panelist)\s+(\d+)/i', $conflict, $m)) {
+            return ['type' => 'panelist', 'id' => (int) $m[1]];
+        }
+        if (preg_match('/Student (?:class|schedule) conflict: member\s+(\d+)/i', $conflict, $m)) {
+            return ['type' => 'member', 'id' => (int) $m[1]];
+        }
+        if (stripos($conflict, 'Room schedule conflict') !== false
+            || stripos($conflict, 'Existing defense occupancy') !== false) {
+            return ['type' => 'room', 'id' => null];
+        }
+        return ['type' => 'time', 'id' => null];
+    }
+
+    /**
+     * Resolve a short display label for a panelist (memoized via getPanelistData / users).
+     */
+    function preflightPanelistName($pdo, $panelistId)
+    {
+        $info = getPanelistData($pdo, $panelistId); // cached
+        if (is_array($info)) {
+            $name = trim(($info['first_name'] ?? '') . ' ' . ($info['last_name'] ?? ''));
+            if ($name !== '') {
+                return $name;
+            }
+        }
+        return 'Panelist ' . (int) $panelistId;
+    }
+
+    /**
+     * Full (day × slot × room) scan for ONE team that has zero feasible cells, to attribute
+     * the bottleneck to a single most-likely actor. Only ever called for already-failed teams,
+     * so total cost is bounded by zeroSlotTeams × days × slots × rooms.
+     *
+     * @return array{team_id:int,team_name:string,culprit_type:string,culprit_id:?int,
+     *               culprit_name:?string,message:string,offered_cells:int,blocked_cells:int}
+     */
+    function attributeTeamBottleneck($pdo, $team, $selectedPanelists, $rooms, $timeSlots, $days, $userSchedules, $existingSchedules, $roomOccupancyMap, $duration)
+    {
+        $tid = (int) $team['id'];
+        $teamNames = getTeamNames($pdo, [$tid]);
+        $teamName = $teamNames[$tid] ?? ('Team ' . $tid);
+        $defenseType = $team['defense_type'] ?? 'title_proposal';
+
+        // Normalize selected panelists (handles <3, locked, duplicates, zero/empty ids).
+        $panelistIds = array_values(array_unique(array_filter(
+            array_map('intval', is_array($selectedPanelists) ? $selectedPanelists : []),
+            function ($id) { return $id > 0; }
+        )));
+
+        $offeredCells = 0;
+        $panelistBlock = array_fill_keys($panelistIds, 0); // cells where this panelist blocks
+        $memberGroupBlock = 0;                              // cells where any team member blocks
+        $roomOnlyBlock = 0;                                 // cells: actors free, every room busy
+        $reasonCounts = [];                                 // dominant-reason fallback
+
+        foreach ($days as $day) {
+            // A day that cannot be normalized is not an "offered" cell; excluding it keeps the
+            // 100%-of-offered-cells denominator honest for total-bottleneck detection.
+            $firstSlot = $timeSlots[0] ?? '00:00';
+            if (parseTimeRange($day, $firstSlot, $duration) === null) {
+                continue;
+            }
+
+            foreach ($timeSlots as $timeSlot) {
+                $offeredCells++;
+
+                // Actor/class check (room-independent), once per cell.
+                $classConflicts = validateCandidateClassConflicts($pdo, [
+                    'team_id' => $tid,
+                    'panelist_ids' => $panelistIds,
+                    'time_slot' => $timeSlot,
+                    'day' => $day,
+                    'defense_type' => $defenseType,
+                ], $userSchedules, $duration);
+
+                if (!empty($classConflicts)) {
+                    $memberHitThisCell = false;
+                    foreach ($classConflicts as $c) {
+                        $reasonCounts[$c] = ($reasonCounts[$c] ?? 0) + 1;
+                        $actor = classifyConflictActor($c);
+                        if ($actor['type'] === 'panelist' && isset($panelistBlock[$actor['id']])) {
+                            $panelistBlock[$actor['id']]++;
+                        } elseif ($actor['type'] === 'member') {
+                            $memberHitThisCell = true;
+                        }
+                    }
+                    if ($memberHitThisCell) {
+                        $memberGroupBlock++;
+                    }
+                    continue; // an actor blocks this cell; no room can rescue it
+                }
+
+                // Actors free → is every room occupied (or part-time-before-4pm) on this cell?
+                $someRoomFree = false;
+                $cellRoomReasons = [];
+                foreach ($rooms as $room) {
+                    $errs = validateCandidateSlot($pdo, [
+                        'team_id' => $tid,
+                        'panelist_ids' => $panelistIds,
+                        'room' => $room,
+                        'time_slot' => $timeSlot,
+                        'day' => $day,
+                        'defense_type' => $defenseType,
+                    ], $userSchedules, $existingSchedules, $roomOccupancyMap, $duration);
+                    if (empty($errs)) {
+                        $someRoomFree = true;
+                        break;
+                    }
+                    $cellRoomReasons = array_merge($cellRoomReasons, $errs);
+                }
+
+                if (!$someRoomFree) {
+                    // part-time-before-4pm is emitted by validateCandidateSlot, not the class
+                    // pass; attribute it to the panelist rather than miscounting as room-only.
+                    $attributedToActor = false;
+                    foreach ($cellRoomReasons as $r) {
+                        $reasonCounts[$r] = ($reasonCounts[$r] ?? 0) + 1;
+                        $a = classifyConflictActor($r);
+                        if ($a['type'] === 'panelist' && isset($panelistBlock[$a['id']])) {
+                            $panelistBlock[$a['id']]++;
+                            $attributedToActor = true;
+                        }
+                    }
+                    if (!$attributedToActor) {
+                        $roomOnlyBlock++;
+                    }
+                }
+            }
+        }
+
+        // Culprit selection order: total panelist → total member → room-only → dominant reason.
+        $totalPanelists = [];
+        foreach ($panelistBlock as $pid => $n) {
+            if ($offeredCells > 0 && $n >= $offeredCells) {
+                $totalPanelists[] = $pid;
+            }
+        }
+        $maxActorBlock = $memberGroupBlock;
+        foreach ($panelistBlock as $n) {
+            $maxActorBlock = max($maxActorBlock, $n);
+        }
+
+        if (!empty($totalPanelists)) {
+            $first = (int) $totalPanelists[0];
+            if (count($totalPanelists) === 1) {
+                $msg = sprintf('%s has 0 valid slots because Panelist %d (%s) has a total schedule conflict on every offered day/time.',
+                    $teamName, $first, preflightPanelistName($pdo, $first));
+            } else {
+                $msg = sprintf('%s has 0 valid slots because Panelists %s each have a total schedule conflict on every offered day/time.',
+                    $teamName, implode(', ', $totalPanelists));
+            }
+            return [
+                'team_id' => $tid, 'team_name' => $teamName,
+                'culprit_type' => 'panelist', 'culprit_id' => $first,
+                'culprit_name' => preflightPanelistName($pdo, $first),
+                'message' => $msg, 'offered_cells' => $offeredCells, 'blocked_cells' => $offeredCells,
+            ];
+        }
+
+        if ($offeredCells > 0 && $memberGroupBlock >= $offeredCells) {
+            $msg = sprintf('%s has 0 valid slots because its team members have class conflicts on every offered day/time.', $teamName);
+            return [
+                'team_id' => $tid, 'team_name' => $teamName,
+                'culprit_type' => 'member', 'culprit_id' => null, 'culprit_name' => null,
+                'message' => $msg, 'offered_cells' => $offeredCells, 'blocked_cells' => $offeredCells,
+            ];
+        }
+
+        if ($roomOnlyBlock > 0 && $roomOnlyBlock >= $maxActorBlock) {
+            $msg = sprintf('%s has 0 valid slots: every room is occupied on the offered slots where the panel and team are otherwise available.', $teamName);
+            return [
+                'team_id' => $tid, 'team_name' => $teamName,
+                'culprit_type' => 'room', 'culprit_id' => null, 'culprit_name' => null,
+                'message' => $msg, 'offered_cells' => $offeredCells, 'blocked_cells' => $roomOnlyBlock,
+            ];
+        }
+
+        arsort($reasonCounts);
+        $topReason = !empty($reasonCounts) ? array_key_first($reasonCounts) : 'no single room/time combination is free';
+        return [
+            'team_id' => $tid, 'team_name' => $teamName,
+            'culprit_type' => 'time', 'culprit_id' => null, 'culprit_name' => null,
+            'message' => sprintf('%s has 0 valid slots; dominant reason: %s', $teamName, $topReason),
+            'offered_cells' => $offeredCells, 'blocked_cells' => $offeredCells,
+        ];
+    }
+
+    /**
+     * Pre-flight feasibility gate. Reads the matrix already built by computeSchedulerSlotContext
+     * (O(1) per team to decide pass/fail) and only runs attributeTeamBottleneck() for teams that
+     * have zero feasible cells.
+     *
+     * @return array{zeroSlotTeamIds:int[], bottlenecks:array<int,array>, daysWithNoSlots:string[]}
+     */
+    function runPreflightFeasibility($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $duration, $slotContext, $validationMode)
+    {
+        $slotsByTeamDay = $slotContext['slotsByTeamDay'] ?? [];
+        $existingSchedules = fetchExistingDefenseSchedules($pdo); // memoized
+        $roomOccupancyMap = buildRoomOccupancyMap($userSchedules); // memoized
+
+        $zeroSlotTeamIds = [];
+        $bottlenecks = [];
+
+        foreach ($teams as $team) {
+            $tid = (int) $team['id'];
+
+            $feasibleCells = 0;
+            foreach (($slotsByTeamDay[$tid] ?? []) as $slots) {
+                $feasibleCells += count($slots);
+                if ($feasibleCells > 0) {
+                    break; // count > 0 is all we need to pass
+                }
+            }
+            if ($feasibleCells > 0) {
+                continue; // schedulable team — no attribution work
+            }
+
+            $zeroSlotTeamIds[] = $tid;
+            $selectedPanelists = getTeamSelectedPanelistsCached($pdo, $team, $panelists);
+            $bottlenecks[$tid] = attributeTeamBottleneck(
+                $pdo, $team, $selectedPanelists, $rooms, $timeSlots, $days,
+                $userSchedules, $existingSchedules, $roomOccupancyMap, $duration
+            );
+        }
+
+        return [
+            'zeroSlotTeamIds' => $zeroSlotTeamIds,
+            'bottlenecks' => $bottlenecks,
+            'daysWithNoSlots' => $slotContext['daysWithNoSlots'] ?? [],
+        ];
+    }
+
+    /**
+     * Assemble the pre-flight failure JSON. Reuses the existing failure contract (message,
+     * daysWithNoFeasibleSlots, blocked_time_slots_by_day, feasible_placement_count) and adds the
+     * additive preflight_bottlenecks[] so the frontend renders without changes.
+     */
+    function buildPreflightFailurePayload($pdo, $preflight, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration, $validationMode)
+    {
+        $bottlenecks = array_values($preflight['bottlenecks']);
+        $message = !empty($bottlenecks)
+            ? $bottlenecks[0]['message']
+            : 'No feasible defense slots available for the selected teams under current filters.';
+
+        return [
+            'success' => false,
+            'message' => $message,
+            'feasible_placement_count' => 0,
+            'daysWithNoFeasibleSlots' => $preflight['daysWithNoSlots'] ?? [],
+            'blocked_time_slots_by_day' => buildBlockedTimeSlotMap($pdo, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration),
+            'validationMode' => $validationMode,
+            'preflight_bottlenecks' => array_map(function ($b) {
+                return [
+                    'team_id' => $b['team_id'],
+                    'team_name' => $b['team_name'],
+                    'culprit_type' => $b['culprit_type'],
+                    'culprit_id' => $b['culprit_id'],
+                    'culprit_name' => $b['culprit_name'],
+                    'message' => $b['message'],
+                    'offered_cells' => $b['offered_cells'],
+                    'blocked_cells' => $b['blocked_cells'],
+                ];
+            }, $bottlenecks),
+        ];
     }
 
     /**
@@ -1462,8 +1773,12 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             exit;
         }
 
-        // Generate unique progress ID for tracking
-        $progressId = uniqid('sched_', true);
+        // Progress ID for tracking. Prefer the client-supplied ID so the browser can
+        // start polling get_schedule_progress.php immediately (while this long request
+        // is still running) instead of only after it returns.
+        $progressId = isset($_POST['progressId']) && trim((string)$_POST['progressId']) !== ''
+            ? preg_replace('/[^A-Za-z0-9._-]/', '', trim((string)$_POST['progressId']))
+            : uniqid('sched_', true);
         updateProgress($pdo, $progressId, 'running', 'Validating inputs...', 5);
 
         // Validate required inputs
@@ -1850,17 +2165,38 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         $GLOBALS['schedulerEligibleDaysByTeam'] = $eligibleDaysByTeam;
         $GLOBALS['schedulerDays'] = $schedulerDays;
 
+        // === PRE-FLIGHT FEASIBILITY GATE ===
+        // Per-team fail-fast: if any team has zero schedulable (day×slot×room) cells, attribute
+        // the bottleneck to a specific actor and (in strict mode) halt before the GA runs.
+        updateProgress($pdo, $progressId, 'running', 'Pre-flight feasibility check (per-team availability matrix)…', 26);
+        $preflight = runPreflightFeasibility($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $duration, $slotContext, $validationMode);
+
+        if (!empty($preflight['zeroSlotTeamIds'])) {
+            error_log('PREFLIGHT: zero-slot teams = ' . implode(',', $preflight['zeroSlotTeamIds']) . ' (mode=' . $validationMode . ')');
+            if ($validationMode === 'strict') {
+                $payload = buildPreflightFailurePayload($pdo, $preflight, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration, $validationMode);
+                updateProgress($pdo, $progressId, 'error', $payload['message'], null);
+                if (ob_get_level()) {
+                    ob_end_clean();
+                }
+                echo json_encode($payload);
+                exit; // halt: the genetic algorithm never runs
+            }
+            // soft/hybrid: record bottlenecks and continue; these teams become unresolved
+            // downstream via buildPreGACandidatePool's empty-candidate detection.
+            $GLOBALS['preflightBottlenecks'] = $preflight['bottlenecks'];
+        }
+
         if (empty($schedulerDays)) {
             $msgNoDay = 'None of the selected defense dates have any feasible start times for any team after excluding class overlaps, faculty loads, venue conflicts, and existing defenses. Broaden dates/rooms, shorten duration, or resolve timetable clashes.';
             updateProgress($pdo, $progressId, 'error', $msgNoDay, null);
             if (ob_get_level()) {
                 ob_end_clean();
             }
-            echo json_encode([
-                'success' => false,
-                'message' => $msgNoDay,
-                'daysWithNoFeasibleSlots' => $slotContext['daysWithNoSlots'],
-            ]);
+            // Enrich the "no day at all" exit with per-team bottleneck attribution too.
+            $payload = buildPreflightFailurePayload($pdo, $preflight, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration, $validationMode);
+            $payload['message'] = $msgNoDay;
+            echo json_encode($payload);
             exit;
         }
 
@@ -1996,12 +2332,15 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         // Optimize parameters for better performance-quality balance
         // REDUCED for faster execution to prevent timeout
-        $populationSize = 50;      // Reduced from 200 for faster execution
-        $generations = 100;        // Reduced from 500 for faster execution  
+        $populationSize = 40;      // Smaller population => fewer fitness evals per generation
+        $generations = 60;         // Hard cap on generations
         $mutationRate = 0.2;
-        $earlyStopGenerations = 50; // Stop if no improvements after 50 generations
-        
-        error_log("Genetic Algorithm Parameters: Population=$populationSize, Generations=$generations, EarlyStop=$earlyStopGenerations");
+        $earlyStopGenerations = 12; // Stop quickly once it stops improving (was 50)
+        // Wall-clock budget: the GA returns its best-so-far once this elapses, so a run
+        // can never drag on for many minutes. Tune via env SCHEDULER_GA_BUDGET (seconds).
+        $gaTimeBudget = (int) (getenv('SCHEDULER_GA_BUDGET') ?: 90);
+
+        error_log("Genetic Algorithm Parameters: Population=$populationSize, Generations=$generations, EarlyStop=$earlyStopGenerations, TimeBudget={$gaTimeBudget}s");
 
         $geneticOutcome = geneticAlgorithm(
             $pdo,
@@ -2016,7 +2355,8 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             $mutationRate,
             $earlyStopGenerations,
             $progressId, // Pass progress ID for tracking
-            $validCandidatePool
+            $validCandidatePool,
+            $gaTimeBudget
         );
         $gaAlternates = [];
         if (is_array($geneticOutcome) && isset($geneticOutcome['best'])) {
@@ -2114,6 +2454,10 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             $remainingConflicts = (int) $topVariant['validated']['remainingConflicts'];
         }
 
+        if ($remainingConflicts === 0) {
+            $overlapIssues = [];
+        }
+
         $scheduleVariantsPrepared = [];
         if ($isPreview) {
             foreach (array_slice($candidateVariants, 0, 3) as $idx => $variant) {
@@ -2126,7 +2470,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                         . ' · util ' . number_format((float) ($variant['quality']['utilization_pct'] ?? 0), 1) . '%'
                         . ' · gap ' . number_format((float) ($variant['quality']['avg_gap_minutes'] ?? 0), 1) . 'm',
                     'schedules' => $variant['rows'],
-                    'overlap_warnings' => $variant['validated']['issues'],
+                    'overlap_warnings' => (int) ($variant['validated']['remainingConflicts'] ?? 0) > 0 ? $variant['validated']['issues'] : [],
                     'overlap_fixes' => $variant['validated']['fixes'],
                     'remaining_conflicts' => (int) $variant['validated']['remainingConflicts'],
                     'quality' => $variant['quality'],
@@ -2269,6 +2613,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 'accepted_team_ids' => $scheduledTeamIds,
                 'unresolved_team_ids' => $unresolvedTeamIds,
                 'is_partial' => !empty($unresolvedTeamIds),
+                'preflight_bottlenecks' => array_values($GLOBALS['preflightBottlenecks'] ?? []),
                 'message' => 'Schedule preview is conflict-free. Review then confirm to save.',
             ];
             ob_end_clean(); // Discard any buffered output (PHP warnings etc.)
@@ -2307,6 +2652,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                     'accepted_team_ids' => $scheduledTeamIds,
                     'unresolved_team_ids' => $unresolvedTeamIds,
                     'is_partial' => !empty($unresolvedTeamIds),
+                    'preflight_bottlenecks' => array_values($GLOBALS['preflightBottlenecks'] ?? []),
                     'message' => $completionMessage,
                 ];
 
@@ -2363,71 +2709,97 @@ function scheduler_normalize_hms(string $frag): string
 
 function scheduler_calendar_day_from_raw($dayRaw): ?string
 {
+    static $memo = [];
     $raw = trim((string) $dayRaw);
     if ($raw === '') {
         return null;
     }
+    if (array_key_exists($raw, $memo)) {
+        return $memo[$raw];
+    }
 
     // Prefer explicit parsing for ambiguous numeric dates.
     // UI often submits "MM-DD-YYYY" (e.g. 05-11-2026 meaning May 11, 2026).
+    $result = null;
     if (preg_match('/^\d{2}-\d{2}-\d{4}$/', $raw)) {
         $dt = DateTime::createFromFormat('m-d-Y', $raw);
         if ($dt instanceof DateTime) {
-            return $dt->format('Y-m-d');
+            $result = $dt->format('Y-m-d');
         }
-    }
-    if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
-        return $raw;
+    } elseif (preg_match('/^\d{4}-\d{2}-\d{2}$/', $raw)) {
+        $result = $raw;
+    } else {
+        $ts = strtotime($raw);
+        $result = $ts !== false ? date('Y-m-d', $ts) : null;
     }
 
-    $ts = strtotime($raw);
-    return $ts !== false ? date('Y-m-d', $ts) : null;
+    $memo[$raw] = $result;
+    return $result;
 }
 
 function scheduler_unix_on_calendar_day(string $dayYmd, $clock): int|false
 {
+    static $memo = [];
     $dayYmd = trim($dayYmd);
     $fragRaw = scheduler_time_fragment_from_db($clock);
     if ($dayYmd === '' || $fragRaw === '') {
         return false;
     }
+    $key = $dayYmd . '|' . $fragRaw;
+    if (array_key_exists($key, $memo)) {
+        return $memo[$key];
+    }
 
-    return strtotime($dayYmd . ' ' . scheduler_normalize_hms($fragRaw));
+    $memo[$key] = strtotime($dayYmd . ' ' . scheduler_normalize_hms($fragRaw));
+    return $memo[$key];
 }
 
 /** Defense interval on a specific calendar date (fixes mixing DATETIME class rows with bare time-slot defenses). */
 function scheduler_defense_range_on_day(?string $defenseDayRaw, string $timeSlot, $durationHours): ?array
 {
+    static $memo = [];
+    $key = (string) $defenseDayRaw . '|' . $timeSlot . '|' . (float) $durationHours;
+    if (array_key_exists($key, $memo)) {
+        return $memo[$key];
+    }
+
     $ymd = scheduler_calendar_day_from_raw((string) $defenseDayRaw);
     if ($ymd === null) {
-        return null;
+        return $memo[$key] = null;
     }
     $start = scheduler_unix_on_calendar_day($ymd, $timeSlot);
     if ($start === false) {
-        return null;
+        return $memo[$key] = null;
     }
     $end = strtotime('+' . (float) $durationHours . ' hour', $start);
 
-    return $end !== false ? ['start' => $start, 'end' => $end] : null;
+    return $memo[$key] = ($end !== false ? ['start' => $start, 'end' => $end] : null);
 }
 
 function scheduler_user_class_range_on_calendar_day(?string $defenseDayRaw, array $schedRow): ?array
 {
+    static $memo = [];
     $ymd = scheduler_calendar_day_from_raw((string) $defenseDayRaw);
     if ($ymd === null) {
         return null;
     }
+    $key = $ymd . '|' . ($schedRow['day_of_week'] ?? $schedRow['day'] ?? '')
+        . '|' . ($schedRow['start_time'] ?? '') . '|' . ($schedRow['end_time'] ?? '');
+    if (array_key_exists($key, $memo)) {
+        return $memo[$key];
+    }
+
     $scheduleDayOfWeek = scheduler_schedule_day_of_week($schedRow);
     if ($scheduleDayOfWeek === null || (int) date('w', strtotime($ymd)) !== (int) $scheduleDayOfWeek) {
-        return null;
+        return $memo[$key] = null;
     }
     $schedStart = scheduler_unix_on_calendar_day($ymd, $schedRow['start_time'] ?? '');
     $schedEnd = scheduler_unix_on_calendar_day($ymd, $schedRow['end_time'] ?? '');
     if ($schedStart === false || $schedEnd === false) {
-        return null;
+        return $memo[$key] = null;
     }
 
-    return ['start' => $schedStart, 'end' => $schedEnd];
+    return $memo[$key] = ['start' => $schedStart, 'end' => $schedEnd];
 }
 
 function scheduler_slot_ranges_overlap(int $sa, int $ea, int $sb, int $eb): bool
@@ -3017,11 +3389,20 @@ function fetchPanelists($pdo)
 
 function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelists)
 {
-    $sameProgramPanelists = [];
-    $differentProgramPanelists = [];
-
     // Ensure teamExpertise is a string
     $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
+
+    // Memoize by (program, expertise): the panelist set is constant per request and the
+    // two similar_text usort passes over every panelist are otherwise repeated for every
+    // team in every validation sweep and every GA mutation/crossover.
+    static $cache = [];
+    $cacheKey = (string) $teamProgram . "\x1f" . $teamExpertise;
+    if (array_key_exists($cacheKey, $cache)) {
+        return $cache[$cacheKey];
+    }
+
+    $sameProgramPanelists = [];
+    $differentProgramPanelists = [];
 
     foreach ($allPanelists as $panelistId => $panelistData) {
         $panelistInfo = getPanelistData($pdo, $panelistId);
@@ -3047,10 +3428,11 @@ function fetchPanelistsByProgram($pdo, $teamProgram, $teamExpertise, $allPanelis
         return similar_text($teamExpertise, $expertiseB) - similar_text($teamExpertise, $expertiseA);
     });
 
-    return [
+    $cache[$cacheKey] = [
         'same' => array_column($sameProgramPanelists, 'id'),
         'different' => array_column($differentProgramPanelists, 'id')
     ];
+    return $cache[$cacheKey];
 }
 
 function getPanelistData($pdo, $panelistId)
@@ -3101,7 +3483,8 @@ function geneticAlgorithm(
     $mutationRate,
     $earlyStopGenerations = 30,
     $progressId = null,
-    $validCandidatePool = []
+    $validCandidatePool = [],
+    $timeBudgetSeconds = 90
 ) {
     // Store teams globally for use in other functions
     $GLOBALS['teams'] = $teams;
@@ -3134,15 +3517,29 @@ function geneticAlgorithm(
     for ($i = 0; $i < $generations; $i++) {
         $generationImproved = false;
 
-        // Update progress every 10 generations
-        if ($progressId && $i % 10 == 0) {
-            $percentage = 35 + (($i / $generations) * 50); // Progress from 35% to 85%
-            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations (best fitness: $bestFitness)", $percentage);
+        // Wall-clock budget: stop and return best-so-far so a run can't drag on for minutes.
+        $elapsed = microtime(true) - $startTime;
+        if ($elapsed >= $timeBudgetSeconds) {
+            error_log(sprintf('GA time budget reached (%.1fs >= %ds) at generation %d; returning best fitness %s', $elapsed, $timeBudgetSeconds, $i, $bestFitness));
+            if ($progressId) {
+                updateProgress($pdo, $progressId, 'running', "Time budget reached after $i generations; finalizing best schedule found…", 85);
+            }
+            break;
         }
 
-        // Evaluate fitness for each schedule
+        // Update progress every 5 generations
+        if ($progressId && $i % 5 == 0) {
+            $percentage = 35 + (($i / $generations) * 50); // Progress from 35% to 85%
+            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations (best fitness: $bestFitness, " . round($elapsed) . "s)", $percentage);
+        }
+
+        // Evaluate fitness for each schedule. Skip those already scored (carried-forward
+        // elites) so we only pay for newly created children each generation.
         foreach ($population as $schedule) {
-            $schedule->calculateFitness($userSchedules);
+            if (!($schedule->fitnessEvaluated ?? false)) {
+                $schedule->calculateFitness($userSchedules);
+                $schedule->fitnessEvaluated = true;
+            }
             if ($schedule->fitness > $bestFitness) {
                 $bestFitness = $schedule->fitness;
                 $bestSchedule = $schedule;
@@ -3225,6 +3622,7 @@ function geneticAlgorithm(
             if (mt_rand(0, 1) == 1) {
                 mutation($child, $mutationRate, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $userSchedules, $validCandidatePool);
             }
+            $child->fitnessEvaluated = false; // new child must be scored next generation
 
             $newPopulation[] = $child;
 
@@ -3371,7 +3769,7 @@ function crossover($parent1, $parent2, $userSchedules, array $slotsByTeamDay, ar
 
     foreach ($child->chromosomes as &$defense) {
         $attempts = 0;
-        $maxAttempts = 100;
+        $maxAttempts = 20; // was 100; this loop runs per team per child per generation
         while (hasConflicts($parent1->pdo, $defense, $userSchedules, $child->all_defenses) && $attempts < $maxAttempts) {
             if (!empty($validCandidatePool)) {
                 $candidate = chooseCandidateFromPool($validCandidatePool, $defense['team_id']);
@@ -4284,6 +4682,7 @@ class DefenseSchedule
     public $pdo;  // Change this to public
     public $chromosomes = [];
     public $fitness = 0;
+    public $fitnessEvaluated = false; // set true after calculateFitness; reset on mutation
     public static $initialPopulation = [];
     public static $crossoverCount = 0;
     public static $mutationCount = 0;
@@ -4552,6 +4951,11 @@ function getTeamMembers($pdo, $team_id, $format = 'array')
 // Function to fetch team by ID
 function fetchTeamById($pdo, $team_id)
 {
+    // Memoized: called inside the GA crossover repair loop (per team, per child, per gen).
+    static $cache = [];
+    if (array_key_exists($team_id, $cache)) {
+        return $cache[$team_id];
+    }
     $stmt = $pdo->prepare("
         SELECT t.id, tm.user_id as adviser_id, t.program, t.area_of_expertise,
                t.locked_panelist1, t.locked_panelist2, t.locked_panelist3
@@ -4560,7 +4964,8 @@ function fetchTeamById($pdo, $team_id)
         WHERE t.id = ? AND tm.role = 'adviser'
     ");
     $stmt->execute([$team_id]);
-    return $stmt->fetch(PDO::FETCH_ASSOC);
+    $cache[$team_id] = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $cache[$team_id];
 }
 
 // Function to get panelist expertise
@@ -4703,6 +5108,36 @@ function calculateSpecializationMatch($teamSpecializations, $panelistSpecializat
     return $matchCount * 10; // 10 points per matching specialization
 }
 
+/**
+ * Memoized per-team panelist selection for the pre-GA validation sweeps.
+ *
+ * The slot-context, candidate-pool, feasibility-count and blocked-slot passes each
+ * iterated every team and recomputed fetchPanelistsByProgram (two similar_text sorts
+ * over all panelists) + selectPanelists (extra DB lookups, random shuffles) — i.e. the
+ * same expensive work 4× per team, with different random results each time. Computing
+ * it once per team makes those sweeps far cheaper and consistent. The GA's own
+ * mutation/crossover keep calling selectPanelists directly so their randomization is
+ * unaffected.
+ *
+ * @return array selected panelist IDs for the team
+ */
+function getTeamSelectedPanelistsCached($pdo, array $team, $allPanelists)
+{
+    static $cache = [];
+    $tid = (int) ($team['id'] ?? 0);
+    if ($tid > 0 && array_key_exists($tid, $cache)) {
+        return $cache[$tid];
+    }
+
+    $byProgram = fetchPanelistsByProgram($pdo, $team['program'], $team['area_of_expertise'], $allPanelists);
+    $selected = selectPanelists($byProgram, $allPanelists, $team['adviser_id'], $team['id']);
+
+    if ($tid > 0) {
+        $cache[$tid] = $selected;
+    }
+    return $selected;
+}
+
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
 {
     global $pdo; // ensure $pdo is available
@@ -4738,22 +5173,31 @@ function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId
     if (!empty($lockedPanelists)) {
         $exclude = array_merge($exclude, $lockedPanelists);
     }
-    // Determine team program and college to force slots 1&2 to match
+    // Determine team program and college to force slots 1&2 to match.
+    // Memoized per team: this runs on every selectPanelists call (initial population,
+    // every GA mutation/crossover) but program/college are fixed per team.
+    static $teamProgCollegeCache = [];
     $teamProgram = null;
     $teamCollege = null;
     if ($teamId !== null) {
-        $stmt = $pdo->prepare("SELECT program FROM teams WHERE id = ? LIMIT 1");
-        $stmt->execute([$teamId]);
-        $t = $stmt->fetch(PDO::FETCH_ASSOC);
-        if ($t && !empty($t['program'])) {
-            $teamProgram = $t['program'];
-            $norm = preg_split('/\s*[-–—]\s*/u', $teamProgram);
-            $norm = trim($norm[0]);
-            $pstmt = $pdo->prepare("SELECT college FROM programs WHERE name = ? LIMIT 1");
-            $pstmt->execute([$norm]);
-            $prog = $pstmt->fetch(PDO::FETCH_ASSOC);
-            $teamCollege = $prog ? $prog['college'] : null;
+        if (!array_key_exists($teamId, $teamProgCollegeCache)) {
+            $resolved = ['program' => null, 'college' => null];
+            $stmt = $pdo->prepare("SELECT program FROM teams WHERE id = ? LIMIT 1");
+            $stmt->execute([$teamId]);
+            $t = $stmt->fetch(PDO::FETCH_ASSOC);
+            if ($t && !empty($t['program'])) {
+                $resolved['program'] = $t['program'];
+                $norm = preg_split('/\s*[-–—]\s*/u', $t['program']);
+                $norm = trim($norm[0]);
+                $pstmt = $pdo->prepare("SELECT college FROM programs WHERE name = ? LIMIT 1");
+                $pstmt->execute([$norm]);
+                $prog = $pstmt->fetch(PDO::FETCH_ASSOC);
+                $resolved['college'] = $prog ? $prog['college'] : null;
+            }
+            $teamProgCollegeCache[$teamId] = $resolved;
         }
+        $teamProgram = $teamProgCollegeCache[$teamId]['program'];
+        $teamCollege = $teamProgCollegeCache[$teamId]['college'];
     }
     $optimalCombo = buildOptimalPanelistCombination($pdo, null, $exclude, $teamProgram, $teamCollege);
     if ($optimalCombo !== null && count($optimalCombo) === 3) {
@@ -4943,7 +5387,10 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
                     error_log("PASS $pass: $msg");
                     $issuesThisPass++;
 
-                    if (fixDefenseSlot($defenses, $j, $d2, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $duration, $userSchedules, $memberCache, $pdo)) {
+                    if (tryReassignDefensePanelists($defenses, $j, $d2, $duration, $userSchedules, $memberCache, $pdo)) {
+                        $fixesThisPass++;
+                        $totalFixes++;
+                    } elseif (fixDefenseSlot($defenses, $j, $d2, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $duration, $userSchedules, $memberCache, $pdo)) {
                         $fixesThisPass++;
                         $totalFixes++;
                     }
@@ -5003,7 +5450,17 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
                         error_log("PASS $pass: $msg");
                         $issuesThisPass++;
 
-                        if (fixDefenseSlot($defenses, $i, $d, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $duration, $userSchedules, $memberCache, $pdo)) {
+                        if (tryReassignDefensePanelists($defenses, $i, $d, $duration, $userSchedules, $memberCache, $pdo)) {
+                            $fixesThisPass++;
+                            $totalFixes++;
+                            // Recalculate times after fix
+                            $dYmd = scheduler_calendar_day_from_raw((string) $d['day']);
+                            $dr = ($dYmd !== null)
+                                ? scheduler_defense_range_on_day((string) $d['day'], (string) $d['time_slot'], $duration)
+                                : null;
+                            $defStart = $dr !== null ? $dr['start'] : $defStart;
+                            $defEnd = $dr !== null ? $dr['end'] : $defEnd;
+                        } elseif (fixDefenseSlot($defenses, $i, $d, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $duration, $userSchedules, $memberCache, $pdo)) {
                             $fixesThisPass++;
                             $totalFixes++;
                             // Recalculate times after fix
@@ -5051,6 +5508,93 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
         'remainingConflicts' => $remainingConflicts,
         'schedule' => $schedule
     ];
+}
+
+/**
+ * Gather panelist IDs used by defenses that overlap the target defense's time window.
+ */
+function getOverlappingPanelistIdsForDefense($defenses, $idx, $defense, $duration)
+{
+    $overlappingPanelistIds = [];
+
+    $myDay = scheduler_calendar_day_from_raw((string) ($defense['day'] ?? ''));
+    $myRange = $myDay !== null ? scheduler_defense_range_on_day((string) $defense['day'], (string) $defense['time_slot'], $duration) : null;
+    if ($myDay === null || $myRange === null) {
+        return [];
+    }
+
+    foreach ($defenses as $otherIdx => $other) {
+        if ($otherIdx == $idx) {
+            continue;
+        }
+
+        $otherDay = scheduler_calendar_day_from_raw((string) ($other['day'] ?? ''));
+        if ($otherDay === null || $otherDay !== $myDay) {
+            continue;
+        }
+
+        $otherRange = scheduler_defense_range_on_day((string) $other['day'], (string) $other['time_slot'], $duration);
+        if ($otherRange === null) {
+            continue;
+        }
+
+        if (!scheduler_slot_ranges_overlap($myRange['start'], $myRange['end'], $otherRange['start'], $otherRange['end'])) {
+            continue;
+        }
+
+        $overlappingPanelistIds = array_merge($overlappingPanelistIds, array_map('intval', (array) ($other['panelist_ids'] ?? [])));
+    }
+
+    return array_values(array_unique($overlappingPanelistIds));
+}
+
+/**
+ * Try to resolve a conflict by reassigning the defense's panelists instead of moving it.
+ */
+function tryReassignDefensePanelists(&$defenses, $idx, &$defense, $duration, $userSchedules, $memberCache, $pdo)
+{
+    $teamId = (int) ($defense['team_id'] ?? 0);
+    if ($teamId <= 0) {
+        return false;
+    }
+
+    $team = fetchTeamById($pdo, $teamId);
+    if (!$team) {
+        return false;
+    }
+
+    $adviserId = !empty($team['adviser_id']) ? (int) $team['adviser_id'] : null;
+    $teamProgram = !empty($team['program']) ? normalizeProgramName($team['program']) : null;
+    $teamCollege = $teamProgram ? getProgramCollege($pdo, $teamProgram) : null;
+
+    $exclude = [];
+    if ($adviserId) {
+        $exclude[] = $adviserId;
+    }
+    if (!empty($defense['panelist_ids']) && is_array($defense['panelist_ids'])) {
+        $exclude = array_merge($exclude, array_map('intval', $defense['panelist_ids']));
+    }
+    $exclude = array_merge($exclude, getOverlappingPanelistIdsForDefense($defenses, $idx, $defense, $duration));
+    $exclude = array_values(array_unique(array_filter($exclude)));
+
+    $replacement = buildOptimalPanelistCombination($pdo, $adviserId, $exclude, $teamProgram, $teamCollege);
+    if ($replacement === null || count($replacement) !== 3) {
+        return false;
+    }
+
+    $originalPanelists = $defense['panelist_ids'];
+    $defense['panelist_ids'] = $replacement;
+    $defenses[$idx] = $defense;
+
+    $involvedUsers = array_unique(array_merge($replacement, $memberCache[$teamId] ?? []));
+    if (!hasAnyConflictForDefense($defenses, $idx, $defense, $duration, $userSchedules, $involvedUsers, $memberCache, $pdo)) {
+        error_log("FIX: Team {$teamId} → panelists " . implode(',', $replacement));
+        return true;
+    }
+
+    $defense['panelist_ids'] = $originalPanelists;
+    $defenses[$idx] = $defense;
+    return false;
 }
 
 /**

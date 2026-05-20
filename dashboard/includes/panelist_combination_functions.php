@@ -25,9 +25,19 @@
  * @return array|null Panelist info with employment type and external status
  */
 function getPanelistInfo($pdo, $panelistId) {
+    // Per-request cache: getPanelistInfo is called repeatedly (once per candidate
+    // panelist while building combinations, plus during final validation). Without
+    // caching this ran 2 DB queries on every call and was the main scheduler hotspot.
+    static $cache = [];
+
+    $key = (int) $panelistId;
+    if (array_key_exists($key, $cache)) {
+        return $cache[$key];
+    }
+
     try {
         $stmt = $pdo->prepare("
-            SELECT 
+            SELECT
                 id,
                 usertype,
                 is_parttime,
@@ -43,21 +53,46 @@ function getPanelistInfo($pdo, $panelistId) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         if ($row) {
             $row['normalized_program'] = normalizeProgramName($row['program']);
-            // Try to find the college for the normalized program from the programs table
-            try {
-                $pstmt = $pdo->prepare("SELECT college FROM programs WHERE name = ? LIMIT 1");
-                $pstmt->execute([$row['normalized_program']]);
-                $prog = $pstmt->fetch(PDO::FETCH_ASSOC);
-                $row['program_college'] = $prog ? $prog['college'] : null;
-            } catch (Exception $e) {
-                $row['program_college'] = null;
-            }
+            // Resolve the college for the normalized program (memoized per program name
+            // so repeated panelists from the same program don't re-query).
+            $row['program_college'] = getProgramCollege($pdo, $row['normalized_program']);
         }
+        $cache[$key] = $row;
         return $row;
     } catch (Exception $e) {
         error_log("getPanelistInfo error: " . $e->getMessage());
+        $cache[$key] = null;
         return null;
     }
+}
+
+/**
+ * Resolve (and memoize) the college for a normalized program name.
+ *
+ * @param PDO $pdo
+ * @param string|null $normalizedProgram
+ * @return string|null
+ */
+function getProgramCollege($pdo, $normalizedProgram) {
+    static $collegeCache = [];
+
+    if (!is_string($normalizedProgram) || $normalizedProgram === '') {
+        return null;
+    }
+    if (array_key_exists($normalizedProgram, $collegeCache)) {
+        return $collegeCache[$normalizedProgram];
+    }
+
+    try {
+        $pstmt = $pdo->prepare("SELECT college FROM programs WHERE name = ? LIMIT 1");
+        $pstmt->execute([$normalizedProgram]);
+        $prog = $pstmt->fetch(PDO::FETCH_ASSOC);
+        $collegeCache[$normalizedProgram] = $prog ? $prog['college'] : null;
+    } catch (Exception $e) {
+        $collegeCache[$normalizedProgram] = null;
+    }
+
+    return $collegeCache[$normalizedProgram];
 }
 
 /**
@@ -70,6 +105,32 @@ function normalizeProgramName($program) {
     }
     $parts = preg_split('/\s*[-–—]\s*/u', $program);
     return trim($parts[0]);
+}
+
+/**
+ * Does a panelist belong to the team's program (for eligibility as panelist 1 or 2)?
+ *
+ * Program comparison is specialization-insensitive: both sides are already normalized
+ * (specialization after a dash stripped), so "Computer Science - Data Science" counts as
+ * the same program as "Computer Science". College is only consulted as a fallback when the
+ * team has no program name to match against.
+ *
+ * @param array $info Panelist info from getPanelistInfo()
+ * @param string|null $teamProgram Normalized team program name
+ * @param string|null $teamCollege Team college (fallback)
+ * @return bool
+ */
+function panelistMatchesTeamProgram($info, $teamProgram, $teamCollege) {
+    if (!is_array($info)) {
+        return false;
+    }
+    if (!empty($teamProgram)) {
+        return isset($info['normalized_program']) && $info['normalized_program'] === $teamProgram;
+    }
+    if (!empty($teamCollege)) {
+        return isset($info['program_college']) && $info['program_college'] === $teamCollege;
+    }
+    return false;
 }
 
 /**
@@ -140,14 +201,19 @@ function isValidPanelistCombination($panelists) {
         }
     }
 
-    // Ensure panelist 3 is external OR from a different college than panelist1
+    // Panelist 3 is the "external"/cross-program slot. It may be:
+    //   - a truly external panelist (is_external = 1), or
+    //   - a faculty member from a DIFFERENT program than the team/panelist 1
+    //     (e.g. an Information Technology faculty serving on a Computer Science panel), or
+    //   - a same-program part-time panelist (per the allowed employment combinations).
+    // Comparison is specialization-insensitive (normalized program names). We no longer
+    // reject a cross-program 3rd panelist just because they share a college with panelist 1.
     $p3 = $panelists[2];
     if (($p3['is_external'] ?? 0) != 1) {
-        $p3col = $p3['program_college'] ?? null;
-        $p1col = $p1['program_college'] ?? null;
-        if ($p3col && $p1col && $p3col === $p1col) {
-            error_log("Invalid: panelist3 is not external and is from same college as panelist1");
-            return false;
+        $p3prog = $p3['normalized_program'] ?? null;
+        $p1prog = $p1['normalized_program'] ?? null;
+        if ($p3prog && $p1prog && $p3prog !== $p1prog) {
+            error_log("panelist3 is a cross-program reviewer ({$p3prog} vs {$p1prog}) — allowed");
         }
     }
     
@@ -187,31 +253,64 @@ function isValidPanelistCombination($panelists) {
  * @return array List of external panelist IDs
  */
 function getExternalPanelists($pdo, $excludePanelistIds = []) {
+    return filterPanelistPool(loadPanelistPools($pdo)['external'], $excludePanelistIds);
+}
+
+/**
+ * Load all panelist IDs grouped by type in a single query and memoize for the request.
+ *
+ * Previously getExternal/FullTime/PartTimePanelists each ran their own query on every
+ * call (and were called per team). Now we fetch once and filter exclusions in PHP.
+ *
+ * @param PDO $pdo
+ * @return array{full_time:int[], part_time:int[], external:int[]}
+ */
+function loadPanelistPools($pdo) {
+    static $pools = null;
+    if ($pools !== null) {
+        return $pools;
+    }
+
+    $pools = ['full_time' => [], 'part_time' => [], 'external' => []];
     try {
-        $placeholders = '';
-        $params = [];
-        
-        if (!empty($excludePanelistIds)) {
-            $placeholders = ' AND id NOT IN (' . implode(',', array_fill(0, count($excludePanelistIds), '?')) . ')';
-            $params = $excludePanelistIds;
-        }
-        
-        $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, username
+        $stmt = $pdo->query("
+            SELECT id, is_parttime, is_external
             FROM users
-            WHERE usertype = 2 
-            AND is_external = 1 
-            AND deleted_at IS NULL
-            $placeholders
+            WHERE usertype = 2 AND deleted_at IS NULL
             ORDER BY first_name, last_name
         ");
-        $stmt->execute($params);
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return array_column($result, 'id') ?: [];
+        while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
+            $id = (int) $row['id'];
+            if ((int) $row['is_external'] === 1) {
+                $pools['external'][] = $id;
+            } elseif ((int) $row['is_parttime'] === 1) {
+                $pools['part_time'][] = $id;
+            } else {
+                $pools['full_time'][] = $id;
+            }
+        }
     } catch (Exception $e) {
-        error_log("getExternalPanelists error: " . $e->getMessage());
-        return [];
+        error_log("loadPanelistPools error: " . $e->getMessage());
     }
+
+    return $pools;
+}
+
+/**
+ * Return pool IDs with the excluded IDs removed.
+ *
+ * @param int[] $pool
+ * @param int[] $excludePanelistIds
+ * @return int[]
+ */
+function filterPanelistPool(array $pool, array $excludePanelistIds) {
+    if (empty($excludePanelistIds)) {
+        return array_values($pool);
+    }
+    $exclude = array_flip(array_map('intval', $excludePanelistIds));
+    return array_values(array_filter($pool, function ($id) use ($exclude) {
+        return !isset($exclude[(int) $id]);
+    }));
 }
 
 /**
@@ -222,32 +321,7 @@ function getExternalPanelists($pdo, $excludePanelistIds = []) {
  * @return array List of full-time panelist IDs
  */
 function getFullTimePanelists($pdo, $excludePanelistIds = []) {
-    try {
-        $placeholders = '';
-        $params = [];
-        
-        if (!empty($excludePanelistIds)) {
-            $placeholders = ' AND id NOT IN (' . implode(',', array_fill(0, count($excludePanelistIds), '?')) . ')';
-            $params = $excludePanelistIds;
-        }
-        
-        $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, username
-            FROM users
-            WHERE usertype = 2 
-            AND is_parttime = 0 
-            AND is_external = 0
-            AND deleted_at IS NULL
-            $placeholders
-            ORDER BY first_name, last_name
-        ");
-        $stmt->execute($params);
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return array_column($result, 'id') ?: [];
-    } catch (Exception $e) {
-        error_log("getFullTimePanelists error: " . $e->getMessage());
-        return [];
-    }
+    return filterPanelistPool(loadPanelistPools($pdo)['full_time'], $excludePanelistIds);
 }
 
 /**
@@ -258,32 +332,7 @@ function getFullTimePanelists($pdo, $excludePanelistIds = []) {
  * @return array List of part-time panelist IDs
  */
 function getPartTimePanelists($pdo, $excludePanelistIds = []) {
-    try {
-        $placeholders = '';
-        $params = [];
-        
-        if (!empty($excludePanelistIds)) {
-            $placeholders = ' AND id NOT IN (' . implode(',', array_fill(0, count($excludePanelistIds), '?')) . ')';
-            $params = $excludePanelistIds;
-        }
-        
-        $stmt = $pdo->prepare("
-            SELECT id, first_name, last_name, username
-            FROM users
-            WHERE usertype = 2 
-            AND is_parttime = 1 
-            AND is_external = 0
-            AND deleted_at IS NULL
-            $placeholders
-            ORDER BY first_name, last_name
-        ");
-        $stmt->execute($params);
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return array_column($result, 'id') ?: [];
-    } catch (Exception $e) {
-        error_log("getPartTimePanelists error: " . $e->getMessage());
-        return [];
-    }
+    return filterPanelistPool(loadPanelistPools($pdo)['part_time'], $excludePanelistIds);
 }
 
 /**
@@ -315,17 +364,22 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         $partTime   = getPartTimePanelists($pdo, $excludeList);
         $external   = getExternalPanelists($pdo, $excludeList);
 
-        // If student program/college provided, force slots 1&2 to come from same program+college
+        // If student/team program (or college) provided, force slots 1 & 2 to come from the
+        // SAME program as the team. Matching is specialization-insensitive: the program name
+        // is normalized first, so e.g. "Computer Science - Data Science" matches "Computer
+        // Science". College is used only as a fallback when no program name is available.
+        // This guarantees, for example, that an Information Technology faculty/program chair
+        // is NOT eligible as panelist 1 or 2 for a Computer Science section (they may still
+        // serve as the 3rd / external/cross-program panelist).
         $useStudentMatch = $studentProgram || $studentCollege;
         if ($useStudentMatch) {
             $studentProgram = $studentProgram ? normalizeProgramName($studentProgram) : null;
-            // Build matching pools where BOTH normalized_program and program_college match student
+
             $matchingFull = [];
             foreach ($fullTime as $id) {
                 $info = getPanelistInfo($pdo, $id);
                 if (!$info) continue;
-                if ($studentProgram && $info['normalized_program'] === $studentProgram &&
-                    $studentCollege && $info['program_college'] === $studentCollege) {
+                if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingFull[] = $id;
                 }
             }
@@ -333,8 +387,7 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
             foreach ($partTime as $id) {
                 $info = getPanelistInfo($pdo, $id);
                 if (!$info) continue;
-                if ($studentProgram && $info['normalized_program'] === $studentProgram &&
-                    $studentCollege && $info['program_college'] === $studentCollege) {
+                if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingPart[] = $id;
                 }
             }
@@ -342,7 +395,7 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
             // Combined matching pool must have at least two panelists (slots 1 & 2)
             $matchingCombined = array_values(array_unique(array_merge($matchingFull, $matchingPart)));
             if (count($matchingCombined) < 2) {
-                error_log("Not enough matching panelists in same program+college to fill slots 1 and 2");
+                error_log("Not enough same-program panelists to fill slots 1 and 2 (program=" . ($studentProgram ?: '-') . ", college=" . ($studentCollege ?: '-') . ")");
                 return null;
             }
 
@@ -358,12 +411,13 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         shuffle($external);
 
         // Defined allowed combinations (order: slot1, slot2, slot3)
-$patterns = mt_rand(1, 4) === 1 ? [
-            ['full_time', 'part_time', 'external'],
-        ] : [
+        // Prefer the external 3rd slot most of the time, but still keep a small
+        // chance of the other valid employment mixes.
+        $patterns = mt_rand(1, 100) <= 75 ? [
             ['full_time', 'full_time', 'external'],
-            ['full_time', 'full_time', 'part_time'],
+        ] : [
             ['full_time', 'part_time', 'external'],
+            ['full_time', 'full_time', 'part_time'],
             ['full_time', 'part_time', 'part_time'],
         ];
 

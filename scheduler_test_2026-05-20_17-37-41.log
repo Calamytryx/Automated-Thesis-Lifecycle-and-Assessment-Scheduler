@@ -1,0 +1,5 @@
+[20-May-2026 17:37:41 Europe/Berlin] PHP Warning:  require_once(/opt/lampp/htdocs/dashboard/includes/db.php): Failed to open stream: No such file or directory in /opt/lampp/htdocs/test_scheduler_fixes.php on line 16
+[20-May-2026 17:37:41 Europe/Berlin] PHP Fatal error:  Uncaught Error: Failed opening required '/opt/lampp/htdocs/dashboard/includes/db.php' (include_path='.:/opt/lampp/lib/php') in /opt/lampp/htdocs/test_scheduler_fixes.php:16
+Stack trace:
+#0 {main}
+  thrown in /opt/lampp/htdocs/test_scheduler_fixes.php on line 16

@@ -626,14 +626,29 @@
                                         `;
                                     }
 
+                                    // --- Schedule generation console tracing -------------------
+                                    // Lightweight, timestamped logging so the whole generation
+                                    // lifecycle is visible in the browser console.
+                                    let schedGenStart = 0;
+                                    function schedElapsed() {
+                                        if (!schedGenStart) return '0.0s';
+                                        return ((performance.now() - schedGenStart) / 1000).toFixed(1) + 's';
+                                    }
+                                    function schedLog(stage, ...details) {
+                                        console.log(`%c[Scheduler +${schedElapsed()}]%c ${stage}`,
+                                            'color:#0d6efd;font-weight:bold', 'color:inherit', ...details);
+                                    }
+                                    window.schedLog = schedLog;
+
                                     function updateProgress(message, percentage = null) {
                                         const progressText = document.getElementById('progressText');
                                         const progressBar = document.getElementById('progressBar');
-                                        
+
                                         if (progressText) progressText.textContent = message;
                                         if (progressBar && percentage !== null) {
                                             progressBar.style.width = percentage + '%';
                                         }
+                                        schedLog('progress', `${percentage !== null ? percentage + '% ' : ''}${message}`);
                                     }
 
                                     function hideLoadingState(success = true, message = '') {
@@ -659,6 +674,7 @@
                                         `;
                                         
                                         schedulerRunning = false;
+                                        if (typeof window.stopLiveProgress === 'function') window.stopLiveProgress();
                                     }
 
                                     // Expose to global scope for cross-script access
@@ -668,14 +684,22 @@
 
                                     // Progress polling system
                                     function pollScheduleProgress(progressId) {
+                                        schedLog('polling started', 'progressId=' + progressId);
+                                        let lastMessage = null;
                                         const pollInterval = setInterval(() => {
                                             fetch(`../dashboard/includes/get_schedule_progress.php?id=${progressId}`)
                                                 .then(response => response.json())
                                                 .then(data => {
                                                     if (data.status === 'running') {
+                                                        // Only log when the message actually changes to avoid spam.
+                                                        if (data.message !== lastMessage) {
+                                                            lastMessage = data.message;
+                                                            schedLog('stage', `${data.percentage ?? '?'}% — ${data.message}`);
+                                                        }
                                                         updateProgress(data.message, data.percentage);
                                                     } else if (data.status === 'completed') {
                                                         clearInterval(pollInterval);
+                                                        schedLog('COMPLETED', `total time ${schedElapsed()}`);
                                                         hideLoadingState(true, 'Schedule generated successfully!');
                                                         // Reload the defense schedules table
                                                         setTimeout(() => {
@@ -685,16 +709,53 @@
                                                         }, 1000);
                                                     } else if (data.status === 'error') {
                                                         clearInterval(pollInterval);
+                                                        schedLog('ERROR', data.message || 'unknown error', `after ${schedElapsed()}`);
                                                         hideLoadingState(false, data.message || 'An error occurred during generation');
                                                     }
                                                 })
                                                 .catch(error => {
-                                                    console.error('Progress polling error:', error);
+                                                    console.error('[Scheduler] Progress polling error:', error);
                                                     clearInterval(pollInterval);
                                                     hideLoadingState(false, 'Failed to monitor progress');
                                                 });
                                         }, 1000); // Poll every second
                                     }
+
+                                    // Live progress poller (display only). Runs WHILE the long
+                                    // run_scheduler.php request is still in flight so the user sees
+                                    // real backend stages instead of a frozen "Initializing…".
+                                    // It never finalizes the UI — the AJAX success/error callback is
+                                    // the source of truth (preview mode returns the schedule inline).
+                                    let liveProgressTimer = null;
+                                    let liveProgressLastMsg = null;
+                                    function startLiveProgress(progressId) {
+                                        stopLiveProgress();
+                                        liveProgressLastMsg = null;
+                                        schedLog('live polling started', 'progressId=' + progressId);
+                                        liveProgressTimer = setInterval(() => {
+                                            fetch(`../dashboard/includes/get_schedule_progress.php?id=${progressId}`)
+                                                .then(r => r.json())
+                                                .then(data => {
+                                                    if (!data || !data.message) return;
+                                                    if (data.message !== liveProgressLastMsg) {
+                                                        liveProgressLastMsg = data.message;
+                                                        schedLog('stage', `${data.percentage ?? '?'}% — ${data.message}`);
+                                                    }
+                                                    if (data.status === 'running' || data.status === 'info' || data.status === 'completed') {
+                                                        updateProgress(data.message, data.percentage);
+                                                    }
+                                                })
+                                                .catch(() => { /* transient; keep polling */ });
+                                        }, 800);
+                                    }
+                                    function stopLiveProgress() {
+                                        if (liveProgressTimer) {
+                                            clearInterval(liveProgressTimer);
+                                            liveProgressTimer = null;
+                                        }
+                                    }
+                                    window.startLiveProgress = startLiveProgress;
+                                    window.stopLiveProgress = stopLiveProgress;
 
                                     // Update the Generate Schedule click handler
                                     const generateButton = document.getElementById('generateSchedule');
@@ -710,7 +771,9 @@
                                                 return;
                                             }
                                             schedulerRunning = true;
-                                            
+                                            schedGenStart = performance.now();
+                                            schedLog('generation started');
+
                                             showLoadingState();
 
                                         const rooms = document.getElementById("rooms").value.split(',');
@@ -761,11 +824,17 @@
                                             confirm_overwrite: confirmOverwrite,
                                             preview: 'true'
                                         };
+                                        // Client-generated progress ID so we can poll the backend
+                                        // for live stage updates while this request is still running.
+                                        const progressId = 'sched_' + Date.now() + '_' + Math.random().toString(36).slice(2, 8);
+                                        requestData.progressId = progressId;
                                         if (Array.isArray(window.__defensePendingUnresolvedTeamIds) && window.__defensePendingUnresolvedTeamIds.length > 0) {
                                             requestData.unresolved_team_ids = window.__defensePendingUnresolvedTeamIds;
                                             window.__defensePendingUnresolvedTeamIds = [];
                                         }
-                                        console.log('Request data for generateSchedule:', requestData);
+                                        schedLog('request payload', requestData);
+                                        schedLog('POST run_scheduler.php (request sent)');
+                                        startLiveProgress(progressId);
 
                                         $.ajax({
                                             url: '../dashboard/includes/run_scheduler.php',
@@ -773,9 +842,11 @@
                                             data: requestData,
                                             dataType: 'json',
                                             success: function(response) {
-                                                console.log('AJAX Success Response:', response);
+                                                stopLiveProgress();
+                                                schedLog('response received', `success=${response.success}` + (response.preview ? ' (preview)' : ''), response);
                                                 if (response.success && response.preview && response.schedules) {
                                                     // Preview mode: show editable calendar
+                                                    schedLog('preview ready', `${(response.schedules || []).length} scheduled rows`);
                                                     hideLoadingState(true, 'Preview ready! Review the schedule below.');
                                                     if (typeof window.showDefensePreviewCalendar === 'function') {
                                                         window.showDefensePreviewCalendar(response.schedules, response);
@@ -922,6 +993,7 @@
                                                 }
                                             },
                                             error: function(xhr, status, error) {
+                                                schedLog('REQUEST FAILED', `status=${status}`, error, xhr.responseText);
                                                 hideLoadingState(false, `Server error: ${error}`);
                                             }
                                         });
@@ -2539,7 +2611,8 @@ eventContent: function(arg) {
                     previewUnresolvedTeamIds = Array.isArray(meta.unresolved_team_ids) ? meta.unresolved_team_ids.map(Number).filter(Number.isFinite) : [];
 
                     const previewModalEl = document.getElementById('schedulePreviewModal');
-                    const previewModal = new bootstrap.Modal(previewModalEl);
+                    const previewModal = bootstrap.Modal.getOrCreateInstance(previewModalEl);
+                    window.__defensePreviewModal = previewModal;
                     if (openModal) {
                         previewModal.show();
                         setupPreviewVariantsUI(window.__defensePreviewVariants || []);
@@ -3057,7 +3130,7 @@ eventContent: function(arg) {
 
                 document.getElementById('regeneratePreviewSchedule').addEventListener('click', function() {
                     const previewModalEl = document.getElementById('schedulePreviewModal');
-                    const previewModal = bootstrap.Modal.getInstance(previewModalEl);
+                    const previewModal = bootstrap.Modal.getOrCreateInstance(previewModalEl);
                     if (previewModal) {
                         previewModal.hide();
                     }
@@ -3079,7 +3152,7 @@ eventContent: function(arg) {
                         }
                         window.__defensePendingUnresolvedTeamIds = previewUnresolvedTeamIds.slice();
                         const previewModalEl = document.getElementById('schedulePreviewModal');
-                        const previewModal = bootstrap.Modal.getInstance(previewModalEl);
+                        const previewModal = bootstrap.Modal.getOrCreateInstance(previewModalEl);
                         if (previewModal) {
                             previewModal.hide();
                         }
