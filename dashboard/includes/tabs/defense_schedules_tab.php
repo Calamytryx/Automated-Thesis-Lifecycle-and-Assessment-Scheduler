@@ -1116,7 +1116,7 @@
                                         "Time Duration: " + (document.getElementById("timeDuration").value || "N/A") + " hours<br>" +
                                         "Start Time: " + (document.getElementById("startTime").value || "N/A") + "<br>" +
                                         "End Time: " + (document.getElementById("endTime").value || "N/A") + "<br>" +
-                                        "Days: " + (document.getElementById("days").value || "N/A") + "<br>" +
+                                        "Dates: " + (document.getElementById("days").value || "N/A") + "<br>" +
                                         "Include Lunch Break: " + (document.getElementById("includeLunchBreak").checked ? "Yes" : "No") + "<br>" +
                                         "Validation Mode: " + (document.getElementById("validationMode") ? document.getElementById("validationMode").value : "hybrid") +
                                         '<div class="mt-3 pt-2 border-top"><div id="schedulerSlotEstimate" class="small text-muted">Class schedule estimate will appear below after you save settings.</div></div>';
