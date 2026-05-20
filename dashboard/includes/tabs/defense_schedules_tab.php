@@ -80,10 +80,13 @@
                                     <span class="d-none d-lg-inline">Generate Schedule</span>
                                     <span class="d-lg-none">Generate</span>
                                 </button>
-                                <div class="input-group ms-2" style="max-width:520px;">
-                                    <input type="date" class="form-control form-control-sm" id="reportStartDate" aria-label="Start date">
-                                    <input type="date" class="form-control form-control-sm" id="reportEndDate" aria-label="End date">
-                                    <button class="btn btn-outline-secondary btn-sm" id="exportDefensePdf">Export PDF</button>
+                                <div class="d-flex align-items-center gap-2 flex-wrap defense-export-controls ms-2">
+                                    <input type="date" class="form-control user-control-height defense-export-date" id="reportStartDate" aria-label="Start date">
+                                    <input type="date" class="form-control user-control-height defense-export-date" id="reportEndDate" aria-label="End date">
+                                    <button class="btn defense-export-btn user-control-height" id="exportDefensePdf" type="button">
+                                        <i class="fas fa-file-export me-1"></i>
+                                        Export PDF
+                                    </button>
                                 </div>
                             </div>
                         </div>
@@ -1786,6 +1789,9 @@
                               return;
                           }
 
+                          const currentUserName = <?php echo json_encode(trim(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')) ?: 'Unknown', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+                          const currentUserCollege = <?php echo json_encode($_SESSION['college'] ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+
                           // Group by date -> room
                           const grouped = {};
                           rows.forEach(r => {
@@ -1808,15 +1814,21 @@
                           ensureJsPdf(function() {
                               const { jsPDF } = window.jspdf;
                               const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-                              const pageWidth = 297; // A4 landscape
-                              const pageHeight = 210; // A4 landscape
+                              const pageWidth = pdf.internal.pageSize.getWidth();
+                              const pageHeight = pdf.internal.pageSize.getHeight();
                               const margin = 10;
-                              const rightMargin = 10;
-                              const usableWidth = pageWidth - margin - rightMargin;
+                              const footerGap = 14;
+                              const bottomThreshold = pageHeight - margin - footerGap;
                               
-                              let y = margin;
-                              pdf.setFont('time new roman');
-                              pdf.setFontSize(12);
+                              const formatDatePrinted = () => {
+                                  return new Date().toLocaleString('en-US', {
+                                      year: 'numeric',
+                                      month: 'short',
+                                      day: 'numeric',
+                                      hour: 'numeric',
+                                      minute: '2-digit'
+                                  });
+                              };
 
                               const formatDateForLabel = (ymd) => {
                                   try {
@@ -1825,78 +1837,122 @@
                                   } catch (e) { return ymd; }
                               };
 
-                              Object.keys(grouped).sort().forEach(date => {
-                                  // Start new date on a fresh page (unless it's the first page)
-                                  if (y > margin) {
-                                      pdf.addPage();
-                                      y = margin;
-                                  }
-                                  
-                                  // Date header
+                              const drawDefenseHeader = (collegeName) => {
+                                  const centerX = pageWidth / 2;
+
+                                  pdf.setTextColor(0, 0, 0);
+                                  pdf.setFont('times', 'bold');
                                   pdf.setFontSize(14);
-                                  pdf.text(formatDateForLabel(date), margin, y);
-                                  y += 8;
+                                  pdf.text('LYCEUM OF THE PHILIPPINES UNIVERSITY - CAVITE', centerX, 12, { align: 'center' });
+
+                                  pdf.setFont('times', 'normal');
+                                  pdf.setFontSize(11);
+                                  pdf.text(collegeName || '', centerX, 18, { align: 'center' });
+
+                                  return 28;
+                              };
+
+                              const drawDefenseFooter = () => {
+                                  const footerY = pageHeight - 10;
+
+                                  pdf.setTextColor(0, 0, 0);
+                                  pdf.setFont('times', 'italic');
+                                  pdf.setFontSize(8.5);
+                                  pdf.text(`Date printed/exported: ${formatDatePrinted()}`, margin, footerY);
+                                  pdf.text(`Printed by: ${currentUserName} through ATLAS`, pageWidth - margin, footerY, { align: 'right' });
+                              };
+
+                              const drawDefenseTableHeader = (y) => {
+                                  const colW = { time: 22, title: 48, adviser: 35, members: 42, p1: 25, p2: 25, p3: 25 };
+                                  const colX = {
+                                      time: margin,
+                                      title: margin + colW.time,
+                                      adviser: margin + colW.time + colW.title,
+                                      members: margin + colW.time + colW.title + colW.adviser,
+                                      p1: margin + colW.time + colW.title + colW.adviser + colW.members,
+                                      p2: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1,
+                                      p3: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1 + colW.p2
+                                  };
+                                  const headerHeight = 6;
+
+                                  pdf.setFont('times', 'bold');
+                                  pdf.setFontSize(9);
+                                  pdf.rect(colX.time, y, colW.time, headerHeight);
+                                  pdf.rect(colX.title, y, colW.title, headerHeight);
+                                  pdf.rect(colX.adviser, y, colW.adviser, headerHeight);
+                                  pdf.rect(colX.members, y, colW.members, headerHeight);
+                                  pdf.rect(colX.p1, y, colW.p1, headerHeight);
+                                  pdf.rect(colX.p2, y, colW.p2, headerHeight);
+                                  pdf.rect(colX.p3, y, colW.p3, headerHeight);
+
+                                  const textY = y + 4.2;
+                                  pdf.text('Time', colX.time + 0.8, textY);
+                                  pdf.text('Title', colX.title + 0.8, textY);
+                                  pdf.text('Adviser', colX.adviser + 0.8, textY);
+                                  pdf.text('Members', colX.members + 0.8, textY);
+                                  pdf.text('P1', colX.p1 + 0.8, textY);
+                                  pdf.text('P2', colX.p2 + 0.8, textY);
+                                  pdf.text('P3', colX.p3 + 0.8, textY);
+
+                                  return { colW, colX, y: y + headerHeight };
+                              };
+
+                              const drawDefenseDateHeader = (dateLabel) => {
+                                  let y = drawDefenseHeader(currentUserCollege);
+
+                                  pdf.setFont('times', 'bold');
+                                  pdf.setFontSize(14);
+                                  pdf.text(dateLabel, margin, y);
+
+                                  return y + 7;
+                              };
+
+                              const drawDefenseRoomHeader = (roomLabel, y, isContinued = false) => {
+                                  pdf.setFont('times', 'bold');
+                                  pdf.setFontSize(11);
+                                  pdf.text(`Room: ${roomLabel}${isContinued ? ' (continued)' : ''}`, margin, y);
+
+                                  return drawDefenseTableHeader(y + 6);
+                              };
+
+                              const formatTimeForPdf = (hm) => {
+                                  if (!hm) return '';
+                                  const parts = String(hm).split(':');
+                                  if (parts.length < 2) return hm;
+                                  let hh = parseInt(parts[0], 10);
+                                  const mm = parts[1];
+                                  const ampm = hh >= 12 ? 'PM' : 'AM';
+                                  hh = hh % 12 || 12;
+                                  return `${hh}:${mm} ${ampm}`;
+                              };
+
+                              const sortedDates = Object.keys(grouped).sort();
+
+                              sortedDates.forEach((date, dateIndex) => {
+                                  if (dateIndex > 0) {
+                                      pdf.addPage();
+                                  }
+
+                                  const dateLabel = formatDateForLabel(date);
+                                  let y = drawDefenseDateHeader(dateLabel);
 
                                   const rooms = Object.keys(grouped[date]).sort();
-                                  rooms.forEach(room => {
-                                      pdf.setFontSize(11);
-                                      pdf.text('Room: ' + room, margin, y);
-                                      y += 7;
+                                  rooms.forEach((room) => {
+                                      const roomRows = grouped[date][room];
 
-                                      // Column widths optimized for landscape A4: time, title, adviser, members, p1, p2, p3
-                                      const colW = { time: 22, title: 48, adviser: 35, members: 42, p1: 25, p2: 25, p3: 25 };
-                                      const colX = {
-                                          time: margin,
-                                          title: margin + colW.time,
-                                          adviser: margin + colW.time + colW.title,
-                                          members: margin + colW.time + colW.title + colW.adviser,
-                                          p1: margin + colW.time + colW.title + colW.adviser + colW.members,
-                                          p2: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1,
-                                          p3: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1 + colW.p2
-                                      };
+                                      if ((y + 12) > bottomThreshold) {
+                                          pdf.addPage();
+                                          y = drawDefenseDateHeader(dateLabel);
+                                      }
+
+                                      let tableState = drawDefenseRoomHeader(room, y, false);
                                       const lineHeight = 4.5;
-                                      const bottomThreshold = pageHeight - margin - 20;
-                                      
-                                      const drawTableHeader = () => {
-                                          pdf.setFontSize(9);
-                                          const headerTop = y;
-                                          const headerHeight = 6;
-                                          // Draw all column borders
-                                          pdf.rect(colX.time, headerTop, colW.time, headerHeight);
-                                          pdf.rect(colX.title, headerTop, colW.title, headerHeight);
-                                          pdf.rect(colX.adviser, headerTop, colW.adviser, headerHeight);
-                                          pdf.rect(colX.members, headerTop, colW.members, headerHeight);
-                                          pdf.rect(colX.p1, headerTop, colW.p1, headerHeight);
-                                          pdf.rect(colX.p2, headerTop, colW.p2, headerHeight);
-                                          pdf.rect(colX.p3, headerTop, colW.p3, headerHeight);
+                                      const colW = tableState.colW;
+                                      const colX = tableState.colX;
+                                      let currentY = tableState.y;
 
-                                          const textY = headerTop + 4.2;
-                                          pdf.text('Time', colX.time + 0.8, textY);
-                                          pdf.text('Title', colX.title + 0.8, textY);
-                                          pdf.text('Adviser', colX.adviser + 0.8, textY);
-                                          pdf.text('Members', colX.members + 0.8, textY);
-                                          pdf.text('P1', colX.p1 + 0.8, textY);
-                                          pdf.text('P2', colX.p2 + 0.8, textY);
-                                          pdf.text('P3', colX.p3 + 0.8, textY);
-                                          y += headerHeight;
-                                      };
-
-                                      drawTableHeader();
-
-                                      // Helper to format HH:MM -> h:MM AM/PM for PDF printing
-                                      const formatTimeForPdf = (hm) => {
-                                          if (!hm) return '';
-                                          const parts = String(hm).split(':');
-                                          if (parts.length < 2) return hm;
-                                          let hh = parseInt(parts[0], 10);
-                                          const mm = parts[1];
-                                          const ampm = hh >= 12 ? 'PM' : 'AM';
-                                          hh = hh % 12 || 12;
-                                          return `${hh}:${mm} ${ampm}`;
-                                      };
-
-                                      grouped[date][room].forEach(item => {
-                                          const time = formatTimeForPdf(item.start_time) + ' - ' + formatTimeForPdf(item.end_time);
+                                      roomRows.forEach((item) => {
+                                          const time = `${formatTimeForPdf(item.start_time)} - ${formatTimeForPdf(item.end_time)}`;
                                           const title = item.thesis_title || item.team_name || 'N/A';
                                           const adviser = item.adviser || 'N/A';
                                           const members = item.members || 'N/A';
@@ -1930,29 +1986,25 @@
                                           );
                                           const rowHeight = Math.max(6, lineCount * lineHeight + 1);
 
-                                          // Check if row fits on current page BEFORE rendering
-                                          if ((y + rowHeight) > bottomThreshold) {
+                                          if ((currentY + rowHeight) > bottomThreshold) {
                                               pdf.addPage();
-                                              y = margin;
-                                              pdf.setFontSize(10);
-                                              pdf.text('Room: ' + room + ' (continued)', margin, y);
-                                              y += 6;
-                                              drawTableHeader();
+                                              y = drawDefenseDateHeader(dateLabel);
+                                              tableState = drawDefenseRoomHeader(room, y, true);
+                                              currentY = tableState.y;
                                           }
 
+                                          pdf.setFont('times', 'normal');
                                           pdf.setFontSize(8);
-                                          const textY = y + 3.5;
-                                          
-                                          // Draw cell borders
-                                          pdf.rect(colX.time, y, colW.time, rowHeight);
-                                          pdf.rect(colX.title, y, colW.title, rowHeight);
-                                          pdf.rect(colX.adviser, y, colW.adviser, rowHeight);
-                                          pdf.rect(colX.members, y, colW.members, rowHeight);
-                                          pdf.rect(colX.p1, y, colW.p1, rowHeight);
-                                          pdf.rect(colX.p2, y, colW.p2, rowHeight);
-                                          pdf.rect(colX.p3, y, colW.p3, rowHeight);
+                                          const textY = currentY + 3.5;
 
-                                          // Render text in cells
+                                          pdf.rect(colX.time, currentY, colW.time, rowHeight);
+                                          pdf.rect(colX.title, currentY, colW.title, rowHeight);
+                                          pdf.rect(colX.adviser, currentY, colW.adviser, rowHeight);
+                                          pdf.rect(colX.members, currentY, colW.members, rowHeight);
+                                          pdf.rect(colX.p1, currentY, colW.p1, rowHeight);
+                                          pdf.rect(colX.p2, currentY, colW.p2, rowHeight);
+                                          pdf.rect(colX.p3, currentY, colW.p3, rowHeight);
+
                                           pdf.text(splitTime, colX.time + 0.8, textY);
                                           pdf.text(splitTitle, colX.title + 0.8, textY);
                                           pdf.text(splitAdviser, colX.adviser + 0.8, textY);
@@ -1961,12 +2013,18 @@
                                           pdf.text(splitP2, colX.p2 + 0.8, textY);
                                           pdf.text(splitP3, colX.p3 + 0.8, textY);
 
-                                          y += rowHeight;
+                                          currentY += rowHeight;
                                       });
 
-                                      y += 4; // gap after room
+                                      y = currentY + 4;
                                   });
                               });
+
+                              const totalPages = pdf.getNumberOfPages();
+                              for (let pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
+                                  pdf.setPage(pageIndex);
+                                  drawDefenseFooter();
+                              }
 
                               const filename = `defense_schedules_${start}_to_${end}.pdf`;
                               pdf.save(filename);
