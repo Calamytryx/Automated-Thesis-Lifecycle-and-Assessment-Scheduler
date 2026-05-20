@@ -1,6 +1,23 @@
 <!-- Schedules Tab -->
 <?php
 require_once '../assets/setup/db.inc.php'; // Adjust path as needed
+
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
+
+$currentUserName = 'Current User';
+if (!empty($_SESSION['id'])) {
+    try {
+        $currentUserStmt = $pdo->prepare("SELECT COALESCE(NULLIF(TRIM(CONCAT(first_name, ' ', last_name)), ''), username) FROM users WHERE id = ? LIMIT 1");
+        $currentUserStmt->execute([$_SESSION['id']]);
+        $currentUserName = $currentUserStmt->fetchColumn() ?: $currentUserName;
+    } catch (Exception $e) {
+        if (!empty($_SESSION['username'])) {
+            $currentUserName = (string) $_SESSION['username'];
+        }
+    }
+}
 ?>
 <div class="tab-pane fade" id="schedules" role="tabpanel" aria-labelledby="schedules-tab">
     <div class="container-fluid py-4 content-container">
@@ -151,6 +168,25 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                             <option value="">Select Instructors</option>
                         </select>
                     </div>
+                    <div class="schedule-export-menu" id="scheduleExportMenu">
+                        <button type="button" class="btn schedule-export-trigger" id="exportSchedulesPdfBtn" aria-haspopup="true" aria-expanded="false">
+                            <svg class="schedule-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"></rect>
+                                <path d="M4.5 8.5L8 5l3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                                <path d="M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                            </svg>
+                            <span class="schedule-export-trigger-label">Export Table View</span>
+                            <i class="fas fa-angle-down ms-1"></i>
+                        </button>
+                        <div class="schedule-export-options" role="menu" aria-label="Schedule export options">
+                            <button type="button" class="schedule-export-option" data-export-type="table" role="menuitem">
+                                Table View
+                            </button>
+                            <button type="button" class="schedule-export-option" data-export-type="calendar" role="menuitem">
+                                Calendar View
+                            </button>
+                        </div>
+                    </div>
                     <script>
                     document.addEventListener('DOMContentLoaded', function() {
                         const viewTypeButtons = document.querySelectorAll('.view-type-btn');
@@ -159,6 +195,584 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                         const programSelect = document.getElementById("programFilterSelect");
                         const sectionSelect = document.getElementById("sectionFilterSelect");
                         const instructorSelect = document.getElementById("instructorFilterSelect");
+                        const exportMenu = document.getElementById('scheduleExportMenu');
+                        const exportTrigger = document.getElementById('exportSchedulesPdfBtn');
+                        const exportOptionButtons = document.querySelectorAll('.schedule-export-option');
+                        const exportTriggerLabel = document.querySelector('.schedule-export-trigger-label');
+                        const currentUserName = <?php echo json_encode($currentUserName, JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+
+                        const scheduleDayOrder = {
+                            monday: 1,
+                            tuesday: 2,
+                            wednesday: 3,
+                            thursday: 4,
+                            friday: 5,
+                            saturday: 6,
+                            sunday: 7
+                        };
+
+                        const getSelectedText = (selectEl) => {
+                            if (!selectEl || !selectEl.selectedOptions || !selectEl.selectedOptions.length) {
+                                return '';
+                            }
+                            return selectEl.selectedOptions[0].textContent.trim();
+                        };
+
+                        const formatDatePrinted = () => {
+                            const now = new Date();
+                            return now.toLocaleString('en-US', {
+                                year: 'numeric',
+                                month: 'short',
+                                day: 'numeric',
+                                hour: 'numeric',
+                                minute: '2-digit'
+                            });
+                        };
+
+                        const formatTimeForPdf = (timeStr) => {
+                            if (!timeStr) return '';
+                            const parts = String(timeStr).split(':');
+                            if (parts.length < 2) return String(timeStr);
+
+                            let hours = parseInt(parts[0], 10);
+                            const minutes = parts[1];
+                            if (Number.isNaN(hours)) return String(timeStr);
+
+                            const period = hours >= 12 ? 'PM' : 'AM';
+                            hours = hours % 12 || 12;
+                            return `${hours}:${minutes} ${period}`;
+                        };
+
+                        const loadJsPdf = (callback) => {
+                            if (window.jspdf) {
+                                callback();
+                                return;
+                            }
+
+                            const script = document.createElement('script');
+                            script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                            script.onload = callback;
+                            script.onerror = function() {
+                                alert('Failed to load the PDF library.');
+                            };
+                            document.head.appendChild(script);
+                        };
+
+                        const drawPdfHeader = (pdf, collegeName) => {
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const centerX = pageWidth / 2;
+
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(14);
+                            pdf.text('LYCEUM OF THE PHILIPPINES UNIVERSITY - CAVITE', centerX, 12, { align: 'center' });
+
+                            pdf.setFont('times', 'normal');
+                            pdf.setFontSize(11);
+                            pdf.text(collegeName || '', centerX, 18, { align: 'center' });
+
+                            return 28;
+                        };
+
+                        const drawContextLine = (pdf, text, y) => {
+                            if (!text) {
+                                return y;
+                            }
+
+                            const margin = 10;
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(11);
+                            // Left-align the program/section/faculty context and keep it
+                            // visually closer to the table/calendar header.
+                            pdf.text(text, margin, y, { align: 'left' });
+                            return y + 2; // reduced gap so it sits nearer the content below
+                        };
+
+                        const drawPdfFooter = (pdf) => {
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+
+                            pdf.setTextColor(0, 0, 0);
+                            pdf.setFont('times', 'italic');
+                            pdf.setFontSize(8.5);
+                            pdf.text(`Date printed/exported: ${formatDatePrinted()}`, 10, pageHeight - 10);
+                            pdf.text(`Printed by: ${currentUserName} through ATLAS`, pageWidth - 10, pageHeight - 10, { align: 'right' });
+                        };
+
+                        const sortScheduleRows = (rows) => {
+                            return [...rows].sort((a, b) => {
+                                const dayA = scheduleDayOrder[String(a.day_of_week || '').trim().toLowerCase()] || 99;
+                                const dayB = scheduleDayOrder[String(b.day_of_week || '').trim().toLowerCase()] || 99;
+                                if (dayA !== dayB) return dayA - dayB;
+
+                                const timeA = String(a.start_time || '');
+                                const timeB = String(b.start_time || '');
+                                if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+                                return String(a.class_name || '').localeCompare(String(b.class_name || ''));
+                            });
+                        };
+
+                        const timeToMinutes = (timeStr) => {
+                            if (!timeStr) return null;
+                            const parts = String(timeStr).split(':').map(Number);
+                            if (parts.length < 2 || parts.some(Number.isNaN)) return null;
+                            return (parts[0] * 60) + parts[1];
+                        };
+
+                        const formatCalendarTimeLabel = (minutes) => {
+                            const hours24 = Math.floor(minutes / 60);
+                            const mins = minutes % 60;
+                            const period = hours24 >= 12 ? 'PM' : 'AM';
+                            const hour12 = hours24 % 12 || 12;
+                            return `${hour12}:${String(mins).padStart(2, '0')} ${period}`;
+                        };
+
+                        const getExportContext = () => {
+                            const viewType = viewTypeInput.value;
+                            return {
+                                viewType,
+                                collegeText: getSelectedText(collegeSelect),
+                                programText: getSelectedText(programSelect),
+                                sectionText: getSelectedText(sectionSelect),
+                                instructorText: getSelectedText(instructorSelect)
+                            };
+                        };
+
+                        const buildCalendarPage = (pdf, rows, context) => {
+                            const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                            const pageWidth = pdf.internal.pageSize.getWidth();
+                            const pageHeight = pdf.internal.pageSize.getHeight();
+                            const margin = 10;
+                            const bottomLimit = pageHeight - 12;
+                            const timeColumnWidth = 24;
+                            const usableWidth = pageWidth - (margin * 2);
+                            const dayColumnWidth = (usableWidth - timeColumnWidth) / dayNames.length;
+                            const slotMinutes = 30;
+                            const startMinutes = 7 * 60;
+                            const endMinutes = 21 * 60;
+                            const rowHeight = 5.5;
+                            const timeSlots = [];
+
+                            for (let minutes = startMinutes; minutes < endMinutes; minutes += slotMinutes) {
+                                timeSlots.push(minutes);
+                            }
+
+                            let y = drawPdfHeader(pdf, context.collegeText);
+                            const contextLine = context.viewType === 'instructor'
+                                ? (context.instructorText || '')
+                                : [context.programText || '', context.sectionText ? `Section: ${context.sectionText}` : '']
+                                    .filter(Boolean)
+                                    .join(' | ');
+                            y = drawContextLine(pdf, contextLine, y) + 2;
+
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(9);
+
+                            const headerHeight = 7;
+                            pdf.rect(margin, y, timeColumnWidth, headerHeight);
+                            pdf.text('Time', margin + 1, y + 4.7);
+
+                            dayNames.forEach((dayName, index) => {
+                                const x = margin + timeColumnWidth + (dayColumnWidth * index);
+                                pdf.rect(x, y, dayColumnWidth, headerHeight);
+                                pdf.text(dayName, x + 1, y + 4.7);
+                            });
+
+                            y += headerHeight;
+
+                            pdf.setFont('times', 'normal');
+                            pdf.setFontSize(8.3);
+
+                            timeSlots.forEach((minutes, rowIndex) => {
+                                const rowTop = y + (rowIndex * rowHeight);
+                                pdf.rect(margin, rowTop, timeColumnWidth, rowHeight);
+                                pdf.text(formatCalendarTimeLabel(minutes), margin + 1, rowTop + 3.7);
+
+                                dayNames.forEach((_, index) => {
+                                    const x = margin + timeColumnWidth + (dayColumnWidth * index);
+                                    pdf.rect(x, rowTop, dayColumnWidth, rowHeight);
+                                });
+                            });
+
+                            rows.forEach((row) => {
+                                const dayName = String(row.day_of_week || '').trim().toLowerCase();
+                                const dayIndex = scheduleDayOrder[dayName] ? scheduleDayOrder[dayName] - 1 : -1;
+                                const startMinutesValue = timeToMinutes(row.start_time);
+                                const endMinutesValue = timeToMinutes(row.end_time);
+
+                                if (dayIndex < 0 || startMinutesValue === null || endMinutesValue === null || endMinutesValue <= startMinutesValue) {
+                                    return;
+                                }
+
+                                const startRowIndex = Math.max(0, Math.floor((startMinutesValue - startMinutes) / slotMinutes));
+                                const endRowIndex = Math.min(timeSlots.length - 1, Math.ceil((endMinutesValue - startMinutes) / slotMinutes) - 1);
+
+                                if (endRowIndex < startRowIndex) {
+                                    return;
+                                }
+
+                                    const blockX = margin + timeColumnWidth + (dayColumnWidth * dayIndex);
+                                    const blockY = y + (startRowIndex * rowHeight);
+                                    const blockWidth = dayColumnWidth;
+                                    const blockHeight = ((endRowIndex - startRowIndex + 1) * rowHeight);
+
+                                    const blockInset = 0.8; // mm
+                                    const innerX = blockX + blockInset;
+                                    const innerY = blockY + blockInset;
+                                    const innerWidth = Math.max(0, blockWidth - (blockInset * 2));
+                                    const innerHeight = Math.max(0, blockHeight - (blockInset * 2));
+
+                                    pdf.setFillColor(219, 242, 221);
+                                    pdf.setDrawColor(116, 163, 118);
+  
+                                    if (innerWidth > 0 && innerHeight > 0) {
+                                        pdf.rect(innerX, innerY, innerWidth, innerHeight, 'FD');
+                                    }
+
+                                    const blockTitle = row.class_name || 'Schedule';
+                                    const blockSubtitle = [
+                                        row.room ? `Room: ${row.room}` : '',
+                                        row.first_name || row.last_name ? [row.first_name, row.last_name].filter(Boolean).join(' ') : '',
+                                        row.section ? `Sec: ${row.section}` : ''
+                                    ].filter(Boolean).join(' | ');
+
+                                    pdf.setTextColor(41, 82, 42);
+                                    pdf.setFont('times', 'bold');
+                                    pdf.setFontSize(7.2);
+                                    if (innerWidth > 2 && innerHeight > 3) {
+                                        pdf.text(pdf.splitTextToSize(blockTitle, innerWidth - 2), innerX + 1, innerY + 3.1);
+
+                                        if (blockSubtitle) {
+                                            pdf.setFont('times', 'normal');
+                                            pdf.setFontSize(6.6);
+                                            pdf.text(pdf.splitTextToSize(blockSubtitle, innerWidth - 2), innerX + 1, innerY + 6.0);
+                                        }
+                                    }
+                            });
+
+                            pdf.setTextColor(0, 0, 0);
+
+                            const totalPages = pdf.getNumberOfPages();
+                            for (let pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
+                                pdf.setPage(pageIndex);
+                                    drawPdfFooter(pdf);
+                            }
+
+                            const filenameParts = [
+                                'schedules',
+                                'calendar',
+                                context.collegeText || 'college'
+                            ];
+
+                            if (context.viewType === 'program') {
+                                filenameParts.push(context.programText || 'program', context.sectionText || 'section');
+                            } else {
+                                filenameParts.push(context.instructorText || 'faculty');
+                            }
+
+                            const filename = filenameParts
+                                .map(part => String(part).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+                                .filter(Boolean)
+                                .join('_') + '.pdf';
+
+                            pdf.save(filename || 'schedules_calendar.pdf');
+                        };
+
+                        const generateSchedulePdf = (rows) => {
+                            loadJsPdf(() => {
+                                const { jsPDF } = window.jspdf;
+                                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                                const pageHeight = pdf.internal.pageSize.getHeight();
+                                const margin = 10;
+                                const bottomLimit = pageHeight - 18;
+                                const rowPadding = 1.5;
+                                const lineHeight = 4.5;
+                                const columnWidths = {
+                                    day: 24,
+                                    time: 30,
+                                    className: 62,
+                                    room: 24,
+                                    instructor: 54,
+                                    section: 50
+                                };
+                                const columnX = {
+                                    day: margin,
+                                    time: margin + columnWidths.day,
+                                    className: margin + columnWidths.day + columnWidths.time,
+                                    room: margin + columnWidths.day + columnWidths.time + columnWidths.className,
+                                    instructor: margin + columnWidths.day + columnWidths.time + columnWidths.className + columnWidths.room,
+                                    section: margin + columnWidths.day + columnWidths.time + columnWidths.className + columnWidths.room + columnWidths.instructor
+                                };
+
+                                const viewType = viewTypeInput.value;
+                                const collegeText = getSelectedText(collegeSelect);
+                                const programText = getSelectedText(programSelect);
+                                const sectionText = getSelectedText(sectionSelect);
+                                const instructorText = getSelectedText(instructorSelect);
+
+                                const sortedRows = sortScheduleRows(rows);
+                                let y = drawPdfHeader(pdf, collegeText);
+                                const contextLine = viewType === 'instructor'
+                                    ? (instructorText || '')
+                                    : [programText || '', sectionText ? `Section: ${sectionText}` : '']
+                                        .filter(Boolean)
+                                        .join(' | ');
+                                y = drawContextLine(pdf, contextLine, y) + 2;
+
+                                const drawTableHeader = () => {
+                                    pdf.setFont('times', 'bold');
+                                    pdf.setFontSize(9);
+                                    const headerHeight = 7;
+
+                                    pdf.rect(columnX.day, y, columnWidths.day, headerHeight);
+                                    pdf.rect(columnX.time, y, columnWidths.time, headerHeight);
+                                    pdf.rect(columnX.className, y, columnWidths.className, headerHeight);
+                                    pdf.rect(columnX.room, y, columnWidths.room, headerHeight);
+                                    pdf.rect(columnX.instructor, y, columnWidths.instructor, headerHeight);
+                                    pdf.rect(columnX.section, y, columnWidths.section, headerHeight);
+
+                                    const textY = y + 4.8;
+                                    pdf.text('Day', columnX.day + columnWidths.day / 2, textY, { align: 'center' });
+                                    pdf.text('Time', columnX.time + columnWidths.time / 2, textY, { align: 'center' });
+                                    pdf.text('Class', columnX.className + columnWidths.className / 2, textY, { align: 'center' });
+                                    pdf.text('Room', columnX.room + columnWidths.room / 2, textY, { align: 'center' });
+                                    pdf.text('Instructor', columnX.instructor + columnWidths.instructor / 2, textY, { align: 'center' });
+                                    pdf.text('Program / Section', columnX.section + columnWidths.section / 2, textY, { align: 'center' });
+
+                                    y += headerHeight;
+                                };
+
+                                const drawNewPage = () => {
+                                    pdf.addPage();
+                                    y = drawPdfHeader(pdf, collegeText);
+                                    y = drawContextLine(pdf, contextLine, y) + 2;
+                                    drawTableHeader();
+                                };
+
+                                drawTableHeader();
+
+                                sortedRows.forEach((row) => {
+                                    const dayText = row.day_of_week || '';
+                                    const timeText = `${formatTimeForPdf(row.start_time)} - ${formatTimeForPdf(row.end_time)}`.trim();
+                                    const classText = row.class_name || 'N/A';
+                                    const roomText = row.room || 'N/A';
+                                    const instructorName = [row.first_name, row.last_name].filter(Boolean).join(' ').trim() || 'N/A';
+                                    const programSectionText = [row.program_name, row.specialization ? `- ${row.specialization}` : '', row.section ? `Section: ${row.section}` : '']
+                                        .filter(Boolean)
+                                        .join(' ')
+                                        .replace(/\s+/g, ' ')
+                                        .trim() || 'N/A';
+
+                                    const splitDay = pdf.splitTextToSize(dayText, columnWidths.day - rowPadding * 2);
+                                    const splitTime = pdf.splitTextToSize(timeText, columnWidths.time - rowPadding * 2);
+                                    const splitClass = pdf.splitTextToSize(classText, columnWidths.className - rowPadding * 2);
+                                    const splitRoom = pdf.splitTextToSize(roomText, columnWidths.room - rowPadding * 2);
+                                    const splitInstructor = pdf.splitTextToSize(instructorName, columnWidths.instructor - rowPadding * 2);
+                                    const splitProgramSection = pdf.splitTextToSize(programSectionText, columnWidths.section - rowPadding * 2);
+
+                                    const rowHeight = Math.max(
+                                        8,
+                                        splitDay.length,
+                                        splitTime.length,
+                                        splitClass.length,
+                                        splitRoom.length,
+                                        splitInstructor.length,
+                                        splitProgramSection.length
+                                    ) * lineHeight + 1;
+
+                                    if ((y + rowHeight) > bottomLimit) {
+                                        drawNewPage();
+                                    }
+
+                                    pdf.setFont('times', 'normal');
+                                    pdf.setFontSize(8.5);
+                                    const textY = y + 4.5;
+
+                                    pdf.rect(columnX.day, y, columnWidths.day, rowHeight);
+                                    pdf.rect(columnX.time, y, columnWidths.time, rowHeight);
+                                    pdf.rect(columnX.className, y, columnWidths.className, rowHeight);
+                                    pdf.rect(columnX.room, y, columnWidths.room, rowHeight);
+                                    pdf.rect(columnX.instructor, y, columnWidths.instructor, rowHeight);
+                                    pdf.rect(columnX.section, y, columnWidths.section, rowHeight);
+
+                                    pdf.text(splitDay, columnX.day + columnWidths.day / 2, textY, { align: 'center' });
+                                    pdf.text(splitTime, columnX.time + columnWidths.time / 2, textY, { align: 'center' });
+                                    pdf.text(splitClass, columnX.className + columnWidths.className / 2, textY, { align: 'center' });
+                                    pdf.text(splitRoom, columnX.room + columnWidths.room / 2, textY, { align: 'center' });
+                                    pdf.text(splitInstructor, columnX.instructor + columnWidths.instructor / 2, textY, { align: 'center' });
+                                    pdf.text(splitProgramSection, columnX.section + columnWidths.section / 2, textY, { align: 'center' });
+
+                                    y += rowHeight;
+                                });
+
+                                const totalPages = pdf.getNumberOfPages();
+                                for (let i = 1; i <= totalPages; i++) {
+                                    pdf.setPage(i);
+                                    drawPdfFooter(pdf);
+                                }
+
+                                const filenameParts = [
+                                    'schedules',
+                                    viewType,
+                                    collegeText || 'college'
+                                ];
+                                if (viewType === 'program') {
+                                    filenameParts.push(programText || 'program', sectionText || 'section');
+                                } else {
+                                    filenameParts.push(instructorText || 'faculty');
+                                }
+
+                                const filename = filenameParts
+                                    .map(part => String(part).toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, ''))
+                                    .filter(Boolean)
+                                    .join('_') + '.pdf';
+
+                                pdf.save(filename || 'schedules_report.pdf');
+                            });
+                        };
+
+                        const generateCalendarSchedulePdf = (rows) => {
+                            loadJsPdf(() => {
+                                const { jsPDF } = window.jspdf;
+                                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                                buildCalendarPage(pdf, rows, getExportContext());
+                            });
+                        };
+
+                        const setExportMenuOpen = (isOpen) => {
+                            if (!exportMenu || !exportTrigger) return;
+                            exportMenu.classList.toggle('is-open', isOpen);
+                            exportTrigger.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                        };
+
+                        const updateExportTriggerLabel = () => {
+                            if (!exportTriggerLabel) return;
+                            exportTriggerLabel.textContent = viewTypeInput.value === 'instructor'
+                                ? 'Export Faculty View'
+                                : 'Export Program / Section View';
+                        };
+
+                        const setExportBusy = (isBusy) => {
+                            if (!exportTrigger) return;
+                            exportTrigger.disabled = isBusy;
+                            if (exportTriggerLabel) {
+                                exportTriggerLabel.textContent = isBusy
+                                    ? 'Preparing...'
+                                    : (viewTypeInput.value === 'instructor' ? 'Export Faculty View' : 'Export Program / Section View');
+                            }
+                        };
+
+                        const fetchScheduleReport = (exportType) => {
+                            const context = getExportContext();
+                            const college = collegeSelect.value;
+
+                            if (!context.viewType) {
+                                alert('Please select a report view first.');
+                                return;
+                            }
+
+                            if (!college) {
+                                alert('Please select a college first.');
+                                return;
+                            }
+
+                            if (!['table', 'calendar'].includes(exportType)) {
+                                alert('Unsupported export type.');
+                                return;
+                            }
+
+                            const payload = {
+                                view_type: context.viewType,
+                                college: college,
+                                export_type: exportType
+                            };
+
+                            console.log('[Schedules Export] start', { exportType, viewType: context.viewType, college });
+
+                            if (context.viewType === 'program') {
+                                payload.program = programSelect.value;
+                                payload.section = sectionSelect.value;
+
+                                if (!payload.program || !payload.section) {
+                                    alert('Please select both program and section before exporting.');
+                                    return;
+                                }
+                            } else if (context.viewType === 'instructor') {
+                                payload.instructor = instructorSelect.value;
+
+                                if (!payload.instructor) {
+                                    alert('Please select an instructor before exporting.');
+                                    return;
+                                }
+                            }
+
+                            setExportBusy(true);
+                            setExportMenuOpen(false);
+
+                            fetch('includes/get_schedules_report.php', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json'
+                                },
+                                body: JSON.stringify(payload)
+                            })
+                                .then(response => response.json())
+                                .then(result => {
+                                    if (!result || !result.success) {
+                                        throw new Error(result && result.message ? result.message : 'Failed to generate schedule report.');
+                                    }
+
+                                    const rows = Array.isArray(result.data) ? result.data : [];
+                                    if (!rows.length) {
+                                        alert('No schedules found for the selected filters.');
+                                        return;
+                                    }
+
+                                    if (exportType === 'calendar') {
+                                        generateCalendarSchedulePdf(rows);
+                                        return;
+                                    }
+
+                                    generateSchedulePdf(rows);
+                                })
+                                .catch(error => {
+                                    console.error('Schedule export error:', error);
+                                    alert(error.message || 'Failed to generate schedule report.');
+                                })
+                                .finally(() => {
+                                    console.log('[Schedules Export] finish', { exportType, viewType: context.viewType });
+                                    setExportBusy(false);
+                                });
+                        };
+
+                        if (exportTrigger) {
+                            exportTrigger.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                setExportMenuOpen(!exportMenu?.classList.contains('is-open'));
+                            });
+                        }
+
+                        exportOptionButtons.forEach((button) => {
+                            button.addEventListener('click', function(e) {
+                                e.preventDefault();
+                                e.stopPropagation();
+                                fetchScheduleReport(this.dataset.exportType || 'table');
+                            });
+                        });
+
+                        document.addEventListener('click', function(e) {
+                            if (exportMenu && !exportMenu.contains(e.target)) {
+                                setExportMenuOpen(false);
+                            }
+                        });
+
+                        if (exportMenu) {
+                            exportMenu.addEventListener('mouseleave', function() {
+                                setExportMenuOpen(false);
+                            });
+                        }
+
+                        updateExportTriggerLabel();
 
                         const loadInstructorsForCollege = (college = '') => {
                             instructorSelect.innerHTML = '<option value="">Select Instructors</option>';
@@ -681,6 +1295,8 @@ require_once '../assets/setup/db.inc.php'; // Adjust path as needed
                     '<option value="">Select Instructors</option>';
                 window.loadInstructorsForCollege(college);
             }
+
+            updateExportTriggerLabel();
 
             loadSchedules(); // This will clear the board
         });
