@@ -1288,6 +1288,23 @@ if (!empty($conflicts)) return $conflicts;
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
 
+            // Panel-composition gate: a slot is only "available" if a compliant 3-member
+            // panel (2 same-program internals + a waterfall-ranked 3rd seat) can be formed.
+            // Resolve team program/college the same way selectPanelists() does.
+            $teamCollege = !empty($team['program']) ? getProgramCollege($pdo, normalizeProgramName($team['program'])) : null;
+            if (!canFormCompliantPanel($pdo, $team['adviser_id'] ?? null, [], $team['program'] ?? null, $teamCollege)) {
+                $teamNames = getTeamNames($pdo, [$tid]);
+                $teamName = $teamNames[$tid] ?? ('Team ' . $tid);
+                $zeroSlotTeamIds[] = $tid;
+                $bottlenecks[$tid] = [
+                    'team_id' => $tid, 'team_name' => $teamName,
+                    'culprit_type' => 'panel_composition', 'culprit_id' => null, 'culprit_name' => null,
+                    'message' => sprintf('%s has 0 valid slots: a compliant panel cannot be formed — fewer than 2 available same-program panelists for the primary internal seats.', $teamName),
+                    'offered_cells' => 0, 'blocked_cells' => 0,
+                ];
+                continue; // composition failure dominates; skip schedule-conflict attribution
+            }
+
             $feasibleCells = 0;
             foreach (($slotsByTeamDay[$tid] ?? []) as $slots) {
                 $feasibleCells += count($slots);
@@ -5138,7 +5155,46 @@ function getTeamSelectedPanelistsCached($pdo, array $team, $allPanelists)
     return $selected;
 }
 
+/**
+ * Reorder a 3-panelist list so that any external (is_external = 1) panelist is placed in the
+ * 3rd seat. Hard rule: externals are ONLY ever panelist_id3, never panelist 1 or 2. Internal
+ * order is otherwise preserved. Applied to EVERY selection path (locked, optimal, scoring
+ * fallback, GA), so no path can leak an external into the primary internal seats.
+ *
+ * @param array $ids Up to 3 panelist IDs (order = [slot1, slot2, slot3])
+ * @return array Reordered IDs with externals last
+ */
+function enforceExternalLastOrdering($ids)
+{
+    global $pdo;
+    if (!is_array($ids) || count($ids) < 2) {
+        return $ids;
+    }
+
+    $internal = [];
+    $external = [];
+    foreach ($ids as $id) {
+        $info = function_exists('getPanelistInfo') ? getPanelistInfo($pdo, (int) $id) : null;
+        if ($info && (int) ($info['is_external'] ?? 0) === 1) {
+            $external[] = $id;
+        } else {
+            $internal[] = $id;
+        }
+    }
+
+    return array_values(array_merge($internal, $external));
+}
+
+/**
+ * Public entry point: select a team's 3 panelists, then enforce the external-last seat rule.
+ */
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
+{
+    $selected = selectPanelistsInternal($panelistsByProgram, $allPanelists, $adviserId, $teamId);
+    return enforceExternalLastOrdering($selected);
+}
+
+function selectPanelistsInternal($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
 {
     global $pdo; // ensure $pdo is available
 
