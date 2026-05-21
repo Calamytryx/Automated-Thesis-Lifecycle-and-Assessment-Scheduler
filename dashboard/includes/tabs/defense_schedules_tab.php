@@ -80,13 +80,23 @@
                                     <span class="d-none d-lg-inline">Generate Schedule</span>
                                     <span class="d-lg-none">Generate</span>
                                 </button>
-                                <div class="d-flex align-items-center gap-2 flex-wrap defense-export-controls ms-2">
+                                <div class="defense-export-controls ms-2 ms-md-auto">
                                     <input type="date" class="form-control user-control-height defense-export-date" id="reportStartDate" aria-label="Start date">
                                     <input type="date" class="form-control user-control-height defense-export-date" id="reportEndDate" aria-label="End date">
-                                    <button class="btn defense-export-btn user-control-height" id="exportDefensePdf" type="button">
-                                        <i class="fas fa-file-export me-1"></i>
-                                        Export PDF
-                                    </button>
+                                    <div class="defense-export-menu" id="defenseExportMenu">
+                                        <button class="btn defense-export-btn user-control-height" id="exportDefensePdf" type="button" aria-haspopup="true" aria-expanded="false">
+                                            <svg class="defense-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                                <path d="M8 1.5v8.086l2.243-2.243 1.06 1.061L8 12.707 4.697 8.404l1.06-1.06L8 9.585V1.5h0Z" fill="currentColor"/>
+                                                <path d="M2.5 12.5h11v1.5h-11v-1.5Z" fill="currentColor"/>
+                                            </svg>
+                                            <span class="defense-export-trigger-label">Export Table View</span>
+                                            <i class="fas fa-angle-down ms-1"></i>
+                                        </button>
+                                        <div class="defense-export-options" role="menu" aria-label="Defense export options">
+                                            <button type="button" class="defense-export-option" data-export-type="table" role="menuitem">Table View</button>
+                                            <button type="button" class="defense-export-option" data-export-type="calendar" role="menuitem">Calendar View</button>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -1352,6 +1362,30 @@
                 box-shadow: inset 0 0 0 1px rgba(234, 179, 8, 0.45);
             }
             .fc-event.status-preview.preview-conflict { background-color: #dc2626 !important; border-color: #b91c1c !important; color: #fff !important; }
+            .defense-export-controls {
+                display: inline-flex;
+                align-items: stretch;
+                border: 1px solid #d1d5db;
+                border-radius: 0.5rem;
+                overflow: hidden;
+                background: #fff;
+            }
+            .defense-export-controls .defense-export-date,
+            .defense-export-controls .defense-export-btn {
+                border: 0;
+                border-radius: 0;
+                box-shadow: none;
+            }
+            .defense-export-controls .defense-export-date {
+                min-width: 10.5rem;
+            }
+            .defense-export-controls .defense-export-date + .defense-export-date {
+                border-left: 1px solid #d1d5db;
+            }
+            .defense-export-controls .defense-export-btn {
+                border-left: 1px solid #d1d5db;
+                white-space: nowrap;
+            }
             .preview-diagnostics-card {
                 border: 1px solid rgba(15, 23, 42, 0.08);
                 border-radius: 14px;
@@ -1760,281 +1794,698 @@
                 loadDefenseSchedules(currentTablePage, false, false);
 
                 // ========== EXPORT PDF (Date range) ==========
-                document.getElementById('exportDefensePdf').addEventListener('click', function() {
+                const defenseExportMenu = document.getElementById('defenseExportMenu');
+                const defenseExportButton = document.getElementById('exportDefensePdf');
+                const defenseExportLabel = document.querySelector('.defense-export-trigger-label');
+                const defenseExportOptions = document.querySelectorAll('.defense-export-option');
+
+                const setDefenseExportMenuOpen = (isOpen) => {
+                    if (!defenseExportMenu || !defenseExportButton) return;
+                    defenseExportMenu.classList.toggle('is-open', isOpen);
+                    defenseExportButton.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+                };
+
+                const setDefenseExportBusy = (isBusy) => {
+                    if (!defenseExportButton) return;
+                    defenseExportButton.disabled = isBusy;
+                    if (defenseExportLabel) {
+                        defenseExportLabel.textContent = isBusy ? 'Preparing...' : 'Export Table View';
+                    }
+                };
+
+                const updateDefenseExportLabel = () => {
+                    if (defenseExportLabel) {
+                        defenseExportLabel.textContent = 'Export Table View';
+                    }
+                };
+
+                const getDefenseExportRange = () => {
                     const start = document.getElementById('reportStartDate').value;
                     const end = document.getElementById('reportEndDate').value;
+
                     if (!start || !end) {
                         showDefAlert('Please select both start and end dates for the report.', 'warning');
-                        return;
+                        return null;
                     }
+
                     if (start > end) {
                         showDefAlert('Start date must be before or equal to end date.', 'warning');
+                        return null;
+                    }
+
+                    return { start, end };
+                };
+
+                const ensureJsPdf = (cb) => {
+                    if (window.jspdf) return cb();
+                    const s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                    s.onload = cb;
+                    s.onerror = function() { showDefAlert('Failed to load PDF library.', 'error'); };
+                    document.head.appendChild(s);
+                };
+
+                const formatDefenseDateLabel = (ymd) => {
+                    try {
+                        const d = new Date(ymd + 'T00:00:00');
+                        return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
+                    } catch (e) {
+                        return ymd;
+                    }
+                };
+
+                const formatDefenseTime = (hm) => {
+                    if (!hm) return '';
+                    const parts = String(hm).split(':');
+                    if (parts.length < 2) return String(hm);
+                    let hh = parseInt(parts[0], 10);
+                    const mm = parts[1];
+                    if (Number.isNaN(hh)) return String(hm);
+                    const ampm = hh >= 12 ? 'PM' : 'AM';
+                    hh = hh % 12 || 12;
+                    return `${hh}:${mm} ${ampm}`;
+                };
+
+                const groupDefenseRowsByWeek = (rows, startDate, endDate) => {
+                    const start = new Date(`${startDate}T00:00:00`);
+                    const end = new Date(`${endDate}T00:00:00`);
+                    const weekMap = new Map();
+
+                    const getWeekStart = (date) => {
+                        const d = new Date(date.getTime());
+                        const day = d.getDay();
+                        const delta = (day === 0 ? -6 : 1) - day;
+                        d.setDate(d.getDate() + delta);
+                        d.setHours(0, 0, 0, 0);
+                        return d;
+                    };
+
+                    const getWeekInfo = (date) => {
+                        const weekStart = getWeekStart(date);
+                        const weekEnd = new Date(weekStart.getTime());
+                        weekEnd.setDate(weekEnd.getDate() + 5);
+                        return {
+                            key: `${weekStart.toISOString().slice(0, 10)}__${weekEnd.toISOString().slice(0, 10)}`,
+                            weekStart,
+                            weekEnd
+                        };
+                    };
+
+                    let cursor = getWeekInfo(start).weekStart;
+                    const finalWeekStart = getWeekInfo(end).weekStart;
+                    while (cursor <= finalWeekStart) {
+                        const info = getWeekInfo(cursor);
+                        weekMap.set(info.key, { key: info.key, weekStart: info.weekStart, weekEnd: info.weekEnd, rows: [] });
+                        cursor.setDate(cursor.getDate() + 7);
+                    }
+
+                    rows.forEach((row) => {
+                        if (!row.schedule_date) return;
+                        const rowDate = new Date(`${row.schedule_date}T00:00:00`);
+                        if (rowDate < start || rowDate > end) return;
+                        const info = getWeekInfo(rowDate);
+                        if (!weekMap.has(info.key)) {
+                            weekMap.set(info.key, { key: info.key, weekStart: info.weekStart, weekEnd: info.weekEnd, rows: [] });
+                        }
+                        weekMap.get(info.key).rows.push(row);
+                    });
+
+                    return [...weekMap.values()]
+                        .filter(week => Array.isArray(week.rows) && week.rows.length > 0)
+                        .sort((a, b) => a.weekStart - b.weekStart)
+                        .map((week) => {
+                            week.rows.sort((left, right) => {
+                                const dateDiff = String(left.schedule_date || '').localeCompare(String(right.schedule_date || ''));
+                                if (dateDiff !== 0) return dateDiff;
+                                return String(left.start_time || '').localeCompare(String(right.start_time || ''));
+                            });
+                            return week;
+                        });
+                };
+
+                const generateDefenseTablePdf = (pdf, rows, currentUserName, currentUserCollege) => {
+                    const pageWidth = pdf.internal.pageSize.getWidth();
+                    const pageHeight = pdf.internal.pageSize.getHeight();
+                    const margin = 10;
+                    const footerGap = 14;
+                    const bottomThreshold = pageHeight - margin - footerGap;
+                    const grouped = {};
+
+                    rows.forEach((row) => {
+                        const dateKey = row.schedule_date || 'unknown';
+                        const roomKey = row.room || 'Unspecified';
+                        grouped[dateKey] = grouped[dateKey] || {};
+                        grouped[dateKey][roomKey] = grouped[dateKey][roomKey] || [];
+                        grouped[dateKey][roomKey].push(row);
+                    });
+
+                    const drawHeader = (collegeName) => {
+                        const centerX = pageWidth / 2;
+                        pdf.setTextColor(0, 0, 0);
+                        pdf.setFont('times', 'bold');
+                        pdf.setFontSize(14);
+                        pdf.text('LYCEUM OF THE PHILIPPINES UNIVERSITY - CAVITE', centerX, 12, { align: 'center' });
+                        pdf.setFont('times', 'normal');
+                        pdf.setFontSize(11);
+                        pdf.text(collegeName || '', centerX, 18, { align: 'center' });
+                        return 28;
+                    };
+
+                    const drawFooter = () => {
+                        const footerY = pageHeight - 10;
+                        pdf.setTextColor(0, 0, 0);
+                        pdf.setFont('times', 'italic');
+                        pdf.setFontSize(8.5);
+                        pdf.text(`Date printed/exported: ${new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`, margin, footerY);
+                        pdf.text(`Printed by: ${currentUserName} through ATLAS`, pageWidth - margin, footerY, { align: 'right' });
+                    };
+
+                    const drawTableHeader = (y) => {
+                        const colW = { time: 22, title: 48, adviser: 35, members: 42, p1: 25, p2: 25, p3: 25 };
+                        const colX = {
+                            time: margin,
+                            title: margin + colW.time,
+                            adviser: margin + colW.time + colW.title,
+                            members: margin + colW.time + colW.title + colW.adviser,
+                            p1: margin + colW.time + colW.title + colW.adviser + colW.members,
+                            p2: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1,
+                            p3: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1 + colW.p2
+                        };
+                        const headerHeight = 6;
+
+                        pdf.setFont('times', 'bold');
+                        pdf.setFontSize(9);
+                        pdf.rect(colX.time, y, colW.time, headerHeight);
+                        pdf.rect(colX.title, y, colW.title, headerHeight);
+                        pdf.rect(colX.adviser, y, colW.adviser, headerHeight);
+                        pdf.rect(colX.members, y, colW.members, headerHeight);
+                        pdf.rect(colX.p1, y, colW.p1, headerHeight);
+                        pdf.rect(colX.p2, y, colW.p2, headerHeight);
+                        pdf.rect(colX.p3, y, colW.p3, headerHeight);
+
+                        const textY = y + 4.2;
+                        pdf.text('Time', colX.time + 0.8, textY);
+                        pdf.text('Title', colX.title + 0.8, textY);
+                        pdf.text('Adviser', colX.adviser + 0.8, textY);
+                        pdf.text('Members', colX.members + 0.8, textY);
+                        pdf.text('P1', colX.p1 + 0.8, textY);
+                        pdf.text('P2', colX.p2 + 0.8, textY);
+                        pdf.text('P3', colX.p3 + 0.8, textY);
+
+                        return { colW, colX, nextY: y + headerHeight };
+                    };
+
+                    const drawDateHeader = (dateLabel) => {
+                        let y = drawHeader(currentUserCollege);
+                        pdf.setFont('times', 'bold');
+                        pdf.setFontSize(14);
+                        pdf.text(dateLabel, margin, y);
+                        return y + 7;
+                    };
+
+                    const drawRoomHeader = (roomLabel, y, isContinued = false) => {
+                        pdf.setFont('times', 'bold');
+                        pdf.setFontSize(11);
+                        pdf.text(`Room: ${roomLabel}${isContinued ? ' (continued)' : ''}`, margin, y);
+                        return drawTableHeader(y + 6);
+                    };
+
+                    Object.keys(grouped).sort().forEach((date, dateIndex) => {
+                        if (dateIndex > 0) {
+                            pdf.addPage();
+                        }
+
+                        const dateLabel = formatDefenseDateLabel(date);
+                        let y = drawDateHeader(dateLabel);
+                        const rooms = Object.keys(grouped[date]).sort();
+
+                        rooms.forEach((room) => {
+                            const roomRows = grouped[date][room];
+                            if ((y + 12) > bottomThreshold) {
+                                pdf.addPage();
+                                y = drawDateHeader(dateLabel);
+                            }
+
+                            let tableState = drawRoomHeader(room, y, false);
+                            const colW = tableState.colW;
+                            const colX = tableState.colX;
+                            let currentY = tableState.nextY;
+
+                            roomRows.forEach((item) => {
+                                const time = `${formatDefenseTime(item.start_time)} - ${formatDefenseTime(item.end_time)}`;
+                                const title = item.thesis_title || item.team_name || 'N/A';
+                                const adviser = item.adviser || 'N/A';
+                                const members = item.members || 'N/A';
+                                const panel = (item.panelists || '').split(',').map(p => p.trim()).filter(Boolean);
+                                while (panel.length < 3) panel.push('');
+
+                                const splitTime = pdf.splitTextToSize(time, colW.time - 1.6);
+                                const splitTitle = pdf.splitTextToSize(title, colW.title - 1.6);
+                                const splitAdviser = pdf.splitTextToSize(adviser, colW.adviser - 1.6);
+                                const memberNames = members.split(',').map(name => name.trim()).filter(Boolean);
+                                const splitMembers = memberNames.length ? memberNames.flatMap(name => pdf.splitTextToSize(name, colW.members - 1.6)) : ['N/A'];
+                                const splitP1 = pdf.splitTextToSize(panel[0] || '', colW.p1 - 1.6);
+                                const splitP2 = pdf.splitTextToSize(panel[1] || '', colW.p2 - 1.6);
+                                const splitP3 = pdf.splitTextToSize(panel[2] || '', colW.p3 - 1.6);
+                                const lineCount = Math.max(
+                                    Array.isArray(splitTime) ? splitTime.length : 1,
+                                    Array.isArray(splitTitle) ? splitTitle.length : 1,
+                                    Array.isArray(splitAdviser) ? splitAdviser.length : 1,
+                                    Array.isArray(splitMembers) ? splitMembers.length : 1,
+                                    Array.isArray(splitP1) ? splitP1.length : 1,
+                                    Array.isArray(splitP2) ? splitP2.length : 1,
+                                    Array.isArray(splitP3) ? splitP3.length : 1
+                                );
+                                const rowHeight = Math.max(6, lineCount * 4.5 + 1);
+
+                                if ((currentY + rowHeight) > bottomThreshold) {
+                                    pdf.addPage();
+                                    y = drawDateHeader(dateLabel);
+                                    tableState = drawRoomHeader(room, y, true);
+                                    currentY = tableState.nextY;
+                                }
+
+                                pdf.setFont('times', 'normal');
+                                pdf.setFontSize(8);
+                                const textY = currentY + 3.5;
+
+                                pdf.rect(colX.time, currentY, colW.time, rowHeight);
+                                pdf.rect(colX.title, currentY, colW.title, rowHeight);
+                                pdf.rect(colX.adviser, currentY, colW.adviser, rowHeight);
+                                pdf.rect(colX.members, currentY, colW.members, rowHeight);
+                                pdf.rect(colX.p1, currentY, colW.p1, rowHeight);
+                                pdf.rect(colX.p2, currentY, colW.p2, rowHeight);
+                                pdf.rect(colX.p3, currentY, colW.p3, rowHeight);
+
+                                pdf.text(splitTime, colX.time + 0.8, textY);
+                                pdf.text(splitTitle, colX.title + 0.8, textY);
+                                pdf.text(splitAdviser, colX.adviser + 0.8, textY);
+                                pdf.text(splitMembers, colX.members + 0.8, textY);
+                                pdf.text(splitP1, colX.p1 + 0.8, textY);
+                                pdf.text(splitP2, colX.p2 + 0.8, textY);
+                                pdf.text(splitP3, colX.p3 + 0.8, textY);
+
+                                currentY += rowHeight;
+                            });
+
+                            y = currentY + 4;
+                        });
+                    });
+
+                    for (let pageIndex = 1; pageIndex <= pdf.getNumberOfPages(); pageIndex++) {
+                        pdf.setPage(pageIndex);
+                        drawFooter();
+                    }
+
+                    pdf.save(`defense_schedules_${document.getElementById('reportStartDate').value}_to_${document.getElementById('reportEndDate').value}.pdf`);
+                };
+
+                const generateDefenseCalendarPdf = (rows, currentUserName, currentUserCollege, start, end) => {
+                    const weekBuckets = groupDefenseRowsByWeek(rows, start, end);
+
+                    const runCalendarPdf = () => {
+                        const { jsPDF } = window.jspdf;
+                        const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                        const pageWidth = pdf.internal.pageSize.getWidth();
+                        const pageHeight = pdf.internal.pageSize.getHeight();
+                        const margin = 10;
+                        const timeColumnWidth = 24;
+                        const rowHeight = 5.5;
+                        const slotMinutes = 30;
+                        const startMinutes = 7 * 60;
+                        const endMinutes = 21 * 60;
+                        const dayNames = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+                        const dateFormatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+
+                        const toMinutes = (timeStr) => {
+                            if (!timeStr) return null;
+                            const parts = String(timeStr).split(':').map(Number);
+                            if (parts.length < 2 || parts.some(Number.isNaN)) return null;
+                            return (parts[0] * 60) + parts[1];
+                        };
+
+                        const getDayIndex = (scheduleDate) => {
+                            const rowDate = new Date(`${scheduleDate}T00:00:00`);
+                            const jsDay = rowDate.getDay();
+                            return jsDay === 0 ? -1 : jsDay - 1;
+                        };
+
+                        const ellipsizeText = (text, maxWidth, fontFamily = 'times', fontStyle = 'normal', fontSize = 7.0) => {
+                            const raw = String(text || '').trim();
+                            if (!raw) return '';
+
+                            pdf.setFont(fontFamily, fontStyle);
+                            pdf.setFontSize(fontSize);
+                            if (pdf.getTextWidth(raw) <= maxWidth) {
+                                return raw;
+                            }
+
+                            const suffix = '...';
+                            let left = 0;
+                            let right = raw.length;
+                            let best = suffix;
+
+                            while (left <= right) {
+                                const mid = Math.floor((left + right) / 2);
+                                const candidate = raw.slice(0, mid).trimEnd() + suffix;
+                                if (pdf.getTextWidth(candidate) <= maxWidth) {
+                                    best = candidate;
+                                    left = mid + 1;
+                                } else {
+                                    right = mid - 1;
+                                }
+                            }
+
+                            return best;
+                        };
+
+                        const wrapTitleToTwoLines = (text, maxWidth) => {
+                            const lines = pdf.splitTextToSize(String(text || '').trim(), maxWidth);
+                            if (!Array.isArray(lines) || lines.length <= 2) {
+                                return Array.isArray(lines) ? lines : [String(text || '').trim()];
+                            }
+
+                            const firstLine = String(lines[0] || '').trim();
+                            const secondSource = lines.slice(1).join(' ').replace(/\s+/g, ' ').trim();
+                            const secondLine = ellipsizeText(secondSource, maxWidth, 'times', 'normal', 7.0);
+                            return [firstLine, secondLine];
+                        };
+
+                        const getOverlapLayout = (count) => {
+                            if (count <= 1) return { rows: 1, cols: 1 };
+                            if (count === 2) return { rows: 1, cols: 2 };
+                            if (count === 3) return { rows: 1, cols: 3 };
+                            if (count === 4) return { rows: 2, cols: 2 };
+
+                            const cols = Math.ceil(Math.sqrt(count));
+                            const rows = Math.ceil(count / cols);
+                            return { rows, cols };
+                        };
+
+                        const buildOverlapGroups = (items) => {
+                            const sorted = [...items].sort((left, right) => {
+                                const startDiff = left.startMinutes - right.startMinutes;
+                                if (startDiff !== 0) return startDiff;
+                                const endDiff = left.endMinutes - right.endMinutes;
+                                if (endDiff !== 0) return endDiff;
+                                return String(left.row.room || '').localeCompare(String(right.row.room || ''));
+                            });
+
+                            const groups = [];
+                            let currentGroup = null;
+
+                            sorted.forEach((item) => {
+                                if (!currentGroup || item.startMinutes >= currentGroup.endMinutes) {
+                                    currentGroup = {
+                                        startMinutes: item.startMinutes,
+                                        endMinutes: item.endMinutes,
+                                        items: [item]
+                                    };
+                                    groups.push(currentGroup);
+                                    return;
+                                }
+
+                                currentGroup.items.push(item);
+                                currentGroup.startMinutes = Math.min(currentGroup.startMinutes, item.startMinutes);
+                                currentGroup.endMinutes = Math.max(currentGroup.endMinutes, item.endMinutes);
+                            });
+
+                            return groups;
+                        };
+
+                        const drawScheduleTile = (box, row) => {
+                            const title = row.team_name || row.thesis_title || 'Defense Schedule';
+                            const room = row.room || 'Unspecified';
+                            const titleWidth = Math.max(0, box.width - 2.2);
+                            const roomWidth = Math.max(0, box.width - 2.2);
+                            const titleLines = wrapTitleToTwoLines(title, titleWidth);
+                            const roomLine = ellipsizeText(room, roomWidth, 'times', 'normal', 6.0);
+
+                            pdf.setFillColor(255, 255, 255);
+                            pdf.setDrawColor(116, 163, 118);
+                            pdf.rect(box.x, box.y, box.width, box.height, 'FD');
+
+                            const compact = box.height < 10;
+                            const titleFontSize = compact ? 6.0 : 6.7;
+                            const roomFontSize = compact ? 5.6 : 6.0;
+                            const titleLineHeight = compact ? 2.3 : 2.6;
+
+                            pdf.setTextColor(41, 82, 42);
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(titleFontSize);
+
+                            const titleY = box.y + 2.5;
+                            pdf.text(titleLines, box.x + 1.0, titleY);
+
+                            pdf.setFont('times', 'normal');
+                            pdf.setFontSize(roomFontSize);
+                            const roomY = titleY + (titleLines.length * titleLineHeight) + 1.0;
+                            if (roomY < (box.y + box.height - 0.9)) {
+                                pdf.text(roomLine, box.x + 1.0, roomY);
+                            }
+                        };
+
+                        const renderOverlapGroup = (dayIndex, group, gridTop, dayColumnWidth, timeSlots, slotMinutesValue, rowHeightValue) => {
+                            const groupX = margin + timeColumnWidth + (dayColumnWidth * dayIndex);
+                            const groupY = gridTop + ((group.startMinutes - startMinutes) / slotMinutesValue) * rowHeightValue;
+                            const groupHeight = Math.max(rowHeightValue, ((group.endMinutes - group.startMinutes) / slotMinutesValue) * rowHeightValue);
+                            const inset = 0.8;
+                            const innerX = groupX + inset;
+                            const innerY = groupY + inset;
+                            const innerWidth = Math.max(0, dayColumnWidth - (inset * 2));
+                            const innerHeight = Math.max(0, groupHeight - (inset * 2));
+
+                            pdf.setFillColor(219, 242, 221);
+                            pdf.setDrawColor(116, 163, 118);
+                            if (innerWidth > 0 && innerHeight > 0) {
+                                pdf.rect(innerX, innerY, innerWidth, innerHeight, 'FD');
+                            }
+
+                            const layout = getOverlapLayout(group.items.length);
+                            const cellWidth = innerWidth / layout.cols;
+                            const cellHeight = innerHeight / layout.rows;
+
+                            group.items.forEach((item, index) => {
+                                const cellRow = Math.floor(index / layout.cols);
+                                const cellCol = index % layout.cols;
+                                const cellX = innerX + (cellCol * cellWidth);
+                                const cellY = innerY + (cellRow * cellHeight);
+                                const cellBox = {
+                                    x: cellX,
+                                    y: cellY,
+                                    width: cellWidth,
+                                    height: cellHeight
+                                };
+
+                                drawScheduleTile(cellBox, item.row);
+                            });
+                        };
+
+                        const drawHeader = (weekLabel) => {
+                            const centerX = pageWidth / 2;
+                            pdf.setTextColor(0, 0, 0);
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(14);
+                            pdf.text('LYCEUM OF THE PHILIPPINES UNIVERSITY - CAVITE', centerX, 12, { align: 'center' });
+                            pdf.setFont('times', 'normal');
+                            pdf.setFontSize(11);
+                            pdf.text(currentUserCollege || '', centerX, 18, { align: 'center' });
+                            pdf.setFont('times', 'bold');
+                            pdf.setFontSize(12);
+                            pdf.text(weekLabel, margin, 28);
+                            return 34;
+                        };
+
+                        const drawFooter = () => {
+                            const footerY = pageHeight - 10;
+                            pdf.setTextColor(0, 0, 0);
+                            pdf.setFont('times', 'italic');
+                            pdf.setFontSize(8.5);
+                            pdf.text(`Date printed/exported: ${new Date().toLocaleString('en-US', { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`, margin, footerY);
+                            pdf.text(`Printed by: ${currentUserName} through ATLAS`, pageWidth - margin, footerY, { align: 'right' });
+                        };
+
+                        weekBuckets.forEach((weekData, weekIndex) => {
+                            if (weekIndex > 0) {
+                                pdf.addPage();
+                            }
+
+                            const weekStart = new Date(weekData.weekStart.getTime());
+                            const weekEnd = new Date(weekData.weekEnd.getTime());
+                            const weekRows = Array.isArray(weekData.rows) ? [...weekData.rows] : [];
+                            const weekLabel = `${dateFormatter.format(weekStart)} - ${dateFormatter.format(weekEnd)}`;
+                            const bottomLimit = pageHeight - 12;
+                            const dayColumnWidth = (pageWidth - (margin * 2) - timeColumnWidth) / dayNames.length;
+                            const timeSlots = [];
+
+                            for (let minutes = startMinutes; minutes < endMinutes; minutes += slotMinutes) {
+                                timeSlots.push(minutes);
+                            }
+
+                            let y = drawHeader(weekLabel);
+                            pdf.setFont('times', 'normal');
+                            pdf.setFontSize(8.5);
+
+                            pdf.rect(margin, y, timeColumnWidth, 7);
+                            pdf.text('Time', margin + 1, y + 4.7);
+
+                            dayNames.forEach((dayName, index) => {
+                                const x = margin + timeColumnWidth + (dayColumnWidth * index);
+                                const dayDate = new Date(weekStart.getTime());
+                                dayDate.setDate(dayDate.getDate() + index);
+                                pdf.rect(x, y, dayColumnWidth, 7);
+                                pdf.text(dayName, x + 1, y + 3.0);
+                                pdf.setFont('times', 'normal');
+                                pdf.setFontSize(7.2);
+                                pdf.text(dateFormatter.format(dayDate), x + 1, y + 5.8);
+                                pdf.setFont('times', 'normal');
+                                pdf.setFontSize(8.5);
+                            });
+
+                            y += 7;
+
+                            timeSlots.forEach((minutes, rowIndex) => {
+                                const rowTop = y + (rowIndex * rowHeight);
+                                pdf.rect(margin, rowTop, timeColumnWidth, rowHeight);
+                                const hours24 = Math.floor(minutes / 60);
+                                const mins = minutes % 60;
+                                const period = hours24 >= 12 ? 'PM' : 'AM';
+                                const hour12 = hours24 % 12 || 12;
+                                pdf.text(`${hour12}:${String(mins).padStart(2, '0')} ${period}`, margin + 1, rowTop + 3.7);
+
+                                dayNames.forEach((_, index) => {
+                                    const x = margin + timeColumnWidth + (dayColumnWidth * index);
+                                    pdf.rect(x, rowTop, dayColumnWidth, rowHeight);
+                                });
+                            });
+
+                            const dayBuckets = dayNames.map(() => []);
+                            weekRows.forEach((row) => {
+                                const dayIndex = getDayIndex(row.schedule_date);
+                                const startMinutesValue = toMinutes(row.start_time);
+                                const endMinutesValue = toMinutes(row.end_time);
+
+                                if (dayIndex < 0 || startMinutesValue === null || endMinutesValue === null || endMinutesValue <= startMinutesValue) {
+                                    return;
+                                }
+
+                                dayBuckets[dayIndex].push({
+                                    row,
+                                    startMinutes: startMinutesValue,
+                                    endMinutes: endMinutesValue
+                                });
+                            });
+
+                            dayBuckets.forEach((itemsForDay, dayIndex) => {
+                                const groups = buildOverlapGroups(itemsForDay);
+                                groups.forEach((group) => {
+                                    renderOverlapGroup(dayIndex, group, y, dayColumnWidth, timeSlots, slotMinutes, rowHeight);
+                                });
+                            });
+
+                            pdf.setTextColor(0, 0, 0);
+                            for (let pageIndex = 1; pageIndex <= pdf.getNumberOfPages(); pageIndex++) {
+                                pdf.setPage(pageIndex);
+                                drawFooter();
+                            }
+                        });
+
+                        pdf.save(`defense_schedules_calendar_${document.getElementById('reportStartDate').value}_to_${document.getElementById('reportEndDate').value}.pdf`);
+                    };
+
+                    if (window.jspdf) {
+                        runCalendarPdf();
                         return;
                     }
 
-                    const payload = { start_date: start, end_date: end };
-                    fetch('../dashboard/includes/get_defense_report.php', {
+                    const s = document.createElement('script');
+                    s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+                    s.onload = runCalendarPdf;
+                    s.onerror = function() { showDefAlert('Failed to load PDF library.', 'error'); };
+                    document.head.appendChild(s);
+                };
+
+                const exportDefenseSchedules = (exportType) => {
+                    const range = getDefenseExportRange();
+                    if (!range) return;
+
+                    if (!['table', 'calendar'].includes(exportType)) {
+                        showDefAlert('Unsupported export type.', 'warning');
+                        return;
+                    }
+
+                    const currentUserName = <?php echo json_encode(trim(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')) ?: 'Unknown', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+                    const currentUserCollege = <?php echo json_encode($_SESSION['college'] ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+
+                    setDefenseExportBusy(true);
+                    setDefenseExportMenuOpen(false);
+
+                    fetch('includes/get_defense_report.php', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(payload)
-                    }).then(r => r.json())
-                      .then(res => {
-                          if (!res || !res.success) {
-                              showDefAlert(res && res.message ? res.message : 'No schedules found for the selected range.', 'warning');
-                              return;
-                          }
-                          const rows = res.data || [];
-                          if (!rows.length) {
-                              showDefAlert('No schedules found for the selected range.', 'warning');
-                              return;
-                          }
+                        body: JSON.stringify({ start_date: range.start, end_date: range.end })
+                    })
+                        .then(r => r.json())
+                        .then(res => {
+                            if (!res || !res.success) {
+                                showDefAlert(res && res.message ? res.message : 'No schedules found for the selected range.', 'warning');
+                                return;
+                            }
 
-                          const currentUserName = <?php echo json_encode(trim(($_SESSION['first_name'] ?? '') . ' ' . ($_SESSION['last_name'] ?? '')) ?: 'Unknown', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
-                          const currentUserCollege = <?php echo json_encode($_SESSION['college'] ?? '', JSON_HEX_TAG | JSON_HEX_APOS | JSON_HEX_AMP | JSON_HEX_QUOT); ?>;
+                            const rows = Array.isArray(res.data) ? res.data : [];
+                            if (!rows.length) {
+                                showDefAlert('No schedules found for the selected range.', 'warning');
+                                return;
+                            }
 
-                          // Group by date -> room
-                          const grouped = {};
-                          rows.forEach(r => {
-                              const d = r.schedule_date;
-                              const room = r.room || 'Unspecified';
-                              grouped[d] = grouped[d] || {};
-                              grouped[d][room] = grouped[d][room] || [];
-                              grouped[d][room].push(r);
-                          });
+                            ensureJsPdf(() => {
+                                if (exportType === 'calendar') {
+                                    generateDefenseCalendarPdf(rows, currentUserName, currentUserCollege, range.start, range.end);
+                                    return;
+                                }
 
-                          function ensureJsPdf(cb) {
-                              if (window.jspdf) return cb();
-                              const s = document.createElement('script');
-                              s.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
-                              s.onload = cb;
-                              s.onerror = function() { showDefAlert('Failed to load PDF library.', 'error'); };
-                              document.head.appendChild(s);
-                          }
+                                const { jsPDF } = window.jspdf;
+                                const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+                                generateDefenseTablePdf(pdf, rows, currentUserName, currentUserCollege);
+                            });
+                        })
+                        .catch(err => {
+                            console.error('Export error', err);
+                            showDefAlert('Failed to generate report: ' + (err.message || err), 'error');
+                        })
+                        .finally(() => {
+                            setDefenseExportBusy(false);
+                        });
+                };
 
-                          ensureJsPdf(function() {
-                              const { jsPDF } = window.jspdf;
-                              const pdf = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-                              const pageWidth = pdf.internal.pageSize.getWidth();
-                              const pageHeight = pdf.internal.pageSize.getHeight();
-                              const margin = 10;
-                              const footerGap = 14;
-                              const bottomThreshold = pageHeight - margin - footerGap;
-                              
-                              const formatDatePrinted = () => {
-                                  return new Date().toLocaleString('en-US', {
-                                      year: 'numeric',
-                                      month: 'short',
-                                      day: 'numeric',
-                                      hour: 'numeric',
-                                      minute: '2-digit'
-                                  });
-                              };
+                if (defenseExportButton) {
+                    defenseExportButton.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        setDefenseExportMenuOpen(!defenseExportMenu?.classList.contains('is-open'));
+                    });
+                }
 
-                              const formatDateForLabel = (ymd) => {
-                                  try {
-                                      const d = new Date(ymd + 'T00:00:00');
-                                      return d.toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric', year: 'numeric' });
-                                  } catch (e) { return ymd; }
-                              };
-
-                              const drawDefenseHeader = (collegeName) => {
-                                  const centerX = pageWidth / 2;
-
-                                  pdf.setTextColor(0, 0, 0);
-                                  pdf.setFont('times', 'bold');
-                                  pdf.setFontSize(14);
-                                  pdf.text('LYCEUM OF THE PHILIPPINES UNIVERSITY - CAVITE', centerX, 12, { align: 'center' });
-
-                                  pdf.setFont('times', 'normal');
-                                  pdf.setFontSize(11);
-                                  pdf.text(collegeName || '', centerX, 18, { align: 'center' });
-
-                                  return 28;
-                              };
-
-                              const drawDefenseFooter = () => {
-                                  const footerY = pageHeight - 10;
-
-                                  pdf.setTextColor(0, 0, 0);
-                                  pdf.setFont('times', 'italic');
-                                  pdf.setFontSize(8.5);
-                                  pdf.text(`Date printed/exported: ${formatDatePrinted()}`, margin, footerY);
-                                  pdf.text(`Printed by: ${currentUserName} through ATLAS`, pageWidth - margin, footerY, { align: 'right' });
-                              };
-
-                              const drawDefenseTableHeader = (y) => {
-                                  const colW = { time: 22, title: 48, adviser: 35, members: 42, p1: 25, p2: 25, p3: 25 };
-                                  const colX = {
-                                      time: margin,
-                                      title: margin + colW.time,
-                                      adviser: margin + colW.time + colW.title,
-                                      members: margin + colW.time + colW.title + colW.adviser,
-                                      p1: margin + colW.time + colW.title + colW.adviser + colW.members,
-                                      p2: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1,
-                                      p3: margin + colW.time + colW.title + colW.adviser + colW.members + colW.p1 + colW.p2
-                                  };
-                                  const headerHeight = 6;
-
-                                  pdf.setFont('times', 'bold');
-                                  pdf.setFontSize(9);
-                                  pdf.rect(colX.time, y, colW.time, headerHeight);
-                                  pdf.rect(colX.title, y, colW.title, headerHeight);
-                                  pdf.rect(colX.adviser, y, colW.adviser, headerHeight);
-                                  pdf.rect(colX.members, y, colW.members, headerHeight);
-                                  pdf.rect(colX.p1, y, colW.p1, headerHeight);
-                                  pdf.rect(colX.p2, y, colW.p2, headerHeight);
-                                  pdf.rect(colX.p3, y, colW.p3, headerHeight);
-
-                                  const textY = y + 4.2;
-                                  pdf.text('Time', colX.time + 0.8, textY);
-                                  pdf.text('Title', colX.title + 0.8, textY);
-                                  pdf.text('Adviser', colX.adviser + 0.8, textY);
-                                  pdf.text('Members', colX.members + 0.8, textY);
-                                  pdf.text('P1', colX.p1 + 0.8, textY);
-                                  pdf.text('P2', colX.p2 + 0.8, textY);
-                                  pdf.text('P3', colX.p3 + 0.8, textY);
-
-                                  return { colW, colX, y: y + headerHeight };
-                              };
-
-                              const drawDefenseDateHeader = (dateLabel) => {
-                                  let y = drawDefenseHeader(currentUserCollege);
-
-                                  pdf.setFont('times', 'bold');
-                                  pdf.setFontSize(14);
-                                  pdf.text(dateLabel, margin, y);
-
-                                  return y + 7;
-                              };
-
-                              const drawDefenseRoomHeader = (roomLabel, y, isContinued = false) => {
-                                  pdf.setFont('times', 'bold');
-                                  pdf.setFontSize(11);
-                                  pdf.text(`Room: ${roomLabel}${isContinued ? ' (continued)' : ''}`, margin, y);
-
-                                  return drawDefenseTableHeader(y + 6);
-                              };
-
-                              const formatTimeForPdf = (hm) => {
-                                  if (!hm) return '';
-                                  const parts = String(hm).split(':');
-                                  if (parts.length < 2) return hm;
-                                  let hh = parseInt(parts[0], 10);
-                                  const mm = parts[1];
-                                  const ampm = hh >= 12 ? 'PM' : 'AM';
-                                  hh = hh % 12 || 12;
-                                  return `${hh}:${mm} ${ampm}`;
-                              };
-
-                              const sortedDates = Object.keys(grouped).sort();
-
-                              sortedDates.forEach((date, dateIndex) => {
-                                  if (dateIndex > 0) {
-                                      pdf.addPage();
-                                  }
-
-                                  const dateLabel = formatDateForLabel(date);
-                                  let y = drawDefenseDateHeader(dateLabel);
-
-                                  const rooms = Object.keys(grouped[date]).sort();
-                                  rooms.forEach((room) => {
-                                      const roomRows = grouped[date][room];
-
-                                      if ((y + 12) > bottomThreshold) {
-                                          pdf.addPage();
-                                          y = drawDefenseDateHeader(dateLabel);
-                                      }
-
-                                      let tableState = drawDefenseRoomHeader(room, y, false);
-                                      const lineHeight = 4.5;
-                                      const colW = tableState.colW;
-                                      const colX = tableState.colX;
-                                      let currentY = tableState.y;
-
-                                      roomRows.forEach((item) => {
-                                          const time = `${formatTimeForPdf(item.start_time)} - ${formatTimeForPdf(item.end_time)}`;
-                                          const title = item.thesis_title || item.team_name || 'N/A';
-                                          const adviser = item.adviser || 'N/A';
-                                          const members = item.members || 'N/A';
-                                          const panel = (item.panelists || '').split(',').map(p => p.trim()).filter(Boolean);
-                                          while (panel.length < 3) panel.push('');
-
-                                          const splitTime = pdf.splitTextToSize(time, colW.time - 1.6);
-                                          const splitTitle = pdf.splitTextToSize(title, colW.title - 1.6);
-                                          const splitAdviser = pdf.splitTextToSize(adviser, colW.adviser - 1.6);
-
-                                          const memberNames = members
-                                              .split(',')
-                                              .map(name => name.trim())
-                                              .filter(Boolean);
-                                          const splitMembers = memberNames.length
-                                              ? memberNames.flatMap(name => pdf.splitTextToSize(name, colW.members - 1.6))
-                                              : ['N/A'];
-
-                                          const splitP1 = pdf.splitTextToSize(panel[0] || '', colW.p1 - 1.6);
-                                          const splitP2 = pdf.splitTextToSize(panel[1] || '', colW.p2 - 1.6);
-                                          const splitP3 = pdf.splitTextToSize(panel[2] || '', colW.p3 - 1.6);
-
-                                          const lineCount = Math.max(
-                                              Array.isArray(splitTime) ? splitTime.length : 1,
-                                              Array.isArray(splitTitle) ? splitTitle.length : 1,
-                                              Array.isArray(splitAdviser) ? splitAdviser.length : 1,
-                                              Array.isArray(splitMembers) ? splitMembers.length : 1,
-                                              Array.isArray(splitP1) ? splitP1.length : 1,
-                                              Array.isArray(splitP2) ? splitP2.length : 1,
-                                              Array.isArray(splitP3) ? splitP3.length : 1
-                                          );
-                                          const rowHeight = Math.max(6, lineCount * lineHeight + 1);
-
-                                          if ((currentY + rowHeight) > bottomThreshold) {
-                                              pdf.addPage();
-                                              y = drawDefenseDateHeader(dateLabel);
-                                              tableState = drawDefenseRoomHeader(room, y, true);
-                                              currentY = tableState.y;
-                                          }
-
-                                          pdf.setFont('times', 'normal');
-                                          pdf.setFontSize(8);
-                                          const textY = currentY + 3.5;
-
-                                          pdf.rect(colX.time, currentY, colW.time, rowHeight);
-                                          pdf.rect(colX.title, currentY, colW.title, rowHeight);
-                                          pdf.rect(colX.adviser, currentY, colW.adviser, rowHeight);
-                                          pdf.rect(colX.members, currentY, colW.members, rowHeight);
-                                          pdf.rect(colX.p1, currentY, colW.p1, rowHeight);
-                                          pdf.rect(colX.p2, currentY, colW.p2, rowHeight);
-                                          pdf.rect(colX.p3, currentY, colW.p3, rowHeight);
-
-                                          pdf.text(splitTime, colX.time + 0.8, textY);
-                                          pdf.text(splitTitle, colX.title + 0.8, textY);
-                                          pdf.text(splitAdviser, colX.adviser + 0.8, textY);
-                                          pdf.text(splitMembers, colX.members + 0.8, textY);
-                                          pdf.text(splitP1, colX.p1 + 0.8, textY);
-                                          pdf.text(splitP2, colX.p2 + 0.8, textY);
-                                          pdf.text(splitP3, colX.p3 + 0.8, textY);
-
-                                          currentY += rowHeight;
-                                      });
-
-                                      y = currentY + 4;
-                                  });
-                              });
-
-                              const totalPages = pdf.getNumberOfPages();
-                              for (let pageIndex = 1; pageIndex <= totalPages; pageIndex++) {
-                                  pdf.setPage(pageIndex);
-                                  drawDefenseFooter();
-                              }
-
-                              const filename = `defense_schedules_${start}_to_${end}.pdf`;
-                              pdf.save(filename);
-                          });
-                      })
-                      .catch(err => {
-                          console.error('Export error', err);
-                          showDefAlert('Failed to generate report: ' + (err.message || err), 'error');
-                      });
+                defenseExportOptions.forEach((button) => {
+                    button.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        exportDefenseSchedules(this.dataset.exportType || 'table');
+                    });
                 });
+
+                document.addEventListener('click', function(e) {
+                    if (defenseExportMenu && !defenseExportMenu.contains(e.target)) {
+                        setDefenseExportMenuOpen(false);
+                    }
+                });
+
+                if (defenseExportMenu) {
+                    defenseExportMenu.addEventListener('mouseleave', function() {
+                        setDefenseExportMenuOpen(false);
+                    });
+                }
+
+                updateDefenseExportLabel();
 
                 // Filter/sort change listeners
                 document.getElementById('defStatusFilter').addEventListener('change', () => {

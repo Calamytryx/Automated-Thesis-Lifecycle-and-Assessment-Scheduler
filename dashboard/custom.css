@@ -2999,6 +2999,18 @@ main.container-fluid {
     position: relative;
     display: inline-flex;
     align-items: stretch;
+    overflow: visible;
+    z-index: 60;
+}
+
+#schedules .schedule-export-controls {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    overflow: visible;
 }
 
 #schedules .schedule-export-trigger {
@@ -3046,62 +3058,12 @@ main.container-fluid {
     color: inherit;
 }
 
-#defense-schedules .defense-export-controls {
-    min-height: 48px;
-}
-
-#defense-schedules .defense-export-date {
-    width: 150px;
-    height: 48px;
-    border-radius: 6px;
-    border: 1px solid var(--neutral-300);
-    background-color: var(--main-white);
-    color: var(--main-black);
-    padding: 0 12px;
-}
-
-#defense-schedules .defense-export-date:focus {
-    border-color: var(--main-primary);
-    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.18);
-}
-
-#defense-schedules .defense-export-btn {
-    min-width: 138px;
-    height: 48px;
-    border-radius: 6px;
-    border: 1px solid var(--neutral-300);
-    background-color: var(--main-white);
-    color: var(--main-black);
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.75rem 1rem;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
-}
-
-#defense-schedules .defense-export-btn:hover {
-    background-color: var(--neutral-100);
-    border-color: var(--neutral-400);
-    color: var(--main-black);
-}
-
-#defense-schedules .defense-export-btn:active,
-#defense-schedules .defense-export-btn:focus {
-    background-color: var(--neutral-200);
-    border-color: var(--neutral-500);
-    color: var(--main-black);
-    box-shadow: none;
-}
-
-#defense-schedules .defense-export-btn i {
-    color: inherit;
-}
-
 #schedules .schedule-export-options {
     position: absolute;
     top: calc(100% + 2px);
-    left: 0;
-    z-index: 30;
+    right: 0;
+    left: auto;
+    z-index: 1050;
     display: none;
     min-width: 180px;
     padding: 4px;
@@ -3131,6 +3093,113 @@ main.container-fluid {
     transition: background-color 0.15s ease, color 0.15s ease;
 }
 
+#defense-schedules .defense-export-menu {
+    position: relative;
+    display: inline-flex;
+    align-items: stretch;
+    overflow: visible;
+    z-index: 60;
+}
+
+#defense-schedules .defense-export-controls {
+    min-height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    overflow: visible;
+}
+
+#defense-schedules .defense-export-date {
+    width: 150px;
+    height: 48px;
+    background-color: var(--main-white);
+    color: var(--main-black);
+    padding: 0 12px;
+}
+
+#defense-schedules .defense-export-date:focus {
+    border-color: var(--main-primary);
+    box-shadow: 0 0 0 0.2rem rgba(158, 42, 47, 0.18);
+}
+
+#defense-schedules .defense-export-btn {
+    min-width: 180px;
+    height: 48px;
+    background-color: var(--main-white);
+    color: var(--main-black);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+}
+
+#defense-schedules .defense-export-btn:hover {
+    background-color: var(--neutral-100);
+    border-color: var(--neutral-400);
+    color: var(--main-black);
+}
+
+#defense-schedules .defense-export-btn:active,
+#defense-schedules .defense-export-btn:focus,
+#defense-schedules .defense-export-menu.is-open .defense-export-btn {
+    background-color: var(--neutral-200);
+    border-color: var(--neutral-500);
+    color: var(--main-black);
+    box-shadow: none;
+}
+
+#defense-schedules .defense-export-icon {
+    width: 16px;
+    height: 16px;
+    display: inline-block;
+    vertical-align: middle;
+    color: inherit;
+}
+
+#defense-schedules .defense-export-btn i {
+    color: inherit;
+}
+
+#defense-schedules .defense-export-options {
+    position: absolute;
+    top: calc(100% + 2px);
+    right: 0;
+    left: auto;
+    z-index: 1050;
+    display: none;
+    min-width: 180px;
+    padding: 4px;
+    background-color: var(--main-white);
+    border: 1px solid var(--neutral-300);
+    border-radius: 6px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.10);
+}
+
+#defense-schedules .defense-export-menu:hover .defense-export-options,
+#defense-schedules .defense-export-menu:focus-within .defense-export-options,
+#defense-schedules .defense-export-menu.is-open .defense-export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+#defense-schedules .defense-export-option {
+    width: 100%;
+    border: 0;
+    background-color: transparent;
+    color: var(--main-black);
+    text-align: left;
+    padding: 8px 10px;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+/* Schedules export option hover/focus states */
 #schedules .schedule-export-option:hover {
     background-color: var(--neutral-100);
 }
@@ -3141,13 +3210,19 @@ main.container-fluid {
     outline: none;
 }
 
-#schedules .schedule-export-option i {
-    color: inherit;
+#defense-schedules .defense-export-option:hover {
+    background-color: var(--neutral-100);
+}
+
+#defense-schedules .defense-export-option:active,
+#defense-schedules .defense-export-option:focus {
+    background-color: var(--neutral-200);
+    outline: none;
 }
 
 /* ============================================
    Nested Team Modal Styling 
-   (Adviser Warning & Remove Member Confirmation)
+#defense-schedules .defense-export-option i {
    ============================================ */
 
 /* Higher z-index for nested modals to appear above parent modals */

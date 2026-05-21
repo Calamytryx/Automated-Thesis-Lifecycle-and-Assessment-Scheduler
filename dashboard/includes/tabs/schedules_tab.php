@@ -168,23 +168,25 @@ if (!empty($_SESSION['id'])) {
                             <option value="">Select Instructors</option>
                         </select>
                     </div>
-                    <div class="schedule-export-menu" id="scheduleExportMenu">
-                        <button type="button" class="btn schedule-export-trigger" id="exportSchedulesPdfBtn" aria-haspopup="true" aria-expanded="false">
-                            <svg class="schedule-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"></rect>
-                                <path d="M4.5 8.5L8 5l3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                                <path d="M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                            </svg>
-                            <span class="schedule-export-trigger-label">Export Table View</span>
-                            <i class="fas fa-angle-down ms-1"></i>
-                        </button>
-                        <div class="schedule-export-options" role="menu" aria-label="Schedule export options">
-                            <button type="button" class="schedule-export-option" data-export-type="table" role="menuitem">
-                                Table View
+                    <div class="schedule-export-controls ms-2 ms-md-auto">
+                        <div class="schedule-export-menu" id="scheduleExportMenu">
+                            <button type="button" class="btn schedule-export-trigger" id="exportSchedulesPdfBtn" aria-haspopup="true" aria-expanded="false">
+                                <svg class="schedule-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                    <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"></rect>
+                                    <path d="M4.5 8.5L8 5l3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                                    <path d="M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                                </svg>
+                                <span class="schedule-export-trigger-label">Export Table View</span>
+                                <i class="fas fa-angle-down ms-1"></i>
                             </button>
-                            <button type="button" class="schedule-export-option" data-export-type="calendar" role="menuitem">
-                                Calendar View
-                            </button>
+                            <div class="schedule-export-options" role="menu" aria-label="Schedule export options">
+                                <button type="button" class="schedule-export-option" data-export-type="table" role="menuitem">
+                                    Table View
+                                </button>
+                                <button type="button" class="schedule-export-option" data-export-type="calendar" role="menuitem">
+                                    Calendar View
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <script>
@@ -253,7 +255,9 @@ if (!empty($_SESSION['id'])) {
                             script.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
                             script.onload = callback;
                             script.onerror = function() {
-                                alert('Failed to load the PDF library.');
+                                if (typeof showScheduleExportToast === 'function') {
+                                    showScheduleExportToast('Failed to load the PDF library.', 'error');
+                                }
                             };
                             document.head.appendChild(script);
                         };
@@ -662,22 +666,62 @@ if (!empty($_SESSION['id'])) {
                             }
                         };
 
+                        const showScheduleExportToast = (message, type = 'warning') => {
+                            if (typeof showToast === 'function') {
+                                const toastTitle = type === 'success' ? 'Success' : type === 'warning' ? 'Notice' : 'Error';
+                                const toastType = type === 'warning' ? 'notice' : (type === 'danger' ? 'error' : type);
+                                showToast(toastTitle, message, toastType);
+                                return;
+                            }
+
+                            const containerId = 'scheduleExportToastContainer';
+                            let container = document.getElementById(containerId);
+                            if (!container) {
+                                container = document.createElement('div');
+                                container.id = containerId;
+                                container.className = 'position-fixed top-0 end-0 p-3';
+                                container.style.zIndex = '9999';
+                                document.body.appendChild(container);
+                            }
+
+                            const toastId = `schedule-export-toast-${Date.now()}`;
+                            const toastClass = type === 'success' ? 'text-bg-success' : (type === 'error' || type === 'danger' ? 'text-bg-danger' : 'text-bg-warning');
+                            const toastHtml = `
+                                <div id="${toastId}" class="toast border-0 shadow-lg ${toastClass}" role="alert" aria-live="assertive" aria-atomic="true">
+                                    <div class="d-flex align-items-start p-3">
+                                        <div class="toast-body p-0">${message}</div>
+                                        <button type="button" class="btn-close ms-auto" data-bs-dismiss="toast" aria-label="Close"></button>
+                                    </div>
+                                </div>
+                            `;
+
+                            container.insertAdjacentHTML('beforeend', toastHtml);
+                            const toastElement = new bootstrap.Toast(document.getElementById(toastId), {
+                                autohide: true,
+                                delay: 5000
+                            });
+                            toastElement.show();
+                            document.getElementById(toastId).addEventListener('hidden.bs.toast', function() {
+                                this.remove();
+                            });
+                        };
+
                         const fetchScheduleReport = (exportType) => {
                             const context = getExportContext();
                             const college = collegeSelect.value;
 
                             if (!context.viewType) {
-                                alert('Please select a report view first.');
+                                showScheduleExportToast('Please select a report view first.', 'warning');
                                 return;
                             }
 
                             if (!college) {
-                                alert('Please select a college first.');
+                                showScheduleExportToast('Please select a college first.', 'warning');
                                 return;
                             }
 
                             if (!['table', 'calendar'].includes(exportType)) {
-                                alert('Unsupported export type.');
+                                showScheduleExportToast('Unsupported export type.', 'warning');
                                 return;
                             }
 
@@ -694,14 +738,14 @@ if (!empty($_SESSION['id'])) {
                                 payload.section = sectionSelect.value;
 
                                 if (!payload.program || !payload.section) {
-                                    alert('Please select both program and section before exporting.');
+                                    showScheduleExportToast('Please select both program and section before exporting.', 'warning');
                                     return;
                                 }
                             } else if (context.viewType === 'instructor') {
                                 payload.instructor = instructorSelect.value;
 
                                 if (!payload.instructor) {
-                                    alert('Please select an instructor before exporting.');
+                                    showScheduleExportToast('Please select an instructor before exporting.', 'warning');
                                     return;
                                 }
                             }
@@ -724,7 +768,7 @@ if (!empty($_SESSION['id'])) {
 
                                     const rows = Array.isArray(result.data) ? result.data : [];
                                     if (!rows.length) {
-                                        alert('No schedules found for the selected filters.');
+                                        showScheduleExportToast('No schedules found for the selected filters.', 'warning');
                                         return;
                                     }
 
@@ -737,7 +781,7 @@ if (!empty($_SESSION['id'])) {
                                 })
                                 .catch(error => {
                                     console.error('Schedule export error:', error);
-                                    alert(error.message || 'Failed to generate schedule report.');
+                                    showScheduleExportToast(error.message || 'Failed to generate schedule report.', 'error');
                                 })
                                 .finally(() => {
                                     console.log('[Schedules Export] finish', { exportType, viewType: context.viewType });
