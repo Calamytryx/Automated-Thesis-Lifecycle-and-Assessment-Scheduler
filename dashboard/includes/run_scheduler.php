@@ -2101,7 +2101,15 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         $validationMode = normalizeValidationMode($_POST['validationMode'] ?? $_POST['schedulingMode'] ?? 'hybrid');
         $GLOBALS['validationMode'] = $validationMode;
 
-        $rooms = $_POST['rooms'];
+        // Trim room labels on the way in. The client sends "Room A, Room B".split(',')
+        // which yields a leading space (" Room B"); without trimming, the generator's
+        // strict room comparison against existing defenses (===) misses already-booked
+        // rooms, while save_preview_schedule.php trims and then rejects the same row as a
+        // room conflict. Trimming here keeps generation and save consistent.
+        $rooms = is_array($_POST['rooms']) ? $_POST['rooms'] : explode(',', (string) ($_POST['rooms'] ?? ''));
+        $rooms = array_values(array_filter(array_map('trim', $rooms), static function ($r) {
+            return $r !== '';
+        }));
         $days = $_POST['days'];
         $timeSlotsRaw = isset($_POST['timeSlots']) && is_array($_POST['timeSlots']) ? $_POST['timeSlots'] : [];
 
@@ -2201,17 +2209,10 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         if (!empty($preflight['zeroSlotTeamIds'])) {
             error_log('PREFLIGHT: zero-slot teams = ' . implode(',', $preflight['zeroSlotTeamIds']) . ' (mode=' . $validationMode . ')');
-            if ($validationMode === 'strict') {
-                $payload = buildPreflightFailurePayload($pdo, $preflight, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration, $validationMode);
-                updateProgress($pdo, $progressId, 'error', $payload['message'], null);
-                if (ob_get_level()) {
-                    ob_end_clean();
-                }
-                echo json_encode($payload);
-                exit; // halt: the genetic algorithm never runs
-            }
-            // soft/hybrid: record bottlenecks and continue; these teams become unresolved
-            // downstream via buildPreGACandidatePool's empty-candidate detection.
+            // All modes (including strict) record bottlenecks and continue; these teams become
+            // unresolved downstream via buildPreGACandidatePool's empty-candidate detection.
+            // Strict no longer fails fast here — its checking is deferred to the post-GA
+            // strict end-gate so every problem team is reported together at the end.
             $GLOBALS['preflightBottlenecks'] = $preflight['bottlenecks'];
         }
 
@@ -2280,18 +2281,9 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 error_log('VALIDATION DETAIL: ' . $message);
             }
 
-            updateProgress($pdo, $progressId, $validationMode === 'strict' ? 'error' : 'info', $summaryText, null);
-
-            if ($validationMode === 'strict') {
-                if (ob_get_level()) ob_end_clean();
-                $payload = array_merge([
-                    'success' => false,
-                    'message' => $summaryText,
-                ], $failurePayload);
-                echo json_encode($payload);
-                exit;
-            }
-
+            // strict no longer fails fast here — like soft/hybrid it continues, and the
+            // post-GA strict end-gate reports every unresolved/conflicting team together.
+            updateProgress($pdo, $progressId, 'info', $summaryText, null);
             updateProgress(
                 $pdo,
                 $progressId,
@@ -2299,38 +2291,21 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 'Some teams may be hard to fit — continuing and trying to resolve them automatically…',
                 32
             );
-            error_log('SOFT MODE: ' . $summaryText . ' ' . $detailText);
+            error_log($validationMode . ' MODE: ' . $summaryText . ' ' . $detailText);
         }
 
         if (!empty($unresolvedFromPreValidation)) {
-            if ($validationMode === 'strict') {
-                $teamsBeforeFilter = count($teams);
-                $teams = array_values(array_filter($teams, static function ($team) use ($unresolvedFromPreValidation) {
-                    return !in_array((int) ($team['id'] ?? 0), $unresolvedFromPreValidation, true);
-                }));
-
-                foreach ($unresolvedFromPreValidation as $badTeamId) {
-                    unset($validCandidatePool[$badTeamId]);
-                }
-
-                updateProgress(
-                    $pdo,
-                    $progressId,
-                    'info',
-                    count($unresolvedFromPreValidation) . ' team(s) can’t be scheduled right now — continuing with ' . count($teams) . ' team(s) that can.',
-                    33
-                );
-                error_log('PRE-FILTER: reduced GA scope from ' . $teamsBeforeFilter . ' to ' . count($teams) . ' teams; unresolved=' . implode(',', $unresolvedFromPreValidation));
-            } else {
-                updateProgress(
-                    $pdo,
-                    $progressId,
-                    'info',
-                    count($unresolvedFromPreValidation) . ' team(s) have no available time slots with the current settings — scheduling the rest and leaving those for you to review.',
-                    33
-                );
-                error_log('PRE-FILTER WARNING: unresolved teams kept in ' . $validationMode . ' mode: ' . implode(',', $unresolvedFromPreValidation));
-            }
+            // All modes (including strict) keep unresolved teams in scope and schedule
+            // whatever fits. Strict's all-or-nothing decision is enforced later by the
+            // post-GA strict end-gate, which lists every unresolved/conflicting team at once.
+            updateProgress(
+                $pdo,
+                $progressId,
+                'info',
+                count($unresolvedFromPreValidation) . ' team(s) have no available time slots with the current settings — scheduling the rest and leaving those for you to review.',
+                33
+            );
+            error_log('PRE-FILTER WARNING: unresolved teams kept in ' . $validationMode . ' mode: ' . implode(',', $unresolvedFromPreValidation));
         }
 
         if (empty($teams)) {
@@ -2611,6 +2586,69 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         $unresolvedTeamIds = array_values(array_diff($requestedScopeTeamIds, $scheduledTeamIds));
         $finalValidationSummary = $validationSummary;
         $finalValidationSummary['unresolvedTeams'] = $unresolvedTeamIds;
+
+        // === STRICT END-GATE ===
+        // Strict mode defers all its checking to here. After the GA has produced its best
+        // (internally conflict-free) schedule, validate the FINAL rows against the same rules
+        // the save step enforces — existing DB defenses, panelist/room/member double-booking,
+        // class blocks, working hours — and require every requested team to be placed. Any
+        // problems are collected and returned as one combined message instead of failing early.
+        // Hybrid and soft are unaffected and keep their partial-result behavior.
+        if ($validationMode === 'strict') {
+            $strictMessages = [];
+
+            if (!empty($unresolvedTeamIds)) {
+                $unresolvedNamesEnd = getTeamNames($pdo, $unresolvedTeamIds);
+                foreach ($unresolvedTeamIds as $uTid) {
+                    $uName = $unresolvedNamesEnd[$uTid] ?? ('Team ' . $uTid);
+                    $strictMessages[] = $uName . ' could not be scheduled conflict-free with the current rooms, dates, and times.';
+                }
+            }
+
+            foreach ($acceptedRowsForResolution as $row) {
+                $rowPanelistIds = array_values(array_filter([
+                    (int) ($row['panelist_id'] ?? 0),
+                    (int) ($row['panelist_id2'] ?? 0),
+                    (int) ($row['panelist_id3'] ?? 0),
+                ]));
+                $rowCheck = validateStudentScheduleConflicts(
+                    $pdo,
+                    (int) ($row['team_id'] ?? 0),
+                    (string) ($row['schedule_date'] ?? ''),
+                    (string) ($row['start_time'] ?? ''),
+                    (string) ($row['end_time'] ?? ''),
+                    null,
+                    $rowPanelistIds,
+                    (string) ($row['room'] ?? '')
+                );
+                if (!$rowCheck['ok']) {
+                    foreach ((array) ($rowCheck['conflict_items'] ?? [$rowCheck['message']]) as $ci) {
+                        $ci = trim((string) $ci);
+                        if ($ci !== '') {
+                            $strictMessages[] = $ci;
+                        }
+                    }
+                }
+            }
+
+            if (!empty($strictMessages)) {
+                $strictMessages = array_values(array_unique($strictMessages));
+                $strictCombined = implode(' ', $strictMessages);
+                updateProgress($pdo, $progressId, 'error', $strictCombined, null);
+                while (ob_get_level()) {
+                    ob_end_clean();
+                }
+                echo json_encode([
+                    'success' => false,
+                    'preview' => $isPreview ? true : null,
+                    'message' => $strictCombined,
+                    'conflict_items' => $strictMessages,
+                    'validationMode' => 'strict',
+                    'unresolved_team_ids' => $unresolvedTeamIds,
+                ]);
+                exit;
+            }
+        }
 
         if ($isPreview) {
             // Preview mode: prepare data without saving
