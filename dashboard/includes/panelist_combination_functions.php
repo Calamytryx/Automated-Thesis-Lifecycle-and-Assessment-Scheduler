@@ -25,16 +25,17 @@
  * @return array|null Panelist info with employment type and external status
  */
 function getPanelistInfo($pdo, $panelistId) {
-    // Per-request cache: getPanelistInfo is called repeatedly (once per candidate
-    // panelist while building combinations, plus during final validation). Without
-    // caching this ran 2 DB queries on every call and was the main scheduler hotspot.
-    static $cache = [];
-
     $key = (int) $panelistId;
+
+    // Eager-load: the first lookup primes the shared per-request cache for ALL panelists
+    // in one bulk query (loadPanelistPools), collapsing what used to be one query per
+    // distinct panelist into a single round-trip. Subsequent lookups are pure cache hits.
+    $cache =& panelistInfoCache($pdo);
     if (array_key_exists($key, $cache)) {
         return $cache[$key];
     }
 
+    // Fallback for any panelist not present in the bulk load (should be rare).
     try {
         $stmt = $pdo->prepare("
             SELECT
@@ -53,8 +54,6 @@ function getPanelistInfo($pdo, $panelistId) {
         $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
         if ($row) {
             $row['normalized_program'] = normalizeProgramName($row['program']);
-            // Resolve the college for the normalized program (memoized per program name
-            // so repeated panelists from the same program don't re-query).
             $row['program_college'] = getProgramCollege($pdo, $row['normalized_program']);
         }
         $cache[$key] = $row;
@@ -64,6 +63,25 @@ function getPanelistInfo($pdo, $panelistId) {
         $cache[$key] = null;
         return null;
     }
+}
+
+/**
+ * Shared per-request panelist-info cache, eagerly primed by loadPanelistPools().
+ *
+ * Returns a reference to the static cache array so getPanelistInfo() and loadPanelistPools()
+ * read/write the same store. Triggers the one-time bulk load on first access.
+ *
+ * @param PDO $pdo
+ * @return array Reference to the id => info-row (or null) cache
+ */
+function &panelistInfoCache($pdo) {
+    static $cache = [];
+    static $primed = false;
+    if (!$primed) {
+        $primed = true; // set before priming to avoid re-entrancy from loadPanelistPools
+        loadPanelistPools($pdo);
+    }
+    return $cache;
 }
 
 /**
@@ -240,7 +258,17 @@ function isValidPanelistCombination($panelists) {
             return true;
         }
     }
-    
+
+    // Additive acceptance for the External/Validator seat (panelist 3). Per the panel
+    // composition waterfall, once panelists 1 & 2 are valid same-program/same-college
+    // internals (already enforced above), panelist 3 may be ANY of:
+    //   Tier 1: same-program external      Tier 2: same-program internal
+    //   Tier 3: same-college different program   Tier 4: different college
+    // i.e. any employment type and any program/college is acceptable in slot 3.
+    if ($types[0] !== 'external' && $types[1] !== 'external') {
+        return true;
+    }
+
     error_log("Invalid panelist combination: " . implode(", ", $types));
     return false;
 }
@@ -257,10 +285,9 @@ function getExternalPanelists($pdo, $excludePanelistIds = []) {
 }
 
 /**
- * Load all panelist IDs grouped by type in a single query and memoize for the request.
- *
- * Previously getExternal/FullTime/PartTimePanelists each ran their own query on every
- * call (and were called per team). Now we fetch once and filter exclusions in PHP.
+ * Eagerly load all panelists in a single query: group IDs by employment type AND prime the
+ * shared per-request info cache (program + college enrichment) so getPanelistInfo() never has
+ * to query per panelist. This is the query-layer optimization for the panel-selection matrix.
  *
  * @param PDO $pdo
  * @return array{full_time:int[], part_time:int[], external:int[]}
@@ -272,9 +299,12 @@ function loadPanelistPools($pdo) {
     }
 
     $pools = ['full_time' => [], 'part_time' => [], 'external' => []];
+    // Share the same store getPanelistInfo() reads from. panelistInfoCache() has already
+    // flagged itself primed before calling us, so this returns the reference without recursing.
+    $infoCache =& panelistInfoCache($pdo);
     try {
         $stmt = $pdo->query("
-            SELECT id, is_parttime, is_external
+            SELECT id, usertype, is_parttime, is_external, first_name, last_name, username, program
             FROM users
             WHERE usertype = 2 AND deleted_at IS NULL
             ORDER BY first_name, last_name
@@ -288,6 +318,11 @@ function loadPanelistPools($pdo) {
             } else {
                 $pools['full_time'][] = $id;
             }
+
+            // Enrich and cache so getPanelistInfo($id) is a pure cache hit.
+            $row['normalized_program'] = normalizeProgramName($row['program']);
+            $row['program_college'] = getProgramCollege($pdo, $row['normalized_program']);
+            $infoCache[$id] = $row;
         }
     } catch (Exception $e) {
         error_log("loadPanelistPools error: " . $e->getMessage());
@@ -336,14 +371,130 @@ function getPartTimePanelists($pdo, $excludePanelistIds = []) {
 }
 
 /**
+ * Deterministic feasibility check: can a compliant 3-member panel be formed for this team?
+ *
+ * Mirrors the hard constraints of buildOptimalPanelistCombination() without the randomness,
+ * so the pre-flight gate can decide up front whether a team's slots should be offered:
+ *   - slots 1 & 2 require >= 2 available SAME-program internals (same-college fallback when
+ *     no program name is supplied), and
+ *   - slot 3 requires >= 1 additional available candidate (any tier of the waterfall).
+ *
+ * @param PDO $pdo Database connection
+ * @param int|null $adviserId Adviser to exclude
+ * @param int[] $exclude Other panelist IDs to exclude (e.g. locked elsewhere)
+ * @param string|null $teamProgram Team program (raw or normalized)
+ * @param string|null $teamCollege Team college
+ * @return bool True if a compliant panel can be formed
+ */
+function canFormCompliantPanel($pdo, $adviserId = null, $exclude = [], $teamProgram = null, $teamCollege = null) {
+    $excludeList = $exclude;
+    if ($adviserId) {
+        $excludeList[] = $adviserId;
+    }
+    $excludeList = array_unique($excludeList);
+
+    $fullTime = getFullTimePanelists($pdo, $excludeList);
+    $partTime = getPartTimePanelists($pdo, $excludeList);
+    $external = getExternalPanelists($pdo, $excludeList);
+
+    $teamProgramNorm = $teamProgram ? normalizeProgramName($teamProgram) : null;
+
+    // Slots 1 & 2: same-program internals (full + part time). College is the fallback match
+    // only when the team has no program name.
+    $sameProgramInternals = [];
+    foreach (array_merge($fullTime, $partTime) as $id) {
+        $info = getPanelistInfo($pdo, $id);
+        if (!$info) continue;
+        if (panelistMatchesTeamProgram($info, $teamProgramNorm, $teamCollege)) {
+            $sameProgramInternals[$id] = true;
+        }
+    }
+    if (count($sameProgramInternals) < 2) {
+        return false;
+    }
+
+    // Slot 3: at least one more candidate (any tier) beyond the two internals.
+    $allCandidates = array_unique(array_merge($fullTime, $partTime, $external));
+    return count($allCandidates) >= 3;
+}
+
+/**
+ * Order candidates for slot 3 (the External / Validator seat) by the selection waterfall.
+ *
+ * NOTE: Panelists 1 & 2 are ALWAYS internal subject-matter experts from the SAME program
+ * and SAME college as the team. This function only ranks the 3rd seat.
+ *
+ * Waterfall (most preferred first):
+ *   Tier 1: external specialist (is_external = 1) in the SAME program as the team
+ *   Tier 2: any other panelist in the SAME program (is_external = 0)
+ *   Tier 3: different program but SAME college
+ *   Tier 4: entirely different college (last resort, lets the defense proceed)
+ *
+ * @param PDO $pdo Database connection
+ * @param int[] $candidateIds All available panelist IDs to rank (full-time + part-time + external)
+ * @param string|null $teamProgram Normalized team program name
+ * @param string|null $teamCollege Team college
+ * @param int[] $excludePanelistIds Panelist IDs already used / to skip (e.g. slots 1 & 2, adviser)
+ * @return int[] Candidate IDs ordered by tier (Tier 1 first)
+ */
+function getExternalPanelistsWithPriority($pdo, $candidateIds = [], $teamProgram = null, $teamCollege = null, $excludePanelistIds = []) {
+    if (empty($candidateIds)) {
+        return [];
+    }
+
+    $exclude = array_flip(array_map('intval', $excludePanelistIds));
+
+    $tier1 = []; // same program + external specialist
+    $tier2 = []; // same program + non-external
+    $tier3 = []; // same college, different program
+    $tier4 = []; // different college (or unknown)
+
+    foreach ($candidateIds as $id) {
+        $id = (int) $id;
+        if (isset($exclude[$id])) {
+            continue;
+        }
+        $info = getPanelistInfo($pdo, $id);
+        if (!$info) {
+            continue;
+        }
+
+        $prog = $info['normalized_program'] ?? null;
+        $coll = $info['program_college'] ?? null;
+        $isExternal = ((int) ($info['is_external'] ?? 0)) === 1;
+
+        if ($teamProgram && $prog && $prog === $teamProgram) {
+            if ($isExternal) {
+                $tier1[] = $id; // Priority 1
+            } else {
+                $tier2[] = $id; // Priority 2
+            }
+        } elseif ($teamCollege && $coll && $coll === $teamCollege) {
+            $tier3[] = $id; // Priority 3
+        } else {
+            $tier4[] = $id; // Priority 4
+        }
+    }
+
+    return array_values(array_merge($tier1, $tier2, $tier3, $tier4));
+}
+
+/**
  * Build panelist combination using order of importance
- * 
+ *
  * Attempts combinations in this order:
  * 1. Full time, Part time, External
  * 2. Full time, Full time, External
  * 3. Full time, Full time, Part time
  * 4. Full time, Part time, Part time
- * 
+ *
+ * Panelists 1 & 2 are ALWAYS same-program / same-college internals.
+ * Slot 3 (External/Validator seat) selection waterfall:
+ * 1. Same-program external specialist (is_external = 1)
+ * 2. Same-program internal (is_external = 0)
+ * 3. Same college, different program
+ * 4. Different college (last resort)
+ *
  * @param PDO $pdo Database connection
  * @param int $adviserId Adviser ID (usually panelist_id)
  * @param array $preferredPanelists Pre-selected preferred panelists (optional)
@@ -364,6 +515,15 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         $partTime   = getPartTimePanelists($pdo, $excludeList);
         $external   = getExternalPanelists($pdo, $excludeList);
 
+        // Normalized team program for the slot-3 waterfall (Tier 1/2 are same-program seats).
+        $teamProgramNorm = $studentProgram ? normalizeProgramName($studentProgram) : null;
+
+        // Full candidate pool for slot 3 (the External/Validator seat): every available
+        // panelist regardless of employment type. Captured BEFORE the same-program filter
+        // below so slot 3 can fall through the waterfall (same program -> same college ->
+        // different college). Slots 1 & 2 are still locked to the same-program pool.
+        $allSlot3Candidates = array_values(array_unique(array_merge($fullTime, $partTime, $external)));
+
         // If student/team program (or college) provided, force slots 1 & 2 to come from the
         // SAME program as the team. Matching is specialization-insensitive: the program name
         // is normalized first, so e.g. "Computer Science - Data Science" matches "Computer
@@ -373,7 +533,7 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         // serve as the 3rd / external/cross-program panelist).
         $useStudentMatch = $studentProgram || $studentCollege;
         if ($useStudentMatch) {
-            $studentProgram = $studentProgram ? normalizeProgramName($studentProgram) : null;
+            $studentProgram = $teamProgramNorm;
 
             $matchingFull = [];
             foreach ($fullTime as $id) {
@@ -434,17 +594,43 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
             $used = [];
             for ($i = 0; $i < 3; $i++) {
                 $type = $pattern[$i];
-                if (empty($available[$type])) { $valid = false; break; }
+                // Slot 3 draws from the external-priority pool, not $available[$type],
+                // so only enforce the pool-empty guard for slots 1 & 2.
+                if ($i !== 2 && empty($available[$type])) { $valid = false; break; }
 
                 $chosen = null;
-                foreach ($available[$type] as $candidate) {
-                    if (in_array($candidate, $used, true)) continue;
-                    if ($useStudentMatch && ($i === 0 || $i === 1)) {
-                        if (!in_array($candidate, $matchingCombined, true)) continue;
+
+                if ($i === 2) {
+                    // Slot 3 is the External/Validator seat. Rank ALL available panelists by
+                    // the waterfall: Tier 1 same-program external -> Tier 2 same-program
+                    // internal -> Tier 3 same college different program -> Tier 4 different
+                    // college. Use the team program (slots 1 & 2 share it) for tiering.
+                    $prioritized = getExternalPanelistsWithPriority(
+                        $pdo,
+                        $allSlot3Candidates,
+                        $teamProgramNorm,
+                        $studentCollege,
+                        $used
+                    );
+
+                    foreach ($prioritized as $candidate) {
+                        if (!in_array($candidate, $used, true)) {
+                            $chosen = $candidate;
+                            break;
+                        }
                     }
-                    $chosen = $candidate;
-                    break;
+                } else {
+                    // Slots 1 & 2 always come from the same-program matching pool.
+                    foreach ($available[$type] as $candidate) {
+                        if (in_array($candidate, $used, true)) continue;
+                        if ($useStudentMatch && ($i === 0 || $i === 1)) {
+                            if (!in_array($candidate, $matchingCombined, true)) continue;
+                        }
+                        $chosen = $candidate;
+                        break;
+                    }
                 }
+
                 if ($chosen === null) { $valid = false; break; }
 
                 $selected[$i] = $chosen;

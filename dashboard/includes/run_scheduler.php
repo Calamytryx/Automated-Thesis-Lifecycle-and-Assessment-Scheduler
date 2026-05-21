@@ -1288,6 +1288,23 @@ if (!empty($conflicts)) return $conflicts;
         foreach ($teams as $team) {
             $tid = (int) $team['id'];
 
+            // Panel-composition gate: a slot is only "available" if a compliant 3-member
+            // panel (2 same-program internals + a waterfall-ranked 3rd seat) can be formed.
+            // Resolve team program/college the same way selectPanelists() does.
+            $teamCollege = !empty($team['program']) ? getProgramCollege($pdo, normalizeProgramName($team['program'])) : null;
+            if (!canFormCompliantPanel($pdo, $team['adviser_id'] ?? null, [], $team['program'] ?? null, $teamCollege)) {
+                $teamNames = getTeamNames($pdo, [$tid]);
+                $teamName = $teamNames[$tid] ?? ('Team ' . $tid);
+                $zeroSlotTeamIds[] = $tid;
+                $bottlenecks[$tid] = [
+                    'team_id' => $tid, 'team_name' => $teamName,
+                    'culprit_type' => 'panel_composition', 'culprit_id' => null, 'culprit_name' => null,
+                    'message' => sprintf('%s has 0 valid slots: a compliant panel cannot be formed — fewer than 2 available same-program panelists for the primary internal seats.', $teamName),
+                    'offered_cells' => 0, 'blocked_cells' => 0,
+                ];
+                continue; // composition failure dominates; skip schedule-conflict attribution
+            }
+
             $feasibleCells = 0;
             foreach (($slotsByTeamDay[$tid] ?? []) as $slots) {
                 $feasibleCells += count($slots);
@@ -1331,7 +1348,9 @@ if (!empty($conflicts)) return $conflicts;
             'message' => $message,
             'feasible_placement_count' => 0,
             'daysWithNoFeasibleSlots' => $preflight['daysWithNoSlots'] ?? [],
-            'blocked_time_slots_by_day' => buildBlockedTimeSlotMap($pdo, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration),
+            'blocked_time_slots_by_day' => function_exists('buildBlockedTimeSlotMap')
+                ? buildBlockedTimeSlotMap($pdo, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration)
+                : [],
             'validationMode' => $validationMode,
             'preflight_bottlenecks' => array_map(function ($b) {
                 return [
@@ -1369,6 +1388,12 @@ if (!empty($conflicts)) return $conflicts;
         augmentOccupancyMapWithTeamSchedules($pdo, $roomMap, $teamIds);
         
         $failures = [];
+        // Resolve names for the previewed teams AND any already-scheduled teams referenced in
+        // conflict details, so messages read "GuardTrack" rather than "Team 14".
+        $existingTeamIds = array_values(array_unique(array_filter(array_map(function ($d) {
+            return (int) ($d['team_id'] ?? 0);
+        }, $existing))));
+        $teamNames = getTeamNames($pdo, array_values(array_unique(array_merge($teamIds, $existingTeamIds))));
 
         foreach ($previewRows as $row) {
             if (empty($row['team_id']) || empty($row['schedule_date']) || $row['start_time'] === null || $row['start_time'] === '') {
@@ -1405,7 +1430,8 @@ if (!empty($conflicts)) return $conflicts;
             ];
 
             if (count($panelIds) < 3) {
-                $failures[] = 'Team ' . $defense['team_id'] . ': preview row has fewer than 3 panelists.';
+                $teamLabel = $teamNames[$defense['team_id']] ?? ('Team ' . $defense['team_id']);
+                $failures[] = $teamLabel . ': fewer than 3 panel members were assigned.';
 
                 continue;
             }
@@ -1433,7 +1459,7 @@ if (!empty($conflicts)) return $conflicts;
                             continue;
                         }
                         if (slotRangesOverlap($defenseStart, $defenseEnd, $occStart, $occEnd)) {
-                            $roomErrs[] = "Room schedule conflict: room {$roomValue} occupied by " . schedulerClassRowDescriptor($occupied);
+                            $roomErrs[] = "{$roomValue} is already in use (" . schedulerClassRowDescriptor($occupied) . ")";
                             break;
                         }
                     }
@@ -1450,14 +1476,16 @@ if (!empty($conflicts)) return $conflicts;
                         continue;
                     }
                     if (slotRangesOverlap($defenseStart, $defenseEnd, $existingStart, $existingEnd) && $existingDef['room'] === $roomValue) {
-                        $roomErrs[] = "Room already scheduled: team {$existingDef['team_id']} at {$defenseDay}";
+                        $otherLabel = $teamNames[(int) $existingDef['team_id']] ?? ('Team ' . $existingDef['team_id']);
+                        $roomErrs[] = "the room is already booked by {$otherLabel} on {$defenseDay}";
                         break;
                     }
                 }
             }
             
             if (!empty($roomErrs)) {
-                $failures[] = 'Team ' . $defense['team_id'] . ': ' . implode('; ', array_slice($roomErrs, 0, 3));
+                $teamLabel = $teamNames[$defense['team_id']] ?? ('Team ' . $defense['team_id']);
+                $failures[] = $teamLabel . ': ' . implode('; ', array_slice($roomErrs, 0, 3));
             }
         }
 
@@ -1732,7 +1760,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 );
             }
 
-            if ($feasible < count($teams)) {
+            if ($feasible < count($teams) && function_exists('buildBlockedTimeSlotMap')) {
                 $blockedTimeSlots = buildBlockedTimeSlotMap($pdo, $teams, $panelists, $rooms, $days, $timeSlots, $userSchedules, $duration);
             }
 
@@ -1779,7 +1807,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         $progressId = isset($_POST['progressId']) && trim((string)$_POST['progressId']) !== ''
             ? preg_replace('/[^A-Za-z0-9._-]/', '', trim((string)$_POST['progressId']))
             : uniqid('sched_', true);
-        updateProgress($pdo, $progressId, 'running', 'Validating inputs...', 5);
+        updateProgress($pdo, $progressId, 'running', 'Checking the details you entered…', 5);
 
         // Validate required inputs
         if (!validateInputs()) {
@@ -1787,7 +1815,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             throw new Exception("Please check all required fields are filled correctly");
         }
 
-        updateProgress($pdo, $progressId, 'running', 'Loading team data...', 10);
+        updateProgress($pdo, $progressId, 'running', 'Getting the list of teams…', 10);
 
         // Get the selected section(s) for filtering
         $selectedSections = [];
@@ -1830,7 +1858,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         error_log("Scheduler Access Control: userId=$currentUserId, usertype=$currentUsertype, accessibleSections=" . implode(',', $accessibleSections) . ", selectedSections=" . implode(',', $selectedSections));
 
-        updateProgress($pdo, $progressId, 'running', 'Checking for existing schedules...', 15);
+        updateProgress($pdo, $progressId, 'running', 'Looking for schedules that already exist…', 15);
 
         // Check for teams that already have schedules
         $scheduledTeams = checkExistingSchedules($pdo, $selectedSections);
@@ -1995,20 +2023,20 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         
         // Process automatic defense type progression for past schedules
         if (!empty($teamsToAutoProgress)) {
-            updateProgress($pdo, $progressId, 'running', 'Processing defense progressions...', 18);
+            updateProgress($pdo, $progressId, 'running', 'Updating defense stages…', 18);
             $progressedTeams = handleDefenseProgression($pdo, $teamsToAutoProgress);
             error_log("SCHEDULER: Auto-progressed " . count($progressedTeams) . " teams based on past defense results");
         }
         
         // Remove ONLY upcoming/pending future schedules (past schedules and completed future schedules are kept)
         if (!empty($upcomingDefenses)) {
-            updateProgress($pdo, $progressId, 'running', 'Removing upcoming schedules...', 20);
+            updateProgress($pdo, $progressId, 'running', 'Clearing the old upcoming schedules…', 20);
             removeExistingSchedules($pdo, array_keys($upcomingDefenses));
             error_log("SCHEDULER: Removed " . count($upcomingDefenses) . " upcoming schedules for re-scheduling");
         }
 
         // NOW fetch teams AFTER processing progressions and removing schedules
-        updateProgress($pdo, $progressId, 'running', 'Loading teams and panelists...', 22);
+        updateProgress($pdo, $progressId, 'running', 'Gathering teams and panel members…', 22);
 
         $teams = fetchTeams($pdo, $selectedSections);
         $panelists = fetchPanelists($pdo);
@@ -2077,13 +2105,13 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         $days = $_POST['days'];
         $timeSlotsRaw = isset($_POST['timeSlots']) && is_array($_POST['timeSlots']) ? $_POST['timeSlots'] : [];
 
-        updateProgress($pdo, $progressId, 'running', 'Normalizing time slots to respect latest finish (8:30 PM ceiling for this defense length)…', 24);
+        updateProgress($pdo, $progressId, 'running', 'Adjusting time slots so every defense finishes by 8:30 PM…', 24);
 
         $timeSlots = filter_time_slots_respecting_latest_end(array_map('trim', $timeSlotsRaw), $duration);
 
         if (empty($timeSlots)) {
-            $msgEmpty = 'No valid start slots remain: each option would run past the 8:30 PM limit with defense duration '
-                . $duration . ' h. Reduce duration or end your working-window range earlier.';
+            $msgEmpty = 'There are no usable start times left — every option would end after the 8:30 PM limit for a '
+                . $duration . '-hour defense. Try a shorter defense length or start times earlier in the day.';
             updateProgress($pdo, $progressId, 'error', $msgEmpty, null);
             if (ob_get_level()) {
                 ob_end_clean();
@@ -2102,7 +2130,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         $_POST['timeSlots'] = $timeSlots;
 
-        updateProgress($pdo, $progressId, 'running', 'Loading section and faculty schedules (user_schedules)…', 24);
+        updateProgress($pdo, $progressId, 'running', 'Loading the class schedules of teachers and sections…', 24);
 
         $userSchedules = fetchUserSchedules($pdo);
         $GLOBALS['schedulerUserSchedulesSnapshot'] = $userSchedules;
@@ -2125,7 +2153,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             if ($autoEnabledSmartGeneration) {
                 error_log("SCHEDULER: Auto-enabled smart slot generation (startTime/endTime provided)");
             }
-            updateProgress($pdo, $progressId, 'running', 'Generating time slots while excluding class schedules…', 24);
+            updateProgress($pdo, $progressId, 'running', 'Finding open time slots that don’t clash with classes…', 24);
             
             $startTime = trim((string)($_POST['startTime'] ?? ''));
             $endTime = trim((string)($_POST['endTime'] ?? ''));
@@ -2155,7 +2183,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             }
         }
 
-        updateProgress($pdo, $progressId, 'running', 'Computing conflict-free time slots per defense day (classes, faculty, venues, existing defenses)…', 25);
+        updateProgress($pdo, $progressId, 'running', 'Checking each defense day for free time slots (avoiding classes, teachers, rooms, and existing defenses)…', 25);
 
         $slotContext = computeSchedulerSlotContext($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $duration);
         $slotsByTeamDay = $slotContext['slotsByTeamDay'];
@@ -2168,7 +2196,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         // === PRE-FLIGHT FEASIBILITY GATE ===
         // Per-team fail-fast: if any team has zero schedulable (day×slot×room) cells, attribute
         // the bottleneck to a specific actor and (in strict mode) halt before the GA runs.
-        updateProgress($pdo, $progressId, 'running', 'Pre-flight feasibility check (per-team availability matrix)…', 26);
+        updateProgress($pdo, $progressId, 'running', 'Making sure every team can actually be scheduled…', 26);
         $preflight = runPreflightFeasibility($pdo, $teams, $panelists, $rooms, $timeSlots, $days, $userSchedules, $duration, $slotContext, $validationMode);
 
         if (!empty($preflight['zeroSlotTeamIds'])) {
@@ -2188,7 +2216,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         }
 
         if (empty($schedulerDays)) {
-            $msgNoDay = 'None of the selected defense dates have any feasible start times for any team after excluding class overlaps, faculty loads, venue conflicts, and existing defenses. Broaden dates/rooms, shorten duration, or resolve timetable clashes.';
+            $msgNoDay = 'None of the selected dates have any free start times left once classes, teacher schedules, rooms, and existing defenses are taken into account. Try adding more dates or rooms, shortening the defense length, or fixing the schedule clashes.';
             updateProgress($pdo, $progressId, 'error', $msgNoDay, null);
             if (ob_get_level()) {
                 ob_end_clean();
@@ -2209,12 +2237,12 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 $pdo,
                 $progressId,
                 'running',
-                count($slotContext['daysWithNoSlots']) . ' date(s) omitted (no candidate had a free slot on that day); ' . count($schedulerDays) . ' day(s) still in rotation',
+                'Skipping ' . count($slotContext['daysWithNoSlots']) . ' date(s) with no free time slots; ' . count($schedulerDays) . ' date(s) still available…',
                 26
             );
         }
 
-        updateProgress($pdo, $progressId, 'running', 'Validating classroom room bookings and constructing conflict-free GA candidate pools…', 26);
+        updateProgress($pdo, $progressId, 'running', 'Checking room availability and preparing possible schedules…', 26);
         $preValidation = buildPreGACandidatePool(
             $pdo,
             $teams,
@@ -2237,7 +2265,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             $pdo,
             $progressId,
             'running',
-            'Valid candidate pool ready: ' . $validationSummary['validCandidates'] . ' conflict-free candidates found',
+            'Found ' . $validationSummary['validCandidates'] . ' conflict-free options to work with…',
             30
         );
 
@@ -2268,7 +2296,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                 $pdo,
                 $progressId,
                 'info',
-                'Pre-validation flagged potential unresolved teams; proceeding with optimization and final conflict repair.',
+                'Some teams may be hard to fit — continuing and trying to resolve them automatically…',
                 32
             );
             error_log('SOFT MODE: ' . $summaryText . ' ' . $detailText);
@@ -2289,7 +2317,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                     $pdo,
                     $progressId,
                     'info',
-                    'Constraint pre-filter removed ' . count($unresolvedFromPreValidation) . ' unschedulable team(s); continuing with ' . count($teams) . ' schedulable team(s).',
+                    count($unresolvedFromPreValidation) . ' team(s) can’t be scheduled right now — continuing with ' . count($teams) . ' team(s) that can.',
                     33
                 );
                 error_log('PRE-FILTER: reduced GA scope from ' . $teamsBeforeFilter . ' to ' . count($teams) . ' teams; unresolved=' . implode(',', $unresolvedFromPreValidation));
@@ -2298,7 +2326,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
                     $pdo,
                     $progressId,
                     'info',
-                    count($unresolvedFromPreValidation) . ' team(s) have no candidate slots under the current filters; continuing in ' . $validationMode . ' mode with partial scheduling enabled.',
+                    count($unresolvedFromPreValidation) . ' team(s) have no available time slots with the current settings — scheduling the rest and leaving those for you to review.',
                     33
                 );
                 error_log('PRE-FILTER WARNING: unresolved teams kept in ' . $validationMode . ' mode: ' . implode(',', $unresolvedFromPreValidation));
@@ -2307,7 +2335,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         if (empty($teams)) {
             $payload = buildValidationFailurePayload($pdo, $validationMode, $validationSummary, $validationIssues);
-            $msgNoRunnable = 'No schedulable teams remain after conflict pre-filtering. Widen dates/rooms or enable overlap exceptions for research classes where appropriate.';
+            $msgNoRunnable = 'None of the selected teams can be scheduled with the current settings. Try adding more defense dates or rooms, or widening the available time slots.';
             updateProgress($pdo, $progressId, 'error', $msgNoRunnable, null);
             if (ob_get_level()) {
                 ob_end_clean();
@@ -2328,7 +2356,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         error_log("SCHEDULER: About to generate schedules for " . count($teams) . " teams");
 
-        updateProgress($pdo, $progressId, 'running', 'Starting genetic algorithm optimization from valid candidate pool...', 35);
+        updateProgress($pdo, $progressId, 'running', 'Working out the best possible schedule…', 35);
 
         // Optimize parameters for better performance-quality balance
         // REDUCED for faster execution to prevent timeout
@@ -2370,7 +2398,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         error_log('Genetic Algorithm completed successfully (alternate candidates: ' . count($gaAlternates) . ')');
 
         // === POST-GA VALIDATION: Double-check for overlapping schedules ===
-        updateProgress($pdo, $progressId, 'running', 'Post-GA validation: defense-defense overlaps, faculty/section classes, rooms…', 87);
+        updateProgress($pdo, $progressId, 'running', 'Double-checking the schedule for any time, teacher, or room conflicts…', 87);
         $validationResult = validateAndFixOverlaps($pdo, $bestSchedule, $userSchedules, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $panelists);
         $bestSchedule = $validationResult['schedule'];
         $overlapIssues = $validationResult['issues'];
@@ -2480,8 +2508,8 @@ $GLOBALS['schedulerPanelists'] = $panelists;
         }
 
         if ($remainingConflicts > 0) {
-            $conflictFailMsg = 'Cannot produce a strictly conflict-free schedule with the current rooms, dates, times, class timetables, and existing defenses. '
-                . 'Broaden availability or resolve overlaps. (' . $remainingConflicts . ' internal conflict marker(s) remain after automated repair.)';
+            $conflictFailMsg = 'We couldn’t fit every team without overlaps using the current rooms, dates, times, and class schedules. '
+                . 'Try adding more dates or rooms, or resolving the clashes, then generate again. (' . $remainingConflicts . ' overlap(s) could not be fixed automatically.)';
             updateProgress($pdo, $progressId, 'error', $conflictFailMsg, null);
             while (ob_get_level()) {
                 ob_end_clean();
@@ -2586,12 +2614,12 @@ $GLOBALS['schedulerPanelists'] = $panelists;
 
         if ($isPreview) {
             // Preview mode: prepare data without saving
-            updateProgress($pdo, $progressId, 'running', 'Preparing schedule preview with class overlay and schedule alternatives…', 90);
+            updateProgress($pdo, $progressId, 'running', 'Preparing your schedule preview and alternative options…', 90);
             error_log("Preparing schedule preview (not saving to DB)");
 
             $previewData = $scheduleVariantsPrepared[0]['schedules'] ?? prepareScheduleData($pdo, $bestSchedule);
             $repairNotes = count($overlapIssues);
-            $previewMessage = 'Preview ready — conflict-free after validation' . ($repairNotes ? ' (' . $repairNotes . ' automatic slot move(s) were applied during repair).' : '.');
+            $previewMessage = 'Your schedule preview is ready and has no conflicts' . ($repairNotes ? ' (' . $repairNotes . ' time slot(s) were adjusted automatically to avoid clashes).' : '.');
             if (count($scheduleVariantsPrepared) > 1) {
                 $previewMessage .= ' ' . count($scheduleVariantsPrepared) . ' layout option(s): use the dropdown to compare.';
             }
@@ -2627,7 +2655,7 @@ $GLOBALS['schedulerPanelists'] = $panelists;
             }
         } else {
             // Original flow: save immediately
-            updateProgress($pdo, $progressId, 'running', 'Saving schedule to database...', 90);
+            updateProgress($pdo, $progressId, 'running', 'Saving the schedule…', 90);
             error_log("About to save schedule to database");
 
             if (saveScheduleToDatabase($pdo, $bestSchedule)) {
@@ -3522,7 +3550,7 @@ function geneticAlgorithm(
         if ($elapsed >= $timeBudgetSeconds) {
             error_log(sprintf('GA time budget reached (%.1fs >= %ds) at generation %d; returning best fitness %s', $elapsed, $timeBudgetSeconds, $i, $bestFitness));
             if ($progressId) {
-                updateProgress($pdo, $progressId, 'running', "Time budget reached after $i generations; finalizing best schedule found…", 85);
+                updateProgress($pdo, $progressId, 'running', "This is taking a little longer than usual — finalizing the best schedule we found so far…", 85);
             }
             break;
         }
@@ -3530,7 +3558,8 @@ function geneticAlgorithm(
         // Update progress every 5 generations
         if ($progressId && $i % 5 == 0) {
             $percentage = 35 + (($i / $generations) * 50); // Progress from 35% to 85%
-            updateProgress($pdo, $progressId, 'running', "Processing generation " . ($i + 1) . " of $generations (best fitness: $bestFitness, " . round($elapsed) . "s)", $percentage);
+            $tryNum = $i + 1;
+            updateProgress($pdo, $progressId, 'running', "Trying different schedule arrangements to find the best fit (round $tryNum of $generations)…", $percentage);
         }
 
         // Evaluate fitness for each schedule. Skip those already scored (carried-forward
@@ -5138,7 +5167,46 @@ function getTeamSelectedPanelistsCached($pdo, array $team, $allPanelists)
     return $selected;
 }
 
+/**
+ * Reorder a 3-panelist list so that any external (is_external = 1) panelist is placed in the
+ * 3rd seat. Hard rule: externals are ONLY ever panelist_id3, never panelist 1 or 2. Internal
+ * order is otherwise preserved. Applied to EVERY selection path (locked, optimal, scoring
+ * fallback, GA), so no path can leak an external into the primary internal seats.
+ *
+ * @param array $ids Up to 3 panelist IDs (order = [slot1, slot2, slot3])
+ * @return array Reordered IDs with externals last
+ */
+function enforceExternalLastOrdering($ids)
+{
+    global $pdo;
+    if (!is_array($ids) || count($ids) < 2) {
+        return $ids;
+    }
+
+    $internal = [];
+    $external = [];
+    foreach ($ids as $id) {
+        $info = function_exists('getPanelistInfo') ? getPanelistInfo($pdo, (int) $id) : null;
+        if ($info && (int) ($info['is_external'] ?? 0) === 1) {
+            $external[] = $id;
+        } else {
+            $internal[] = $id;
+        }
+    }
+
+    return array_values(array_merge($internal, $external));
+}
+
+/**
+ * Public entry point: select a team's 3 panelists, then enforce the external-last seat rule.
+ */
 function selectPanelists($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
+{
+    $selected = selectPanelistsInternal($panelistsByProgram, $allPanelists, $adviserId, $teamId);
+    return enforceExternalLastOrdering($selected);
+}
+
+function selectPanelistsInternal($panelistsByProgram, $allPanelists, $adviserId, $teamId = null)
 {
     global $pdo; // ensure $pdo is available
 
