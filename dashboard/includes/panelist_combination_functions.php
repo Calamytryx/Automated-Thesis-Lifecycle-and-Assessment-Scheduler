@@ -17,6 +17,12 @@
  * @package Defense Scheduling
  */
 
+// Sentinel allele for an unfilled panel-3 ("external TBD"). Mirrors the definition in
+// run_scheduler.php; guarded so this shared helper is safe to load from any entrypoint.
+if (!defined('PANEL_TBD')) {
+    define('PANEL_TBD', 'TBD');
+}
+
 /**
  * Get panelist information including employment status and external status
  * 
@@ -207,13 +213,20 @@ function isValidPanelistCombination($panelists) {
     if ($p1prog && $p2prog && $p1prog === $p2prog) {
         // Same program — ideal case, nothing to relax.
     } else {
+        global $pdo;
+        $alliedMap = ($pdo instanceof PDO) ? loadAlliedPrograms($pdo) : [];
         $p1col = $p1['program_college'] ?? null;
         $p2col = $p2['program_college'] ?? null;
-        if (!$p1col || !$p2col || $p1col !== $p2col) {
-            error_log("Invalid: panelist1 and panelist2 are neither same program nor same college (" . ($p1prog ?: '-') . "/" . ($p1col ?: '-') . " vs " . ($p2prog ?: '-') . "/" . ($p2col ?: '-') . ")");
+        $sameCollege = $p1col && $p2col && $p1col === $p2col;
+        // panelist 2 may also come from a CMS-allied program (hard constraint 6).
+        $allied = programIsAlliedForPanel2($p2prog, $p1prog, $alliedMap);
+        if (!$sameCollege && !$allied) {
+            error_log("Invalid: panelist1 and panelist2 are neither same program, same college, nor allied (" . ($p1prog ?: '-') . "/" . ($p1col ?: '-') . " vs " . ($p2prog ?: '-') . "/" . ($p2col ?: '-') . ")");
             return false;
         }
-        error_log("panelist2 is same-college / different-program (conflict fallback) — allowed");
+        error_log($allied
+            ? "panelist2 is allied-program (constraint-6 fallback) — allowed"
+            : "panelist2 is same-college / different-program (conflict fallback) — allowed");
     }
 
     // Panelist 3 is the flexible External/Validator seat: any employment type, any program or
@@ -358,15 +371,17 @@ function canFormCompliantPanel($pdo, $adviserId = null, $exclude = [], $teamProg
     //   - >= 2 same-college internals total (slots 1 & 2 combined; same-program counts here too).
     // Same-program EXTERNALS are eligible for slots 1 & 2 too, so include the external pool when
     // counting (mirrors buildOptimalPanelistCombination's slot-1/2 pool).
+    $alliedMap = loadAlliedPrograms($pdo);
     $sameProgramSlot12 = [];
-    $sameCollegeSlot12 = [];
+    $sameCollegeSlot12 = []; // name kept for clarity, but also counts allied-program panelists
     foreach (array_merge($fullTime, $partTime, $external) as $id) {
         $info = getPanelistInfo($pdo, $id);
         if (!$info) continue;
         if (panelistMatchesTeamProgram($info, $teamProgramNorm, $teamCollege)) {
             $sameProgramSlot12[$id] = true;
             $sameCollegeSlot12[$id] = true;
-        } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
+        } elseif (($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved)
+                  || programIsAlliedForPanel2($info['normalized_program'] ?? '', $teamProgramNorm, $alliedMap)) {
             $sameCollegeSlot12[$id] = true;
         }
     }
@@ -387,9 +402,10 @@ function canFormCompliantPanel($pdo, $adviserId = null, $exclude = [], $teamProg
  *
  * Waterfall (most preferred first):
  *   Tier 1: external specialist (is_external = 1) in the SAME program as the team
- *   Tier 2: any other panelist in the SAME program (is_external = 0)
- *   Tier 3: different program but SAME college
- *   Tier 4: entirely different college (last resort, lets the defense proceed)
+ *   Tier 2: CMS-allied program (configured in allied_programs for the team's program)
+ *   Tier 3: any other panelist in the SAME program (is_external = 0)
+ *   Tier 4: different program but SAME college
+ *   Tier 5: entirely different college (last resort, lets the defense proceed)
  *
  * @param PDO $pdo Database connection
  * @param int[] $candidateIds All available panelist IDs to rank (full-time + part-time + external)
@@ -404,9 +420,11 @@ function getExternalPanelistsWithPriority($pdo, $candidateIds = [], $teamProgram
     }
 
     $exclude = array_flip(array_map('intval', $excludePanelistIds));
+    $alliedMap = loadAlliedPrograms($pdo); // CMS allied-programs adjacency (constraint 6)
 
     $tier1 = []; // same program + external specialist
     $tier2 = []; // same program + non-external
+    $tierAllied = []; // CMS-allied program (more intentional than a bare same-college match)
     $tier3 = []; // same college, different program
     $tier4 = []; // different college (or unknown)
 
@@ -428,16 +446,19 @@ function getExternalPanelistsWithPriority($pdo, $candidateIds = [], $teamProgram
             if ($isExternal) {
                 $tier1[] = $id; // Priority 1
             } else {
-                $tier2[] = $id; // Priority 2
+                $tier2[] = $id; // Priority 3 (same-program non-external; ranked below allied)
             }
+        } elseif (programIsAlliedForPanel2($prog, $teamProgram, $alliedMap)) {
+            // Allied program (same-program already handled above, so this is strictly allied).
+            $tierAllied[] = $id; // Priority 2
         } elseif ($teamCollege && $coll && $coll === $teamCollege) {
-            $tier3[] = $id; // Priority 3
+            $tier3[] = $id; // Priority 4
         } else {
-            $tier4[] = $id; // Priority 4
+            $tier4[] = $id; // Priority 5
         }
     }
-
-    return array_values(array_merge($tier1, $tier2, $tier3, $tier4));
+    $allExternalPanelists = array_merge($tierAllied, $tier1);
+    return array_values(array_merge($allExternalPanelists, $tier2, $tier3, $tier4));
 }
 
 /**
@@ -505,20 +526,33 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         // scheduling conflict (e.g. the only other same-program faculty is already booked and
         // thus excluded) leaves no second same-program panelist, falls back to a same-college /
         // different-program internal — never a different college.
-        $fallbackFull = [];
-        $fallbackPart = [];
+        // Panelist 2 may come from the team's SAME program OR a CMS-ALLIED program at EQUAL rank
+        // (hard constraint 6). Same-COLLEGE (different program, not allied) is a LOWER-priority
+        // fallback used only when no same-program/allied candidate remains. Panelist 1 is ALWAYS
+        // same-program. Pools keep full/part split so employment-type rules still apply.
+        $alliedFull = [];      // allied-program full-time  (slot-2 primary, equal to same-program)
+        $alliedPart = [];      // allied-program part-time
+        $sameCollegeFull = []; // same college, different program, NOT allied (slot-2 fallback)
+        $sameCollegePart = [];
         if ($useStudentMatch) {
             $studentProgram = $teamProgramNorm;
             $teamCollegeResolved = $studentCollege ?: ($teamProgramNorm ? getProgramCollege($pdo, $teamProgramNorm) : null);
 
+            // CMS allied-programs adjacency, loaded once, keyed by normalized program.
+            $alliedMap = loadAlliedPrograms($pdo);
+
+            // Classification precedence: same-program -> allied -> same-college. Allied is checked
+            // before same-college so an allied program that also shares the college ranks as allied.
             $matchingFull = [];
             foreach ($fullTime as $id) {
                 $info = getPanelistInfo($pdo, $id);
                 if (!$info) continue;
                 if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingFull[] = $id;
+                } elseif (programIsAlliedForPanel2($info['normalized_program'] ?? '', $studentProgram, $alliedMap)) {
+                    $alliedFull[] = $id;
                 } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
-                    $fallbackFull[] = $id;
+                    $sameCollegeFull[] = $id;
                 }
             }
             $matchingPart = [];
@@ -527,14 +561,14 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                 if (!$info) continue;
                 if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingPart[] = $id;
+                } elseif (programIsAlliedForPanel2($info['normalized_program'] ?? '', $studentProgram, $alliedMap)) {
+                    $alliedPart[] = $id;
                 } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
-                    $fallbackPart[] = $id;
+                    $sameCollegePart[] = $id;
                 }
             }
-            // Same-program EXTERNALS are also eligible for slots 1 & 2 (treated as internal here)
-            // so seats rotate when there are few internal faculty. They are appended AFTER the
-            // internals (see $internalPool below) so internals are preferred and externals only
-            // fill slots 1/2 when needed.
+            // Same-program EXTERNALS may serve slots 1 & 2 when internals are scarce (otherwise
+            // externals are reserved for slot 3). Appended after internals in the pools below.
             $matchingExternal = [];
             foreach ($external as $id) {
                 $info = getPanelistInfo($pdo, $id);
@@ -544,14 +578,14 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                 }
             }
 
-            // Slot 1 ALWAYS needs a same-program panelist, so require at least one. Slot 2 may
-            // use a second same-program panelist OR (on conflict) a same-college fallback, so the
-            // same-program + same-college pools together must supply at least two candidates.
+            // Slot 1 ALWAYS needs >= 1 same-program internal. Slots 1 & 2 together need >= 2 from
+            // same-program + allied + same-college (allied counts at full rank toward slot 2).
             $matchingInternals = array_values(array_unique(array_merge($matchingFull, $matchingPart)));
-            $matchingCombined = array_values(array_unique(array_merge($matchingInternals, $matchingExternal)));
-            $sameCollegeCount = count($matchingCombined) + count($fallbackFull) + count($fallbackPart);
-            if (count($matchingCombined) < 1 || $sameCollegeCount < 2) {
-                error_log("Not enough panelists for slots 1 & 2: need 1 same-program + 1 same-college (program=" . ($studentProgram ?: '-') . ", college=" . ($teamCollegeResolved ?: '-') . ")");
+            $matchingCombined  = array_values(array_unique(array_merge($matchingInternals, $matchingExternal)));
+            $alliedInternals   = array_values(array_unique(array_merge($alliedFull, $alliedPart)));
+            $slot12Supply = count($matchingCombined) + count($alliedInternals) + count($sameCollegeFull) + count($sameCollegePart);
+            if (count($matchingCombined) < 1 || $slot12Supply < 2) {
+                error_log("Not enough panelists for slots 1 & 2: need 1 same-program + 1 (same-program/allied/same-college) (program=" . ($studentProgram ?: '-') . ", college=" . ($teamCollegeResolved ?: '-') . ")");
                 return null;
             }
 
@@ -566,21 +600,34 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         shuffle($partTime);
         shuffle($external);
 
-        // Slots 1 & 2 draw from ONE same-program pool, full-time and part-time treated equally
-        // so panelist 1 isn't forced to be the lone full-timer (e.g. always "Amanda Menta").
-        // Internals (incl. program chairs) come first; same-program externals are appended so
-        // they only fill slots 1/2 when there aren't enough internals. Each segment is shuffled
-        // independently to rotate within it.
+        // Employment-type priority for slots 1 & 2: FULL-TIME first, then part-time, then external.
+        // A part-time panelist fills a seat only when no full-time remains; an external only when
+        // neither full- nor part-time internals remain. Each tier is shuffled so the pick rotates
+        // within it (no fixed "always Amanda Menta").
+        //
+        //  - $internalPool : SLOT 1 pool — SAME-PROGRAM only.
+        //  - $slot2Pool    : SLOT 2 primary — SAME-PROGRAM and ALLIED at EQUAL rank (merged within
+        //                    each employment tier, then shuffled so neither origin is preferred).
+        //  - $slot2Fallback: SLOT 2 lower fallback — same-college, different program, not allied.
         $internalPool = [];
+        $slot2Pool = [];
+        $slot2Fallback = [];
         if ($useStudentMatch) {
-            $internalsShuffled = $matchingInternals;
-            shuffle($internalsShuffled);
-            $externalsShuffled = $matchingExternal;
-            shuffle($externalsShuffled);
-            $internalPool = array_values(array_unique(array_merge($internalsShuffled, $externalsShuffled)));
+            $shuf = static function ($arr) { shuffle($arr); return $arr; };
+
+            $matchFullS = $shuf($matchingFull);
+            $matchPartS = $shuf($matchingPart);
+            $matchExtS  = $shuf($matchingExternal);
+            $internalPool = array_values(array_unique(array_merge($matchFullS, $matchPartS, $matchExtS)));
+
+            // Equal rank: same-program and allied merged inside each tier, then shuffled. Allied
+            // externals are NOT included here (they remain reserved for the slot-3 waterfall).
+            $fullTier = $shuf(array_values(array_unique(array_merge($matchingFull, $alliedFull))));
+            $partTier = $shuf(array_values(array_unique(array_merge($matchingPart, $alliedPart))));
+            $slot2Pool = array_values(array_unique(array_merge($fullTier, $partTier, $matchExtS)));
+
+            $slot2Fallback = $shuf(array_values(array_unique(array_merge($sameCollegeFull, $sameCollegePart))));
         }
-        $fallbackCombined = array_merge($fallbackFull, $fallbackPart);
-        shuffle($fallbackCombined);
 
         // Defined allowed combinations (order: slot1, slot2, slot3)
         // Prefer the external 3rd slot most of the time, but still keep a small
@@ -606,12 +653,15 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
             $used = [];
             for ($i = 0; $i < 3; $i++) {
                 $type = $pattern[$i];
-                // Slot 1 must have a same-program candidate available. Slot 3 uses the
-                // external-priority pool and slot 2 may fall back to the same-college pool, so
-                // only slot 1's empty pool is an immediate failure here. When matching on the
-                // team program, slots 1 & 2 use the employment-agnostic $internalPool.
-                $slot01Pool = $useStudentMatch ? $internalPool : $available[$type];
-                if ($i === 0 && empty($slot01Pool)) { $valid = false; break; }
+                // Slot 1 draws from the SAME-PROGRAM pool; slot 2 from the SAME-PROGRAM-or-ALLIED
+                // pool (equal rank). Slot 3 uses the external-priority waterfall below. Only slot
+                // 1's empty pool is an immediate failure (slot 2 also has a same-college fallback).
+                if ($useStudentMatch) {
+                    $slotPool = ($i === 0) ? $internalPool : $slot2Pool;
+                } else {
+                    $slotPool = $available[$type];
+                }
+                if ($i === 0 && empty($slotPool)) { $valid = false; break; }
 
                 $chosen = null;
 
@@ -635,21 +685,21 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                         }
                     }
                 } else {
-                    // Slots 1 & 2 come from the same-program pool, full-time and part-time
-                    // treated equally (any same-program faculty may be panelist 1 or 2).
-                    foreach ($slot01Pool as $candidate) {
+                    // Slot 1: same-program. Slot 2: same-program OR allied at equal rank. The pool
+                    // ($slotPool) already contains exactly the eligible ids in priority order, so
+                    // we just take the first unused one (no extra program gate — that would wrongly
+                    // drop allied candidates from slot 2).
+                    foreach ($slotPool as $candidate) {
                         if (in_array($candidate, $used, true)) continue;
-                        if ($useStudentMatch && !in_array($candidate, $matchingCombined, true)) continue;
                         $chosen = $candidate;
                         break;
                     }
 
-                    // Conflict fallback for panelist 2 ONLY: no same-program candidate remains
-                    // (e.g. the other same-program faculty is booked and excluded), so draw a
-                    // same-college / different-program internal instead. Panelist 1 (i === 0) is
-                    // never relaxed this way.
+                    // Conflict fallback for panelist 2 ONLY: no same-program/allied candidate
+                    // remains, so draw a same-college / different-program internal instead.
+                    // Panelist 1 (i === 0) is never relaxed this way.
                     if ($chosen === null && $i === 1 && $useStudentMatch) {
-                        foreach ($fallbackCombined as $candidate) {
+                        foreach ($slot2Fallback as $candidate) {
                             if (in_array($candidate, $used, true)) continue;
                             $chosen = $candidate;
                             break;
@@ -693,8 +743,67 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
 }
 
 /**
+ * Load the CMS-configured allied-programs adjacency (hard constraint 6, panelist 2).
+ *
+ * Returns a map keyed by NORMALIZED program name -> list of normalized allied program names,
+ * so it composes directly with normalizeProgramName()/panelistMatchesTeamProgram() used
+ * throughout panel selection. A program is implicitly allied with itself, so callers only
+ * consult this map for the cross-program case. Memoized per request.
+ *
+ * @param PDO $pdo
+ * @return array<string,string[]>
+ */
+function loadAlliedPrograms($pdo) {
+    static $map = null;
+    if ($map !== null) {
+        return $map;
+    }
+    $map = [];
+    try {
+        $sql = "SELECT pself.name AS program, pa.name AS allied
+                FROM allied_programs ap
+                JOIN programs pself ON pself.id = ap.program_id
+                JOIN programs pa    ON pa.id    = ap.allied_program_id";
+        foreach ($pdo->query($sql)->fetchAll(PDO::FETCH_ASSOC) as $r) {
+            $prog   = normalizeProgramName($r['program'] ?? '');
+            $allied = normalizeProgramName($r['allied'] ?? '');
+            if ($prog === '' || $allied === '') {
+                continue;
+            }
+            $map[$prog][] = $allied;
+        }
+    } catch (Exception $e) {
+        // Table may not exist yet (migration not run): treat as "no allied programs".
+        error_log("loadAlliedPrograms: " . $e->getMessage());
+        $map = [];
+    }
+    return $map;
+}
+
+/**
+ * Is $panelistProgram an acceptable panelist-2 program for a team in $teamProgram?
+ * True when same normalized program (implicit self-ally) or listed as allied in the CMS table.
+ *
+ * @param string|null $panelistProgram Raw or normalized panelist program
+ * @param string|null $teamProgram     Raw or normalized team program
+ * @param array<string,string[]> $alliedMap Output of loadAlliedPrograms()
+ * @return bool
+ */
+function programIsAlliedForPanel2($panelistProgram, $teamProgram, array $alliedMap) {
+    $pn = normalizeProgramName((string) $panelistProgram);
+    $tn = normalizeProgramName((string) $teamProgram);
+    if ($pn === '' || $tn === '') {
+        return false;
+    }
+    if ($pn === $tn) {
+        return true; // implicit self-ally
+    }
+    return in_array($pn, $alliedMap[$tn] ?? [], true);
+}
+
+/**
  * Get the best external panelist for assignment (3rd position)
- * 
+ *
  * @param PDO $pdo Database connection
  * @param array $excludePanelistIds Panelist IDs to exclude
  * @return int|null External panelist ID or null if none available

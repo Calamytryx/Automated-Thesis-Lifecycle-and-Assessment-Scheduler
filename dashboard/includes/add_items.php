@@ -789,6 +789,16 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             unset($data['program_id']);
         }
 
+        // "With Lateral Functions" availability window. Normalize blank -> NULL, and clear the
+        // hours entirely when lateral functions is off. Keys are only touched when the form posted
+        // them (so DBs without the work_* columns are unaffected).
+        $hasLateral = (int) ($data['is_parttime'] ?? 0) === 1;
+        foreach (['work_start_time', 'work_end_time'] as $wf) {
+            if (array_key_exists($wf, $data)) {
+                $data[$wf] = (!$hasLateral || trim((string) $data[$wf]) === '') ? null : trim((string) $data[$wf]);
+            }
+        }
+
         // Set default values for required fields
         $data['created_at'] = $data['created_at'] ?? null;
         $data['updated_at'] = date('Y-m-d H:i:s');

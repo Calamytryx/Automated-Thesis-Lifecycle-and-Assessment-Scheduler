@@ -18,6 +18,14 @@ if (!defined('SCHEDULER_DEBUG')) {
     define('SCHEDULER_DEBUG', getenv('SCHEDULER_DEBUG') === '1');
 }
 
+// Sentinel allele for an unfilled panel-3 ("external TBD"). A legal value, not a conflict:
+// filtered out of every panelist conflict check (it is not a real person yet). Defined here,
+// before the main execution block, so it is available when the GA runs (top-level `const`
+// statements are not hoisted the way function definitions are).
+if (!defined('PANEL_TBD')) {
+    define('PANEL_TBD', 'TBD');
+}
+
 /**
  * Gated diagnostic log. No-op (and skips string building) unless SCHEDULER_DEBUG is on.
  * @param string|callable $msg String, or callable returning a string for lazy formatting.
@@ -526,18 +534,18 @@ try {
                 }
             }
         }
-// PART-TIME RESTRICTION: block slots before 4:00 PM for part-time panelists
+// LATERAL-FUNCTION RESTRICTION: keep panelists within their per-user available hours.
 foreach ($panelistIds as $panelistId) {
-    if (is_array($panelistId)) continue;
+    if (is_array($panelistId) || $panelistId === PANEL_TBD) continue; // TBD is not a real person
     $pdata = getPanelistData($pdo, $panelistId);
-    if ((int)($pdata['is_parttime'] ?? 0) === 1 && !isParttimePanelistAllowedAtTime($timeValue)) {
-        $conflicts[] = "Part-time panelist {$panelistId} cannot be scheduled before 4:00 PM (slot: {$timeValue})";
+    if (schedulerWorkWindowConflict($pdata, (string) $timeValue, (float) $duration)) {
+        $conflicts[] = "Panelist {$panelistId} is outside their available hours (slot: {$timeValue})";
     }
 }
 if (!empty($conflicts)) return $conflicts;
 
         foreach ($panelistIds as $panelistId) {
-            if (is_array($panelistId)) {
+            if (is_array($panelistId) || $panelistId === PANEL_TBD) {
                 continue;
             }
             if (!isset($userSchedules[$panelistId])) {
@@ -649,7 +657,7 @@ if (!empty($conflicts)) return $conflicts;
         $defenseWindow = date('H:i', $defenseStart) . '-' . date('H:i', $defenseEnd);
 
         foreach ($panelistIds as $panelistId) {
-            if (is_array($panelistId)) {
+            if (is_array($panelistId) || $panelistId === PANEL_TBD) {
                 continue;
             }
             if (!isset($userSchedules[$panelistId])) {
@@ -3505,7 +3513,7 @@ function getPanelistData($pdo, $panelistId)
 {
     static $cache = [];
     if (!isset($cache[$panelistId])) {
-        $stmt = $pdo->prepare("SELECT program, area_of_expertise, is_parttime, is_external FROM users WHERE id = ?");
+        $stmt = $pdo->prepare("SELECT program, area_of_expertise, is_parttime, is_external, work_start_time, work_end_time FROM users WHERE id = ?");
         $stmt->execute([$panelistId]);
         $cache[$panelistId] = $stmt->fetch(PDO::FETCH_ASSOC);
     }
@@ -3534,6 +3542,248 @@ function fetchUserSchedules($pdo)
     mergeProgramSectionClassTemplatesIntoUserSchedules($pdo, $schedules);
 
     return $schedules;
+}
+
+/* =====================================================================================
+ * CP-style GA upgrade: shared primitives (interval cache, lexicographic order, repair).
+ * These back the repair operator and the two-tier fitness. Time math is delegated to the
+ * existing scheduler_* helpers so it can never drift from the rest of the validators.
+ * ===================================================================================== */
+
+/** Storage form of a panelist id: NULL for the PANEL_TBD sentinel (panelist_id3 is nullable). */
+function schedulerPanelistStorageId($pid)
+{
+    return ($pid === PANEL_TBD || $pid === null || $pid === '') ? null : (int) $pid;
+}
+
+/** Real (integer) panelist ids only, dropping the PANEL_TBD sentinel and any blanks. */
+function schedulerRealPanelistIds(array $panelistIds): array
+{
+    $out = [];
+    foreach ($panelistIds as $pid) {
+        if ($pid === PANEL_TBD || $pid === null || $pid === '') {
+            continue;
+        }
+        $out[] = (int) $pid;
+    }
+    return $out;
+}
+
+/**
+ * Stamp a gene with its resolved interval ( _day normalized + _start/_end unix ) so the
+ * O(teams^2) binary-conflict scan compares integers instead of re-parsing time per pair.
+ * Idempotent; call after any edit to day/time_slot. Leaves nulls if the slot is unparseable.
+ */
+function schedulerStampGeneInterval(array &$gene): void
+{
+    $duration = (float) ($GLOBALS['timeDuration'] ?? 1);
+    $day = scheduler_calendar_day_from_raw((string) ($gene['day'] ?? ''));
+    $range = scheduler_defense_range_on_day((string) ($gene['day'] ?? ''), (string) ($gene['time_slot'] ?? ''), $duration);
+    $gene['_day']   = $day;                          // normalized calendar day, or null
+    $gene['_start'] = $range['start'] ?? null;       // unix ts, or null
+    $gene['_end']   = $range['end'] ?? null;
+}
+
+/** True when two stamped genes share a calendar day and their intervals overlap (+buffer secs). */
+function schedulerGenesOverlap(array $a, array $b, int $bufferSeconds = 0): bool
+{
+    if (empty($a['_day']) || empty($b['_day']) || $a['_day'] !== $b['_day']) {
+        return false;
+    }
+    if ($a['_start'] === null || $b['_start'] === null) {
+        return false;
+    }
+    return ($a['_start'] < $b['_end'] + $bufferSeconds) && ($b['_start'] < $a['_end'] + $bufferSeconds);
+}
+
+/**
+ * Lexicographic schedule order (sorts BEST first): fewer hard violations wins; ties broken by
+ * higher soft score. Use everywhere the GA used `$b->fitness - $a->fitness`. usort($pop, this)
+ * leaves $pop[0] as the best individual.
+ */
+function compareSchedules(DefenseSchedule $a, DefenseSchedule $b): int
+{
+    if ($a->hardViolations !== $b->hardViolations) {
+        return $a->hardViolations <=> $b->hardViolations; // ascending: fewer is better
+    }
+    return $b->softScore <=> $a->softScore;               // descending: higher is better
+}
+
+/** Detect binary (team-coupling) conflicts in a chromosome: [iA, iB, type]. type: room|panelist. */
+function findBinaryConflicts(array $genes, int $bufferSeconds = 0): array
+{
+    $conf = [];
+    $n = count($genes);
+    for ($a = 0; $a < $n; $a++) {
+        for ($b = $a + 1; $b < $n; $b++) {
+            if (!schedulerGenesOverlap($genes[$a], $genes[$b], $bufferSeconds)) {
+                continue;
+            }
+            if (($genes[$a]['room'] ?? null) === ($genes[$b]['room'] ?? null)) {
+                $conf[] = [$a, $b, 'room']; // constraint 4 (binary) + 8 buffer
+            }
+            // constraint 5: a panelist is one person -> any overlap across any rooms is forbidden.
+            // PANEL_TBD is filtered out: it is not a real assignment, so it never collides.
+            $shared = array_intersect(
+                schedulerRealPanelistIds($genes[$a]['panelist_ids'] ?? []),
+                schedulerRealPanelistIds($genes[$b]['panelist_ids'] ?? [])
+            );
+            if (!empty($shared)) {
+                $conf[] = [$a, $b, 'panelist'];
+            }
+        }
+    }
+    return $conf;
+}
+
+/** Rooms occupied by other genes overlapping gene index $i. */
+function schedulerBusyRoomsAround(array $genes, int $i, int $bufferSeconds = 0): array
+{
+    $busy = [];
+    foreach ($genes as $j => $g) {
+        if ($j === $i) {
+            continue;
+        }
+        if (schedulerGenesOverlap($genes[$i], $g, $bufferSeconds) && !empty($g['room'])) {
+            $busy[(string) $g['room']] = true;
+        }
+    }
+    return $busy;
+}
+
+/** Real panelist ids busy in other genes overlapping gene index $i. */
+function schedulerBusyPanelistsAround(array $genes, int $i, int $bufferSeconds = 0): array
+{
+    $busy = [];
+    foreach ($genes as $j => $g) {
+        if ($j === $i) {
+            continue;
+        }
+        if (schedulerGenesOverlap($genes[$i], $g, $bufferSeconds)) {
+            foreach (schedulerRealPanelistIds($g['panelist_ids'] ?? []) as $pid) {
+                $busy[$pid] = true;
+            }
+        }
+    }
+    return $busy;
+}
+
+/** Choose which side of a conflict to mutate: the team with the larger domain (more freedom). */
+function schedulerPickRepairSide(array $genes, $validCandidatePool, int $a, int $b): int
+{
+    $ca = count($validCandidatePool[$genes[$a]['team_id']]['candidates'] ?? []);
+    $cb = count($validCandidatePool[$genes[$b]['team_id']]['candidates'] ?? []);
+    return ($cb >= $ca) ? $b : $a;
+}
+
+/** Targeted room redraw: keep day/time/panel, move to a room free at this interval. */
+function schedulerRedrawRoom(array $genes, int $i, array $rooms, int $bufferSeconds): ?array
+{
+    $busy = schedulerBusyRoomsAround($genes, $i, $bufferSeconds);
+    $shuffled = $rooms;
+    shuffle($shuffled);
+    foreach ($shuffled as $room) {
+        if (!isset($busy[(string) $room])) {
+            $g = $genes[$i];
+            $g['room'] = $room;
+            return $g; // room change does not alter the time interval; no restamp needed
+        }
+    }
+    return null;
+}
+
+/** Targeted panel redraw: swap in a panel set (from the team domain) that avoids the busy set. */
+function schedulerRedrawPanel($pdo, array $genes, int $i, $validCandidatePool, int $bufferSeconds): ?array
+{
+    $g = $genes[$i];
+    $busy = schedulerBusyPanelistsAround($genes, $i, $bufferSeconds);
+    $tid = $g['team_id'];
+    for ($t = 0; $t < 12; $t++) {
+        $cand = chooseCandidateFromPool($validCandidatePool, $tid);
+        if ($cand === null) {
+            break;
+        }
+        $pids = schedulerRealPanelistIds($cand['panelist_ids'] ?? []);
+        if (count(array_unique($pids)) < count($pids)) {
+            continue; // keep panel1 != panel2 != panel3
+        }
+        $clash = false;
+        foreach ($pids as $pid) {
+            if (isset($busy[$pid])) {
+                $clash = true;
+                break;
+            }
+        }
+        if ($clash) {
+            continue;
+        }
+        $g['panelist_ids'] = $cand['panelist_ids']; // panels don't alter the interval
+        return $g;
+    }
+    return null;
+}
+
+/**
+ * Repair operator: push a possibly-infeasible offspring back into the feasible region by
+ * re-drawing offending genes from their own domain. Resolves one conflict per pass, then
+ * re-scans (panelist swaps can cascade). Returns the repaired gene list, or null if it could
+ * not be made feasible within $maxPasses (caller replaces it with a fresh individual).
+ */
+function repairChromosome(array $genes, $pdo, $validCandidatePool, array $rooms, int $bufferSeconds = 0, int $maxPasses = 8): ?array
+{
+    foreach ($genes as &$g) {
+        if (!array_key_exists('_day', $g)) {
+            schedulerStampGeneInterval($g);
+        }
+    }
+    unset($g);
+
+    for ($pass = 0; $pass < $maxPasses; $pass++) {
+        $conflicts = findBinaryConflicts($genes, $bufferSeconds);
+        if (empty($conflicts)) {
+            return $genes; // binary-feasible
+        }
+        [$a, $b, $type] = $conflicts[0];
+        $side = schedulerPickRepairSide($genes, $validCandidatePool, $a, $b);
+
+        $fixed = ($type === 'room')
+            ? schedulerRedrawRoom($genes, $side, $rooms, $bufferSeconds)
+            : schedulerRedrawPanel($pdo, $genes, $side, $validCandidatePool, $bufferSeconds);
+
+        if ($fixed === null) {
+            // Targeted redraw exhausted -> full re-sample of this team's gene (new day/slot/room).
+            $full = chooseCandidateFromPool($validCandidatePool, $genes[$side]['team_id']);
+            if ($full === null) {
+                return null; // team unplaceable; don't carry rot forward
+            }
+            schedulerStampGeneInterval($full);
+            $genes[$side] = $full;
+        } else {
+            $genes[$side] = $fixed;
+        }
+    }
+
+    return empty(findBinaryConflicts($genes, $bufferSeconds)) ? $genes : null;
+}
+
+/** Build one fresh constrained-initialized individual (domain-sampled), used as repair fallback. */
+function schedulerFreshIndividual($pdo, $teams, $panelists, array $rooms, array $slotsByTeamDay, array $eligibleDaysByTeam, $validCandidatePool): DefenseSchedule
+{
+    $ind = new DefenseSchedule($pdo, $teams, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam);
+    if (!empty($validCandidatePool)) {
+        foreach ($ind->chromosomes as $idx => $defense) {
+            $cand = chooseCandidateFromPool($validCandidatePool, $defense['team_id']);
+            if ($cand !== null) {
+                $ind->chromosomes[$idx] = $cand;
+            }
+        }
+    }
+    foreach ($ind->chromosomes as &$g) {
+        schedulerStampGeneInterval($g);
+    }
+    unset($g);
+    $ind->all_defenses = $ind->chromosomes;
+    return $ind;
 }
 
 function geneticAlgorithm(
@@ -3580,6 +3830,9 @@ function geneticAlgorithm(
     // Elitism: always carry forward the top N best schedules unchanged
     $eliteCount = max(2, intval($populationSize * 0.1)); // top 10%
 
+    // Buffer between back-to-back defenses (constraint 8), in seconds. 0 = disabled.
+    $bufferSeconds = (int) round((float) ($GLOBALS['schedulerBufferMinutes'] ?? 0) * 60);
+
     for ($i = 0; $i < $generations; $i++) {
         $generationImproved = false;
 
@@ -3607,17 +3860,17 @@ function geneticAlgorithm(
                 $schedule->calculateFitness($userSchedules);
                 $schedule->fitnessEvaluated = true;
             }
-            if ($schedule->fitness > $bestFitness) {
-                $bestFitness = $schedule->fitness;
+            // Lexicographic improvement: fewer hard violations, then higher soft score.
+            if ($bestSchedule === null || compareSchedules($schedule, $bestSchedule) < 0) {
                 $bestSchedule = $schedule;
+                $bestFitness = $schedule->softScore; // for logging only
                 $generationImproved = true;
                 $lastImproveGeneration = $i;
 
                 // === PERFECT CANDIDATE EARLY STOP ===
-                // A perfect candidate has zero conflicts (fitness >= 0) and
-                // fitness is at or above our estimated theoretical max
-                if ($bestFitness >= $perfectFitnessEstimate && $bestFitness >= 0) {
-                    error_log("PERFECT candidate found at generation $i with fitness $bestFitness (threshold: $perfectFitnessEstimate). Stopping early.");
+                // Perfect = feasible (0 hard violations) AND soft score at/above the estimate.
+                if ($schedule->hardViolations === 0 && $schedule->softScore >= $perfectFitnessEstimate) {
+                    error_log("PERFECT candidate found at generation $i (0 violations, soft {$schedule->softScore} >= $perfectFitnessEstimate). Stopping early.");
                     $perfectFound = true;
                     break;
                 }
@@ -3628,9 +3881,9 @@ function geneticAlgorithm(
             break; // Exit outer loop
         }
 
-        // Also stop early if fitness >= 0 (no conflicts) and we've run enough gens
-        if ($bestFitness >= 0 && $i >= 10) {
-            error_log("Zero-conflict schedule found at generation $i with fitness $bestFitness. Stopping early.");
+        // Also stop early once we have a fully feasible schedule and have run enough gens.
+        if ($bestSchedule !== null && $bestSchedule->hardViolations === 0 && $i >= 10) {
+            error_log("Feasible schedule (0 hard violations) found at generation $i, soft {$bestSchedule->softScore}. Stopping early.");
             break;
         }
 
@@ -3652,7 +3905,7 @@ function geneticAlgorithm(
 
             // Store metrics for this generation
             DefenseSchedule::$averageConflictCounts[] = array_sum(array_map(function ($schedule) {
-                return $schedule->fitness < 0 ? 1 : 0;
+                return ($schedule->hardViolations ?? 1) > 0 ? 1 : 0;
             }, $population)) / $populationSize;
 
             DefenseSchedule::$averageFitnessScores[] = array_sum(array_column($population, 'fitness')) / $populationSize;
@@ -3667,7 +3920,7 @@ function geneticAlgorithm(
         // === ELITISM + TOURNAMENT SELECTION ===
         // Sort population to pick elites
         usort($population, function ($a, $b) {
-            return $b->fitness - $a->fitness;
+            return compareSchedules($a, $b);
         });
         $elites = array_slice($population, 0, $eliteCount);
 
@@ -3688,6 +3941,18 @@ function geneticAlgorithm(
             // Only mutate some children to save time
             if (mt_rand(0, 1) == 1) {
                 mutation($child, $mutationRate, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $userSchedules, $validCandidatePool);
+            }
+
+            // === REPAIR OPERATOR ===
+            // Crossover/mutation are gene-level edits and can leave BINARY conflicts (panelist or
+            // room double-booking). Repair pushes the child back into the feasible region; if it
+            // can't within the pass cap, replace it with a fresh individual rather than carry rot.
+            $repaired = repairChromosome($child->chromosomes, $pdo, $validCandidatePool, $rooms, $bufferSeconds, 8);
+            if ($repaired === null) {
+                $child = schedulerFreshIndividual($pdo, $teams, $panelists, $rooms, $slotsByTeamDay, $eligibleDaysByTeam, $validCandidatePool);
+            } else {
+                $child->chromosomes = $repaired;
+                $child->all_defenses = $repaired;
             }
             $child->fitnessEvaluated = false; // new child must be scored next generation
 
@@ -3714,7 +3979,7 @@ function geneticAlgorithm(
 
     if ($bestSchedule === null) {
         usort($population, function ($a, $b) {
-            return $b->fitness - $a->fitness;
+            return compareSchedules($a, $b);
         });
         $bestSchedule = $population[0];
     }
@@ -3723,7 +3988,7 @@ function geneticAlgorithm(
         $finalizeFitness->calculateFitness($userSchedules);
     }
     usort($population, function ($a, $b) {
-        return $b->fitness - $a->fitness;
+        return compareSchedules($a, $b);
     });
     $bestSchedule = $population[0];
 
@@ -3797,7 +4062,7 @@ function createInitialPopulation($pdo, $populationSize, $teams, $panelists, $roo
 function selection($population)
 {
     usort($population, function ($a, $b) {
-        return $b->fitness - $a->fitness;
+        return compareSchedules($a, $b);
     });
     return array_slice($population, 0, count($population) / 2);
 }
@@ -3815,7 +4080,7 @@ function tournamentSelection($population, $numWinners, $tournamentSize = 3)
         $best = null;
         for ($t = 0; $t < $tournamentSize; $t++) {
             $candidate = $population[mt_rand(0, $popSize - 1)];
-            if ($best === null || $candidate->fitness > $best->fitness) {
+            if ($best === null || compareSchedules($candidate, $best) < 0) {
                 $best = $candidate;
             }
         }
@@ -3960,8 +4225,9 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
         return $conflictCache[$key];
     }
 
-    // Check panelist conflicts (pass currentTeamId so we skip self)
-    foreach ($defense['panelist_ids'] as $panelist_id) {
+    // Check panelist conflicts (pass currentTeamId so we skip self). The PANEL_TBD sentinel is
+    // not a real person yet, so it is excluded — it can never be double-booked.
+    foreach (schedulerRealPanelistIds($defense['panelist_ids']) as $panelist_id) {
         if (hasScheduleConflict($pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $all_defenses, $defense['team_id'])) {
             $conflictCache[$key] = true;
             return true;
@@ -3987,16 +4253,57 @@ function hasConflicts($pdo, $defense, $userSchedules, $all_defenses)
     return false;
 }
 
-function isParttimePanelistAllowedAtTime(string $timeSlot): bool
+/**
+ * Does a defense at $timeSlot (for $duration hours) fall OUTSIDE a panelist's available hours?
+ *
+ * Per-user "With Lateral Functions" availability (replaces the old fixed "part-time cannot be
+ * scheduled before 4:00 PM" rule). A restriction applies only when is_parttime = 1. The window
+ * is [work_start_time, work_end_time]; either bound may be NULL (that side is unbounded), and
+ * both NULL means no time restriction. A defense must START no earlier than work_start_time and
+ * END no later than work_end_time, otherwise this returns true (a conflict).
+ *
+ * @param array|null $pdata Panelist row incl. is_parttime, work_start_time, work_end_time
+ */
+function schedulerWorkWindowConflict($pdata, string $timeSlot, float $duration): bool
 {
-    // Part-time panelists may only be scheduled from 16:00 (4:00 PM) onwards
-    $start = strtotime('2000-01-01 ' . $timeSlot);
-    $cutoff = strtotime('2000-01-01 16:00');
-    return $start !== false && $cutoff !== false && $start >= $cutoff;
+    if (!is_array($pdata) || (int) ($pdata['is_parttime'] ?? 0) !== 1) {
+        return false; // no lateral-function restriction
+    }
+    $ws = trim((string) ($pdata['work_start_time'] ?? ''));
+    $we = trim((string) ($pdata['work_end_time'] ?? ''));
+    if ($ws === '' && $we === '') {
+        return false; // lateral functions on, but no hours configured -> unrestricted
+    }
+
+    $base = '2000-01-01 ';
+    $start = strtotime($base . $timeSlot);
+    if ($start === false) {
+        return false;
+    }
+    $end = $start + (int) round($duration * 3600);
+
+    if ($ws !== '') {
+        $wsT = strtotime($base . $ws);
+        if ($wsT !== false && $start < $wsT) {
+            return true; // starts before the panelist becomes available
+        }
+    }
+    if ($we !== '') {
+        $weT = strtotime($base . $we);
+        if ($weT !== false && $end > $weT) {
+            return true; // ends after the panelist's available hours
+        }
+    }
+    return false;
 }
 
 function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $room, $all_defenses, $currentTeamId = null)
 {
+    // The PANEL_TBD sentinel is an unfilled external seat, not a real person: it has no schedule
+    // and cannot be double-booked. Treat it as always conflict-free.
+    if ($user_id === PANEL_TBD) {
+        return false;
+    }
     $duration = $GLOBALS['timeDuration'];
     $myDay = scheduler_calendar_day_from_raw((string) $day);
     $defRange = scheduler_defense_range_on_day((string) $day, (string) $time_slot, $duration);
@@ -4007,10 +4314,9 @@ function hasScheduleConflict($pdo, $user_id, $day, $time_slot, $userSchedules, $
     $defense_start = $defRange['start'];
     $defense_end = $defRange['end'];
 
-// PART-TIME RESTRICTION: part-time panelists cannot be scheduled before 4:00 PM
-if (isset($GLOBALS['schedulerPanelists'][$user_id]['is_parttime'])
-    && (int)$GLOBALS['schedulerPanelists'][$user_id]['is_parttime'] === 1
-    && !isParttimePanelistAllowedAtTime((string)$time_slot)) {
+// LATERAL-FUNCTION RESTRICTION: a panelist with lateral functions can only be scheduled within
+// their per-user available hours (getPanelistData is memoized; students/non-restricted return false).
+if (schedulerWorkWindowConflict(getPanelistData($pdo, $user_id), (string) $time_slot, (float) $duration)) {
     return true; // treat as conflict — blocks the slot
 }
 
@@ -4149,6 +4455,10 @@ function prepareScheduleData($pdo, $schedule)
 
         $panelistNames = [];
         foreach ($defense['panelist_ids'] as $pid) {
+            if ($pid === PANEL_TBD) {
+                $panelistNames[] = 'External (TBD)'; // optional 3rd seat, filled later
+                continue;
+            }
             $userStmt->execute([$pid]);
             $u = $userStmt->fetch(PDO::FETCH_ASSOC);
             $panelistNames[] = $u ? $u['full_name'] : 'Unknown';
@@ -4164,7 +4474,7 @@ function prepareScheduleData($pdo, $schedule)
             'adviser' => $advRow['full_name'] ?? 'N/A',
             'panelist_id' => $defense['panelist_ids'][0],
             'panelist_id2' => $defense['panelist_ids'][1],
-            'panelist_id3' => $defense['panelist_ids'][2],
+            'panelist_id3' => schedulerPanelistStorageId($defense['panelist_ids'][2]),
             'panelist1_name' => $panelistNames[0],
             'panelist2_name' => $panelistNames[1],
             'panelist3_name' => $panelistNames[2],
@@ -4377,9 +4687,9 @@ function saveScheduleToDatabase($pdo, $schedule)
             $stmt->execute([
                 $teamId,
                 $title,
-                $defense['panelist_ids'][0],
-                $defense['panelist_ids'][1],
-                $defense['panelist_ids'][2],
+                schedulerPanelistStorageId($defense['panelist_ids'][0]),
+                schedulerPanelistStorageId($defense['panelist_ids'][1]),
+                schedulerPanelistStorageId($defense['panelist_ids'][2]), // NULL when external-TBD
                 $date,
                 $startTime->format('H:i:s'),
                 $endTime->format('H:i:s'),
@@ -4400,8 +4710,8 @@ function saveScheduleToDatabase($pdo, $schedule)
             
             error_log("DEFENSE SCHEDULER: Chair notification creation result: " . ($chairNotificationResult ? 'SUCCESS' : 'FAILED'));
 
-            // Track panelist assignments
-            foreach ($defense['panelist_ids'] as $panelist_id) {
+            // Track panelist assignments (skip the external-TBD sentinel — not a real person)
+            foreach (schedulerRealPanelistIds($defense['panelist_ids']) as $panelist_id) {
                 global $lastAssignedPanelists;
                 $lastAssignedPanelists[$defense['day']][] = $panelist_id;
             }
@@ -4748,7 +5058,9 @@ class DefenseSchedule
 {
     public $pdo;  // Change this to public
     public $chromosomes = [];
-    public $fitness = 0;
+    public $fitness = 0;             // tier-2 soft-quality scalar (kept for downstream ranking)
+    public $hardViolations = PHP_INT_MAX; // tier-1: count of hard-constraint violations (0 = feasible)
+    public $softScore = 0.0;         // tier-2: weighted sum of soft preferences (higher is better)
     public $fitnessEvaluated = false; // set true after calculateFitness; reset on mutation
     public static $initialPopulation = [];
     public static $crossoverCount = 0;
@@ -4810,144 +5122,127 @@ class DefenseSchedule
         }
     }
 
+    /**
+     * Two-tier (lexicographic) fitness. Tier 1 = count of HARD-constraint violations; any
+     * feasible schedule (0 violations) beats any infeasible one. Tier 2 = soft preference
+     * score (higher is better), only meaningful when tier 1 is tied. Ordering is enforced by
+     * compareSchedules(); $this->fitness mirrors the soft score so downstream rank logic that
+     * reads ->fitness keeps treating it as a quality scalar.
+     *
+     * Hard (tier 1): student/member class conflict (1,8), panelist own-schedule/working-hours
+     * conflict (2,3), room double-book (4) and panelist double-book (5) across teams.
+     * Soft (tier 2): expertise match, panel-3 filled (not TBD), per-day workload cap,
+     * consecutive-assignment spacing. These were previously folded into one weighted sum.
+     */
     public function calculateFitness($userSchedules)
     {
         // Cache for performance
         static $teamMembersCache = [];
         static $panelistDataCache = [];
 
-        $this->fitness = 0;
-        $conflicts = 0;
+        $hard = 0;
+        $soft = 0.0;
         $panelistDailyAssignments = [];
+        $bufferSeconds = (int) round((float) ($GLOBALS['schedulerBufferMinutes'] ?? 0) * 60);
 
-        // Initialize tracking structure for panelist assignments
+        // Make sure every gene carries a resolved interval for the binary scan below.
+        foreach ($this->chromosomes as &$g) {
+            if (!array_key_exists('_day', $g)) {
+                schedulerStampGeneInterval($g);
+            }
+        }
+        unset($g);
+
+        // Per-day workload tracking (soft). Skip the PANEL_TBD sentinel: not a real person.
         foreach ($this->chromosomes as $defense) {
-            foreach ($defense['panelist_ids'] as $panelist_id) {
-                if (!isset($panelistDailyAssignments[$panelist_id])) {
-                    $panelistDailyAssignments[$panelist_id] = [];
-                }
-                if (!isset($panelistDailyAssignments[$panelist_id][$defense['day']])) {
-                    $panelistDailyAssignments[$panelist_id][$defense['day']] = 1;
-                } else {
-                    $panelistDailyAssignments[$panelist_id][$defense['day']]++;
-                }
+            foreach (schedulerRealPanelistIds($defense['panelist_ids']) as $panelist_id) {
+                $panelistDailyAssignments[$panelist_id][$defense['day']]
+                    = ($panelistDailyAssignments[$panelist_id][$defense['day']] ?? 0) + 1;
             }
         }
 
-        foreach ($this->chromosomes as $defenseKey => $defense) {
-            // Use cached team members data
+        foreach ($this->chromosomes as $defense) {
+            // --- TIER 1: member (student/adviser) class conflicts (constraints 1, 8) ---
             if (!isset($teamMembersCache[$defense['team_id']])) {
                 $teamMembersCache[$defense['team_id']] = getTeamMembers($this->pdo, $defense['team_id'], 'array');
             }
             $teamMembers = $teamMembersCache[$defense['team_id']];
-
-            // Team member conflict check
             if (is_array($teamMembers)) {
                 foreach ($teamMembers as $member) {
                     if (hasScheduleConflict($this->pdo, $member['id'], $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses, $defense['team_id'])) {
-                        $this->fitness -= 200; // HARD penalty - must avoid user schedule conflicts
-                        $conflicts++;
+                        $hard++;
                     }
                 }
             } else {
-                $this->fitness -= 200;
-                $conflicts++;
+                $hard++;
             }
 
-            // Check panelist assignments and expertise match
+            // --- Panelist pass: tier-1 own-schedule (2,3) + tier-2 expertise/workload ---
             $teamExpertise = getTeamExpertise($this->pdo, $defense['team_id']) ?? '';
             $teamExpertise = is_string($teamExpertise) ? $teamExpertise : '';
             $expertiseMatchFound = false;
 
-            foreach ($defense['panelist_ids'] as $panelist_id) {
-                // Cache panelist data
+            foreach (schedulerRealPanelistIds($defense['panelist_ids']) as $panelist_id) {
                 if (!isset($panelistDataCache[$panelist_id])) {
                     $panelistDataCache[$panelist_id] = getPanelistData($this->pdo, $panelist_id);
                 }
                 $panelistData = $panelistDataCache[$panelist_id];
 
+                // Soft: per-day workload cap (preference, not a hard constraint).
                 $isPartTime = isset($panelistData['is_parttime']) ? $panelistData['is_parttime'] : 0;
-                $maxAllowed = $isPartTime ? 1 : 3; // 1 for part-time, 3 for full-time
-
-                if (isset($panelistDailyAssignments[$panelist_id][$defense['day']])) {
-                    $dailyAssignments = $panelistDailyAssignments[$panelist_id][$defense['day']];
-                    if ($dailyAssignments > $maxAllowed) {
-                        $this->fitness -= 30;
-                        $conflicts++;
-                    }
+                $maxAllowed = $isPartTime ? 1 : 3;
+                $dailyAssignments = $panelistDailyAssignments[$panelist_id][$defense['day']] ?? 0;
+                if ($dailyAssignments > $maxAllowed) {
+                    $soft -= 30;
                 }
 
-                // Expertise matching check (using cached data)
+                // Soft: expertise similarity.
                 $panelistExpertise = $panelistData['area_of_expertise'] ?? '';
                 $panelistExpertise = is_string($panelistExpertise) ? $panelistExpertise : '';
-
                 $similarity = 0;
                 if (!empty($teamExpertise) && !empty($panelistExpertise)) {
                     $similarity = similar_text($teamExpertise, $panelistExpertise) /
                         max(strlen($teamExpertise), strlen($panelistExpertise)) * 100;
                 }
-
+                $soft += $similarity * 0.2;
                 if ($similarity > 70) {
                     $expertiseMatchFound = true;
-                    $this->fitness += 20;
+                    $soft += 20;
                 }
 
-                // Other checks
+                // Soft: spacing.
                 if (hasConsecutiveAssignment($panelist_id, $defense['day'], $defense['time_slot'])) {
-                    $this->fitness -= 5;
-                    $conflicts++;
+                    $soft -= 5;
                 }
 
-                if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], $this->all_defenses, $defense['team_id'])) {
-                    $this->fitness -= 200; // HARD penalty - must avoid panelist schedule/double-booking conflicts
-                    $conflicts++;
+                // TIER 1: panelist own class / working-hours conflict (constraints 2, 3).
+                // (Cross-team double-booking is counted once via findBinaryConflicts below.)
+                if (hasScheduleConflict($this->pdo, $panelist_id, $defense['day'], $defense['time_slot'], $userSchedules, $defense['room'], [], $defense['team_id'])) {
+                    $hard++;
                 }
             }
 
             if (!$expertiseMatchFound) {
-                $this->fitness -= 25;
-                $conflicts++;
+                $soft -= 25; // soft nudge toward expertise-aligned panels
             }
 
-            // Room conflict check - check ALL pairs, don't break early
-            foreach ($this->chromosomes as $otherKey => $otherDefense) {
-                $durH = floatval($GLOBALS['timeDuration']);
-                $dayA = scheduler_calendar_day_from_raw((string) $defense['day']);
-                $dayB = scheduler_calendar_day_from_raw((string) $otherDefense['day']);
-
-                if ($defenseKey != $otherKey && $dayA !== null && $dayB !== null && $dayA === $dayB) {
-                    $rA = scheduler_defense_range_on_day((string) $defense['day'], (string) $defense['time_slot'], $durH);
-                    $rB = scheduler_defense_range_on_day((string) $otherDefense['day'], (string) $otherDefense['time_slot'], $durH);
-
-                    if ($rA === null || $rB === null) {
-                        continue;
-                    }
-
-                    $defenseStart = $rA['start'];
-                    $defenseEnd = $rA['end'];
-                    $otherStart = $rB['start'];
-                    $otherEnd = $rB['end'];
-
-                    if (($defenseStart < $otherEnd) && ($defenseEnd > $otherStart)) {
-                        // Same room at overlapping time = room conflict
-                        if ($defense['room'] == $otherDefense['room']) {
-                            $this->fitness -= 500; // MASSIVE penalty for room overlap
-                            $conflicts++;
-                        }
-
-                        // Panelist double-booking at overlapping time (any room)
-                        $sharedPanelists = array_intersect($defense['panelist_ids'], $otherDefense['panelist_ids']);
-                        if (!empty($sharedPanelists)) {
-                            $this->fitness -= 500; // MASSIVE penalty for panelist double-booking
-                            $conflicts++;
-                        }
-                    }
-                }
+            // Soft: prefer panel 3 actually filled (allied/internal) over leaving it external-TBD.
+            $panelIds = $defense['panelist_ids'] ?? [];
+            if (!in_array(PANEL_TBD, $panelIds, true) && count(schedulerRealPanelistIds($panelIds)) >= 3) {
+                $soft += 15;
             }
         }
 
-        self::$conflictCounts[] = $conflicts;
-        self::$fitnessScores[] = $this->fitness;
+        // --- TIER 1: binary conflicts across teams (room double-book 4, panelist double-book 5,
+        //     buffer 8). Counted once, TBD-safe, via the shared integer-interval scanner. ---
+        $hard += count(findBinaryConflicts($this->chromosomes, $bufferSeconds));
+
+        $this->hardViolations = $hard;
+        $this->softScore = $soft;
+        $this->fitness = $soft; // downstream ranking reads ->fitness as a soft-quality scalar
+
+        self::$conflictCounts[] = $hard;
+        self::$fitnessScores[] = $soft;
     }
 }
 
@@ -5069,7 +5364,7 @@ function getTeamExpertise($pdo, $team_id)
 function diversityPreservation($population, $populationSize, $pdo, $teams, $panelists, $rooms, array $slotsByTeamDay, array $eligibleDaysByTeam)
 {
     usort($population, function ($a, $b) {
-        return $b->fitness - $a->fitness;
+        return compareSchedules($a, $b);
     });
 
     $elites = array_slice($population, 0, intval($populationSize / 4));
@@ -5360,6 +5655,15 @@ function selectPanelistsInternal($panelistsByProgram, $allPanelists, $adviserId,
         $selected[] = array_shift($topCandidates);
     }
 
+    // Optional gene: if real candidates are exhausted but the two mandatory seats are filled,
+    // leave the 3rd seat as PANEL_TBD ("external TBD") rather than fail the team. The seat can
+    // be filled later by a real external; the soft objective still prefers a filled panel 3.
+    // Only the 3rd seat is ever TBD — panelist 1 and 2 must be real people.
+    if (count($selected) === 2) {
+        $selected[] = PANEL_TBD;
+        error_log("Team {$teamId}: only 2 panelists available; leaving panelist 3 as external TBD");
+    }
+
     error_log("Team {$teamId}: fallback selection: " . implode(',', $selected));
     return $selected;
 }
@@ -5485,8 +5789,12 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
                     continue; // Re-check after fix
                 }
 
-                // CHECK 2: Panelist double-booking
-                $sharedPanelists = array_intersect($d1['panelist_ids'], $d2['panelist_ids']);
+                // CHECK 2: Panelist double-booking. Exclude the PANEL_TBD sentinel so two unfilled
+                // external seats are not mistaken for the same person (would trigger endless repair).
+                $sharedPanelists = array_intersect(
+                    schedulerRealPanelistIds($d1['panelist_ids']),
+                    schedulerRealPanelistIds($d2['panelist_ids'])
+                );
                 if (!empty($sharedPanelists)) {
                     $msg = "PANELIST DOUBLE-BOOK: Panelist(s) " . implode(',', $sharedPanelists) . " Team {$d1['team_id']} & Team {$d2['team_id']} on {$d1['day']} {$d1['time_slot']}/{$d2['time_slot']}";
                     $allIssues[] = $msg;
@@ -5535,8 +5843,8 @@ function validateAndFixOverlaps($pdo, $schedule, $userSchedules, $rooms, array $
             $defStart = $dr['start'];
             $defEnd = $dr['end'];
 
-            // All users to check: panelists + team members
-            $usersToCheck = $d['panelist_ids'];
+            // All users to check: panelists + team members (TBD sentinel excluded: no schedule)
+            $usersToCheck = schedulerRealPanelistIds($d['panelist_ids']);
             if (!isset($memberCache[$d['team_id']])) {
                 $memberCache[$d['team_id']] = array_column(getTeamMembers($pdo, $d['team_id'], 'array'), 'id');
             }
@@ -5648,7 +5956,7 @@ function getOverlappingPanelistIdsForDefense($defenses, $idx, $defense, $duratio
             continue;
         }
 
-        $overlappingPanelistIds = array_merge($overlappingPanelistIds, array_map('intval', (array) ($other['panelist_ids'] ?? [])));
+        $overlappingPanelistIds = array_merge($overlappingPanelistIds, schedulerRealPanelistIds((array) ($other['panelist_ids'] ?? [])));
     }
 
     return array_values(array_unique($overlappingPanelistIds));

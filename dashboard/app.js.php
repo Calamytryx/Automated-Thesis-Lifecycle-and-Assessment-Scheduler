@@ -1855,17 +1855,32 @@
                                 </div>
                             `;
 
-                            // Add Is Part Time radio buttons for faculty (usertype 2)
+                            // "With Lateral Functions" + per-user available hours (faculty usertype 2 AND admin usertype 0).
+                            // When enabled, the scheduler only places this person's defenses within the hours below.
+                            const lfOn = (response.data.is_parttime == 1);
+                            const lfStart = (response.data.work_start_time || '').slice(0, 5);
+                            const lfEnd = (response.data.work_end_time || '').slice(0, 5);
                             formHtml += `
-                            <div class="mb-3 is-part-time-field" ${response.data.usertype != 2 ? 'style="display:none;"' : ''}>
-                                <label class="form-label">Is Part Time</label>
+                            <div class="mb-3 is-part-time-field" ${(response.data.usertype != 2 && response.data.usertype != 0) ? 'style="display:none;"' : ''}>
+                                <label class="form-label">With Lateral Functions</label>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_parttime" id="fullTime" value="0" ${response.data.is_parttime == 0 || response.data.is_parttime == null ? 'checked' : ''} required>
-                                    <label class="form-check-label" for="fullTime">Full Time</label>
+                                    <input class="form-check-input lateral-fn-toggle" type="radio" name="is_parttime" id="lfNo" value="0" ${!lfOn ? 'checked' : ''} required>
+                                    <label class="form-check-label" for="lfNo">No (standard availability)</label>
                                 </div>
                                 <div class="form-check">
-                                    <input class="form-check-input" type="radio" name="is_parttime" id="partTime" value="1" ${response.data.is_parttime == 1 ? 'checked' : ''} required>
-                                    <label class="form-check-label" for="partTime">Part Time</label>
+                                    <input class="form-check-input lateral-fn-toggle" type="radio" name="is_parttime" id="lfYes" value="1" ${lfOn ? 'checked' : ''} required>
+                                    <label class="form-check-label" for="lfYes">Yes (restrict to available hours)</label>
+                                </div>
+                                <div class="row g-2 mt-1 lateral-fn-hours" ${lfOn ? '' : 'style="display:none;"'}>
+                                    <div class="col-6">
+                                        <label for="work_start_time" class="form-label small mb-0">Available from</label>
+                                        <input type="time" class="form-control" id="work_start_time" name="work_start_time" value="${lfStart}">
+                                    </div>
+                                    <div class="col-6">
+                                        <label for="work_end_time" class="form-label small mb-0">Available until</label>
+                                        <input type="time" class="form-control" id="work_end_time" name="work_end_time" value="${lfEnd}">
+                                    </div>
+                                    <small class="text-muted">Leave a side blank for no bound. Defenses are only scheduled within these hours.</small>
                                 </div>
                             </div>
                             `;
@@ -1915,7 +1930,7 @@
                                 const usertype = $(this).val();
                                 if (usertype == 2) {
                                     $('.area-expertise-field').show();
-                                    $('.is-part-time-field').show();
+                                    $('.is-part-time-field').show(); // With Lateral Functions (faculty)
                                     $('.is-external-panelist-field').show();
                                     $('.student-year-field').hide();
                                     $('.student-section-field').hide();
@@ -1931,7 +1946,7 @@
                                     $('#section').prop('required', true);
                                 } else if (usertype == 0) {
                                     $('.area-expertise-field').hide();
-                                    $('.is-part-time-field').hide();
+                                    $('.is-part-time-field').show(); // With Lateral Functions (admin)
                                     $('.is-external-panelist-field').hide();
                                     $('.student-year-field').hide();
                                     $('.student-section-field').hide();
@@ -1944,6 +1959,11 @@
                                     $('.student-section-field').hide();
                                     $('.is-program-chair-field').hide();
                                 }
+                            });
+
+                            // Toggle the available-hours inputs with the "With Lateral Functions" radio.
+                            form.on('change', '.lateral-fn-toggle', function () {
+                                $('.lateral-fn-hours').toggle($(this).val() == '1');
                             });
                         } else if (table === 'teams') {
                             var formHtml = `
@@ -3371,14 +3391,25 @@
                     '</select>' +
                     '</div>' +
                     '<div class="mb-3 is-part-time-field" style="display:none;">' +
-                    '<label class="form-label">Is Part Time</label>' +
+                    '<label class="form-label">With Lateral Functions</label>' +
                     '<div class="form-check">' +
-                    '<input class="form-check-input" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
-                    '<label class="form-check-label" for="addFullTime">Full Time</label>' +
+                    '<input class="form-check-input lateral-fn-toggle" type="radio" name="is_parttime" id="addFullTime" value="0" checked>' +
+                    '<label class="form-check-label" for="addFullTime">No (standard availability)</label>' +
                     '</div>' +
                     '<div class="form-check">' +
-                    '<input class="form-check-input" type="radio" name="is_parttime" id="addPartTime" value="1">' +
-                    '<label class="form-check-label" for="addPartTime">Part Time</label>' +
+                    '<input class="form-check-input lateral-fn-toggle" type="radio" name="is_parttime" id="addPartTime" value="1">' +
+                    '<label class="form-check-label" for="addPartTime">Yes (restrict to available hours)</label>' +
+                    '</div>' +
+                    '<div class="row g-2 mt-1 lateral-fn-hours" style="display:none;">' +
+                    '<div class="col-6">' +
+                    '<label for="work_start_time" class="form-label small mb-0">Available from</label>' +
+                    '<input type="time" class="form-control" id="work_start_time" name="work_start_time">' +
+                    '</div>' +
+                    '<div class="col-6">' +
+                    '<label for="work_end_time" class="form-label small mb-0">Available until</label>' +
+                    '<input type="time" class="form-control" id="work_end_time" name="work_end_time">' +
+                    '</div>' +
+                    '<small class="text-muted">Leave a side blank for no bound. Defenses are only scheduled within these hours.</small>' +
                     '</div>' +
                     '</div>' +
                     // Year and Section fields for students, hidden by default
@@ -3414,12 +3445,17 @@
                 // Populate the programs dropdown
                 populateProgramDropdown($('#addForm #program_id'));
 
+                // Toggle the available-hours inputs with the "With Lateral Functions" radio.
+                $('#addForm').on('change', '.lateral-fn-toggle', function () {
+                    $('.lateral-fn-hours').toggle($(this).val() == '1');
+                });
+
                 // Add event listener for usertype change in add form
                 $('#addForm').on('change', '#usertype', function () {
                     const usertype = $(this).val();
                     if (usertype == 2) {
                         $('.area-expertise-field').show();
-                        $('.is-part-time-field').show();
+                        $('.is-part-time-field').show(); // With Lateral Functions (faculty)
                         $('.is-external-panelist-field').show();
                         $('.student-year-field').hide();
                         $('.student-section-field').hide();
@@ -3436,7 +3472,7 @@
                         $('#section').prop('required', true);
                     } else if (usertype == 0) {
                         $('.area-expertise-field').hide();
-                        $('.is-part-time-field').hide();
+                        $('.is-part-time-field').show(); // With Lateral Functions (admin)
                         $('.is-external-panelist-field').hide();
                         $('.student-year-field').hide();
                         $('.student-section-field').hide();

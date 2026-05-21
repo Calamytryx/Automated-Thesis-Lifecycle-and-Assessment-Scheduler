@@ -18,13 +18,85 @@ if (!isset($_SESSION['id']) || !isset($_SESSION['usertype'])) {
     exit;
 }
 
-$userId = $_SESSION['id'];
-$usertype = $_SESSION['usertype'];
+$userId = (int) $_SESSION['id'];
+$usertype = (int) $_SESSION['usertype'];
 $action = trim($_GET['action'] ?? $_POST['action'] ?? '');
 
 function toPositiveInt($value) {
     $filtered = filter_var($value, FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
     return $filtered === false ? null : (int)$filtered;
+}
+
+/**
+ * Base program name = the program with any " - specialization" suffix stripped, so e.g.
+ * "BS Computer Science - Software Engineering" and "BS Computer Science - Data Science" both
+ * resolve to "BS Computer Science". Used to scope a program chair to their program's faculty.
+ */
+function normalizeBaseProgram($program) {
+    if (!is_string($program)) {
+        return '';
+    }
+    $parts = preg_split('/\s*[-–—]\s*/u', $program);
+    return trim($parts[0] ?? '');
+}
+
+/** Memoized single-user lookup (id, usertype, program). */
+function getUserRow($pdo, $uid) {
+    static $cache = [];
+    $uid = (int) $uid;
+    if (!array_key_exists($uid, $cache)) {
+        $stmt = $pdo->prepare("SELECT id, usertype, program FROM users WHERE id = ?");
+        $stmt->execute([$uid]);
+        $cache[$uid] = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
+    }
+    return $cache[$uid];
+}
+
+/**
+ * Authority to VIEW/EDIT a target user's specialization. Single source of truth for reads + writes.
+ *  - Super admin (type 0, id 0): any faculty/admin.
+ *  - Program chair (type 0, id != 0): self only among admins (same rank can't edit each other),
+ *    plus any faculty (type 2) in the SAME base program (specialization suffix ignored).
+ *  - Faculty (type 2): self only.
+ */
+function canManageUserSpecialization($pdo, $actorId, $actorType, $targetId) {
+    $actorId = (int) $actorId;
+    $targetId = (int) $targetId;
+    $actorType = (int) $actorType;
+    if ($targetId <= 0) {
+        return false;
+    }
+    if ($actorId === $targetId) {
+        return true; // self is always allowed (faculty + chair manage their own)
+    }
+
+    $target = getUserRow($pdo, $targetId);
+    if (!$target) {
+        return false;
+    }
+    $targetType = (int) $target['usertype'];
+    if (!in_array($targetType, [0, 2], true)) {
+        return false; // only faculty/admin carry user specializations
+    }
+
+    // Super admin: full access.
+    if ($actorType === 0 && $actorId === 0) {
+        return true;
+    }
+
+    // Program chair: faculty in the same base program only (never another admin/chair).
+    if ($actorType === 0 && $actorId !== 0) {
+        if ($targetType !== 2) {
+            return false; // same rank / other admin — only self (handled above)
+        }
+        $actor = getUserRow($pdo, $actorId);
+        $chairProgram = normalizeBaseProgram($actor['program'] ?? '');
+        $facultyProgram = normalizeBaseProgram($target['program'] ?? '');
+        return $chairProgram !== '' && $chairProgram === $facultyProgram;
+    }
+
+    // Faculty: nothing beyond self.
+    return false;
 }
 
 function sanitizeAssignmentText($value, $maxLength = 255) {
@@ -44,7 +116,7 @@ try {
                 echo json_encode(['success' => false, 'message' => 'Permission denied']);
                 exit;
             }
-            assignToUser($pdo, $_POST, $userId);
+            assignToUser($pdo, $_POST, $userId, $usertype);
             break;
         
         case 'assign_to_team':
@@ -62,7 +134,7 @@ try {
                 echo json_encode(['success' => false, 'message' => 'Permission denied']);
                 exit;
             }
-            removeFromUser($pdo, $_POST);
+            removeFromUser($pdo, $_POST, $userId, $usertype);
             break;
         
         case 'remove_from_team':
@@ -75,7 +147,7 @@ try {
             break;
         
         case 'get_user_specializations':
-            getUserSpecializations($pdo, toPositiveInt($_GET['user_id'] ?? null));
+            getUserSpecializations($pdo, toPositiveInt($_GET['user_id'] ?? null), $userId, $usertype);
             break;
         
         case 'get_team_specializations':
@@ -124,15 +196,20 @@ function canAssignSpecializations($pdo, $userId, $usertype) {
 /**
  * Assign specialization to user (updates area_of_expertise field)
  */
-function assignToUser($pdo, $data, $assignedBy) {
+function assignToUser($pdo, $data, $assignedBy, $assignedByType) {
     $userId = toPositiveInt($data['user_id'] ?? null);
     $specializationId = toPositiveInt($data['specialization_id'] ?? null);
-    
+
     if (!$userId || !$specializationId) {
         echo json_encode(['success' => false, 'message' => 'User ID and Specialization ID required']);
         return;
     }
-    
+
+    if (!canManageUserSpecialization($pdo, $assignedBy, $assignedByType, $userId)) {
+        echo json_encode(['success' => false, 'message' => 'You can only edit specializations for yourself or faculty in your program.']);
+        return;
+    }
+
     try {
         // Get specialization name
         $stmt = $pdo->prepare("SELECT name FROM specialization_pool WHERE id = ?");
@@ -230,15 +307,20 @@ function assignToTeam($pdo, $data, $assignedBy) {
 /**
  * Remove specialization from user
  */
-function removeFromUser($pdo, $data) {
+function removeFromUser($pdo, $data, $actorId, $actorType) {
     $userId = toPositiveInt($data['user_id'] ?? null);
     $specializationName = sanitizeAssignmentText($data['specialization_name'] ?? '', 150);
-    
+
     if (!$userId || !$specializationName) {
         echo json_encode(['success' => false, 'message' => 'User ID and Specialization Name required']);
         return;
     }
-    
+
+    if (!canManageUserSpecialization($pdo, $actorId, $actorType, $userId)) {
+        echo json_encode(['success' => false, 'message' => 'You can only edit specializations for yourself or faculty in your program.']);
+        return;
+    }
+
     try {
         // Get current area_of_expertise
         $stmt = $pdo->prepare("SELECT area_of_expertise FROM users WHERE id = ?");
@@ -304,12 +386,17 @@ function removeFromTeam($pdo, $data) {
 /**
  * Get user's specializations (from area_of_expertise field)
  */
-function getUserSpecializations($pdo, $userId) {
+function getUserSpecializations($pdo, $userId, $actorId = null, $actorType = null) {
     if (!$userId) {
         echo json_encode(['success' => false, 'message' => 'User ID required']);
         return;
     }
-    
+
+    if ($actorId !== null && !canManageUserSpecialization($pdo, $actorId, $actorType, $userId)) {
+        echo json_encode(['success' => false, 'message' => 'Permission denied']);
+        return;
+    }
+
     $stmt = $pdo->prepare("
         SELECT area_of_expertise
         FROM users
@@ -487,71 +574,73 @@ function getMyTeams($pdo, $userId, $usertype) {
  * Only usertype 0 (admins) and usertype 2 (faculty) can receive assignments
  */
 function getAssignableUsers($pdo, $userId, $usertype) {
-    if ($usertype === 0) {
-        // Check if super admin or program chair
-        if ($userId === 0) {
-            // Super Admin: Can assign to all admins and faculty
-            $stmt = $pdo->prepare("
-                SELECT 
-                    id,
-                    username,
-                    first_name,
-                    last_name,
-                    CONCAT(first_name, ' ', last_name) as name,
-                    email,
-                    program,
-                    CASE usertype 
-                        WHEN 0 THEN 'Admin'
-                        WHEN 2 THEN 'Faculty'
-                        ELSE 'Other'
-                    END as role
-                FROM users
-                WHERE usertype IN (0, 2)
-                ORDER BY first_name, last_name
-            ");
-            $stmt->execute();
-        } else {
-            // Program Chair: Can assign to admins and faculty in their college only
-            require_once __DIR__ . '/../../assets/includes/auth_functions.php';
-            $userCollege = get_user_college($pdo, $userId);
-            if (!$userCollege) {
-                echo json_encode(['success' => true, 'data' => []]);
-                return;
-            }
-            $stmt = $pdo->prepare("
-                SELECT DISTINCT
-                    u.id,
-                    u.username,
-                    u.first_name,
-                    u.last_name,
-                    CONCAT(u.first_name, ' ', u.last_name) as name,
-                    u.email,
-                    u.program,
-                    CASE u.usertype 
-                        WHEN 0 THEN 'Admin'
-                        WHEN 2 THEN 'Faculty'
-                        ELSE 'Other'
-                    END as role
-                FROM users u
-                LEFT JOIN programs p ON CONCAT(p.name, CASE WHEN p.specialization != '' THEN CONCAT(' - ', p.specialization) ELSE '' END) = u.program
-                WHERE u.usertype IN (0, 2) AND (p.college = ? OR u.id = ?)
-                ORDER BY u.first_name, u.last_name
-            ");
-            $stmt->execute([$userCollege, $userId]);
-        }
-    } else if ($usertype === 2) {
-        // Research Professor: Cannot assign to users, only teams
-        echo json_encode(['success' => true, 'data' => []]);
-        return;
-    } else {
-        echo json_encode(['success' => true, 'data' => []]);
+    $roleLabel = static function ($t) {
+        return ((int) $t === 0) ? 'Admin' : (((int) $t === 2) ? 'Faculty' : 'Other');
+    };
+
+    // Super Admin: every admin and faculty member.
+    if ($usertype === 0 && $userId === 0) {
+        $stmt = $pdo->prepare("
+            SELECT id, username, first_name, last_name,
+                   CONCAT(first_name, ' ', last_name) as name, email, program,
+                   CASE usertype WHEN 0 THEN 'Admin' WHEN 2 THEN 'Faculty' ELSE 'Other' END as role
+            FROM users
+            WHERE usertype IN (0, 2)
+            ORDER BY first_name, last_name
+        ");
+        $stmt->execute();
+        echo json_encode(['success' => true, 'data' => $stmt->fetchAll(PDO::FETCH_ASSOC)]);
         return;
     }
-    
-    $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-    echo json_encode([
-        'success' => true,
-        'data' => $users
-    ]);
+
+    // Program Chair: themselves + faculty in the SAME base program (no other admins/chairs).
+    if ($usertype === 0 && $userId !== 0) {
+        $actor = getUserRow($pdo, $userId);
+        $chairProgram = normalizeBaseProgram($actor['program'] ?? '');
+
+        $stmt = $pdo->prepare("
+            SELECT id, username, first_name, last_name,
+                   CONCAT(first_name, ' ', last_name) as name, email, program, usertype
+            FROM users
+            WHERE usertype = 2 OR id = ?
+            ORDER BY first_name, last_name
+        ");
+        $stmt->execute([$userId]);
+
+        $out = [];
+        foreach ($stmt->fetchAll(PDO::FETCH_ASSOC) as $row) {
+            $isSelf = ((int) $row['id'] === $userId);
+            $sameProgramFaculty = ((int) $row['usertype'] === 2)
+                && $chairProgram !== ''
+                && normalizeBaseProgram($row['program'] ?? '') === $chairProgram;
+            if ($isSelf || $sameProgramFaculty) {
+                $row['role'] = $roleLabel($row['usertype']);
+                unset($row['usertype']);
+                $out[] = $row;
+            }
+        }
+        echo json_encode(['success' => true, 'data' => $out]);
+        return;
+    }
+
+    // Faculty: only themselves (view/edit own specializations).
+    if ($usertype === 2) {
+        $stmt = $pdo->prepare("
+            SELECT id, username, first_name, last_name,
+                   CONCAT(first_name, ' ', last_name) as name, email, program
+            FROM users
+            WHERE id = ?
+        ");
+        $stmt->execute([$userId]);
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+        $data = [];
+        if ($row) {
+            $row['role'] = 'Faculty';
+            $data[] = $row;
+        }
+        echo json_encode(['success' => true, 'data' => $data]);
+        return;
+    }
+
+    echo json_encode(['success' => true, 'data' => []]);
 }

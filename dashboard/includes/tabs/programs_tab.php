@@ -113,6 +113,156 @@ $isProgramsTabReadOnly = ($programsTabUserType === 0 && $programsTabUserId !== 0
   </div>
 </div>
 
+<?php if (!$isProgramsTabReadOnly): ?>
+<!-- Allied Programs configuration modal -->
+<div class="modal fade" id="alliedProgramsModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered modal-dialog-scrollable">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Allied Programs — <span id="alliedProgramName" class="text-primary"></span></h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <p class="text-muted small mb-2">
+          Faculty from the selected programs may serve as <strong>panelist 2</strong> for this program's
+          defenses, in addition to same-program faculty (the scheduler's hard constraint 6). The
+          relationship is one-directional — it does not automatically allow this program's faculty
+          on the other programs' panels.
+        </p>
+        <div class="input-group input-group-sm mb-2">
+          <span class="input-group-text"><i class="bi bi-search"></i></span>
+          <input type="text" class="form-control" id="alliedProgramSearch" placeholder="Filter programs...">
+        </div>
+        <div id="alliedProgramsList" class="border rounded p-2" style="max-height:340px;overflow:auto;">
+          <div class="text-muted text-center py-3">Loading…</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <span id="alliedProgramsCount" class="me-auto text-muted small"></span>
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button type="button" class="btn btn-primary" id="alliedProgramsSaveBtn">Save</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    const modalEl = document.getElementById('alliedProgramsModal');
+    if (!modalEl || typeof bootstrap === 'undefined') {
+      return;
+    }
+    const modal = new bootstrap.Modal(modalEl);
+    const listEl = document.getElementById('alliedProgramsList');
+    const nameEl = document.getElementById('alliedProgramName');
+    const countEl = document.getElementById('alliedProgramsCount');
+    const searchEl = document.getElementById('alliedProgramSearch');
+    const saveBtn = document.getElementById('alliedProgramsSaveBtn');
+    let currentProgramId = null;
+
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const updateCount = () => {
+      const n = listEl.querySelectorAll('input[type=checkbox]:checked').length;
+      countEl.textContent = n + ' allied program' + (n === 1 ? '' : 's') + ' selected';
+    };
+
+    const renderOptions = (options, allied) => {
+      const alliedSet = new Set((allied || []).map(Number));
+      if (!options.length) {
+        listEl.innerHTML = '<div class="text-muted text-center py-3">No other programs available.</div>';
+        countEl.textContent = '';
+        return;
+      }
+      let lastCollege = null;
+      let html = '';
+      options.forEach(opt => {
+        if (opt.college && opt.college !== lastCollege) {
+          lastCollege = opt.college;
+          html += `<div class="text-uppercase text-muted small fw-bold mt-2 mb-1">${escapeHtml(opt.college)}</div>`;
+        }
+        const checked = alliedSet.has(Number(opt.id)) ? 'checked' : '';
+        html += `
+          <div class="form-check" data-label="${escapeHtml(String(opt.label || '').toLowerCase())}">
+            <input class="form-check-input" type="checkbox" value="${opt.id}" id="allied-opt-${opt.id}" ${checked}>
+            <label class="form-check-label" for="allied-opt-${opt.id}">${escapeHtml(opt.label)}</label>
+          </div>`;
+      });
+      listEl.innerHTML = html;
+      updateCount();
+    };
+
+    listEl.addEventListener('change', e => {
+      if (e.target.matches('input[type=checkbox]')) {
+        updateCount();
+      }
+    });
+
+    searchEl.addEventListener('keyup', () => {
+      const q = searchEl.value.trim().toLowerCase();
+      listEl.querySelectorAll('.form-check').forEach(row => {
+        row.style.display = (!q || (row.dataset.label || '').includes(q)) ? '' : 'none';
+      });
+    });
+
+    // Open the modal from the per-program meatball dropdown.
+    document.addEventListener('click', e => {
+      const btn = e.target.closest('.allied-item');
+      if (!btn) {
+        return;
+      }
+      e.preventDefault();
+      const dd = btn.closest('.meatball-dropdown-portal');
+      if (dd) {
+        dd.style.display = 'none';
+      }
+      currentProgramId = btn.getAttribute('data-id');
+      nameEl.textContent = '';
+      searchEl.value = '';
+      listEl.innerHTML = '<div class="text-muted text-center py-3">Loading…</div>';
+      countEl.textContent = '';
+      modal.show();
+
+      fetch(`includes/tabs/allied_programs.php?program_id=${encodeURIComponent(currentProgramId)}`)
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            listEl.innerHTML = `<div class="text-danger text-center py-3">${escapeHtml(data.error)}</div>`;
+            return;
+          }
+          nameEl.textContent = data.program ? data.program.label : '';
+          renderOptions(data.options || [], data.allied || []);
+        })
+        .catch(() => { listEl.innerHTML = '<div class="text-danger text-center py-3">Failed to load.</div>'; });
+    });
+
+    saveBtn.addEventListener('click', () => {
+      if (!currentProgramId) {
+        return;
+      }
+      const ids = Array.from(listEl.querySelectorAll('input[type=checkbox]:checked')).map(cb => parseInt(cb.value, 10));
+      saveBtn.disabled = true;
+      saveBtn.textContent = 'Saving…';
+      fetch('includes/tabs/allied_programs.php', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ program_id: parseInt(currentProgramId, 10), allied_ids: ids })
+      })
+        .then(r => r.json())
+        .then(data => {
+          if (data.error) {
+            alert('Could not save allied programs: ' + data.error);
+            return;
+          }
+          modal.hide();
+        })
+        .catch(() => alert('Could not save allied programs.'))
+        .finally(() => { saveBtn.disabled = false; saveBtn.textContent = 'Save'; });
+    });
+  });
+</script>
+<?php endif; ?>
+
 <script>
   document.addEventListener('DOMContentLoaded', function() {
     const collegeFilterElement = document.getElementById('programsCollegeFilterSelect');
@@ -211,6 +361,10 @@ $isProgramsTabReadOnly = ($programsTabUserType === 0 && $programsTabUserId !== 0
               <button class="meatball-dropdown-item edit-item edit-btn" data-table="programs" data-id="${program.id}">
                 <i class="fas fa-edit"></i>
                 Edit
+              </button>
+              <button class="meatball-dropdown-item allied-item" data-id="${program.id}">
+                <i class="fas fa-sitemap"></i>
+                Allied Programs
               </button>
               <button class="meatball-dropdown-item delete-item delete-btn" data-table="programs" data-id="${program.id}">
                 <i class="fas fa-trash-alt"></i>
