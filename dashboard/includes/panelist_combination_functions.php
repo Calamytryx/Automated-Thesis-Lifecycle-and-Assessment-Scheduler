@@ -48,7 +48,7 @@ function getPanelistInfo($pdo, $panelistId) {
                 username,
                 program
             FROM users
-            WHERE id = ? AND usertype = 2 AND deleted_at IS NULL
+            WHERE id = ? AND usertype IN (0, 2) AND id != 0 AND deleted_at IS NULL
         ");
         $stmt->execute([$panelistId]);
         $row = $stmt->fetch(PDO::FETCH_ASSOC) ?: null;
@@ -194,83 +194,32 @@ function isValidPanelistCombination($panelists) {
     if (count($validPanelists) < 3) {
         return false; // All 3 positions must be filled
     }
-    
-    // Classify each panelist
-    $types = array_map('classifyPanelistType', $panelists);
 
-    // Enforce that non-external panelist positions 1 and 2 come from same normalized program (or same college if program missing)
+    // Panelists 1 & 2 must share AT LEAST a college. This holds regardless of employment type
+    // OR external status: same-program faculty are eligible for these seats whether they are
+    // internal, part-time, an external specialist, or the program chair. Identical normalized
+    // programs pass; differing programs pass only when their colleges match (panelist-2
+    // same-college conflict fallback).
     $p1 = $panelists[0];
     $p2 = $panelists[1];
-    if ($types[0] !== 'external' && $types[1] !== 'external') {
-        $p1prog = $p1['normalized_program'] ?? null;
-        $p2prog = $p2['normalized_program'] ?? null;
-        if ($p1prog && $p2prog) {
-            if ($p1prog !== $p2prog) {
-                error_log("Invalid: panelist1 and panelist2 programs differ (" . ($p1prog ?: '-') . " vs " . ($p2prog ?: '-') . ")");
-                return false;
-            }
-        } else {
-            $p1col = $p1['program_college'] ?? null;
-            $p2col = $p2['program_college'] ?? null;
-            if ($p1col && $p2col && $p1col !== $p2col) {
-                error_log("Invalid: panelist1 and panelist2 colleges differ (" . ($p1col ?: '-') . " vs " . ($p2col ?: '-') . ")");
-                return false;
-            }
-        }
-    }
-
-    // Panelist 3 is the "external"/cross-program slot. It may be:
-    //   - a truly external panelist (is_external = 1), or
-    //   - a faculty member from a DIFFERENT program than the team/panelist 1
-    //     (e.g. an Information Technology faculty serving on a Computer Science panel), or
-    //   - a same-program part-time panelist (per the allowed employment combinations).
-    // Comparison is specialization-insensitive (normalized program names). We no longer
-    // reject a cross-program 3rd panelist just because they share a college with panelist 1.
-    $p3 = $panelists[2];
-    if (($p3['is_external'] ?? 0) != 1) {
-        $p3prog = $p3['normalized_program'] ?? null;
-        $p1prog = $p1['normalized_program'] ?? null;
-        if ($p3prog && $p1prog && $p3prog !== $p1prog) {
-            error_log("panelist3 is a cross-program reviewer ({$p3prog} vs {$p1prog}) — allowed");
-        }
-    }
-    
-    // Validate panelist_id3 (3rd position) must be external if external panelist is assigned
-    if ($panelists[2]['is_external'] == 1) {
-        // External must be in 3rd position
-        if ($types[0] === 'external' || $types[1] === 'external') {
-            error_log("Invalid combination: external panelist not in 3rd position");
+    $p1prog = $p1['normalized_program'] ?? null;
+    $p2prog = $p2['normalized_program'] ?? null;
+    if ($p1prog && $p2prog && $p1prog === $p2prog) {
+        // Same program — ideal case, nothing to relax.
+    } else {
+        $p1col = $p1['program_college'] ?? null;
+        $p2col = $p2['program_college'] ?? null;
+        if (!$p1col || !$p2col || $p1col !== $p2col) {
+            error_log("Invalid: panelist1 and panelist2 are neither same program nor same college (" . ($p1prog ?: '-') . "/" . ($p1col ?: '-') . " vs " . ($p2prog ?: '-') . "/" . ($p2col ?: '-') . ")");
             return false;
         }
-    }
-    
-    // Validate allowed combinations
-    $allowedCombinations = [
-        ['full_time', 'part_time', 'external'],
-        ['full_time', 'full_time', 'external'],
-        ['full_time', 'full_time', 'part_time'],
-        ['full_time', 'part_time', 'part_time']
-    ];
-    
-    // Check if current combination matches any allowed combination
-    foreach ($allowedCombinations as $allowed) {
-        if ($types === $allowed) {
-            return true;
-        }
+        error_log("panelist2 is same-college / different-program (conflict fallback) — allowed");
     }
 
-    // Additive acceptance for the External/Validator seat (panelist 3). Per the panel
-    // composition waterfall, once panelists 1 & 2 are valid same-program/same-college
-    // internals (already enforced above), panelist 3 may be ANY of:
-    //   Tier 1: same-program external      Tier 2: same-program internal
-    //   Tier 3: same-college different program   Tier 4: different college
-    // i.e. any employment type and any program/college is acceptable in slot 3.
-    if ($types[0] !== 'external' && $types[1] !== 'external') {
-        return true;
-    }
-
-    error_log("Invalid panelist combination: " . implode(", ", $types));
-    return false;
+    // Panelist 3 is the flexible External/Validator seat: any employment type, any program or
+    // college is acceptable (the selection waterfall ranks the preference). Once slots 1 & 2
+    // satisfy the program/college rule above, the combination is valid.
+    return true;
 }
 
 /**
@@ -303,10 +252,12 @@ function loadPanelistPools($pdo) {
     // flagged itself primed before calling us, so this returns the reference without recursing.
     $infoCache =& panelistInfoCache($pdo);
     try {
+        // usertype 2 = faculty panelists, usertype 0 = program chairs (also eligible to serve
+        // on panels). id 0 is the reserved system account and is excluded.
         $stmt = $pdo->query("
             SELECT id, usertype, is_parttime, is_external, first_name, last_name, username, program
             FROM users
-            WHERE usertype = 2 AND deleted_at IS NULL
+            WHERE usertype IN (0, 2) AND id != 0 AND deleted_at IS NULL
             ORDER BY first_name, last_name
         ");
         while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
@@ -398,18 +349,28 @@ function canFormCompliantPanel($pdo, $adviserId = null, $exclude = [], $teamProg
     $external = getExternalPanelists($pdo, $excludeList);
 
     $teamProgramNorm = $teamProgram ? normalizeProgramName($teamProgram) : null;
+    $teamCollegeResolved = $teamCollege ?: ($teamProgramNorm ? getProgramCollege($pdo, $teamProgramNorm) : null);
 
-    // Slots 1 & 2: same-program internals (full + part time). College is the fallback match
-    // only when the team has no program name.
-    $sameProgramInternals = [];
-    foreach (array_merge($fullTime, $partTime) as $id) {
+    // Slot 1 is ALWAYS a same-program internal. Slot 2 prefers a same-program internal but,
+    // when a scheduling conflict leaves only one same-program panelist available, may fall
+    // back to a same-COLLEGE (different program) internal. Feasibility therefore requires:
+    //   - >= 1 same-program internal (slot 1), and
+    //   - >= 2 same-college internals total (slots 1 & 2 combined; same-program counts here too).
+    // Same-program EXTERNALS are eligible for slots 1 & 2 too, so include the external pool when
+    // counting (mirrors buildOptimalPanelistCombination's slot-1/2 pool).
+    $sameProgramSlot12 = [];
+    $sameCollegeSlot12 = [];
+    foreach (array_merge($fullTime, $partTime, $external) as $id) {
         $info = getPanelistInfo($pdo, $id);
         if (!$info) continue;
         if (panelistMatchesTeamProgram($info, $teamProgramNorm, $teamCollege)) {
-            $sameProgramInternals[$id] = true;
+            $sameProgramSlot12[$id] = true;
+            $sameCollegeSlot12[$id] = true;
+        } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
+            $sameCollegeSlot12[$id] = true;
         }
     }
-    if (count($sameProgramInternals) < 2) {
+    if (count($sameProgramSlot12) < 1 || count($sameCollegeSlot12) < 2) {
         return false;
     }
 
@@ -488,7 +449,9 @@ function getExternalPanelistsWithPriority($pdo, $candidateIds = [], $teamProgram
  * 3. Full time, Full time, Part time
  * 4. Full time, Part time, Part time
  *
- * Panelists 1 & 2 are ALWAYS same-program / same-college internals.
+ * Panelist 1 is ALWAYS a same-program internal. Panelist 2 prefers the same program but,
+ * on a scheduling conflict (no second same-program faculty available), falls back to a
+ * same-college / different-program internal (never a different college).
  * Slot 3 (External/Validator seat) selection waterfall:
  * 1. Same-program external specialist (is_external = 1)
  * 2. Same-program internal (is_external = 0)
@@ -523,6 +486,11 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         // below so slot 3 can fall through the waterfall (same program -> same college ->
         // different college). Slots 1 & 2 are still locked to the same-program pool.
         $allSlot3Candidates = array_values(array_unique(array_merge($fullTime, $partTime, $external)));
+        // Shuffle so the slot-3 pick varies WITHIN a waterfall tier. Without this the pool stays
+        // in DB order (ORDER BY first_name) and getExternalPanelistsWithPriority preserves input
+        // order per tier, so the alphabetically-first same-program external was always chosen
+        // (e.g. only "Earl Saavedra" ever picked among several IT externals).
+        shuffle($allSlot3Candidates);
 
         // If student/team program (or college) provided, force slots 1 & 2 to come from the
         // SAME program as the team. Matching is specialization-insensitive: the program name
@@ -532,8 +500,16 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         // is NOT eligible as panelist 1 or 2 for a Computer Science section (they may still
         // serve as the 3rd / external/cross-program panelist).
         $useStudentMatch = $studentProgram || $studentCollege;
+        // Same-college / different-program fallback pools for panelist 2 ONLY. Panelist 1 is
+        // always a same-program internal; panelist 2 prefers the same program but, when a
+        // scheduling conflict (e.g. the only other same-program faculty is already booked and
+        // thus excluded) leaves no second same-program panelist, falls back to a same-college /
+        // different-program internal — never a different college.
+        $fallbackFull = [];
+        $fallbackPart = [];
         if ($useStudentMatch) {
             $studentProgram = $teamProgramNorm;
+            $teamCollegeResolved = $studentCollege ?: ($teamProgramNorm ? getProgramCollege($pdo, $teamProgramNorm) : null);
 
             $matchingFull = [];
             foreach ($fullTime as $id) {
@@ -541,6 +517,8 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                 if (!$info) continue;
                 if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingFull[] = $id;
+                } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
+                    $fallbackFull[] = $id;
                 }
             }
             $matchingPart = [];
@@ -549,13 +527,31 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                 if (!$info) continue;
                 if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
                     $matchingPart[] = $id;
+                } elseif ($teamCollegeResolved && ($info['program_college'] ?? null) === $teamCollegeResolved) {
+                    $fallbackPart[] = $id;
+                }
+            }
+            // Same-program EXTERNALS are also eligible for slots 1 & 2 (treated as internal here)
+            // so seats rotate when there are few internal faculty. They are appended AFTER the
+            // internals (see $internalPool below) so internals are preferred and externals only
+            // fill slots 1/2 when needed.
+            $matchingExternal = [];
+            foreach ($external as $id) {
+                $info = getPanelistInfo($pdo, $id);
+                if (!$info) continue;
+                if (panelistMatchesTeamProgram($info, $studentProgram, $studentCollege)) {
+                    $matchingExternal[] = $id;
                 }
             }
 
-            // Combined matching pool must have at least two panelists (slots 1 & 2)
-            $matchingCombined = array_values(array_unique(array_merge($matchingFull, $matchingPart)));
-            if (count($matchingCombined) < 2) {
-                error_log("Not enough same-program panelists to fill slots 1 and 2 (program=" . ($studentProgram ?: '-') . ", college=" . ($studentCollege ?: '-') . ")");
+            // Slot 1 ALWAYS needs a same-program panelist, so require at least one. Slot 2 may
+            // use a second same-program panelist OR (on conflict) a same-college fallback, so the
+            // same-program + same-college pools together must supply at least two candidates.
+            $matchingInternals = array_values(array_unique(array_merge($matchingFull, $matchingPart)));
+            $matchingCombined = array_values(array_unique(array_merge($matchingInternals, $matchingExternal)));
+            $sameCollegeCount = count($matchingCombined) + count($fallbackFull) + count($fallbackPart);
+            if (count($matchingCombined) < 1 || $sameCollegeCount < 2) {
+                error_log("Not enough panelists for slots 1 & 2: need 1 same-program + 1 same-college (program=" . ($studentProgram ?: '-') . ", college=" . ($teamCollegeResolved ?: '-') . ")");
                 return null;
             }
 
@@ -569,6 +565,22 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
         shuffle($fullTime);
         shuffle($partTime);
         shuffle($external);
+
+        // Slots 1 & 2 draw from ONE same-program pool, full-time and part-time treated equally
+        // so panelist 1 isn't forced to be the lone full-timer (e.g. always "Amanda Menta").
+        // Internals (incl. program chairs) come first; same-program externals are appended so
+        // they only fill slots 1/2 when there aren't enough internals. Each segment is shuffled
+        // independently to rotate within it.
+        $internalPool = [];
+        if ($useStudentMatch) {
+            $internalsShuffled = $matchingInternals;
+            shuffle($internalsShuffled);
+            $externalsShuffled = $matchingExternal;
+            shuffle($externalsShuffled);
+            $internalPool = array_values(array_unique(array_merge($internalsShuffled, $externalsShuffled)));
+        }
+        $fallbackCombined = array_merge($fallbackFull, $fallbackPart);
+        shuffle($fallbackCombined);
 
         // Defined allowed combinations (order: slot1, slot2, slot3)
         // Prefer the external 3rd slot most of the time, but still keep a small
@@ -594,9 +606,12 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
             $used = [];
             for ($i = 0; $i < 3; $i++) {
                 $type = $pattern[$i];
-                // Slot 3 draws from the external-priority pool, not $available[$type],
-                // so only enforce the pool-empty guard for slots 1 & 2.
-                if ($i !== 2 && empty($available[$type])) { $valid = false; break; }
+                // Slot 1 must have a same-program candidate available. Slot 3 uses the
+                // external-priority pool and slot 2 may fall back to the same-college pool, so
+                // only slot 1's empty pool is an immediate failure here. When matching on the
+                // team program, slots 1 & 2 use the employment-agnostic $internalPool.
+                $slot01Pool = $useStudentMatch ? $internalPool : $available[$type];
+                if ($i === 0 && empty($slot01Pool)) { $valid = false; break; }
 
                 $chosen = null;
 
@@ -620,14 +635,28 @@ function buildOptimalPanelistCombination($pdo, $adviserId = null, $exclude = [],
                         }
                     }
                 } else {
-                    // Slots 1 & 2 always come from the same-program matching pool.
-                    foreach ($available[$type] as $candidate) {
+                    // Slots 1 & 2 come from the same-program pool, full-time and part-time
+                    // treated equally (any same-program faculty may be panelist 1 or 2).
+                    foreach ($slot01Pool as $candidate) {
                         if (in_array($candidate, $used, true)) continue;
-                        if ($useStudentMatch && ($i === 0 || $i === 1)) {
-                            if (!in_array($candidate, $matchingCombined, true)) continue;
-                        }
+                        if ($useStudentMatch && !in_array($candidate, $matchingCombined, true)) continue;
                         $chosen = $candidate;
                         break;
+                    }
+
+                    // Conflict fallback for panelist 2 ONLY: no same-program candidate remains
+                    // (e.g. the other same-program faculty is booked and excluded), so draw a
+                    // same-college / different-program internal instead. Panelist 1 (i === 0) is
+                    // never relaxed this way.
+                    if ($chosen === null && $i === 1 && $useStudentMatch) {
+                        foreach ($fallbackCombined as $candidate) {
+                            if (in_array($candidate, $used, true)) continue;
+                            $chosen = $candidate;
+                            break;
+                        }
+                        if ($chosen !== null) {
+                            error_log("panelist2 conflict fallback: using same-college / different-program candidate $chosen");
+                        }
                     }
                 }
 
