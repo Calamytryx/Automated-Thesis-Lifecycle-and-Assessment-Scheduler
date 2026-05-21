@@ -64,7 +64,7 @@
                         </div>
                         <!-- Action Buttons -->
                         <div class="col-12 col-md">
-                            <div class="d-flex gap-2 justify-content-md-end flex-wrap">
+                            <div class="defense-controls-group">
                                 <button class="btn feature-btn add-btn user-control-height flex-fill flex-md-grow-0" data-table="defense_schedules">
                                     <i class="fas fa-plus me-1 d-none d-lg-inline"></i>
                                     <span class="d-none d-lg-inline">Add Schedule</span>
@@ -80,23 +80,27 @@
                                     <span class="d-none d-lg-inline">Generate Schedule</span>
                                     <span class="d-lg-none">Generate</span>
                                 </button>
-                                <div class="defense-export-controls ms-2 ms-md-auto">
-                                    <input type="date" class="form-control user-control-height defense-export-date" id="reportStartDate" aria-label="Start date">
-                                    <input type="date" class="form-control user-control-height defense-export-date" id="reportEndDate" aria-label="End date">
-                                    <div class="defense-export-menu" id="defenseExportMenu">
-                                        <button class="btn defense-export-btn user-control-height" id="exportDefensePdf" type="button" aria-haspopup="true" aria-expanded="false">
-                                            <svg class="defense-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                                                <path d="M8 1.5v8.086l2.243-2.243 1.06 1.061L8 12.707 4.697 8.404l1.06-1.06L8 9.585V1.5h0Z" fill="currentColor"/>
-                                                <path d="M2.5 12.5h11v1.5h-11v-1.5Z" fill="currentColor"/>
-                                            </svg>
-                                            <span class="defense-export-trigger-label">Export Table View</span>
-                                            <i class="fas fa-angle-down ms-1"></i>
-                                        </button>
-                                        <div class="defense-export-options" role="menu" aria-label="Defense export options">
-                                            <button type="button" class="defense-export-option" data-export-type="table" role="menuitem">Table View</button>
-                                            <button type="button" class="defense-export-option" data-export-type="calendar" role="menuitem">Calendar View</button>
-                                        </div>
-                                    </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="defense-export-container mb-3">
+                    <div class="defense-export-row">
+                        <div class="defense-export-controls">
+                            <input type="date" class="form-control user-control-height defense-export-date" id="reportStartDate" aria-label="Start date">
+                            <input type="date" class="form-control user-control-height defense-export-date" id="reportEndDate" aria-label="End date">
+                            <div class="defense-export-menu" id="defenseExportMenu">
+                                <button class="btn defense-export-btn user-control-height" id="exportDefensePdf" type="button" aria-haspopup="true" aria-expanded="false">
+                                    <svg class="defense-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                        <path d="M8 1.5v8.086l2.243-2.243 1.06 1.061L8 12.707 4.697 8.404l1.06-1.06L8 9.585V1.5h0Z" fill="currentColor"/>
+                                        <path d="M2.5 12.5h11v1.5h-11v-1.5Z" fill="currentColor"/>
+                                    </svg>
+                                    <span class="defense-export-trigger-label">Export Table View</span>
+                                    <i class="fas fa-angle-down ms-1"></i>
+                                </button>
+                                <div class="defense-export-options" role="menu" aria-label="Defense export options">
+                                    <button type="button" class="defense-export-option" data-export-type="table" role="menuitem">Table View</button>
+                                    <button type="button" class="defense-export-option" data-export-type="calendar" role="menuitem">Calendar View</button>
                                 </div>
                             </div>
                         </div>

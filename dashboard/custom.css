@@ -2995,6 +2995,25 @@ main.container-fluid {
     opacity: 0.6;
 }
 
+#schedules .schedules-controls-group,
+#defense-schedules .defense-controls-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+    justify-content: flex-end;
+}
+
+#schedules .schedules-controls-group > .btn-group {
+    margin-right: auto;
+}
+
+#schedules .schedule-export-row,
+#defense-schedules .defense-export-row {
+    display: flex;
+    justify-content: flex-end;
+}
+
 #schedules .schedule-export-menu {
     position: relative;
     display: inline-flex;
@@ -3197,6 +3216,29 @@ main.container-fluid {
     border-radius: 4px;
     font-size: 0.95rem;
     transition: background-color 0.15s ease, color 0.15s ease;
+}
+
+@media (max-width: 767.98px) {
+    #schedules .schedules-controls-group,
+    #defense-schedules .defense-controls-group {
+        justify-content: flex-start;
+    }
+
+    #schedules .schedules-controls-group > *,
+    #defense-schedules .defense-controls-group > * {
+        flex: 1 1 100%;
+    }
+
+    #schedules .schedule-export-row,
+    #defense-schedules .defense-export-row {
+        justify-content: flex-start;
+    }
+
+    #schedules .schedule-export-controls,
+    #defense-schedules .defense-export-controls {
+        width: 100%;
+        justify-content: flex-start;
+    }
 }
 
 /* Schedules export option hover/focus states */

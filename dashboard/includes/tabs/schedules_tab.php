@@ -135,57 +135,68 @@ if (!empty($_SESSION['id'])) {
         <!-- Controls -->
         <div class="row">
             <div class="col-12">
-                <div class="d-flex flex-wrap gap-2 justify-content-between mb-3">
-                    <div class="d-flex gap-2 align-items-center">
-                        <div class="btn-group" role="group" aria-label="View type toggle">
-                            <button type="button" class="btn btn-outline view-type-btn" data-view="program">By Program/Section</button>
-                            <button type="button" class="btn btn-outline view-type-btn"
-                                data-view="instructor">By Instructor</button>
-                        </div>
-                        <input type="hidden" id="viewTypeSelect" value="">
-                    </div>
-                    <!-- College Filter -->
-                    <div class="d-flex gap-2 align-items-center">
-                        <select class="form-select user-control-height" id="collegeFilterSelect" style="width: 220px; display: none;">
-                            <option value="">Select College</option>
-                        </select>
-                    </div>
+                <div class="user-controls-container p-0 mt-3">
+                    <div class="row g-2 align-items-center mb-2">
+                        <div class="col-12">
+                            <div class="schedules-controls-group">
+                                <div class="btn-group" role="group" aria-label="View type toggle">
+                                    <button type="button" class="btn btn-outline view-type-btn" data-view="program">By Program/Section</button>
+                                    <button type="button" class="btn btn-outline view-type-btn"
+                                        data-view="instructor">By Instructor</button>
+                                </div>
+                                <input type="hidden" id="viewTypeSelect" value="">
+                                <!-- College Filter -->
+                                <select class="form-select user-control-height" id="collegeFilterSelect" style="width: 220px; display: none;">
+                                    <option value="">Select College</option>
+                                </select>
 
-                    <!-- Program and Section Filters -->
-                    <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
-                        <!-- Program select (disabled until college selected) -->
-                        <select class="form-select user-control-height" id="programFilterSelect" style="width: 200px; display: none;" disabled>
-                            <option value="">Select Program</option>
-                        </select>
-                        <select class="form-select user-control-height" id="sectionFilterSelect" style="width: 180px; display: none;"
-                            disabled>
-                            <option value="">Select Section</option>
-                        </select>
-                    </div>
-                    <!-- Instructor Filter -->
-                    <div class="d-flex gap-2 align-items-center" id="instructorFilters">
-                        <select class="form-select user-control-height" id="instructorFilterSelect" style="width: 220px; display: none;">
-                            <option value="">Select Instructors</option>
-                        </select>
-                    </div>
-                    <div class="schedule-export-controls ms-2 ms-md-auto">
-                        <div class="schedule-export-menu" id="scheduleExportMenu">
-                            <button type="button" class="btn schedule-export-trigger" id="exportSchedulesPdfBtn" aria-haspopup="true" aria-expanded="false">
-                                <svg class="schedule-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
-                                    <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"></rect>
-                                    <path d="M4.5 8.5L8 5l3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                                    <path d="M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
-                                </svg>
-                                <span class="schedule-export-trigger-label">Export Table View</span>
-                                <i class="fas fa-angle-down ms-1"></i>
-                            </button>
-                            <div class="schedule-export-options" role="menu" aria-label="Schedule export options">
-                                <button type="button" class="schedule-export-option" data-export-type="table" role="menuitem">
-                                    Table View
+                                <!-- Program and Section Filters -->
+                                <div class="d-flex gap-2 align-items-center" id="programSectionFilters">
+                                    <!-- Program select (disabled until college selected) -->
+                                    <select class="form-select user-control-height" id="programFilterSelect" style="width: 200px; display: none;" disabled>
+                                        <option value="">Select Program</option>
+                                    </select>
+                                    <select class="form-select user-control-height" id="sectionFilterSelect" style="width: 180px; display: none;"
+                                        disabled>
+                                        <option value="">Select Section</option>
+                                    </select>
+                                </div>
+                                <!-- Instructor Filter -->
+                                <div class="d-flex gap-2 align-items-center" id="instructorFilters">
+                                    <select class="form-select user-control-height" id="instructorFilterSelect" style="width: 220px; display: none;">
+                                        <option value="">Select Instructors</option>
+                                    </select>
+                                </div>
+                                <button class="btn feature-btn add-btn" data-table="user_schedules">
+                                    <i class="fas fa-plus me-2"></i>Add Schedule
                                 </button>
-                                <button type="button" class="schedule-export-option" data-export-type="calendar" role="menuitem">
-                                    Calendar View
-                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row g-2 align-items-center mb-3">
+                        <div class="col-12">
+                            <div class="schedule-export-row">
+                                <div class="schedule-export-controls">
+                                    <div class="schedule-export-menu" id="scheduleExportMenu">
+                                        <button type="button" class="btn schedule-export-trigger" id="exportSchedulesPdfBtn" aria-haspopup="true" aria-expanded="false">
+                                            <svg class="schedule-export-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" focusable="false">
+                                                <rect x="1" y="1" width="14" height="14" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"></rect>
+                                                <path d="M4.5 8.5L8 5l3.5 3.5" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                                                <path d="M8 5v6" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round" fill="none"></path>
+                                            </svg>
+                                            <span class="schedule-export-trigger-label">Export Table View</span>
+                                            <i class="fas fa-angle-down ms-1"></i>
+                                        </button>
+                                        <div class="schedule-export-options" role="menu" aria-label="Schedule export options">
+                                            <button type="button" class="schedule-export-option" data-export-type="table" role="menuitem">
+                                                Table View
+                                            </button>
+                                            <button type="button" class="schedule-export-option" data-export-type="calendar" role="menuitem">
+                                                Calendar View
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -953,11 +964,6 @@ if (!empty($_SESSION['id'])) {
                         document.querySelector('.view-type-btn[data-view="program"]').click();
                     });
                     </script>
-                    <div class="d-flex gap-2">
-                        <button class="btn feature-btn add-btn" data-table="user_schedules">
-                            <i class="fas fa-plus me-2"></i>Add Schedule
-                        </button>
-                    </div>
                 </div>
             </div>
         </div>
