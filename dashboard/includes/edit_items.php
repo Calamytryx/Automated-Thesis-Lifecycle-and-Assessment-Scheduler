@@ -69,13 +69,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     // Inside form processing logic (before updating an item)
 function handleRequirementTemplateUpload($file) {
-    $uploadDir = '../uploads/requirements/';
+    $uploadDir = __DIR__ . '/../uploads/requirements/';
     
     // Create directory if it doesn't exist
     if (!file_exists($uploadDir)) {
         if (!mkdir($uploadDir, 0777, true)) {
             return ['success' => false, 'error' => 'Failed to create upload directory'];
         }
+    }
+
+    if (!is_writable($uploadDir)) {
+        return ['success' => false, 'error' => 'Upload directory is not writable'];
     }
     
     // Validate file
@@ -113,16 +117,23 @@ function handleRequirementTemplateUpload($file) {
     $oldFile = $stmt->fetchColumn();
 
     // Remove old file if exists
-    if ($oldFile && file_exists('../assets/images/' . $oldFile)) {
-        unlink('../assets/images/' . $oldFile);
+    $imagesDir = __DIR__ . '/../../assets/images/';
+    if ($oldFile && file_exists($imagesDir . $oldFile)) {
+        unlink($imagesDir . $oldFile);
     }
 
     // Upload directory (already exists, no mkdir)
-    $uploadDir = __DIR__ . '/../../assets/images/';
+    $uploadDir = $imagesDir;
     
     // Ensure directory exists with proper permissions
     if (!is_dir($uploadDir)) {
         mkdir($uploadDir, 0777, true);
+    }
+
+    if (!is_writable($uploadDir)) {
+        $response['message'] = 'Upload directory is not writable.';
+        echo json_encode($response);
+        exit;
     }
 
 

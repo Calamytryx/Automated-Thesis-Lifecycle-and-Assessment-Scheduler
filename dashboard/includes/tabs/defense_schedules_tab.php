@@ -2025,7 +2025,8 @@
 
                         rooms.forEach((room) => {
                             const roomRows = grouped[date][room];
-                            if ((y + 12) > bottomThreshold) {
+                            // 12 = room label (6) + table header (6); 6 = minimum first data row
+                            if ((y + 18) > bottomThreshold) {
                                 pdf.addPage();
                                 y = drawDateHeader(dateLabel);
                             }

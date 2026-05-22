@@ -147,10 +147,8 @@ try {
 
 } catch (PDOException $e) {
     error_log('Database error in get_evaluations.php: ' . $e->getMessage());
-    echo json_encode([
-        'error' => 'Database error occurred.',
-        'details' => $e->getMessage()
-    ]);
+    http_response_code(500);
+    echo json_encode(['error' => 'Database error occurred.']);
 } catch (Exception $e) {
     error_log('General error in get_evaluations.php: ' . $e->getMessage());
     echo json_encode(['error' => 'An unexpected error occurred.']);
