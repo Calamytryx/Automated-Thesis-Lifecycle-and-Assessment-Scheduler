@@ -1975,12 +1975,31 @@ document.addEventListener("DOMContentLoaded", function() {
                                     <?php endif; ?>
                                 </div>
                             </div>
+
+                            <!-- Help -->
+                            <div class="home-sidebar-section">
+                                <div class="home-sidebar-category">
+                                    Help
+                                </div>
+                                <div class="home-sidebar-items">
+                                    <a class="nav-link" id="guide-link" data-bs-toggle="pill"
+                                        href="#guide" role="tab" aria-controls="guide"
+                                        aria-selected="false">
+                                        <i class="bi bi-book me-2 hollow"></i>
+                                        <i class="bi bi-book-fill me-2 filled"></i>
+                                        <span class="nav-text">User Manual</span>
+                                    </a>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
 
                 <div id="homeMainContent">
                     <div class="tab-content" id="v-pills-tabContent">
+                        <div class="tab-pane fade" id="guide" role="tabpanel" aria-labelledby="guide-link">
+                            <?php require_once __DIR__ . '/../assets/includes/guide_modules.php'; guide_render(); ?>
+                        </div>
                         <div class="tab-pane fade" id="thesis-topic" role="tabpanel"
                             aria-labelledby="thesis-topic-link">
                             <div class="home-sidebar-box">

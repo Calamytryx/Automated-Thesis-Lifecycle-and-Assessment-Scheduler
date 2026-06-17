@@ -496,7 +496,7 @@ echo ($_SESSION['usertype'] == 0)
                                     </a> -->
                                     <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
                                         <i class="bi bi-book me-2 hollow"></i>
-                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
+                                        <i class="bi bi-book-fill me-2 filled"></i>User Manual
                                     </a>
                                 </div>
                             </div>
@@ -695,7 +695,7 @@ echo ($_SESSION['usertype'] == 0)
                                     </a> -->
                                     <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
                                         <i class="bi bi-book me-2 hollow"></i>
-                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
+                                        <i class="bi bi-book-fill me-2 filled"></i>User Manual
                                     </a>
                                 </div>
                             </div>
@@ -884,7 +884,7 @@ echo ($_SESSION['usertype'] == 0)
                                     </a> -->
                                     <a class="nav-link my-1" id="guide-tab" data-bs-toggle="pill" href="#guide" role="tab" aria-controls="guide" aria-selected="false">
                                         <i class="bi bi-book me-2 hollow"></i>
-                                        <i class="bi bi-book-fill me-2 filled"></i>Guide
+                                        <i class="bi bi-book-fill me-2 filled"></i>User Manual
                                     </a>
                                 </div>
                             </div>
