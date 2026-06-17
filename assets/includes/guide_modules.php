@@ -235,13 +235,15 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['faculty', 'student'],
                 'overview' => 'The Research Title Acceptance tool checks the uniqueness of your proposed research title, surfaces similar existing titles, and lets your group accept or revise the title before it moves into the workflow.',
                 'snippet' => '
-                    <label class="form-label small mb-1">Proposed research title</label>
-                    <div class="d-flex gap-2 mb-2">
-                      <input class="form-control form-control-sm" value="IoT-Based Flood Monitoring System">
-                      <button class="btn btn-sm btn-primary">Check</button>
-                    </div>
-                    <div class="border rounded p-2 bg-white mb-2"><small class="text-muted">Similarity:</small> <span class="badge bg-success">Unique (12%)</span></div>
-                    <button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Accept Title</button>',
+                    <label class="form-label small mb-1">Enter your research title</label>
+                    <input class="form-control form-control-sm mb-2" placeholder="Enter your research title here..." value="IoT-Based Flood Monitoring System">
+                    <label class="form-label small mb-1">Field of study</label>
+                    <input class="form-control form-control-sm mb-2" placeholder="e.g., Computer Science" value="Computer Science">
+                    <button class="btn btn-sm btn-primary mb-2"><i class="fas fa-magnifying-glass me-1"></i>Uniqueness Check</button>
+                    <div class="border rounded p-2 bg-white d-flex align-items-center justify-content-between">
+                      <span><small class="text-muted">Result:</small> <span class="badge bg-success">Unique (12% similarity)</span></span>
+                      <button class="btn btn-sm btn-success"><i class="fas fa-check me-1"></i>Accept</button>
+                    </div>',
                 'actions' => [
                     'Check a title against existing titles for similarity',
                     'Review suggested or conflicting titles',
@@ -262,15 +264,12 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['faculty', 'student'],
                 'overview' => 'The Requirement Checker tracks every thesis requirement for your group, shows deadlines and submission status, and is where students submit deliverables. Faculty advisers use it to monitor their groups.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-1 bg-white">
-                      <thead class="table-light"><tr><th>Requirement</th><th>Deadline</th><th>Status</th></tr></thead>
-                      <tbody>
-                        <tr><td>Manuscript</td><td>Jun 30, 2026</td><td><span class="badge bg-warning text-dark">Pending</span></td></tr>
-                        <tr><td>Title Proposal</td><td>Jun 1, 2026</td><td><span class="badge bg-success">Submitted</span></td></tr>
-                        <tr><td>Endorsement</td><td>May 20, 2026</td><td><span class="badge bg-danger">No submission</span></td></tr>
-                      </tbody>
-                    </table>
-                    <button class="btn btn-sm btn-primary"><i class="fas fa-upload me-1"></i>Submit deliverable</button>',
+                    <select class="form-select form-select-sm mb-3" style="max-width:240px"><option>Team Alpha</option><option>Team Beta</option></select>
+                    <div class="row g-2">
+                      <div class="col-6"><div class="border rounded p-2 bg-white h-100"><div class="fw-semibold small">Manuscript</div><div class="text-muted small mb-1">Due Jun 30, 2026</div><span class="badge bg-warning text-dark">Pending</span> <button class="btn btn-sm btn-outline-primary mt-1"><i class="fas fa-upload me-1"></i>Submit</button></div></div>
+                      <div class="col-6"><div class="border rounded p-2 bg-white h-100"><div class="fw-semibold small">Title Proposal</div><div class="text-muted small mb-1">Due Jun 1, 2026</div><span class="badge bg-success">Submitted</span></div></div>
+                      <div class="col-6"><div class="border rounded p-2 bg-white h-100"><div class="fw-semibold small">Endorsement</div><div class="text-muted small mb-1">Due May 20, 2026</div><span class="badge bg-danger">No submission</span></div></div>
+                    </div>',
                 'actions' => [
                     'See each requirement, its deadline and your status',
                     'Submit deliverables for open requirements',
@@ -291,14 +290,14 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['faculty', 'student'],
                 'overview' => 'Group Evaluations is where faculty panelists score a group\'s defense using the configured rubrics, and where students see their aggregated results and feedback once evaluations are released.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-2 bg-white">
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Group Name</th><th>Research Title</th><th>Program</th><th class="text-center">Action</th></tr></thead>
                       <tbody>
-                        <tr><td>Content</td><td><span class="badge bg-secondary">8 / 10</span></td></tr>
-                        <tr><td>Presentation</td><td><span class="badge bg-secondary">7 / 10</span></td></tr>
-                        <tr><td>Q &amp; A</td><td><span class="badge bg-secondary">9 / 10</span></td></tr>
+                        <tr><td>Team Alpha</td><td>IoT-Based Flood Monitoring</td><td>BSCS</td><td class="text-center"><button class="btn btn-sm btn-primary"><i class="fas fa-pen-to-square me-1"></i>Evaluate</button></td></tr>
+                        <tr><td>Team Beta</td><td>Campus Navigation App</td><td>BSCS</td><td class="text-center"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-eye me-1"></i>View</button></td></tr>
                       </tbody>
-                    </table>
-                    <button class="btn btn-sm btn-success"><i class="fas fa-save me-1"></i>Submit Evaluation</button>',
+                    </table></div>',
                 'actions' => [
                     'Score a group against each rubric criterion (faculty)',
                     'Add comments and submit the evaluation (faculty)',
@@ -349,13 +348,19 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair', 'faculty', 'student'],
                 'overview' => 'The Groups tab is where research groups are created, members and advisers are assigned, and progress is tracked through the thesis lifecycle. Faculty see groups in their program; students see their own group.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-0 bg-white">
-                      <thead class="table-light"><tr><th>Group</th><th>Research Title</th><th>Adviser</th></tr></thead>
+                    <div class="d-flex gap-2 mb-2 flex-wrap">
+                      <input class="form-control form-control-sm" style="max-width:180px" placeholder="Search groups...">
+                      <button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Team</button>
+                      <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-import me-1"></i>Bulk Add</button>
+                    </div>
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Group Code</th><th>Group Name</th><th>Research Title</th><th>Adviser</th><th class="text-center">Action</th></tr></thead>
                       <tbody>
-                        <tr><td>Team Alpha</td><td>IoT-Based Flood Monitoring</td><td><span class="badge bg-secondary">Reyes</span></td></tr>
-                        <tr><td>Team Beta</td><td><span class="text-danger">No research title</span></td><td><span class="badge bg-secondary">Santos</span></td></tr>
+                        <tr><td>G-001</td><td>Team Alpha</td><td>IoT-Based Flood Monitoring</td><td>Reyes</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>G-002</td><td>Team Beta</td><td><span class="text-danger">No research title</span></td><td>Santos</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
                       </tbody>
-                    </table>',
+                    </table></div>',
                 'actions' => [
                     'Create and edit groups, including bulk import',
                     'Assign students and an adviser to each group',
@@ -403,22 +408,27 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair', 'faculty', 'student'],
                 'overview' => 'The Defense Schedules tab manages defense sessions. Faculty research teachers and chairs auto-generate conflict-free schedules with the genetic-algorithm scheduler or add sessions manually, then approve and finalize them. Students see their own approved schedule.',
                 'snippet' => '
-                    <div class="d-flex justify-content-between mb-2">
+                    <div class="d-flex flex-wrap gap-2 mb-2">
                       <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-cog me-1"></i>Scheduler Settings</button>
                       <button class="btn btn-sm btn-primary"><i class="fas fa-magic me-1"></i>Generate Schedule</button>
+                      <button class="btn btn-sm btn-success"><i class="fas fa-check-double me-1"></i>Approve All</button>
                     </div>
-                    <table class="table table-sm table-bordered mb-0 bg-white">
-                      <thead class="table-light"><tr><th>Group</th><th>Schedule</th><th>Status</th></tr></thead>
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Date &amp; Time</th><th>Group</th><th>Panelist 1</th><th>Panelist 2</th><th>Panelist 3</th><th>Room</th><th>Status</th></tr></thead>
                       <tbody>
-                        <tr><td>Team Alpha</td><td>Jun 20, 9:00 AM</td><td><span class="badge bg-success">Approved</span></td></tr>
-                        <tr><td>Team Beta</td><td>Jun 20, 10:00 AM</td><td><span class="badge bg-info text-dark">Finalized</span></td></tr>
+                        <tr><td>Jun 20, 9:00 AM</td><td>Team Alpha</td><td>Reyes</td><td>Cruz</td><td>Lim (Ext.)</td><td>Lab 1</td><td><span class="badge bg-success">Approved</span></td></tr>
+                        <tr><td>Jun 20, 10:00 AM</td><td>Team Beta</td><td>Santos</td><td>Reyes</td><td>Tan (Ext.)</td><td>Lab 2</td><td><span class="badge bg-info text-dark">Finalized</span></td></tr>
                       </tbody>
-                    </table>',
+                    </table></div>',
+                'body_html' => '
+                    <h6><i class="fas fa-table-columns me-2 text-primary"></i>The schedule table</h6>
+                    <p class="text-muted">Each row is one defense: its date &amp; time, the group, the three panelists, the room and the status. Pending rows can be approved individually or with <strong>Approve All</strong>; finalized rows are locked.</p>',
                 'actions' => [
                     'Configure scheduler settings (slots, rooms, dates, duration)',
                     'Auto-generate conflict-free schedules for many groups',
-                    'Add or edit individual sessions',
-                    'Approve and finalize schedules',
+                    'Add or edit individual sessions and reassign panelists',
+                    'Approve schedules individually or all at once, then finalize',
                 ],
                 'steps' => [
                     'Open "Scheduler Settings" and set slots, rooms and date range',
@@ -492,17 +502,19 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair', 'faculty'],
                 'overview' => 'This area manages the pool of specializations (fields of expertise) and assigns them to faculty and groups. The scheduler uses these to align panelists with a group\'s expertise, so keeping them accurate improves panel quality.',
                 'snippet' => '
-                    <label class="form-label small mb-1">Add a field of specialization</label>
-                    <div class="d-flex gap-2 mb-2">
-                      <select class="form-select form-select-sm"><option>Artificial Intelligence (College of Science)</option><option>Cybersecurity (College of Science)</option></select>
-                      <button class="btn btn-sm btn-primary">Assign</button>
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                      <span class="fw-semibold small">Specialization pool</span>
+                      <button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Specialization</button>
                     </div>
-                    <div>
-                      <span class="badge bg-primary me-1">Artificial Intelligence <i class="fas fa-times ms-1"></i></span>
-                      <span class="badge bg-primary me-1">Cybersecurity <i class="fas fa-times ms-1"></i></span>
-                      <span class="badge bg-primary">Software Engineering <i class="fas fa-times ms-1"></i></span>
-                    </div>
-                    <small class="text-muted d-block mt-1">Only your college\'s fields are listed (no Engineering fields for a CS user).</small>',
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-2 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Name</th><th>Department</th><th>College</th><th>Status</th><th class="text-center">Actions</th></tr></thead>
+                      <tbody>
+                        <tr><td>Artificial Intelligence</td><td>Computer Science</td><td>College of Science</td><td><span class="badge bg-success">Active</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>Cybersecurity</td><td>Computer Science</td><td>College of Science</td><td><span class="badge bg-success">Active</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                      </tbody>
+                    </table></div>
+                    <small class="text-muted d-block">Only your college\'s fields are listed (no Engineering fields for a CS user).</small>',
                 'actions' => [
                     'Add, edit, activate/deactivate specializations (admins/chairs)',
                     'Assign specializations to faculty and to your groups (faculty)',
@@ -521,13 +533,15 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair'],
                 'overview' => 'The Rubrics tab builds evaluation instruments with customisable criteria and scoring, either numerical or pass/fail, and assigns them to programs.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-0 text-center bg-white">
-                      <thead class="table-light"><tr><th class="text-start">Criterion</th><th>Excellent</th><th>Good</th><th>Fair</th></tr></thead>
+                    <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add New Rubric</button></div>
+                    <table class="table table-sm table-bordered mb-2 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Name</th><th>Type</th><th>Status</th><th class="text-center">Actions</th></tr></thead>
                       <tbody>
-                        <tr><td class="text-start">Content</td><td>10</td><td>7</td><td>4</td></tr>
-                        <tr><td class="text-start">Delivery</td><td>10</td><td>7</td><td>4</td></tr>
+                        <tr><td>Manuscript Evaluation</td><td><span class="badge bg-secondary">Numerical</span></td><td><span class="badge bg-success">Active</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>Defense Pass/Fail</td><td><span class="badge bg-secondary">Pass/Fail</span></td><td><span class="badge bg-success">Active</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
                       </tbody>
-                    </table>',
+                    </table>
+                    <div class="border rounded bg-white p-2"><small class="text-muted">Criteria preview &mdash; Content: Excellent 10 / Good 7 / Fair 4</small></div>',
                 'actions' => [
                     'Create numerical or pass/fail rubrics',
                     'Define criteria, quality levels and point values',
@@ -548,14 +562,20 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair', 'faculty'],
                 'overview' => 'Rubric Groups bundle multiple rubrics into a single weighted framework used to evaluate a defense, so panelists score consistently.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-0 bg-white">
+                    <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Rubric Group</button></div>
+                    <table class="table table-sm table-bordered mb-2 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Name</th><th>Description</th><th>Rubric Count</th><th class="text-center">Actions</th></tr></thead>
                       <tbody>
-                        <tr><td>Manuscript</td><td style="width:90px"><input class="form-control form-control-sm" value="40%"></td></tr>
-                        <tr><td>Presentation</td><td><input class="form-control form-control-sm" value="30%"></td></tr>
-                        <tr><td>Q &amp; A</td><td><input class="form-control form-control-sm" value="30%"></td></tr>
-                        <tr class="table-light"><td class="fw-bold">Total</td><td class="fw-bold text-success">100%</td></tr>
+                        <tr><td>Final Defense Framework</td><td>Manuscript + presentation + Q&amp;A</td><td><span class="badge bg-secondary">3</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
                       </tbody>
-                    </table>',
+                    </table>
+                    <div class="border rounded bg-white p-2">
+                      <small class="text-muted">Weights inside the group:</small>
+                      <div class="d-flex justify-content-between"><span>Manuscript</span><span class="fw-semibold">40%</span></div>
+                      <div class="d-flex justify-content-between"><span>Presentation</span><span class="fw-semibold">30%</span></div>
+                      <div class="d-flex justify-content-between"><span>Q &amp; A</span><span class="fw-semibold">30%</span></div>
+                      <div class="d-flex justify-content-between border-top pt-1 mt-1"><span class="fw-bold">Total</span><span class="fw-bold text-success">100%</span></div>
+                    </div>',
                 'actions' => [
                     'Create rubric groups',
                     'Add rubrics and assign percentage weights',
@@ -605,17 +625,20 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair'],
                 'overview' => 'The Requirements tab defines what groups must submit, by when, and with what rules. Groups then submit and track these through the Requirement Checker.',
                 'snippet' => '
-                    <table class="table table-sm table-bordered mb-1 bg-white">
-                      <thead class="table-light"><tr><th>Requirement</th><th>Deadline</th><th>State</th></tr></thead>
+                    <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Requirement</button></div>
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-1 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Name</th><th>Defense Type</th><th>Multi-Submit</th><th>Due Date</th><th class="text-center">Action</th></tr></thead>
                       <tbody>
-                        <tr><td>Manuscript</td><td>Due Jun 30, 2026</td><td><span class="badge bg-success">Open</span></td></tr>
-                        <tr><td>Title Proposal</td><td>Due Jun 1, 2026</td><td><span class="badge bg-secondary">Closed (past deadline)</span></td></tr>
+                        <tr><td>Manuscript</td><td><span class="badge bg-success">Final Defense</span></td><td><span class="badge bg-warning text-dark">No</span></td><td>Jun 30, 2026</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>Title Proposal</td><td><span class="badge bg-info">Title Proposal</span></td><td><span class="badge bg-success">Yes (Max: 3)</span></td><td>Jun 1, 2026</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
                       </tbody>
-                    </table>
+                    </table></div>
                     <small class="text-muted">"No submission" is only counted once a deadline has passed.</small>',
                 'actions' => [
                     'Add, edit and delete requirements',
-                    'Set deadlines and submission rules',
+                    'Choose the defense type, deadline and whether multiple submissions are allowed',
+                    'Attach a template file for groups to follow',
                     'Track completion across groups',
                 ],
                 'steps' => [
@@ -658,18 +681,19 @@ if (!function_exists('guide_get_modules')) {
                 'overview' => 'The Users tab manages all system accounts with full create, edit and delete operations, plus CSV bulk import. Chairs see only users within their college.',
                 'snippet' => '
                     <div class="d-flex gap-2 mb-2 flex-wrap">
-                      <input class="form-control form-control-sm" style="max-width:200px" placeholder="Search users...">
-                      <select class="form-select form-select-sm" style="max-width:130px"><option>All types</option></select>
+                      <input class="form-control form-control-sm" style="max-width:170px" placeholder="Search users...">
+                      <select class="form-select form-select-sm" style="max-width:120px"><option>All types</option></select>
                       <button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add User</button>
+                      <button class="btn btn-sm btn-outline-secondary"><i class="fas fa-file-import me-1"></i>Bulk</button>
                     </div>
-                    <table class="table table-sm table-bordered mb-0 bg-white">
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 bg-white align-middle">
+                      <thead class="table-light"><tr><th>Username</th><th>Email</th><th>Name</th><th>User Type</th><th class="text-center">Action</th></tr></thead>
                       <tbody>
-                        <tr>
-                          <td>Dela Cruz, Juan</td><td>juan@email.com</td><td><span class="badge bg-success">Faculty</span></td>
-                          <td class="text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td>
-                        </tr>
+                        <tr><td>jdelacruz</td><td>juan@email.com</td><td>Juan Dela Cruz</td><td><span class="badge bg-success">Faculty</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>msantos</td><td>maria@email.com</td><td>Maria Santos</td><td><span class="badge bg-primary">Student</span></td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
                       </tbody>
-                    </table>',
+                    </table></div>',
                 'actions' => [
                     'Add, edit and delete user accounts',
                     'Bulk import users from a CSV file',
@@ -690,10 +714,15 @@ if (!function_exists('guide_get_modules')) {
                 'audiences' => ['admin', 'chair'],
                 'overview' => 'The Programs tab organises academic programs under their parent colleges. This mapping drives scoping across the whole system.',
                 'snippet' => '
-                    <div class="border rounded bg-white">
-                      <div class="bg-light p-2 fw-semibold"><i class="fas fa-chevron-down me-2"></i>College of Science</div>
-                      <div class="p-2"><div class="py-1 border-bottom">BS Computer Science</div><div class="py-1">BS Information Technology</div></div>
-                    </div>',
+                    <div class="d-flex justify-content-end mb-2"><button class="btn btn-sm btn-primary"><i class="fas fa-plus me-1"></i>Add Program</button></div>
+                    <div class="table-responsive">
+                    <table class="table table-sm table-bordered mb-0 bg-white align-middle">
+                      <thead class="table-light"><tr><th>College</th><th>Program Name</th><th>Specialization</th><th class="text-center">Actions</th></tr></thead>
+                      <tbody>
+                        <tr><td>College of Science</td><td>BS Computer Science</td><td>&mdash;</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                        <tr><td>College of Engineering</td><td>BS Civil Engineering</td><td>Structural</td><td class="text-center text-nowrap"><button class="btn btn-sm btn-outline-secondary"><i class="fas fa-edit"></i></button> <button class="btn btn-sm btn-outline-danger"><i class="fas fa-trash"></i></button></td></tr>
+                      </tbody>
+                    </table></div>',
                 'actions' => [
                     'View programs grouped by college',
                     'Add, edit and delete programs',
