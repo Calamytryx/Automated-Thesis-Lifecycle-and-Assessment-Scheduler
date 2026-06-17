@@ -267,16 +267,10 @@ function assignProfessorToSection() {
                 return;
             }
 
-            // One professor can only be assigned to one section.
-            $professorCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE professor_id = ? LIMIT 1");
-            $professorCheckStmt->execute([$professorId]);
-            if ($professorCheckStmt->fetchColumn()) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'This professor is already assigned to a section']);
-                return;
-            }
+            // A single faculty member may handle multiple classes/sections, so we do
+            // not block a professor who is already assigned elsewhere.
 
-            // Check if already assigned
+            // Check if already assigned to THIS section
             $checkStmt = $pdo->prepare("SELECT id FROM section_professors WHERE section = ? AND professor_id = ?");
             $checkStmt->execute([$section, $professorId]);
             if ($checkStmt->fetchColumn()) {
@@ -308,16 +302,10 @@ function assignProfessorToSection() {
                 return;
             }
 
-            // One professor can only be assigned to one section.
-            $professorCheckStmt = $pdo->prepare("SELECT id FROM section_professors WHERE professor_id = ? LIMIT 1");
-            $professorCheckStmt->execute([$professorId]);
-            if ($professorCheckStmt->fetchColumn()) {
-                http_response_code(400);
-                echo json_encode(['success' => false, 'message' => 'This professor is already assigned to a section']);
-                return;
-            }
+            // A single faculty member may handle multiple classes/sections, so we do
+            // not block a professor who is already assigned elsewhere.
 
-            // Check if already assigned
+            // Check if already assigned to THIS section
             $checkStmt = $pdo->prepare("SELECT id FROM section_professors WHERE section_id = ? AND professor_id = ?");
             $checkStmt->execute([$sectionId, $professorId]);
             if ($checkStmt->fetchColumn()) {

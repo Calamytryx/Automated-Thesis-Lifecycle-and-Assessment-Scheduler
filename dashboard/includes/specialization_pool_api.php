@@ -371,14 +371,29 @@ function toggleStatus($pdo, $id) {
  * Get active specializations only
  */
 function getActiveSpecializations($pdo) {
-    $stmt = $pdo->prepare("
-        SELECT * FROM specialization_pool 
-        WHERE is_active = 1 
-        ORDER BY college, department, name
-    ");
-    $stmt->execute();
+    $userId = (int)($_SESSION['id'] ?? 0);
+    $usertype = (int)($_SESSION['usertype'] ?? -1);
+
+    $query = "SELECT * FROM specialization_pool WHERE is_active = 1";
+    $params = [];
+
+    // Scope the field-of-specialization list to the actor's college so a CS user
+    // does not see Engineering specializations (and vice-versa). The super admin
+    // (usertype 0, id 0) manages every college and is therefore unrestricted.
+    if (!($usertype === 0 && $userId === 0)) {
+        require_once __DIR__ . '/../../assets/includes/auth_functions.php';
+        $userCollege = get_user_college($pdo, $userId);
+        if ($userCollege) {
+            $query .= " AND college = ?";
+            $params[] = $userCollege;
+        }
+    }
+
+    $query .= " ORDER BY college, department, name";
+    $stmt = $pdo->prepare($query);
+    $stmt->execute($params);
     $specializations = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
     echo json_encode([
         'success' => true,
         'data' => $specializations

@@ -1,167 +1,465 @@
+<?php
+/**
+ * Dashboard Guide tab.
+ *
+ * Single source of truth: every module is described once in $guideModules and
+ * rendered into BOTH the "Modern" card/modal view and the "Wiki" article view.
+ * Modules are filtered by the current user's audience so each user type only
+ * sees guides for the tabs that are actually available to them.
+ */
+
+// Resolve the current audience from the session.
+$guideUserType = (int)($_SESSION['usertype'] ?? -1);
+$guideIsChair  = ($guideUserType === 0 && (int)($_SESSION['program_chair'] ?? 0) === 1);
+
+if ($guideIsChair) {
+    $guideAudience = 'chair';
+} elseif ($guideUserType === 0) {
+    $guideAudience = 'admin';
+} elseif ($guideUserType === 2) {
+    $guideAudience = 'faculty';
+} else {
+    $guideAudience = 'student';
+}
+
+/**
+ * Module catalogue. `audiences` controls who sees each guide and mirrors the
+ * tabs included per dashboard branch in index.php.
+ */
+$guideModules = [
+    'overview' => [
+        'icon' => 'fa-chart-line',
+        'title' => 'Overview',
+        'summary' => 'System metrics, requirement progress and the upcoming-defense calendar at a glance.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Overview tab is your daily landing page. It summarises users, groups, research titles, requirement progress and the defenses coming up.',
+        'actions' => [
+            'See total counts of users, groups and research titles',
+            'Track requirement completion across groups',
+            'View the upcoming-defense calendar',
+            'Open any metric card for a detailed breakdown',
+        ],
+        'steps' => [
+            'Review the metric cards at the top of the page',
+            'Click a card to open its detailed modal',
+            'Use the requirement-progress section to spot groups that need attention',
+            'Check the defense calendar for what is coming up',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Requirement progress now reflects real submission status: a group is only counted as "No submission" once a requirement\'s deadline has passed. The defense calendar shows only approved/finalized schedules within your scope.'],
+    ],
+    'users' => [
+        'icon' => 'fa-users',
+        'title' => 'Users',
+        'summary' => 'Manage administrators, students and faculty accounts.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'The Users tab manages all system accounts with full create, edit and delete operations, plus CSV bulk import.',
+        'actions' => [
+            'Add, edit and delete user accounts',
+            'Bulk import users from a CSV file',
+            'Search and filter by name, email or role',
+        ],
+        'steps' => [
+            'Search or filter to find a user',
+            'Click "Add User" to create an account and assign a role',
+            'Use "Bulk Add Users" to import several at once',
+            'Use the row action buttons to edit or remove a user',
+        ],
+        'tip' => ['type' => 'warning', 'text' => 'Deleting a user cannot be undone. Program chairs only see users within their own college.'],
+    ],
+    'teams' => [
+        'icon' => 'fa-user-friends',
+        'title' => 'Groups',
+        'summary' => 'Create research groups, assign advisers and track progress.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Groups tab is where research groups are created, members and advisers are assigned, and progress is tracked through the thesis lifecycle.',
+        'actions' => [
+            'Create and edit groups, including bulk import',
+            'Assign students and an adviser to each group',
+            'Spot groups that still have no research title',
+        ],
+        'steps' => [
+            'Browse existing groups and their titles',
+            'Click "Add Team" to create a group and add members',
+            'Assign a faculty member as adviser',
+            'Watch the "Groups Without Research Titles" section',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Groups are scoped to your college/program, so you only manage the ones relevant to you.'],
+    ],
+    'thesis-topics' => [
+        'icon' => 'fa-lightbulb',
+        'title' => 'Thesis Topics',
+        'summary' => 'Explore and manage research topics with AI-assisted suggestions.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Thesis Topics tab helps you discover and curate research topics, with optional AI-powered recommendations and impact analysis.',
+        'actions' => [
+            'Search AI-generated topic suggestions by research field',
+            'Add, edit and delete thesis topics',
+            'Filter topics by category',
+        ],
+        'steps' => [
+            'Choose "Search Topics" or "Manage Topics"',
+            'In Search mode, pick a field and get suggestions',
+            'Add promising topics to the database',
+            'In Manage mode, edit or remove existing topics',
+        ],
+        'tip' => ['type' => 'success', 'text' => 'Use the AI suggestions as a starting point, then refine topics to fit your program.'],
+    ],
+    'research-titles' => [
+        'icon' => 'fa-file-alt',
+        'title' => 'Research Titles',
+        'summary' => 'Manage group titles and their approval status.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Research Titles tab tracks each group\'s title through the submission, review and approval workflow.',
+        'actions' => [
+            'Add, edit and delete research titles',
+            'Assign a title to a group',
+            'Approve or reject titles',
+        ],
+        'steps' => [
+            'Browse titles and check their status column',
+            'Add a new title and link it to a group',
+            'Use edit to update the approval status',
+            'Track which titles still need approval',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Titles typically flow Submitted → Under Review → Approved/Rejected.'],
+    ],
+    'programs' => [
+        'icon' => 'fa-graduation-cap',
+        'title' => 'Programs',
+        'summary' => 'Manage academic programs and their colleges.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'The Programs tab organises academic programs under their parent colleges.',
+        'actions' => [
+            'View programs grouped by college',
+            'Add, edit and delete programs',
+        ],
+        'steps' => [
+            'Expand a college header to see its programs',
+            'Click "Add Program" and pick the college',
+            'Use edit to update a program',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Program → college mapping drives scoping across the whole dashboard, so keep it accurate.'],
+    ],
+    'allied-programs' => [
+        'icon' => 'fa-sitemap',
+        'title' => 'Allied Programs',
+        'summary' => 'Configure cross-program adjacencies used by the scheduler.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'Allied Programs defines which programs count as "adjacent" expertise. The defense scheduler uses these links when a same-program panelist is unavailable, and for the external/validator seat.',
+        'actions' => [
+            'Link a program to one or more allied programs',
+            'Remove an allied relationship',
+        ],
+        'steps' => [
+            'Select a base program',
+            'Add the programs that should count as allied',
+            'Save — the scheduler will use these as panelist fallbacks',
+        ],
+        'tip' => ['type' => 'warning', 'text' => 'If the allied list is empty, the scheduler falls back to same-college panelists only. Configure it to widen the valid panelist pool.'],
+    ],
+    'faculty-assignments' => [
+        'icon' => 'fa-chalkboard-teacher',
+        'title' => 'Faculty Assignments',
+        'summary' => 'Assign subject teachers to class sections.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'The Faculty Assignments tab links faculty members to the class sections they teach. These assignments feed the scheduler\'s class-conflict checks.',
+        'actions' => [
+            'Assign a faculty member to a section',
+            'Assign one faculty member to multiple sections',
+            'Remove an assignment',
+        ],
+        'steps' => [
+            'Pick a section from the dropdown',
+            'Pick a subject teacher',
+            'Click "Assign" — the same teacher can be assigned to other sections too',
+            'Use "Remove" to undo an assignment',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'A single faculty member can now handle multiple classes. The teacher list is scoped to your college/program.'],
+    ],
+    'specialization-management' => [
+        'icon' => 'fa-brain',
+        'title' => 'Field of Specialization',
+        'summary' => 'Maintain the specialization pool and assign fields to users and groups.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'This area manages the pool of specializations (fields of expertise) and assigns them to faculty and groups. The scheduler uses these to align panelists with a group\'s expertise.',
+        'actions' => [
+            'Add, edit, activate/deactivate specializations (admins/chairs)',
+            'Assign specializations to faculty and groups',
+        ],
+        'steps' => [
+            'Open the specialization pool',
+            'Add or pick a specialization',
+            'Assign it to the relevant user or group',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'The specialization list is scoped to your college, so a CS user no longer sees Engineering fields (and vice-versa). The super admin sees every college.'],
+    ],
+    'defense-schedules' => [
+        'icon' => 'fa-calendar-alt',
+        'title' => 'Defense Schedules',
+        'summary' => 'Create, auto-generate and manage defense sessions.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Defense Schedules tab manages defense sessions. Admins/chairs can auto-generate conflict-free schedules with the genetic-algorithm scheduler or add sessions manually.',
+        'actions' => [
+            'Configure scheduler settings (slots, rooms, dates, duration)',
+            'Auto-generate schedules for many groups',
+            'Add or edit individual sessions',
+            'Approve and finalize schedules',
+        ],
+        'steps' => [
+            'Open "Scheduler Settings" and set slots, rooms and date range',
+            'Click "Generate Defense Schedule" to auto-create sessions',
+            'Review and adjust the generated sessions',
+            'Approve/finalize so they appear on dashboards',
+        ],
+        'tip' => ['type' => 'success', 'text' => 'Only approved or finalized schedules show on the Overview calendar, and each user only sees the ones within their scope.'],
+    ],
+    'rubrics' => [
+        'icon' => 'fa-clipboard-list',
+        'title' => 'Rubrics',
+        'summary' => 'Design evaluation rubrics with criteria and scoring levels.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'The Rubrics tab builds evaluation instruments with customisable criteria and scoring, either numerical or pass/fail.',
+        'actions' => [
+            'Create numerical or pass/fail rubrics',
+            'Define criteria, quality levels and point values',
+            'Assign rubrics to programs',
+        ],
+        'steps' => [
+            'Click "Add Rubric" and choose the type',
+            'Define quality levels and criteria',
+            'Configure scoring and assign to programs',
+            'Preview, then save',
+        ],
+        'tip' => ['type' => 'warning', 'text' => 'Plan the structure before saving — changing criteria later can affect existing evaluations.'],
+    ],
+    'rubric-groups' => [
+        'icon' => 'fa-layer-group',
+        'title' => 'Rubric Groups',
+        'summary' => 'Combine rubrics into weighted evaluation frameworks.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'Rubric Groups bundle multiple rubrics into a single weighted framework used to evaluate a defense.',
+        'actions' => [
+            'Create rubric groups',
+            'Add rubrics and assign percentage weights',
+            'Reorder rubrics within a group',
+        ],
+        'steps' => [
+            'Click "Add Rubric Group" and name it',
+            'Add rubrics from the available list',
+            'Assign weights totalling 100%',
+            'Save the group',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Weights let you emphasise the criteria that matter most (e.g. 40% content, 30% presentation, 30% Q&A).'],
+    ],
+    'evaluations' => [
+        'icon' => 'fa-star',
+        'title' => 'Evaluations',
+        'summary' => 'Review scoring breakdowns and performance analytics.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'The Evaluations tab shows evaluation results, switchable between an evaluator view and an aggregated student view.',
+        'actions' => [
+            'View individual evaluations by evaluator',
+            'View aggregated scores and feedback per student',
+            'Spot missing or incomplete evaluations',
+        ],
+        'steps' => [
+            'Use "Change View" to switch perspectives',
+            'Inspect evaluator submissions and dates',
+            'Switch to student view for averages and comments',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Use both views together for detail and summary.'],
+    ],
+    'requirements' => [
+        'icon' => 'fa-tasks',
+        'title' => 'Requirements',
+        'summary' => 'Manage submission requirements, deadlines and completion.',
+        'audiences' => ['admin', 'chair', 'faculty', 'student'],
+        'overview' => 'The Requirements tab defines what groups must submit, by when, and tracks completion.',
+        'actions' => [
+            'Add, edit and delete requirements',
+            'Set deadlines and submission rules',
+            'Track completion across groups',
+        ],
+        'steps' => [
+            'Create a requirement with name, description and deadline',
+            'Configure file rules and submission limits',
+            'Monitor which groups have submitted',
+        ],
+        'tip' => ['type' => 'warning', 'text' => 'A group is only flagged "No submission" after the requirement\'s deadline has passed — before then it is simply not yet due.'],
+    ],
+    'program-requirements' => [
+        'icon' => 'fa-clipboard-check',
+        'title' => 'Program Requirements',
+        'summary' => 'Define requirements specific to your program.',
+        'audiences' => ['chair'],
+        'overview' => 'Program Requirements lets a program chair tailor submission requirements for their own program.',
+        'actions' => [
+            'Add program-specific requirements',
+            'Edit deadlines and rules',
+        ],
+        'steps' => [
+            'Open Program Requirements',
+            'Add or edit a requirement for your program',
+            'Save and monitor completion',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'These complement the system-wide requirements and apply to your program\'s groups.'],
+    ],
+    'team-management' => [
+        'icon' => 'fa-users-cog',
+        'title' => 'Team Management',
+        'summary' => 'Advanced membership and adviser administration.',
+        'audiences' => ['admin', 'chair'],
+        'overview' => 'Team Management provides deeper control over group membership, roles and adviser assignment.',
+        'actions' => [
+            'Adjust group members and roles',
+            'Reassign advisers',
+        ],
+        'steps' => [
+            'Select a group',
+            'Update members or the adviser',
+            'Save your changes',
+        ],
+        'tip' => ['type' => 'info', 'text' => 'Use this when the Groups tab does not give you enough control over membership.'],
+    ],
+    'content-management' => [
+        'icon' => 'fa-cogs',
+        'title' => 'Content Management',
+        'summary' => 'System settings and website/page content.',
+        'audiences' => ['admin'],
+        'overview' => 'Content Management (Environment Variables) configures system settings and editable website content such as pages and announcements.',
+        'actions' => [
+            'Configure system settings (email, auth, defaults)',
+            'Manage website pages and announcements',
+        ],
+        'steps' => [
+            'Pick a content category',
+            'Edit settings or page content',
+            'Save your changes',
+        ],
+        'tip' => ['type' => 'danger', 'text' => 'Incorrect system settings can affect functionality — change them carefully.'],
+    ],
+];
+
+// Filter to the modules visible to this audience.
+$guideVisibleModules = array_filter($guideModules, static function ($m) use ($guideAudience) {
+    return in_array($guideAudience, $m['audiences'], true);
+});
+
+/**
+ * Render the shared body of a module (used by both the modal and the wiki article).
+ */
+if (!function_exists('guide_render_body')) {
+    function guide_render_body(array $m): string
+    {
+        $tipClasses = [
+            'info' => 'alert-info',
+            'success' => 'alert-success',
+            'warning' => 'alert-warning',
+            'danger' => 'alert-danger',
+        ];
+
+        $html  = '<p class="lead">' . htmlspecialchars($m['overview']) . '</p>';
+
+        if (!empty($m['actions'])) {
+            $html .= '<h6><i class="fas fa-tools me-2 text-primary"></i>What you can do</h6><ul>';
+            foreach ($m['actions'] as $action) {
+                $html .= '<li>' . htmlspecialchars($action) . '</li>';
+            }
+            $html .= '</ul>';
+        }
+
+        if (!empty($m['steps'])) {
+            $html .= '<h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step</h6><ol>';
+            foreach ($m['steps'] as $step) {
+                $html .= '<li>' . htmlspecialchars($step) . '</li>';
+            }
+            $html .= '</ol>';
+        }
+
+        if (!empty($m['tip'])) {
+            $alertClass = $tipClasses[$m['tip']['type']] ?? 'alert-info';
+            $html .= '<div class="alert ' . $alertClass . '"><i class="fas fa-lightbulb me-2"></i>'
+                . htmlspecialchars($m['tip']['text']) . '</div>';
+        }
+
+        return $html;
+    }
+}
+?>
 <div class="tab-pane fade" id="guide" role="tabpanel" aria-labelledby="guide-tab">
     <div class="container-fluid py-4 content-container">
-        <!-- Header with title and description -->
-        <div class="row mb-4">
-            <div class="col-12">
+        <!-- Header with title, description and the view toggle -->
+        <div class="row mb-4 align-items-center">
+            <div class="col-lg-8">
                 <h3 class="mb-2">Dashboard Guide</h3>
-                <p class="text-muted">This section provides a detailed manual and guide for all the tabs in the dashboard. Click on any card below to learn how to operate each tab effectively.</p>
+                <p class="text-muted mb-0">A complete manual for the tabs available to you. Switch between a spacious card view and a searchable wiki.</p>
+            </div>
+            <div class="col-lg-4 mt-3 mt-lg-0 text-lg-end">
+                <div class="btn-group" role="group" aria-label="Guide view mode">
+                    <button type="button" class="btn btn-primary" id="guideModeModernBtn" data-mode="modern">
+                        <i class="fas fa-th-large me-1"></i>Modern
+                    </button>
+                    <button type="button" class="btn btn-outline-primary" id="guideModeWikiBtn" data-mode="wiki">
+                        <i class="fas fa-book me-1"></i>Wiki
+                    </button>
+                </div>
             </div>
         </div>
 
-        <!-- Guide Cards Grid -->
-        <div class="row g-4">
-            <!-- Overview Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#overviewGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-chart-line fa-3x text-primary"></i>
+        <!-- ===================== MODERN (card) VIEW ===================== -->
+        <div id="guideModernView">
+            <div class="row g-4">
+                <?php foreach ($guideVisibleModules as $key => $m): ?>
+                    <div class="col-lg-4 col-md-6">
+                        <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#guideModal-<?php echo htmlspecialchars($key); ?>" style="cursor: pointer;">
+                            <div class="card-body text-center">
+                                <div class="mb-3">
+                                    <i class="fas <?php echo htmlspecialchars($m['icon']); ?> fa-3x text-primary"></i>
+                                </div>
+                                <h5 class="card-title"><?php echo htmlspecialchars($m['title']); ?></h5>
+                                <p class="card-text text-muted"><?php echo htmlspecialchars($m['summary']); ?></p>
+                            </div>
                         </div>
-                        <h5 class="card-title">Overview</h5>
-                        <p class="card-text text-muted">View system metrics, statistics, and key visualizations for quick insights into the thesis management system.</p>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        </div>
+
+        <!-- ===================== WIKI VIEW ===================== -->
+        <div id="guideWikiView" style="display: none;">
+            <div class="row g-4">
+                <div class="col-lg-4 col-xl-3">
+                    <div class="card">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="input-group">
+                                    <span class="input-group-text"><i class="fas fa-search"></i></span>
+                                    <input type="text" class="form-control" id="guideWikiSearch" placeholder="Search the guide...">
+                                </div>
+                            </div>
+                            <div class="list-group guide-wiki-nav" id="guideWikiNav">
+                                <?php $first = true; foreach ($guideVisibleModules as $key => $m): ?>
+                                    <button type="button"
+                                            class="list-group-item list-group-item-action guide-wiki-nav-item<?php echo $first ? ' active' : ''; ?>"
+                                            data-target="guideArticle-<?php echo htmlspecialchars($key); ?>">
+                                        <i class="fas <?php echo htmlspecialchars($m['icon']); ?> me-2"></i><?php echo htmlspecialchars($m['title']); ?>
+                                    </button>
+                                <?php $first = false; endforeach; ?>
+                            </div>
+                            <p class="text-muted small mt-2 mb-0" id="guideWikiNoResults" style="display: none;">No matching topics.</p>
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            <!-- Users Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#usersGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-users fa-3x text-primary"></i>
+                <div class="col-lg-8 col-xl-9">
+                    <div class="card">
+                        <div class="card-body">
+                            <?php $first = true; foreach ($guideVisibleModules as $key => $m): ?>
+                                <article class="guide-wiki-article" id="guideArticle-<?php echo htmlspecialchars($key); ?>" style="<?php echo $first ? '' : 'display: none;'; ?>">
+                                    <h4 class="mb-3"><i class="fas <?php echo htmlspecialchars($m['icon']); ?> me-2 text-primary"></i><?php echo htmlspecialchars($m['title']); ?></h4>
+                                    <?php echo guide_render_body($m); ?>
+                                </article>
+                            <?php $first = false; endforeach; ?>
                         </div>
-                        <h5 class="card-title">Users</h5>
-                        <p class="card-text text-muted">Manage system users including administrators, students, and faculty members with full CRUD operations.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Teams Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#teamsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-user-friends fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Groups</h5>
-                        <p class="card-text text-muted">Create and manage research groups, assign advisers, and track group progress throughout the thesis process.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Thesis Topics Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#thesisTopicsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-lightbulb fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Thesis Topics</h5>
-                        <p class="card-text text-muted">Explore and manage potential research topics with AI-powered decision support tools for topic selection.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Research Titles Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#researchTitlesGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-file-alt fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Research Titles</h5>
-                        <p class="card-text text-muted">Manage research titles assigned to groups and track their approval status throughout the review process.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Programs Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#programsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-graduation-cap fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Programs</h5>
-                        <p class="card-text text-muted">Manage academic programs and their associated colleges within the thesis management system.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Defense Schedules Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#defenseSchedulesGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-calendar-alt fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Defense Schedules</h5>
-                        <p class="card-text text-muted">Schedule and manage defense presentations with automated scheduling tools and conflict resolution.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rubric Groups Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#rubricGroupsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-layer-group fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Rubric Groups</h5>
-                        <p class="card-text text-muted">Create and manage groups of rubrics for comprehensive evaluation frameworks and assessment strategies.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Rubrics Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#rubricsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-clipboard-list fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Rubrics</h5>
-                        <p class="card-text text-muted">Design evaluation rubrics with customizable criteria, scoring levels, and assessment frameworks.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Evaluations Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#evaluationsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-star fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Evaluations</h5>
-                        <p class="card-text text-muted">View and analyze evaluation results with detailed scoring breakdowns and performance analytics.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Requirements Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#requirementsGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-tasks fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Requirements</h5>
-                        <p class="card-text text-muted">Manage submission requirements, deadlines, and track completion status across all groups.</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Environment Variables Tab Card -->
-            <div class="col-lg-4 col-md-6">
-                <div class="card h-100 guide-card" data-bs-toggle="modal" data-bs-target="#envVariablesGuideModal" style="cursor: pointer;">
-                    <div class="card-body text-center">
-                        <div class="mb-3">
-                            <i class="fas fa-cogs fa-3x text-primary"></i>
-                        </div>
-                        <h5 class="card-title">Environment Variables</h5>
-                        <p class="card-text text-muted">Configure system settings, manage website content, and customize display options for the platform.</p>
                     </div>
                 </div>
             </div>
@@ -169,688 +467,85 @@
     </div>
 </div>
 
-<!-- Guide Modals -->
-
-<!-- Overview Guide Modal -->
-<div class="modal fade" id="overviewGuideModal" tabindex="-1" aria-labelledby="overviewGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="overviewGuideModalLabel">
-                    <i class="fas fa-chart-line me-2"></i>Overview Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">The Overview Tab provides a comprehensive summary of the system's key metrics and visualizations.</p>
-                
-                <h6><i class="fas fa-info-circle me-2 text-primary"></i>What you can see:</h6>
-                <ul>
-                    <li><strong>User Statistics:</strong> Total counts of admins, students, and faculty</li>
-                    <li><strong>Group Metrics:</strong> Total groups and completion status</li>
-                    <li><strong>Research Progress:</strong> Approved vs. pending research titles</li>
-                    <li><strong>Defense Overview:</strong> Upcoming, today's, and past defense schedules</li>
-                    <li><strong>Requirement Progress:</strong> Visual charts showing group completion status</li>
-                </ul>
-
-                <h6><i class="fas fa-mouse-pointer me-2 text-primary"></i>How to use:</h6>
-                <ol>
-                    <li>View dashboard statistics at the top of the page</li>
-                    <li>Click on metric cards to view detailed breakdowns in modal windows</li>
-                    <li>Analyze the requirement progress charts to identify groups needing attention</li>
-                    <li>Use the defense schedule widgets to quickly see today's activities</li>
-                    <li>Review group completion pie charts for overall progress assessment</li>
-                </ol>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    <strong>Pro Tip:</strong> The Overview tab is perfect for daily monitoring and quick system health checks.
+<!-- ===================== MODERN VIEW MODALS ===================== -->
+<?php foreach ($guideVisibleModules as $key => $m): ?>
+    <div class="modal fade" id="guideModal-<?php echo htmlspecialchars($key); ?>" tabindex="-1" aria-labelledby="guideModalLabel-<?php echo htmlspecialchars($key); ?>" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="guideModalLabel-<?php echo htmlspecialchars($key); ?>">
+                        <i class="fas <?php echo htmlspecialchars($m['icon']); ?> me-2"></i><?php echo htmlspecialchars($m['title']); ?> Guide
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <?php echo guide_render_body($m); ?>
                 </div>
             </div>
         </div>
     </div>
-</div>
+<?php endforeach; ?>
 
-<!-- Users Guide Modal -->
-<div class="modal fade" id="usersGuideModal" tabindex="-1" aria-labelledby="usersGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="usersGuideModalLabel">
-                    <i class="fas fa-users me-2"></i>Users Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Manage all system users including administrators, students, and faculty members.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add User:</strong> Create new user accounts with role assignments</li>
-                    <li><strong>Edit User:</strong> Modify user information and permissions</li>
-                    <li><strong>Delete User:</strong> Remove users from the system</li>
-                    <li><strong>Bulk Import:</strong> Upload multiple users via CSV file</li>
-                    <li><strong>Search & Filter:</strong> Find users by name, email, or role</li>
-                </ul>
+<script>
+(function () {
+    // ---- View toggle (Modern <-> Wiki) ----
+    var modernBtn = document.getElementById('guideModeModernBtn');
+    var wikiBtn = document.getElementById('guideModeWikiBtn');
+    var modernView = document.getElementById('guideModernView');
+    var wikiView = document.getElementById('guideWikiView');
 
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Search Users:</strong> Use the search bar to find specific users by name or email</li>
-                    <li><strong>Filter by Type:</strong> Select user type (Admin, Student, Faculty) from the dropdown</li>
-                    <li><strong>Sort Results:</strong> Choose sorting criteria from the sort dropdown</li>
-                    <li><strong>Add New User:</strong> Click "Add User" button and fill in the required information</li>
-                    <li><strong>Bulk Import:</strong> Use "Bulk Add Users" for importing multiple users via CSV</li>
-                    <li><strong>Edit/Delete:</strong> Use the action buttons in each row to modify or remove users</li>
-                </ol>
+    function setMode(mode) {
+        var isWiki = (mode === 'wiki');
+        if (modernView) modernView.style.display = isWiki ? 'none' : '';
+        if (wikiView) wikiView.style.display = isWiki ? '' : 'none';
 
-                <h6><i class="fas fa-user-tag me-2 text-primary"></i>User Types:</h6>
-                <ul>
-                    <li><span class="badge bg-danger">Admin</span> - Full system access and management</li>
-                    <li><span class="badge bg-primary">Student</span> - Limited access for thesis submissions</li>
-                    <li><span class="badge bg-success">Faculty</span> - Faculty and evaluation access</li>
-                </ul>
+        if (modernBtn) {
+            modernBtn.classList.toggle('btn-primary', !isWiki);
+            modernBtn.classList.toggle('btn-outline-primary', isWiki);
+        }
+        if (wikiBtn) {
+            wikiBtn.classList.toggle('btn-primary', isWiki);
+            wikiBtn.classList.toggle('btn-outline-primary', !isWiki);
+        }
+    }
 
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Important:</strong> Be careful when deleting users as this action cannot be undone.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+    if (modernBtn) modernBtn.addEventListener('click', function () { setMode('modern'); });
+    if (wikiBtn) wikiBtn.addEventListener('click', function () { setMode('wiki'); });
 
-<!-- Teams Guide Modal -->
-<div class="modal fade" id="teamsGuideModal" tabindex="-1" aria-labelledby="teamsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="teamsGuideModalLabel">
-                    <i class="fas fa-user-friends me-2"></i>Teams Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Create and manage research teams, assign advisers, and track team progress.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Team:</strong> Create new research teams</li>
-                    <li><strong>Edit Team:</strong> Modify team information and members</li>
-                    <li><strong>Delete Team:</strong> Remove teams from the system</li>
-                    <li><strong>Bulk Add Teams:</strong> Import multiple teams via CSV</li>
-                    <li><strong>Assign Advisers:</strong> Link faculty members to teams</li>
-                    <li><strong>Track Progress:</strong> Monitor team status and requirements</li>
-                </ul>
+    // ---- Wiki navigation ----
+    var navItems = document.querySelectorAll('.guide-wiki-nav-item');
+    var articles = document.querySelectorAll('.guide-wiki-article');
 
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>View Teams:</strong> Browse all teams and their assigned research titles</li>
-                    <li><strong>Search Teams:</strong> Use the search functionality to find specific teams</li>
-                    <li><strong>Create Team:</strong> Click "Add Team" and enter team details</li>
-                    <li><strong>Assign Members:</strong> Add students to teams during creation or editing</li>
-                    <li><strong>Assign Adviser:</strong> Select faculty member as team adviser</li>
-                    <li><strong>Monitor Progress:</strong> Check "Teams Without Research Titles" section</li>
-                    <li><strong>Bulk Operations:</strong> Use "Bulk Add Teams" for multiple team creation</li>
-                </ol>
+    navItems.forEach(function (item) {
+        item.addEventListener('click', function () {
+            var targetId = item.getAttribute('data-target');
 
-                <h6><i class="fas fa-exclamation-circle me-2 text-primary"></i>Special Features:</h6>
-                <ul>
-                    <li><strong>Warning System:</strong> Identifies teams without research titles</li>
-                    <li><strong>Progress Tracking:</strong> Visual indicators for team completion status</li>
-                    <li><strong>Adviser Management:</strong> Easy assignment and reassignment of advisers</li>
-                </ul>
+            navItems.forEach(function (n) { n.classList.remove('active'); });
+            item.classList.add('active');
 
-                <div class="alert alert-info">
-                    <i class="fas fa-lightbulb me-2"></i>
-                    <strong>Tip:</strong> Regularly check the "Teams Without Research Titles" section to ensure all teams have assigned topics.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+            articles.forEach(function (article) {
+                article.style.display = (article.id === targetId) ? '' : 'none';
+            });
+        });
+    });
 
-<!-- Thesis Topics Guide Modal -->
-<div class="modal fade" id="thesisTopicsGuideModal" tabindex="-1" aria-labelledby="thesisTopicsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="thesisTopicsGuideModalLabel">
-                    <i class="fas fa-lightbulb me-2"></i>Thesis Topics Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Explore and manage potential research topics with AI-powered decision support tools.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Search Topics:</strong> AI-powered topic recommendation system</li>
-                    <li><strong>Manage Topics:</strong> Add, edit, and delete thesis topics</li>
-                    <li><strong>Category Filtering:</strong> Filter topics by research field</li>
-                    <li><strong>Decision Support:</strong> Get AI recommendations for topic selection</li>
-                    <li><strong>Topic Analysis:</strong> Detailed impact and feasibility analysis</li>
-                </ul>
+    // ---- Wiki search ----
+    var search = document.getElementById('guideWikiSearch');
+    var noResults = document.getElementById('guideWikiNoResults');
 
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Choose Mode:</strong> Select between "Search Topics" or "Manage Topics"</li>
-                    <li><strong>Search Topics Mode:</strong>
-                        <ul>
-                            <li>Select a research field from the dropdown</li>
-                            <li>Click "Get Topics" for AI-generated suggestions</li>
-                            <li>Review topic recommendations with impact analysis</li>
-                            <li>Add promising topics directly to the database</li>
-                        </ul>
-                    </li>
-                    <li><strong>Manage Topics Mode:</strong>
-                        <ul>
-                            <li>View all existing thesis topics in the table</li>
-                            <li>Use search and sort functions to find specific topics</li>
-                            <li>Click "Add Thesis Topic" to manually create new topics</li>
-                            <li>Use edit/delete actions for topic management</li>
-                        </ul>
-                    </li>
-                </ol>
+    if (search) {
+        search.addEventListener('input', function () {
+            var term = search.value.trim().toLowerCase();
+            var visibleCount = 0;
 
-                <h6><i class="fas fa-robot me-2 text-primary"></i>AI Decision Support:</h6>
-                <ul>
-                    <li><strong>Smart Recommendations:</strong> AI analyzes current trends and suggests relevant topics</li>
-                    <li><strong>Impact Assessment:</strong> Evaluates potential impact and feasibility</li>
-                    <li><strong>Field-Specific Results:</strong> Tailored suggestions based on selected research area</li>
-                </ul>
+            navItems.forEach(function (item) {
+                var match = item.textContent.toLowerCase().indexOf(term) !== -1;
+                item.style.display = match ? '' : 'none';
+                if (match) visibleCount++;
+            });
 
-                <div class="alert alert-success">
-                    <i class="fas fa-magic me-2"></i>
-                    <strong>AI Feature:</strong> The decision support tool provides intelligent topic recommendations based on current research trends.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Research Titles Guide Modal -->
-<div class="modal fade" id="researchTitlesGuideModal" tabindex="-1" aria-labelledby="researchTitlesGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="researchTitlesGuideModalLabel">
-                    <i class="fas fa-file-alt me-2"></i>Research Titles Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Manage research titles assigned to teams and track their approval status.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Research Title:</strong> Assign new titles to teams</li>
-                    <li><strong>Edit Title:</strong> Modify existing research titles</li>
-                    <li><strong>Delete Title:</strong> Remove titles from the system</li>
-                    <li><strong>Approve/Reject:</strong> Change approval status of titles</li>
-                    <li><strong>View Status:</strong> Track approval workflow</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>View Titles:</strong> Browse all research titles with their approval status</li>
-                    <li><strong>Check Status:</strong> Review approval status in the status column</li>
-                    <li><strong>Add New Title:</strong> Click "Add Research Title" and enter details</li>
-                    <li><strong>Assign to Team:</strong> Link research titles to specific teams</li>
-                    <li><strong>Review Process:</strong> Use edit function to update approval status</li>
-                    <li><strong>Monitor Progress:</strong> Track which titles need approval</li>
-                </ol>
-
-                <h6><i class="fas fa-clipboard-check me-2 text-primary"></i>Approval Status:</h6>
-                <ul>
-                    <li><span class="badge bg-success">Approved</span> - Title is approved and ready for use</li>
-                    <li><span class="badge bg-warning">Pending</span> - Title awaiting review and approval</li>
-                    <li><span class="badge bg-danger">Rejected</span> - Title requires revision</li>
-                </ul>
-
-                <h6><i class="fas fa-info-circle me-2 text-primary"></i>Title Management:</h6>
-                <ul>
-                    <li><strong>Team Assignment:</strong> Each title can be assigned to a specific team</li>
-                    <li><strong>Approval Workflow:</strong> Systematic review and approval process</li>
-                    <li><strong>Edit History:</strong> Track changes and revisions to titles</li>
-                </ul>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-clock me-2"></i>
-                    <strong>Workflow:</strong> Titles typically go through Submitted → Under Review → Approved/Rejected workflow.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Programs Guide Modal -->
-<div class="modal fade" id="programsGuideModal" tabindex="-1" aria-labelledby="programsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="programsGuideModalLabel">
-                    <i class="fas fa-graduation-cap me-2"></i>Programs Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Manage academic programs and their associated colleges within the thesis management system.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>View Programs:</strong> Browse all academic programs by college</li>
-                    <li><strong>Add Program:</strong> Create new academic programs</li>
-                    <li><strong>Edit Program:</strong> Modify program information</li>
-                    <li><strong>Delete Program:</strong> Remove programs from the system</li>
-                    <li><strong>College Grouping:</strong> Organize programs by their parent colleges</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Browse Programs:</strong> View programs organized by college</li>
-                    <li><strong>Expand/Collapse:</strong> Click college headers to show/hide programs</li>
-                    <li><strong>Add New Program:</strong> Click "Add Program" and enter program details</li>
-                    <li><strong>Select College:</strong> Choose the appropriate college for the program</li>
-                    <li><strong>Edit Programs:</strong> Use edit button to modify program information</li>
-                    <li><strong>Navigate Pages:</strong> Use pagination to browse all programs</li>
-                </ol>
-
-                <h6><i class="fas fa-university me-2 text-primary"></i>College Organization:</h6>
-                <ul>
-                    <li><strong>Hierarchical View:</strong> Programs are grouped under their respective colleges</li>
-                    <li><strong>Toggle Visibility:</strong> Click college headers to expand/collapse program lists</li>
-                    <li><strong>College Filtering:</strong> Easy identification of programs by college affiliation</li>
-                </ul>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-sitemap me-2"></i>
-                    <strong>Organization:</strong> Programs are hierarchically organized under colleges for better management and clarity.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Defense Schedules Guide Modal -->
-<div class="modal fade" id="defenseSchedulesGuideModal" tabindex="-1" aria-labelledby="defenseSchedulesGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="defenseSchedulesGuideModalLabel">
-                    <i class="fas fa-calendar-alt me-2"></i>Defense Schedules Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Schedule and manage defense presentations with automated scheduling tools.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Defense Schedule:</strong> Manually create individual schedules</li>
-                    <li><strong>Scheduler Settings:</strong> Configure automated scheduling parameters</li>
-                    <li><strong>Generate Schedule:</strong> Automatically create schedules for multiple teams</li>
-                    <li><strong>Edit Schedule:</strong> Modify existing defense schedules</li>
-                    <li><strong>View Schedule:</strong> Browse all scheduled defenses</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Configure Settings:</strong> Click "Scheduler Settings" to set up:
-                        <ul>
-                            <li>Available time slots</li>
-                            <li>Available rooms/venues</li>
-                            <li>Date ranges for scheduling</li>
-                            <li>Default duration for defenses</li>
-                        </ul>
-                    </li>
-                    <li><strong>Manual Scheduling:</strong> Use "Add Defense Schedule" for individual scheduling</li>
-                    <li><strong>Automated Scheduling:</strong> Click "Generate Defense Schedule" to auto-create schedules</li>
-                    <li><strong>Review Schedules:</strong> Check generated schedules in the table below</li>
-                    <li><strong>Make Adjustments:</strong> Edit individual schedules as needed</li>
-                </ol>
-
-                <h6><i class="fas fa-cogs me-2 text-primary"></i>Scheduler Settings:</h6>
-                <ul>
-                    <li><strong>Time Slots:</strong> Define available defense time periods</li>
-                    <li><strong>Venues:</strong> Set up available rooms and locations</li>
-                    <li><strong>Date Ranges:</strong> Specify when defenses can be scheduled</li>
-                    <li><strong>Conflict Detection:</strong> Automatic prevention of scheduling conflicts</li>
-                </ul>
-
-                <h6><i class="fas fa-magic me-2 text-primary"></i>Auto-Generation Features:</h6>
-                <ul>
-                    <li><strong>Smart Scheduling:</strong> Considers panelist availability</li>
-                    <li><strong>Conflict Avoidance:</strong> Prevents double-booking of people and rooms</li>
-                    <li><strong>Optimal Distribution:</strong> Spreads schedules across available time slots</li>
-                </ul>
-
-                <div class="alert alert-success">
-                    <i class="fas fa-robot me-2"></i>
-                    <strong>Automation:</strong> The system can automatically generate conflict-free schedules for all teams based on your settings.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Rubric Groups Guide Modal -->
-<div class="modal fade" id="rubricGroupsGuideModal" tabindex="-1" aria-labelledby="rubricGroupsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="rubricGroupsGuideModalLabel">
-                    <i class="fas fa-layer-group me-2"></i>Rubric Groups Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Create and manage groups of rubrics for comprehensive evaluation frameworks.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Rubric Group:</strong> Create new evaluation frameworks</li>
-                    <li><strong>Edit Group:</strong> Modify existing rubric groups</li>
-                    <li><strong>Delete Group:</strong> Remove rubric groups from the system</li>
-                    <li><strong>Manage Rubrics:</strong> Add/remove rubrics from groups</li>
-                    <li><strong>Weight Assignment:</strong> Set importance weights for each rubric</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Create Group:</strong> Click "Add Rubric Group" and enter group name</li>
-                    <li><strong>Add Rubrics:</strong> Select rubrics from the available list</li>
-                    <li><strong>Set Weights:</strong> Assign percentage weights to each rubric</li>
-                    <li><strong>Reorder Rubrics:</strong> Drag and drop to arrange rubric order</li>
-                    <li><strong>Validate Weights:</strong> Ensure total weights equal 100%</li>
-                    <li><strong>Save Group:</strong> Complete the group creation process</li>
-                </ol>
-
-                <h6><i class="fas fa-balance-scale me-2 text-primary"></i>Weight Management:</h6>
-                <ul>
-                    <li><strong>Percentage-Based:</strong> Weights are assigned as percentages</li>
-                    <li><strong>Validation:</strong> System ensures weights total 100%</li>
-                    <li><strong>Flexible Distribution:</strong> Emphasize important evaluation criteria</li>
-                    <li><strong>Real-time Calculation:</strong> See total weight as you assign values</li>
-                </ul>
-
-                <h6><i class="fas fa-arrows-alt me-2 text-primary"></i>Organization Features:</h6>
-                <ul>
-                    <li><strong>Drag-and-Drop:</strong> Reorder rubrics within groups</li>
-                    <li><strong>Group Templates:</strong> Reusable evaluation frameworks</li>
-                    <li><strong>Comprehensive Evaluation:</strong> Combine multiple assessment criteria</li>
-                </ul>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-calculator me-2"></i>
-                    <strong>Weighting:</strong> Use weights to emphasize more important evaluation criteria (e.g., 40% for content, 30% for presentation, 30% for Q&A).
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Rubrics Guide Modal -->
-<div class="modal fade" id="rubricsGuideModal" tabindex="-1" aria-labelledby="rubricsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="rubricsGuideModalLabel">
-                    <i class="fas fa-clipboard-list me-2"></i>Rubrics Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Design comprehensive evaluation rubrics with customizable criteria and scoring levels.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Rubric:</strong> Create new evaluation rubrics</li>
-                    <li><strong>Edit Rubric:</strong> Modify existing rubric criteria</li>
-                    <li><strong>Delete Rubric:</strong> Remove rubrics from the system</li>
-                    <li><strong>Define Criteria:</strong> Set evaluation criteria and descriptions</li>
-                    <li><strong>Score Configuration:</strong> Set up scoring levels and point values</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Create Rubric:</strong> Click "Add Rubric" and enter basic information</li>
-                    <li><strong>Choose Type:</strong> Select between Numerical or Pass/Fail rubric</li>
-                    <li><strong>Set Quality Levels:</strong> Define scoring categories (e.g., Excellent, Good, Fair, Poor)</li>
-                    <li><strong>Add Criteria:</strong> Create evaluation criteria with descriptions</li>
-                    <li><strong>Configure Scoring:</strong> Set point values for each quality level</li>
-                    <li><strong>Assign Programs:</strong> Link rubric to specific academic programs</li>
-                    <li><strong>Preview & Save:</strong> Review the rubric before saving</li>
-                </ol>
-
-                <h6><i class="fas fa-list-ol me-2 text-primary"></i>Rubric Types:</h6>
-                <ul>
-                    <li><strong>Numerical Rubrics:</strong>
-                        <ul>
-                            <li>Point-based scoring system</li>
-                            <li>Customizable quality levels</li>
-                            <li>Weighted criteria evaluation</li>
-                            <li>Automatic total score calculation</li>
-                        </ul>
-                    </li>
-                    <li><strong>Pass/Fail Rubrics:</strong>
-                        <ul>
-                            <li>Binary evaluation system</li>
-                            <li>Simple pass/fail determination</li>
-                            <li>Minimum threshold settings</li>
-                            <li>Quick evaluation process</li>
-                        </ul>
-                    </li>
-                </ul>
-
-                <h6><i class="fas fa-cog me-2 text-primary"></i>Advanced Features:</h6>
-                <ul>
-                    <li><strong>Program Assignment:</strong> Link rubrics to specific academic programs</li>
-                    <li><strong>Individual Evaluation:</strong> Option for individual team member assessment</li>
-                    <li><strong>Flexible Scoring:</strong> Customizable point ranges and quality levels</li>
-                    <li><strong>Real-time Preview:</strong> See rubric layout as you build it</li>
-                </ul>
-
-                <div class="alert alert-warning">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Planning:</strong> Carefully plan your rubric structure before creation, as changing criteria later may affect existing evaluations.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Evaluations Guide Modal -->
-<div class="modal fade" id="evaluationsGuideModal" tabindex="-1" aria-labelledby="evaluationsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="evaluationsGuideModalLabel">
-                    <i class="fas fa-star me-2"></i>Evaluations Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">View and analyze evaluation results with detailed scoring breakdowns and performance analytics.</p>
-                
-                <h6><i class="fas fa-eye me-2 text-primary"></i>View Modes:</h6>
-                <ul>
-                    <li><strong>Evaluator View:</strong> See individual evaluations by each evaluator</li>
-                    <li><strong>Student View:</strong> See aggregated scores and comments for students</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6> 
-                <ol>
-                    <li><strong>Choose View:</strong> Click "Change View" button to switch between perspectives</li>
-                    <li><strong>Evaluator View:</strong>
-                        <ul>
-                            <li>See all evaluations submitted by evaluators</li>
-                            <li>View evaluation dates and scores</li>
-                            <li>Check evaluation completeness</li>
-                            <li>Monitor evaluation progress</li>
-                        </ul>
-                    </li>
-                    <li><strong>Student View:</strong>
-                        <ul>
-                            <li>See aggregated results for each student</li>
-                            <li>View average scores across evaluators</li>
-                            <li>Read compiled feedback comments</li>
-                            <li>Track overall performance</li>
-                        </ul>
-                    </li>
-                    <li><strong>Navigate Results:</strong> Use pagination to browse through all evaluations</li>
-                </ol>
-
-                <h6><i class="fas fa-chart-bar me-2 text-primary"></i>Data Analysis:</h6>
-                <ul>
-                    <li><strong>Score Aggregation:</strong> Automatic calculation of average scores</li>
-                    <li><strong>Performance Tracking:</strong> Monitor student and team performance</li>
-                    <li><strong>Evaluation Coverage:</strong> Check which teams have been evaluated</li>
-                    <li><strong>Quality Assurance:</strong> Identify missing or incomplete evaluations</li>
-                </ul>
-
-                <h6><i class="fas fa-info-circle me-2 text-primary"></i>Understanding Results:</h6>
-                <ul>
-                    <li><strong>Individual Scores:</strong> See specific evaluator ratings</li>
-                    <li><strong>Aggregate Data:</strong> Combined results across all evaluators</li>
-                    <li><strong>Comments & Feedback:</strong> Detailed evaluator comments</li>
-                    <li><strong>Trends & Patterns:</strong> Identify performance trends</li>
-                </ul>
-
-                <div class="alert alert-info">
-                    <i class="fas fa-toggle-on me-2"></i>
-                    <strong>Dual Views:</strong> Switch between views to get both detailed individual evaluations and summary statistics.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Requirements Guide Modal -->
-<div class="modal fade" id="requirementsGuideModal" tabindex="-1" aria-labelledby="requirementsGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="requirementsGuideModalLabel">
-                    <i class="fas fa-tasks me-2"></i>Requirements Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Manage submission requirements, deadlines, and track completion status across all teams.</p>
-                
-                <h6><i class="fas fa-tools me-2 text-primary"></i>Available Actions:</h6>
-                <ul>
-                    <li><strong>Add Requirement:</strong> Create new submission requirements</li>
-                    <li><strong>Edit Requirement:</strong> Modify existing requirements</li>
-                    <li><strong>Delete Requirement:</strong> Remove requirements from the system</li>
-                    <li><strong>Set Deadlines:</strong> Configure submission deadlines</li>
-                    <li><strong>Track Progress:</strong> Monitor completion across teams</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>View Requirements:</strong> Browse all current submission requirements</li>
-                    <li><strong>Create Requirement:</strong> Click "Add Requirement" and enter details:
-                        <ul>
-                            <li>Requirement name and description</li>
-                            <li>Submission deadline</li>
-                            <li>File format specifications</li>
-                            <li>Submission guidelines</li>
-                        </ul>
-                    </li>
-                    <li><strong>Set Deadlines:</strong> Configure submission dates and times</li>
-                    <li><strong>Monitor Status:</strong> Track which teams have completed requirements</li>
-                    <li><strong>Update Requirements:</strong> Modify deadlines or specifications as needed</li>
-                </ol>
-
-                <h6><i class="fas fa-calendar-check me-2 text-primary"></i>Deadline Management:</h6>
-                <ul>
-                    <li><strong>Date & Time:</strong> Set specific submission deadlines</li>
-                    <li><strong>Grace Periods:</strong> Configure late submission policies</li>
-                    <li><strong>Automatic Tracking:</strong> System monitors submission status</li>
-                    <li><strong>Notification System:</strong> Alerts for approaching deadlines</li>
-                </ul>
-
-                <h6><i class="fas fa-check-circle me-2 text-primary"></i>Progress Tracking:</h6>
-                <ul>
-                    <li><strong>Completion Status:</strong> See which teams have submitted</li>
-                    <li><strong>Missing Submissions:</strong> Identify teams that need follow-up</li>
-                    <li><strong>Timeline View:</strong> Visual representation of submission progress</li>
-                    <li><strong>Bulk Status:</strong> Overview of system-wide completion rates</li>
-                </ul>
-
-                <div class="alert alert-warning">
-                    <i class="fas fa-clock me-2"></i>
-                    <strong>Deadlines:</strong> Set realistic deadlines and communicate them clearly to teams to ensure timely submissions.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
-
-<!-- Environment Variables Guide Modal -->
-<div class="modal fade" id="envVariablesGuideModal" tabindex="-1" aria-labelledby="envVariablesGuideModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="envVariablesGuideModalLabel">
-                    <i class="fas fa-cogs me-2"></i>Environment Variables Tab Guide
-                </h5>
-                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-            </div>
-            <div class="modal-body">
-                <p class="lead">Configure system settings, manage website content, and customize display options.</p>
-                
-                <h6><i class="fas fa-list me-2 text-primary"></i>Content Categories:</h6>
-                <ul>
-                    <li><strong>All Content:</strong> Overview of all content management items</li>
-                    <li><strong>System Settings:</strong> Core system configuration variables</li>
-                    <li><strong>Page Content:</strong> Website pages and announcement management</li>
-                </ul>
-
-                <h6><i class="fas fa-step-forward me-2 text-primary"></i>Step-by-step guide:</h6>
-                <ol>
-                    <li><strong>Select Category:</strong> Choose content type from the dropdown</li>
-                    <li><strong>System Settings:</strong>
-                        <ul>
-                            <li>Configure email settings</li>
-                            <li>Set system-wide preferences</li>
-                            <li>Manage authentication settings</li>
-                            <li>Configure notification preferences</li>
-                        </ul>
-                    </li>
-                    <li><strong>Page Content:</strong>
-                        <ul>
-                            <li>Create and edit website pages</li>
-                            <li>Manage announcements</li>
-                            <li>Configure email templates</li>
-                            <li>Set up landing page content</li>
-                        </ul>
-                    </li>
-                    <li><strong>Add/Edit Content:</strong> Use appropriate buttons for content management</li>
-                </ol>
-
-                <h6><i class="fas fa-cog me-2 text-primary"></i>System Settings:</h6>
-                <ul>
-                    <li><strong>Email Configuration:</strong> SMTP settings for system emails</li>
-                    <li><strong>Authentication:</strong> Login and security settings</li>
-                    <li><strong>Default Values:</strong> System-wide default configurations</li>
-                    <li><strong>Feature Toggles:</strong> Enable/disable system features</li>
-                </ul>
-
-                <h6><i class="fas fa-file-alt me-2 text-primary"></i>Page Content Management:</h6>
-                <ul>
-                    <li><strong>Website Pages:</strong> Create and edit static website content</li>
-                    <li><strong>Announcements:</strong> System-wide announcements and notices</li>
-                    <li><strong>Email Templates:</strong> Customizable email templates</li>
-                    <li><strong>Welcome Messages:</strong> Landing page and welcome content</li>
-                </ul>
-
-                <div class="alert alert-danger">
-                    <i class="fas fa-exclamation-triangle me-2"></i>
-                    <strong>Caution:</strong> Be careful when modifying system settings as incorrect configurations can affect system functionality.
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+            if (noResults) noResults.style.display = (visibleCount === 0) ? '' : 'none';
+        });
+    }
+})();
+</script>

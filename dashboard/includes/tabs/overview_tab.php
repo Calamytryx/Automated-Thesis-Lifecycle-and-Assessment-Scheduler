@@ -46,7 +46,7 @@ $totalStaff = $staffCountStmt->fetchColumn();
 
 // Get requirement completion data
 // Fetch all requirements
-$requirementsStmt = $pdo->prepare("SELECT id, name FROM requirements");
+$requirementsStmt = $pdo->prepare("SELECT id, name, due_date FROM requirements");
 $requirementsStmt->execute();
 $requirements = $requirementsStmt->fetchAll(PDO::FETCH_ASSOC);
 
@@ -79,31 +79,47 @@ foreach ($requirements as $requirement) {
     ");
     $teamStatusStmt->execute([$requirement['id']]);
     $teamStatuses = $teamStatusStmt->fetchAll(PDO::FETCH_ASSOC);
-    
+
+    // A requirement is "closed" only once its deadline has passed. Before then, a
+    // team that has not submitted is simply not-yet-due (pending), not "missing".
+    $deadlinePassed = !empty($requirement['due_date'])
+        && strtotime($requirement['due_date']) !== false
+        && strtotime($requirement['due_date']) < time();
+
     $completedTeams = [];
     $pendingTeams = [];
     $missingTeams = [];
-    
+
     foreach ($teamStatuses as $status) {
-        if (isset($status['status']) && in_array($status['status'], ['approved', 'submitted'])) {
+        $teamStatusValue = $status['status'] ?? null;
+
+        if ($teamStatusValue !== null && in_array($teamStatusValue, ['approved', 'submitted'])) {
             $completedTeams[] = ['id' => $status['team_id'], 'name' => $status['team_name']];
-            
+
             // Track that this team completed this requirement
             if (isset($teamCompletion[$status['team_id']])) {
                 $teamCompletion[$status['team_id']]['completed_requirements']++;
                 $teamCompletion[$status['team_id']]['requirements'][$requirement['id']] = 'completed';
             }
-        } elseif (isset($status['status']) && $status['status'] == 'pending') {
+        } elseif ($teamStatusValue === 'pending') {
             $pendingTeams[] = ['id' => $status['team_id'], 'name' => $status['team_name']];
-            
+
             if (isset($teamCompletion[$status['team_id']])) {
                 $teamCompletion[$status['team_id']]['requirements'][$requirement['id']] = 'pending';
             }
-        } else {
+        } elseif ($deadlinePassed) {
+            // No submission AND the deadline has closed -> genuinely missing.
             $missingTeams[] = ['id' => $status['team_id'], 'name' => $status['team_name']];
-            
+
             if (isset($teamCompletion[$status['team_id']])) {
                 $teamCompletion[$status['team_id']]['requirements'][$requirement['id']] = 'missing';
+            }
+        } else {
+            // No submission yet, but the deadline is still open -> not-yet-due.
+            $pendingTeams[] = ['id' => $status['team_id'], 'name' => $status['team_name']];
+
+            if (isset($teamCompletion[$status['team_id']])) {
+                $teamCompletion[$status['team_id']]['requirements'][$requirement['id']] = 'pending';
             }
         }
     }
@@ -282,32 +298,71 @@ $teamRequirementJson = json_encode($teamRequirementDetails);
                             <div class="defense-table-container">
                                 <!-- No padding or shadow here -->
                                     <?php
+                                    // Determine which teams' defenses the current user is allowed to
+                                    // see. Null means "no restriction" (super admin sees everything).
+                                    $calUserId = (int)($_SESSION['id'] ?? -1);
+                                    $calUserType = (int)($_SESSION['usertype'] ?? -1);
+                                    $calIsChair = ($calUserType === 0 && (int)($_SESSION['program_chair'] ?? 0) === 1);
+                                    $calendarTeamIds = null;
+
+                                    if ($calUserType === 0 && !$calIsChair) {
+                                        // Admin (super or institution-wide): every team.
+                                        $calendarTeamIds = null;
+                                    } elseif ($calUserType === 1 || $calUserType === 3) {
+                                        // Student: only the team(s) they belong to.
+                                        $calTeamStmt = $pdo->prepare("SELECT team_id FROM team_members WHERE user_id = ?");
+                                        $calTeamStmt->execute([$calUserId]);
+                                        $calendarTeamIds = array_map('intval', $calTeamStmt->fetchAll(PDO::FETCH_COLUMN));
+                                    } elseif (function_exists('getVisibleTeams')) {
+                                        // Program chair (college-scoped) and faculty (program-scoped).
+                                        $calVisibleTeams = getVisibleTeams($pdo, $calUserId, $calUserType);
+                                        $calendarTeamIds = array_map(static function ($team) {
+                                            return (int)$team['id'];
+                                        }, $calVisibleTeams);
+                                    } else {
+                                        $calendarTeamIds = [];
+                                    }
+
+                                    // Only approved or finalized schedules are surfaced on the calendar.
+                                    $calWhere = "ds.schedule_date >= CURDATE() AND (ds.approval_status = 'approved' OR ds.is_finalized = 1)";
+                                    $calParams = [];
+
+                                    if (is_array($calendarTeamIds)) {
+                                        if (count($calendarTeamIds) === 0) {
+                                            $calWhere .= " AND 1 = 0"; // nothing visible
+                                        } else {
+                                            $calPlaceholders = implode(',', array_fill(0, count($calendarTeamIds), '?'));
+                                            $calWhere .= " AND ds.team_id IN ($calPlaceholders)";
+                                            $calParams = $calendarTeamIds;
+                                        }
+                                    }
+
                                     // Fetch upcoming and today's defenses with team information and research titles
                                     $defensesListStmt = $pdo->prepare("
-                                        SELECT 
-                                            ds.id, 
-                                            ds.schedule_date, 
-                                            ds.start_time, 
-                                            ds.end_time, 
-                                            t.id as team_id, 
+                                        SELECT
+                                            ds.id,
+                                            ds.schedule_date,
+                                            ds.start_time,
+                                            ds.end_time,
+                                            t.id as team_id,
                                             t.name as team_name,
                                             rt.title as research_title,
-                                            CASE 
+                                            CASE
                                                 WHEN ds.schedule_date = CURDATE() AND TIME(NOW()) BETWEEN ds.start_time AND ds.end_time THEN 'ongoing'
                                                 ELSE 'scheduled'
                                             END as status,
-                                            CASE 
+                                            CASE
                                                 WHEN ds.schedule_date = CURDATE() THEN 'today'
                                                 WHEN ds.schedule_date > CURDATE() THEN 'upcoming'
                                             END as date_category
                                         FROM defense_schedules ds
                                         JOIN teams t ON ds.team_id = t.id
                                         LEFT JOIN research_titles rt ON t.id = rt.team_id
-                                        WHERE ds.schedule_date >= CURDATE()
+                                        WHERE $calWhere
                                         ORDER BY ds.schedule_date ASC, ds.start_time ASC
                                         LIMIT 15
                                     ");
-                                    $defensesListStmt->execute();
+                                    $defensesListStmt->execute($calParams);
                                     $defensesList = $defensesListStmt->fetchAll(PDO::FETCH_ASSOC);
                                     ?>
                                       <?php if (count($defensesList) > 0): ?>

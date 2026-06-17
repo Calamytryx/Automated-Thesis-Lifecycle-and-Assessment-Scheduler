@@ -215,28 +215,22 @@ function renderSectionDropdown() {
 function renderProfessorDropdown() {
     const select = $('#profAssignProfSelect');
     const selectedValue = select.val() || '';
-    const assignedProfessorIds = getAssignedProfessorIdSet(currentAssignments);
 
     select.find('option:not(:first)').remove();
 
+    // A single faculty member can handle multiple classes, so we never disable a
+    // professor just because they already have an assignment elsewhere.
     allProfessors.forEach(prof => {
         const professorId = String(prof.id);
         const professorName = `${prof.first_name} ${prof.last_name}`.trim();
         const option = $('<option></option>').val(professorId).text(professorName);
 
-        if (assignedProfessorIds.has(professorId)) {
-            option.prop('disabled', true).text(`${professorName} (Already assigned)`);
-        }
-        if (professorId === selectedValue && !assignedProfessorIds.has(professorId)) {
+        if (professorId === selectedValue) {
             option.prop('selected', true);
         }
 
         select.append(option);
     });
-
-    if (selectedValue && assignedProfessorIds.has(selectedValue)) {
-        select.val('');
-    }
 }
 
 function applyAssignmentConstraints() {
