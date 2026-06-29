@@ -1,6 +1,6 @@
 # ATLAS
 
-Advanced Thesis Logistics and AI System. It's the thesis/defense management system we built for LPU-Cavite, specifically the CoECSA college (Engineering, Computer Studies, Architecture). It handles the whole lifecycle: teams and titles, scheduling defenses without conflicts, running the actual evaluations, and tracking whether a team has its requirements in before they're allowed to defend.
+Advanced Thesis Lifecycle and Assessment Scheduler. It's the thesis/defense management system we built for LPU-Cavite, specifically the CoECSA college (Engineering, Computer Studies, Architecture). It handles the whole lifecycle: teams and titles, scheduling defenses without conflicts, running the actual evaluations, and tracking whether a team has its requirements in before they're allowed to defend.
 
 ## What it actually does
 
